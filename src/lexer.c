@@ -178,10 +178,11 @@ static void skip_comments()
         {
             case '/':
             {
-                c+=2;
+                c+=2; // skip the '//'
                 while(*c != '\n' && *c != '\r')
                     ++c;
-                skip_whitespace();
+                c+=2;
+                get_token();
             } break;
 
             case '*':
@@ -196,7 +197,7 @@ static void skip_comments()
                     ++c;
                 }
                 ++c;
-                skip_whitespace();
+                get_token();
             } break;
         }
     }
