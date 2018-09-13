@@ -1,0 +1,131 @@
+load "includes/opengl.thi"
+load "includes/glew.thi"
+load "includes/glfw.thi"
+load "includes/math.thi"
+
+vec2 :: struct { x: f32 y: f32 }
+vec4 :: struct { x: f32 y: f32 z: f32 w: f32 }
+
+Triangle :: struct { pos: vec2 color: vec4 }
+
+vec2 :: (x: f32, y: f32) -> vec2 { 
+    v: vec2
+    v.x = x
+    v.y = y
+    ret v
+}
+vec4 :: (x: f32, y: f32, z: f32, w: f32) -> vec4 {
+    v: vec4
+    v.x = x
+    v.y = y
+    v.z = z
+    v.w = w
+    ret v
+}
+
+make_triangle :: (pos: vec2, color: vec4) -> Triangle {
+
+    t: Triangle
+    t.pos.x = pos.x
+    t.pos.y = pos.y
+
+    t.color.x = color.x
+    t.color.y = color.y
+    t.color.z = color.z
+    t.color.w = color.w
+
+    ret t
+}
+
+
+draw_triangle :: (t: Triangle) {
+    glBegin(GL_TRIANGLES)
+    glColor3f(t.color.x * 1.0, t.color.y * 0.0, t.color.z * 0.0) 
+    glVertex2f(t.pos.x+ (-0.5), t.pos.y + ( -0.5))
+    glColor3f(t.color.x * 0.0, t.color.y * 1.0, t.color.z * 0.0)
+    glVertex2f(t.pos.x+ (0.0), t.pos.y + ( 0.5))
+    glColor3f(t.color.x * 0.0, t.color.y * 0.0, t.color.z * 1.0)
+    glVertex2f(t.pos.x+ (0.5), t.pos.y + ( -0.5))
+    glEnd()
+}
+
+main :: () -> i32 {
+
+    window_title := "Triangle"
+
+    if !glfwInit() {
+        error_msg := "error initilizing GLFW"
+        print error_msg
+    }
+
+    /*
+        Integers are implicitly cast to integers of different bitwidth.
+        Floats are implicitly cast to floats of different bitwidth.
+    */
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2)
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1)
+    glfwWindowHint(GLFW_DECORATED, 1)
+
+    glfwWindowHint(GLFW_SAMPLES, 4)
+    glfwWindowHint(GLFW_RED_BITS, 8)
+    glfwWindowHint(GLFW_GREEN_BITS, 8)
+    glfwWindowHint(GLFW_BLUE_BITS, 8)
+    glfwWindowHint(GLFW_ALPHA_BITS, 8)
+
+    window := glfwCreateWindow(512, 512, &window_title, 0, 0)
+    glfwMakeContextCurrent(window)
+
+    if glewInit() != GLEW_OK {
+        error_msg := "error initilizing GLEW"
+        print error_msg
+    }
+
+    print window_title
+
+    running := true
+
+    glClearColor(0.01, 0.01, 0.01, 1.0)
+
+    my_triangle := make_triangle(vec2(0.0, 0.0), vec4(1.0, 1.0, 1.0, 1.0))
+
+
+    time := sqrt(glfwGetTime())
+
+    while running {
+
+        my_triangle.color.x = cast(f32)(sqrt(glfwGetTime() * cast(f64)(0.1)))
+        my_triangle.color.y = cast(f32)(sqrt(glfwGetTime() * cast(f64)(0.1)))
+        my_triangle.color.z = cast(f32)(sqrt(glfwGetTime() * cast(f64)(0.1)))
+
+        if glfwWindowShouldClose(window) {
+            running = false
+        }
+        if glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS {
+            running = false
+        }
+
+
+        width: i32
+        height: i32
+        glfwGetFramebufferSize(window, &width, &height)
+        glViewport(0, 0, width, height)
+
+        if glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS  { my_triangle.pos.x += -0.001 }
+        if glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS { my_triangle.pos.x +=  0.001 }
+        if glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS  { my_triangle.pos.y += -0.001 }
+        if glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS    { my_triangle.pos.y +=  0.001 }
+
+        glfwPollEvents()
+
+        glClear(GL_COLOR_BUFFER_BIT)
+
+        draw_triangle(my_triangle)
+
+        glfwSwapBuffers(window)
+    }
+
+    glfwTerminate()
+
+    ret 1
+}

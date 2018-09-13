@@ -1,0 +1,17 @@
+Child :: struct {
+    k: i32
+    a: i32[5]
+}
+
+Parent :: struct {
+    a: i32
+    b: Child
+    f: f32
+}
+
+main :: () -> i32 {
+    a: Parent
+    a.b.a[4] = 1
+    a.a = 1
+    ret a.b.a[4]
+}

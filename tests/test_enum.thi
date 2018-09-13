@@ -1,0 +1,8 @@
+DeviceType :: enum u8 {
+    GPU
+    CPU
+}
+
+main :: () -> i32 {
+    ret 1
+}

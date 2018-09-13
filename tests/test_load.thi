@@ -1,0 +1,4 @@
+load "includes/foo.thi"
+main :: () -> i32 {
+    ret foo(1)
+}

@@ -1,0 +1,10 @@
+
+Foo :: struct {
+    i: i32
+}
+
+main :: () -> i32 {
+    array: Foo[5]
+    array[4].i = 1
+    ret array[4].i
+}

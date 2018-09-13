@@ -1,0 +1,9 @@
+// @depends: function
+
+main :: () -> i32 {
+    ret get_integer(1)
+}
+
+get_integer :: (i: i32) -> i32 {
+    ret i
+}

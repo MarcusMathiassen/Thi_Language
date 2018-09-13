@@ -1,0 +1,11 @@
+// dependencies: 
+// basic_setup
+// variable typedefered
+// if
+main :: () -> i32 {
+    i := 0
+    while i < 4 {
+        i += 1 
+    }
+    ret i - 3
+}

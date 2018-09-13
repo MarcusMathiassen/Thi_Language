@@ -1,0 +1,10 @@
+person :: struct {
+    alder: i32
+}
+
+
+main :: () -> i32 {
+    aylin: person 
+    aylin.alder = 1 
+    ret aylin.alder
+}

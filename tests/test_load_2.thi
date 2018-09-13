@@ -1,0 +1,4 @@
+load "includes/bar.thi"
+main :: () -> i32 {
+    ret bar(1)
+}

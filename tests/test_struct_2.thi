@@ -1,0 +1,16 @@
+bar :: struct {
+    a: i32
+    b: i64
+    c: f32
+}
+
+foo :: struct {
+    a: bar
+    b: bar
+}
+
+main :: () -> i32 {
+    b: bar
+    a: foo
+    ret 1
+}

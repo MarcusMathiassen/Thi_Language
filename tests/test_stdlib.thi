@@ -1,0 +1,8 @@
+foreign putchar :: (i8)
+
+main :: () -> i32 {
+
+    putchar(65)
+
+    ret 1
+}

@@ -1,0 +1,4 @@
+NUMBER :: 1
+main :: () -> i32 {
+    ret NUMBER
+}

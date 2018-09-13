@@ -1,0 +1,4 @@
+main :: ( ) -> i32 {
+    print 3
+    ret 1
+}

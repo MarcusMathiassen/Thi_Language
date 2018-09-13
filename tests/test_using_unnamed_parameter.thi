@@ -1,0 +1,22 @@
+min :: (a: i32, b: i32) -> i32 { ret $1 < $2 ? $1 : $2 }
+// max :: (a: i32, b: i32) -> i32 { ret $1 > $2 ? $1 : $2 }
+
+main :: () -> i32
+{
+    ret min(2, 1)
+}
+
+/*
+    Function signatures can have unnamed parameters.
+    These parameters can be used in the function body by using the dollar sign with a number.
+    The number being the parameters placement in the function signature.
+
+    You can use the dollar sign with named parameters too.
+
+    But how do we parse it?
+
+    Lets add a new token '$'.
+    When found, look for the next token.
+        If it is a number, it is a parameter reference.
+
+*/

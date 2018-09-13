@@ -1,0 +1,13 @@
+Child :: struct {
+    c: i32
+}
+
+Parent :: struct {
+    b: Child
+}
+
+main :: () -> i32 {
+    a: Parent
+    a.b.c = 1
+    ret a.b.c
+}

@@ -1,0 +1,5 @@
+foreign puts :: (i8*)
+
+main :: () -> i32 {
+    ret 1
+}

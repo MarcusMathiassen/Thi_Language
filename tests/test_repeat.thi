@@ -1,0 +1,11 @@
+
+main :: () -> i32 {
+
+    i := 0
+
+    repeat {
+        i += 1
+        break
+    }
+    ret i
+}

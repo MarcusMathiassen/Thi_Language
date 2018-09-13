@@ -1,0 +1,11 @@
+sqrt :: (n: f64) -> f64 {
+    lo: f64 = 0.0
+    hi: f64 = 0.0
+    mi: f64 = 0.0
+    for i: 0 .. 1000 {
+        if mi*mi == n { ret mi }
+        if mi*mi > n { hi = mi }
+        else { lo = mi }
+    }
+    ret mi
+}

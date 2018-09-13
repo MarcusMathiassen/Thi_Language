@@ -1,0 +1,5 @@
+main :: () -> i32 {
+    array: i32[5]
+    array[4] = 1
+    ret array[4]
+}
