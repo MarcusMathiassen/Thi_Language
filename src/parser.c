@@ -69,7 +69,7 @@ static int get_tok_precedence();
 static void add_new_symbol();
 static void eat();
 static void eat_kind(Token_Kind kind);
-static Expr* get_definition();
+static Expr* get_definition(const char* ident);
 static Expr* parse_top_level();
 static Expr* parse_statement();
 static Expr* parse_primary();
@@ -93,11 +93,9 @@ static void skip_function_signature();
 //-----------------
 // Global variables
 //-----------------
-
-static i64 token_index;
-static Token* g_tokens;
-
-static Token prev_tok;
+static Token* g_tokens = NULL;
+static u64 token_index = 0;
+static u64 token_count = 0;
 static Token curr_tok;
 static Token top_tok;
 
@@ -107,21 +105,22 @@ static Token top_tok;
 
 AST** generate_ast_from_tokens(Token* tokens) {
     success("Generating AST from Tokens");
-    g_tokens = tokens;
 
-    Expr** ast = NULL;
+    g_tokens = tokens;
     token_index = 0;
     top_tok.kind = TOKEN_UNKNOWN;
     curr_tok.kind = TOKEN_UNKNOWN;
-    prev_tok.kind = TOKEN_UNKNOWN;
-
+    token_count = sb_count(tokens);
+    info("token_count %d", token_count);
+    eat();
+    
+    Expr** ast = NULL;
     while (!tok_is(TOKEN_EOF)) {
         Expr* stmt = parse_top_level();
         if (stmt) {
             sb_push(ast, stmt);
-        } else {
-            warning("no valid statement found for token: %s", curr_tok.value);
         }
+        print_token(curr_tok);
     }
 
     return ast;
@@ -130,14 +129,14 @@ AST** generate_ast_from_tokens(Token* tokens) {
 void generate_symbol_table_from_tokens(Token* tokens)
 {
     g_tokens = tokens;
-
     token_index = 0;
     top_tok.kind = TOKEN_UNKNOWN;
     curr_tok.kind = TOKEN_UNKNOWN;
-    prev_tok.kind = TOKEN_UNKNOWN;
-    
-    while (!tok_is(TOKEN_EOF)) {
+    token_count = sb_count(tokens)-1;
+    info("token_count %d", token_count);
+    eat();
 
+    while (!tok_is(TOKEN_EOF)) {
         top_tok = curr_tok;
         switch (curr_tok.kind) {
 
@@ -163,21 +162,23 @@ void generate_symbol_table_from_tokens(Token* tokens)
 //                               Private Functions
 //------------------------------------------------------------------------------
 
-static Expr* parse_top_level() {
+static Expr* parse_top_level()
+{
     top_tok = curr_tok;
     switch (curr_tok.kind) {
         case TOKEN_FOREIGN:
             error("MISSING IMPLEENTATI FOR FOREIGN TOP LEVEL");
             // eat();
             // skip_function_signature();
-            break;
-        case TOKEN_IDENTIFIER: return parse_statement(); 
+            // break;
+        case TOKEN_IDENTIFIER: return parse_statement();
+        default: eat();
     }
-    eat();
     return NULL;
 }
 
-static Expr* parse_statement() {
+static Expr* parse_statement()
+{  
     switch (curr_tok.kind)
     {
         case TOKEN_IDENTIFIER:        return parse_expression();
@@ -192,12 +193,12 @@ static Expr* parse_statement() {
         case TOKEN_OPEN_BRACE:        return parse_block();
         case TOKEN_OPEN_PAREN:        return parse_parens();
     }
-    error("unknown token '%s' when expecting a statement",
-          token_kind_to_str(curr_tok.kind));
     return NULL;
 }
 
-static Expr* parse_primary() {
+static Expr* parse_primary()
+{
+    warning("parse_primary: %s",  token_kind_to_str(curr_tok.kind));
     switch (curr_tok.kind)
     {
         case TOKEN_IDENTIFIER:     return parse_identifier();
@@ -216,18 +217,17 @@ static Expr* parse_primary() {
         // case TOKEN_MALLOC:         return parse_malloc();
         // case TOKEN_SIZEOF:         return parse_sizeof();
     }
-
-    error("unknown token '%s' when expecting a primary",
-          token_kind_to_str(curr_tok.kind));
     return NULL;
 }
 
-static Expr* parse_identifier() {
+static Expr* parse_identifier()
+{
+    warning("parse_identifier");
     const char* ident = curr_tok.value;
     eat();
     switch (curr_tok.kind)
     {
-        case TOKEN_COLON_COLON:   return get_definition();
+        case TOKEN_COLON_COLON:   return get_definition(ident);
         // case TOKEN_COLON_EQUAL:   return get_variable_typeinferred();
         // case TOKEN_COLON:         return get_variable_declaration();
         // case TOKEN_OPEN_PAREN:    return get_function_call();
@@ -237,9 +237,11 @@ static Expr* parse_identifier() {
 }
 
 static Expr* parse_block() {
+    warning("parse_block");
     Expr** statements = NULL;
     eat();
-    while (!tok_is(TOKEN_CLOSE_BRACE)) {
+    while (!tok_is(TOKEN_CLOSE_BRACE))
+    {
         Expr* stmt = parse_statement();
         if (stmt) sb_push(statements, stmt);
     }
@@ -248,12 +250,15 @@ static Expr* parse_block() {
 }
 
 static Expr* parse_ret() {
+    warning("parse_ret");
     eat();
+    print_token(curr_tok);
     Expr* exp = parse_expression();
     return make_expr_ret(exp);
 }
 
 static Expr* parse_binary(int expr_prec, Expr* lhs) {
+    warning("parse_binary");
     // If this is a binop, find its precedence.
     while (1) {
         const int tok_prec = get_tok_precedence();
@@ -279,7 +284,7 @@ static Expr* parse_binary(int expr_prec, Expr* lhs) {
             rhs = parse_binary(tok_prec + 1, rhs);
 
             if (!rhs) {
-                warning("parse_binary rhs returned nullptr");
+                warning("parseeee_binary rhs returned nullptr");
                 return NULL;
             }
         }
@@ -290,8 +295,10 @@ static Expr* parse_binary(int expr_prec, Expr* lhs) {
 }
 
 static Expr* parse_unary() {
+    warning("parse_unary");
     if (tok_is(TOKEN_BANG) || tok_is(THI_SYNTAX_POINTER) ||
-        tok_is(TOKEN_MINUS) || tok_is(THI_SYNTAX_ADDRESS)) {
+        tok_is(TOKEN_MINUS) || tok_is(THI_SYNTAX_ADDRESS))
+    {
         Token_Kind op = curr_tok.kind;
         eat();
 
@@ -306,6 +313,8 @@ static Expr* parse_unary() {
 }
 
 static Expr* parse_expression() {
+    warning("parse_expression");
+
     Expr* lhs = parse_unary();
     if (lhs) {
         return parse_binary(0, lhs);
@@ -315,12 +324,14 @@ static Expr* parse_expression() {
 }
 
 static Expr* parse_integer() {
+    warning("parse_integer");
     Expr* res = make_expr_int(atoll(curr_tok.value));
     eat(TOKEN_INTEGER);
     return res;
 }
 
 static Expr* parse_parens() {
+    warning("parse_parens");
     eat_kind(TOKEN_OPEN_PAREN);
     Expr* exp = parse_expression();
     if (!exp) {
@@ -446,8 +457,8 @@ static Type* parse_function_signature(const char* func_name) {
     return make_type_func(func_name, args, ret_type);
 }
 
-static Expr* get_definition() {
-    const char* ident = prev_tok.value;
+static Expr* get_definition(const char* ident) {
+    warning("get_definition");
     eat(TOKEN_COLON_COLON);
     switch (curr_tok.kind)
     {
@@ -467,12 +478,10 @@ static Expr* get_definition() {
         {
             skip_function_signature();
             Expr* body = parse_block();
-
             return make_expr_func(get_symbol(ident), body);
         }
         // default: return get_constant(ident); 
     }
-    return NULL;
 }
 
 static int get_tok_precedence() {
@@ -492,7 +501,9 @@ static int tok_is(Token_Kind kind) {
 }
 
 static void eat() {
-    prev_tok = g_tokens[token_index];
+    info("token_index %d", token_index);
+    print_token(curr_tok);
+    if (token_index > token_count) return;
     curr_tok = g_tokens[token_index++];
 }
 
@@ -594,7 +605,7 @@ static void add_new_symbol()
                 return;
             }
             default: {
-                eat();
+                // eat();
                 // auto expr = parse_expression();
                 // add_constant(new AST_Constant_Variable(ident, expr));
                 return;

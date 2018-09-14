@@ -34,6 +34,7 @@ void add_builtin_type(const char* name, Type* type)
     if (map_set(builtin_type_map, name, type) == MAP_EXISTS)  {
         warning("type redecl: '%s'", name);
     }
+    info("added builtin type: %s", name);
 }
 
 Type* get_builtin_type(const char* name)
@@ -50,6 +51,7 @@ void add_symbol(const char* name, Type* type)
     if (map_set(symbol_map, name, type) == MAP_EXISTS)  {
         warning("symbol redecl: '%s'", name);
     }
+    info("added symbol: %s", name);
 }
 
 Type* get_symbol(const char* name)

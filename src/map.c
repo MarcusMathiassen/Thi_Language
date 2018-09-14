@@ -41,7 +41,7 @@ any_t map_get(Map* map, const char* key) {
     u64 hash_val = hash_it(key);
     for (u64 i = 0; i < map->size; ++i)
         if (map->data[i].key == hash_val)
-            return map->data[i].data; 
+            return map->data[i].data;
 
     return NULL;
 }
