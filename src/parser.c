@@ -64,7 +64,7 @@ static struct { Token_Kind kind; int p; }  binop_precedence[BIN_OP_COUNT] = {
 //                               Parser
 //------------------------------------------------------------------------------
 
-static int tok_is(Token_Kind kind);
+static bool tok_is(Token_Kind kind);
 static int get_tok_precedence();
 static void add_new_symbol();
 static void eat();
@@ -95,7 +95,6 @@ static void skip_function_signature();
 //-----------------
 static Token* g_tokens = NULL;
 static u64 token_index = 0;
-static u64 token_count = 0;
 static Token curr_tok;
 static Token top_tok;
 
@@ -110,8 +109,6 @@ AST** generate_ast_from_tokens(Token* tokens) {
     token_index = 0;
     top_tok.kind = TOKEN_UNKNOWN;
     curr_tok.kind = TOKEN_UNKNOWN;
-    token_count = sb_count(tokens);
-    info("token_count %d", token_count);
     eat();
     
     Expr** ast = NULL;
@@ -132,8 +129,6 @@ void generate_symbol_table_from_tokens(Token* tokens)
     token_index = 0;
     top_tok.kind = TOKEN_UNKNOWN;
     curr_tok.kind = TOKEN_UNKNOWN;
-    token_count = sb_count(tokens)-1;
-    info("token_count %d", token_count);
     eat();
 
     while (!tok_is(TOKEN_EOF)) {
@@ -152,8 +147,6 @@ void generate_symbol_table_from_tokens(Token* tokens)
                 error("TOKEN_LOAD parser not implemented.");
                 // parse_and_add_foreign_function(current_token.value);
             } break;
-
-            default: eat(); break;
         }
     }
 }
@@ -165,15 +158,16 @@ void generate_symbol_table_from_tokens(Token* tokens)
 static Expr* parse_top_level()
 {
     top_tok = curr_tok;
-    switch (curr_tok.kind) {
+    switch (curr_tok.kind)
+    {
         case TOKEN_FOREIGN:
             error("MISSING IMPLEENTATI FOR FOREIGN TOP LEVEL");
             // eat();
             // skip_function_signature();
             // break;
         case TOKEN_IDENTIFIER: return parse_statement();
-        default: eat();
     }
+    
     return NULL;
 }
 
@@ -486,24 +480,28 @@ static Expr* get_definition(const char* ident) {
 
 static int get_tok_precedence() {
     for (int i = 0; i < BIN_OP_COUNT; ++i)
+    {
+
         if (binop_precedence[i].kind == curr_tok.kind)
             if (binop_precedence[i].p <= 0)
                 return -1;
             else
+            {
+                info("token: %s is bin op: %s", curr_tok.value, token_kind_to_str(binop_precedence[i].kind));
                 return binop_precedence[i].p;
-}
-
-static int tok_is(Token_Kind kind) {
-    if (curr_tok.kind == kind) {
-        return 1;
+            }
     }
-    return 0;
 }
 
-static void eat() {
-    info("token_index %d", token_index);
-    print_token(curr_tok);
-    if (token_index > token_count) return;
+static bool tok_is(Token_Kind kind) {
+    if (curr_tok.kind == kind) {
+        return true;
+    }
+    return false;
+}
+
+static void eat()
+{
     curr_tok = g_tokens[token_index++];
 }
 

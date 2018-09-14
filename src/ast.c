@@ -3,6 +3,7 @@
 #include <stdlib.h>           // malloc,
 #include "stretchy_buffer.h"  // sb_push
 #include "utility.h"          // info, success, error, warning
+#include "lexer.h"          // token_kind_to_str,
 
 //------------------------------------------------------------------------------
 //                               ast.c
@@ -25,14 +26,19 @@ void print_expr(Expr* expr) {
         case EXPR_CALL: warning("EXPR_CALL print not implemented"); break;
         case EXPR_VAR_DECL: warning("EXPR_VAR_DECL print not implemented"); break;
         case EXPR_IDENT: info("EXPR_IDENT: %s", expr->Ident.name); break;
-        case EXPR_FUNC: info("EXPR_FUNC: %s", expr->Func.type->Func.name); break;
+
+        case EXPR_FUNC: 
+            info("EXPR_FUNC: %s", expr->Func.type->Func.name);
+            print_type(expr->Func.type);
+            break;
         case EXPR_UNARY: info("EXPR_UNARY: %c", expr->Unary.op); break;
-        case EXPR_BINARY: info("EXPR_BINARY: %c", expr->Binary.op); break;
+        case EXPR_BINARY: info("EXPR_BINARY: %s", token_kind_to_str(expr->Binary.op)); break;
         default: warning("print not implemented");
     }
 }
 
-void print_ast(AST** ast) {
+void print_ast(AST** ast)
+{
     for (int i = 0; i < sb_count(ast); ++i) {
         print_expr(ast[i]);
     }
