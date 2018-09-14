@@ -28,6 +28,7 @@ struct Map {
     Map_Element* data;
 };
 
+void map_tests();
 void map_init(Map* map);
 any_t map_get(Map* map, const char* key);
 int map_set(Map* map, const char* key, any_t value);

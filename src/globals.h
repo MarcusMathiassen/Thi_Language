@@ -5,6 +5,7 @@
 #include "types.h"      // Type
 #include "typedefs.h"
 
+void init_maps();
 bool is_builtin_type(const char* name);
 void add_builtin_type(const char* name, Type* type);
 Type* get_builtin_type(const char* name);

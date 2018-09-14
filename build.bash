@@ -3,7 +3,7 @@ output=./bin/thi
 compiler=gcc
 olvl=
 src=./src/*.c
-flags=-Wall\ -Wextra
+flags=-Wall\ -Wextra\ -Wimplicit-fallthrough
 std=c99
 
 $compiler $src -std=$std $olvl $flags -o $output

@@ -6,8 +6,9 @@
 #include "utility.h"          // get_file_content, success, info, get_time
 #include <string.h>           // strcmp
 #include <assert.h>           // assert
+#include "map.h"              // map
 #include "typedefs.h"        
-#include "globals.h"        
+#include "globals.h"          // init_maps
 
 //------------------------------------------------------------------------------
 //                               Main Driver
@@ -43,6 +44,7 @@ int main(int argc, char** argv) {
     else if (argc > 3)
         error("too many arguments.");
 
+    success("Thi Compiler..");
     const char* source_file = argv[1];
 
     // Make sure it's actually a .thi file
@@ -50,19 +52,16 @@ int main(int argc, char** argv) {
     const char* dir = get_file_dir(source_file);
     const char* name = get_file_name(source_file);
 
-    info(source_file);
-    info("ext: %s", ext);
-    info("dir: %s", dir);
-    info("name: %s", name);
+    // info(source_file);
+    // info("ext: %s", ext);
+    // info("dir: %s", dir);
+    // info("name: %s", name);
 
     if (strcmp(ext, "thi") != 0)
         error("%s is not a .thi file.", source_file);
 
     // Read in the contents of the source file
     char* source = get_file_content(source_file);
-
-    // Printing the source file to stdout
-    info(source);
 
     // Lexing
     push_timer("Lexing");

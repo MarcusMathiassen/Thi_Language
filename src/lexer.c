@@ -1,8 +1,8 @@
 #include "lexer.h"
 
+#include "typedefs.h"
 #include <ctype.h>            // isalnum, isdigit, isspace, isalpha
 #include <string.h>           // strncmp
-#include "typedefs.h"
 #include "stretchy_buffer.h"  // sb_push, sb_count
 #include "utility.h"          // info, success, error, warning
 #include <assert.h>           // assert
@@ -64,8 +64,6 @@ static bool is_valid_identifier();
 
 static int get_keyword_index(const char* identifier);
 static Token_Kind get_identifier_kind(const char* identifier);
-static void handle_double_token(char c1, char c2, Token_Kind kind);
-
 //------------------------------------------------------------------------------
 //                               Keywords
 //------------------------------------------------------------------------------
@@ -93,8 +91,6 @@ typedef enum {
 } Keyword_Kind;
 
 #define KEYWORD_COUNT 19
-
-static const char* keywords[KEYWORD_COUNT];
 static const char* keywords_str[KEYWORD_COUNT] = {
     "foreign",
     "nil",
@@ -137,8 +133,11 @@ Token* generate_tokens_from_source(char* source) {
 
     success("Generating Tokens from Source");
 
+    // 
     Token* tokens = NULL;
 
+    // 'c' represents the current character in the stream.
+    // char* gets set to the start of the stream
     c = source;
 
     // Fill the tokens
@@ -149,7 +148,10 @@ Token* generate_tokens_from_source(char* source) {
     }
 
     // Print some result info
-    info("Lines: %d | Tokens: %d | Uniques: %d", line_count, sb_count(tokens), sb_count(interns));
+    info("Lines: %d | Tokens: %d | Uniques: %d", 
+        line_count, 
+        sb_count(tokens), 
+        sb_count(interns));
 
     // Print all interns (skipping keywords)
     info("Printing Uniques..");
@@ -163,44 +165,40 @@ Token* generate_tokens_from_source(char* source) {
 //                               Private
 //------------------------------------------------------------------------------
 
+const char EOF = '\0';
+
 static void skip_whitespace()
 {
     while (*c == ' ' || *c == '\t' || *c == '\n' || *c == '\r')
-        if (*c++ == '\n')
-            ++line_count;
+    {   
+        if (*c == '\n') ++line_count;
+        ++c;
+    }
+    warning("after skip_whitespace: %c", *c);
+}
+
+static void skip_line()
+{
+    while(*c != '\n' && *c != '\r')
+    {
+        ++c;
+    }
+    warning("after skip_line: %c", *c);
+    ++line_count;
+    if (*c != EOF)
+    {
+        get_token();
+    }
 }
 
 static void skip_comments()
 {
-    if (c[0] == '/')
-    {
-        switch (c[1])
-        {
-            case '/':
-            {
-                c+=2; // skip the '//'
-                while(*c != '\n' && *c != '\r')
-                    ++c;
-                c+=2;
-                get_token();
-            } break;
-
-            case '*':
-            {
-                c+=2; // skip the '/*'
-                int count = 1;
-                while (count)
-                {
-                    if (c[0] == '\n') { ++line_count; ++c; }
-                    if (c[0] == '/' && c[1] == '*') ++count;
-                    if (c[0] == '*' && c[1] == '/') --count;
-                    ++c;
-                }
-                ++c;
-                get_token();
-            } break;
-        }
+    if (*c == '#') {
+        ++c; // skip the '#'
+        skip_line();
     }
+    warning("after skip_comments: %c", *c);
+
 }
 
 static void scan_digit()
@@ -256,13 +254,13 @@ static inline bool is_valid_digit() {
 }
 
 #define CHECK_TRIPLE_TOKEN(c1, c2, c3, t_kind) \
-    if (c[0] == c1 && c[1] == c2 && c[2] == c3) { token.kind = t_kind; c+=3; }
+    if (c[0] == c1 && c[1] == c2 && c[2] == c3) { token.kind = t_kind; c+=2; }
 
 #define CHECK_DOUBLE_TOKEN(c1, c2, t_kind) \
-    if (c[0] == c1 && c[1] == c2) { token.kind = t_kind; c+=2; }
+    if (c[0] == c1 && c[1] == c2) { token.kind = t_kind; ++c; }
 
 #define CASE_SINGLE_TOKEN(c1, t_kind) \
-    case c1: token.kind = t_kind; ++c; break;
+    case c1: token.kind = t_kind; ++c;
 
 static Token get_token()
 {
@@ -272,71 +270,97 @@ static Token get_token()
     token.kind = TOKEN_UNKNOWN;
     token.value = c;
 
-    CHECK_TRIPLE_TOKEN('.', '.', '.', TOKEN_DOT_DOT_DOT);
-    CHECK_TRIPLE_TOKEN('-', '-', '-', TOKEN_MINUS_MINUS_MINUS);
-
-    CHECK_DOUBLE_TOKEN(':', ':', TOKEN_COLON_COLON);
-    CHECK_DOUBLE_TOKEN(':', '=', TOKEN_COLON_EQUAL);
-    CHECK_DOUBLE_TOKEN('-', '>', TOKEN_RIGHT_ARROW);
-    CHECK_DOUBLE_TOKEN('!', '=', TOKEN_BANG_EQUAL);
-    CHECK_DOUBLE_TOKEN('<', '=', TOKEN_LESS_EQUAL);
-    CHECK_DOUBLE_TOKEN('>', '=', TOKEN_GREATER_EQUAL);
-    CHECK_DOUBLE_TOKEN('<', '<', TOKEN_LESS_LESS);
-    CHECK_DOUBLE_TOKEN('>', '>', TOKEN_GREATER_GREATER);
-    CHECK_DOUBLE_TOKEN('+', '+', TOKEN_PLUS_PLUS);
-    CHECK_DOUBLE_TOKEN('-', '-', TOKEN_MINUS_MINUS);
-    CHECK_DOUBLE_TOKEN('+', '=', TOKEN_PLUS_EQUAL);
-    CHECK_DOUBLE_TOKEN('-', '=', TOKEN_MINUS_EQUAL);
-    CHECK_DOUBLE_TOKEN('/', '=', TOKEN_FWSLASH_EQUAL);
-    CHECK_DOUBLE_TOKEN('*', '=', TOKEN_ASTERISK_EQUAL);
-    CHECK_DOUBLE_TOKEN('%', '=', TOKEN_PERCENT_EQUAL);
-    CHECK_DOUBLE_TOKEN('&', '=', TOKEN_AND_EQUAL);
-    CHECK_DOUBLE_TOKEN('^', '=', TOKEN_HAT_EQUAL);
-    CHECK_DOUBLE_TOKEN('|', '=', TOKEN_PIPE_EQUAL);
-    CHECK_DOUBLE_TOKEN('=', '=', TOKEN_EQUAL_EQUAL);
-    CHECK_DOUBLE_TOKEN('.', '.', TOKEN_DOT_DOT);
-    CHECK_DOUBLE_TOKEN('|', '|', TOKEN_PIPE_PIPE);
-    CHECK_DOUBLE_TOKEN('&', '&', TOKEN_AND_AND);
-
     switch (*c)
     {
-        CASE_SINGLE_TOKEN('\0', TOKEN_EOF); 
+        CASE_SINGLE_TOKEN(EOF, TOKEN_EOF); break;
+        CASE_SINGLE_TOKEN('(', TOKEN_OPEN_PAREN); break;
+        CASE_SINGLE_TOKEN(')', TOKEN_CLOSE_PAREN); break;
+        CASE_SINGLE_TOKEN('[', TOKEN_OPEN_BRACKET); break;
+        CASE_SINGLE_TOKEN(']', TOKEN_CLOSE_BRACKET); break;
+        CASE_SINGLE_TOKEN('{', TOKEN_OPEN_BRACE); break;
+        CASE_SINGLE_TOKEN('}', TOKEN_CLOSE_BRACE); break;
+        CASE_SINGLE_TOKEN(',', TOKEN_COMMA); break;
+        CASE_SINGLE_TOKEN('~', TOKEN_TILDE); break;
+        CASE_SINGLE_TOKEN('$', TOKEN_DOLLAR_SIGN); break;
+        CASE_SINGLE_TOKEN('@', TOKEN_AT); break;
+        CASE_SINGLE_TOKEN('^', TOKEN_HAT); break;
+        CASE_SINGLE_TOKEN(';', TOKEN_SEMICOLON);  break;
+        CASE_SINGLE_TOKEN('*', TOKEN_ASTERISK); break;
+        CASE_SINGLE_TOKEN('?', TOKEN_QUESTION_MARK); break;
+        CASE_SINGLE_TOKEN('!', TOKEN_BANG); break;
+        CASE_SINGLE_TOKEN('/', TOKEN_FWSLASH); break;
+        CASE_SINGLE_TOKEN('\\', TOKEN_BWSLASH); break;
 
         CASE_SINGLE_TOKEN('|', TOKEN_PIPE);
-        CASE_SINGLE_TOKEN('~', TOKEN_TILDE); 
-        CASE_SINGLE_TOKEN('$', TOKEN_DOLLAR_SIGN); 
-        CASE_SINGLE_TOKEN('@', TOKEN_AT); 
-        CASE_SINGLE_TOKEN('^', TOKEN_HAT); 
+        switch(*c) {
+            CASE_SINGLE_TOKEN('|', TOKEN_PIPE_PIPE); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_PIPE_EQUAL); break;
+        } break;
+
         CASE_SINGLE_TOKEN('<', TOKEN_LESS);
+        switch(*c) {
+            CASE_SINGLE_TOKEN('<', TOKEN_LESS_LESS); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_LESS_EQUAL); break;
+        } break;
         CASE_SINGLE_TOKEN('>', TOKEN_GREATER);
-        CASE_SINGLE_TOKEN('(', TOKEN_OPEN_PAREN); 
-        CASE_SINGLE_TOKEN(')', TOKEN_CLOSE_PAREN); 
-        CASE_SINGLE_TOKEN('[', TOKEN_OPEN_BRACKET); 
-        CASE_SINGLE_TOKEN(']', TOKEN_CLOSE_BRACKET); 
-        CASE_SINGLE_TOKEN('{', TOKEN_OPEN_BRACE); 
-        CASE_SINGLE_TOKEN('}', TOKEN_CLOSE_BRACE); 
-        CASE_SINGLE_TOKEN(',', TOKEN_COMMA);
+        switch(*c) {
+            CASE_SINGLE_TOKEN('>', TOKEN_GREATER_GREATER); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_GREATER_EQUAL); break;
+        } break;
+
         CASE_SINGLE_TOKEN('.', TOKEN_DOT);
+        switch(*c) {
+            CASE_SINGLE_TOKEN('.', TOKEN_DOT_DOT);
+            switch(*c) {
+                CASE_SINGLE_TOKEN('.', TOKEN_DOT_DOT_DOT); break;
+            } break;
+        } break;
+
         CASE_SINGLE_TOKEN(':', TOKEN_COLON); 
-        CASE_SINGLE_TOKEN(';', TOKEN_SEMICOLON); 
-        CASE_SINGLE_TOKEN('*', TOKEN_ASTERISK); 
+        switch(*c) {
+            CASE_SINGLE_TOKEN(':', TOKEN_COLON_COLON); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_COLON_EQUAL); break;
+        } break;
+
         CASE_SINGLE_TOKEN('-', TOKEN_MINUS);
+        switch(*c) {
+            CASE_SINGLE_TOKEN('-', TOKEN_MINUS_MINUS);
+            switch(*c) {
+                CASE_SINGLE_TOKEN('-', TOKEN_MINUS_MINUS_MINUS); break;
+            } break;
+            CASE_SINGLE_TOKEN('>', TOKEN_RIGHT_ARROW); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_MINUS_EQUAL); break;
+        } break;
+
         CASE_SINGLE_TOKEN('+', TOKEN_PLUS);
-        CASE_SINGLE_TOKEN('%', TOKEN_PERCENT); 
+        switch(*c) {
+            CASE_SINGLE_TOKEN('+', TOKEN_PLUS_PLUS); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_PLUS_EQUAL); break;
+        } break;
+
+        CASE_SINGLE_TOKEN('%', TOKEN_PERCENT);
+        switch(*c) {
+            CASE_SINGLE_TOKEN('=', TOKEN_PERCENT_EQUAL); break;
+        } break;
+
         CASE_SINGLE_TOKEN('&', TOKEN_AND);
-        CASE_SINGLE_TOKEN('?', TOKEN_QUESTION_MARK); 
-        CASE_SINGLE_TOKEN('!', TOKEN_BANG); 
-        CASE_SINGLE_TOKEN('/', TOKEN_FWSLASH); 
-        CASE_SINGLE_TOKEN('\\', TOKEN_BWSLASH); 
-        CASE_SINGLE_TOKEN('#', TOKEN_HASH); 
+        switch(*c) {
+            CASE_SINGLE_TOKEN('&', TOKEN_AND_AND); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_AND_EQUAL); break;
+        } break;
+
         CASE_SINGLE_TOKEN('=', TOKEN_EQUAL);
+        switch(*c) {
+            CASE_SINGLE_TOKEN('=', TOKEN_EQUAL_EQUAL); break;
+        } break;
+
         case '"':
         {
             token.kind = TOKEN_STRING;
             c++;
             token.value = c;
             while (*c != '"') ++c;
-            token.value = str_intern_range(token.value, c++);
+            token.value = str_intern_range(token.value, c);
             return token;
         } break;
         case '0': case '1': case '2': case '3': case '4':
@@ -361,10 +385,15 @@ static Token get_token()
             token.kind = get_identifier_kind(token.value);
             return token;
         } break;
-    }
 
+        case '\n': warning("NEWLINE");
+        default: error("Unhandled token character %c in file", *c);
+    }
+ 
     if (token.kind != TOKEN_EOF)
+    {
         token.value = str_intern_range(token.value, c);
+    }
 
     return token;
 }
@@ -447,12 +476,12 @@ const char* token_kind_to_str(Token_Kind kind) {
         case TOKEN_EQUAL:                  return "=";
         case TOKEN_STRING:                 return "string";
         case TOKEN_INTEGER:                return "integer";
+        case TOKEN_NUMBER:                 return "number";
         case TOKEN_HEX:                    return "hex";
         case TOKEN_FLOAT:                  return "float";
         case TOKEN_MINUS_MINUS_MINUS:      return "---";
         case TOKEN_DOT_DOT_DOT:            return "...";
-
-        default: error("Unhandled token kind.");
     }
-}   
- 
+    error("Unhandled token kind."); 
+    return "TOKEN_UNKNOWN";
+}

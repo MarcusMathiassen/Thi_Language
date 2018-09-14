@@ -41,7 +41,7 @@ Type* get_builtin_type(const char* name)
 {
     Type* type = map_get(builtin_type_map, name);
     if (!type) {
-        error("no type with name '%s'", name); 
+        error("no type with name '%s'", name);
     }
     return type;
 }
@@ -58,7 +58,7 @@ Type* get_symbol(const char* name)
 {
     Type* type = map_get(symbol_map, name);
     if (!type) {
-        error("no symbol with name '%s'", name); 
+        error("no symbol with name '%s'", name);
     }
     return type;
 }

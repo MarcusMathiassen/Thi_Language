@@ -476,21 +476,26 @@ static Expr* get_definition(const char* ident) {
         }
         // default: return get_constant(ident); 
     }
+
+    error("GET DEF RETURNING NULL");
+    return NULL;
 }
 
 static int get_tok_precedence() {
     for (int i = 0; i < BIN_OP_COUNT; ++i)
     {
-
         if (binop_precedence[i].kind == curr_tok.kind)
-            if (binop_precedence[i].p <= 0)
+        {   
+            if (binop_precedence[i].p <= 0) {
                 return -1;
-            else
-            {
+            } else {
                 info("token: %s is bin op: %s", curr_tok.value, token_kind_to_str(binop_precedence[i].kind));
                 return binop_precedence[i].p;
             }
+        }
     }
+    error("GET TOK PREC NO BIN OP FOUND");
+    return -1;
 }
 
 static bool tok_is(Token_Kind kind) {
@@ -579,30 +584,34 @@ static void skip_function_signature() {
 static void add_new_symbol()
 {
     const char*  ident = curr_tok.value;
-
     eat_kind(TOKEN_IDENTIFIER);
-
-    if (tok_is(TOKEN_COLON_COLON)) {
+    if (tok_is(TOKEN_COLON_COLON))
+    {
         eat();
-        switch (curr_tok.kind) {
-            case TOKEN_ENUM: {
+        switch (curr_tok.kind)
+        {
+            case TOKEN_ENUM:
+            {
                 eat();
                 // auto enum_signature = parse_enum_signature(ident);
                 // add_enum(new AST_Enum(enum_signature));
                 return;
             }
-            case TOKEN_STRUCT: {
+            case TOKEN_STRUCT:
+            {
                 Type* type = parse_struct_signature(ident);
                 add_symbol(ident, type);
                 return;
             }
-            case TOKEN_OPEN_PAREN: {
+            case TOKEN_OPEN_PAREN:
+            {
                 Type* type = parse_function_signature(ident);
                 skip_block();
                 add_symbol(ident, type);
                 return;
             }
-            default: {
+            default:
+            {
                 // eat();
                 // auto expr = parse_expression();
                 // add_constant(new AST_Constant_Variable(ident, expr));
