@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 output=./bin/thi
-compiler=gcc
+compiler=clang
 olvl=
 src=./src/*.c
 flags=-Wall\ -Wextra\ -Wimplicit-fallthrough

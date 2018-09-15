@@ -174,7 +174,6 @@ static void skip_whitespace()
         if (*c == '\n') ++line_count;
         ++c;
     }
-    warning("after skip_whitespace: %c", *c);
 }
 
 static void skip_line()
@@ -183,7 +182,6 @@ static void skip_line()
     {
         ++c;
     }
-    warning("after skip_line: %c", *c);
     ++line_count;
     if (*c != EOF)
     {
@@ -197,7 +195,6 @@ static void skip_comments()
         ++c; // skip the '#'
         skip_line();
     }
-    warning("after skip_comments: %c", *c);
 
 }
 

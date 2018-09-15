@@ -117,7 +117,6 @@ AST** generate_ast_from_tokens(Token* tokens) {
         if (stmt) {
             sb_push(ast, stmt);
         }
-        print_token(curr_tok);
     }
 
     return ast;
@@ -192,7 +191,6 @@ static Expr* parse_statement()
 
 static Expr* parse_primary()
 {
-    warning("parse_primary: %s",  token_kind_to_str(curr_tok.kind));
     switch (curr_tok.kind)
     {
         case TOKEN_IDENTIFIER:     return parse_identifier();
@@ -216,7 +214,6 @@ static Expr* parse_primary()
 
 static Expr* parse_identifier()
 {
-    warning("parse_identifier");
     const char* ident = curr_tok.value;
     eat();
     switch (curr_tok.kind)
@@ -231,7 +228,6 @@ static Expr* parse_identifier()
 }
 
 static Expr* parse_block() {
-    warning("parse_block");
     Expr** statements = NULL;
     eat();
     while (!tok_is(TOKEN_CLOSE_BRACE))
@@ -244,15 +240,12 @@ static Expr* parse_block() {
 }
 
 static Expr* parse_ret() {
-    warning("parse_ret");
     eat();
-    print_token(curr_tok);
     Expr* exp = parse_expression();
     return make_expr_ret(exp);
 }
 
 static Expr* parse_binary(int expr_prec, Expr* lhs) {
-    warning("parse_binary");
     // If this is a binop, find its precedence.
     while (1) {
         const int tok_prec = get_tok_precedence();
@@ -268,7 +261,6 @@ static Expr* parse_binary(int expr_prec, Expr* lhs) {
         // Parser the unary expression after the binary operator.
         Expr* rhs = parse_unary();
         if (!rhs) {
-            warning("parse_binary rhs returned nullptr");
             return NULL;
         }
         // If BinOp binds less tightly with rhs than the operator after rhs, let
@@ -278,7 +270,6 @@ static Expr* parse_binary(int expr_prec, Expr* lhs) {
             rhs = parse_binary(tok_prec + 1, rhs);
 
             if (!rhs) {
-                warning("parseeee_binary rhs returned nullptr");
                 return NULL;
             }
         }
@@ -289,7 +280,6 @@ static Expr* parse_binary(int expr_prec, Expr* lhs) {
 }
 
 static Expr* parse_unary() {
-    warning("parse_unary");
     if (tok_is(TOKEN_BANG) || tok_is(THI_SYNTAX_POINTER) ||
         tok_is(TOKEN_MINUS) || tok_is(THI_SYNTAX_ADDRESS))
     {
@@ -307,29 +297,24 @@ static Expr* parse_unary() {
 }
 
 static Expr* parse_expression() {
-    warning("parse_expression");
 
     Expr* lhs = parse_unary();
     if (lhs) {
         return parse_binary(0, lhs);
     }
-    warning("parse_unary returned NULL");
     return NULL;
 }
 
 static Expr* parse_integer() {
-    warning("parse_integer");
     Expr* res = make_expr_int(atoll(curr_tok.value));
     eat(TOKEN_INTEGER);
     return res;
 }
 
 static Expr* parse_parens() {
-    warning("parse_parens");
     eat_kind(TOKEN_OPEN_PAREN);
     Expr* exp = parse_expression();
     if (!exp) {
-        warning("parse_parens returned nullptr");
         return NULL;
     }
     eat_kind(TOKEN_CLOSE_PAREN);
@@ -452,7 +437,6 @@ static Type* parse_function_signature(const char* func_name) {
 }
 
 static Expr* get_definition(const char* ident) {
-    warning("get_definition");
     eat(TOKEN_COLON_COLON);
     switch (curr_tok.kind)
     {
@@ -482,8 +466,6 @@ static Expr* get_definition(const char* ident) {
 }
 
 static int get_tok_precedence() {
-    warning("get_tok_precedence");
-    print_token(curr_tok); 
     for (int i = 0; i < BIN_OP_COUNT; ++i)
     {
         if (binop_precedence[i].kind == curr_tok.kind)
@@ -497,7 +479,6 @@ static int get_tok_precedence() {
         }
     }
     return -1;
-    error("GET TOK PREC NO BIN OP FOUND");
 }
 
 static bool tok_is(Token_Kind kind) {

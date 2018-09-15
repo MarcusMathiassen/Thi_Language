@@ -52,10 +52,10 @@ int main(int argc, char** argv) {
     const char* dir = get_file_dir(source_file);
     const char* name = get_file_name(source_file);
 
-    // info(source_file);
-    // info("ext: %s", ext);
-    // info("dir: %s", dir);
-    // info("name: %s", name);
+    info(source_file);
+    info("ext: %s", ext);
+    info("dir: %s", dir);
+    info("name: %s", name);
 
     if (strcmp(ext, "thi") != 0)
         error("%s is not a .thi file.", source_file);

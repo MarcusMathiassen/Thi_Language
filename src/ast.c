@@ -14,26 +14,60 @@ static Expr* alloc_expr();
 //                               Public
 //------------------------------------------------------------------------------
 
-void print_expr(Expr* expr) {
-    switch (expr->kind) {
-        case EXPR_NONE: warning("EXPR_NONE print not implemented"); break;
-        case EXPR_INT: info("EXPR_INT: %lld", expr->Int.val); break;
-        case EXPR_FLOAT: info("EXPR_FLOAT: %f", expr->Float.val); break;
-        case EXPR_WHILE: warning("EXPR_WHILE print not implemented"); break;
-        case EXPR_FOR: warning("EXPR_FOR print not implemented"); break;
-        case EXPR_IF: warning("EXPR_IF print not implemented"); break;
-        case EXPR_COMPOUND: warning("EXPR_COMPOUND print not implemented"); break;
-        case EXPR_CALL: warning("EXPR_CALL print not implemented"); break;
-        case EXPR_VAR_DECL: warning("EXPR_VAR_DECL print not implemented"); break;
-        case EXPR_IDENT: info("EXPR_IDENT: %s", expr->Ident.name); break;
+const char* expr_kind_to_str(Expr_Kind kind)
+{
+    switch (kind)
+    {
+        case EXPR_NONE: return "EXPR_NONE";
+        case EXPR_INT: return "EXPR_INT";
+        case EXPR_FLOAT: return "EXPR_FLOAT";
+        case EXPR_IDENT: return "EXPR_IDENT";
+        case EXPR_CALL: return "EXPR_CALL";
+        case EXPR_UNARY: return "EXPR_UNARY";
+        case EXPR_BINARY: return "EXPR_BINARY";
+        case EXPR_COMPOUND: return "EXPR_COMPOUND";
+        case EXPR_RET: return "EXPR_RET";
+        case EXPR_VAR_DECL: return "EXPR_VAR_DECL";
+        case EXPR_FUNC: return "EXPR_FUNC";
+        case EXPR_IF: return "EXPR_IF";
+        case EXPR_FOR: return "EXPR_FOR";
+        case EXPR_BLOCK: return "EXPR_BLOCK";
+        case EXPR_WHILE: return "EXPR_WHILE";
+        case EXPR_GROUPING: return "EXPR_GROUPING";
+        default: return "print not implemented";
+    }
+}
 
+void print_expr(Expr* expr)
+{
+    info(expr_kind_to_str(expr->kind));
+    switch (expr->kind)
+    {
+        case EXPR_NONE: warning("EXPR_NONE not print implemented."); break;
+
+        case EXPR_INT: info("%lld", expr->Int.val); break;
+        case EXPR_FLOAT: info("%f", expr->Float.val); break;
+        case EXPR_IDENT: info("%s", expr->Ident.name); break;
+        case EXPR_CALL: warning("EXPR_CALL not print implemented."); break;
+        case EXPR_UNARY: info("%c", expr->Unary.op); break;
+        case EXPR_BINARY: info("%s", token_kind_to_str(expr->Binary.op)); break;
+        case EXPR_COMPOUND: warning("EXPR_COMPOUND not print implemented."); break;
+        case EXPR_RET: print_expr(expr->Ret.expr); break;
+        case EXPR_VAR_DECL: warning("EXPR_VAR_DECL not print implemented."); break;
         case EXPR_FUNC: 
-            info("EXPR_FUNC: %s", expr->Func.type->Func.name);
             print_type(expr->Func.type);
+            print_expr(expr->Func.body);
+            break;        case EXPR_IF: warning("EXPR_IF not print implemented."); break;
+        case EXPR_FOR: warning("EXPR_FOR not print implemented."); break;
+        case EXPR_BLOCK:
+            for (int i = 0; i < sb_count(expr->Block.stmts); ++i)
+            {
+                print_expr(expr->Block.stmts[i]);   
+            }
             break;
-        case EXPR_UNARY: info("EXPR_UNARY: %c", expr->Unary.op); break;
-        case EXPR_BINARY: info("EXPR_BINARY: %s", token_kind_to_str(expr->Binary.op)); break;
-        default: warning("print not implemented");
+        case EXPR_WHILE: warning("EXPR_WHILE not print implemented."); break;
+        case EXPR_GROUPING: warning("EXPR_GROUPING not print implemented."); break;
+        default: warning("print not implemented %s", expr_kind_to_str(expr->kind));
     }
 }
 

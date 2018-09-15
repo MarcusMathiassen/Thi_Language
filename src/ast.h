@@ -14,6 +14,7 @@ typedef enum Expr_Kind Expr_Kind;
 typedef enum Stmt_Kind Stmt_Kind;
 typedef enum Decl_Kind Decl_Kind;
 
+const char* expr_kind_to_str(Expr_Kind kind);
 void print_expr(Expr* expr);
 void print_ast(AST** ast);
 
@@ -43,9 +44,9 @@ enum Stmt_Kind {
     STMT_VAR_DECL,
 };
 
-enum Expr_Kind {
+enum Expr_Kind
+{
     EXPR_NONE,
-
     EXPR_INT,
     EXPR_FLOAT,
     EXPR_IDENT,
@@ -53,7 +54,6 @@ enum Expr_Kind {
     EXPR_UNARY,
     EXPR_BINARY,
     EXPR_COMPOUND,
-
     EXPR_RET,
     EXPR_VAR_DECL,
     EXPR_FUNC,
@@ -68,11 +68,11 @@ enum Expr_Kind {
 //                          AST Expression Structures                    
 //------------------------------------------------------------------------------
 
-struct Expr {
-
+struct Expr
+{
     Expr_Kind kind;
-
-    union {
+    union
+    {
         struct { Expr* expr;                                } Grouping;
         struct { Expr** stmts;                              } Block;
         struct { Expr* expr;                                } Ret;
