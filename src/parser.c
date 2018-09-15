@@ -482,6 +482,8 @@ static Expr* get_definition(const char* ident) {
 }
 
 static int get_tok_precedence() {
+    warning("get_tok_precedence");
+    print_token(curr_tok); 
     for (int i = 0; i < BIN_OP_COUNT; ++i)
     {
         if (binop_precedence[i].kind == curr_tok.kind)
@@ -494,8 +496,8 @@ static int get_tok_precedence() {
             }
         }
     }
-    error("GET TOK PREC NO BIN OP FOUND");
     return -1;
+    error("GET TOK PREC NO BIN OP FOUND");
 }
 
 static bool tok_is(Token_Kind kind) {
