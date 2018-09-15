@@ -90,13 +90,32 @@ int main(int argc, char** argv) {
     push_timer("Generating X64 Assembly");
     char* output = generate_code_from_ast(ast);
     pop_timer();
-    if (output) info(output);
+    // if (output) info(output);
 
     // Write to file
     if (output) {
         const char* output_filename = "output.asm";
         write_to_file(output_filename, output);
     }
+
+    // Linking
+    push_timer("Linking");
+    #define name           "out"
+    #define format         "macho64"
+    #define compiler       "nasm"
+    #define src            "output.asm"
+    #define flags          " -g "
+    #define linker         "ld"
+    #define linker_options "-macosx_version_min 10.14 -lSystem" // -lc";
+    #define compiler_call  compiler " -f "  format  flags  src  " -o "  name  ".o"
+    #define linker_call    linker  " "  linker_options  " -o "  name  " "  name  ".o -e main"
+
+    system("cat output.asm");
+    system(compiler_call);
+    system(linker_call);
+    #define dd "rm " name ".o"
+    system(dd);
+    pop_timer();
 
     // Debug info. Writing out sizes of our types.
     info("size of Token: %lu bytes", sizeof(Token));

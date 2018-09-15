@@ -1,7 +1,5 @@
 global main
-
 section .text
-
 main:
-  MOV EAX, 1
-  RET
+MOV RAX, 1
+RET

@@ -23,7 +23,7 @@ thi_executable=./bin/thi
 
 for tf in $test_files
 do
-    name="test_${test_counter}"
+    name="out"
     ((test_counter++))
 
     # Compile the file
