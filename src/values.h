@@ -21,6 +21,11 @@ typedef struct CodeBlock
     char** lines;
 } CodeBlock;
 
+//------------------------------------------------------------------------------
+//                          Value Structures                    
+//------------------------------------------------------------------------------
+
+
 struct Value
 {
     Value_Kind kind;
@@ -28,17 +33,8 @@ struct Value
     union
     {
         struct { u8 bytes; u64 value; } Int;
-        struct
-        {
-            const char* name;
-            Value* blocks;
-        } Function;
-        struct
-        { 
-            Value* parent_function;
-            const char* name;
-            CodeBlock* lines;
-        } Block;
+        struct { const char* name; Value* blocks; } Function;
+        struct { Value* parent_function; const char* name; CodeBlock* lines; } Block;
     };
 };
 

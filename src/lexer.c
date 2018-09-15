@@ -200,15 +200,25 @@ static void skip_comments()
 
 static void scan_digit()
 {
+
+    bool is_hex = false;
+    bool is_float = false;
+
     // Number: [0-9._]+e[0-9]+
     if (isdigit(*c))
     {
         while (is_valid_digit())
         {
             if (!is_valid_digit()) break;
+            if (*c == 'x') is_hex = true;
+            if (*c == '.') is_float = true;
             ++c;
         }
     }
+    
+    token.kind = TOKEN_INTEGER;
+    if (is_hex) token.kind = TOKEN_HEX;
+    if (is_float) token.kind = TOKEN_FLOAT;
 }
 
 static int get_keyword_index(const char* identifier) {
@@ -364,7 +374,6 @@ static Token get_token()
         case '5': case '6': case '7': case '8': case '9':
         {
             scan_digit();
-            token.kind = TOKEN_INTEGER;
         } break;
         case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g':
         case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':

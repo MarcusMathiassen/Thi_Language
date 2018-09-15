@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 output=./bin/thi
 compiler=clang
-olvl=
+olvl=-O3
 src=./src/*.c
 flags=-Wall\ -Wextra\ -Wimplicit-fallthrough
 std=c99
@@ -10,7 +10,7 @@ $compiler $src -std=$std $olvl $flags -o $output
 
 if [ $? == 0 ]; then
     ./test.bash ./tests/test_basic_setup.thi
-    # ./test.bash ./tests/test_hex.thi
+    ./test.bash ./tests/test_hex.thi
     # ./test.bash ./tests/test_float.thi
     # ./test.bash ./tests/test_math.thi
     # ./test.bash ./tests/test_macro_definition.thi

@@ -40,7 +40,7 @@ static void codegen_function(Expr* expr)
 
     Arg* args = expr->Func.type->Func.args;
     int arg_count = sb_count(args);
-    info("Printing function parameters");
+    if (arg_count) info("Printing function parameters");
     for (int i = 0; i < arg_count; ++i)
     {
         Arg arg = args[i];
@@ -87,6 +87,7 @@ static void codegen_ret(Expr* expr)
 
 static Value codegen_expr(Expr* expr)
 {
+    info("Generating code for: %s", expr_kind_to_str(expr->kind));
     switch (expr->kind)
     {
         case EXPR_INT:      return codegen_int(expr); break;
@@ -104,7 +105,7 @@ static Value codegen_expr(Expr* expr)
         case EXPR_BLOCK:    codegen_block(expr); break;
         case EXPR_WHILE:    error("EXPR_WHILE codegen not implemented");
         case EXPR_GROUPING: error("EXPR_GROUPING codegen not implemented");
-
+        
         default:            error("unknown kind codegen not implemented");
     }
 

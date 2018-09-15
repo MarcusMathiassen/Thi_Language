@@ -90,6 +90,10 @@ static void skip_enum_signature();
 static void skip_struct_signature();
 static void skip_function_signature();
 
+static i64 get_integer();
+static f64 get_float();
+static Type* get_type();
+
 //-----------------
 // Global variables
 //-----------------
@@ -195,7 +199,7 @@ static Expr* parse_primary()
     {
         case TOKEN_IDENTIFIER:     return parse_identifier();
         // case TOKEN_DOLLAR_SIGN:    return parse_note();
-        // case TOKEN_HEX:            return parse_hex();
+        case TOKEN_HEX: // fallthroughs
         case TOKEN_INTEGER:        return parse_integer();
         // case TOKEN_FLOATING_POINT: return parse_float();
         // case TOKEN_STRING:         return parse_string();
@@ -306,8 +310,7 @@ static Expr* parse_expression() {
 }
 
 static Expr* parse_integer() {
-    Expr* res = make_expr_int(atoll(curr_tok.value));
-    eat(TOKEN_INTEGER);
+    Expr* res = make_expr_int(get_integer());
     return res;
 }
 
@@ -446,12 +449,12 @@ static Expr* get_definition(const char* ident) {
         //     skip_enum_signature();
         //     return get_symbol(ident);
         // }
-        // case TOKEN_STRUCT:
-        // {
-        //     eat();
-        //     skip_struct_signature();
-        //     return get_symbol(ident);
-        // }
+        case TOKEN_STRUCT:
+        {
+            eat();
+            skip_struct_signature();
+            return get_symbol(ident);
+        }
         case TOKEN_OPEN_PAREN:
         {
             skip_function_signature();

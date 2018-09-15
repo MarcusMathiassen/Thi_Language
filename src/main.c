@@ -7,6 +7,7 @@
 #include <string.h>           // strcmp
 #include <assert.h>           // assert
 #include "map.h"              // map
+#include "values.h"           // Value
 #include "typedefs.h"        
 #include "globals.h"          // init_maps
 
@@ -122,6 +123,7 @@ int main(int argc, char** argv) {
     info("size of AST: %lu bytes", sizeof(AST));
     info("size of Expr: %lu bytes", sizeof(Expr));
     info("size of Type: %lu bytes", sizeof(Type));
+    info("size of Value: %lu bytes", sizeof(Value));
 
     // Cleanup
     if (tokens) sb_free(tokens);
