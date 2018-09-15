@@ -12,7 +12,7 @@ if [ ${#test_file} == 0 ]; then
     echo -e "${GRAY} [DEBUG] ${NC}${RED}MISSING INPUT FILE${NC}"
 fi
 
-thi_executable=thi
+thi_executable=./bin/thi
 
 
 # Compile the file

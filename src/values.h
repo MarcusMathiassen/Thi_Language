@@ -11,8 +11,7 @@ typedef enum Value_Kind Value_Kind;
 enum Value_Kind
 {
     VALUE_INT,
-    VALUE_RET,
-    VALUE_FUNC,
+    VALUE_FUNCTION,
     VALUE_BLOCK,
 };
 
@@ -28,16 +27,24 @@ struct Value
     Type* type;
     union
     {
-        struct { } Int;
-        struct { } Ret;
-        struct { } Func;
+        struct { u8 bytes; u64 value; } Int;
+        struct
+        {
+            const char* name;
+            Value* blocks;
+        } Function;
         struct
         { 
+            Value* parent_function;
             const char* name;
             CodeBlock* lines;
         } Block;
     };
 };
+
+Value make_value_int(u8 bytes, u64 value);
+Value make_value_function(const char* name);
+Value make_value_block(Value* function, const char* name);
 
 void emit(char* output, const char* fmt, ...);
 void debug_push_new_instr_group(const char* desc);

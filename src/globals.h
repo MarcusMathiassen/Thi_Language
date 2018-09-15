@@ -5,6 +5,8 @@
 #include "types.h"      // Type
 #include "typedefs.h"
 
+#define DEFAULT_INTEGER_BIT_SIZE 32
+
 void init_maps();
 bool is_builtin_type(const char* name);
 void add_builtin_type(const char* name, Type* type);

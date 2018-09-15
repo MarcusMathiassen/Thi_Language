@@ -14,8 +14,22 @@
 //                               Public
 //------------------------------------------------------------------------------
 
-u64 get_size_of_type(Type* type) {
-    error("get_size_of_type not impl.");
+u64 get_size_of_type(Type* type)
+{
+    switch (type->kind)
+    {
+        case TYPE_INT: return type->Int.bits / 8;
+        case TYPE_FUNC:
+        {
+            u64 accum_size = 0;
+            for (int i = 0; i < sb_count(type->Func.args); ++i)
+            {
+                accum_size += get_size_of_type(type->Func.args[i].type);
+            }
+            return accum_size;
+        }
+        default: error("not implemented kind %d", type->kind);
+    }
     return 0;
 }
 

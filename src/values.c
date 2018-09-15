@@ -1,5 +1,5 @@
 #include "values.h"
-#include "utility.h" // error
+#include "utility.h" // error, xmallox
 #include <stdarg.h>  // va_list, va_start, va_end
 #include <string.h>  // strncat,
 #include <stdio.h>  // strncat,
@@ -28,7 +28,7 @@ void emit(char* output, const char* fmt, ...)
 
     u64 output_len = strlen(output);
     u64 buffer_len = strlen(buffer);
-    
+
     u64 new_len = output_len + buffer_len + 1;
 
     output = xrealloc(output, new_len);
@@ -36,4 +36,35 @@ void emit(char* output, const char* fmt, ...)
 
     output[new_len-1] = '\n';
     output[new_len] = 0;
+}
+
+Value make_value_int(u8 bytes, u64 value)
+{
+    Value temp;
+    temp.kind = VALUE_INT;
+    temp.type = NULL;
+    temp.Int.bytes = bytes;
+    temp.Int.value = value;
+    return temp;
+}
+
+Value make_value_function(const char* name)
+{
+    Value temp;
+    temp.kind = VALUE_FUNCTION;
+    temp.type = NULL;
+    temp.Function.name = name;
+    temp.Function.blocks = NULL;
+    return temp;
+}
+
+Value make_value_block(Value* function, const char* name)
+{
+    Value temp;
+    temp.kind = VALUE_BLOCK;
+    temp.type = NULL;
+    temp.Block.parent_function = function;
+    temp.Block.name = name;
+    temp.Block.lines = NULL;
+    return temp;
 }
