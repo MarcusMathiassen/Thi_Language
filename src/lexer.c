@@ -215,7 +215,7 @@ static void scan_digit()
             ++c;
         }
     }
-    
+
     token.kind = TOKEN_INTEGER;
     if (is_hex) token.kind = TOKEN_HEX;
     if (is_float) token.kind = TOKEN_FLOAT;
@@ -301,18 +301,18 @@ static Token get_token()
         CASE_SINGLE_TOKEN('|', TOKEN_PIPE);
         switch(*c) {
             CASE_SINGLE_TOKEN('|', TOKEN_PIPE_PIPE); break;
-            CASE_SINGLE_TOKEN('=', TOKEN_PIPE_EQUAL); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_PIPE_EQ); break;
         } break;
 
-        CASE_SINGLE_TOKEN('<', TOKEN_LESS);
+        CASE_SINGLE_TOKEN('<', TOKEN_LT);
         switch(*c) {
-            CASE_SINGLE_TOKEN('<', TOKEN_LESS_LESS); break;
-            CASE_SINGLE_TOKEN('=', TOKEN_LESS_EQUAL); break;
+            CASE_SINGLE_TOKEN('<', TOKEN_LT_LT); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_LT_EQ); break;
         } break;
-        CASE_SINGLE_TOKEN('>', TOKEN_GREATER);
+        CASE_SINGLE_TOKEN('>', TOKEN_GT);
         switch(*c) {
-            CASE_SINGLE_TOKEN('>', TOKEN_GREATER_GREATER); break;
-            CASE_SINGLE_TOKEN('=', TOKEN_GREATER_EQUAL); break;
+            CASE_SINGLE_TOKEN('>', TOKEN_GT_GT); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_GT_EQ); break;
         } break;
 
         CASE_SINGLE_TOKEN('.', TOKEN_DOT);
@@ -326,7 +326,7 @@ static Token get_token()
         CASE_SINGLE_TOKEN(':', TOKEN_COLON); 
         switch(*c) {
             CASE_SINGLE_TOKEN(':', TOKEN_COLON_COLON); break;
-            CASE_SINGLE_TOKEN('=', TOKEN_COLON_EQUAL); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_COLON_EQ); break;
         } break;
 
         CASE_SINGLE_TOKEN('-', TOKEN_MINUS);
@@ -336,29 +336,29 @@ static Token get_token()
                 CASE_SINGLE_TOKEN('-', TOKEN_MINUS_MINUS_MINUS); break;
             } break;
             CASE_SINGLE_TOKEN('>', TOKEN_RIGHT_ARROW); break;
-            CASE_SINGLE_TOKEN('=', TOKEN_MINUS_EQUAL); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_MINUS_EQ); break;
         } break;
 
         CASE_SINGLE_TOKEN('+', TOKEN_PLUS);
         switch(*c) {
             CASE_SINGLE_TOKEN('+', TOKEN_PLUS_PLUS); break;
-            CASE_SINGLE_TOKEN('=', TOKEN_PLUS_EQUAL); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_PLUS_EQ); break;
         } break;
 
         CASE_SINGLE_TOKEN('%', TOKEN_PERCENT);
         switch(*c) {
-            CASE_SINGLE_TOKEN('=', TOKEN_PERCENT_EQUAL); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_PERCENT_EQ); break;
         } break;
 
         CASE_SINGLE_TOKEN('&', TOKEN_AND);
         switch(*c) {
             CASE_SINGLE_TOKEN('&', TOKEN_AND_AND); break;
-            CASE_SINGLE_TOKEN('=', TOKEN_AND_EQUAL); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_AND_EQ); break;
         } break;
 
-        CASE_SINGLE_TOKEN('=', TOKEN_EQUAL);
+        CASE_SINGLE_TOKEN('=', TOKEN_EQ);
         switch(*c) {
-            CASE_SINGLE_TOKEN('=', TOKEN_EQUAL_EQUAL); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_EQ_EQ); break;
         } break;
 
         case '"':
@@ -430,22 +430,22 @@ const char* token_kind_to_str(Token_Kind kind) {
         case TOKEN_CONTINUE:               return "continue";
         case TOKEN_PIPE_PIPE:              return "||";
         case TOKEN_AND_AND:                return "&&";
-        case TOKEN_PLUS_EQUAL:             return "+=";
-        case TOKEN_MINUS_EQUAL:            return "-=";
-        case TOKEN_FWSLASH_EQUAL:          return "/=";
-        case TOKEN_HAT_EQUAL:              return "^=";
-        case TOKEN_ASTERISK_EQUAL:         return "*=";
-        case TOKEN_PIPE_EQUAL:             return "|=";
-        case TOKEN_PERCENT_EQUAL:          return "%=";
-        case TOKEN_AND_EQUAL:              return "&=";
+        case TOKEN_PLUS_EQ:             return "+=";
+        case TOKEN_MINUS_EQ:            return "-=";
+        case TOKEN_FWSLASH_EQ:          return "/=";
+        case TOKEN_HAT_EQ:              return "^=";
+        case TOKEN_ASTERISK_EQ:         return "*=";
+        case TOKEN_PIPE_EQ:             return "|=";
+        case TOKEN_PERCENT_EQ:          return "%=";
+        case TOKEN_AND_EQ:              return "&=";
         case TOKEN_PLUS_PLUS:              return "++";
         case TOKEN_MINUS_MINUS:            return "--";
         case TOKEN_BITWISE_LEFTSHIFT:      return "<<=";
         case TOKEN_BITWISE_RIGHTSHIFT:     return ">>=";
-        case TOKEN_EQUAL_EQUAL:            return "==";
-        case TOKEN_BANG_EQUAL:             return "!=";
+        case TOKEN_EQ_EQ:            return "==";
+        case TOKEN_BANG_EQ:             return "!=";
         case TOKEN_COLON_COLON:            return "::";
-        case TOKEN_COLON_EQUAL:            return ":=";
+        case TOKEN_COLON_EQ:            return ":=";
         case TOKEN_RIGHT_ARROW:            return "->";
         case TOKEN_PIPE:                   return "|";
         case TOKEN_TILDE:                  return "~";
@@ -454,12 +454,12 @@ const char* token_kind_to_str(Token_Kind kind) {
         case TOKEN_HAT:                    return "^";
         case TOKEN_BANG:                   return "!";
         case TOKEN_AND:                    return "&";
-        case TOKEN_LESS_EQUAL:             return "<=";
-        case TOKEN_LESS_LESS:              return "<<";
-        case TOKEN_LESS:                   return "<";
-        case TOKEN_GREATER:                return ">";
-        case TOKEN_GREATER_GREATER:        return ">>";
-        case TOKEN_GREATER_EQUAL:          return ">=";
+        case TOKEN_LT_EQ:                  return "<=";
+        case TOKEN_LT_LT:                  return "<<";
+        case TOKEN_LT:                     return "<";
+        case TOKEN_GT:                     return ">";
+        case TOKEN_GT_GT:                  return ">>";
+        case TOKEN_GT_EQ:                  return ">=";
         case TOKEN_OPEN_PAREN:             return "(";
         case TOKEN_CLOSE_PAREN:            return ")";
         case TOKEN_OPEN_BRACKET:           return "[";
@@ -479,7 +479,7 @@ const char* token_kind_to_str(Token_Kind kind) {
         case TOKEN_FWSLASH:                return "/";
         case TOKEN_BWSLASH:                return "\\";
         case TOKEN_HASH:                   return "#";
-        case TOKEN_EQUAL:                  return "=";
+        case TOKEN_EQ:                  return "=";
         case TOKEN_STRING:                 return "string";
         case TOKEN_INTEGER:                return "integer";
         case TOKEN_NUMBER:                 return "number";

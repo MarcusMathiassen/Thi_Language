@@ -48,7 +48,7 @@ Value make_value_int(u8 bytes, u64 value)
 {
     Value temp;
     temp.kind = VALUE_INT;
-    temp.type = NULL;
+    temp.type = 0;
     temp.Int.bytes = bytes;
     temp.Int.value = value;
     return temp;

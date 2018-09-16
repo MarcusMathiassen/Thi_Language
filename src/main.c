@@ -21,6 +21,15 @@ int main(int argc, char** argv) {
 
     push_timer("Total time");
 
+    // Argument validation
+    if (argc < 2)
+        error("too few arguments.");
+    else if (argc > 3)
+        error("too many arguments.");
+
+    const char* source_file = argv[1];
+    success("Compiling %s", source_file);
+
     run_all_tests();
 
     init_maps();
@@ -39,24 +48,15 @@ int main(int argc, char** argv) {
     add_builtin_type("f32", make_type_float(32));
     add_builtin_type("f64", make_type_float(64));
 
-    // Argument validation
-    if (argc < 2)
-        error("too few arguments.");
-    else if (argc > 3)
-        error("too many arguments.");
-
-    success("Thi Compiler..");
-    const char* source_file = argv[1];
-
     // Make sure it's actually a .thi file
     const char* ext = get_file_ext(source_file);
     const char* dir = get_file_dir(source_file);
     const char* name = get_file_name(source_file);
 
-    info(source_file);
-    info("ext: %s", ext);
-    info("dir: %s", dir);
-    info("name: %s", name);
+    // info(source_file);
+    // info("ext: %s", ext);
+    // info("dir: %s", dir);
+    // info("name: %s", name);
 
     if (strcmp(ext, "thi") != 0)
         error("%s is not a .thi file.", source_file);
@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
     success("Building Symbol Table");
     generate_symbol_table_from_tokens(tokens);
     pop_timer();
-    print_symbol_map();
+    // print_symbol_map();
 
     // Parsing
     push_timer("Building AST");
@@ -97,25 +97,34 @@ int main(int argc, char** argv) {
     if (output) {
         const char* output_filename = "output.asm";
         write_to_file(output_filename, output);
-    }
+    } else error("generating code from ast failed.");
 
     // Linking
     push_timer("Linking");
-    #define name           "out"
+    const char* exec_name = argv[2];
     #define format         "macho64"
     #define compiler       "nasm"
     #define src            "output.asm"
     #define flags          " -g "
     #define linker         "ld"
     #define linker_options "-macosx_version_min 10.14 -lSystem" // -lc";
-    #define compiler_call  compiler " -f "  format  flags  src  " -o "  name  ".o"
-    #define linker_call    linker  " "  linker_options  " -o "  name  " "  name  ".o -e main"
+
+    #define compiler_call  compiler " -f "  format  flags  src  " -o "
+    #define linker_call    linker  " "  linker_options  " -o " 
+
+    char comp_call[256];
+    char link_call[256];
+    sprintf(comp_call, compiler_call "%s.o", exec_name);
+    sprintf(link_call, linker_call "%s %s.o -e main", exec_name, exec_name);
 
     system("cat output.asm");
-    system(compiler_call);
-    system(linker_call);
-    #define dd "rm " name ".o"
-    system(dd);
+    system(comp_call);
+    system(link_call);
+    
+    char rm_call[256];
+    sprintf(rm_call, "rm %s.o", exec_name);
+    system(rm_call);
+    system("rm output.asm");
     pop_timer();
 
     // Debug info. Writing out sizes of our types.

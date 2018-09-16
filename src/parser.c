@@ -26,13 +26,13 @@ static struct { Token_Kind kind; int p; }  binop_precedence[BIN_OP_COUNT] = {
     { TOKEN_MINUS,  70 }, // -
     { TOKEN_PLUS,   70 }, // +
 
-    { TOKEN_LESS,           60 }, // <
-    { TOKEN_GREATER,        60 }, // >
-    { TOKEN_GREATER_EQUAL,  60 }, // >=
-    { TOKEN_LESS_EQUAL,     60 }, // <=
+    { TOKEN_LT,           60 }, // <
+    { TOKEN_GT,           60 }, // >
+    { TOKEN_GT_EQ,        60 }, // >=
+    { TOKEN_LT_EQ,        60 }, // <=
 
-    { TOKEN_EQUAL_EQUAL,  50 }, // ==
-    { TOKEN_BANG_EQUAL,   50 }, // !=
+    { TOKEN_EQ_EQ,  50 }, // ==
+    { TOKEN_BANG_EQ,   50 }, // !=
 
     { TOKEN_AND_AND,    48 }, // &&
     { TOKEN_PIPE_PIPE,  47 }, // ||
@@ -42,15 +42,15 @@ static struct { Token_Kind kind; int p; }  binop_precedence[BIN_OP_COUNT] = {
     { TOKEN_HAT,       30 }, // ^
     { TOKEN_PIPE,      20 }, // |
 
-    { TOKEN_EQUAL,           10 }, // =
-    { TOKEN_PLUS_EQUAL,      10 }, // +=
-    { TOKEN_MINUS_EQUAL,     10 }, // -=
-    { TOKEN_ASTERISK_EQUAL,  10 }, // *=
-    { TOKEN_FWSLASH_EQUAL,   10 }, // /=
-    { TOKEN_PERCENT_EQUAL,   10 }, // %=
-    { TOKEN_AND_EQUAL,       10 }, // &=
-    { TOKEN_HAT_EQUAL,       10 }, // ^=
-    { TOKEN_PIPE_EQUAL,      10 }, // |=
+    { TOKEN_EQ,           10 }, // =
+    { TOKEN_PLUS_EQ,      10 }, // +=
+    { TOKEN_MINUS_EQ,     10 }, // -=
+    { TOKEN_ASTERISK_EQ,  10 }, // *=
+    { TOKEN_FWSLASH_EQ,   10 }, // /=
+    { TOKEN_PERCENT_EQ,   10 }, // %=
+    { TOKEN_AND_EQ,       10 }, // &=
+    { TOKEN_HAT_EQ,       10 }, // ^=
+    { TOKEN_PIPE_EQ,      10 }, // |=
 
     { TOKEN_BITWISE_LEFTSHIFT,   10 }, // <<=
     { TOKEN_BITWISE_RIGHTSHIFT,  10 }, // >>=
@@ -228,7 +228,7 @@ static Expr* parse_identifier()
     switch (curr_tok.kind)
     {
         case TOKEN_COLON_COLON:   return get_definition(ident);
-        // case TOKEN_COLON_EQUAL:   return get_variable_typeinferred();
+        // case TOKEN_COLON_EQ:   return get_variable_typeinferred();
         // case TOKEN_COLON:         return get_variable_declaration();
         // case TOKEN_OPEN_PAREN:    return get_function_call();
         // case TOKEN_OPEN_BRACKET:  return get_subscript_access();
