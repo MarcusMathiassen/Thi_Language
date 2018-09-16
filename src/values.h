@@ -25,7 +25,6 @@ typedef struct CodeBlock
 //                          Value Structures                    
 //------------------------------------------------------------------------------
 
-
 struct Value
 {
     Value_Kind kind;
@@ -44,6 +43,6 @@ Value make_value_block(Value* function, const char* name);
 
 void emit(char* output, const char* fmt, ...);
 void debug_push_new_instr_group(const char* desc);
-int get_size_of_value(Value* value);
+int get_size_of_value(Value value);
 
 #endif

@@ -2,6 +2,7 @@
 #define AST_H
 
 #include "types.h"
+#include "lexer.h" // Token_Kind
 
 //------------------------------------------------------------------------------
 //                               ast.h
@@ -64,8 +65,8 @@ struct Expr
         struct { f64 val;                                   } Float;
         struct { Type*  type; Expr* body;                   } Func;
         struct { const char* name;                          } Ident;
-        struct { char op; Expr* operand;                    } Unary;
-        struct { char op; Expr* lhs; Expr* rhs;             } Binary;
+        struct { Token_Kind op; Expr* operand;              } Unary;
+        struct { Token_Kind op; Expr* lhs; Expr* rhs;       } Binary;
         struct { const char* name; Type* type; Expr* value; } Variable_Decl;
     };
 };

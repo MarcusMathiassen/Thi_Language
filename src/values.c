@@ -5,9 +5,15 @@
 #include <stdio.h>  // strncat,
 #include "stretchy_buffer.h"  // sb_push
 
-int get_size_of_value(Value* value)
+int get_size_of_value(Value value)
 {
-    error("get_size_of_value not implemented");
+    switch (value.kind)
+    {
+        case VALUE_INT: return value.Int.bytes;
+        case VALUE_FUNCTION: error("Asking for the size of a function? Why?");
+        case VALUE_BLOCK: error("Asking for the size of a function? Why?");
+    }
+    error("get_size_of_value no valid size found");
     return 0;
 }
 

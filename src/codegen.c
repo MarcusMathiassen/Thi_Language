@@ -2,6 +2,7 @@
 #include "typedefs.h"
 #include "ast.h"
 #include "typedefs.h"
+#include "lexer.h" // token_kind_to_str
 #include "globals.h"
 #include "utility.h" // error warning info, etc
 #include "values.h" // Value
@@ -194,13 +195,13 @@ int stack_index = 0;
 
 static Value codegen_expr(Expr* expr);
 
-static void emit_load(Value* value)
+static void emit_load(Value value)
 {
-    // const char* reg = get_eax_reg(value->get_size())
-    // switch (value->kind)
-    // {
-    //     case VALUE_INTEGER_LITERAL: emit("MOV %s, %d", reg, value->Int.value;
-    // }
+    int reg_n = get_rax_reg_of_byte_size(get_size_of_value(value));
+    switch (value.kind)
+    {
+        case VALUE_INT: emit(output, "MOV %s, %d", reg[reg_n], value.Int.value);
+    }
 }
 
 static void codegen_function(Expr* expr)
@@ -246,10 +247,9 @@ static Value codegen_ident(Expr* expr)
 
 static Value codegen_int(Expr* expr)
 {
-    u64 value = expr->Int.val;
-    int reg_num = get_rax_reg_of_byte_size(DEFAULT_INTEGER_BYTE_SIZE);
-    emit(output, "MOV %s, %llu", reg[reg_num], value);
-    return make_value_int(DEFAULT_INTEGER_BIT_SIZE, value);
+    Value val = make_value_int(DEFAULT_INTEGER_BYTE_SIZE, expr->Int.val);
+    emit_load(val);
+    return val;
 }
 
 static void codegen_block(Expr* expr)
@@ -260,6 +260,34 @@ static void codegen_block(Expr* expr)
     {
         codegen_expr(stmts[i]);
     }
+}
+static Value codegen_unary(Expr* expr)
+{
+    Token_Kind op = expr->Unary.op;
+    Expr* operand = expr->Unary.operand;
+
+    Value operand_val = codegen_expr(operand);
+    int reg_n = get_rax_reg_of_byte_size(get_size_of_value(operand_val));
+    Value result = operand_val;
+
+    switch (op)
+    {
+        case THI_SYNTAX_ADDRESS: error("AST_Unary '*' not implemented"); break;
+        case THI_SYNTAX_POINTER: error("AST_Unary '&' not implemented"); break;
+        case TOKEN_BANG:
+        {
+            emit(output, "CMP %s, 0", reg[reg_n]);
+            emit(output, "SETE AL");
+            break; 
+        }
+        case TOKEN_MINUS:
+        {
+            emit(output, "NEG %s", reg[reg_n]);
+            break;
+        }
+        default: error("unhandled unary case: %c", token_kind_to_str(op)); break;
+    }
+    return result;
 }
 static void codegen_ret(Expr* expr)
 {
@@ -273,11 +301,11 @@ static Value codegen_expr(Expr* expr)
     info("Generating code for: %s", expr_kind_to_str(expr->kind));
     switch (expr->kind)
     {
-        case EXPR_INT:      return codegen_int(expr); break;
+        case EXPR_INT:      return codegen_int(expr);
         case EXPR_FLOAT:    error("EXPR_FLOAT codegen not implemented");
-        case EXPR_IDENT:    return codegen_ident(expr); break;
+        case EXPR_IDENT:    return codegen_ident(expr);
         case EXPR_CALL:     error("EXPR_CALL codegen not implemented");
-        case EXPR_UNARY:    error("EXPR_UNARY codegen not implemented");
+        case EXPR_UNARY:    return codegen_unary(expr);
         case EXPR_BINARY:   error("EXPR_BINARY codegen not implemented");
         case EXPR_COMPOUND: error("EXPR_COMPOUND codegen not implemented");
         case EXPR_RET:      codegen_ret(expr); break;
@@ -288,10 +316,7 @@ static Value codegen_expr(Expr* expr)
         case EXPR_BLOCK:    codegen_block(expr); break;
         case EXPR_WHILE:    error("EXPR_WHILE codegen not implemented");
         case EXPR_GROUPING: error("EXPR_GROUPING codegen not implemented");
-
-        default:            error("unknown kind codegen not implemented");
     }
-
     Value t;
     return t;
 }
