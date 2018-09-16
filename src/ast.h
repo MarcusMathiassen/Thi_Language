@@ -11,13 +11,12 @@ typedef struct Expr Expr;
 typedef struct Expr AST;
 
 typedef enum Expr_Kind Expr_Kind;
-typedef enum Stmt_Kind Stmt_Kind;
-typedef enum Decl_Kind Decl_Kind;
 
 const char* expr_kind_to_str(Expr_Kind kind);
 void print_expr(Expr* expr);
 void print_ast(AST** ast);
 
+Expr* make_expr_note(Expr* expr);
 Expr* make_expr_int(int value);
 Expr* make_expr_float(float value);
 Expr* make_expr_ident(const char* ident);
@@ -28,25 +27,9 @@ Expr* make_expr_block(Expr** stmts);
 Expr* make_expr_ret(Expr* expr);
 Expr* make_expr_grouping(Expr* expr);
 
-enum Decl_Kind {
-    DECL_NONE,
-    DECL_VAR,
-    DECL_FUNC,
-};
-
-enum Stmt_Kind {
-    STMT_NONE,
-
-    STMT_RET,
-    STMT_IF,
-    STMT_FOR,
-    STMT_WHILE,
-    STMT_VAR_DECL,
-};
-
 enum Expr_Kind
 {
-    EXPR_NONE,
+    EXPR_NOTE,
     EXPR_INT,
     EXPR_FLOAT,
     EXPR_IDENT,
@@ -73,6 +56,7 @@ struct Expr
     Expr_Kind kind;
     union
     {
+        struct { Expr* expr;                                } Note;
         struct { Expr* expr;                                } Grouping;
         struct { Expr** stmts;                              } Block;
         struct { Expr* expr;                                } Ret;

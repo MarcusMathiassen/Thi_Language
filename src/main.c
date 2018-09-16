@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
     push_timer("Lexing");
     Token* tokens = generate_tokens_from_source(source);
     pop_timer();
-    if (tokens) print_tokens(tokens);
+    // if (tokens) print_tokens(tokens);
 
     // we can free the source
     free(source);

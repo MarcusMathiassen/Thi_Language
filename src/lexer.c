@@ -154,9 +154,9 @@ Token* generate_tokens_from_source(char* source) {
         sb_count(interns));
 
     // Print all interns (skipping keywords)
-    info("Printing Uniques..");
-    for (int i = 0; i < sb_count(interns); ++i)
-        info("%s", interns[i].str);
+    // info("Printing Uniques..");
+    // for (int i = 0; i < sb_count(interns); ++i)
+    //     info("%s", interns[i].str);
 
     return tokens;
 }

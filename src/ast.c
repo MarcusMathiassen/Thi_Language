@@ -18,7 +18,7 @@ const char* expr_kind_to_str(Expr_Kind kind)
 {
     switch (kind)
     {
-        case EXPR_NONE: return "EXPR_NONE";
+        case EXPR_NOTE: return "EXPR_NOTE";
         case EXPR_INT: return "EXPR_INT";
         case EXPR_FLOAT: return "EXPR_FLOAT";
         case EXPR_IDENT: return "EXPR_IDENT";
@@ -34,8 +34,8 @@ const char* expr_kind_to_str(Expr_Kind kind)
         case EXPR_BLOCK: return "EXPR_BLOCK";
         case EXPR_WHILE: return "EXPR_WHILE";
         case EXPR_GROUPING: return "EXPR_GROUPING";
-        default: return "print not implemented";
     }
+    return "print not implemented";
 }
 
 void print_expr(Expr* expr)
@@ -43,32 +43,32 @@ void print_expr(Expr* expr)
     info(expr_kind_to_str(expr->kind));
     switch (expr->kind)
     {
-        case EXPR_NONE: warning("EXPR_NONE not print implemented."); break;
-
-        case EXPR_INT: info("%lld", expr->Int.val); break;
-        case EXPR_FLOAT: info("%f", expr->Float.val); break;
-        case EXPR_IDENT: info("%s", expr->Ident.name); break;
-        case EXPR_CALL: warning("EXPR_CALL not print implemented."); break;
-        case EXPR_UNARY: info("%c", expr->Unary.op); break;
-        case EXPR_BINARY: info("%s", token_kind_to_str(expr->Binary.op)); break;
-        case EXPR_COMPOUND: warning("EXPR_COMPOUND not print implemented."); break;
-        case EXPR_RET: print_expr(expr->Ret.expr); break;
-        case EXPR_VAR_DECL: warning("EXPR_VAR_DECL not print implemented."); break;
+        case EXPR_NOTE: print_expr(expr->Note.expr); return;
+        case EXPR_INT: info("%lld", expr->Int.val); return;
+        case EXPR_FLOAT: info("%f", expr->Float.val); return;
+        case EXPR_IDENT: info("%s", expr->Ident.name); return;
+        case EXPR_CALL: warning("EXPR_CALL not print implemented."); return;
+        case EXPR_UNARY: info("%c", expr->Unary.op); return;
+        case EXPR_BINARY: info("%s", token_kind_to_str(expr->Binary.op)); return;
+        case EXPR_COMPOUND: warning("EXPR_COMPOUND not print implemented."); return;
+        case EXPR_RET: print_expr(expr->Ret.expr); return;
+        case EXPR_VAR_DECL: warning("EXPR_VAR_DECL not print implemented."); return;
         case EXPR_FUNC: 
             print_type(expr->Func.type);
             print_expr(expr->Func.body);
-            break;        case EXPR_IF: warning("EXPR_IF not print implemented."); break;
-        case EXPR_FOR: warning("EXPR_FOR not print implemented."); break;
+            return;        
+        case EXPR_IF: warning("EXPR_IF not print implemented."); return;
+        case EXPR_FOR: warning("EXPR_FOR not print implemented."); return;
         case EXPR_BLOCK:
             for (int i = 0; i < sb_count(expr->Block.stmts); ++i)
             {
                 print_expr(expr->Block.stmts[i]);   
             }
-            break;
-        case EXPR_WHILE: warning("EXPR_WHILE not print implemented."); break;
-        case EXPR_GROUPING: warning("EXPR_GROUPING not print implemented."); break;
-        default: warning("print not implemented %s", expr_kind_to_str(expr->kind));
+            return;
+        case EXPR_WHILE: warning("EXPR_WHILE not print implemented."); return;
+        case EXPR_GROUPING: warning("EXPR_GROUPING not print implemented."); return;
     }
+    warning("print not implemented %s", expr_kind_to_str(expr->kind));
 }
 
 void print_ast(AST** ast)
@@ -82,28 +82,40 @@ void print_ast(AST** ast)
 //                               Expr Maker Functions
 //------------------------------------------------------------------------------
 
-Expr* make_expr_int(int value) {
+Expr* make_expr_note(Expr* expr)
+{
+    Expr* temp = alloc_expr();
+    temp->kind = EXPR_NOTE;
+    temp->Note.expr = expr;
+    return temp;
+}
+Expr* make_expr_int(int value)
+{
     Expr* temp = alloc_expr();
     temp->kind = EXPR_INT;
     temp->Int.val = value;
     return temp;
 }
 
-Expr* make_expr_float(float value) {
+Expr* make_expr_float(float value)
+{
     Expr* temp = alloc_expr();
     temp->kind = EXPR_FLOAT;
     temp->Float.val = value;
     return temp;
 }
 
-Expr* make_expr_ident(const char* ident) {
+Expr* make_expr_ident(const char* ident)
+{
     Expr* temp = alloc_expr();
     temp->kind = EXPR_IDENT;
     temp->Ident.name = ident;
     return temp;
 }
 
-Expr* make_expr_func(Type* func_t, Expr* body) {
+Expr* make_expr_func(Type* func_t, Expr* body)
+
+{
     Expr* temp = alloc_expr();
     temp->kind = EXPR_FUNC;
     temp->Func.type = func_t;
@@ -111,7 +123,8 @@ Expr* make_expr_func(Type* func_t, Expr* body) {
     return temp;
 }
 
-Expr* make_expr_binary(char op, Expr* lhs, Expr* rhs) {
+Expr* make_expr_binary(char op, Expr* lhs, Expr* rhs)
+{
     Expr* temp = alloc_expr();
     temp->kind = EXPR_BINARY;
     temp->Binary.op = op;
@@ -120,7 +133,8 @@ Expr* make_expr_binary(char op, Expr* lhs, Expr* rhs) {
     return temp;
 }
 
-Expr* make_expr_unary(char op, Expr* operand) {
+Expr* make_expr_unary(char op, Expr* operand)
+{
     Expr* temp = alloc_expr();
     temp->kind = EXPR_UNARY;
     temp->Unary.op = op;
@@ -128,20 +142,24 @@ Expr* make_expr_unary(char op, Expr* operand) {
     return temp;
 }
 
-Expr* make_expr_block(Expr** stmts) {
+Expr* make_expr_block(Expr** stmts)
+{
     Expr* temp = alloc_expr();
     temp->kind = EXPR_BLOCK;
     temp->Block.stmts = stmts;
     return temp;
 }
 
-Expr* make_expr_grouping(Expr* expr) {
+Expr* make_expr_grouping(Expr* expr)
+{
     Expr* temp = alloc_expr();
     temp->kind = EXPR_GROUPING;
     temp->Grouping.expr = expr;
     return temp;
 }
-Expr* make_expr_ret(Expr* expr) {
+
+Expr* make_expr_ret(Expr* expr)
+{
     Expr* temp = alloc_expr();
     temp->kind = EXPR_RET;
     temp->Ret.expr = expr;
@@ -152,7 +170,8 @@ Expr* make_expr_ret(Expr* expr) {
 //                               Private
 //------------------------------------------------------------------------------
 
-static Expr* alloc_expr() {
+static Expr* alloc_expr()
+{
     Expr* temp = (Expr*)malloc(sizeof(Expr));
     if (!temp) error("Out of memory trying to allocate expression.");
     return temp;

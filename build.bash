@@ -9,8 +9,8 @@ std=c99
 $compiler $src -std=$std $olvl $flags -o $output
 
 if [ $? == 0 ]; then
-    ./test.bash ./tests/test_basic_setup.thi
-    ./test.bash ./tests/test_hex.thi
+    ./test.bash ./tests/test_basic_setup.thi ./tests/test_hex.thi
+    # ./test.bash ./tests/test_using_unnamed_parameter.thi
     # ./test.bash ./tests/test_float.thi
     # ./test.bash ./tests/test_math.thi
     # ./test.bash ./tests/test_macro_definition.thi
@@ -18,7 +18,6 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_logical_or.thi
     # ./test.bash ./tests/test_for.thi
     # ./test.bash ./tests/test_ternary.thi
-    # ./test.bash ./tests/test_using_unnamed_parameter.thi
     # ./test.bash ./tests/test_function_call.thi
     # ./test.bash ./tests/test_float.thi
     # ./test.bash ./tests/test_struct.thi

@@ -76,6 +76,7 @@ static Expr* parse_primary();
 static Expr* parse_identifier();
 static Expr* parse_block();
 static Expr* parse_ret();
+static Expr* parse_note();
 static Expr* parse_expression();
 static Expr* parse_unary();
 static Expr* parse_binary(int expr_prec, Expr* lhs);
@@ -198,10 +199,14 @@ static Expr* parse_primary()
     switch (curr_tok.kind)
     {
         case TOKEN_IDENTIFIER:     return parse_identifier();
-        // case TOKEN_DOLLAR_SIGN:    return parse_note();
-        case TOKEN_HEX: // fallthroughs
+        case TOKEN_DOLLAR_SIGN:    return parse_note();
+
+
+        case TOKEN_HEX: // fallthrough
         case TOKEN_INTEGER:        return parse_integer();
         // case TOKEN_FLOATING_POINT: return parse_float();
+
+
         // case TOKEN_STRING:         return parse_string();
         case TOKEN_OPEN_PAREN:     return parse_parens();
         case TOKEN_OPEN_BRACE:     return parse_block();
@@ -299,6 +304,20 @@ static Expr* parse_unary() {
     // If the current token is not an operator, it must be a primary expression.
     return parse_primary();
 }
+
+static Expr* parse_note()
+{
+    eat();
+    Expr* expr = NULL;
+    switch (curr_tok.kind)
+    {
+        case TOKEN_HEX: expr = parse_integer(); break;
+        case TOKEN_INTEGER: expr = parse_integer(); break;
+        default: error("unknown token when expecting a note");
+    }
+    return make_expr_note(expr);
+}
+
 
 static Expr* parse_expression() {
 
@@ -470,17 +489,8 @@ static Expr* get_definition(const char* ident) {
 
 static int get_tok_precedence() {
     for (int i = 0; i < BIN_OP_COUNT; ++i)
-    {
         if (binop_precedence[i].kind == curr_tok.kind)
-        {   
-            if (binop_precedence[i].p <= 0) {
-                return -1;
-            } else {
-                info("token: %s is bin op: %s", curr_tok.value, token_kind_to_str(binop_precedence[i].kind));
-                return binop_precedence[i].p;
-            }
-        }
-    }
+            return binop_precedence[i].p;
     return -1;
 }
 
