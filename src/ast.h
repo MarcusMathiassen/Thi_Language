@@ -13,6 +13,7 @@ typedef struct Expr AST;
 
 typedef enum Expr_Kind Expr_Kind;
 
+char* expr_to_str(char* str, Expr* expr);
 const char* expr_kind_to_str(Expr_Kind kind);
 void print_expr(Expr* expr);
 void print_ast(AST** ast);

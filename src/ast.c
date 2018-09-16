@@ -38,6 +38,58 @@ const char* expr_kind_to_str(Expr_Kind kind)
     return "print not implemented";
 }
 
+char* expr_to_str(char* str, Expr* expr)
+{
+    char* buffer = xmalloc(1000);
+
+    switch (expr->kind)
+    {
+        case EXPR_INT: sprintf(buffer, "%llu", expr->Int.val); break;
+        case EXPR_UNARY: 
+        {
+            sprintf(buffer, "%s%s",
+            token_kind_to_str(expr->Unary.op),
+            expr_to_str(buffer, expr->Unary.operand));
+        } break;
+        case EXPR_BINARY: 
+        {
+            sprintf(buffer, "%s %s %s",
+                expr_to_str(buffer, expr->Binary.lhs), 
+                token_kind_to_str(expr->Binary.op),
+                expr_to_str(buffer, expr->Binary.rhs));
+        } break;
+        case EXPR_RET: 
+            sprintf(buffer, "ret %s", expr_to_str(buffer, expr->Ret.expr));
+            break;
+        case EXPR_FUNC: 
+        {
+            sprintf(buffer, "%s :: () ", expr->Func.type->Func.name);
+            expr_to_str(buffer, expr->Func.body);
+        } break;
+        case EXPR_BLOCK:
+        {
+            for (int i = 0; i < sb_count(expr->Block.stmts); ++i)
+            {
+                expr_to_str(buffer, expr->Block.stmts[i]);
+            }
+            sprintf(buffer, "{\n  %s\n}");
+        } break;
+        case EXPR_GROUPING:
+        {
+            sprintf(buffer, "%s", expr_to_str(buffer, expr->Grouping.expr));
+        } break;
+    }
+
+    u64 str_len = strlen(str);
+    u64 buffer_len = strlen(buffer);
+    u64 new_len = str_len + buffer_len;
+    str = xrealloc(str, new_len);
+    strncat(str, buffer, buffer_len);
+
+    return buffer;
+}
+
+
 void print_expr(Expr* expr)
 {
     info(expr_kind_to_str(expr->kind));
@@ -73,8 +125,13 @@ void print_expr(Expr* expr)
 
 void print_ast(AST** ast)
 {
+    char* str = xmalloc(0);
     for (int i = 0; i < sb_count(ast); ++i) {
-        print_expr(ast[i]);
+        // print_expr(ast[i]);
+        const char* out = expr_to_str(str, ast[i]);
+        info(out);
+        free(str);
+        free(out);
     }
 }
 

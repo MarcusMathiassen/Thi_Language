@@ -163,7 +163,7 @@ static int  get_next_available_reg(i8 size)
     return res;
 };
 
-static int get_reg_as_another_size(int reg, i8 size)
+static int  get_reg_as_another_size(int reg, i8 size)
 {
     switch(reg)
     {
