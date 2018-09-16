@@ -289,6 +289,32 @@ static Value codegen_unary(Expr* expr)
     }
     return result;
 }
+
+static Value codegen_binary(Expr* expr)
+{
+    Token_Kind op = expr->Binary.op;
+    Expr* lhs = expr->Binary.lhs;
+    Expr* rhs = expr->Binary.rhs;
+
+    switch (op)
+    {
+        case TOKEN_PLUS:
+        {
+            Value lhs_val  = codegen_expr(lhs);
+            int lhs_size = get_size_of_value(lhs_val);
+            int res_n  = get_rax_reg_of_byte_size(lhs_size);
+
+            int temp_reg_n = get_next_available_reg(lhs_size);
+            // add_used_reg(temp_reg_n);
+
+            emit(output, "MOV %s, %s", reg[temp_reg_n], reg[res_n]);
+            Value rhs_val = codegen_expr(rhs);
+            emit(output, "ADD %s, %s", reg[res_n], reg[temp_reg_n]);
+            return lhs_val;
+        } break;
+    }
+}
+
 static void codegen_ret(Expr* expr)
 {
     Expr* ret_expr = expr->Ret.expr;
@@ -306,7 +332,7 @@ static Value codegen_expr(Expr* expr)
         case EXPR_IDENT:    return codegen_ident(expr);
         case EXPR_CALL:     error("EXPR_CALL codegen not implemented");
         case EXPR_UNARY:    return codegen_unary(expr);
-        case EXPR_BINARY:   error("EXPR_BINARY codegen not implemented");
+        case EXPR_BINARY:   return codegen_binary(expr);
         case EXPR_COMPOUND: error("EXPR_COMPOUND codegen not implemented");
         case EXPR_RET:      codegen_ret(expr); break;
         case EXPR_VAR_DECL: error("EXPR_VAR_DECL codegen not implemented");
