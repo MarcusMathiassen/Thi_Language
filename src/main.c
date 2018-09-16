@@ -6,10 +6,11 @@
 #include "utility.h"          // get_file_content, success, info, get_time
 #include <string.h>           // strcmp
 #include <assert.h>           // assert
+#include <stdio.h>            // sprintf
 #include "map.h"              // map
 #include "values.h"           // Value
-#include "typedefs.h"        
 #include "globals.h"          // init_maps
+#include "typedefs.h"        
 
 //------------------------------------------------------------------------------
 //                               Main Driver
@@ -25,7 +26,7 @@ int main(int argc, char** argv) {
     if (argc < 2)
         error("too few arguments.");
     else if (argc > 3)
-        error("too many arguments.");
+        error("too many arguments."); 
 
     const char* source_file = argv[1];
     success("Compiling %s", source_file);
@@ -53,10 +54,10 @@ int main(int argc, char** argv) {
     const char* dir = get_file_dir(source_file);
     const char* name = get_file_name(source_file);
 
-    // info(source_file);
-    // info("ext: %s", ext);
-    // info("dir: %s", dir);
-    // info("name: %s", name);
+    info(source_file);
+    info("ext: %s", ext);
+    info("dir: %s", dir);
+    info("name: %s", name);
 
     if (strcmp(ext, "thi") != 0)
         error("%s is not a .thi file.", source_file);
@@ -68,7 +69,7 @@ int main(int argc, char** argv) {
     push_timer("Lexing");
     Token* tokens = generate_tokens_from_source(source);
     pop_timer();
-    // if (tokens) print_tokens(tokens);
+    if (tokens) print_tokens(tokens);
 
     // we can free the source
     free(source);
@@ -91,7 +92,7 @@ int main(int argc, char** argv) {
     push_timer("Generating X64 Assembly");
     char* output = generate_code_from_ast(ast);
     pop_timer();
-    // if (output) info(output);
+    if (output) info(output);
 
     // Write to file
     if (output) {
@@ -144,7 +145,7 @@ int main(int argc, char** argv) {
     success("==------------ Thi ------------==");
     Timer* timers = get_timers();
     for (int i = 0; i < sb_count(timers); ++i)
-        success("%s: %d ms", timers[i].desc, timers[i].ms);
+        success("%s: %f ms", timers[i].desc, timers[i].ms);
     success("==------------ === ------------==");
 
     return 0;

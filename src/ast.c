@@ -125,13 +125,13 @@ void print_expr(Expr* expr)
 
 void print_ast(AST** ast)
 {
-    char* str = xmalloc(0);
+    // char* str = xmalloc(0);
     for (int i = 0; i < sb_count(ast); ++i) {
-        // print_expr(ast[i]);
-        const char* out = expr_to_str(str, ast[i]);
-        info(out);
-        free(str);
-        free(out);
+        print_expr(ast[i]);
+        // const char* out = expr_to_str(str, ast[i]);
+        // info(out);
+        // free(str);
+        // free(out);
     }
 }
 

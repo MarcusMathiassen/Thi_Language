@@ -532,12 +532,11 @@ static Value codegen_expr(Expr* expr)
 char* generate_code_from_ast(AST** ast)
 {
     success("Generating X64 Assembly from AST");
-
+    
     output = xmalloc(0);
-
     emit(output, "global main");
     emit(output, "section .text");
-    
+
     // Codegen AST
     u64 ast_count = sb_count(ast);
     info("ast_count: %d", ast_count);

@@ -20,27 +20,27 @@ static struct { Token_Kind kind; int p; }  binop_precedence[BIN_OP_COUNT] = {
     { TOKEN_PLUS_PLUS,    90 }, // ++
     { TOKEN_MINUS_MINUS,  90 }, // --
 
-    { TOKEN_ASTERISK,  80 }, // *
-    { TOKEN_FWSLASH,   80 }, // /
-
-    { TOKEN_MINUS,  70 }, // -
-    { TOKEN_PLUS,   70 }, // +
-
+    { TOKEN_ASTERISK,     80 }, // *
+    { TOKEN_FWSLASH,      80 }, // /
+  
+    { TOKEN_MINUS,        70 }, // -
+    { TOKEN_PLUS,         70 }, // +
+  
     { TOKEN_LT,           60 }, // <
     { TOKEN_GT,           60 }, // >
     { TOKEN_GT_EQ,        60 }, // >=
     { TOKEN_LT_EQ,        60 }, // <=
-
-    { TOKEN_EQ_EQ,  50 }, // ==
-    { TOKEN_BANG_EQ,   50 }, // !=
-
-    { TOKEN_AND_AND,    48 }, // &&
-    { TOKEN_PIPE_PIPE,  47 }, // ||
-
-    { TOKEN_AT,        40 }, // @
-    { TOKEN_AND,       40 }, // &
-    { TOKEN_HAT,       30 }, // ^
-    { TOKEN_PIPE,      20 }, // |
+  
+    { TOKEN_EQ_EQ,        50 }, // ==
+    { TOKEN_BANG_EQ,      50 }, // !=
+  
+    { TOKEN_AND_AND,      48 }, // &&
+    { TOKEN_PIPE_PIPE,    47 }, // ||
+  
+    { TOKEN_AT,           40 }, // @
+    { TOKEN_AND,          40 }, // &
+    { TOKEN_HAT,          30 }, // ^
+    { TOKEN_PIPE,         20 }, // |
 
     { TOKEN_EQ,           10 }, // =
     { TOKEN_PLUS_EQ,      10 }, // +=
@@ -201,11 +201,9 @@ static Expr* parse_primary()
         case TOKEN_IDENTIFIER:     return parse_identifier();
         case TOKEN_DOLLAR_SIGN:    return parse_note();
 
-
         case TOKEN_HEX: // fallthrough
         case TOKEN_INTEGER:        return parse_integer();
         // case TOKEN_FLOATING_POINT: return parse_float();
-
 
         // case TOKEN_STRING:         return parse_string();
         case TOKEN_OPEN_PAREN:     return parse_parens();
@@ -506,7 +504,8 @@ static void eat()
     curr_tok = g_tokens[token_index++];
 }
 
-static void eat_kind(Token_Kind kind) {
+static void eat_kind(Token_Kind kind)
+{
     if (curr_tok.kind == kind) {
         eat();
     } else {

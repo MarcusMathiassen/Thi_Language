@@ -6,7 +6,7 @@
 #include <assert.h>  // assert
 #include <string.h>  // memcpy
 #include "stretchy_buffer.h"  // sb_free
-#include <sys/time.h> // gettimeofday, timeval
+#include <time.h> // timeval
 
 //------------------------------------------------------------------------------
 //                               Printing Functions
@@ -225,28 +225,39 @@ Timer peek(StackNode* root)
     return root->data; 
 } 
 
-u64 get_time() {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    u64 ret = tv.tv_usec;
-    ret /= 1000;
-    ret += (tv.tv_sec * 1000);
-    return ret;
+f64 get_time()
+{
+    f64 ms;
+    time_t s;
+    struct timespec spec;
+    clock_gettime(CLOCK_REALTIME, &spec);
+    s = spec.tv_sec;
+    ms = spec.tv_nsec / 1.0e6;
+    if (ms > 999.0) {
+        ++s;
+        ms = 0.0;
+    }
+    return ms;
 }
 
 static StackNode* timer_stack = NULL;
 static Timer* timers = NULL;
 
-Timer* get_timers() {
+Timer* get_timers()
+{
     return timers;
 }
-void push_timer(const char* desc) {
+
+void push_timer(const char* desc)
+{
     Timer tm;
     tm.ms = get_time();
     tm.desc = desc;
     push_stack(&timer_stack, tm);
 }
-void pop_timer() {
+
+void pop_timer()
+{
     Timer tm = pop_stack(&timer_stack);
     tm.ms = get_time() - tm.ms;
     sb_push(timers, tm);

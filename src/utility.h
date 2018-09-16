@@ -34,11 +34,11 @@ void* xrealloc(void* ptr, u64 bytes);
 //------------------------------------------------------------------------------
 
 typedef struct {
-    u64 ms;
+    f64 ms;
     const char* desc;
 } Timer;
 
-u64 get_time();
+f64 get_time();
 void push_timer(const char* desc);
 void pop_timer();
 Timer* get_timers();
