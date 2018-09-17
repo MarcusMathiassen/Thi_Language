@@ -2,7 +2,7 @@
 #define VALUES_H
 
 #include "typespec.h" // Typespec
-#include "utility.h" // string
+#include "string.h" // string
 
 typedef struct Value Value;
 typedef enum Value_Kind Value_Kind;

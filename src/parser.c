@@ -225,8 +225,8 @@ static Expr* parse_identifier()
     eat();
     switch (curr_tok.kind)
     {
-        case TOKEN_COLON_COLON:   return get_definition(ident);
-        // case TOKEN_COLON_EQ:   return get_variable_typeinferred();
+        case TOKEN_COLON_COLON:      return get_definition(ident);
+        // case TOKEN_COLON_EQ:      return get_variable_typeinferred();
         // case TOKEN_COLON:         return get_variable_declaration();
         // case TOKEN_OPEN_PAREN:    return get_function_call();
         // case TOKEN_OPEN_BRACKET:  return get_subscript_access();

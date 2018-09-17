@@ -4,6 +4,7 @@
 #include "typedefs.h"
 #include "lexer.h" // token_kind_to_str
 #include "globals.h"
+#include "string.h" // string
 #include "utility.h" // error warning info, etc
 #include "value.h" // Value
 #include "stretchy_buffer.h"  // sb_free

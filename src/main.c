@@ -5,6 +5,7 @@
 #include "stretchy_buffer.h"  // sb_free
 #include "utility.h"          // get_file_content, success, info, get_time
 #include <string.h>           // strcmp
+#include "string.h"           // strcmp
 #include <assert.h>           // assert
 #include <stdio.h>            // sprintf
 #include "map.h"              // map
@@ -153,5 +154,6 @@ int main(int argc, char** argv) {
 void run_all_tests(void)
 {
     utility_tests();
+    string_tests();
     map_tests();
 }
