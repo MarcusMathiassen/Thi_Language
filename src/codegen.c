@@ -260,7 +260,6 @@ Value* get_variable_in_scope(Scope* scope, const char* name)
     for (u64 i = 0; i < variable_count; ++i)
     {
         Value* v = scope->local_variables[i];
-        assert(v);
         info(".. value: %s", v->Variable.name);
         if (name == v->Variable.name)
             return v;
@@ -283,6 +282,22 @@ void add_variable_to_scope(Scope* scope, Value* variable)
     info("Added variable %s", name);
     append_variable_to_scope(scope, variable);
     print_scope(scope);
+}
+
+void remove_variable_in_scope(Scope* scope, const char* name)
+{
+    Value* v = get_variable_in_scope(scope, name);
+    if (v) {
+        info("removing value: %s", name);
+        // Swap this element with the last element;
+        Value* temp = scope->local_variables[scope->count];
+        scope->local_variables[scope->count] = v;
+        v = temp;
+        free(v);
+        --scope->count;
+        return;
+    }
+    error("Trying to remove unknown variable: %s", name);
 }
 
 static void emit_store(Value* variable)
@@ -718,5 +733,7 @@ char* generate_code_from_ast(AST** ast)
     {
         codegen_expr(ast[i]);
     }
+
+    // remove_variable_in_scope(scope, "a");
     return output->data;
 }
