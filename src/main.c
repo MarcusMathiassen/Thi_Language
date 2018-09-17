@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
     push_timer("Lexing");
     Token* tokens = generate_tokens_from_source(source);
     pop_timer();
-    if (tokens) print_tokens(tokens);
+    // if (tokens) print_tokens(tokens);
 
     // we can free the source
     free(source);
@@ -85,19 +85,19 @@ int main(int argc, char** argv) {
     success("Building Symbol Table");
     generate_symbol_table_from_tokens(tokens);
     pop_timer();
-    print_symbol_map();
+    // print_symbol_map();
 
     // Parsing
     push_timer("Building AST");
     AST** ast = generate_ast_from_tokens(tokens);
     pop_timer();
-    if (ast) print_ast(ast);
+    // if (ast) print_ast(ast);
 
     // Codegen
     push_timer("Generating X64 Assembly");
     char* output = generate_code_from_ast(ast);
     pop_timer();
-    if (output) info(output);
+    // if (output) info(output);
 
     // Write to file
     if (output) {

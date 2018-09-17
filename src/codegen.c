@@ -7,11 +7,13 @@
 #include "string.h" // string
 #include "utility.h" // error warning info, etc
 #include "value.h" // Value
+#include "context.h" // Context
 #include "stretchy_buffer.h"  // sb_free
 
 #include <assert.h> // assert
 
 Typespec* integer_literal_type = NULL;
+Context* ctx = NULL;
 
 static Value* codegen_expr(Expr* expr);
 static int get_rax_reg_of_byte_size(u8 bytes);
@@ -241,15 +243,6 @@ static void append_variable_to_scope(Scope* s, Value* value)
 // GLOBAL VARIABLES ------------------
 string* output = NULL;
 Scope* scope = NULL;
-int stack_index;
-static int total_label_counter;
-static int label_counter;
-static void push_label()
-{
-    ++total_label_counter;
-    ++label_counter;
-}
-static void pop_label() { --label_counter; }
 // GLOBAL VARIABLES  ------------------
 // GLOBAL VARIABLES  ------------------
 // GLOBAL VARIABLES  ------------------
@@ -366,7 +359,7 @@ static void codegen_function(Expr* expr)
 
     // Allocate stack for parameters
     int index = 0;
-    int stack_before_func = stack_index;
+    int stack_before_func = ctx->stack_index;
 
     Arg* args = expr->Func.type->Func.args;
     int arg_count = sb_count(args);
@@ -380,6 +373,8 @@ static void codegen_function(Expr* expr)
         u64 size = get_size_of_typespec(arg.type);
         info("size: %d", size);
     }
+    
+    u64 stack_after_func = ctx->stack_index - stack_before_func;
 }
 
 static Value* codegen_ident(Expr* expr)
@@ -708,20 +703,20 @@ static Value* codegen_binary(Expr* expr)
             u64 lhs_size = get_size_of_value(lhs_val);
             u64 reg_n  = get_rax_reg_of_byte_size(lhs_size);
             emit(output, "CMP %s, 0", reg[reg_n]);
-            pop_label();
-            emit(output, "JE E3_%d%d", total_label_counter, label_counter);
+            ctx_pop_label(ctx);
+            emit(output, "JE %s", ctx_get_unique_label(ctx, "E3"));
             Value* rhs_val = codegen_expr(rhs);
-            emit(output, "JMP CONTINUE_%d%d", total_label_counter, label_counter);
+            emit(output, "JMP %s", ctx_get_unique_label(ctx, "CONTINUE"));
             return rhs_val;
         }
         case TOKEN_COLON:
         {
-            push_label();
+            ctx_push_label(ctx);
             Value* lhs_val = codegen_expr(lhs);
             u64 lhs_size = get_size_of_value(lhs_val);
-            emit(output, "E3_%d%d:", total_label_counter, label_counter);
+            emit(output, "%s:", ctx_get_unique_label(ctx, "E3"));
             Value* rhs_val = codegen_expr(rhs);
-            emit(output, "CONTINUE_%d%d:", total_label_counter, label_counter);
+            emit(output, "%s:", ctx_get_unique_label(ctx, "CONTINUE"));
             return rhs_val;
         }
     }
@@ -738,12 +733,12 @@ static Value* codegen_variable_decl_type_inf(Expr* expr)
     Value* assign_expr_val = codegen_expr(assignment_expr); // Any value this creates is stored in RAX
     Typespec* type = assign_expr_val->type;
     u64 type_size = get_size_of_typespec(type);
-    u64 stack_pos = type_size + stack_index;
+    u64 stack_pos = type_size + ctx->stack_index;
 
     Value* variable = make_value_variable(name, type, stack_pos);
     add_variable_to_scope(scope, variable);
     emit_store(variable); // The variable is set to whatevers in RAX
-    stack_index += type_size;
+    ctx->stack_index += type_size;
 
     return variable;
 }
@@ -757,12 +752,12 @@ static Value* codegen_variable_decl(Expr* expr)
         codegen_expr(assignment_expr); // Any value this creates is stored in RAX
 
     u64 type_size = get_size_of_typespec(type);
-    u64 stack_pos = type_size + stack_index;
+    u64 stack_pos = type_size + ctx->stack_index;
     Value* variable = make_value_variable(name, type, stack_pos);
     add_variable_to_scope(scope, variable);
 
     emit_store(variable); // The variable is set to whatevers in RAX
-    stack_index += type_size;
+    ctx->stack_index += type_size;
 
     return variable;
 }
@@ -808,10 +803,8 @@ char* generate_code_from_ast(AST** ast)
 
     integer_literal_type = make_typespec_int(DEFAULT_INTEGER_BIT_SIZE, 0);
 
-    total_label_counter = 0;
-    label_counter = 0;
-    stack_index = 0;
-
+    ctx = ctx_make();
+    
     scope = make_scope(10);
     output = make_string("", 10000);
 

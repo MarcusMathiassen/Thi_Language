@@ -22,6 +22,7 @@ string* make_string(const char* str, u64 initial_size)
     s->data[str_len] = 0;
     return s;
 }
+
 void append_string(string* s, const char* str)
 {
     assert(s);

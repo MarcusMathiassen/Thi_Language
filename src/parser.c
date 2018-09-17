@@ -636,7 +636,7 @@ static void add_new_symbol(void)
             }
             default:
             {
-                // eat();
+                eat();
                 // auto expr = parse_expression();
                 // add_constant(new AST_Constant_Variable(ident, expr));
                 return;
