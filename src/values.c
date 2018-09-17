@@ -5,11 +5,11 @@
 #include <stdio.h>  // strncat,
 #include "stretchy_buffer.h"  // sb_push
 
-int get_size_of_value(Value value)
+int get_size_of_value(Value* value)
 {
-    switch (value.kind)
+    switch (value->kind)
     {
-        case VALUE_INT: return value.Int.bytes;
+        case VALUE_INT: return value->Int.bytes;
         case VALUE_FUNCTION: error("Asking for the size of a function? Why?");
         case VALUE_BLOCK: error("Asking for the size of a function? Why?");
     }
@@ -25,52 +25,48 @@ void debug_push_new_instr_group(const char* desc)
 
 void emit(char* output, const char* fmt, ...)
 {
-    char buffer[256];
-
     va_list args;
     va_start(args, fmt);
-    vsprintf(buffer, fmt, args);
+    u64 str_len = 1 + vsnprintf(0, NULL, fmt, args);
     va_end(args);
+    char* str = xmalloc(str_len);
 
-    u64 output_len = strlen(output);
-    u64 buffer_len = strlen(buffer);
-
-    u64 new_len = output_len + buffer_len + 1;
-
-    output = xrealloc(output, new_len);
-    strncat(output, buffer, buffer_len);
-
-    output[new_len-1] = '\n';
-    output[new_len] = 0;
+    va_start(args, fmt);
+    vsnprintf(str, str_len, fmt, args);
+    va_end(args);
+    
+    u64 out_len = xstrlen(output); 
+    memcpy(output+out_len, str, str_len + 1); // copy the str into ours
+    output[out_len + str_len - 1] = '\n'; // append a newline
 }
 
-Value make_value_int(u8 bytes, u64 value)
+Value* make_value_int(u8 bytes, u64 value)
 {
-    Value temp;
-    temp.kind = VALUE_INT;
-    temp.type = 0;
-    temp.Int.bytes = bytes;
-    temp.Int.value = value;
+    Value* temp = xmalloc(sizeof(Value));
+    temp->kind = VALUE_INT;
+    temp->type = NULL;
+    temp->Int.bytes = bytes;
+    temp->Int.value = value;
     return temp;
 }
 
-Value make_value_function(const char* name)
+Value* make_value_function(const char* name)
 {
-    Value temp;
-    temp.kind = VALUE_FUNCTION;
-    temp.type = NULL;
-    temp.Function.name = name;
-    temp.Function.blocks = NULL;
+    Value* temp = xmalloc(sizeof(Value));
+    temp->kind = VALUE_FUNCTION;
+    temp->type = NULL;
+    temp->Function.name = name;
+    temp->Function.blocks = NULL;
     return temp;
 }
 
-Value make_value_block(Value* function, const char* name)
+Value* make_value_block(Value* function, const char* name)
 {
-    Value temp;
-    temp.kind = VALUE_BLOCK;
-    temp.type = NULL;
-    temp.Block.parent_function = function;
-    temp.Block.name = name;
-    temp.Block.lines = NULL;
+    Value* temp = xmalloc(sizeof(Value));
+    temp->kind = VALUE_BLOCK;
+    temp->type = NULL;
+    temp->Block.parent_function = function;
+    temp->Block.name = name;
+    temp->Block.lines = NULL;
     return temp;
 }

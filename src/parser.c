@@ -65,35 +65,35 @@ static struct { Token_Kind kind; int p; }  binop_precedence[BIN_OP_COUNT] = {
 //------------------------------------------------------------------------------
 
 static bool tok_is(Token_Kind kind);
-static int get_tok_precedence();
-static void add_new_symbol();
-static void eat();
+static int get_tok_precedence(void);
+static void add_new_symbol(void);
+static void eat(void);
 static void eat_kind(Token_Kind kind);
 static Expr* get_definition(const char* ident);
-static Expr* parse_top_level();
-static Expr* parse_statement();
-static Expr* parse_primary();
-static Expr* parse_identifier();
-static Expr* parse_block();
-static Expr* parse_ret();
-static Expr* parse_note();
-static Expr* parse_expression();
-static Expr* parse_unary();
+static Expr* parse_top_level(void);
+static Expr* parse_statement(void);
+static Expr* parse_primary(void);
+static Expr* parse_identifier(void);
+static Expr* parse_block(void);
+static Expr* parse_ret(void);
+static Expr* parse_note(void);
+static Expr* parse_expression(void);
+static Expr* parse_unary(void);
 static Expr* parse_binary(int expr_prec, Expr* lhs);
-static Expr* parse_integer();
-static Expr* parse_parens();
+static Expr* parse_integer(void);
+static Expr* parse_parens(void);
 
 static Type* parse_struct_signature(const char* struct_name);
 static Type* parse_function_signature(const char* func_name);
 
-static void skip_block();
-static void skip_enum_signature();
-static void skip_struct_signature();
-static void skip_function_signature();
+static void skip_block(void);
+static void skip_enum_signature(void);
+static void skip_struct_signature(void);
+static void skip_function_signature(void);
 
-static i64 get_integer();
-static f64 get_float();
-static Type* get_type();
+static u64 get_integer(void);
+static f64 get_float(void);
+static Type* get_type(void);
 
 //-----------------
 // Global variables
@@ -242,7 +242,7 @@ static Expr* parse_block() {
         Expr* stmt = parse_statement();
         if (stmt) sb_push(statements, stmt);
     }
-    eat(TOKEN_CLOSE_BRACE);
+    eat();
     return make_expr_block(statements);
 }
 
@@ -344,8 +344,8 @@ static Expr* parse_parens() {
 //                               Type Utilty Functions
 //------------------------------------------------------------------------------
 
-static i64 get_integer() {
-    i64 value = 0;
+static u64 get_integer(void) {
+    u64 value = 0;
     switch (curr_tok.kind) {
         case TOKEN_INTEGER:   value = atoll(curr_tok.value); break;
         case TOKEN_HEX:       value = strtoll(curr_tok.value, NULL, 0); break;
@@ -355,13 +355,13 @@ static i64 get_integer() {
     return value;
 }
 
-static f64 get_float() {
+static f64 get_float(void) {
     f64 value = atof(curr_tok.value);
     eat();
     return value;
 }
 
-static Type* get_type() {
+static Type* get_type(void) {
     const char* type_name = curr_tok.value;
     eat_kind(TOKEN_IDENTIFIER);
     Type* type = NULL;
@@ -457,7 +457,7 @@ static Type* parse_function_signature(const char* func_name) {
 }
 
 static Expr* get_definition(const char* ident) {
-    eat(TOKEN_COLON_COLON);
+    eat();
     switch (curr_tok.kind)
     {
         // case TOKEN_ENUM:
@@ -470,7 +470,7 @@ static Expr* get_definition(const char* ident) {
         {
             eat();
             skip_struct_signature();
-            return get_symbol(ident);
+            return make_expr_struct(get_symbol(ident));
         }
         case TOKEN_OPEN_PAREN:
         {
@@ -485,7 +485,7 @@ static Expr* get_definition(const char* ident) {
     return NULL;
 }
 
-static int get_tok_precedence() {
+static int get_tok_precedence(void) {
     for (int i = 0; i < BIN_OP_COUNT; ++i)
         if (binop_precedence[i].kind == curr_tok.kind)
             return binop_precedence[i].p;
@@ -499,7 +499,7 @@ static bool tok_is(Token_Kind kind) {
     return false;
 }
 
-static void eat()
+static void eat(void)
 {
     curr_tok = g_tokens[token_index++];
 }
@@ -517,7 +517,7 @@ static void eat_kind(Token_Kind kind)
 //                               Skip Functions
 //------------------------------------------------------------------------------
 
-static void skip_block() {
+static void skip_block(void) {
     eat_kind(TOKEN_OPEN_BRACE);
     i64 counter = 1;
     while (true) {
@@ -532,7 +532,7 @@ static void skip_block() {
     eat_kind(TOKEN_CLOSE_BRACE);
 }
 
-static void skip_enum_signature() {
+static void skip_enum_signature(void) {
     if (tok_is(TOKEN_IDENTIFIER))
         get_type();
     eat_kind(TOKEN_OPEN_BRACE);
@@ -541,7 +541,7 @@ static void skip_enum_signature() {
     eat();
 }
 
-static void skip_struct_signature() {
+static void skip_struct_signature(void) {
     eat_kind(TOKEN_STRUCT);
     eat_kind(TOKEN_OPEN_BRACE);
     while (!tok_is(TOKEN_CLOSE_BRACE)) {
@@ -552,7 +552,7 @@ static void skip_struct_signature() {
     eat();
 }
 
-static void skip_function_signature() {
+static void skip_function_signature(void) {
     eat();
     bool has_multiple_arguments = false;
     while (!tok_is(TOKEN_CLOSE_PAREN))
@@ -576,7 +576,7 @@ static void skip_function_signature() {
 //                               Order-independence Functions
 //------------------------------------------------------------------------------
 
-static void add_new_symbol()
+static void add_new_symbol(void)
 {
     const char*  ident = curr_tok.value;
     eat_kind(TOKEN_IDENTIFIER);

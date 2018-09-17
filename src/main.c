@@ -16,7 +16,7 @@
 //                               Main Driver
 //------------------------------------------------------------------------------
 
-void run_all_tests();
+void run_all_tests(void);
 
 int main(int argc, char** argv) {
 
@@ -28,6 +28,7 @@ int main(int argc, char** argv) {
     else if (argc > 3)
         error("too many arguments."); 
 
+    // Grab the source file
     const char* source_file = argv[1];
     success("Compiling %s", source_file);
 
@@ -49,7 +50,6 @@ int main(int argc, char** argv) {
     add_builtin_type("f32", make_type_float(32));
     add_builtin_type("f64", make_type_float(64));
 
-    // Make sure it's actually a .thi file
     const char* ext = get_file_ext(source_file);
     const char* dir = get_file_dir(source_file);
     const char* name = get_file_name(source_file);
@@ -59,6 +59,7 @@ int main(int argc, char** argv) {
     info("dir: %s", dir);
     info("name: %s", name);
 
+    // Make sure it's actually a .thi file
     if (strcmp(ext, "thi") != 0)
         error("%s is not a .thi file.", source_file);
 
@@ -125,7 +126,7 @@ int main(int argc, char** argv) {
     char rm_call[256];
     sprintf(rm_call, "rm %s.o", exec_name);
     system(rm_call);
-    system("rm output.asm");
+    // system("rm output.asm");
     pop_timer();
 
     // Debug info. Writing out sizes of our types.
@@ -151,7 +152,7 @@ int main(int argc, char** argv) {
     return 0;
 }
 
-void run_all_tests()
+void run_all_tests(void)
 {
     utility_tests();
     map_tests();

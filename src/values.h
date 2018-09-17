@@ -37,12 +37,12 @@ struct Value
     };
 };
 
-Value make_value_int(u8 bytes, u64 value);
-Value make_value_function(const char* name);
-Value make_value_block(Value* function, const char* name);
+Value* make_value_int(u8 bytes, u64 value);
+Value* make_value_function(const char* name);
+Value* make_value_block(Value* function, const char* name);
 
 void emit(char* output, const char* fmt, ...);
 void debug_push_new_instr_group(const char* desc);
-int get_size_of_value(Value value);
+int get_size_of_value(Value* value);
 
 #endif

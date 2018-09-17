@@ -66,39 +66,43 @@ void print_type(Type* type)
 //                               Type Maker Functions
 //------------------------------------------------------------------------------
 
-Type* make_type_int(i8 bits, bool is_unsigned) {
-    Type* temp = (Type*)xmalloc(sizeof(Type));
+Type* make_type_int(i8 bits, bool is_unsigned)
+{
+    Type* temp = xmalloc(sizeof(Type));
     temp->kind = TYPE_INT;
     temp->Int.bits = bits;
     temp->Int.is_unsigned = is_unsigned;
     return temp;
 }
 
-Type* make_type_float(i8 bits) {
-    Type* temp = (Type*)xmalloc(sizeof(Type));
+Type* make_type_float(i8 bits)
+{
+    Type* temp = xmalloc(sizeof(Type));
     temp->kind = TYPE_FLOAT;
     temp->Float.bits = bits;
     return temp;
 }
 
-Type* make_type_pointer(Type* pointee) {
-    Type* temp = (Type*)xmalloc(sizeof(Type));
+Type* make_type_pointer(Type* pointee)
+{
+    Type* temp = xmalloc(sizeof(Type));
     temp->kind = TYPE_POINTER;
     temp->Pointer.pointee = pointee;
     return temp;
 }
 
-Type* make_type_struct(const char* name, Arg* members) {
-    Type* temp = (Type*)xmalloc(sizeof(Type));
+Type* make_type_struct(const char* name, Arg* members)
+{
+    Type* temp = xmalloc(sizeof(Type));
     temp->kind = TYPE_STRUCT;
     temp->Struct.name = name;
     temp->Struct.members = members;
     return temp;
-
 }
 
-Type* make_type_func(const char* name, Arg* args, Type* ret_type) {
-    Type* temp = (Type*)xmalloc(sizeof(Type));
+Type* make_type_func(const char* name, Arg* args, Type* ret_type)
+{
+    Type* temp = xmalloc(sizeof(Type));
     temp->kind = TYPE_FUNC;
     temp->Func.name = name;
     temp->Func.args = args;

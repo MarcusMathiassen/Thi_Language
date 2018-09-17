@@ -17,9 +17,9 @@ void init_maps()
 
 void print_symbol_map()
 {
-    int count = symbol_map->size;
+    u64 count = symbol_map->size;
     info("symbol_map count: %d", count);
-    for (int i = 0; i < count; ++i)
+    for (u64 i = 0; i < count; ++i)
         print_type(symbol_map->data[i].data);
 }
 

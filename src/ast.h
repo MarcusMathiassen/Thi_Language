@@ -19,9 +19,10 @@ void print_expr(Expr* expr);
 void print_ast(AST** ast);
 
 Expr* make_expr_note(Expr* expr);
-Expr* make_expr_int(int value);
-Expr* make_expr_float(float value);
+Expr* make_expr_int(u64 value);
+Expr* make_expr_float(f64 value);
 Expr* make_expr_ident(const char* ident);
+Expr* make_expr_struct(Type* struct_t);
 Expr* make_expr_func(Type* func_t, Expr* body);
 Expr* make_expr_unary(char op, Expr* operand);
 Expr* make_expr_binary(char op, Expr* lhs, Expr* rhs);
@@ -42,6 +43,7 @@ enum Expr_Kind
     EXPR_RET,
     EXPR_VAR_DECL,
     EXPR_FUNC,
+    EXPR_STRUCT,
     EXPR_IF,
     EXPR_FOR,
     EXPR_BLOCK,
@@ -65,6 +67,7 @@ struct Expr
         struct { u64 val;                                   } Int;
         struct { f64 val;                                   } Float;
         struct { Type*  type; Expr* body;                   } Func;
+        struct { Type*  type;                               } Struct;
         struct { const char* name;                          } Ident;
         struct { Token_Kind op; Expr* operand;              } Unary;
         struct { Token_Kind op; Expr* lhs; Expr* rhs;       } Binary;

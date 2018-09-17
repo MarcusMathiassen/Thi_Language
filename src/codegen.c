@@ -125,6 +125,7 @@ static int get_rax_reg_of_byte_size(u8 bytes)
         case 8: return RAX;
         default: error("get_rax_reg_of_byte_size unhandled case: %d", bytes);
     }
+    return -1; // to silence warning
 }
 
 static int get_parameter_reg(i8 i, i8 size)
@@ -139,6 +140,7 @@ static int get_parameter_reg(i8 i, i8 size)
         case 5: switch (size) { case 8: return R9;  case 4: return R9D; case 2: return R9W; case 1: return R9B; }
         default: error("we only support upto 6 parameters per function.");
     }
+    return -1; // to silence warning
 };
 
 static int next_available_reg_index = 0;
@@ -167,13 +169,14 @@ static int  get_reg_as_another_size(int reg, i8 size)
 {
     switch(reg)
     {
-        case R10: case R10D: case R10W: case R10B:  switch (size) { case 8: return R10; case 4: return R10D; case 2: return R10W; case 1: return R10B; }
-        case R11: case R11D: case R11W: case R11B:  switch (size) { case 8: return R11; case 4: return R11D; case 2: return R11W; case 1: return R11B; }
-        case R12: case R12D: case R12W: case R12B:  switch (size) { case 8: return R12; case 4: return R12D; case 2: return R12W; case 1: return R12B; }
-        case R13: case R13D: case R13W: case R13B:  switch (size) { case 8: return R13; case 4: return R13D; case 2: return R13W; case 1: return R13B; }
-        case R14: case R14D: case R14W: case R14B:  switch (size) { case 8: return R14; case 4: return R14D; case 2: return R14W; case 1: return R14B; }
-        case R15: case R15D: case R15W: case R15B:  switch (size) { case 8: return R15; case 4: return R15D; case 2: return R15W; case 1: return R15B; }
+        case R10: case R10D: case R10W: case R10B:  switch (size) { case 8: return R10; case 4: return R10D; case 2: return R10W; case 1: return R10B; }
+        case R11: case R11D: case R11W: case R11B:  switch (size) { case 8: return R11; case 4: return R11D; case 2: return R11W; case 1: return R11B; }
+        case R12: case R12D: case R12W: case R12B:  switch (size) { case 8: return R12; case 4: return R12D; case 2: return R12W; case 1: return R12B; }
+        case R13: case R13D: case R13W: case R13B:  switch (size) { case 8: return R13; case 4: return R13D; case 2: return R13W; case 1: return R13B; }
+        case R14: case R14D: case R14W: case R14B:  switch (size) { case 8: return R14; case 4: return R14D; case 2: return R14W; case 1: return R14B; }
+        case R15: case R15D: case R15W: case R15B:  switch (size) { case 8: return R15; case 4: return R15D; case 2: return R15W; case 1: return R15B; }
     }
+    return -1; // to silence warning
 }
 
 static int get_push_or_popable_reg(int reg)
@@ -188,19 +191,26 @@ static int get_push_or_popable_reg(int reg)
         case R15: case R15D: case R15W: case R15B: return R15;
         default: error("get_push_or_popable_reg unhandled register.");
     }
+    return -1; // to silence warning
 }
 
-char* output = NULL;
-int stack_index = 0;
+char* output;
+int stack_index;
 
-static Value codegen_expr(Expr* expr);
+static Value* codegen_expr(Expr* expr);
 
-static void emit_load(Value value)
+static void emit_load(Value* value)
 {
     int reg_n = get_rax_reg_of_byte_size(get_size_of_value(value));
-    switch (value.kind)
+    switch (value->kind)
     {
-        case VALUE_INT: emit(output, "MOV %s, %d", reg[reg_n], value.Int.value);
+        case VALUE_INT: emit(output, "MOV %s, %d", reg[reg_n], value->Int.value); break;
+        case VALUE_FUNCTION:
+            error("VALUE_FUNCTION EMIT_LOAD NOT IMPLEMENETED");
+            break;
+        case VALUE_BLOCK:
+            error("VALUE_BLOCK EMIT_LOAD NOT IMPLEMENETED");
+            break;
     }
 }
 
@@ -209,8 +219,8 @@ static void codegen_function(Expr* expr)
     const char* func_name = expr->Func.type->Func.name;
     info("Generating function: %s", func_name);
 
-    Value function = make_value_function(func_name);
-    Value block = make_value_block(&function, "entry");
+    Value* function = make_value_function(func_name);
+    Value* block = make_value_block(function, "entry");
 
     emit(output, "%s:", func_name);
     codegen_expr(expr->Func.body);
@@ -228,12 +238,12 @@ static void codegen_function(Expr* expr)
         info("Parameter %d name: %s", i, arg.name);
         print_type(arg.type);
 
-        int size = get_size_of_type(arg.type);
+        u64 size = get_size_of_type(arg.type);
         info("size: %d", size);
     }
 }
 
-static Value codegen_ident(Expr* expr)
+static Value* codegen_ident(Expr* expr)
 {
     const char* name = expr->Ident.name;
 
@@ -242,14 +252,15 @@ static Value codegen_ident(Expr* expr)
 
     // return var;
     error("EXPR_IDENT codegen not implemented");
+    return NULL;
 }
 
-static Value codegen_int(Expr* expr)
+static Value* codegen_int(Expr* expr)
 {
-    Value val = make_value_int(DEFAULT_INTEGER_BYTE_SIZE, expr->Int.val);
+    Value* val = make_value_int(DEFAULT_INTEGER_BYTE_SIZE, expr->Int.val);
     emit_load(val);
     return val;
-}
+} 
 
 static void codegen_block(Expr* expr)
 {
@@ -260,14 +271,14 @@ static void codegen_block(Expr* expr)
         codegen_expr(stmts[i]);
     }
 }
-static Value codegen_unary(Expr* expr)
+static Value* codegen_unary(Expr* expr)
 {
     Token_Kind op = expr->Unary.op;
     Expr* operand = expr->Unary.operand;
 
-    Value operand_val = codegen_expr(operand);
+    Value* operand_val = codegen_expr(operand);
     int reg_n = get_rax_reg_of_byte_size(get_size_of_value(operand_val));
-    Value result = operand_val;
+    Value* result = operand_val;
 
     switch (op)
     {
@@ -289,7 +300,7 @@ static Value codegen_unary(Expr* expr)
     return result;
 }
 
-static Value codegen_binary(Expr* expr)
+static Value* codegen_binary(Expr* expr)
 {
     Token_Kind op = expr->Binary.op;
     Expr* lhs = expr->Binary.lhs;
@@ -299,31 +310,31 @@ static Value codegen_binary(Expr* expr)
     {
         case TOKEN_PLUS:
         {
-            Value lhs_val  = codegen_expr(lhs);
+            Value* lhs_val  = codegen_expr(lhs);
             int lhs_size = get_size_of_value(lhs_val);
             int res_n  = get_rax_reg_of_byte_size(lhs_size);
             int temp_reg_n = get_next_available_reg(lhs_size);
             // add_used_reg(temp_reg_n);
             emit(output, "MOV %s, %s", reg[temp_reg_n], reg[res_n]);
-            Value rhs_val = codegen_expr(rhs);
+            codegen_expr(rhs);
             emit(output, "ADD %s, %s", reg[res_n], reg[temp_reg_n]);
             return lhs_val;
         }
         case TOKEN_MINUS:
         {
-            Value rhs_val  = codegen_expr(rhs);
+            Value* rhs_val  = codegen_expr(rhs);
             int rhs_size = get_size_of_value(rhs_val);
             int temp_reg_n = get_next_available_reg(rhs_size);
             // add_used_reg(temp_reg_n);
             int reg_n = get_rax_reg_of_byte_size(rhs_size);
             emit(output, "MOV %s, %s", reg[temp_reg_n], reg[reg_n]);
-            Value lhs_val = codegen_expr(lhs);
+            Value* lhs_val = codegen_expr(lhs);
             emit(output, "SUB %s, %s", reg[reg_n], reg[temp_reg_n]);
             return lhs_val;
         }
         case TOKEN_ASTERISK:
         {
-            Value lhs_val  = codegen_expr(lhs);
+            Value* lhs_val  = codegen_expr(lhs);
             int lhs_size = get_size_of_value(lhs_val);
             int res_n  = get_rax_reg_of_byte_size(lhs_size);
             int temp_reg_n = get_next_available_reg(lhs_size);
@@ -336,7 +347,7 @@ static Value codegen_binary(Expr* expr)
         }
         case TOKEN_FWSLASH:
         {
-            Value rhs_val  = codegen_expr(rhs);
+            Value* rhs_val  = codegen_expr(rhs);
             int rhs_size = get_size_of_value(rhs_val);
             int reg_n = get_rax_reg_of_byte_size(rhs_size);
             int temp_reg_n = get_next_available_reg(rhs_size);
@@ -350,7 +361,7 @@ static Value codegen_binary(Expr* expr)
 
         case TOKEN_AND_AND:
         {
-            Value lhs_val  = codegen_expr(lhs);
+            Value* lhs_val  = codegen_expr(lhs);
             int lhs_size = get_size_of_value(lhs_val);
             int reg_n  = get_rax_reg_of_byte_size(lhs_size);
             int temp_reg_n = get_next_available_reg(lhs_size);
@@ -368,7 +379,7 @@ static Value codegen_binary(Expr* expr)
 
         case TOKEN_PIPE_PIPE:
         {
-            Value lhs_val  = codegen_expr(lhs);
+            Value* lhs_val  = codegen_expr(lhs);
             int lhs_size = get_size_of_value(lhs_val);
             int reg_n  = get_rax_reg_of_byte_size(lhs_size);
             int temp_reg_n = get_next_available_reg(lhs_size);
@@ -382,7 +393,7 @@ static Value codegen_binary(Expr* expr)
 
         case TOKEN_LT:
         {
-            Value lhs_val  = codegen_expr(lhs);
+            Value* lhs_val  = codegen_expr(lhs);
             int lhs_size = get_size_of_value(lhs_val);
             int reg_n  = get_rax_reg_of_byte_size(lhs_size);
             int temp_reg_n = get_next_available_reg(lhs_size);
@@ -396,7 +407,7 @@ static Value codegen_binary(Expr* expr)
 
         case TOKEN_GT:
         {
-            Value lhs_val  = codegen_expr(lhs);
+            Value* lhs_val  = codegen_expr(lhs);
             int lhs_size = get_size_of_value(lhs_val);
             int reg_n  = get_rax_reg_of_byte_size(lhs_size);
             int temp_reg_n = get_next_available_reg(lhs_size);
@@ -410,7 +421,7 @@ static Value codegen_binary(Expr* expr)
 
         case TOKEN_LT_EQ:
         {
-            Value lhs_val  = codegen_expr(lhs);
+            Value* lhs_val  = codegen_expr(lhs);
             int lhs_size = get_size_of_value(lhs_val);
             int reg_n  = get_rax_reg_of_byte_size(lhs_size);
             int temp_reg_n = get_next_available_reg(lhs_size);
@@ -424,7 +435,7 @@ static Value codegen_binary(Expr* expr)
 
         case TOKEN_GT_EQ:
         {
-            Value lhs_val  = codegen_expr(lhs);
+            Value* lhs_val  = codegen_expr(lhs);
             int lhs_size = get_size_of_value(lhs_val);
             int reg_n  = get_rax_reg_of_byte_size(lhs_size);
             int temp_reg_n = get_next_available_reg(lhs_size);
@@ -438,7 +449,7 @@ static Value codegen_binary(Expr* expr)
 
         case TOKEN_EQ_EQ:
         {
-            Value lhs_val  = codegen_expr(lhs);
+            Value* lhs_val  = codegen_expr(lhs);
             int lhs_size = get_size_of_value(lhs_val);
             int reg_n  = get_rax_reg_of_byte_size(lhs_size);
             int temp_reg_n = get_next_available_reg(lhs_size);
@@ -452,7 +463,7 @@ static Value codegen_binary(Expr* expr)
 
         case TOKEN_BANG_EQ:
         {
-            Value lhs_val  = codegen_expr(lhs);
+            Value* lhs_val  = codegen_expr(lhs);
             int lhs_size = get_size_of_value(lhs_val);
             int reg_n  = get_rax_reg_of_byte_size(lhs_size);
             int temp_reg_n = get_next_available_reg(lhs_size);
@@ -495,6 +506,8 @@ static Value codegen_binary(Expr* expr)
         //     return rhs_val;
         // }
     }
+
+    return NULL;
 }
 
 static void codegen_ret(Expr* expr)
@@ -504,7 +517,7 @@ static void codegen_ret(Expr* expr)
     emit(output, "RET");
 }
 
-static Value codegen_expr(Expr* expr)
+static Value* codegen_expr(Expr* expr)
 {
     info("Generating code for: %s", expr_kind_to_str(expr->kind));
     switch (expr->kind)
@@ -525,15 +538,17 @@ static Value codegen_expr(Expr* expr)
         case EXPR_WHILE:    error("EXPR_WHILE codegen not implemented");
         case EXPR_GROUPING: return codegen_expr(expr->Grouping.expr);
     }
-    Value t;
-    return t;
+
+    return NULL;
 }
 
 char* generate_code_from_ast(AST** ast)
 {
     success("Generating X64 Assembly from AST");
-    
+
+    stack_index = 0;
     output = xmalloc(0);
+
     emit(output, "global main");
     emit(output, "section .text");
 

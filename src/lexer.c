@@ -42,7 +42,8 @@ static const char* str_intern_range(const char* start, const char* end) {
     return str;
 }
 
-static const char* str_intern(const char* str) {
+static const char* str_intern(const char* str)
+{
     return str_intern_range(str, str + strlen(str));
 }
 
@@ -58,9 +59,9 @@ static u64 line_count = 0;
 //                               Lexer Functions
 //------------------------------------------------------------------------------
 
-static Token get_token();
-static bool is_valid_digit();
-static bool is_valid_identifier();
+static Token get_token(void);
+static bool is_valid_digit(void);
+static bool is_valid_identifier(void);
 
 static int get_keyword_index(const char* identifier);
 static Token_Kind get_identifier_kind(const char* identifier);
@@ -195,12 +196,10 @@ static void skip_comments()
         ++c; // skip the '#'
         skip_line();
     }
-
 }
 
 static void scan_digit()
 {
-
     bool is_hex = false;
     bool is_float = false;
 

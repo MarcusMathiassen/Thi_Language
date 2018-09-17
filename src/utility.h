@@ -29,24 +29,23 @@ void write_to_file(const char* filename, const char* buffer);
 void* xmalloc(u64 bytes);
 void* xcalloc(u64 size, u64 bytes);
 void* xrealloc(void* ptr, u64 bytes);
+u64 xstrlen(const char* str);
+
+char* strf(const char* fmt, ...);
 //------------------------------------------------------------------------------
 //                               Timing Functions
 //------------------------------------------------------------------------------
 
-typedef struct {
-    f64 ms;
-    const char* desc;
-} Timer;
-
-f64 get_time();
+typedef struct { f64 ms; const char* desc; } Timer;
+f64 get_time(void);
 void push_timer(const char* desc);
-void pop_timer();
-Timer* get_timers();
+void pop_timer(void);
+Timer* get_timers(void);
 
 //------------------------------------------------------------------------------
 //                               Tests
 //------------------------------------------------------------------------------
 
-void utility_tests();
+void utility_tests(void);
 
 #endif

@@ -19,7 +19,6 @@ typedef double f64;
 typedef i8 bool;
 #define true 1
 #define false 0
-
 #define NULL 0
 
 #endif
