@@ -2,13 +2,13 @@
 #define MAP_H
 
 #include "typedefs.h"
-#include "types.h"
+#include "typespec.h"
 
 //------------------------------------------------------------------------------
 //                               Map
 //------------------------------------------------------------------------------
 
-typedef Type* any_t;
+typedef Typespec* any_t;
 
 typedef struct Map Map;
 typedef Map Type_Map;
@@ -18,11 +18,14 @@ typedef struct Map_Element Map_Element;
 #define MAP_SUCCESS 0
 #define MAP_FAILED -1
 
-struct Map_Element {
+struct Map_Element
+{
     u64 key;
     any_t data;
 };
-struct Map {
+
+struct Map
+{
     u64 table_size;
     u64 size;
     Map_Element* data;

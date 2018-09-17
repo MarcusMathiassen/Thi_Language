@@ -20,6 +20,7 @@
 
 void info(const char* fmt, ...)
 {
+    assert(fmt);
     va_list args;
     va_start(args, fmt);
     printf(GRAY);
@@ -30,6 +31,7 @@ void info(const char* fmt, ...)
 
 void warning(const char* fmt, ...)
 {
+    assert(fmt);
     va_list args;
     va_start(args, fmt);
     printf(YELLOW);
@@ -40,6 +42,7 @@ void warning(const char* fmt, ...)
 
 void success(const char* fmt, ...)
 {
+    assert(fmt);
     va_list args;
     va_start(args, fmt);
     printf(GREEN);
@@ -50,6 +53,7 @@ void success(const char* fmt, ...)
 
 void error(const char* fmt, ...)
 {
+    assert(fmt);
     va_list args;
     va_start(args, fmt);
     printf(RED);
@@ -65,6 +69,8 @@ void error(const char* fmt, ...)
 
 char* get_file_path_from_dir(const char* dir, const char* filename)
 {
+    assert(dir);
+    assert(filename);
     char strbuf[1000];
     u64 d_len = strlen(dir);
     u64 f_len = strlen(filename);
@@ -72,8 +78,7 @@ char* get_file_path_from_dir(const char* dir, const char* filename)
     assert(len < 1000);
     memcpy(strbuf, dir, d_len); // copy dir into strbuf
     memcpy(strbuf+d_len, filename, f_len); // append filename
-    char* str = malloc(len+1);
-    if (!str) error("malloc failed");
+    char* str = xmalloc(len+1);
     memcpy(str, strbuf, len); 
     str[len] = 0;
     return str;
@@ -81,12 +86,12 @@ char* get_file_path_from_dir(const char* dir, const char* filename)
 
 char* get_file_ext(const char* filename)
 {
+    assert(filename);
     u64 len = strlen(filename);
     u64 i = 0;
     while (filename[len-(++i)] != '.') continue;
     ++len; // skip the '.'
-    char* str = malloc(i+1);
-    if (!str) error("malloc failed");
+    char* str = xmalloc(i+1);
     memcpy(str, filename+len-i, i);
     str[i] = 0;
     return str;
@@ -94,31 +99,35 @@ char* get_file_ext(const char* filename)
 
 char* get_file_dir(const char* filename)
 {
+    assert(filename);
     u64 len = strlen(filename);
     while (filename[--len] != '/') continue;
     ++len; // we preserve the '/'
-    char* str = malloc(len+1);
-    if (!str) error("malloc failed");
+    char* str = xmalloc(len+1);
     memcpy(str, filename, len);
     str[len] = 0;
     return str;
 }
 char* get_file_name(const char* filename)
 {
+    assert(filename);
     u64 len = strlen(filename);
     u64 i = 0;
     while (filename[len-(++i)] != '/') continue;
     ++len; // skip the '/'
-    char* str = malloc(i+1);
-    if (!str) error("malloc failed");
+    char* str = xmalloc(i+1);
     memcpy(str, filename+len-i, i);
     str[i] = 0;
     return str;
 
 }
-void write_to_file(const char* filename, const char* buffer) {
+void write_to_file(const char* filename, const char* buffer)
+{
+    assert(filename);
+    assert(buffer);
     FILE* f = fopen(filename, "w");
-    if (!f) {
+    if (!f)
+    {
         printf("Error opening file!\n");
         exit(1);
     }
@@ -126,7 +135,9 @@ void write_to_file(const char* filename, const char* buffer) {
     fclose(f);
 }
 
-char* get_file_content(const char* filename) {
+char* get_file_content(const char* filename)
+{
+    assert(filename);
     char* buffer = NULL;
     u64 string_size, read_size;
     FILE* handler = fopen(filename, "r");
@@ -169,6 +180,7 @@ char* get_file_content(const char* filename) {
 
 void* xmalloc(u64 bytes)
 {
+    assert(bytes != 0);
     void* alloc = malloc(bytes);
     if (!alloc) error("alloc failed");
     return alloc;
@@ -176,6 +188,8 @@ void* xmalloc(u64 bytes)
 
 void* xcalloc(u64 size, u64 bytes)
 {
+    assert(size != 0);
+    assert(bytes != 0);
     void* alloc = calloc(size, bytes);
     if (!alloc) error("calloc failed");
     return alloc;
@@ -183,6 +197,8 @@ void* xcalloc(u64 size, u64 bytes)
 
 void* xrealloc(void* ptr, u64 bytes)
 {
+    assert(ptr);
+    assert(bytes != 0);
     void* alloc = realloc(ptr, bytes);
     if (!alloc) error("realloc failed");
     return alloc;
@@ -190,15 +206,18 @@ void* xrealloc(void* ptr, u64 bytes)
 
 u64 xstrlen(const char* str)
 {
+    assert(str);
     return str ? strlen(str) : 0;
 }
 
 char* strf(const char* fmt, ...)
 {
+    assert(fmt);
     va_list args;
     va_start(args, fmt);
     u64 n = 1 + vsnprintf(0, NULL, fmt, args);
     va_end(args);
+
     char* str = xmalloc(n);
 
     va_start(args, fmt);
@@ -221,7 +240,7 @@ struct StackNode
   
 StackNode* newNode(Timer data) 
 { 
-    StackNode* stackNode = (StackNode*) malloc(sizeof(StackNode)); 
+    StackNode* stackNode = xmalloc(sizeof(StackNode)); 
     stackNode->data = data; 
     stackNode->next = NULL; 
     return stackNode; 
@@ -239,7 +258,6 @@ Timer pop_stack(StackNode** root)
     StackNode* temp = *root; 
     *root = (*root)->next; 
     Timer popped = temp->data; 
-    free(temp); 
     return popped; 
 } 
   
@@ -291,7 +309,6 @@ void pop_timer(void)
 //------------------------------------------------------------------------------
 void utility_tests(void)
 {
-
     // These leak memory.
 
     // get_file_dir

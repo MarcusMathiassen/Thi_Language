@@ -1,8 +1,7 @@
 #ifndef VALUES_H
 #define VALUES_H
 
-#include "types.h"
-#include <stdarg.h>  // va_list, va_start, va_end
+#include "typespec.h" // Typespec
 
 typedef struct Value Value;
 typedef enum Value_Kind Value_Kind;
@@ -28,7 +27,7 @@ typedef struct CodeBlock
 struct Value
 {
     Value_Kind kind;
-    Type* type;
+    Typespec* type;
     union
     {
         struct { u8 bytes; u64 value; } Int;

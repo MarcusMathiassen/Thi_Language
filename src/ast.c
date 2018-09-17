@@ -5,6 +5,7 @@
 #include "stretchy_buffer.h"    // sb_push
 #include "utility.h"            // info, success, error, warning
 #include "lexer.h"              // token_kind_to_str,
+#include <assert.h>             // assert
 
 //------------------------------------------------------------------------------
 //                               ast.c
@@ -86,91 +87,98 @@ void print_ast(AST** ast)
 //                               Expr Maker Functions
 //------------------------------------------------------------------------------
 
+Expr* make_expr(Expr_Kind kind)
+{
+    Expr* e = xmalloc(sizeof(Expr));
+    e->kind = kind;
+    return e;
+}
 Expr* make_expr_note(Expr* expr)
 {
-    Expr* temp = xmalloc(sizeof(Expr));
-    temp->kind = EXPR_NOTE;
-    temp->Note.expr = expr;
-    return temp;
+    assert(expr);
+    Expr* e = make_expr(EXPR_NOTE);
+    e->Note.expr = expr;
+    return e;
 }
 Expr* make_expr_int(u64 value)
 {
-    Expr* temp = xmalloc(sizeof(Expr));
-    temp->kind = EXPR_INT;
-    temp->Int.val = value;
-    return temp;
+    Expr* e = make_expr(EXPR_INT);
+    e->Int.val = value;
+    return e;
 }
 
 Expr* make_expr_float(f64 value)
 {
-    Expr* temp = xmalloc(sizeof(Expr));
-    temp->kind = EXPR_FLOAT;
-    temp->Float.val = value;
-    return temp;
+    Expr* e = make_expr(EXPR_FLOAT);
+    e->Float.val = value;
+    return e;
 }
 
 Expr* make_expr_ident(const char* ident)
 {
-    Expr* temp = xmalloc(sizeof(Expr));
-    temp->kind = EXPR_IDENT;
-    temp->Ident.name = ident;
-    return temp;
+    assert(ident);
+    Expr* e = make_expr(EXPR_IDENT);
+    e->Ident.name = ident;
+    return e;
 }
-Expr* make_expr_struct(Type* struct_t)
+Expr* make_expr_struct(Typespec* struct_t)
 {
-    Expr* temp = xmalloc(sizeof(Expr));
-    temp->kind = EXPR_STRUCT;
-    temp->Struct.type = struct_t;
-    return temp;
+    assert(struct_t);
+    Expr* e = make_expr(EXPR_STRUCT);
+    e->Struct.type = struct_t;
+    return e;
 }
-Expr* make_expr_func(Type* func_t, Expr* body)
+Expr* make_expr_func(Typespec* func_t, Expr* body)
 {
-    Expr* temp = xmalloc(sizeof(Expr));
-    temp->kind = EXPR_FUNC;
-    temp->Func.type = func_t;
-    temp->Func.body = body;
-    return temp;
-}
-
-Expr* make_expr_binary(char op, Expr* lhs, Expr* rhs)
-{
-    Expr* temp = xmalloc(sizeof(Expr));
-    temp->kind = EXPR_BINARY;
-    temp->Binary.op = op;
-    temp->Binary.lhs = lhs;
-    temp->Binary.rhs = rhs;
-    return temp;
+    assert(func_t);
+    assert(body);
+    Expr* e = make_expr(EXPR_FUNC);
+    e->Func.type = func_t;
+    e->Func.body = body;
+    return e;
 }
 
-Expr* make_expr_unary(char op, Expr* operand)
+Expr* make_expr_binary(Token_Kind op, Expr* lhs, Expr* rhs)
 {
-    Expr* temp = xmalloc(sizeof(Expr));
-    temp->kind = EXPR_UNARY;
-    temp->Unary.op = op;
-    temp->Unary.operand = operand;
-    return temp;
+    assert(op != TOKEN_UNKNOWN);
+    assert(lhs);
+    assert(rhs);
+    Expr* e = make_expr(EXPR_BINARY);
+    e->Binary.op = op;
+    e->Binary.lhs = lhs;
+    e->Binary.rhs = rhs;
+    return e;
+}
+
+Expr* make_expr_unary(Token_Kind op, Expr* operand)
+{
+    assert(op != TOKEN_UNKNOWN);
+    assert(operand);
+    Expr* e = make_expr(EXPR_UNARY);
+    e->Unary.op = op;
+    e->Unary.operand = operand;
+    return e;
 }
 
 Expr* make_expr_block(Expr** stmts)
 {
-    Expr* temp = xmalloc(sizeof(Expr));
-    temp->kind = EXPR_BLOCK;
-    temp->Block.stmts = stmts;
-    return temp;
+    Expr* e = make_expr(EXPR_BLOCK);
+    e->Block.stmts = stmts;
+    return e;
 }
 
 Expr* make_expr_grouping(Expr* expr)
 {
-    Expr* temp = xmalloc(sizeof(Expr));
-    temp->kind = EXPR_GROUPING;
-    temp->Grouping.expr = expr;
-    return temp;
+    assert(expr);
+    Expr* e = make_expr(EXPR_GROUPING);
+    e->Grouping.expr = expr;
+    return e;
 }
 
 Expr* make_expr_ret(Expr* expr)
 {
-    Expr* temp = xmalloc(sizeof(Expr));
-    temp->kind = EXPR_RET;
-    temp->Ret.expr = expr;
-    return temp;
+    assert(expr);
+    Expr* e = make_expr(EXPR_RET);
+    e->Ret.expr = expr;
+    return e;
 }

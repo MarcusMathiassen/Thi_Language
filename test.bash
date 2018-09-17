@@ -49,7 +49,7 @@ do
         echo -e "${GRAY}[TEST] ${NC}${RED} FAILED ${NC} ${GRAY} $tf ${NC} "
         echo -e "${GRAY}[TEST] returned $res ${NC}"
     fi
-
+    
     rm $name
 done
 

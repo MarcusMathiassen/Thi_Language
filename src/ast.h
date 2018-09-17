@@ -1,7 +1,7 @@
 #ifndef AST_H
 #define AST_H
 
-#include "types.h" // Type
+#include "typespec.h" // Typespec
 #include "lexer.h" // Token_Kind
 
 //------------------------------------------------------------------------------
@@ -53,12 +53,12 @@ struct Expr
         struct { Expr* expr;                                } Ret;
         struct { u64 val;                                   } Int;
         struct { f64 val;                                   } Float;
-        struct { Type*  type; Expr* body;                   } Func;
-        struct { Type*  type;                               } Struct;
+        struct { Typespec*  type; Expr* body;               } Func;
+        struct { Typespec*  type;                           } Struct;
         struct { const char* name;                          } Ident;
         struct { Token_Kind op; Expr* operand;              } Unary;
         struct { Token_Kind op; Expr* lhs; Expr* rhs;       } Binary;
-        struct { const char* name; Type* type; Expr* value; } Variable_Decl;
+        struct { const char* name; Typespec* type; Expr* value; } Variable_Decl;
     };
 };
 
@@ -66,18 +66,16 @@ Expr* make_expr_note(Expr* expr);
 Expr* make_expr_int(u64 value);
 Expr* make_expr_float(f64 value);
 Expr* make_expr_ident(const char* ident);
-Expr* make_expr_struct(Type* struct_t);
-Expr* make_expr_func(Type* func_t, Expr* body);
-Expr* make_expr_unary(char op, Expr* operand);
-Expr* make_expr_binary(char op, Expr* lhs, Expr* rhs);
+Expr* make_expr_struct(Typespec* struct_t);
+Expr* make_expr_func(Typespec* func_t, Expr* body);
+Expr* make_expr_unary(Token_Kind op, Expr* operand);
+Expr* make_expr_binary(Token_Kind op, Expr* lhs, Expr* rhs);
 Expr* make_expr_block(Expr** stmts);
 Expr* make_expr_ret(Expr* expr);
 Expr* make_expr_grouping(Expr* expr);
 
 
-
-
-typedef struct AST_Node AST_Node;
+typedef struct AST_Node AST_Node; 
 typedef struct AST_List AST_List;
 
 struct AST_Node

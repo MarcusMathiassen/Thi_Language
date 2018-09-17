@@ -8,8 +8,9 @@
 #include <assert.h>           // assert
 #include <stdio.h>            // sprintf
 #include "map.h"              // map
-#include "values.h"           // Value
+#include "value.h"            // Value
 #include "globals.h"          // init_maps
+#include "typespec.h"         // Typespec
 #include "typedefs.h"        
 
 //------------------------------------------------------------------------------
@@ -30,6 +31,7 @@ int main(int argc, char** argv) {
 
     // Grab the source file
     const char* source_file = argv[1];
+    const char* exec_name = argv[2];
     success("Compiling %s", source_file);
 
     run_all_tests();
@@ -37,18 +39,18 @@ int main(int argc, char** argv) {
     init_maps();
 
     // Setup types
-    add_builtin_type("i8", make_type_int(8, false));
-    add_builtin_type("i16", make_type_int(16, false));
-    add_builtin_type("i32", make_type_int(32, false));
-    add_builtin_type("i64", make_type_int(64, false));
+    add_builtin_type("i8", make_typespec_int(8, false));
+    add_builtin_type("i16", make_typespec_int(16, false));
+    add_builtin_type("i32", make_typespec_int(32, false));
+    add_builtin_type("i64", make_typespec_int(64, false));
 
-    add_builtin_type("u8", make_type_int(8, true));
-    add_builtin_type("u16", make_type_int(16, true));
-    add_builtin_type("u32", make_type_int(32, true));
-    add_builtin_type("u64", make_type_int(64, true));
+    add_builtin_type("u8", make_typespec_int(8, true));
+    add_builtin_type("u16", make_typespec_int(16, true));
+    add_builtin_type("u32", make_typespec_int(32, true));
+    add_builtin_type("u64", make_typespec_int(64, true));
 
-    add_builtin_type("f32", make_type_float(32));
-    add_builtin_type("f64", make_type_float(64));
+    add_builtin_type("f32", make_typespec_float(32));
+    add_builtin_type("f64", make_typespec_float(64));
 
     const char* ext = get_file_ext(source_file);
     const char* dir = get_file_dir(source_file);
@@ -58,6 +60,7 @@ int main(int argc, char** argv) {
     info("ext: %s", ext);
     info("dir: %s", dir);
     info("name: %s", name);
+    info("exec_name: %s", exec_name);
 
     // Make sure it's actually a .thi file
     if (strcmp(ext, "thi") != 0)
@@ -81,7 +84,7 @@ int main(int argc, char** argv) {
     success("Building Symbol Table");
     generate_symbol_table_from_tokens(tokens);
     pop_timer();
-    // print_symbol_map();
+    print_symbol_map();
 
     // Parsing
     push_timer("Building AST");
@@ -103,7 +106,6 @@ int main(int argc, char** argv) {
 
     // Linking
     push_timer("Linking");
-    const char* exec_name = argv[2];
     #define format         "macho64"
     #define compiler       "nasm"
     #define src            "output.asm"
@@ -126,27 +128,23 @@ int main(int argc, char** argv) {
     char rm_call[256];
     sprintf(rm_call, "rm %s.o", exec_name);
     system(rm_call);
-    // system("rm output.asm");
+    system("rm output.asm");
     pop_timer();
 
     // Debug info. Writing out sizes of our types.
     info("size of Token: %lu bytes", sizeof(Token));
-    info("size of AST: %lu bytes", sizeof(AST));
     info("size of Expr: %lu bytes", sizeof(Expr));
-    info("size of Type: %lu bytes", sizeof(Type));
+    info("size of Typespec: %lu bytes", sizeof(Typespec));
     info("size of Value: %lu bytes", sizeof(Value));
-
-    // Cleanup
-    // if (tokens) sb_free(tokens);
-    // if (ast) sb_free(ast);
-    // if (output) free(output);
 
     pop_timer();
     
     success("==------------ Thi ------------==");
     Timer* timers = get_timers();
     for (int i = 0; i < sb_count(timers); ++i)
+    {
         success("%s: %f ms", timers[i].desc, timers[i].ms);
+    }
     success("==------------ === ------------==");
 
     return 0;

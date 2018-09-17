@@ -259,12 +259,6 @@ static inline bool is_valid_digit() {
     return isdigit(*c) || *c == '.' || *c == '_' || *c == 'e' || *c == 'x';
 }
 
-#define CHECK_TRIPLE_TOKEN(c1, c2, c3, t_kind) \
-    if (c[0] == c1 && c[1] == c2 && c[2] == c3) { token.kind = t_kind; c+=2; }
-
-#define CHECK_DOUBLE_TOKEN(c1, c2, t_kind) \
-    if (c[0] == c1 && c[1] == c2) { token.kind = t_kind; ++c; }
-
 #define CASE_SINGLE_TOKEN(c1, t_kind) \
     case c1: token.kind = t_kind; ++c;
 
@@ -403,8 +397,10 @@ static Token get_token()
     return token;
 }
 
-const char* token_kind_to_str(Token_Kind kind) {
-    switch (kind) {
+const char* token_kind_to_str(Token_Kind kind)
+{
+    switch (kind)
+    {
         case TOKEN_EOF:                    return "eof";
         case TOKEN_UNKNOWN:                return "unknown";
         case TOKEN_NIL:                    return "nil";
@@ -429,22 +425,22 @@ const char* token_kind_to_str(Token_Kind kind) {
         case TOKEN_CONTINUE:               return "continue";
         case TOKEN_PIPE_PIPE:              return "||";
         case TOKEN_AND_AND:                return "&&";
-        case TOKEN_PLUS_EQ:             return "+=";
-        case TOKEN_MINUS_EQ:            return "-=";
-        case TOKEN_FWSLASH_EQ:          return "/=";
-        case TOKEN_HAT_EQ:              return "^=";
-        case TOKEN_ASTERISK_EQ:         return "*=";
-        case TOKEN_PIPE_EQ:             return "|=";
-        case TOKEN_PERCENT_EQ:          return "%=";
-        case TOKEN_AND_EQ:              return "&=";
+        case TOKEN_PLUS_EQ:                return "+=";
+        case TOKEN_MINUS_EQ:               return "-=";
+        case TOKEN_FWSLASH_EQ:             return "/=";
+        case TOKEN_HAT_EQ:                 return "^=";
+        case TOKEN_ASTERISK_EQ:            return "*=";
+        case TOKEN_PIPE_EQ:                return "|=";
+        case TOKEN_PERCENT_EQ:             return "%=";
+        case TOKEN_AND_EQ:                 return "&=";
         case TOKEN_PLUS_PLUS:              return "++";
         case TOKEN_MINUS_MINUS:            return "--";
         case TOKEN_BITWISE_LEFTSHIFT:      return "<<=";
         case TOKEN_BITWISE_RIGHTSHIFT:     return ">>=";
-        case TOKEN_EQ_EQ:            return "==";
-        case TOKEN_BANG_EQ:             return "!=";
+        case TOKEN_EQ_EQ:                  return "==";
+        case TOKEN_BANG_EQ:                return "!=";
         case TOKEN_COLON_COLON:            return "::";
-        case TOKEN_COLON_EQ:            return ":=";
+        case TOKEN_COLON_EQ:               return ":=";
         case TOKEN_RIGHT_ARROW:            return "->";
         case TOKEN_PIPE:                   return "|";
         case TOKEN_TILDE:                  return "~";
@@ -478,7 +474,7 @@ const char* token_kind_to_str(Token_Kind kind) {
         case TOKEN_FWSLASH:                return "/";
         case TOKEN_BWSLASH:                return "\\";
         case TOKEN_HASH:                   return "#";
-        case TOKEN_EQ:                  return "=";
+        case TOKEN_EQ:                     return "=";
         case TOKEN_STRING:                 return "string";
         case TOKEN_INTEGER:                return "integer";
         case TOKEN_NUMBER:                 return "number";

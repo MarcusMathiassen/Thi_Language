@@ -5,7 +5,7 @@
 #include "lexer.h"            // Token, Token_Kind
 #include "stretchy_buffer.h"  // sb_push
 #include "typedefs.h"         // i32, i64, etc.
-#include "types.h"            // Type
+#include "typespec.h"         // Typespec
 #include "utility.h"          // info, error, warning, success
 
 #include "globals.h"          // add_symbol
@@ -83,8 +83,8 @@ static Expr* parse_binary(int expr_prec, Expr* lhs);
 static Expr* parse_integer(void);
 static Expr* parse_parens(void);
 
-static Type* parse_struct_signature(const char* struct_name);
-static Type* parse_function_signature(const char* func_name);
+static Typespec* parse_struct_signature(const char* struct_name);
+static Typespec* parse_function_signature(const char* func_name);
 
 static void skip_block(void);
 static void skip_enum_signature(void);
@@ -93,7 +93,7 @@ static void skip_function_signature(void);
 
 static u64 get_integer(void);
 static f64 get_float(void);
-static Type* get_type(void);
+static Typespec* get_type(void);
 
 //-----------------
 // Global variables
@@ -361,10 +361,10 @@ static f64 get_float(void) {
     return value;
 }
 
-static Type* get_type(void) {
+static Typespec* get_type(void) {
     const char* type_name = curr_tok.value;
     eat_kind(TOKEN_IDENTIFIER);
-    Type* type = NULL;
+    Typespec* type = NULL;
 
     if (is_builtin_type(type_name))
         type = get_builtin_type(type_name);
@@ -375,7 +375,7 @@ static Type* get_type(void) {
     if (tok_is(THI_SYNTAX_POINTER))
     {
         eat_kind(THI_SYNTAX_POINTER);
-        return make_type_pointer(type);
+        return make_typespec_pointer(type);
     } else if (tok_is(TOKEN_OPEN_BRACKET))
     {
         eat_kind(TOKEN_OPEN_BRACKET);
@@ -383,7 +383,7 @@ static Type* get_type(void) {
         if (tok_is(TOKEN_INTEGER) || tok_is(TOKEN_HEX))
             size = get_integer();
         eat_kind(TOKEN_CLOSE_BRACKET);
-        // return make_type_array(type, size);
+        // return make_typespec_array(type, size);
         // return new Type_Array(type, size);
     }
 
@@ -397,7 +397,7 @@ static Type* get_type(void) {
 //                               Parsing Utility Functions
 //------------------------------------------------------------------------------
 
-static Type* parse_struct_signature(const char* struct_name) {
+static Typespec* parse_struct_signature(const char* struct_name) {
     eat_kind(TOKEN_STRUCT);
     eat_kind(TOKEN_OPEN_BRACE);
     Arg* members = NULL;
@@ -410,10 +410,10 @@ static Type* parse_struct_signature(const char* struct_name) {
         sb_push(members, member);
     }
     eat();
-    return make_type_struct(struct_name, members);
+    return make_typespec_struct(struct_name, members);
 }
 
-static Type* parse_function_signature(const char* func_name) {
+static Typespec* parse_function_signature(const char* func_name) {
 
     eat_kind(TOKEN_OPEN_PAREN);
 
@@ -446,14 +446,14 @@ static Type* parse_function_signature(const char* func_name) {
 
     eat();
 
-    Type* ret_type = NULL;
+    Typespec* ret_type = NULL;
 
     if (tok_is(TOKEN_RIGHT_ARROW)) {
         eat();
         ret_type = get_type();
     }
 
-    return make_type_func(func_name, args, ret_type);
+    return make_typespec_func(func_name, args, ret_type);
 }
 
 static Expr* get_definition(const char* ident) {
@@ -594,13 +594,13 @@ static void add_new_symbol(void)
             }
             case TOKEN_STRUCT:
             {
-                Type* type = parse_struct_signature(ident);
+                Typespec* type = parse_struct_signature(ident);
                 add_symbol(ident, type);
                 return;
             }
             case TOKEN_OPEN_PAREN:
             {
-                Type* type = parse_function_signature(ident);
+                Typespec* type = parse_function_signature(ident);
                 skip_block();
                 add_symbol(ident, type);
                 return;

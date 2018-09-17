@@ -5,7 +5,7 @@
 #include "lexer.h" // token_kind_to_str
 #include "globals.h"
 #include "utility.h" // error warning info, etc
-#include "values.h" // Value
+#include "value.h" // Value
 #include "stretchy_buffer.h"  // sb_free
 
 #define REG_COUNT 68
@@ -238,7 +238,7 @@ static void codegen_function(Expr* expr)
         info("Parameter %d name: %s", i, arg.name);
         print_type(arg.type);
 
-        u64 size = get_size_of_type(arg.type);
+        u64 size = get_size_of_typespec(arg.type);
         info("size: %d", size);
     }
 }
@@ -548,7 +548,7 @@ char* generate_code_from_ast(AST** ast)
     success("Generating X64 Assembly from AST");
 
     stack_index = 0;
-    output = xmalloc(0);
+    output = xmalloc(1);
 
     emit(output, "global main");
     emit(output, "section .text");
