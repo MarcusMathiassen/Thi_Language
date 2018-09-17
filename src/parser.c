@@ -71,6 +71,7 @@ static void eat(void);
 static void eat_kind(Token_Kind kind);
 static Expr* get_definition(const char* ident);
 static Expr* get_variable_declaration(const char* ident);
+static Expr* get_variable_typeinferred(const char* ident);
 static Expr* parse_top_level(void);
 static Expr* parse_statement(void);
 static Expr* parse_primary(void);
@@ -227,8 +228,8 @@ static Expr* parse_identifier()
     eat();
     switch (curr_tok.kind)
     {
-        case TOKEN_COLON_COLON:      return get_definition(ident);
-        // case TOKEN_COLON_EQ:      return get_variable_typeinferred();
+        case TOKEN_COLON_COLON:   return get_definition(ident);
+        case TOKEN_COLON_EQ:      return get_variable_typeinferred(ident);
         case TOKEN_COLON:         return get_variable_declaration(ident);
         // case TOKEN_OPEN_PAREN:    return get_function_call();
         // case TOKEN_OPEN_BRACKET:  return get_subscript_access();
@@ -254,6 +255,12 @@ static Expr* parse_ret() {
     return make_expr_ret(exp);
 }
 
+static Expr* get_variable_typeinferred(const char* ident)
+{
+    eat();
+    Expr* assignment_expr = parse_expression();
+    return make_expr_variable_decl_type_inf(ident, assignment_expr);
+}
 static Expr* get_variable_declaration(const char* ident)
 {
     eat();

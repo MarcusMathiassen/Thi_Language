@@ -63,11 +63,12 @@ Value* make_value(Value_Kind kind)
     v->kind = kind;
     return v;
 }
-Value* make_value_int(u8 bytes, u64 value)
+Value* make_value_int(u8 bytes, Typespec* type, u64 value)
 {
     assert(bytes > 0 && bytes < 9);
+    assert(type);
     Value* v = make_value(VALUE_INT);
-    v->type = NULL;
+    v->type = type;
     v->Int.bytes = bytes;
     v->Int.value = value;
     return v;

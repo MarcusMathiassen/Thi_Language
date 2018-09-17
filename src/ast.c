@@ -29,6 +29,7 @@ const char* expr_kind_to_str(Expr_Kind kind)
         case EXPR_COMPOUND:         return "EXPR_COMPOUND";
         case EXPR_RET:              return "EXPR_RET";
         case EXPR_VARIABLE_DECL:    return "EXPR_VARIABLE_DECL";
+        case EXPR_VARIABLE_DECL_TYPE_INF:    return "EXPR_VARIABLE_DECL_TYPE_INF";
         case EXPR_FUNC:             return "EXPR_FUNC";
         case EXPR_STRUCT:           return "EXPR_STRUCT";
         case EXPR_IF:               return "EXPR_IF";
@@ -55,6 +56,7 @@ void print_expr(Expr* expr)
         case EXPR_COMPOUND: warning("EXPR_COMPOUND not print implemented."); return;
         case EXPR_RET: print_expr(expr->Ret.expr); return;
         case EXPR_VARIABLE_DECL: warning("EXPR_VARIABLE_DECL not print implemented."); return;
+        case EXPR_VARIABLE_DECL_TYPE_INF: warning("EXPR_VARIABLE_DECL_TYPE_INF not print implemented."); return;
         case EXPR_FUNC: 
             print_type(expr->Func.type);
             print_expr(expr->Func.body);
@@ -194,4 +196,12 @@ Expr* make_expr_variable_decl(const char* name, Typespec* type, Expr* value)
     e->Variable_Decl.value = value;
     return e;
 }
-
+Expr* make_expr_variable_decl_type_inf(const char* name, Expr* value)
+{
+    assert(name);
+    assert(value);
+    Expr* e = make_expr(EXPR_VARIABLE_DECL_TYPE_INF);
+    e->Variable_Decl.name = name;
+    e->Variable_Decl.value = value;
+    return e;
+}

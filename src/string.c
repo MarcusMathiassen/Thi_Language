@@ -56,10 +56,13 @@ typedef struct Intern_Str
 
 static Intern_Str* interns;
 static u64 interns_mem_alloc_size = 0;
-const char* str_intern_range(const char* start, const char* end) {
+const char* str_intern_range(const char* start, const char* end)
+{
     u64 len = end - start;
-    for (int i = 0; i < sb_count(interns); ++i) {
-        if (interns[i].len == len && strncmp(interns[i].str, start, len) == 0) {
+    for (int i = 0; i < sb_count(interns); ++i)
+    {
+        if (interns[i].len == len && strncmp(interns[i].str, start, len) == 0)
+        {
             return interns[i].str;
         }
     }

@@ -11,6 +11,8 @@
 
 #include <assert.h> // assert
 
+Typespec* integer_literal_type = NULL;
+
 static Value* codegen_expr(Expr* expr);
 static int get_rax_reg_of_byte_size(u8 bytes);
 static int get_parameter_reg(i8 i, i8 size);
@@ -357,9 +359,10 @@ static Value* codegen_ident(Expr* expr)
     return var;
 }
 
+
 static Value* codegen_int(Expr* expr)
 {
-    Value* val = make_value_int(DEFAULT_INTEGER_BYTE_SIZE, expr->Int.val);
+    Value* val = make_value_int(DEFAULT_INTEGER_BYTE_SIZE, integer_literal_type, expr->Int.val);
     emit_load(val);
     return val;
 } 
@@ -623,6 +626,23 @@ static Value* codegen_binary(Expr* expr)
     return NULL;
 }
 
+static Value* codegen_variable_decl_type_inf(Expr* expr)
+{
+    const char* name = expr->Variable_Decl.name;
+    Expr* assignment_expr = expr->Variable_Decl.value;
+
+    Value* assign_expr_val = codegen_expr(assignment_expr); // Any value this creates is stored in RAX
+    Typespec* type = assign_expr_val->type;
+    u64 type_size = get_size_of_typespec(type);
+    u64 stack_pos = type_size + stack_index;
+
+    Value* variable = make_value_variable(name, type, stack_pos);
+    add_variable_to_scope(scope, variable);
+    emit_store(variable); // The variable is set to whatevers in RAX
+    stack_index += type_size;
+
+    return variable;
+}
 static Value* codegen_variable_decl(Expr* expr)
 {
     const char* name = expr->Variable_Decl.name;
@@ -665,6 +685,7 @@ static Value* codegen_expr(Expr* expr)
         case EXPR_COMPOUND:         error("EXPR_COMPOUND codegen not implemented");
         case EXPR_RET:              codegen_ret(expr); break;
         case EXPR_VARIABLE_DECL:    return codegen_variable_decl(expr);
+        case EXPR_VARIABLE_DECL_TYPE_INF:    return codegen_variable_decl_type_inf(expr);
         case EXPR_FUNC:             codegen_function(expr); break;
         case EXPR_STRUCT:           error("EXPR_STRUCT codegen not implemented"); break;
         case EXPR_IF:               error("EXPR_IF codegen not implemented");
@@ -680,6 +701,8 @@ static Value* codegen_expr(Expr* expr)
 char* generate_code_from_ast(AST** ast)
 {
     success("Generating X64 Assembly from AST");
+
+    integer_literal_type = make_typespec_int(DEFAULT_INTEGER_BIT_SIZE, 0);
 
     stack_index = 0;
     scope = make_scope(10);

@@ -29,6 +29,7 @@ enum Expr_Kind
     EXPR_COMPOUND,
     EXPR_RET,
     EXPR_VARIABLE_DECL,
+    EXPR_VARIABLE_DECL_TYPE_INF,
     EXPR_FUNC,
     EXPR_STRUCT,
     EXPR_IF,
@@ -59,6 +60,7 @@ struct Expr
         struct { Token_Kind op; Expr* operand;              } Unary;
         struct { Token_Kind op; Expr* lhs; Expr* rhs;       } Binary;
         struct { const char* name; Typespec* type; Expr* value; } Variable_Decl;
+        struct { const char* name; Expr* value; } Variable_Decl_Type_Inf;
     };
 };
 
@@ -74,6 +76,7 @@ Expr* make_expr_block(Expr** stmts);
 Expr* make_expr_ret(Expr* expr);
 Expr* make_expr_grouping(Expr* expr);
 Expr* make_expr_variable_decl(const char* name, Typespec* type, Expr* value);
+Expr* make_expr_variable_decl_type_inf(const char* name, Expr* value);
 
 
 typedef struct AST_Node AST_Node; 

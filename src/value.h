@@ -68,7 +68,7 @@ struct Value
     };
 };
 
-Value* make_value_int(u8 bytes, u64 value);
+Value* make_value_int(u8 bytes, Typespec* type, u64 value);
 Value* make_value_variable(const char* name, Typespec* type, u64 stack_pos);
 Value* make_value_function(const char* name);
 Value* make_value_block(Value* function, const char* name);
