@@ -76,6 +76,6 @@ u64 get_stack_pos_of_variable(Value* variable);
 
 void emit(string* output, const char* fmt, ...);
 void debug_push_new_instr_group(const char* desc);
-int get_size_of_value(Value* value);
+u64 get_size_of_value(Value* value);
 
 #endif

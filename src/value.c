@@ -15,7 +15,7 @@
 //                               Public
 //------------------------------------------------------------------------------
 
-int get_size_of_value(Value* value)
+u64 get_size_of_value(Value* value)
 {
     assert(value);
     switch (value->kind)

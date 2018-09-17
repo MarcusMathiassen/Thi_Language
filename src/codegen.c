@@ -424,7 +424,7 @@ static Value* codegen_binary(Expr* expr)
         case TOKEN_PLUS:
         {
             Value* lhs_val  = codegen_expr(lhs);
-            int lhs_size = get_size_of_value(lhs_val);
+            u64 lhs_size = get_size_of_value(lhs_val);
             int res_n  = get_rax_reg_of_byte_size(lhs_size);
             int temp_reg_n = get_next_available_reg(lhs_size);
             // add_used_reg(temp_reg_n);
@@ -436,7 +436,7 @@ static Value* codegen_binary(Expr* expr)
         case TOKEN_MINUS:
         {
             Value* rhs_val  = codegen_expr(rhs);
-            int rhs_size = get_size_of_value(rhs_val);
+            u64 rhs_size = get_size_of_value(rhs_val);
             int temp_reg_n = get_next_available_reg(rhs_size);
             // add_used_reg(temp_reg_n);
             int reg_n = get_rax_reg_of_byte_size(rhs_size);
@@ -448,7 +448,7 @@ static Value* codegen_binary(Expr* expr)
         case TOKEN_ASTERISK:
         {
             Value* lhs_val  = codegen_expr(lhs);
-            int lhs_size = get_size_of_value(lhs_val);
+            u64 lhs_size = get_size_of_value(lhs_val);
             int res_n  = get_rax_reg_of_byte_size(lhs_size);
             int temp_reg_n = get_next_available_reg(lhs_size);
             // add_used_reg(temp_reg_n);
@@ -461,7 +461,7 @@ static Value* codegen_binary(Expr* expr)
         case TOKEN_FWSLASH:
         {
             Value* rhs_val  = codegen_expr(rhs);
-            int rhs_size = get_size_of_value(rhs_val);
+            u64 rhs_size = get_size_of_value(rhs_val);
             int reg_n = get_rax_reg_of_byte_size(rhs_size);
             int temp_reg_n = get_next_available_reg(rhs_size);
             // add_used_reg(temp_reg_n);
@@ -475,7 +475,7 @@ static Value* codegen_binary(Expr* expr)
         case TOKEN_AND_AND:
         {
             Value* lhs_val  = codegen_expr(lhs);
-            int lhs_size = get_size_of_value(lhs_val);
+            u64 lhs_size = get_size_of_value(lhs_val);
             int reg_n  = get_rax_reg_of_byte_size(lhs_size);
             int temp_reg_n = get_next_available_reg(lhs_size);
             // add_used_reg(temp_reg_n);
@@ -493,7 +493,7 @@ static Value* codegen_binary(Expr* expr)
         case TOKEN_PIPE_PIPE:
         {
             Value* lhs_val  = codegen_expr(lhs);
-            int lhs_size = get_size_of_value(lhs_val);
+            u64 lhs_size = get_size_of_value(lhs_val);
             int reg_n  = get_rax_reg_of_byte_size(lhs_size);
             int temp_reg_n = get_next_available_reg(lhs_size);
             // add_used_reg(temp_reg_n);
@@ -507,7 +507,7 @@ static Value* codegen_binary(Expr* expr)
         case TOKEN_LT:
         {
             Value* lhs_val  = codegen_expr(lhs);
-            int lhs_size = get_size_of_value(lhs_val);
+            u64 lhs_size = get_size_of_value(lhs_val);
             int reg_n  = get_rax_reg_of_byte_size(lhs_size);
             int temp_reg_n = get_next_available_reg(lhs_size);
             // add_used_reg(temp_reg_n);
@@ -521,7 +521,7 @@ static Value* codegen_binary(Expr* expr)
         case TOKEN_GT:
         {
             Value* lhs_val  = codegen_expr(lhs);
-            int lhs_size = get_size_of_value(lhs_val);
+            u64 lhs_size = get_size_of_value(lhs_val);
             int reg_n  = get_rax_reg_of_byte_size(lhs_size);
             int temp_reg_n = get_next_available_reg(lhs_size);
             // add_used_reg(temp_reg_n);
@@ -535,7 +535,7 @@ static Value* codegen_binary(Expr* expr)
         case TOKEN_LT_EQ:
         {
             Value* lhs_val  = codegen_expr(lhs);
-            int lhs_size = get_size_of_value(lhs_val);
+            u64 lhs_size = get_size_of_value(lhs_val);
             int reg_n  = get_rax_reg_of_byte_size(lhs_size);
             int temp_reg_n = get_next_available_reg(lhs_size);
             // add_used_reg(temp_reg_n);
@@ -549,7 +549,7 @@ static Value* codegen_binary(Expr* expr)
         case TOKEN_GT_EQ:
         {
             Value* lhs_val  = codegen_expr(lhs);
-            int lhs_size = get_size_of_value(lhs_val);
+            u64 lhs_size = get_size_of_value(lhs_val);
             int reg_n  = get_rax_reg_of_byte_size(lhs_size);
             int temp_reg_n = get_next_available_reg(lhs_size);
             // add_used_reg(temp_reg_n);
@@ -563,7 +563,7 @@ static Value* codegen_binary(Expr* expr)
         case TOKEN_EQ_EQ:
         {
             Value* lhs_val  = codegen_expr(lhs);
-            int lhs_size = get_size_of_value(lhs_val);
+            u64 lhs_size = get_size_of_value(lhs_val);
             int reg_n  = get_rax_reg_of_byte_size(lhs_size);
             int temp_reg_n = get_next_available_reg(lhs_size);
             // add_used_reg(temp_reg_n);
@@ -577,7 +577,7 @@ static Value* codegen_binary(Expr* expr)
         case TOKEN_BANG_EQ:
         {
             Value* lhs_val  = codegen_expr(lhs);
-            int lhs_size = get_size_of_value(lhs_val);
+            u64 lhs_size = get_size_of_value(lhs_val);
             int reg_n  = get_rax_reg_of_byte_size(lhs_size);
             int temp_reg_n = get_next_available_reg(lhs_size);
             // add_used_reg(temp_reg_n);
@@ -629,16 +629,15 @@ static Value* codegen_variable_decl(Expr* expr)
     Typespec* type = expr->Variable_Decl.type;
     Expr* assignment_expr = expr->Variable_Decl.value;
 
-    Value* assign_expr_val = NULL;
     if (assignment_expr)
-        assign_expr_val = codegen_expr(assignment_expr);
+        codegen_expr(assignment_expr); // Any value this creates is stored in RAX
 
     u64 type_size = get_size_of_typespec(type);
     u64 stack_pos = type_size + stack_index;
     Value* variable = make_value_variable(name, type, stack_pos);
     add_variable_to_scope(scope, variable);
 
-    emit_store(variable);
+    emit_store(variable); // The variable is set to whatevers in RAX
     stack_index += type_size;
 
     return variable;
@@ -656,9 +655,7 @@ static Value* codegen_expr(Expr* expr)
     info("Generating code for: %s", expr_kind_to_str(expr->kind));
     switch (expr->kind)
     {
-        case EXPR_NOTE:
-            error("EXPR_NOTE codegen not implemented");
-            break;
+        case EXPR_NOTE:             error("EXPR_NOTE codegen not implemented"); break;
         case EXPR_INT:              return codegen_int(expr);
         case EXPR_FLOAT:            error("EXPR_FLOAT codegen not implemented");
         case EXPR_IDENT:            return codegen_ident(expr);
@@ -669,9 +666,7 @@ static Value* codegen_expr(Expr* expr)
         case EXPR_RET:              codegen_ret(expr); break;
         case EXPR_VARIABLE_DECL:    return codegen_variable_decl(expr);
         case EXPR_FUNC:             codegen_function(expr); break;
-        case EXPR_STRUCT:
-            error("EXPR_STRUCT codegen not implemented");
-            break;
+        case EXPR_STRUCT:           error("EXPR_STRUCT codegen not implemented"); break;
         case EXPR_IF:               error("EXPR_IF codegen not implemented");
         case EXPR_FOR:              error("EXPR_FOR codegen not implemented");
         case EXPR_BLOCK:            codegen_block(expr); break;
