@@ -13,6 +13,8 @@ typedef enum Typespec_Kind Typespec_Kind;
 
 u64 get_size_of_typespec(Typespec* Typespec);
 
+char* typespec_to_str(Typespec* type);
+
 void print_type(Typespec* Typespec);
 
 Typespec* make_typespec_int(i8 bits, bool is_unsigned);

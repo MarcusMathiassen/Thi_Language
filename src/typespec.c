@@ -4,7 +4,7 @@
 #include <stdlib.h>  // malloc
 #include <assert.h>  // assert
 #include "stretchy_buffer.h"  // sb_free
-
+#include "string.h"              // strf, append_string, string
 
 //------------------------------------------------------------------------------
 //                               typespec.c
@@ -32,6 +32,31 @@ u64 get_size_of_typespec(Typespec* type)
         default: error("not implemented kind %d", type->kind);
     }
     return 0;
+}
+
+char* typespec_to_str(Typespec* type)
+{
+    switch (type->kind)
+    {
+        case TYPESPEC_INT:  return strf((type->Int.is_unsigned ? "u" : "i" "%d"),  type->Int.bits);
+        case TYPESPEC_FUNC:
+        {
+            string* str = make_string(strf("%s :: (", type->Func.name), 50);
+            strf("func. name: %d", type->Func.name);
+            Arg* args = type->Func.args;
+            u64 arg_count = sb_count(args);
+            if (arg_count)
+            for (int i = 0; i < sb_count(args); ++i)
+            {
+                append_string(str, strf("%s: %s", args[i].name, typespec_to_str(args[i].type)));
+            }
+
+            append_string(str, strf(") -> %s", typespec_to_str(type->Func.ret_type)));
+            return str->data; 
+        }
+        default: warning("not implemented kind %d", type->kind);
+    }
+    return NULL;
 }
 
 void print_type(Typespec* type)
@@ -77,7 +102,7 @@ Typespec* make_typespec(Typespec_Kind kind)
 Typespec* make_typespec_int(i8 bits, bool is_unsigned)
 {
     assert(bits > 7 && bits < 65);
-    assert(is_unsigned = 1 || is_unsigned == 0);
+    assert(is_unsigned == 1 || is_unsigned == 0);
     Typespec* t = make_typespec(TYPESPEC_INT);
     t->Int.bits = bits;
     t->Int.is_unsigned = is_unsigned;

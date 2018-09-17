@@ -5,6 +5,7 @@
 #include "stretchy_buffer.h"    // sb_push
 #include "utility.h"            // info, success, error, warning
 #include "lexer.h"              // token_kind_to_str,
+#include "string.h"              // strf, append_string, string
 #include <assert.h>             // assert
 
 //------------------------------------------------------------------------------
@@ -39,6 +40,36 @@ const char* expr_kind_to_str(Expr_Kind kind)
         case EXPR_GROUPING:         return "EXPR_GROUPING";
     }
     return "print not implemented";
+}
+
+char* expr_to_str(Expr* expr)
+{
+    switch (expr->kind)
+    {
+        case EXPR_INT:                     return strf("%lld", expr->Int.val); 
+        case EXPR_IDENT:                   return strf("%s", expr->Ident.name); 
+        case EXPR_UNARY:                   return strf("%s%s", token_kind_to_str(expr->Unary.op), expr_to_str(expr->Unary.operand)); 
+        case EXPR_BINARY:                  return strf("%s %s %s", expr_to_str(expr->Binary.lhs), token_kind_to_str(expr->Binary.op), expr_to_str(expr->Binary.rhs)); 
+        case EXPR_RET:                     return strf("ret %s", expr_to_str(expr->Ret.expr)); 
+        case EXPR_VARIABLE_DECL:           return strf(expr->Variable_Decl.value ? "%s: %s = %s" : "%s: %s", expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type), expr->Variable_Decl.value ? expr_to_str(expr->Variable_Decl.value) : ""); 
+        case EXPR_VARIABLE_DECL_TYPE_INF:  return strf("%s := %s", expr->Variable_Decl_Type_Inf.name, expr_to_str(expr->Variable_Decl_Type_Inf.value)); 
+        case EXPR_BLOCK:
+        {   
+            string* str = make_string("", 50);
+            for (int i = 0; i < sb_count(expr->Block.stmts); ++i)
+            {
+                append_string(str, strf("\t%s\n", expr_to_str(expr->Block.stmts[i])));   
+            }
+            return str->data;
+        }
+        case EXPR_FUNC:
+        {
+            string* str = make_string(strf("%s  {\n%s}", typespec_to_str(expr->Func.type), expr_to_str(expr->Func.body)), 50);
+            return str->data;
+        }
+        case EXPR_GROUPING: return strf("(%s)", expr_to_str(expr->Grouping.expr));
+    }
+    return NULL;
 }
 
 void print_expr(Expr* expr)
@@ -79,9 +110,11 @@ void print_expr(Expr* expr)
 
 void print_ast(AST** ast)
 {
+    info("Printing AST..");
     for (int i = 0; i < sb_count(ast); ++i)
     {
-        print_expr(ast[i]);
+        warning("%s", expr_to_str(ast[i]));
+        // print_expr(ast[i]);
     }
 }
 

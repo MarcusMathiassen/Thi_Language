@@ -12,7 +12,7 @@ typedef struct Expr Expr;
 typedef struct Expr AST;
 typedef enum Expr_Kind Expr_Kind;
 
-char* expr_to_str(char* str, Expr* expr);
+char* expr_to_str(Expr* expr);
 const char* expr_kind_to_str(Expr_Kind kind);
 void print_expr(Expr* expr);
 void print_ast(AST** ast);
@@ -77,7 +77,6 @@ Expr* make_expr_ret(Expr* expr);
 Expr* make_expr_grouping(Expr* expr);
 Expr* make_expr_variable_decl(const char* name, Typespec* type, Expr* value);
 Expr* make_expr_variable_decl_type_inf(const char* name, Expr* value);
-
 
 typedef struct AST_Node AST_Node; 
 typedef struct AST_List AST_List;
