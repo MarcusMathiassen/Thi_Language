@@ -606,6 +606,84 @@ static Value* codegen_binary(Expr* expr)
             return lhs_val;
         }
 
+        case TOKEN_PLUS_EQ:
+        {
+            Value* variable = codegen_expr(lhs);
+            if (variable->kind != VALUE_VARIABLE)
+                error("lhs of += must be a variable.");
+
+            Value* rhs_val = codegen_expr(rhs);
+            u64 rhs_size = get_size_of_value(rhs_val);
+            u64 reg_n  = get_rax_reg_of_byte_size(rhs_size);
+            u64 stack_pos = get_stack_pos_of_variable(variable);
+            emit(output, "ADD [RSP-%d], %s", stack_pos, reg[reg_n]);
+
+            return variable;
+        }
+
+        case TOKEN_MINUS_EQ:
+        {
+            Value* rhs_val = codegen_expr(rhs);
+            u64 rhs_size = get_size_of_value(rhs_val);
+            u64 reg_n  = get_rax_reg_of_byte_size(rhs_size);
+
+            int temp_reg_n = get_next_available_reg(rhs_size);
+            // curr_func->add_used_reg(temp_reg.reg);
+            emit(output, "MOV %s, %s", reg[temp_reg_n], reg[reg_n]);
+
+            Value* variable = codegen_expr(lhs);
+            if (variable->kind != VALUE_VARIABLE)
+                error("lhs of -= must be a variable.");
+
+            emit(output, "SUB %s, %s", reg[reg_n], reg[temp_reg_n]);
+            emit_store(variable);
+            return variable;
+        }
+
+        case TOKEN_ASTERISK_EQ:
+        {
+            Value* variable = codegen_expr(lhs);
+            if (variable->kind != VALUE_VARIABLE)
+                error("lhs of += must be a variable.");
+
+            Value* rhs_val = codegen_expr(rhs);
+            u64 rhs_size = get_size_of_value(rhs_val);
+            u64 reg_n  = get_rax_reg_of_byte_size(rhs_size);
+            u64 stack_pos = get_stack_pos_of_variable(variable);
+            emit(output, "IMUL %s, [RSP-%d]", reg[reg_n], stack_pos);
+            emit_store(variable);
+            return variable;
+        }
+        case TOKEN_PERCENT_EQ: error("percent_eq not implemented.");
+        case TOKEN_PIPE_EQ: error("pipe_eq not implemented.");
+        case TOKEN_HAT_EQ: error("hat_eq not implemented.");
+        case TOKEN_BITWISE_LEFTSHIFT: error("bitwise_leftshift not implemented.");
+        case TOKEN_BITWISE_RIGHTSHIFT: error("bitwise_rightshift not implemented.");
+
+        case TOKEN_FWSLASH_EQ:
+        {
+            Value* rhs_val = codegen_expr(rhs);
+            u64 rhs_size = get_size_of_value(rhs_val);
+            u64 reg_n  = get_rax_reg_of_byte_size(rhs_size);
+
+            int temp_reg_n = get_next_available_reg(rhs_size);
+            // curr_func->add_used_reg(temp_reg.reg);
+            emit(output, "MOV %s, %s", reg[temp_reg_n], reg[reg_n]);
+
+            Value* variable = codegen_expr(lhs);
+            if (variable->kind != VALUE_VARIABLE)
+                error("lhs of /= must be a variable.");
+
+            emit(output, "CDQ");
+            emit(output, "IDIV %s", reg[temp_reg_n]);
+            emit_store(variable);
+            return variable;
+        }
+
+        case TOKEN_AT: error("at not implemented.");
+        case TOKEN_HAT: error("hat not implemented.");
+        case TOKEN_PIPE: error("pipe not implemented.");
+
         // Ternary operator
         // case TOKEN_QUESTION_MARK:
         // {

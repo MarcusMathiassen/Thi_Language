@@ -246,11 +246,20 @@ static Token get_token()
         CASE_SINGLE_TOKEN('@', TOKEN_AT); break;
         CASE_SINGLE_TOKEN('^', TOKEN_HAT); break;
         CASE_SINGLE_TOKEN(';', TOKEN_SEMICOLON);  break;
-        CASE_SINGLE_TOKEN('*', TOKEN_ASTERISK); break;
         CASE_SINGLE_TOKEN('?', TOKEN_QUESTION_MARK); break;
         CASE_SINGLE_TOKEN('!', TOKEN_BANG); break;
-        CASE_SINGLE_TOKEN('/', TOKEN_FWSLASH); break;
         CASE_SINGLE_TOKEN('\\', TOKEN_BWSLASH); break;
+
+        
+        CASE_SINGLE_TOKEN('/', TOKEN_FWSLASH);
+        switch(*c) {
+            CASE_SINGLE_TOKEN('=', TOKEN_FWSLASH_EQ); break;
+        } break;
+        
+        CASE_SINGLE_TOKEN('*', TOKEN_ASTERISK);
+        switch(*c) {
+            CASE_SINGLE_TOKEN('=', TOKEN_ASTERISK_EQ); break;
+        } break;
 
         CASE_SINGLE_TOKEN('|', TOKEN_PIPE);
         switch(*c) {
