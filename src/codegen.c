@@ -212,8 +212,6 @@ typedef struct
     u64 alloc_count;
 } Scope; 
 
-Scope* scope = NULL;
-
 Scope* make_scope(u64 pre_allocated_variable_count)
 {
     Scope* s = xmalloc(sizeof(Scope));
@@ -235,10 +233,29 @@ static void append_variable_to_scope(Scope* s, Value* value)
     }
     s->local_variables[s->count++] = value;
 }
-
-string* output;
+// GLOBAL VARIABLES ------------------
+// GLOBAL VARIABLES ------------------
+// GLOBAL VARIABLES ------------------
+// GLOBAL VARIABLES ------------------
+// GLOBAL VARIABLES ------------------
+// GLOBAL VARIABLES ------------------
+string* output = NULL;
+Scope* scope = NULL;
 int stack_index;
-
+static int total_label_counter;
+static int label_counter;
+static void push_label()
+{
+    ++total_label_counter;
+    ++label_counter;
+}
+static void pop_label() { --label_counter; }
+// GLOBAL VARIABLES  ------------------
+// GLOBAL VARIABLES  ------------------
+// GLOBAL VARIABLES  ------------------
+// GLOBAL VARIABLES  ------------------
+// GLOBAL VARIABLES  ------------------
+// GLOBAL VARIABLES  ------------------
 static void print_scope(Scope* scope)
 {
     info("Scope count %d", scope->count);
@@ -685,37 +702,31 @@ static Value* codegen_binary(Expr* expr)
         case TOKEN_PIPE: error("pipe not implemented.");
 
         // Ternary operator
-        // case TOKEN_QUESTION_MARK:
-        // {
-        //     info("{} ? {}", lhs->str(), rhs->str());
-        //     auto lhs_val  = lhs->codegen();
-        //     auto lhs_size = lhs_val->get_size();
-        //     auto res_reg  = reg_to_str(get_int_reg(lhs_size));
-        //     block->emit("CMP {}, 0", res_reg);
-        //     block->pop_label();
-        //     block->emit("JE {}", block->get_label("E3"));
-        //     auto rhs_val = rhs->codegen();
-        //     block->emit("JMP {}", block->get_label("CONTINUE"));
-
-        //     return rhs_val;
-            
-        // }
-        // case TOKEN_COLON:
-        // {
-        //     block->push_label();
-        //     info("{} : {}", lhs->str(), rhs->str());
-        //     auto lhs_val  = lhs->codegen();
-        //     auto lhs_size = lhs_val->get_size();
-        //     auto res_reg  = reg_to_str(get_int_reg(lhs_size));
-
-        //     block->emit_label("E3");
-        //     auto rhs_val = rhs->codegen();
-        //     block->emit_label("CONTINUE");
-
-        //     return rhs_val;
-        // }
+        case TOKEN_QUESTION_MARK:
+        {
+            Value* lhs_val = codegen_expr(lhs);
+            u64 lhs_size = get_size_of_value(lhs_val);
+            u64 reg_n  = get_rax_reg_of_byte_size(lhs_size);
+            emit(output, "CMP %s, 0", reg[reg_n]);
+            pop_label();
+            emit(output, "JE E3_%d%d", total_label_counter, label_counter);
+            Value* rhs_val = codegen_expr(rhs);
+            emit(output, "JMP CONTINUE_%d%d", total_label_counter, label_counter);
+            return rhs_val;
+        }
+        case TOKEN_COLON:
+        {
+            push_label();
+            Value* lhs_val = codegen_expr(lhs);
+            u64 lhs_size = get_size_of_value(lhs_val);
+            emit(output, "E3_%d%d:", total_label_counter, label_counter);
+            Value* rhs_val = codegen_expr(rhs);
+            emit(output, "CONTINUE_%d%d:", total_label_counter, label_counter);
+            return rhs_val;
+        }
     }
 
+    error("Codegen: Unhandled binary op %s", token_kind_to_str(op));
     return NULL;
 }
 
@@ -797,9 +808,12 @@ char* generate_code_from_ast(AST** ast)
 
     integer_literal_type = make_typespec_int(DEFAULT_INTEGER_BIT_SIZE, 0);
 
+    total_label_counter = 0;
+    label_counter = 0;
     stack_index = 0;
+
     scope = make_scope(10);
-    output = make_string("", 1000);
+    output = make_string("", 10000);
 
     emit(output, "global main");
     emit(output, "section .text");
@@ -812,6 +826,5 @@ char* generate_code_from_ast(AST** ast)
         codegen_expr(ast[i]);
     }
 
-    // remove_variable_in_scope(scope, "a");
     return output->data;
 }
