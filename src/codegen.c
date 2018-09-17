@@ -411,6 +411,16 @@ static Value* codegen_binary(Expr* expr)
 
     switch (op)
     {
+        case TOKEN_EQ:
+        {
+            Value* lhs_val = codegen_expr(lhs);
+            if (lhs_val->kind != VALUE_VARIABLE)
+                error("lhs of an assignment must be a variable."); 
+            Value* rhs_val = codegen_expr(rhs);
+            Value* variable = get_variable_in_scope(scope, lhs->Variable_Decl.name);
+            emit_store(variable);
+            return rhs_val;
+        }
         case TOKEN_PLUS:
         {
             Value* lhs_val  = codegen_expr(lhs);
