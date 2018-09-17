@@ -69,7 +69,6 @@ Value* make_value_int(u8 bytes, u64 value)
     v->Int.value = value;
     return v;
 }
-
 Value* make_value_function(const char* name)
 {
     assert(name);
@@ -79,7 +78,6 @@ Value* make_value_function(const char* name)
     v->Function.blocks = NULL;
     return v;
 }
-
 Value* make_value_block(Value* function, const char* name)
 {
     assert(function);
