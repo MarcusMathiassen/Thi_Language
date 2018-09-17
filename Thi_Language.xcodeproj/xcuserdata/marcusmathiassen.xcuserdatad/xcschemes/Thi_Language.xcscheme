@@ -67,7 +67,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "./tests/test_basic_setup.thi test_0"
+            argument = "./tests/test_variable.thi test_0"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

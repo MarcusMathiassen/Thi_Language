@@ -7,45 +7,12 @@
 #include "utility.h"          // info, success, error, warning
 #include <assert.h>           // assert
 #include <stdlib.h>           // malloc
-
+#include "string.h" // str_intern_range
 
 //------------------------------------------------------------------------------
 //                              lexer.c
 //------------------------------------------------------------------------------
 
-
-//------------------------------------------------------------------------------
-//                              Intern String
-//------------------------------------------------------------------------------
-
-typedef struct Intern_Str
-{
-    u64 len;
-    const char* str;
-} Intern_Str;
-
-static Intern_Str* interns;
-static u64 interns_mem_alloc_size = 0;
-
-static const char* str_intern_range(const char* start, const char* end) {
-    u64 len = end - start;
-    for (int i = 0; i < sb_count(interns); ++i) {
-        if (interns[i].len == len && strncmp(interns[i].str, start, len) == 0) {
-            return interns[i].str;
-        }
-    }
-    char* str = xmalloc(len + 1);
-    interns_mem_alloc_size += len+1;
-    memcpy(str, start, len);
-    str[len] = 0;
-    sb_push(interns, ((Intern_Str) { len, str }));
-    return str;
-}
-
-static const char* str_intern(const char* str)
-{
-    return str_intern_range(str, str + strlen(str));
-}
 
 //------------------------------------------------------------------------------
 //                               Character Stream
@@ -149,15 +116,9 @@ Token* generate_tokens_from_source(char* source) {
     }
 
     // Print some result info
-    info("Lines: %d | Tokens: %d | Uniques: %d", 
+    info("Lines: %d | Tokens: %d", 
         line_count, 
-        sb_count(tokens), 
-        sb_count(interns));
-
-    // Print all interns (skipping keywords)
-    // info("Printing Uniques..");
-    // for (int i = 0; i < sb_count(interns); ++i)
-    //     info("%s", interns[i].str);
+        sb_count(tokens));
 
     return tokens;
 }

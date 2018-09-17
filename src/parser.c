@@ -70,6 +70,7 @@ static void add_new_symbol(void);
 static void eat(void);
 static void eat_kind(Token_Kind kind);
 static Expr* get_definition(const char* ident);
+static Expr* get_variable_declaration(const char* ident);
 static Expr* parse_top_level(void);
 static Expr* parse_statement(void);
 static Expr* parse_primary(void);
@@ -102,6 +103,7 @@ static Token* g_tokens = NULL;
 static u64 token_index = 0;
 static Token curr_tok;
 static Token top_tok;
+
 
 //------------------------------------------------------------------------------
 //                               Public Functions
@@ -227,7 +229,7 @@ static Expr* parse_identifier()
     {
         case TOKEN_COLON_COLON:      return get_definition(ident);
         // case TOKEN_COLON_EQ:      return get_variable_typeinferred();
-        // case TOKEN_COLON:         return get_variable_declaration();
+        case TOKEN_COLON:         return get_variable_declaration(ident);
         // case TOKEN_OPEN_PAREN:    return get_function_call();
         // case TOKEN_OPEN_BRACKET:  return get_subscript_access();
     }
@@ -250,6 +252,19 @@ static Expr* parse_ret() {
     eat();
     Expr* exp = parse_expression();
     return make_expr_ret(exp);
+}
+
+static Expr* get_variable_declaration(const char* ident)
+{
+    eat();
+    Typespec* variable_type = get_type();
+    Expr* assignment_expr = NULL;
+    if (tok_is(TOKEN_EQ))
+    {
+        eat();
+        assignment_expr = parse_expression();
+    }
+    return make_expr_variable_decl(ident, variable_type, assignment_expr);
 }
 
 static Expr* parse_binary(int expr_prec, Expr* lhs) {
@@ -317,24 +332,28 @@ static Expr* parse_note()
 }
 
 
-static Expr* parse_expression() {
-
+static Expr* parse_expression()
+{
     Expr* lhs = parse_unary();
-    if (lhs) {
+    if (lhs)
+    {
         return parse_binary(0, lhs);
     }
     return NULL;
 }
 
-static Expr* parse_integer() {
+static Expr* parse_integer()
+{
     Expr* res = make_expr_int(get_integer());
     return res;
 }
 
-static Expr* parse_parens() {
+static Expr* parse_parens()
+{
     eat_kind(TOKEN_OPEN_PAREN);
     Expr* exp = parse_expression();
-    if (!exp) {
+    if (!exp)
+    {
         return NULL;
     }
     eat_kind(TOKEN_CLOSE_PAREN);
@@ -344,9 +363,11 @@ static Expr* parse_parens() {
 //                               Type Utilty Functions
 //------------------------------------------------------------------------------
 
-static u64 get_integer(void) {
+static u64 get_integer(void)
+{
     u64 value = 0;
-    switch (curr_tok.kind) {
+    switch (curr_tok.kind)
+    {
         case TOKEN_INTEGER:   value = atoll(curr_tok.value); break;
         case TOKEN_HEX:       value = strtoll(curr_tok.value, NULL, 0); break;
         default: error("not an integer."); break;
@@ -355,13 +376,15 @@ static u64 get_integer(void) {
     return value;
 }
 
-static f64 get_float(void) {
+static f64 get_float(void)
+{
     f64 value = atof(curr_tok.value);
     eat();
     return value;
 }
 
-static Typespec* get_type(void) {
+static Typespec* get_type(void)
+{
     const char* type_name = curr_tok.value;
     eat_kind(TOKEN_IDENTIFIER);
     Typespec* type = NULL;
@@ -397,11 +420,13 @@ static Typespec* get_type(void) {
 //                               Parsing Utility Functions
 //------------------------------------------------------------------------------
 
-static Typespec* parse_struct_signature(const char* struct_name) {
+static Typespec* parse_struct_signature(const char* struct_name)
+{
     eat_kind(TOKEN_STRUCT);
     eat_kind(TOKEN_OPEN_BRACE);
     Arg* members = NULL;
-    while (!tok_is(TOKEN_CLOSE_BRACE)) {
+    while (!tok_is(TOKEN_CLOSE_BRACE))
+    {
         Arg member;
         member.name = curr_tok.value;
         eat_kind(TOKEN_IDENTIFIER);
@@ -413,14 +438,11 @@ static Typespec* parse_struct_signature(const char* struct_name) {
     return make_typespec_struct(struct_name, members);
 }
 
-static Typespec* parse_function_signature(const char* func_name) {
-
+static Typespec* parse_function_signature(const char* func_name)
+{
     eat_kind(TOKEN_OPEN_PAREN);
-
     Arg* args = NULL;
-
     bool has_multiple_arguments = false;
-
     while (!tok_is(TOKEN_CLOSE_PAREN)) {
 
         if (has_multiple_arguments)
@@ -440,12 +462,9 @@ static Typespec* parse_function_signature(const char* func_name) {
         }
 
         has_multiple_arguments = true;
-
         sb_push(args, arg);
     }
-
     eat();
-
     Typespec* ret_type = NULL;
 
     if (tok_is(TOKEN_RIGHT_ARROW)) {
@@ -485,14 +504,16 @@ static Expr* get_definition(const char* ident) {
     return NULL;
 }
 
-static int get_tok_precedence(void) {
+static int get_tok_precedence(void)
+{
     for (int i = 0; i < BIN_OP_COUNT; ++i)
         if (binop_precedence[i].kind == curr_tok.kind)
             return binop_precedence[i].p;
     return -1;
 }
 
-static bool tok_is(Token_Kind kind) {
+static bool tok_is(Token_Kind kind)
+{
     if (curr_tok.kind == kind) {
         return true;
     }
@@ -517,7 +538,8 @@ static void eat_kind(Token_Kind kind)
 //                               Skip Functions
 //------------------------------------------------------------------------------
 
-static void skip_block(void) {
+static void skip_block(void)
+{
     eat_kind(TOKEN_OPEN_BRACE);
     i64 counter = 1;
     while (true) {

@@ -21,6 +21,7 @@ int get_size_of_value(Value* value)
     switch (value->kind)
     {
         case VALUE_INT: return value->Int.bytes;
+        case VALUE_VARIABLE: return get_size_of_typespec(value->type);
         case VALUE_FUNCTION: error("Asking for the size of a function? Why?");
         case VALUE_BLOCK: error("Asking for the size of a function? Why?");
     }
@@ -36,6 +37,8 @@ void debug_push_new_instr_group(const char* desc)
 
 void emit(string* output, const char* fmt, ...)
 {
+    assert(output);
+    
     va_list args;
     va_start(args, fmt);
     u64 str_len = vsnprintf(0, 0, fmt, args) + 1;  // strlen + 1 for '\n'
@@ -69,6 +72,18 @@ Value* make_value_int(u8 bytes, u64 value)
     v->Int.value = value;
     return v;
 }
+
+Value* make_value_variable(const char* name, Typespec* type, u64 stack_pos)
+{
+    assert(name);
+    assert(type);
+    assert(stack_pos >= 0);
+    Value* v = make_value(VALUE_VARIABLE);
+    v->Variable.name = name;
+    v->type = type;
+    v->Variable.stack_pos = stack_pos;
+    return v;
+}
 Value* make_value_function(const char* name)
 {
     assert(name);
@@ -88,4 +103,13 @@ Value* make_value_block(Value* function, const char* name)
     v->Block.name = name;
     v->Block.lines = NULL;
     return v;
+}
+
+//------------------------------------------------------------------------------
+//                               Value Helper Functions
+//------------------------------------------------------------------------------
+
+u64 get_stack_pos_of_variable(Value* variable)
+{
+    return variable->Variable.stack_pos;
 }

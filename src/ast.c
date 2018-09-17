@@ -19,23 +19,23 @@ const char* expr_kind_to_str(Expr_Kind kind)
 {
     switch (kind)
     {
-        case EXPR_NOTE:      return "EXPR_NOTE";
-        case EXPR_INT:       return "EXPR_INT";
-        case EXPR_FLOAT:     return "EXPR_FLOAT";
-        case EXPR_IDENT:     return "EXPR_IDENT";
-        case EXPR_CALL:      return "EXPR_CALL";
-        case EXPR_UNARY:     return "EXPR_UNARY";
-        case EXPR_BINARY:    return "EXPR_BINARY";
-        case EXPR_COMPOUND:  return "EXPR_COMPOUND";
-        case EXPR_RET:       return "EXPR_RET";
-        case EXPR_VAR_DECL:  return "EXPR_VAR_DECL";
-        case EXPR_FUNC:      return "EXPR_FUNC";
-        case EXPR_STRUCT:    return "EXPR_STRUCT";
-        case EXPR_IF:        return "EXPR_IF";
-        case EXPR_FOR:       return "EXPR_FOR";
-        case EXPR_BLOCK:     return "EXPR_BLOCK";
-        case EXPR_WHILE:     return "EXPR_WHILE";
-        case EXPR_GROUPING:  return "EXPR_GROUPING";
+        case EXPR_NOTE:             return "EXPR_NOTE";
+        case EXPR_INT:              return "EXPR_INT";
+        case EXPR_FLOAT:            return "EXPR_FLOAT";
+        case EXPR_IDENT:            return "EXPR_IDENT";
+        case EXPR_CALL:             return "EXPR_CALL";
+        case EXPR_UNARY:            return "EXPR_UNARY";
+        case EXPR_BINARY:           return "EXPR_BINARY";
+        case EXPR_COMPOUND:         return "EXPR_COMPOUND";
+        case EXPR_RET:              return "EXPR_RET";
+        case EXPR_VARIABLE_DECL:    return "EXPR_VARIABLE_DECL";
+        case EXPR_FUNC:             return "EXPR_FUNC";
+        case EXPR_STRUCT:           return "EXPR_STRUCT";
+        case EXPR_IF:               return "EXPR_IF";
+        case EXPR_FOR:              return "EXPR_FOR";
+        case EXPR_BLOCK:            return "EXPR_BLOCK";
+        case EXPR_WHILE:            return "EXPR_WHILE";
+        case EXPR_GROUPING:         return "EXPR_GROUPING";
     }
     return "print not implemented";
 }
@@ -54,7 +54,7 @@ void print_expr(Expr* expr)
         case EXPR_BINARY: info("%s", token_kind_to_str(expr->Binary.op)); return;
         case EXPR_COMPOUND: warning("EXPR_COMPOUND not print implemented."); return;
         case EXPR_RET: print_expr(expr->Ret.expr); return;
-        case EXPR_VAR_DECL: warning("EXPR_VAR_DECL not print implemented."); return;
+        case EXPR_VARIABLE_DECL: warning("EXPR_VARIABLE_DECL not print implemented."); return;
         case EXPR_FUNC: 
             print_type(expr->Func.type);
             print_expr(expr->Func.body);
@@ -182,3 +182,16 @@ Expr* make_expr_ret(Expr* expr)
     e->Ret.expr = expr;
     return e;
 }
+
+Expr* make_expr_variable_decl(const char* name, Typespec* type, Expr* value)
+{
+    assert(name);
+    assert(type);
+    // Value can be NULL if the decl doesnt have an initial value.
+    Expr* e = make_expr(EXPR_VARIABLE_DECL);
+    e->Variable_Decl.name = name;
+    e->Variable_Decl.type = type;
+    e->Variable_Decl.value = value;
+    return e;
+}
+

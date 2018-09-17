@@ -28,7 +28,7 @@ enum Expr_Kind
     EXPR_BINARY,
     EXPR_COMPOUND,
     EXPR_RET,
-    EXPR_VAR_DECL,
+    EXPR_VARIABLE_DECL,
     EXPR_FUNC,
     EXPR_STRUCT,
     EXPR_IF,
@@ -73,6 +73,7 @@ Expr* make_expr_binary(Token_Kind op, Expr* lhs, Expr* rhs);
 Expr* make_expr_block(Expr** stmts);
 Expr* make_expr_ret(Expr* expr);
 Expr* make_expr_grouping(Expr* expr);
+Expr* make_expr_variable_decl(const char* name, Typespec* type, Expr* value);
 
 
 typedef struct AST_Node AST_Node; 

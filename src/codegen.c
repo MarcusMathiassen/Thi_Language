@@ -9,6 +9,14 @@
 #include "value.h" // Value
 #include "stretchy_buffer.h"  // sb_free
 
+#include <assert.h> // assert
+
+static Value* codegen_expr(Expr* expr);
+static int get_rax_reg_of_byte_size(u8 bytes);
+static int get_parameter_reg(i8 i, i8 size);
+static int  get_next_available_reg(i8 size);
+static int  get_reg_as_another_size(int reg, i8 size);
+
 #define REG_COUNT 68
 const char* reg[REG_COUNT] = {
     "RAX", "EAX", "AX", "AL", "AH",
@@ -195,23 +203,119 @@ static int get_push_or_popable_reg(int reg)
     return -1; // to silence warning
 }
 
+typedef struct
+{
+    Value** local_variables;
+    u64 count;
+    u64 alloc_count;
+} Scope; 
+
+Scope* scope = NULL;
+
+Scope* make_scope(u64 pre_allocated_variable_count)
+{
+    Scope* s = xmalloc(sizeof(Scope));
+    s->local_variables = xmalloc(sizeof(Value*) * pre_allocated_variable_count);
+    s->count = 0;
+    s->alloc_count = pre_allocated_variable_count;
+    return s;
+}
+
+static void append_variable_to_scope(Scope* s, Value* value)
+{
+    assert(s);
+    assert(value);
+    // allocate more space if needed
+    if (s->alloc_count < s->count + 1)
+    {
+        s->alloc_count += 1;
+        s->local_variables = xrealloc(s->local_variables, sizeof(Value*) * s->alloc_count);
+    }
+    s->local_variables[s->count++] = value;
+}
+
 string* output;
 int stack_index;
 
-static Value* codegen_expr(Expr* expr);
+static void print_scope(Scope* scope)
+{
+    info("Scope count %d", scope->count);
+    info("Scope alloc_count %d", scope->alloc_count);
+    for (u64 i = 0; i < scope->count; ++i)
+    {
+        info("Scope index: %llu variable: %s", i, scope->local_variables[i]->Variable.name);
+    }
+}
+
+/// Returns the value, or NULL if not found.
+Value* get_variable_in_scope(Scope* scope, const char* name)
+{
+    assert(scope);
+    assert(name);
+    u64 variable_count = scope->count;
+    info("variable_count in scope: %llu", variable_count);
+    info("looking for %s in scope", name);
+    for (u64 i = 0; i < variable_count; ++i)
+    {
+        Value* v = scope->local_variables[i];
+        assert(v);
+        info(".. value: %s", v->Variable.name);
+        if (name == v->Variable.name)
+            return v;
+    }
+    return NULL;
+}
+
+void add_variable_to_scope(Scope* scope, Value* variable)
+{
+    assert(variable);
+    assert(variable->kind == VALUE_VARIABLE);
+
+    const char* name = variable->Variable.name;
+
+    // Check for redeclaration
+    Value* res = get_variable_in_scope(scope, name);
+    if (res)
+        error("redeclaration of variable %s", name);
+
+    info("Added variable %s", name);
+    append_variable_to_scope(scope, variable);
+    print_scope(scope);
+}
+
+static void emit_store(Value* variable)
+{
+    assert(variable->kind == VALUE_VARIABLE);
+    u64 size = get_size_of_value(variable);
+    int reg_n = get_rax_reg_of_byte_size(size);
+    u64 stack_pos = get_stack_pos_of_variable(variable);
+    emit(output, "MOV [RSP-%d], %s", stack_pos, reg[reg_n]);
+}
 
 static void emit_load(Value* value)
 {
     int reg_n = get_rax_reg_of_byte_size(get_size_of_value(value));
     switch (value->kind)
     {
-        case VALUE_INT: emit(output, "MOV %s, %d", reg[reg_n], value->Int.value); break;
+        case VALUE_INT:
+        {   
+            emit(output, "MOV %s, %d", reg[reg_n], value->Int.value); 
+        } break;
+
+        case VALUE_VARIABLE:
+        {
+            emit(output, "MOV %s, [RSP-%d]", reg[reg_n], get_stack_pos_of_variable(value));
+        } break;
+
         case VALUE_FUNCTION:
+        {   
             error("VALUE_FUNCTION EMIT_LOAD NOT IMPLEMENETED");
-            break;
+        } break;
+
         case VALUE_BLOCK:
+        {   
             error("VALUE_BLOCK EMIT_LOAD NOT IMPLEMENETED");
-            break;
+        } break;
     }
 }
 
@@ -247,13 +351,10 @@ static void codegen_function(Expr* expr)
 static Value* codegen_ident(Expr* expr)
 {
     const char* name = expr->Ident.name;
-
-    // Value* var = get_variable(name)
-    // emit_load(var);
-
-    // return var;
-    error("EXPR_IDENT codegen not implemented");
-    return NULL;
+    Value* var = get_variable_in_scope(scope, name);
+    assert(var);
+    emit_load(var);
+    return var;
 }
 
 static Value* codegen_int(Expr* expr)
@@ -512,6 +613,27 @@ static Value* codegen_binary(Expr* expr)
     return NULL;
 }
 
+static Value* codegen_variable_decl(Expr* expr)
+{
+    const char* name = expr->Variable_Decl.name;
+    Typespec* type = expr->Variable_Decl.type;
+    Expr* assignment_expr = expr->Variable_Decl.value;
+
+    Value* assign_expr_val = NULL;
+    if (assignment_expr)
+        assign_expr_val = codegen_expr(assignment_expr);
+
+    u64 type_size = get_size_of_typespec(type);
+    u64 stack_pos = type_size + stack_index;
+    Value* variable = make_value_variable(name, type, stack_pos);
+    add_variable_to_scope(scope, variable);
+
+    emit_store(variable);
+    stack_index += type_size;
+
+    return variable;
+}
+
 static void codegen_ret(Expr* expr)
 {
     Expr* ret_expr = expr->Ret.expr;
@@ -527,24 +649,24 @@ static Value* codegen_expr(Expr* expr)
         case EXPR_NOTE:
             error("EXPR_NOTE codegen not implemented");
             break;
-        case EXPR_INT:      return codegen_int(expr);
-        case EXPR_FLOAT:    error("EXPR_FLOAT codegen not implemented");
-        case EXPR_IDENT:    return codegen_ident(expr);
-        case EXPR_CALL:     error("EXPR_CALL codegen not implemented");
-        case EXPR_UNARY:    return codegen_unary(expr);
-        case EXPR_BINARY:   return codegen_binary(expr);
-        case EXPR_COMPOUND: error("EXPR_COMPOUND codegen not implemented");
-        case EXPR_RET:      codegen_ret(expr); break;
-        case EXPR_VAR_DECL: error("EXPR_VAR_DECL codegen not implemented");
-        case EXPR_FUNC:     codegen_function(expr); break;
+        case EXPR_INT:              return codegen_int(expr);
+        case EXPR_FLOAT:            error("EXPR_FLOAT codegen not implemented");
+        case EXPR_IDENT:            return codegen_ident(expr);
+        case EXPR_CALL:             error("EXPR_CALL codegen not implemented");
+        case EXPR_UNARY:            return codegen_unary(expr);
+        case EXPR_BINARY:           return codegen_binary(expr);
+        case EXPR_COMPOUND:         error("EXPR_COMPOUND codegen not implemented");
+        case EXPR_RET:              codegen_ret(expr); break;
+        case EXPR_VARIABLE_DECL:    return codegen_variable_decl(expr);
+        case EXPR_FUNC:             codegen_function(expr); break;
         case EXPR_STRUCT:
             error("EXPR_STRUCT codegen not implemented");
             break;
-        case EXPR_IF:       error("EXPR_IF codegen not implemented");
-        case EXPR_FOR:      error("EXPR_FOR codegen not implemented");
-        case EXPR_BLOCK:    codegen_block(expr); break;
-        case EXPR_WHILE:    error("EXPR_WHILE codegen not implemented");
-        case EXPR_GROUPING: return codegen_expr(expr->Grouping.expr);
+        case EXPR_IF:               error("EXPR_IF codegen not implemented");
+        case EXPR_FOR:              error("EXPR_FOR codegen not implemented");
+        case EXPR_BLOCK:            codegen_block(expr); break;
+        case EXPR_WHILE:            error("EXPR_WHILE codegen not implemented");
+        case EXPR_GROUPING:         return codegen_expr(expr->Grouping.expr);
     }
 
     return NULL;
@@ -555,7 +677,9 @@ char* generate_code_from_ast(AST** ast)
     success("Generating X64 Assembly from AST");
 
     stack_index = 0;
+    scope = make_scope(10);
     output = make_string("", 1000);
+
     emit(output, "global main");
     emit(output, "section .text");
 

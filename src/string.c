@@ -5,6 +5,7 @@
 #include <assert.h> // assert
 #include <string.h> // memcpy
 #include <stdlib.h> // free
+#include "stretchy_buffer.h"  // sb_push, sb_count
 
 string* make_string(const char* str, u64 initial_size)
 {
@@ -23,6 +24,7 @@ string* make_string(const char* str, u64 initial_size)
 }
 void append_string(string* s, const char* str)
 {
+    assert(s);
     assert(str);
     u64 str_len = xstrlen(str);
     // allocate more space if needed
@@ -39,6 +41,39 @@ void append_string(string* s, const char* str)
 void free_string(string* s)
 {
     free(s->data);
+}
+
+
+//------------------------------------------------------------------------------
+//                              Intern String
+//------------------------------------------------------------------------------
+
+typedef struct Intern_Str
+{
+    u64 len;
+    const char* str;
+} Intern_Str;
+
+static Intern_Str* interns;
+static u64 interns_mem_alloc_size = 0;
+const char* str_intern_range(const char* start, const char* end) {
+    u64 len = end - start;
+    for (int i = 0; i < sb_count(interns); ++i) {
+        if (interns[i].len == len && strncmp(interns[i].str, start, len) == 0) {
+            return interns[i].str;
+        }
+    }
+    char* str = xmalloc(len + 1);
+    interns_mem_alloc_size += len+1;
+    memcpy(str, start, len);
+    str[len] = 0;
+    sb_push(interns, ((Intern_Str) { len, str }));
+    return str;
+}
+
+const char* str_intern(const char* str)
+{
+    return str_intern_range(str, str + strlen(str));
 }
 
 //------------------------------------------------------------------------------
