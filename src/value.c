@@ -38,7 +38,7 @@ void emit(string* output, const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    u64 str_len = vsnprintf(0, NULL, fmt, args) + 1;  // strlen + 1 for '\n'
+    u64 str_len = vsnprintf(0, 0, fmt, args) + 1;  // strlen + 1 for '\n'
     va_end(args);
     char* str = xmalloc(str_len);
 

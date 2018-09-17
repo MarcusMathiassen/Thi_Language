@@ -3,7 +3,8 @@
 #include "typedefs.h"
 #include "utility.h" // xmalloc, xrealloc, xstrlen
 #include <assert.h> // assert
-#include <stdlib.h>
+#include <string.h> // memcpy
+#include <stdlib.h> // free
 
 string* make_string(const char* str, u64 initial_size)
 {

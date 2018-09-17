@@ -2,6 +2,7 @@
 #define TYPEDEFS_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 typedef int8_t i8;
 typedef int16_t i16;
@@ -19,6 +20,5 @@ typedef double f64;
 typedef i8 bool;
 #define true 1
 #define false 0
-#define NULL 0
 
 #endif

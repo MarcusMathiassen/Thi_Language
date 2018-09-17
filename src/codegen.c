@@ -524,6 +524,9 @@ static Value* codegen_expr(Expr* expr)
     info("Generating code for: %s", expr_kind_to_str(expr->kind));
     switch (expr->kind)
     {
+        case EXPR_NOTE:
+            error("EXPR_NOTE codegen not implemented");
+            break;
         case EXPR_INT:      return codegen_int(expr);
         case EXPR_FLOAT:    error("EXPR_FLOAT codegen not implemented");
         case EXPR_IDENT:    return codegen_ident(expr);
@@ -534,6 +537,9 @@ static Value* codegen_expr(Expr* expr)
         case EXPR_RET:      codegen_ret(expr); break;
         case EXPR_VAR_DECL: error("EXPR_VAR_DECL codegen not implemented");
         case EXPR_FUNC:     codegen_function(expr); break;
+        case EXPR_STRUCT:
+            error("EXPR_STRUCT codegen not implemented");
+            break;
         case EXPR_IF:       error("EXPR_IF codegen not implemented");
         case EXPR_FOR:      error("EXPR_FOR codegen not implemented");
         case EXPR_BLOCK:    codegen_block(expr); break;

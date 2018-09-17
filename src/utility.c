@@ -215,7 +215,7 @@ char* strf(const char* fmt, ...)
     assert(fmt);
     va_list args;
     va_start(args, fmt);
-    u64 n = 1 + vsnprintf(0, NULL, fmt, args);
+    u64 n = 1 + vsnprintf(0, 0, fmt, args);
     va_end(args);
 
     char* str = xmalloc(n);
