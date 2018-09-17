@@ -194,7 +194,7 @@ static int get_push_or_popable_reg(int reg)
     return -1; // to silence warning
 }
 
-char* output;
+string* output;
 int stack_index;
 
 static Value* codegen_expr(Expr* expr);
@@ -548,8 +548,7 @@ char* generate_code_from_ast(AST** ast)
     success("Generating X64 Assembly from AST");
 
     stack_index = 0;
-    output = xmalloc(1);
-
+    output = make_string("", 1000);
     emit(output, "global main");
     emit(output, "section .text");
 
@@ -560,5 +559,5 @@ char* generate_code_from_ast(AST** ast)
     {
         codegen_expr(ast[i]);
     }
-    return output;
+    return output->data;
 }

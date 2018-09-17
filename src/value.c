@@ -34,23 +34,20 @@ void debug_push_new_instr_group(const char* desc)
     error("debug_push_new_instr_group not implemented");
 }
 
-void emit(char* output, const char* fmt, ...)
+void emit(string* output, const char* fmt, ...)
 {
-    assert(output);
     va_list args;
     va_start(args, fmt);
-    u64 str_len = vsnprintf(0, NULL, fmt, args) + 1; 
+    u64 str_len = vsnprintf(0, NULL, fmt, args) + 1;  // strlen + 1 for '\n'
     va_end(args);
-    char* str = xmalloc(str_len + 1);
+    char* str = xmalloc(str_len);
 
     va_start(args, fmt);
     vsnprintf(str, str_len, fmt, args);
     va_end(args);
-    
-    u64 out_len = xstrlen(output); 
-    memcpy(output+out_len, str, str_len + 1); // copy the str into ours
-    output[out_len + str_len-1] = '\n'; // append a newline
-    output[out_len + str_len] = 0;
+
+    append_string(output, str);
+    append_string(output, "\n");
 }
 
 //------------------------------------------------------------------------------
