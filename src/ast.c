@@ -1,10 +1,10 @@
 #include "ast.h"
 
-#include <stdlib.h>           // malloc,
-#include <stdio.h>           // sprintf,
-#include "stretchy_buffer.h"  // sb_push
-#include "utility.h"          // info, success, error, warning
-#include "lexer.h"          // token_kind_to_str,
+#include <stdlib.h>             // malloc,
+#include <stdio.h>              // sprintf,
+#include "stretchy_buffer.h"    // sb_push
+#include "utility.h"            // info, success, error, warning
+#include "lexer.h"              // token_kind_to_str,
 
 //------------------------------------------------------------------------------
 //                               ast.c

@@ -137,9 +137,9 @@ int main(int argc, char** argv) {
     info("size of Value: %lu bytes", sizeof(Value));
 
     // Cleanup
-    if (tokens) sb_free(tokens);
-    if (ast) sb_free(ast);
-    if (output) free(output);
+    // if (tokens) sb_free(tokens);
+    // if (ast) sb_free(ast);
+    // if (output) free(output);
 
     pop_timer();
     

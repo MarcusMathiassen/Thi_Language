@@ -271,6 +271,7 @@ static void codegen_block(Expr* expr)
         codegen_expr(stmts[i]);
     }
 }
+
 static Value* codegen_unary(Expr* expr)
 {
     Token_Kind op = expr->Unary.op;
