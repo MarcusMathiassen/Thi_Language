@@ -349,7 +349,6 @@ static void emit_load(Value* value)
 static void codegen_function(Expr* expr)
 {
     const char* func_name = expr->Func.type->Func.name;
-    info("Generating function: %s", func_name);
 
     Value* function = make_value_function(func_name);
     Value* block = make_value_block(function, "entry");
@@ -771,7 +770,7 @@ static void codegen_ret(Expr* expr)
 
 static Value* codegen_expr(Expr* expr)
 {
-    info("Generating code for: %s", expr_kind_to_str(expr->kind));
+    info("Generating code for: %s", expr_to_str(expr));
     switch (expr->kind)
     {
         case EXPR_NOTE:             error("EXPR_NOTE codegen not implemented"); break;

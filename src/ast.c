@@ -44,15 +44,16 @@ const char* expr_kind_to_str(Expr_Kind kind)
 
 char* expr_to_str(Expr* expr)
 {
+    char* result;
     switch (expr->kind)
     {
-        case EXPR_INT:                     return strf("%lld", expr->Int.val); 
-        case EXPR_IDENT:                   return strf("%s", expr->Ident.name); 
-        case EXPR_UNARY:                   return strf("%s%s", token_kind_to_str(expr->Unary.op), expr_to_str(expr->Unary.operand)); 
-        case EXPR_BINARY:                  return strf("%s %s %s", expr_to_str(expr->Binary.lhs), token_kind_to_str(expr->Binary.op), expr_to_str(expr->Binary.rhs)); 
-        case EXPR_RET:                     return strf("ret %s", expr_to_str(expr->Ret.expr)); 
-        case EXPR_VARIABLE_DECL:           return strf(expr->Variable_Decl.value ? "%s: %s = %s" : "%s: %s", expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type), expr->Variable_Decl.value ? expr_to_str(expr->Variable_Decl.value) : ""); 
-        case EXPR_VARIABLE_DECL_TYPE_INF:  return strf("%s := %s", expr->Variable_Decl_Type_Inf.name, expr_to_str(expr->Variable_Decl_Type_Inf.value)); 
+        case EXPR_INT:                     result = strf("%lld", expr->Int.val);  break;
+        case EXPR_IDENT:                   result = strf("%s", expr->Ident.name);  break;
+        case EXPR_UNARY:                   result = strf("%s%s", token_kind_to_str(expr->Unary.op), expr_to_str(expr->Unary.operand));  break;
+        case EXPR_BINARY:                  result = strf("%s %s %s", expr_to_str(expr->Binary.lhs), token_kind_to_str(expr->Binary.op), expr_to_str(expr->Binary.rhs));  break;
+        case EXPR_RET:                     result = strf("ret %s", expr_to_str(expr->Ret.expr));  break;
+        case EXPR_VARIABLE_DECL:           result = strf(expr->Variable_Decl.value ? "%s: %s = %s" : "%s: %s", expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type), expr->Variable_Decl.value ? expr_to_str(expr->Variable_Decl.value) : "");  break;
+        case EXPR_VARIABLE_DECL_TYPE_INF:  result = strf("%s := %s", expr->Variable_Decl_Type_Inf.name, expr_to_str(expr->Variable_Decl_Type_Inf.value));  break;
         case EXPR_BLOCK:
         {   
             string* str = make_string("", 50);
@@ -60,52 +61,16 @@ char* expr_to_str(Expr* expr)
             {
                 append_string(str, strf("\t%s\n", expr_to_str(expr->Block.stmts[i])));   
             }
-            return str->data;
-        }
+            result = str->data;
+        } break;
         case EXPR_FUNC:
         {
             string* str = make_string(strf("%s  {\n%s}", typespec_to_str(expr->Func.type), expr_to_str(expr->Func.body)), 50);
-            return str->data;
-        }
-        case EXPR_GROUPING: return strf("(%s)", expr_to_str(expr->Grouping.expr));
+            result = str->data;
+        } break;
+        case EXPR_GROUPING: result = strf("(%s)", expr_to_str(expr->Grouping.expr)); break;
     }
-    return NULL;
-}
-
-void print_expr(Expr* expr)
-{
-    info(expr_kind_to_str(expr->kind));
-    switch (expr->kind)
-    {
-        case EXPR_NOTE: print_expr(expr->Note.expr); return;
-        case EXPR_INT: info("%lld", expr->Int.val); return;
-        case EXPR_FLOAT: info("%f", expr->Float.val); return;
-        case EXPR_IDENT: info("%s", expr->Ident.name); return;
-        case EXPR_CALL: warning("EXPR_CALL not print implemented."); return;
-        case EXPR_UNARY: info("%c", expr->Unary.op); return;
-        case EXPR_BINARY: info("%s", token_kind_to_str(expr->Binary.op)); return;
-        case EXPR_COMPOUND: warning("EXPR_COMPOUND not print implemented."); return;
-        case EXPR_RET: print_expr(expr->Ret.expr); return;
-        case EXPR_VARIABLE_DECL: warning("EXPR_VARIABLE_DECL not print implemented."); return;
-        case EXPR_VARIABLE_DECL_TYPE_INF: warning("EXPR_VARIABLE_DECL_TYPE_INF not print implemented."); return;
-        case EXPR_FUNC: 
-            print_type(expr->Func.type);
-            print_expr(expr->Func.body);
-            return;        
-        case EXPR_STRUCT:
-            warning("EXPR_STRUCT not print implemented."); return;
-        case EXPR_IF: warning("EXPR_IF not print implemented."); return;
-        case EXPR_FOR: warning("EXPR_FOR not print implemented."); return;
-        case EXPR_BLOCK:
-            for (int i = 0; i < sb_count(expr->Block.stmts); ++i)
-            {
-                print_expr(expr->Block.stmts[i]);   
-            }
-            return;
-        case EXPR_WHILE: warning("EXPR_WHILE not print implemented."); return;
-        case EXPR_GROUPING: warning("EXPR_GROUPING not print implemented."); return;
-    }
-    warning("print not implemented %s", expr_kind_to_str(expr->kind));
+    return wrap_with_colored_parens(result);
 }
 
 void print_ast(AST** ast)
@@ -113,8 +78,7 @@ void print_ast(AST** ast)
     info("Printing AST..");
     for (int i = 0; i < sb_count(ast); ++i)
     {
-        warning("%s", expr_to_str(ast[i]));
-        // print_expr(ast[i]);
+        info("%s", expr_to_str(ast[i]));
     }
 }
 

@@ -226,6 +226,41 @@ char* strf(const char* fmt, ...)
 
     return str;
 }
+
+// Color Whell
+static  const char* colors[6] = {
+    "\033[31m", // red
+    "\033[32m", // green
+    "\033[33m", // yellow
+    "\033[34m", // blue
+    "\033[35m", // magenta
+    "\033[36m", // cyan,
+};
+static int counter = 0;
+static int colors_count = 5;
+const char* get_next_color(void)
+{
+    ++counter;
+    if (counter > colors_count)
+        counter = 0;
+    return colors[counter];
+}
+char* wrap_with_colored_parens(char* str)
+{
+    const char* current_color = get_next_color();
+    return strf("%s(\033[00m%s%s)\033[00m", current_color, str, current_color);
+}
+char* give_unique_color(char* str)
+{
+    const char* current_color = get_next_color();
+    return strf("%s%s\033[00m", current_color, str);
+}
+const char* get_unique_color(void)
+{
+    return get_next_color();
+}
+//
+
 //------------------------------------------------------------------------------
 //                               Timing Utility Functions
 //------------------------------------------------------------------------------
