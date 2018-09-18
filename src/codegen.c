@@ -726,8 +726,8 @@ static Value* codegen_binary(Expr* expr)
 
 static Value* codegen_variable_decl_type_inf(Expr* expr)
 {
-    const char* name = expr->Variable_Decl.name;
-    Expr* assignment_expr = expr->Variable_Decl.value;
+    const char* name = expr->Variable_Decl_Type_Inf.name;
+    Expr* assignment_expr = expr->Variable_Decl_Type_Inf.value;
 
     Value* assign_expr_val = codegen_expr(assignment_expr); // Any value this creates is stored in RAX
     Typespec* type = assign_expr_val->type;

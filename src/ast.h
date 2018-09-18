@@ -75,7 +75,6 @@ Expr* make_expr_variable_decl_type_inf(const char* name, Expr* value);
 
 
 void print_ast(AST** ast);
-void print_expr(Expr* expr);
 char* expr_to_str(Expr* expr);
 const char* expr_kind_to_str(Expr_Kind kind);
 
