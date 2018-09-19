@@ -18,6 +18,7 @@
 		90FC5468215009F5007B1228 /* parser.c in Sources */ = {isa = PBXBuildFile; fileRef = 90FC545C215009F5007B1228 /* parser.c */; };
 		90FC5469215009F5007B1228 /* value.c in Sources */ = {isa = PBXBuildFile; fileRef = 90FC545D215009F5007B1228 /* value.c */; };
 		90FC546A215009F5007B1228 /* globals.c in Sources */ = {isa = PBXBuildFile; fileRef = 90FC545E215009F5007B1228 /* globals.c */; };
+		90FC546D2150E407007B1228 /* context.c in Sources */ = {isa = PBXBuildFile; fileRef = 90FC546B2150E407007B1228 /* context.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -58,6 +59,8 @@
 		90FC545D215009F5007B1228 /* value.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = value.c; sourceTree = "<group>"; };
 		90FC545E215009F5007B1228 /* globals.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = globals.c; sourceTree = "<group>"; };
 		90FC545F215009F5007B1228 /* string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = string.h; sourceTree = "<group>"; };
+		90FC546B2150E407007B1228 /* context.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = context.c; sourceTree = "<group>"; };
+		90FC546C2150E407007B1228 /* context.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = context.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,6 +93,8 @@
 		90FC5447215009F5007B1228 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				90FC546B2150E407007B1228 /* context.c */,
+				90FC546C2150E407007B1228 /* context.h */,
 				90FC5459215009F5007B1228 /* .clang-format */,
 				90FC5448215009F5007B1228 /* ast.c */,
 				90FC5455215009F5007B1228 /* ast.h */,
@@ -177,6 +182,7 @@
 				90FC5465215009F5007B1228 /* string.c in Sources */,
 				90FC5460215009F5007B1228 /* ast.c in Sources */,
 				90FC5464215009F5007B1228 /* lexer.c in Sources */,
+				90FC546D2150E407007B1228 /* context.c in Sources */,
 				90FC5462215009F5007B1228 /* typespec.c in Sources */,
 				90FC5468215009F5007B1228 /* parser.c in Sources */,
 				90FC5469215009F5007B1228 /* value.c in Sources */,

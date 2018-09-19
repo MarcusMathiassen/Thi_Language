@@ -19,8 +19,9 @@ void print_symbol_map(void)
 {
     u64 count = symbol_map->size;
     info("symbol_map count: %d", count);
-    for (u64 i = 0; i < count; ++i)
-        print_type(symbol_map->data[i].data);
+    for (u64 i = 0; i < count; ++i) {
+        info("%s", typespec_to_str(symbol_map->data[i].data));
+    }
 }
 
 bool is_builtin_type(const char* name)

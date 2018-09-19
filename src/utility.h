@@ -37,6 +37,7 @@ const char* get_next_color(void);
 char* wrap_with_colored_parens(char* str);
 char* give_unique_color(char* str);
 const char* get_unique_color(void);
+
 //------------------------------------------------------------------------------
 //                               Timing Functions
 //------------------------------------------------------------------------------

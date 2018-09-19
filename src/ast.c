@@ -31,7 +31,7 @@ const char* expr_kind_to_str(Expr_Kind kind)
         case EXPR_RET:              return "EXPR_RET";
         case EXPR_VARIABLE_DECL:    return "EXPR_VARIABLE_DECL";
         case EXPR_VARIABLE_DECL_TYPE_INF:    return "EXPR_VARIABLE_DECL_TYPE_INF";
-        case EXPR_FUNC:             return "EXPR_FUNC";
+        case EXPR_FUNCTION:             return "EXPR_FUNCTION";
         case EXPR_STRUCT:           return "EXPR_STRUCT";
         case EXPR_IF:               return "EXPR_IF";
         case EXPR_FOR:              return "EXPR_FOR";
@@ -44,16 +44,16 @@ const char* expr_kind_to_str(Expr_Kind kind)
 
 char* expr_to_str(Expr* expr)
 {
-    char* result;
+    char* result = NULL;
     switch (expr->kind)
     {
-        case EXPR_INT: { result = strf("%lld", expr->Int.val); } break;
-        case EXPR_IDENT: { result = strf("%s", expr->Ident.name); } break;
-        case EXPR_UNARY: { result = strf("%s%s", token_kind_to_str(expr->Unary.op), expr_to_str(expr->Unary.operand)); } break;
-        case EXPR_BINARY: { result = strf("%s %s %s", expr_to_str(expr->Binary.lhs), token_kind_to_str(expr->Binary.op), expr_to_str(expr->Binary.rhs)); } break;
-        case EXPR_RET: { result = strf("ret %s", expr_to_str(expr->Ret.expr)); } break;
-        case EXPR_VARIABLE_DECL: { result = strf(expr->Variable_Decl.value ? "%s: %s = %s" : "%s: %s", expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type), expr->Variable_Decl.value ? expr_to_str(expr->Variable_Decl.value) : "");  } break;
-        case EXPR_VARIABLE_DECL_TYPE_INF: { result = strf("%s := %s", expr->Variable_Decl_Type_Inf.name, expr_to_str(expr->Variable_Decl_Type_Inf.value));  } break;
+        case EXPR_INT: { result = strf("%lld", expr->Int.val); } break;
+        case EXPR_IDENT: { result = strf("%s", expr->Ident.name); } break;
+        case EXPR_UNARY: { result = strf("%s%s", token_kind_to_str(expr->Unary.op), expr_to_str(expr->Unary.operand)); } break;
+        case EXPR_BINARY: { result = strf("%s %s %s", expr_to_str(expr->Binary.lhs), token_kind_to_str(expr->Binary.op), expr_to_str(expr->Binary.rhs)); } break;
+        case EXPR_RET: { result = strf("ret %s", expr_to_str(expr->Ret.expr)); } break;
+        case EXPR_VARIABLE_DECL: { result = strf(expr->Variable_Decl.value ? "%s: %s = %s" : "%s: %s", expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type), expr->Variable_Decl.value ? expr_to_str(expr->Variable_Decl.value) : "");  } break;
+        case EXPR_VARIABLE_DECL_TYPE_INF: { result = strf("%s := %s", expr->Variable_Decl_Type_Inf.name, expr_to_str(expr->Variable_Decl_Type_Inf.value));  } break;
 
         case EXPR_BLOCK:
         {   
@@ -65,14 +65,15 @@ char* expr_to_str(Expr* expr)
             result = str->data;
         } break;
 
-        case EXPR_FUNC:
+        case EXPR_FUNCTION:
         {
-            string* str = make_string(strf("%s  {\n%s}", typespec_to_str(expr->Func.type), expr_to_str(expr->Func.body)), 50);
+            string* str = make_string(strf("%s  {\n%s}", typespec_to_str(expr->Function.type), expr_to_str(expr->Function.body)), 50);
             result = str->data;
         } break;
 
         case EXPR_GROUPING: result = strf("(%s)", expr_to_str(expr->Grouping.expr)); break;
     }
+    assert(result);
     return wrap_with_colored_parens(result);
 }
 
@@ -130,13 +131,15 @@ Expr* make_expr_struct(Typespec* struct_t)
     e->Struct.type = struct_t;
     return e;
 }
-Expr* make_expr_func(Typespec* func_t, Expr* body)
+Expr* make_expr_function(Typespec* func_t, Expr* body)
 {
     assert(func_t);
+    assert(func_t->kind == TYPESPEC_FUNCTION);
     assert(body);
-    Expr* e = make_expr(EXPR_FUNC);
-    e->Func.type = func_t;
-    e->Func.body = body;
+    assert(body->kind == EXPR_BLOCK);
+    Expr* e = make_expr(EXPR_FUNCTION);
+    e->Function.type = func_t;
+    e->Function.body = body;
     return e;
 }
 

@@ -6,7 +6,7 @@
 #include "globals.h"
 #include "string.h" // string
 #include "utility.h" // error warning info, etc
-#include "value.h" // Value
+#include "value.h" // Value, Scope
 #include "context.h" // Context
 #include "stretchy_buffer.h"  // sb_free
 
@@ -14,6 +14,8 @@
 
 Typespec* integer_literal_type = NULL;
 Context* ctx = NULL;
+string* output = NULL;
+Scope* scope = NULL;
 
 static Value* codegen_expr(Expr* expr);
 static int get_rax_reg_of_byte_size(u8 bytes);
@@ -157,7 +159,7 @@ static int get_parameter_reg(i8 i, i8 size)
 };
 
 static int next_available_reg_index = 0;
-static int  get_next_available_reg(i8 size)
+static int get_next_available_reg(i8 size)
 {
     int res = -1;
     switch (next_available_reg_index)
@@ -175,6 +177,9 @@ static int  get_next_available_reg(i8 size)
         next_available_reg_index = 0;
 
     ++next_available_reg_index;
+
+    function_push_reg(ctx->current_function, res);
+
     return res;
 };
 
@@ -192,7 +197,7 @@ static int  get_reg_as_another_size(int reg, i8 size)
     return -1; // to silence warning
 }
 
-static int get_push_or_popable_reg(int reg)
+static u64 get_push_or_popable_reg(int reg)
 {
     switch (reg)
     {
@@ -207,22 +212,6 @@ static int get_push_or_popable_reg(int reg)
     return -1; // to silence warning
 }
 
-typedef struct
-{
-    Value** local_variables;
-    u64 count;
-    u64 alloc_count;
-} Scope; 
-
-Scope* make_scope(u64 pre_allocated_variable_count)
-{
-    Scope* s = xmalloc(sizeof(Scope));
-    s->local_variables = xmalloc(sizeof(Value*) * pre_allocated_variable_count);
-    s->count = 0;
-    s->alloc_count = pre_allocated_variable_count;
-    return s;
-}
-
 static void append_variable_to_scope(Scope* s, Value* value)
 {
     assert(s);
@@ -235,20 +224,7 @@ static void append_variable_to_scope(Scope* s, Value* value)
     }
     s->local_variables[s->count++] = value;
 }
-// GLOBAL VARIABLES ------------------
-// GLOBAL VARIABLES ------------------
-// GLOBAL VARIABLES ------------------
-// GLOBAL VARIABLES ------------------
-// GLOBAL VARIABLES ------------------
-// GLOBAL VARIABLES ------------------
-string* output = NULL;
-Scope* scope = NULL;
-// GLOBAL VARIABLES  ------------------
-// GLOBAL VARIABLES  ------------------
-// GLOBAL VARIABLES  ------------------
-// GLOBAL VARIABLES  ------------------
-// GLOBAL VARIABLES  ------------------
-// GLOBAL VARIABLES  ------------------
+
 static void print_scope(Scope* scope)
 {
     info("Scope count %d", scope->count);
@@ -338,42 +314,48 @@ static void emit_load(Value* value)
         {   
             error("VALUE_FUNCTION EMIT_LOAD NOT IMPLEMENETED");
         } break;
-
-        case VALUE_BLOCK:
-        {   
-            error("VALUE_BLOCK EMIT_LOAD NOT IMPLEMENETED");
-        } break;
     }
 }
 
-static void codegen_function(Expr* expr)
+static Value* codegen_function(Expr* expr)
 {
-    const char* func_name = expr->Func.type->Func.name;
-
-    Value* function = make_value_function(func_name);
-    Value* block = make_value_block(function, "entry");
+    const char* func_name = expr->Function.type->Function.name;
+    Value* function = make_value_function(expr->Function.type);
+    ctx->current_function = function;
 
     emit(output, "%s:", func_name);
-    codegen_expr(expr->Func.body);
-
+    
     // Allocate stack for parameters
-    int index = 0;
-    int stack_before_func = ctx->stack_index;
+    u64 index = 0;
+    u64 stack_before_func = ctx->stack_index;
 
-    Arg* args = expr->Func.type->Func.args;
+    Arg* args = expr->Function.type->Function.args;
     int arg_count = sb_count(args);
     if (arg_count) info("Printing function parameters");
     for (int i = 0; i < arg_count; ++i)
     {
-        Arg arg = args[i];
-        info("Parameter %d name: %s", i, arg.name);
-        print_type(arg.type);
+        Arg* arg = &args[i];
 
-        u64 size = get_size_of_typespec(arg.type);
-        info("size: %d", size);
+        u64 size = get_size_of_typespec(arg->type);
+        u64 stack_pos = ctx->stack_index + size;
+        Value* var      = make_value_variable(arg->name, arg->type, stack_pos);
+
+        add_variable_to_scope(scope, var);
+        emit(output, "MOV [RSP-%d], %s", stack_pos, reg[get_parameter_reg(index, size)]);
+
+        ctx->stack_index += size;
+        ++index;
     }
-    
-    u64 stack_after_func = ctx->stack_index - stack_before_func;
+
+    u64 stack_used = ctx->stack_index - stack_before_func;
+    function->Function.stack_allocated = stack_used;
+
+    if (stack_used)
+        emit(output, "SUB RSP, %d", stack_used);
+
+    codegen_expr(expr->Function.body);
+
+    return function;
 }
 
 static Value* codegen_ident(Expr* expr)
@@ -393,14 +375,16 @@ static Value* codegen_int(Expr* expr)
     return val;
 } 
 
-static void codegen_block(Expr* expr)
+static Value* codegen_block(Expr* expr)
 {
     Expr** stmts = expr->Block.stmts;
     u64 stmts_count = sb_count(stmts);
+    Value* last = NULL;
     for (u64 i = 0; i < stmts_count; ++i)
     {
-        codegen_expr(stmts[i]);
+        last = codegen_expr(stmts[i]);
     }
+    return last;
 }
 
 static Value* codegen_unary(Expr* expr)
@@ -761,11 +745,29 @@ static Value* codegen_variable_decl(Expr* expr)
     return variable;
 }
 
-static void codegen_ret(Expr* expr)
+static Value* codegen_ret(Expr* expr)
 {
     Expr* ret_expr = expr->Ret.expr;
-    codegen_expr(ret_expr);
+    Value* ret_val = codegen_expr(ret_expr);
+
+    // Pop any used regs before returning
+    // u64* regs = ctx->current_function->Function.regs_used;
+    // u64 regs_count = ctx->current_function->Function.regs_used_count;
+    // for (u64 i = 0; i < regs_count; ++i)
+    // {
+    //     u64 reg_n = get_push_or_popable_reg(regs[i]);
+    //     emit(output, "POP %s", reg[reg_n]);
+    // }
+
+    // // Deallocate stack used by the function
+    // u64 stack_used = ctx->current_function->Function.stack_allocated;
+    // if (stack_used)
+    // {
+    //     emit(output, "ADD RSP, %llu", stack_used);
+    // }
+
     emit(output, "RET");
+    return ret_val;
 }
 
 static Value* codegen_expr(Expr* expr)
@@ -773,24 +775,24 @@ static Value* codegen_expr(Expr* expr)
     info("Generating code for: %s", expr_to_str(expr));
     switch (expr->kind)
     {
-        case EXPR_NOTE:             error("EXPR_NOTE codegen not implemented"); break;
-        case EXPR_INT:              return codegen_int(expr);
-        case EXPR_FLOAT:            error("EXPR_FLOAT codegen not implemented");
-        case EXPR_IDENT:            return codegen_ident(expr);
-        case EXPR_CALL:             error("EXPR_CALL codegen not implemented");
-        case EXPR_UNARY:            return codegen_unary(expr);
-        case EXPR_BINARY:           return codegen_binary(expr);
-        case EXPR_COMPOUND:         error("EXPR_COMPOUND codegen not implemented");
-        case EXPR_RET:              codegen_ret(expr); break;
-        case EXPR_VARIABLE_DECL:    return codegen_variable_decl(expr);
+        case EXPR_NOTE:                      error("EXPR_NOTE codegen not implemented"); break;
+        case EXPR_INT:                       return codegen_int(expr);
+        case EXPR_FLOAT:                     error("EXPR_FLOAT codegen not implemented");
+        case EXPR_IDENT:                     return codegen_ident(expr);
+        case EXPR_CALL:                      error("EXPR_CALL codegen not implemented");
+        case EXPR_UNARY:                     return codegen_unary(expr);
+        case EXPR_BINARY:                    return codegen_binary(expr);
+        case EXPR_COMPOUND:                  error("EXPR_COMPOUND codegen not implemented");
+        case EXPR_RET:                       return codegen_ret(expr); break;
+        case EXPR_VARIABLE_DECL:             return codegen_variable_decl(expr);
         case EXPR_VARIABLE_DECL_TYPE_INF:    return codegen_variable_decl_type_inf(expr);
-        case EXPR_FUNC:             codegen_function(expr); break;
-        case EXPR_STRUCT:           error("EXPR_STRUCT codegen not implemented"); break;
-        case EXPR_IF:               error("EXPR_IF codegen not implemented");
-        case EXPR_FOR:              error("EXPR_FOR codegen not implemented");
-        case EXPR_BLOCK:            codegen_block(expr); break;
-        case EXPR_WHILE:            error("EXPR_WHILE codegen not implemented");
-        case EXPR_GROUPING:         return codegen_expr(expr->Grouping.expr);
+        case EXPR_FUNCTION:                  return codegen_function(expr); break;
+        case EXPR_STRUCT:                    error("EXPR_STRUCT codegen not implemented"); break;
+        case EXPR_IF:                        error("EXPR_IF codegen not implemented");
+        case EXPR_FOR:                       error("EXPR_FOR codegen not implemented");
+        case EXPR_BLOCK:                     return codegen_block(expr); break;
+        case EXPR_WHILE:                     error("EXPR_WHILE codegen not implemented");
+        case EXPR_GROUPING:                  return codegen_expr(expr->Grouping.expr);
     }
 
     return NULL;
@@ -803,7 +805,6 @@ char* generate_code_from_ast(AST** ast)
     integer_literal_type = make_typespec_int(DEFAULT_INTEGER_BIT_SIZE, 0);
 
     ctx = ctx_make();
-    
     scope = make_scope(10);
     output = make_string("", 10000);
 

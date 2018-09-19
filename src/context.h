@@ -2,12 +2,15 @@
 #define CONTEXT_H
 
 #include "typedefs.h"
+#include "value.h" // Value
+
 
 typedef struct Context Context;
 
 // The context holds information about the current state of the codegen phase.
 struct Context
 {
+    Value* current_function;
 
     // Stack information
     u64 stack_index;

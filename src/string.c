@@ -10,12 +10,11 @@
 string* make_string(const char* str, u64 initial_size)
 {
     assert(str);
-    assert(initial_size != 0);
     string* s = xmalloc(sizeof(string));
     u64 str_len = xstrlen(str);
     if (str_len > initial_size)
         initial_size = str_len;
-    s->data = xmalloc(initial_size);
+    s->data = xmalloc(initial_size + 1);
     s->data_len = str_len;
     memcpy(s->data, str, str_len);
     s->alloc_len = initial_size;

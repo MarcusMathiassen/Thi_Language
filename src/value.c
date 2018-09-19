@@ -10,7 +10,6 @@
 //                               value.c
 //------------------------------------------------------------------------------
 
-
 //------------------------------------------------------------------------------
 //                               Public
 //------------------------------------------------------------------------------
@@ -23,7 +22,6 @@ u64 get_size_of_value(Value* value)
         case VALUE_INT: return value->Int.bytes;
         case VALUE_VARIABLE: return get_size_of_typespec(value->type);
         case VALUE_FUNCTION: error("Asking for the size of a function? Why?");
-        case VALUE_BLOCK: error("Asking for the size of a function? Why?");
     }
     error("get_size_of_value no valid size found");
     return 0;
@@ -36,9 +34,7 @@ void debug_push_new_instr_group(const char* desc)
 }
 
 void emit(string* output, const char* fmt, ...)
-{
-    assert(output);
-    
+{    
     va_list args;
     va_start(args, fmt);
     u64 str_len = vsnprintf(0, 0, fmt, args) + 1;  // strlen + 1 for '\n'
@@ -74,6 +70,7 @@ Value* make_value_int(u8 bytes, Typespec* type, u64 value)
     return v;
 }
 
+
 Value* make_value_variable(const char* name, Typespec* type, u64 stack_pos)
 {
     assert(name);
@@ -85,24 +82,16 @@ Value* make_value_variable(const char* name, Typespec* type, u64 stack_pos)
     v->Variable.stack_pos = stack_pos;
     return v;
 }
-Value* make_value_function(const char* name)
+Value* make_value_function(Typespec* type)
 {
-    assert(name);
+    assert(type);
+    assert(type->kind == TYPESPEC_FUNCTION);
+
     Value* v = make_value(VALUE_FUNCTION);
-    v->type = NULL;
-    v->Function.name = name;
-    v->Function.blocks = NULL;
-    return v;
-}
-Value* make_value_block(Value* function, const char* name)
-{
-    assert(function);
-    assert(name);
-    Value* v = make_value(VALUE_BLOCK);
-    v->type = NULL;
-    v->Block.parent_function = function;
-    v->Block.name = name;
-    v->Block.lines = NULL;
+    v->type = type;
+    v->Function.name = type->Function.name;
+    v->Function.stack_allocated = 0;
+    v->Function.regs_used_count = 0;
     return v;
 }
 
@@ -113,4 +102,40 @@ Value* make_value_block(Value* function, const char* name)
 u64 get_stack_pos_of_variable(Value* variable)
 {
     return variable->Variable.stack_pos;
+}
+
+void function_get_stack_used(Value* function)
+{
+    assert(function);
+    assert(function->kind == VALUE_FUNCTION);
+}
+void function_push_reg(Value* function, u64 reg_n)
+{
+    assert(function);
+    assert(function->kind == VALUE_FUNCTION);
+    u64 count = function->Function.regs_used_count;
+    function->Function.regs_used[count] = reg_n;
+    ++function->Function.regs_used_count;
+}
+
+u64 function_pop_reg(Value* function)
+{
+    assert(function);
+    assert(function->kind == VALUE_FUNCTION);
+    u64 count = function->Function.regs_used_count--;
+    return function->Function.regs_used[count];
+}
+
+
+//------------------------------------------------------------------------------
+//                               Scope
+//------------------------------------------------------------------------------
+
+Scope* make_scope(u64 pre_allocated_variable_count)
+{
+    Scope* s = xmalloc(sizeof(Scope));
+    s->local_variables = xmalloc(sizeof(Value*) * pre_allocated_variable_count);
+    s->count = 0;
+    s->alloc_count = pre_allocated_variable_count;
+    return s;
 }

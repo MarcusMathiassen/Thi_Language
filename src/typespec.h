@@ -12,16 +12,13 @@ typedef struct Arg Arg;
 typedef enum Typespec_Kind Typespec_Kind;
 
 u64 get_size_of_typespec(Typespec* Typespec);
-
 char* typespec_to_str(Typespec* type);
-
-void print_type(Typespec* Typespec);
 
 Typespec* make_typespec_int(i8 bits, bool is_unsigned);
 Typespec* make_typespec_float(i8 bits);
 Typespec* make_typespec_pointer(Typespec* pointee);
 Typespec* make_typespec_struct(const char* name, Arg* members);
-Typespec* make_typespec_func(const char* name, Arg* args, Typespec* ret_type);
+Typespec* make_typespec_function(const char* name, Arg* args, Typespec* ret_type);
 
 enum Typespec_Kind
 {
@@ -31,7 +28,7 @@ enum Typespec_Kind
 
     TYPESPEC_ENUM,
     TYPESPEC_STRUCT,
-    TYPESPEC_FUNC,
+    TYPESPEC_FUNCTION,
 };
 
 struct Arg
@@ -49,7 +46,7 @@ struct Typespec
         struct { i8 bits;                                           } Float;
         struct { Typespec* pointee;                                 } Pointer;
         struct { const char* name; Arg* members;                    } Struct;
-        struct { const char* name; Arg* args; Typespec* ret_type;   } Func;
+        struct { const char* name; Arg* args; Typespec* ret_type;   } Function;
     };
 };
 

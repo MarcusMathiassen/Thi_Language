@@ -474,12 +474,13 @@ static Typespec* parse_function_signature(const char* func_name)
     eat();
     Typespec* ret_type = NULL;
 
-    if (tok_is(TOKEN_RIGHT_ARROW)) {
+    if (tok_is(TOKEN_RIGHT_ARROW))
+    {
         eat();
         ret_type = get_type();
     }
 
-    return make_typespec_func(func_name, args, ret_type);
+    return make_typespec_function(func_name, args, ret_type);
 }
 
 static Expr* get_definition(const char* ident) {
@@ -502,7 +503,7 @@ static Expr* get_definition(const char* ident) {
         {
             skip_function_signature();
             Expr* body = parse_block();
-            return make_expr_func(get_symbol(ident), body);
+            return make_expr_function(get_symbol(ident), body);
         }
         // default: return get_constant(ident); 
     }
