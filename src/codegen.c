@@ -481,7 +481,7 @@ Value *get_variable_in_scope(Scope *scope, const char *name) {
   u64 variable_count = scope->count;
   for (u64 i = 0; i < variable_count; ++i) {
     Value *v = scope->local_variables[i];
-    if (v->Variable.name, name)
+    if (v->Variable.name == name)
       return v;
   }
   return NULL;
@@ -1033,11 +1033,11 @@ static Value *codegen_expr(Expr *expr) {
 char *generate_code_from_ast(AST **ast) {
   success("Generating X64 Assembly from AST");
 
-  integer_literal_type = make_typespec_int(DEFAULT_INTEGER_BIT_SIZE, 0);
+  integer_literal_type = make_typespec_int(DEFAULT_INTEGER_BIT_SIZE, false);
 
   ctx = ctx_make();
   scope = make_scope(10);
-  output = make_string("", 10000);
+  output = make_string("");
 
   emit(output, "global main");
   emit(output, "section .text");
@@ -1049,5 +1049,5 @@ char *generate_code_from_ast(AST **ast) {
     codegen_expr(ast[i]);
   }
 
-  return output->data;
+  return output->c_str;
 }

@@ -92,19 +92,18 @@ char *expr_to_str(Expr *expr) {
   } break;
 
   case EXPR_BLOCK: {
-    string *str = make_string("", 50);
+    string *str = make_string("");
     for (int i = 0; i < sb_count(expr->Block.stmts); ++i) {
       append_string(str, strf("\t%s\n", expr_to_str(expr->Block.stmts[i])));
     }
-    result = str->data;
+    result = str->c_str;
   } break;
 
   case EXPR_FUNCTION: {
     string *str =
         make_string(strf("%s  {\n%s}", typespec_to_str(expr->Function.type),
-                         expr_to_str(expr->Function.body)),
-                    50);
-    result = str->data;
+                         expr_to_str(expr->Function.body)));
+    result = str->c_str;
   } break;
 
   case EXPR_GROUPING:

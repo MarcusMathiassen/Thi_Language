@@ -39,7 +39,7 @@ char *typespec_to_str(Typespec *type) {
                                          "%d"),
                 type->Int.bits);
   case TYPESPEC_FUNCTION: {
-    string *str = make_string(strf("%s :: (", type->Function.name), 50);
+    string *str = make_string(strf("%s :: (", type->Function.name));
     strf("func. name: %d", type->Function.name);
     Arg *args = type->Function.args;
     u64 arg_count = sb_count(args);
@@ -51,7 +51,7 @@ char *typespec_to_str(Typespec *type) {
 
     append_string(str,
                   strf(") -> %s", typespec_to_str(type->Function.ret_type)));
-    return str->data;
+    return str->c_str;
   }
   default:
     warning("not implemented kind %d", type->kind);

@@ -108,6 +108,7 @@ void function_push_reg(Value *function, u64 reg_n) {
   function->Function.regs_used[count] = reg_n;
   ++function->Function.regs_used_count;
 }
+
 u64 function_pop_reg(Value *function) {
   assert(function);
   assert(function->kind == VALUE_FUNCTION);

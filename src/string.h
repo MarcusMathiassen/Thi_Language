@@ -3,13 +3,12 @@
 
 #include "typedefs.h"
 typedef struct {
-  char *data;
-  char *end;
-  u64 alloc_len;
+  char *c_str;
+  u64 len;
 } string;
 
-string *make_string(const char *str, u64 initial_size);
-void string_grow(string *s, u64 amount);
+string *make_string(const char *str);
+
 void append_string(string *s, const char *str);
 void free_string(string *s);
 
