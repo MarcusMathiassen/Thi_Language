@@ -3,6 +3,6 @@
 
 #include "ast.h"
 
-char* generate_code_from_ast(AST** ast);
+char *generate_code_from_ast(AST **ast);
 
 #endif

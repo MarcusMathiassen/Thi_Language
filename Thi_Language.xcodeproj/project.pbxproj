@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		90CE5F652151D193003735E1 /* stack.c in Sources */ = {isa = PBXBuildFile; fileRef = 90CE5F642151D193003735E1 /* stack.c */; };
 		90FC5460215009F5007B1228 /* ast.c in Sources */ = {isa = PBXBuildFile; fileRef = 90FC5448215009F5007B1228 /* ast.c */; };
 		90FC5461215009F5007B1228 /* codegen.c in Sources */ = {isa = PBXBuildFile; fileRef = 90FC5449215009F5007B1228 /* codegen.c */; };
 		90FC5462215009F5007B1228 /* typespec.c in Sources */ = {isa = PBXBuildFile; fileRef = 90FC544A215009F5007B1228 /* typespec.c */; };
@@ -34,6 +35,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		90CE5F632151D193003735E1 /* stack.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stack.h; sourceTree = "<group>"; };
+		90CE5F642151D193003735E1 /* stack.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = stack.c; sourceTree = "<group>"; };
 		90FC543D215009CF007B1228 /* Thi_Language */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Thi_Language; sourceTree = BUILT_PRODUCTS_DIR; };
 		90FC5448215009F5007B1228 /* ast.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ast.c; sourceTree = "<group>"; };
 		90FC5449215009F5007B1228 /* codegen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = codegen.c; sourceTree = "<group>"; };
@@ -94,6 +97,8 @@
 			isa = PBXGroup;
 			children = (
 				90FC546B2150E407007B1228 /* context.c */,
+				90CE5F632151D193003735E1 /* stack.h */,
+				90CE5F642151D193003735E1 /* stack.c */,
 				90FC546C2150E407007B1228 /* context.h */,
 				90FC5459215009F5007B1228 /* .clang-format */,
 				90FC5448215009F5007B1228 /* ast.c */,
@@ -184,6 +189,7 @@
 				90FC5464215009F5007B1228 /* lexer.c in Sources */,
 				90FC546D2150E407007B1228 /* context.c in Sources */,
 				90FC5462215009F5007B1228 /* typespec.c in Sources */,
+				90CE5F652151D193003735E1 /* stack.c in Sources */,
 				90FC5468215009F5007B1228 /* parser.c in Sources */,
 				90FC5469215009F5007B1228 /* value.c in Sources */,
 				90FC5467215009F5007B1228 /* map.c in Sources */,

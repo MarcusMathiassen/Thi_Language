@@ -2,20 +2,19 @@
 #define STRING_H
 
 #include "typedefs.h"
-typedef struct
-{
-    char* data;
-    u64 data_len;
-    u64 alloc_len;
+typedef struct {
+  char *data;
+  char *end;
+  u64 alloc_len;
 } string;
 
-string* make_string(const char* str, u64 initial_size);
-void append_string(string* s, const char* str);
-void free_string(string* s);
+string *make_string(const char *str, u64 initial_size);
+void string_grow(string *s, u64 amount);
+void append_string(string *s, const char *str);
+void free_string(string *s);
 
-
-const char* str_intern_range(const char* start, const char* end);
-const char* str_intern(const char* str);
+const char *str_intern_range(const char *start, const char *end);
+const char *str_intern(const char *str);
 
 //------------------------------------------------------------------------------
 //                               Tests
