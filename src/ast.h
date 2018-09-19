@@ -107,25 +107,4 @@ void print_ast(AST **ast);
 char *expr_to_str(Expr *expr);
 const char *expr_kind_to_str(Expr_Kind kind);
 
-typedef struct AST_Node AST_Node;
-typedef struct AST_List AST_List;
-
-struct AST_Node {
-  Expr *expr;
-  AST_Node *next;
-};
-
-struct AST_List {
-  AST_Node *head;
-};
-
-/*
-    AST_Node head;
-    head = NULL;
-    head = malloc(sizeof(AST_Node));
-    head->expr = expr;
-    head->next = malloc(sizeof(AST_Node));
-    head->next->next = NULL;
-*/
-
 #endif

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		900E2920215308EF00AF1B41 /* list.c in Sources */ = {isa = PBXBuildFile; fileRef = 900E291E215308EF00AF1B41 /* list.c */; };
 		90CE5F652151D193003735E1 /* stack.c in Sources */ = {isa = PBXBuildFile; fileRef = 90CE5F642151D193003735E1 /* stack.c */; };
 		90FC5460215009F5007B1228 /* ast.c in Sources */ = {isa = PBXBuildFile; fileRef = 90FC5448215009F5007B1228 /* ast.c */; };
 		90FC5461215009F5007B1228 /* codegen.c in Sources */ = {isa = PBXBuildFile; fileRef = 90FC5449215009F5007B1228 /* codegen.c */; };
@@ -35,6 +36,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		900E291E215308EF00AF1B41 /* list.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = list.c; sourceTree = "<group>"; };
+		900E291F215308EF00AF1B41 /* list.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = list.h; sourceTree = "<group>"; };
 		90CE5F632151D193003735E1 /* stack.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stack.h; sourceTree = "<group>"; };
 		90CE5F642151D193003735E1 /* stack.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = stack.c; sourceTree = "<group>"; };
 		90FC543D215009CF007B1228 /* Thi_Language */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Thi_Language; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -96,6 +99,8 @@
 		90FC5447215009F5007B1228 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				900E291E215308EF00AF1B41 /* list.c */,
+				900E291F215308EF00AF1B41 /* list.h */,
 				90FC546B2150E407007B1228 /* context.c */,
 				90CE5F632151D193003735E1 /* stack.h */,
 				90CE5F642151D193003735E1 /* stack.c */,
@@ -195,6 +200,7 @@
 				90FC5467215009F5007B1228 /* map.c in Sources */,
 				90FC546A215009F5007B1228 /* globals.c in Sources */,
 				90FC5463215009F5007B1228 /* utility.c in Sources */,
+				900E2920215308EF00AF1B41 /* list.c in Sources */,
 				90FC5461215009F5007B1228 /* codegen.c in Sources */,
 				90FC5466215009F5007B1228 /* main.c in Sources */,
 			);

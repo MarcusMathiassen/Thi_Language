@@ -4,6 +4,7 @@
 #include "lexer.h"           // generate_tokens_from_source, print_tokens
 #include "map.h"             // map
 #include "parser.h"          // generate_ast_from_tokens
+#include "list.h"            // list_tests
 #include "stretchy_buffer.h" // sb_free
 #include "string.h"          // strcmp
 #include "typedefs.h"
@@ -22,6 +23,8 @@ void run_all_tests(void);
 
 int main(int argc, char **argv) {
 
+    run_all_tests();
+
   push_timer("Total time");
 
   // Argument validation
@@ -34,8 +37,6 @@ int main(int argc, char **argv) {
   const char *source_file = argv[1];
   const char *exec_name = argv[2];
   success("Compiling %s", source_file);
-
-  run_all_tests();
 
   init_maps();
 
@@ -158,4 +159,5 @@ void run_all_tests(void) {
   utility_tests();
   string_tests();
   map_tests();
+  list_tests();
 }
