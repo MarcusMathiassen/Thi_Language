@@ -24,7 +24,7 @@ list_element_t list_append(List* list, list_element_t element);
 list_element_t list_prepend(List* list, list_element_t element);
 list_element_t list_last(List* list);
 list_element_t list_first(List* list);
-list_element_t list_at(List* list, u64 index);
-void list_remove(List* list, u64 index);
+list_element_t list_at(List* list, i64 index);
+void list_remove(List* list, i64 index);
 
 #endif

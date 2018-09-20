@@ -48,7 +48,9 @@ void list_tests(void) {
     // }
 }
 
-void list_remove(List* list, u64 index) {
+void list_remove(List* list, i64 index) {
+    assert(list);
+    assert(index >= 0);
 
     if (index == 0) {
         if (list->head->next)
@@ -73,8 +75,10 @@ void list_remove(List* list, u64 index) {
     free(current);
 }
 
-list_element_t list_at(List* list, u64 index) {
-
+list_element_t list_at(List* list, i64 index) {
+    assert(list);
+    assert(index >= 0);
+    
     u64 iterator = 0;
     List_Node* current = list->head;
 
