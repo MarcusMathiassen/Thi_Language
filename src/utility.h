@@ -15,7 +15,6 @@ void error(const char* fmt, ...);
 //------------------------------------------------------------------------------
 //                               File Functions
 //------------------------------------------------------------------------------
-
 char* get_file_path_from_dir(const char* dir, const char* filename);
 char* get_file_ext(const char* filename);
 char* get_file_dir(const char* filename);

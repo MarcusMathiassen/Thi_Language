@@ -78,7 +78,7 @@ void list_remove(List* list, i64 index) {
 list_element_t list_at(List* list, i64 index) {
     assert(list);
     assert(index >= 0);
-    
+
     u64 iterator = 0;
     List_Node* current = list->head;
 
@@ -132,6 +132,7 @@ list_element_t list_first(List* list) {
     assert(list);
     return list->head->element;
 }
+
 
 list_element_t list_last(List* list) {
     assert(list);
