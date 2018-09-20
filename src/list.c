@@ -1,7 +1,7 @@
 #include "list.h"
+#include "utility.h" // error
 #include <assert.h>
 #include <stdlib.h> // malloc
-#include "utility.h" // error
 
 List* make_linked_list(void) {
     List* list = malloc(sizeof(List));
@@ -40,11 +40,12 @@ void list_tests(void) {
     list_remove(list, 0);
     assert(list_at(list, 0) == 1);
 
-    List_Node* current = list->head;
-    while (current != NULL) {
-        warning("%d", current->element);
-        current = current->next;
-    }
+    // Uncomment to print our the list
+    // List_Node* current = list->head;
+    // while (current != NULL) {
+    //     warning("%d", current->element);
+    //     current = current->next;
+    // }
 }
 
 void list_remove(List* list, u64 index) {

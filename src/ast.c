@@ -68,35 +68,42 @@ char* expr_to_str(Expr* expr) {
         result = strf("%s", expr->Ident.name);
     } break;
     case EXPR_UNARY: {
-        result = strf("%s%s", token_kind_to_str(expr->Unary.op), expr_to_str(expr->Unary.operand));
+        result = strf("%s%s", token_kind_to_str(expr->Unary.op),
+                      expr_to_str(expr->Unary.operand));
     } break;
     case EXPR_BINARY: {
-        result = strf("%s %s %s", expr_to_str(expr->Binary.lhs), token_kind_to_str(expr->Binary.op),
+        result = strf("%s %s %s", expr_to_str(expr->Binary.lhs),
+                      token_kind_to_str(expr->Binary.op),
                       expr_to_str(expr->Binary.rhs));
     } break;
     case EXPR_RET: {
         result = strf("ret %s", expr_to_str(expr->Ret.expr));
     } break;
     case EXPR_VARIABLE_DECL: {
-        result = strf(expr->Variable_Decl.value ? "%s: %s = %s" : "%s: %s", expr->Variable_Decl.name,
-                      typespec_to_str(expr->Variable_Decl.type),
-                      expr->Variable_Decl.value ? expr_to_str(expr->Variable_Decl.value) : "");
+        result = strf(
+            expr->Variable_Decl.value ? "%s: %s = %s" : "%s: %s",
+            expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type),
+            expr->Variable_Decl.value ? expr_to_str(expr->Variable_Decl.value)
+                                      : "");
     } break;
     case EXPR_VARIABLE_DECL_TYPE_INF: {
-        result = strf("%s := %s", expr->Variable_Decl_Type_Inf.name, expr_to_str(expr->Variable_Decl_Type_Inf.value));
+        result = strf("%s := %s", expr->Variable_Decl_Type_Inf.name,
+                      expr_to_str(expr->Variable_Decl_Type_Inf.value));
     } break;
 
     case EXPR_BLOCK: {
         string* str = make_string("");
         for (int i = 0; i < sb_count(expr->Block.stmts); ++i) {
-            append_string(str, strf("\t%s\n", expr_to_str(expr->Block.stmts[i])));
+            append_string(str,
+                          strf("\t%s\n", expr_to_str(expr->Block.stmts[i])));
         }
         result = str->c_str;
     } break;
 
     case EXPR_FUNCTION: {
         string* str =
-            make_string(strf("%s  {\n%s}", typespec_to_str(expr->Function.type), expr_to_str(expr->Function.body)));
+            make_string(strf("%s  {\n%s}", typespec_to_str(expr->Function.type),
+                             expr_to_str(expr->Function.body)));
         result = str->c_str;
     } break;
 
@@ -223,4 +230,3 @@ Expr* make_expr_variable_decl_type_inf(const char* name, Expr* value) {
     e->Variable_Decl_Type_Inf.value = value;
     return e;
 }
-

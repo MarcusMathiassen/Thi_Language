@@ -18,9 +18,9 @@ typedef struct Stack Stack;
 // You allocate stack by adding and subtracting the stackpointer
 
 struct Stack {
-  u64 index;
-  u64 allocated_size;
-  u64 free_space;
+    u64 index;
+    u64 allocated_size;
+    u64 free_space;
 };
 
 #endif /* stack_h */

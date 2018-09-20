@@ -24,15 +24,17 @@ static int get_reg_as_another_size(int reg, i8 size);
 
 #define REG_COUNT 68
 const char* reg[REG_COUNT] = {
-    "RAX",  "EAX",  "AX",   "AL",   "AH",   "RCX",  "ECX",  "CX",   "CL",   "CH",   "RDX",
-    "EDX",  "DX",   "DL",   "DH",   "RBX",  "EBX",  "BX",   "BL",   "BH",
+    "RAX", "EAX",  "AX",   "AL",   "AH",  "RCX",  "ECX",  "CX",
+    "CL",  "CH",   "RDX",  "EDX",  "DX",  "DL",   "DH",   "RBX",
+    "EBX", "BX",   "BL",   "BH",
 
-    "RSP",  "ESP",  "SP",   "SPL",  "RBP",  "EBP",  "BP",   "BPL",  "RSI",  "ESI",  "SI",
-    "SIL",  "RDI",  "EDI",  "DI",   "DIL",
+    "RSP", "ESP",  "SP",   "SPL",  "RBP", "EBP",  "BP",   "BPL",
+    "RSI", "ESI",  "SI",   "SIL",  "RDI", "EDI",  "DI",   "DIL",
 
-    "R8",   "R8D",  "R8W",  "R8B",  "R9",   "R9D",  "R9W",  "R9B",  "R10",  "R10D", "R10W",
-    "R10B", "R11",  "R11D", "R11W", "R11B", "R12",  "R12D", "R12W", "R12B", "R13",  "R13D",
-    "R13W", "R13B", "R14",  "R14D", "R14W", "R14B", "R15",  "R15D", "R15W", "R15B",
+    "R8",  "R8D",  "R8W",  "R8B",  "R9",  "R9D",  "R9W",  "R9B",
+    "R10", "R10D", "R10W", "R10B", "R11", "R11D", "R11W", "R11B",
+    "R12", "R12D", "R12W", "R12B", "R13", "R13D", "R13W", "R13B",
+    "R14", "R14D", "R14W", "R14B", "R15", "R15D", "R15W", "R15B",
 };
 
 #define RAX 0
@@ -310,7 +312,8 @@ static int get_next_available_reg(i8 size) {
         }
         break;
     default:
-        error("get_next_available_reg unhandled register: %d", next_available_reg_index);
+        error("get_next_available_reg unhandled register: %d",
+              next_available_reg_index);
     }
 
     if (next_available_reg_index == 5)
@@ -457,7 +460,8 @@ static void append_variable_to_scope(Scope* s, Value* value) {
     // allocate more space if needed
     if (s->alloc_count < s->count + 1) {
         s->alloc_count += 1;
-        s->local_variables = xrealloc(s->local_variables, sizeof(Value*) * s->alloc_count);
+        s->local_variables =
+            xrealloc(s->local_variables, sizeof(Value*) * s->alloc_count);
     }
     s->local_variables[s->count++] = value;
 }
@@ -466,7 +470,8 @@ static void print_scope(Scope* scope) {
     info("Scope count %d", scope->count);
     info("Scope alloc_count %d", scope->alloc_count);
     for (u64 i = 0; i < scope->count; ++i) {
-        info("Scope index: %llu variable: %s", i, scope->local_variables[i]->Variable.name);
+        info("Scope index: %llu variable: %s", i,
+             scope->local_variables[i]->Variable.name);
     }
 }
 
@@ -496,7 +501,7 @@ void add_variable_to_scope(Scope* scope, Value* variable) {
 
     info("Added variable %s", name);
     append_variable_to_scope(scope, variable);
-    print_scope(scope);
+    // print_scope(scope);
 }
 
 void remove_variable_in_scope(Scope* scope, const char* name) {
@@ -530,7 +535,8 @@ static void emit_load(Value* value) {
     } break;
 
     case VALUE_VARIABLE: {
-        emit(output, "MOV %s, [RSP-%d]", reg[reg_n], get_stack_pos_of_variable(value));
+        emit(output, "MOV %s, [RSP-%d]", reg[reg_n],
+             get_stack_pos_of_variable(value));
     } break;
 
     case VALUE_FUNCTION: {
@@ -564,7 +570,8 @@ static Value* codegen_function(Expr* expr) {
         Value* var = make_value_variable(arg->name, arg->type, stack_pos);
 
         add_variable_to_scope(scope, var);
-        emit(output, "MOV [RSP-%d], %s", stack_pos, reg[get_parameter_reg(index, size)]);
+        emit(output, "MOV [RSP-%d], %s", stack_pos,
+             reg[get_parameter_reg(index, size)]);
 
         temp_stack_index += size;
         ++index;
@@ -591,7 +598,8 @@ static Value* codegen_ident(Expr* expr) {
 }
 
 static Value* codegen_int(Expr* expr) {
-    Value* val = make_value_int(DEFAULT_INTEGER_BYTE_SIZE, integer_literal_type, expr->Int.val);
+    Value* val = make_value_int(DEFAULT_INTEGER_BYTE_SIZE, integer_literal_type,
+                                expr->Int.val);
     emit_load(val);
     return val;
 }
@@ -918,7 +926,8 @@ static Value* codegen_variable_decl_type_inf(Expr* expr) {
     const char* name = expr->Variable_Decl_Type_Inf.name;
     Expr* assignment_expr = expr->Variable_Decl_Type_Inf.value;
 
-    Value* assign_expr_val = codegen_expr(assignment_expr); // Any value this creates is stored in RAX
+    Value* assign_expr_val = codegen_expr(
+        assignment_expr); // Any value this creates is stored in RAX
     Typespec* type = assign_expr_val->type;
     u64 type_size = get_size_of_typespec(type);
     u64 stack_pos = type_size + ctx->stack.index;
@@ -936,7 +945,8 @@ static Value* codegen_variable_decl(Expr* expr) {
     Expr* assignment_expr = expr->Variable_Decl.value;
 
     if (assignment_expr)
-        codegen_expr(assignment_expr); // Any value this creates is stored in RAX
+        codegen_expr(
+            assignment_expr); // Any value this creates is stored in RAX
 
     u64 type_size = get_size_of_typespec(type);
     u64 stack_pos = type_size + ctx->stack.index;
@@ -978,7 +988,6 @@ static Value* codegen_expr(Expr* expr) {
     switch (expr->kind) {
     case EXPR_NOTE:
         error("EXPR_NOTE codegen not implemented");
-        break;
     case EXPR_INT:
         return codegen_int(expr);
     case EXPR_FLOAT:
@@ -995,24 +1004,20 @@ static Value* codegen_expr(Expr* expr) {
         error("EXPR_COMPOUND codegen not implemented");
     case EXPR_RET:
         return codegen_ret(expr);
-        break;
     case EXPR_VARIABLE_DECL:
         return codegen_variable_decl(expr);
     case EXPR_VARIABLE_DECL_TYPE_INF:
         return codegen_variable_decl_type_inf(expr);
     case EXPR_FUNCTION:
         return codegen_function(expr);
-        break;
     case EXPR_STRUCT:
         error("EXPR_STRUCT codegen not implemented");
-        break;
     case EXPR_IF:
         error("EXPR_IF codegen not implemented");
     case EXPR_FOR:
         error("EXPR_FOR codegen not implemented");
     case EXPR_BLOCK:
         return codegen_block(expr);
-        break;
     case EXPR_WHILE:
         error("EXPR_WHILE codegen not implemented");
     case EXPR_GROUPING:
@@ -1034,9 +1039,7 @@ char* generate_code_from_ast(AST** ast) {
     emit(output, "global main");
     emit(output, "section .text");
 
-    // Codegen AST
     u64 ast_count = sb_count(ast);
-    info("ast_count: %d", ast_count);
     for (u64 i = 0; i < ast_count; ++i) {
         codegen_expr(ast[i]);
     }
