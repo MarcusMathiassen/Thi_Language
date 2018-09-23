@@ -1,0 +1,3 @@
+/Users/marcusmathiassen/Thi_Language/build/CMakeFiles/rebuild_cache.dir
+/Users/marcusmathiassen/Thi_Language/build/CMakeFiles/edit_cache.dir
+/Users/marcusmathiassen/Thi_Language/build/CMakeFiles/Thi.dir
