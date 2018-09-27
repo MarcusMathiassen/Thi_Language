@@ -18,6 +18,7 @@ Typespec* make_typespec_int(i8 bits, bool is_unsigned);
 Typespec* make_typespec_float(i8 bits);
 Typespec* make_typespec_pointer(Typespec* pointee);
 Typespec* make_typespec_struct(const char* name, Arg* members);
+Typespec* make_typespec_enum(const char* name, const char** members);
 Typespec* make_typespec_function(const char* name, Arg* args,
                                  Typespec* ret_type);
 
@@ -49,6 +50,10 @@ struct Typespec {
         struct {
             Typespec* pointee;
         } Pointer;
+        struct {
+            const char* name;
+            const char** members;
+        } Enum;
         struct {
             const char* name;
             Arg* members;

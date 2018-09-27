@@ -1,4 +1,4 @@
-DeviceType :: enum u8 {
+DeviceType :: enum {
     GPU
     CPU
 }

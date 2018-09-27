@@ -15,7 +15,6 @@ static struct {
     Token_Kind kind;
     int p;
 } binop_precedence[BIN_OP_COUNT] = {
-
     {TOKEN_DOT, 100},          // .
     {TOKEN_OPEN_PAREN, 100},   // ()
     {TOKEN_OPEN_BRACKET, 100}, // []
@@ -167,8 +166,11 @@ void generate_symbol_table_from_tokens(Token* tokens) {
 //------------------------------------------------------------------------------
 
 static Expr* parse_top_level() {
+
     top_tok = curr_tok;
+
     switch (curr_tok.kind) {
+
     case TOKEN_FOREIGN:
         error("MISSING IMPLEENTATI FOR FOREIGN TOP LEVEL");
         // eat();
@@ -449,9 +451,25 @@ static Typespec* get_type(void) {
 //                               Parsing Utility Functions
 //------------------------------------------------------------------------------
 
+static Typespec* parse_enum_signature(const char* name) {
+
+    assert(tok_is(TOKEN_ENUM));
+    eat();
+    assert(tok_is(TOKEN_OPEN_BRACE));
+    eat();
+
+    char** members = malloc(sizeof(char*));
+
+    while (!tok_is(TOKEN_CLOSE_BRACE)) {
+        eat_kind(TOKEN_IDENTIFIER);
+    }
+    return make_typespec_enum(name, members);
+}
+
 static Typespec* parse_struct_signature(const char* struct_name) {
     eat_kind(TOKEN_STRUCT);
     eat_kind(TOKEN_OPEN_BRACE);
+
     Arg* members = NULL;
     while (!tok_is(TOKEN_CLOSE_BRACE)) {
         Arg member;
@@ -620,8 +638,8 @@ static void add_new_symbol(void) {
         switch (curr_tok.kind) {
         case TOKEN_ENUM: {
             eat();
-            // auto enum_signature = parse_enum_signature(ident);
-            // add_enum(new AST_Enum(enum_signature));
+            // Typespec* type = parse_enum_signature(ident);
+            // add_symbol(ident, type);
             return;
         }
         case TOKEN_STRUCT: {

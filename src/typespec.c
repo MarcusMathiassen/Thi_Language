@@ -91,6 +91,14 @@ Typespec* make_typespec_pointer(Typespec* pointee) {
     return t;
 }
 
+Typespec* make_typespec_enum(const char* name, const char** members) {
+    assert(name);
+    Typespec* t = make_typespec(TYPESPEC_ENUM);
+    t->Enum.name = name;
+    t->Enum.members = members;
+    return t;
+}
+
 Typespec* make_typespec_struct(const char* name, Arg* members) {
     assert(name);
     Typespec* t = make_typespec(TYPESPEC_STRUCT);
