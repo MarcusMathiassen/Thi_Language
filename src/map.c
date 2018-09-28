@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <string.h>
 
-#define INITIAL_SIZE 256
+#define INITIAL_SIZE 16
 
 static u32 hash_it(const char* str);
 
@@ -37,14 +37,6 @@ Map* make_map(void) {
     map->table_size = INITIAL_SIZE;
     map->size = 0;
     return map;
-}
-
-void map_init(Map* map) {
-    assert(map != NULL);
-    map->data = NULL;
-    map->data = xcalloc(INITIAL_SIZE, sizeof(Map_Element));
-    map->table_size = INITIAL_SIZE;
-    map->size = 0;
 }
 
 // Add a pointer to the hashmap with some key

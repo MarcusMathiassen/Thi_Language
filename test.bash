@@ -19,7 +19,7 @@ num_tests_passed=0
 num_tests_compiled_successfully=0
 test_counter=0
 
-thi_executable=./bin/thi
+thi_executable=./thi
 
 for tf in $test_files
 do

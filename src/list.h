@@ -14,7 +14,7 @@ typedef struct List {
 } List;
 
 void list_tests(void);
-List* make_linked_list(void);
+List* make_list(void);
 void* list_append(List* list, void* element);
 void* list_prepend(List* list, void* element);
 void* list_last(List* list);

@@ -12,8 +12,7 @@ if [ ${#test_file} == 0 ]; then
     echo -e "${GRAY} [DEBUG] ${NC}${RED}MISSING INPUT FILE${NC}"
 fi
 
-thi_executable=./bin/thi
-
+thi_executable=./thi
 
 # Compile the file
 name="./test_0"

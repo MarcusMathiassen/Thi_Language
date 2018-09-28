@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <stdlib.h> // malloc
 
-List* make_linked_list(void) {
+List* make_list(void) {
     List* list = malloc(sizeof(List));
     list->head = NULL;
     list->tail = NULL;
@@ -12,26 +12,32 @@ List* make_linked_list(void) {
 
 void list_tests(void) {
 
-    List* list = make_linked_list();
+    List* list = make_list();
 
-    // // Append
-    list_append(list, 1);
-    assert((int)list_last(list) == 1);
-    list_append(list, 2);
-    assert((int)list_last(list) == 2);
-    list_append(list, 3);
-    assert((int)list_last(list) == 3);
-    list_append(list, 4);
-    assert((int)list_last(list) == 4);
-    list_append(list, 5);
-    assert((int)list_last(list) == 5);
-    list_append(list, 6);
+    int* num = xmalloc(sizeof(int)*10);
+    num[0] = 1;
+    num[1] = 2;
+    num[2] = 3;
+    num[3] = 4;
+    num[4] = 5;
+    num[5] = 6;
+
+    num[6] = 53;
+    num[7] = 5;
+
+    // Append
+    for (int i = 0; i < 6; ++i) {
+        list_append(list, num[i]);
+        assert((int)list_last(list) == num[i]);
+    }
+
+    // List at
     assert((int)list_last(list) == 6);
     assert((int)list_at(list, 3) == 4);
 
     // Prepend
-    list_prepend(list, 5);
-    list_prepend(list, 53);
+    list_prepend(list, num[4] /* 5 */);
+    list_prepend(list, num[6] /* 53 */);
     assert((int)list_at(list, 0) == 53);
     assert((int)list_at(list, 1) == 5);
 
@@ -40,7 +46,7 @@ void list_tests(void) {
     list_remove(list, 0);
     assert((int)list_at(list, 0) == 1);
 
-    // // Uncomment to print our the list
+    // Uncomment to print the list
     // List_Node* current = list->head;
     // while (current != NULL) {
     //     warning("%d", (int)current->element);

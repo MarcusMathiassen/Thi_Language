@@ -1,4 +1,3 @@
 # Specify filepatterns you want git to ignore.
-./bin/*
-./build/*
+thi
 .DS_Store
