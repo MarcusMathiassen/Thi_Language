@@ -12,17 +12,19 @@
 //                               Printing Functions
 //------------------------------------------------------------------------------
 
+
 #define RESET "\033[0m"
 #define GRAY "\033[30m"
 #define RED "\033[31m"
 #define GREEN "\033[32m"
 #define YELLOW "\033[33m"
+#define RGB_GRAY "\033[38;2;110;110;110;m"
 
 void info(const char* fmt, ...) {
     assert(fmt);
     va_list args;
     va_start(args, fmt);
-    printf(GRAY);
+    printf(RGB_GRAY);
     vprintf(fmt, args);
     printf(RESET "\n");
     va_end(args);

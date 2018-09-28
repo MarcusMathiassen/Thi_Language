@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 output=./thi
 compiler=clang
-olvl=
+olvl=-O3
 src=./src/*.c
 flags=-Wall\ -Wextra\ -Wimplicit-fallthrough
 std=c99
