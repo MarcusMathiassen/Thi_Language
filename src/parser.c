@@ -452,18 +452,18 @@ static Typespec* get_type(void) {
 //------------------------------------------------------------------------------
 
 static Typespec* parse_enum_signature(const char* name) {
-
+    info("Parsing enum: %s", name);
     assert(tok_is(TOKEN_ENUM));
     eat();
     assert(tok_is(TOKEN_OPEN_BRACE));
     eat();
-
-    char** members = malloc(sizeof(char*));
-
     while (!tok_is(TOKEN_CLOSE_BRACE)) {
+        info("  enum member: %s", curr_tok.value);
         eat_kind(TOKEN_IDENTIFIER);
     }
-    return make_typespec_enum(name, members);
+    eat();
+
+    return make_typespec_enum(name, NULL);
 }
 
 static Typespec* parse_struct_signature(const char* struct_name) {
@@ -522,12 +522,12 @@ static Typespec* parse_function_signature(const char* func_name) {
 static Expr* get_definition(const char* ident) {
     eat();
     switch (curr_tok.kind) {
-    // case TOKEN_ENUM:
-    // {
-    //     eat();
-    //     skip_enum_signature();
-    //     return get_symbol(ident);
-    // }
+    case TOKEN_ENUM:
+    {
+        eat();
+        skip_enum_signature();
+        return get_symbol(ident);
+    }
     case TOKEN_STRUCT: {
         eat();
         skip_struct_signature();
@@ -637,9 +637,8 @@ static void add_new_symbol(void) {
         eat();
         switch (curr_tok.kind) {
         case TOKEN_ENUM: {
-            eat();
-            // Typespec* type = parse_enum_signature(ident);
-            // add_symbol(ident, type);
+            Typespec* type = parse_enum_signature(ident);
+            add_symbol(ident, type);
             return;
         }
         case TOKEN_STRUCT: {

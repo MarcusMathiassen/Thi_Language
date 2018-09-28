@@ -57,8 +57,10 @@ int map_set(Map* map, const char* key, void* value) {
                                             sizeof(Map_Element));
     }
 
+
     map->data[map->size].key = hash_val;
     map->data[map->size++].data = value;
+
     return MAP_SUCCESS;
 }
 
@@ -74,6 +76,7 @@ void* map_get(Map* map, const char* key) {
     }
     return NULL;
 }
+
 
 //------------------------------------------------------------------------------
 //                               Hash Function

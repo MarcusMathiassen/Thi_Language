@@ -7,7 +7,6 @@ Context* ctx_make(void) {
     Context* ctx = xmalloc(sizeof(Context));
     ctx->current_label_counter = 0;
     ctx->total_label_counter = 0;
-    ctx->stack.index = 0;
     return ctx;
 }
 

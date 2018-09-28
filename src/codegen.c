@@ -119,14 +119,14 @@ static Value* codegen_function(Expr* expr) {
 
     // Allocate stack for parameters
     u64 index = 0;
-    u64 stack_before_func = ctx->stack.index;
+    u64 stack_before_func = ctx->stack_index;
 
     Arg* args = expr->Function.type->Function.args;
     int arg_count = sb_count(args);
     if (arg_count)
         info("Printing function parameters");
 
-    u64 temp_stack_index = ctx->stack.index;
+    u64 temp_stack_index = ctx->stack_index;
     for (int i = 0; i < arg_count; ++i) {
         Arg* arg = &args[i];
 
@@ -142,7 +142,7 @@ static Value* codegen_function(Expr* expr) {
         ++index;
     }
 
-    ctx->stack.index = temp_stack_index;
+    ctx->stack_index = temp_stack_index;
     u64 stack_used = temp_stack_index - stack_before_func;
     function->Function.stack_allocated = stack_used;
 
@@ -495,12 +495,12 @@ static Value* codegen_variable_decl_type_inf(Expr* expr) {
         assignment_expr); // Any value this creates is stored in RAX
     Typespec* type = assign_expr_val->type;
     u64 type_size = get_size_of_typespec(type);
-    u64 stack_pos = type_size + ctx->stack.index;
+    u64 stack_pos = type_size + ctx->stack_index;
 
     Value* variable = make_value_variable(name, type, stack_pos);
     add_variable_to_scope(scope, variable);
     emit_store(variable); // The variable is set to whatevers in RAX
-    ctx->stack.index += type_size;
+    ctx->stack_index += type_size;
 
     return variable;
 }
@@ -514,12 +514,12 @@ static Value* codegen_variable_decl(Expr* expr) {
             assignment_expr); // Any value this creates is stored in RAX
 
     u64 type_size = get_size_of_typespec(type);
-    u64 stack_pos = type_size + ctx->stack.index;
+    u64 stack_pos = type_size + ctx->stack_index;
     Value* variable = make_value_variable(name, type, stack_pos);
     add_variable_to_scope(scope, variable);
 
     emit_store(variable); // The variable is set to whatevers in RAX
-    ctx->stack.index += type_size;
+    ctx->stack_index += type_size;
 
     return variable;
 }

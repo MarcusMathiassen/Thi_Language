@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 output=./thi
 compiler=clang
-olvl=-O3
+olvl=
 src=./src/*.c
 flags=-Wall\ -Wextra\ -Wimplicit-fallthrough
 std=c99
@@ -13,8 +13,8 @@ echo Compilation finished. Time: $((end-start)) seconds
 
 if [ $? == 0 ]; then
     # ./test.bash ./tests/test_basic_setup.thi ./tests/test_hex.thi ./tests/test_logical_and.thi ./tests/test_logical_or.thi ./tests/test_not.thi ./tests/test_math.thi ./tests/test_math_plus.thi ./tests/test_math_minus.thi ./tests/test_math_div.thi ./tests/test_math_mul.thi
-    ./test.bash ./tests/test_math.thi
-    # ./test.bash ./tests/test_basic_setup.thi
+    # ./test.bash ./tests/test_math.thi
+    ./test.bash ./tests/test_basic_setup.thi
     # ./test.bash ./tests/test_ternary.thi
     # ./test.bash ./tests/test_hex.thi
     # ./test.bash ./tests/test_function_call.thi
@@ -22,7 +22,7 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_asterisk_equal.thi
     # ./test.bash ./tests/test_logical_or.thi
     # ./test.bash ./tests/test_for.thi
-    # ./test.bash ./tests/test_ternary.thi
+    # ./test.bash ./tests/test_enum.thi
     # ./test.bash ./tests/test_function_call.thi
     # ./test.bash ./tests/test_float.thi
     # ./test.bash ./tests/test_struct.thi

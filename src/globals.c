@@ -1,6 +1,6 @@
 #include "globals.h"
 
-#include "map.h" // Map
+#include "map.h"     // Map
 #include "utility.h" // warning, error
 #include <assert.h>  // assert
 
@@ -26,6 +26,7 @@ bool is_builtin_type(const char* name) {
         return true;
     return false;
 }
+
 void add_builtin_type(const char* name, Typespec* type) {
     assert(name);
     assert(type);
@@ -50,7 +51,7 @@ void add_symbol(const char* name, Typespec* type) {
     if (map_set(symbol_map, name, type) == MAP_EXISTS) {
         warning("symbol redecl: '%s'", name);
     }
-    info("added symbol: %s", name);
+    info("added symbol: '%s' of type '%s'", name, typespec_to_str(type));
 }
 
 Typespec* get_symbol(const char* name) {

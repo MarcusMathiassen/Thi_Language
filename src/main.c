@@ -3,6 +3,7 @@
 #include "globals.h"         // init_maps
 #include "lexer.h"           // generate_tokens_from_source, print_tokens
 #include "list.h"            // list_tests
+#include "stack.h"            // stack_tests
 #include "map.h"             // map
 #include "parser.h"          // generate_ast_from_tokens
 #include "stretchy_buffer.h" // sb_free
@@ -159,4 +160,5 @@ void run_all_tests(void) {
     string_tests();
     map_tests();
     list_tests();
+    stack_tests();
 }

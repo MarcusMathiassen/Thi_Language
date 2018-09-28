@@ -13,6 +13,8 @@ struct Context {
 
     Stack stack;
 
+    u64 stack_index;
+
     // Label information
     u64 total_label_counter;
     u64 current_label_counter;

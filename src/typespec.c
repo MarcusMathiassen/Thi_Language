@@ -33,11 +33,14 @@ u64 get_size_of_typespec(Typespec* type) {
 
 char* typespec_to_str(Typespec* type) {
     switch (type->kind) {
-    case TYPESPEC_INT:
-        return strf((type->Int.is_unsigned ? "u"
-                                           : "i"
-                                             "%d"),
-                    type->Int.bits);
+    case TYPESPEC_INT: return strf((type->Int.is_unsigned ? "u" : "i" "%d"), type->Int.bits);
+    case TYPESPEC_ENUM:
+    {
+        warning("typespec_to_str ENUM not implemented.");
+        string* str = make_string(strf("%s :: enum {", type->Function.name));
+        return str->c_str;
+    };
+
     case TYPESPEC_FUNCTION: {
         string* str = make_string(strf("%s :: (", type->Function.name));
         strf("func. name: %d", type->Function.name);
