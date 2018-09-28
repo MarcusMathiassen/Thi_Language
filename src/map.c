@@ -7,9 +7,36 @@
 
 static u32 hash_it(const char* str);
 
+typedef struct {
+    int id;
+    float val;
+} Test_Type;
+
 void map_tests(void) {
-    Map map;
-    map_init(&map);
+
+    Map* test_map = make_map();
+
+    Test_Type* marcus = xmalloc(sizeof(Test_Type));
+    marcus->id = 0;
+    marcus->val = 3.43f;
+
+    Test_Type* aylin = xmalloc(sizeof(Test_Type));
+    aylin->id = 1;
+    aylin->val = 6.41f;
+
+    map_set(test_map, "marcus", marcus);
+    map_set(test_map, "aylin", aylin);
+    assert(((Test_Type*)map_get(test_map, "marcus"))->val == 3.43f);
+    assert(((Test_Type*)map_get(test_map, "aylin"))->val == 6.41f);
+}
+
+Map* make_map(void) {
+    Map* map = xmalloc(sizeof(Map));
+    map->data = NULL;
+    map->data = xcalloc(INITIAL_SIZE, sizeof(Map_Element));
+    map->table_size = INITIAL_SIZE;
+    map->size = 0;
+    return map;
 }
 
 void map_init(Map* map) {
@@ -21,7 +48,7 @@ void map_init(Map* map) {
 }
 
 // Add a pointer to the hashmap with some key
-int map_set(Map* map, const char* key, any_t value) {
+int map_set(Map* map, const char* key, void* value) {
     assert(map);
     assert(key);
 
@@ -44,7 +71,7 @@ int map_set(Map* map, const char* key, any_t value) {
 }
 
 // Get your pointer out of the hashmap with a key
-any_t map_get(Map* map, const char* key) {
+void* map_get(Map* map, const char* key) {
     assert(map);
     assert(key);
     u64 hash_val = hash_it(key);
@@ -53,7 +80,6 @@ any_t map_get(Map* map, const char* key) {
             return map->data[i].data;
         }
     }
-
     return NULL;
 }
 

@@ -14,36 +14,36 @@ void list_tests(void) {
 
     List* list = make_linked_list();
 
-    // Append
+    // // Append
     list_append(list, 1);
-    assert(list_last(list) == 1);
+    assert((int)list_last(list) == 1);
     list_append(list, 2);
-    assert(list_last(list) == 2);
+    assert((int)list_last(list) == 2);
     list_append(list, 3);
-    assert(list_last(list) == 3);
+    assert((int)list_last(list) == 3);
     list_append(list, 4);
-    assert(list_last(list) == 4);
+    assert((int)list_last(list) == 4);
     list_append(list, 5);
-    assert(list_last(list) == 5);
+    assert((int)list_last(list) == 5);
     list_append(list, 6);
-    assert(list_last(list) == 6);
-    assert(list_at(list, 3) == 4);
+    assert((int)list_last(list) == 6);
+    assert((int)list_at(list, 3) == 4);
 
     // Prepend
     list_prepend(list, 5);
     list_prepend(list, 53);
-    assert(list_at(list, 0) == 53);
-    assert(list_at(list, 1) == 5);
+    assert((int)list_at(list, 0) == 53);
+    assert((int)list_at(list, 1) == 5);
 
     // Remove
     list_remove(list, 0);
     list_remove(list, 0);
-    assert(list_at(list, 0) == 1);
+    assert((int)list_at(list, 0) == 1);
 
-    // Uncomment to print our the list
+    // // Uncomment to print our the list
     // List_Node* current = list->head;
     // while (current != NULL) {
-    //     warning("%d", current->element);
+    //     warning("%d", (int)current->element);
     //     current = current->next;
     // }
 }
@@ -75,7 +75,7 @@ void list_remove(List* list, i64 index) {
     free(current);
 }
 
-list_element_t list_at(List* list, i64 index) {
+void* list_at(List* list, i64 index) {
     assert(list);
     assert(index >= 0);
 
@@ -93,7 +93,7 @@ list_element_t list_at(List* list, i64 index) {
     return current->element;
 }
 
-list_element_t list_prepend(List* list, list_element_t element) {
+void* list_prepend(List* list, void* element) {
     assert(list);
     List_Node* new_node = malloc(sizeof(List_Node));
     new_node->element = element;
@@ -110,7 +110,7 @@ list_element_t list_prepend(List* list, list_element_t element) {
     return element;
 }
 
-list_element_t list_append(List* list, list_element_t element) {
+void* list_append(List* list, void* element) {
     assert(list);
     List_Node* new_node = malloc(sizeof(List_Node));
     new_node->element = element;
@@ -128,13 +128,13 @@ list_element_t list_append(List* list, list_element_t element) {
     return element;
 }
 
-list_element_t list_first(List* list) {
+void* list_first(List* list) {
     assert(list);
     return list->head->element;
 }
 
 
-list_element_t list_last(List* list) {
+void* list_last(List* list) {
     assert(list);
     return list->tail->element;
 }

@@ -1,17 +1,15 @@
 #include "globals.h"
 
+#include "map.h" // Map
 #include "utility.h" // warning, error
 #include <assert.h>  // assert
-static Type_Map* symbol_map;
-static Type_Map* builtin_type_map;
+
+static Map* symbol_map = NULL;
+static Map* builtin_type_map = NULL;
 
 void init_maps(void) {
-    builtin_type_map = NULL;
-    symbol_map = NULL;
-    symbol_map = xmalloc(sizeof(Map));
-    builtin_type_map = xmalloc(sizeof(Map));
-    map_init(symbol_map);
-    map_init(builtin_type_map);
+    symbol_map = make_map();
+    builtin_type_map = make_map();
 }
 
 void print_symbol_map(void) {
@@ -39,7 +37,7 @@ void add_builtin_type(const char* name, Typespec* type) {
 
 Typespec* get_builtin_type(const char* name) {
     assert(name);
-    Typespec* type = map_get(builtin_type_map, name);
+    Typespec* type = (Typespec*)map_get(builtin_type_map, name);
     if (!type) {
         error("no type with name '%s'", name);
     }
@@ -57,7 +55,7 @@ void add_symbol(const char* name, Typespec* type) {
 
 Typespec* get_symbol(const char* name) {
     assert(name);
-    Typespec* type = map_get(symbol_map, name);
+    Typespec* type = (Typespec*)map_get(symbol_map, name);
     if (!type) {
         error("no symbol with name '%s'", name);
     }

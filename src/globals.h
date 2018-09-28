@@ -1,7 +1,6 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-#include "map.h" // Type_Map
 #include "typedefs.h"
 #include "typespec.h" // Typespec
 
