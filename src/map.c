@@ -15,7 +15,7 @@ typedef struct {
 void map_tests(void) {
 
     Map* test_map = make_map();
-
+    
     Test_Type* marcus = xmalloc(sizeof(Test_Type));
     marcus->id = 0;
     marcus->val = 3.43f;

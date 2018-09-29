@@ -11,6 +11,7 @@ typedef struct List_Node {
 typedef struct List {
     List_Node* head;
     List_Node* tail;
+    u64 count;
 } List;
 
 void list_tests(void);

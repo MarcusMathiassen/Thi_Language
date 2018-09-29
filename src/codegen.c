@@ -2,13 +2,13 @@
 #include "ast.h"
 #include "context.h" // Context
 #include "globals.h"
-#include "lexer.h"           // token_kind_to_str
+#include "lexer.h" // token_kind_to_str
+#include "register.h"
 #include "stretchy_buffer.h" // sb_free
 #include "string.h"          // string
 #include "typedefs.h"
 #include "utility.h" // error warning info, etc
 #include "value.h"   // Value, Scope
-#include "register.h" 
 #include <assert.h>  // assert
 
 Typespec* integer_literal_type = NULL;

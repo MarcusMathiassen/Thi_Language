@@ -46,9 +46,6 @@ typedef struct {
     const char* desc;
 } Timer;
 f64 get_time(void);
-void push_timer(const char* desc);
-void pop_timer(void);
-Timer* get_timers(void);
 
 //------------------------------------------------------------------------------
 //                               Tests

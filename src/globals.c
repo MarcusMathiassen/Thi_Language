@@ -1,15 +1,23 @@
 #include "globals.h"
 
 #include "map.h"     // Map
+#include "list.h"     // List
+#include "stack.h"     // Stack
 #include "utility.h" // warning, error
 #include <assert.h>  // assert
 
 static Map* symbol_map = NULL;
 static Map* builtin_type_map = NULL;
+static Stack* timer_stack = NULL;
+static List* timers = NULL;
 
-void init_maps(void) {
+void initilize_globals(void) {
+
     symbol_map = make_map();
     builtin_type_map = make_map();
+
+    timers = make_list();
+    timer_stack = make_stack();
 }
 
 void print_symbol_map(void) {
@@ -61,4 +69,20 @@ Typespec* get_symbol(const char* name) {
         error("no symbol with name '%s'", name);
     }
     return type;
+}
+
+
+List* get_timers(void) { return timers; }
+
+void push_timer(const char* desc) {
+    Timer* tm = malloc(sizeof(Timer));
+    tm->ms = get_time();
+    tm->desc = desc;
+    stack_push(timer_stack, tm);
+}
+
+void pop_timer(void) {
+    Timer* tm = (Timer*)stack_pop(timer_stack);
+    tm->ms = get_time() - tm->ms;
+    list_append(timers, tm);
 }

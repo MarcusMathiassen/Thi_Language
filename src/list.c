@@ -47,16 +47,19 @@ void list_tests(void) {
     assert((int)list_at(list, 0) == 1);
 
     // Uncomment to print the list
-    // List_Node* current = list->head;
-    // while (current != NULL) {
-    //     warning("%d", (int)current->element);
-    //     current = current->next;
-    // }
+    warning("List count: %d", list->count);
+    List_Node* current = list->head;
+    while (current != NULL) {
+        warning("%d", (int)current->element);
+        current = current->next;
+    }
 }
 
 void* list_remove(List* list, i64 index) {
     assert(list);
     assert(index >= 0);
+
+    --list->count;
 
     if (index == 0) {
         if (list->head->next)
@@ -102,6 +105,9 @@ void* list_at(List* list, i64 index) {
 
 void* list_prepend(List* list, void* element) {
     assert(list);
+
+    ++list->count;
+
     List_Node* new_node = malloc(sizeof(List_Node));
     new_node->element = element;
 
@@ -119,6 +125,9 @@ void* list_prepend(List* list, void* element) {
 
 void* list_append(List* list, void* element) {
     assert(list);
+
+    ++list->count;
+
     List_Node* new_node = malloc(sizeof(List_Node));
     new_node->element = element;
     new_node->next = NULL;

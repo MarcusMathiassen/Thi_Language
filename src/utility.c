@@ -12,7 +12,6 @@
 //                               Printing Functions
 //------------------------------------------------------------------------------
 
-
 #define RESET "\033[0m"
 #define GRAY "\033[30m"
 #define RED "\033[31m"
@@ -250,34 +249,6 @@ const char* get_unique_color(void) { return get_next_color(); }
 //                               Timing Utility Functions
 //------------------------------------------------------------------------------
 
-typedef struct StackNode StackNode;
-struct StackNode {
-    Timer data;
-    StackNode* next;
-};
-
-StackNode* newNode(Timer data) {
-    StackNode* stackNode = xmalloc(sizeof(StackNode));
-    stackNode->data = data;
-    stackNode->next = NULL;
-    return stackNode;
-}
-
-void push_stack(StackNode** root, Timer data) {
-    StackNode* stackNode = newNode(data);
-    stackNode->next = *root;
-    *root = stackNode;
-}
-
-Timer pop_stack(StackNode** root) {
-    StackNode* temp = *root;
-    *root = (*root)->next;
-    Timer popped = temp->data;
-    return popped;
-}
-
-Timer peek(StackNode* root) { return root->data; }
-
 f64 get_time(void) {
     f64 ms;
     time_t s;
@@ -290,24 +261,6 @@ f64 get_time(void) {
         ms = 0.0;
     }
     return ms;
-}
-
-static StackNode* timer_stack = NULL;
-static Timer* timers = NULL;
-
-Timer* get_timers(void) { return timers; }
-
-void push_timer(const char* desc) {
-    Timer tm;
-    tm.ms = get_time();
-    tm.desc = desc;
-    push_stack(&timer_stack, tm);
-}
-
-void pop_timer(void) {
-    Timer tm = pop_stack(&timer_stack);
-    tm.ms = get_time() - tm.ms;
-    sb_push(timers, tm);
 }
 
 //------------------------------------------------------------------------------

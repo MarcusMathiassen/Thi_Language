@@ -3,18 +3,17 @@
 #include "globals.h"         // init_maps
 #include "lexer.h"           // generate_tokens_from_source, print_tokens
 #include "list.h"            // list_tests
-#include "stack.h"            // stack_tests
 #include "map.h"             // map
 #include "parser.h"          // generate_ast_from_tokens
-#include "stretchy_buffer.h" // sb_free
+#include "stack.h"           // stack_tests
 #include "string.h"          // strcmp
 #include "typedefs.h"
-#include "typespec.h" // Typespec
-#include "utility.h"  // get_file_content, success, info, get_time
-#include "value.h"    // Value
-#include <assert.h>   // assert
-#include <stdio.h>    // sprintf
-#include <string.h>   // strcmp
+#include "typespec.h"        // Typespec
+#include "utility.h"         // get_file_content, success, info, get_time
+#include "value.h"           // Value
+#include <assert.h>          // assert
+#include <stdio.h>           // sprintf
+#include <string.h>          // strcmp
 
 //------------------------------------------------------------------------------
 //                               Main Driver
@@ -23,8 +22,10 @@
 void run_all_tests(void);
 
 int main(int argc, char** argv) {
-    
+
     run_all_tests();
+
+    initilize_globals();
 
     push_timer("Total time");
 
@@ -38,8 +39,6 @@ int main(int argc, char** argv) {
     const char* source_file = argv[1];
     const char* exec_name = argv[2];
     success("Compiling %s", source_file);
-
-    init_maps();
 
     // Setup types
     add_builtin_type("i8", make_typespec_int(8, false));
@@ -146,9 +145,14 @@ int main(int argc, char** argv) {
     pop_timer();
 
     success("==------------ Thi ------------==");
-    Timer* timers = get_timers();
-    for (int i = 0; i < sb_count(timers); ++i) {
-        success("%s: %f ms", timers[i].desc, timers[i].ms);
+    List* timers = get_timers();
+    List_Node* current = timers->head;
+    int i = 0;
+    while (current != NULL) {
+        Timer* tm = (Timer*)current->element;
+        success("%s: %f ms", tm->desc, tm->ms);
+        current = current->next;
+        ++i;
     }
     success("==------------ === ------------==");
 
