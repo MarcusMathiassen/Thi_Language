@@ -50,7 +50,7 @@ void list_tests(void) {
     warning("List count: %d", list->count);
     List_Node* current = list->head;
     while (current != NULL) {
-        warning("%d", (int)current->element);
+        warning("%d", (int)current->data);
         current = current->next;
     }
 }
@@ -65,7 +65,7 @@ void* list_remove(List* list, i64 index) {
         if (list->head->next)
             list->head = list->head->next;
         // free(list->head);
-        return list->head->element;
+        return list->head->data;
     }
     u64 iterator = 0;
     List_Node* current = list->head;
@@ -77,12 +77,12 @@ void* list_remove(List* list, i64 index) {
     }
 
     if (current->next == NULL) {
-        error("No element in list with index %d", index);
+        error("No data in list with index %d", index);
     }
 
     prev->next = current->next;
     // free(current);
-    return current->element;
+    return current->data;
 }
 
 void* list_at(List* list, i64 index) {
@@ -98,58 +98,58 @@ void* list_at(List* list, i64 index) {
     }
 
     if (iterator != index) {
-        error("No element in list with index %d", index);
+        error("No data in list with index %d", index);
     }
-    return current->element;
+    return current->data;
 }
 
-void* list_prepend(List* list, void* element) {
+void* list_prepend(List* list, void* data) {
     assert(list);
 
     ++list->count;
 
     List_Node* new_node = malloc(sizeof(List_Node));
-    new_node->element = element;
+    new_node->data = data;
 
     if (list->head == NULL) {
         new_node->next = NULL;
         list->head = new_node;
-        return element;
+        return data;
     }
 
     new_node->next = list->head;
     list->head = new_node;
 
-    return element;
+    return data;
 }
 
-void* list_append(List* list, void* element) {
+void* list_append(List* list, void* data) {
     assert(list);
 
     ++list->count;
 
     List_Node* new_node = malloc(sizeof(List_Node));
-    new_node->element = element;
+    new_node->data = data;
     new_node->next = NULL;
 
     if (list->head == NULL) {
         list->head = new_node;
         list->tail = list->head;
-        return element;
+        return data;
     }
 
     list->tail->next = new_node;
     list->tail = new_node;
 
-    return element;
+    return data;
 }
 
 void* list_first(List* list) {
     assert(list);
-    return list->head->element;
+    return list->head->data;
 }
 
 void* list_last(List* list) {
     assert(list);
-    return list->tail->element;
+    return list->tail->data;
 }

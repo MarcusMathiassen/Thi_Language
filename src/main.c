@@ -144,15 +144,11 @@ int main(int argc, char** argv) {
 
     pop_timer();
 
-    success("==------------ Thi ------------==");
     List* timers = get_timers();
-    List_Node* current = timers->head;
-    int i = 0;
-    while (current != NULL) {
-        Timer* tm = (Timer*)current->element;
+    success("==------------ Thi ------------==");
+    LIST_FOREACH(timers, item) {
+        Timer* tm = (Timer*)(item->data);
         success("%s: %f ms", tm->desc, tm->ms);
-        current = current->next;
-        ++i;
     }
     success("==------------ === ------------==");
 
