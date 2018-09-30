@@ -105,6 +105,9 @@ static Value* get_variable(const char* name)
 
 static void add_variable(Value* variable)
 {
+    assert(variable);
+    assert(variable->kind == VALUE_VARIABLE);
+    warning("adding variable: %s %llu", variable->Variable.name, variable->Variable.stack_pos);
     Scope* top = (Scope*)stack_peek(scope_stack);
     add_variable_to_scope(top, variable);
 }
@@ -131,21 +134,16 @@ static void emit_store(Value* variable)
 static void emit_load(Value* value)
 {
     int reg_n = get_rax_reg_of_byte_size(get_size_of_value(value));
-
     switch (value->kind) {
-
     case VALUE_INT: {
         emit(output, "MOV %s, %d", get_reg(reg_n), value->Int.value);
     } break;
-
     case VALUE_VARIABLE: {
         emit(output, "MOV %s, [RSP-%d]", get_reg(reg_n), get_stack_pos_of_variable(value));
     } break;
-
     case VALUE_FUNCTION: {
         error("VALUE_FUNCTION EMIT_LOAD NOT IMPLEMENETED");
     } break;
-
     }
 }
 
@@ -159,7 +157,6 @@ static Value* codegen_function(Expr* expr)
 
     emit(output, "%s:", func_name);
 
-    // Allocate stack for parameters
     u64 index = 0;
     u64 stack_before_func = ctx->stack_index;
 
