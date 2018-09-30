@@ -14,10 +14,10 @@
 //                               Public
 //------------------------------------------------------------------------------
 
-u64 get_size_of_typespec(Typespec* type) {
+u64 get_size_of_typespec(Typespec* type)
+{
     switch (type->kind) {
-    case TYPESPEC_INT:
-        return type->Int.bits / 8;
+    case TYPESPEC_INT: return type->Int.bits / 8;
     case TYPESPEC_FUNCTION: {
         u64 accum_size = 0;
         for (int i = 0; i < sb_count(type->Function.args); ++i) {
@@ -25,17 +25,20 @@ u64 get_size_of_typespec(Typespec* type) {
         }
         return accum_size;
     }
-    default:
-        error("not implemented kind %d", type->kind);
+    default: error("not implemented kind %d", type->kind);
     }
     return 0;
 }
 
-char* typespec_to_str(Typespec* type) {
+char* typespec_to_str(Typespec* type)
+{
     switch (type->kind) {
-    case TYPESPEC_INT: return strf((type->Int.is_unsigned ? "u" : "i" "%d"), type->Int.bits);
-    case TYPESPEC_ENUM:
-    {
+    case TYPESPEC_INT:
+        return strf((type->Int.is_unsigned ? "u"
+                                           : "i"
+                                             "%d"),
+                    type->Int.bits);
+    case TYPESPEC_ENUM: {
         warning("typespec_to_str ENUM not implemented.");
         string* str = make_string(strf("%s :: enum {", type->Function.name));
         return str->c_str;
@@ -48,16 +51,13 @@ char* typespec_to_str(Typespec* type) {
         u64 arg_count = sb_count(args);
         if (arg_count)
             for (int i = 0; i < sb_count(args); ++i) {
-                append_string(str, strf("%s: %s", args[i].name,
-                                        typespec_to_str(args[i].type)));
+                append_string(str, strf("%s: %s", args[i].name, typespec_to_str(args[i].type)));
             }
 
-        append_string(
-            str, strf(") -> %s", typespec_to_str(type->Function.ret_type)));
+        append_string(str, strf(") -> %s", typespec_to_str(type->Function.ret_type)));
         return str->c_str;
     }
-    default:
-        warning("not implemented kind %d", type->kind);
+    default: warning("not implemented kind %d", type->kind);
     }
     return NULL;
 }
@@ -66,13 +66,15 @@ char* typespec_to_str(Typespec* type) {
 //                               Type Maker Functions
 //------------------------------------------------------------------------------
 
-Typespec* make_typespec(Typespec_Kind kind) {
+Typespec* make_typespec(Typespec_Kind kind)
+{
     Typespec* t = xmalloc(sizeof(Typespec));
     t->kind = kind;
     return t;
 }
 
-Typespec* make_typespec_int(i8 bits, bool is_unsigned) {
+Typespec* make_typespec_int(i8 bits, bool is_unsigned)
+{
     assert(bits > 7 && bits < 65);
     assert(is_unsigned == 1 || is_unsigned == 0);
     Typespec* t = make_typespec(TYPESPEC_INT);
@@ -81,20 +83,23 @@ Typespec* make_typespec_int(i8 bits, bool is_unsigned) {
     return t;
 }
 
-Typespec* make_typespec_float(i8 bits) {
+Typespec* make_typespec_float(i8 bits)
+{
     assert(bits > 7 && bits < 65);
     Typespec* t = make_typespec(TYPESPEC_FLOAT);
     t->Float.bits = bits;
     return t;
 }
 
-Typespec* make_typespec_pointer(Typespec* pointee) {
+Typespec* make_typespec_pointer(Typespec* pointee)
+{
     Typespec* t = make_typespec(TYPESPEC_FLOAT);
     t->Pointer.pointee = pointee;
     return t;
 }
 
-Typespec* make_typespec_enum(const char* name, const char** members) {
+Typespec* make_typespec_enum(const char* name, const char** members)
+{
     assert(name);
     Typespec* t = make_typespec(TYPESPEC_ENUM);
     t->Enum.name = name;
@@ -102,7 +107,8 @@ Typespec* make_typespec_enum(const char* name, const char** members) {
     return t;
 }
 
-Typespec* make_typespec_struct(const char* name, Arg* members) {
+Typespec* make_typespec_struct(const char* name, Arg* members)
+{
     assert(name);
     Typespec* t = make_typespec(TYPESPEC_STRUCT);
     t->Struct.name = name;
@@ -110,8 +116,8 @@ Typespec* make_typespec_struct(const char* name, Arg* members) {
     return t;
 }
 
-Typespec* make_typespec_function(const char* name, Arg* args,
-                                 Typespec* ret_type) {
+Typespec* make_typespec_function(const char* name, Arg* args, Typespec* ret_type)
+{
     assert(name);
     Typespec* t = make_typespec(TYPESPEC_FUNCTION);
     t->Function.name = name;

@@ -19,7 +19,8 @@
 #define YELLOW "\033[33m"
 #define RGB_GRAY "\033[38;2;110;110;110;m"
 
-void info(const char* fmt, ...) {
+void info(const char* fmt, ...)
+{
     assert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -29,7 +30,8 @@ void info(const char* fmt, ...) {
     va_end(args);
 }
 
-void warning(const char* fmt, ...) {
+void warning(const char* fmt, ...)
+{
     assert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -39,7 +41,8 @@ void warning(const char* fmt, ...) {
     va_end(args);
 }
 
-void success(const char* fmt, ...) {
+void success(const char* fmt, ...)
+{
     assert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -49,7 +52,8 @@ void success(const char* fmt, ...) {
     va_end(args);
 }
 
-void error(const char* fmt, ...) {
+void error(const char* fmt, ...)
+{
     assert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -64,7 +68,8 @@ void error(const char* fmt, ...) {
 //                               File Utility Functions
 //------------------------------------------------------------------------------
 
-char* get_file_path_from_dir(const char* dir, const char* filename) {
+char* get_file_path_from_dir(const char* dir, const char* filename)
+{
     assert(dir);
     assert(filename);
     char strbuf[1000];
@@ -80,7 +85,8 @@ char* get_file_path_from_dir(const char* dir, const char* filename) {
     return str;
 }
 
-char* get_file_ext(const char* filename) {
+char* get_file_ext(const char* filename)
+{
     assert(filename);
     u64 len = strlen(filename);
     u64 i = 0;
@@ -93,7 +99,8 @@ char* get_file_ext(const char* filename) {
     return str;
 }
 
-char* get_file_dir(const char* filename) {
+char* get_file_dir(const char* filename)
+{
     assert(filename);
     u64 len = strlen(filename);
     while (filename[--len] != '/')
@@ -104,7 +111,8 @@ char* get_file_dir(const char* filename) {
     str[len] = 0;
     return str;
 }
-char* get_file_name(const char* filename) {
+char* get_file_name(const char* filename)
+{
     assert(filename);
     u64 len = strlen(filename);
     u64 i = 0;
@@ -116,7 +124,8 @@ char* get_file_name(const char* filename) {
     str[i] = 0;
     return str;
 }
-void write_to_file(const char* filename, const char* buffer) {
+void write_to_file(const char* filename, const char* buffer)
+{
     assert(filename);
     assert(buffer);
     FILE* f = fopen(filename, "w");
@@ -128,7 +137,8 @@ void write_to_file(const char* filename, const char* buffer) {
     fclose(f);
 }
 
-char* get_file_content(const char* filename) {
+char* get_file_content(const char* filename)
+{
     assert(filename);
     char* buffer = NULL;
     u64 string_size, read_size;
@@ -170,38 +180,40 @@ char* get_file_content(const char* filename) {
 //                               General Purpose
 //------------------------------------------------------------------------------
 
-void* xmalloc(u64 bytes) {
+void* xmalloc(u64 bytes)
+{
     assert(bytes != 0);
     void* alloc = malloc(bytes);
-    if (!alloc)
-        error("alloc failed");
+    if (!alloc) error("alloc failed");
     return alloc;
 }
 
-void* xcalloc(u64 size, u64 bytes) {
+void* xcalloc(u64 size, u64 bytes)
+{
     assert(size != 0);
     assert(bytes != 0);
     void* alloc = calloc(size, bytes);
-    if (!alloc)
-        error("calloc failed");
+    if (!alloc) error("calloc failed");
     return alloc;
 }
 
-void* xrealloc(void* ptr, u64 bytes) {
+void* xrealloc(void* ptr, u64 bytes)
+{
     assert(ptr);
     assert(bytes != 0);
     void* alloc = realloc(ptr, bytes);
-    if (!alloc)
-        error("realloc failed");
+    if (!alloc) error("realloc failed");
     return alloc;
 }
 
-u64 xstrlen(const char* str) {
+u64 xstrlen(const char* str)
+{
     assert(str);
     return str ? strlen(str) : 0;
 }
 
-char* strf(const char* fmt, ...) {
+char* strf(const char* fmt, ...)
+{
     assert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -228,17 +240,19 @@ static const char* colors[6] = {
 };
 static int counter = 0;
 static int colors_count = 5;
-const char* get_next_color(void) {
+const char* get_next_color(void)
+{
     ++counter;
-    if (counter > colors_count)
-        counter = 0;
+    if (counter > colors_count) counter = 0;
     return colors[counter];
 }
-char* wrap_with_colored_parens(char* str) {
+char* wrap_with_colored_parens(char* str)
+{
     const char* current_color = get_next_color();
     return strf("%s(\033[00m%s%s)\033[00m", current_color, str, current_color);
 }
-char* give_unique_color(char* str) {
+char* give_unique_color(char* str)
+{
     const char* current_color = get_next_color();
     return strf("%s%s\033[00m", current_color, str);
 }
@@ -249,7 +263,8 @@ const char* get_unique_color(void) { return get_next_color(); }
 //                               Timing Utility Functions
 //------------------------------------------------------------------------------
 
-f64 get_time(void) {
+f64 get_time(void)
+{
     f64 ms;
     time_t s;
     struct timespec spec;
@@ -266,7 +281,8 @@ f64 get_time(void) {
 //------------------------------------------------------------------------------
 //                               Tests
 //------------------------------------------------------------------------------
-void utility_tests(void) {
+void utility_tests(void)
+{
     // These leak memory.
 
     // get_file_dir
@@ -279,12 +295,9 @@ void utility_tests(void) {
 
     // get_file_name
     assert(strcmp(get_file_name("./b/m.thi"), "m.thi") == 0);
-    assert(strcmp(get_file_name("./b/m/hergergerg.thi"), "hergergerg.thi") ==
-           0);
+    assert(strcmp(get_file_name("./b/m/hergergerg.thi"), "hergergerg.thi") == 0);
 
     // get_file_path_from_dir
-    assert(strcmp(get_file_path_from_dir("./b/", "test.thi"), "./b/test.thi") ==
-           0);
-    assert(strcmp(get_file_path_from_dir("./b/b/", "test.thi"),
-                  "./b/b/test.thi") == 0);
+    assert(strcmp(get_file_path_from_dir("./b/", "test.thi"), "./b/test.thi") == 0);
+    assert(strcmp(get_file_path_from_dir("./b/b/", "test.thi"), "./b/b/test.thi") == 0);
 }

@@ -7,7 +7,8 @@
 //                              lexer.h
 //------------------------------------------------------------------------------
 
-typedef enum {
+typedef enum
+{
     TOKEN_UNKNOWN,
     TOKEN_EOF,
 
@@ -103,7 +104,8 @@ typedef enum {
 
 typedef struct Token Token;
 
-struct Token {
+struct Token
+{
     Token_Kind kind;
     const char* value;
 };

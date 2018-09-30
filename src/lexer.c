@@ -34,7 +34,8 @@ static Token_Kind get_identifier_kind(const char* identifier);
 //------------------------------------------------------------------------------
 //                               Keywords
 //------------------------------------------------------------------------------
-typedef enum {
+typedef enum
+{
     KEY_FOREIGN,
     KEY_NIL,
     KEY_PRINT,
@@ -59,27 +60,26 @@ typedef enum {
 
 #define KEYWORD_COUNT 19
 static const char* keywords_str[KEYWORD_COUNT] = {
-    "foreign", "nil",    "print",  "load",  "true",     "false", "cast",
-    "malloc",  "sizeof", "if",     "else",  "for",      "while", "ret",
-    "struct",  "enum",   "repeat", "break", "continue",
+    "foreign", "nil", "print", "load", "true",   "false", "cast",   "malloc", "sizeof",   "if",
+    "else",    "for", "while", "ret",  "struct", "enum",  "repeat", "break",  "continue",
 };
 
 //------------------------------------------------------------------------------
 //                               Public
 //------------------------------------------------------------------------------
 
-void print_token(Token token) {
-    info("%s %s", token_kind_to_str(token.kind), token.value);
-}
+void print_token(Token token) { info("%s %s", token_kind_to_str(token.kind), token.value); }
 
-void print_tokens(Token* tokens) {
+void print_tokens(Token* tokens)
+{
     int count = sb_count(tokens);
     info("Printing %d tokens..", count);
     for (int i = 0; i < count; ++i)
         print_token(tokens[i]);
 }
 
-Token* generate_tokens_from_source(char* source) {
+Token* generate_tokens_from_source(char* source)
+{
 
     success("Generating Tokens from Source");
 
@@ -108,15 +108,16 @@ Token* generate_tokens_from_source(char* source) {
 
 const char EOF = '\0';
 
-static void skip_whitespace() {
+static void skip_whitespace()
+{
     while (*c == ' ' || *c == '\t' || *c == '\n' || *c == '\r') {
-        if (*c == '\n')
-            ++line_count;
+        if (*c == '\n') ++line_count;
         ++c;
     }
 }
 
-static void skip_line() {
+static void skip_line()
+{
     while (*c != '\n' && *c != '\r') {
         ++c;
     }
@@ -126,100 +127,76 @@ static void skip_line() {
     }
 }
 
-static void skip_comments() {
+static void skip_comments()
+{
     if (*c == '#') {
         ++c; // skip the '#'
         skip_line();
     }
 }
 
-static void scan_digit() {
+static void scan_digit()
+{
     bool is_hex = false;
     bool is_float = false;
 
     // Number: [0-9._]+e[0-9]+
     if (isdigit(*c)) {
         while (is_valid_digit()) {
-            if (!is_valid_digit())
-                break;
-            if (*c == 'x')
-                is_hex = true;
-            if (*c == '.')
-                is_float = true;
+            if (!is_valid_digit()) break;
+            if (*c == 'x') is_hex = true;
+            if (*c == '.') is_float = true;
             ++c;
         }
     }
 
     token.kind = TOKEN_INTEGER;
-    if (is_hex)
-        token.kind = TOKEN_HEX;
-    if (is_float)
-        token.kind = TOKEN_FLOAT;
+    if (is_hex) token.kind = TOKEN_HEX;
+    if (is_float) token.kind = TOKEN_FLOAT;
 }
 
-static int get_keyword_index(const char* identifier) {
+static int get_keyword_index(const char* identifier)
+{
     for (int i = 0; i < KEYWORD_COUNT; ++i)
-        if (strcmp(identifier, keywords_str[i]) == 0)
-            return i;
+        if (strcmp(identifier, keywords_str[i]) == 0) return i;
     return -1;
 }
-static Token_Kind get_identifier_kind(const char* identifier) {
+static Token_Kind get_identifier_kind(const char* identifier)
+{
 
     switch (get_keyword_index(identifier)) {
-    case KEY_FOREIGN:
-        return TOKEN_FOREIGN;
-    case KEY_NIL:
-        return TOKEN_NIL;
-    case KEY_PRINT:
-        return TOKEN_PRINT;
-    case KEY_LOAD:
-        return TOKEN_LOAD;
-    case KEY_TRUE:
-        return TOKEN_TRUE;
-    case KEY_FALSE:
-        return TOKEN_FALSE;
-    case KEY_CAST:
-        return TOKEN_CAST;
-    case KEY_MALLOC:
-        return TOKEN_MALLOC;
-    case KEY_SIZEOF:
-        return TOKEN_SIZEOF;
-    case KEY_IF:
-        return TOKEN_IF;
-    case KEY_ELSE:
-        return TOKEN_ELSE;
-    case KEY_FOR:
-        return TOKEN_FOR;
-    case KEY_WHILE:
-        return TOKEN_WHILE;
-    case KEY_RET:
-        return TOKEN_RETURN;
-    case KEY_STRUCT:
-        return TOKEN_STRUCT;
-    case KEY_ENUM:
-        return TOKEN_ENUM;
-    case KEY_REPEAT:
-        return TOKEN_REPEAT;
-    case KEY_BREAK:
-        return TOKEN_BREAK;
-    case KEY_CONTINUE:
-        return TOKEN_CONTINUE;
+    case KEY_FOREIGN: return TOKEN_FOREIGN;
+    case KEY_NIL: return TOKEN_NIL;
+    case KEY_PRINT: return TOKEN_PRINT;
+    case KEY_LOAD: return TOKEN_LOAD;
+    case KEY_TRUE: return TOKEN_TRUE;
+    case KEY_FALSE: return TOKEN_FALSE;
+    case KEY_CAST: return TOKEN_CAST;
+    case KEY_MALLOC: return TOKEN_MALLOC;
+    case KEY_SIZEOF: return TOKEN_SIZEOF;
+    case KEY_IF: return TOKEN_IF;
+    case KEY_ELSE: return TOKEN_ELSE;
+    case KEY_FOR: return TOKEN_FOR;
+    case KEY_WHILE: return TOKEN_WHILE;
+    case KEY_RET: return TOKEN_RETURN;
+    case KEY_STRUCT: return TOKEN_STRUCT;
+    case KEY_ENUM: return TOKEN_ENUM;
+    case KEY_REPEAT: return TOKEN_REPEAT;
+    case KEY_BREAK: return TOKEN_BREAK;
+    case KEY_CONTINUE: return TOKEN_CONTINUE;
     }
 
     return TOKEN_IDENTIFIER;
 }
 
 static inline bool is_valid_identifier() { return isalnum(*c) || *c == '_'; }
-static inline bool is_valid_digit() {
-    return isdigit(*c) || *c == '.' || *c == '_' || *c == 'e' || *c == 'x';
-}
+static inline bool is_valid_digit() { return isdigit(*c) || *c == '.' || *c == '_' || *c == 'e' || *c == 'x'; }
 
-#define CASE_SINGLE_TOKEN(c1, t_kind)                                          \
-    case c1:                                                                   \
-        token.kind = t_kind;                                                   \
-        ++c;
+#define CASE_SINGLE_TOKEN(c1, t_kind)                                                                                  \
+    case c1: token.kind = t_kind; ++c;
 
-static Token get_token() {
+static Token get_token()
+{
     skip_whitespace();
     skip_comments();
 
@@ -449,8 +426,7 @@ static Token get_token() {
         return token;
     } break;
 
-    default:
-        error("Unhandled token character %c in file", *c);
+    default: error("Unhandled token character %c in file", *c);
     }
 
     if (token.kind != TOKEN_EOF) {
@@ -460,170 +436,90 @@ static Token get_token() {
     return token;
 }
 
-const char* token_kind_to_str(Token_Kind kind) {
+const char* token_kind_to_str(Token_Kind kind)
+{
     switch (kind) {
-    case TOKEN_EOF:
-        return "eof";
-    case TOKEN_UNKNOWN:
-        return "unknown";
-    case TOKEN_NIL:
-        return "nil";
-    case TOKEN_CAST:
-        return "cast";
-    case TOKEN_MALLOC:
-        return "malloc";
-    case TOKEN_SIZEOF:
-        return "sizeof";
-    case TOKEN_PRINT:
-        return "print";
-    case TOKEN_LOAD:
-        return "load";
-    case TOKEN_FOREIGN:
-        return "foreign";
-    case TOKEN_RETURN:
-        return "ret";
-    case TOKEN_TRUE:
-        return "true";
-    case TOKEN_FALSE:
-        return "false";
-    case TOKEN_IF:
-        return "if";
-    case TOKEN_ELSE:
-        return "else";
-    case TOKEN_FOR:
-        return "for";
-    case TOKEN_WHILE:
-        return "while";
-    case TOKEN_IDENTIFIER:
-        return "identifier";
-    case TOKEN_BREAK:
-        return "break";
-    case TOKEN_REPEAT:
-        return "repeat";
-    case TOKEN_STRUCT:
-        return "struct";
-    case TOKEN_ENUM:
-        return "enum";
-    case TOKEN_CONTINUE:
-        return "continue";
-    case TOKEN_PIPE_PIPE:
-        return "||";
-    case TOKEN_AND_AND:
-        return "&&";
-    case TOKEN_PLUS_EQ:
-        return "+=";
-    case TOKEN_MINUS_EQ:
-        return "-=";
-    case TOKEN_FWSLASH_EQ:
-        return "/=";
-    case TOKEN_HAT_EQ:
-        return "^=";
-    case TOKEN_ASTERISK_EQ:
-        return "*=";
-    case TOKEN_PIPE_EQ:
-        return "|=";
-    case TOKEN_PERCENT_EQ:
-        return "%=";
-    case TOKEN_AND_EQ:
-        return "&=";
-    case TOKEN_PLUS_PLUS:
-        return "++";
-    case TOKEN_MINUS_MINUS:
-        return "--";
-    case TOKEN_BITWISE_LEFTSHIFT:
-        return "<<=";
-    case TOKEN_BITWISE_RIGHTSHIFT:
-        return ">>=";
-    case TOKEN_EQ_EQ:
-        return "==";
-    case TOKEN_BANG_EQ:
-        return "!=";
-    case TOKEN_COLON_COLON:
-        return "::";
-    case TOKEN_COLON_EQ:
-        return ":=";
-    case TOKEN_RIGHT_ARROW:
-        return "->";
-    case TOKEN_PIPE:
-        return "|";
-    case TOKEN_TILDE:
-        return "~";
-    case TOKEN_AT:
-        return "@";
-    case TOKEN_DOLLAR_SIGN:
-        return "$";
-    case TOKEN_HAT:
-        return "^";
-    case TOKEN_BANG:
-        return "!";
-    case TOKEN_AND:
-        return "&";
-    case TOKEN_LT_EQ:
-        return "<=";
-    case TOKEN_LT_LT:
-        return "<<";
-    case TOKEN_LT:
-        return "<";
-    case TOKEN_GT:
-        return ">";
-    case TOKEN_GT_GT:
-        return ">>";
-    case TOKEN_GT_EQ:
-        return ">=";
-    case TOKEN_OPEN_PAREN:
-        return "(";
-    case TOKEN_CLOSE_PAREN:
-        return ")";
-    case TOKEN_OPEN_BRACKET:
-        return "[";
-    case TOKEN_CLOSE_BRACKET:
-        return "]";
-    case TOKEN_OPEN_BRACE:
-        return "{";
-    case TOKEN_CLOSE_BRACE:
-        return "}";
-    case TOKEN_COMMA:
-        return ",";
-    case TOKEN_DOT:
-        return ".";
-    case TOKEN_DOT_DOT:
-        return "..";
-    case TOKEN_COLON:
-        return ":";
-    case TOKEN_SEMICOLON:
-        return ";";
-    case TOKEN_ASTERISK:
-        return "*";
-    case TOKEN_MINUS:
-        return "-";
-    case TOKEN_QUESTION_MARK:
-        return "?";
-    case TOKEN_PLUS:
-        return "+";
-    case TOKEN_PERCENT:
-        return "%";
-    case TOKEN_FWSLASH:
-        return "/";
-    case TOKEN_BWSLASH:
-        return "\\";
-    case TOKEN_HASH:
-        return "#";
-    case TOKEN_EQ:
-        return "=";
-    case TOKEN_STRING:
-        return "string";
-    case TOKEN_INTEGER:
-        return "integer";
-    case TOKEN_NUMBER:
-        return "number";
-    case TOKEN_HEX:
-        return "hex";
-    case TOKEN_FLOAT:
-        return "float";
-    case TOKEN_MINUS_MINUS_MINUS:
-        return "---";
-    case TOKEN_DOT_DOT_DOT:
-        return "...";
+    case TOKEN_EOF: return "eof";
+    case TOKEN_UNKNOWN: return "unknown";
+    case TOKEN_NIL: return "nil";
+    case TOKEN_CAST: return "cast";
+    case TOKEN_MALLOC: return "malloc";
+    case TOKEN_SIZEOF: return "sizeof";
+    case TOKEN_PRINT: return "print";
+    case TOKEN_LOAD: return "load";
+    case TOKEN_FOREIGN: return "foreign";
+    case TOKEN_RETURN: return "ret";
+    case TOKEN_TRUE: return "true";
+    case TOKEN_FALSE: return "false";
+    case TOKEN_IF: return "if";
+    case TOKEN_ELSE: return "else";
+    case TOKEN_FOR: return "for";
+    case TOKEN_WHILE: return "while";
+    case TOKEN_IDENTIFIER: return "identifier";
+    case TOKEN_BREAK: return "break";
+    case TOKEN_REPEAT: return "repeat";
+    case TOKEN_STRUCT: return "struct";
+    case TOKEN_ENUM: return "enum";
+    case TOKEN_CONTINUE: return "continue";
+    case TOKEN_PIPE_PIPE: return "||";
+    case TOKEN_AND_AND: return "&&";
+    case TOKEN_PLUS_EQ: return "+=";
+    case TOKEN_MINUS_EQ: return "-=";
+    case TOKEN_FWSLASH_EQ: return "/=";
+    case TOKEN_HAT_EQ: return "^=";
+    case TOKEN_ASTERISK_EQ: return "*=";
+    case TOKEN_PIPE_EQ: return "|=";
+    case TOKEN_PERCENT_EQ: return "%=";
+    case TOKEN_AND_EQ: return "&=";
+    case TOKEN_PLUS_PLUS: return "++";
+    case TOKEN_MINUS_MINUS: return "--";
+    case TOKEN_BITWISE_LEFTSHIFT: return "<<=";
+    case TOKEN_BITWISE_RIGHTSHIFT: return ">>=";
+    case TOKEN_EQ_EQ: return "==";
+    case TOKEN_BANG_EQ: return "!=";
+    case TOKEN_COLON_COLON: return "::";
+    case TOKEN_COLON_EQ: return ":=";
+    case TOKEN_RIGHT_ARROW: return "->";
+    case TOKEN_PIPE: return "|";
+    case TOKEN_TILDE: return "~";
+    case TOKEN_AT: return "@";
+    case TOKEN_DOLLAR_SIGN: return "$";
+    case TOKEN_HAT: return "^";
+    case TOKEN_BANG: return "!";
+    case TOKEN_AND: return "&";
+    case TOKEN_LT_EQ: return "<=";
+    case TOKEN_LT_LT: return "<<";
+    case TOKEN_LT: return "<";
+    case TOKEN_GT: return ">";
+    case TOKEN_GT_GT: return ">>";
+    case TOKEN_GT_EQ: return ">=";
+    case TOKEN_OPEN_PAREN: return "(";
+    case TOKEN_CLOSE_PAREN: return ")";
+    case TOKEN_OPEN_BRACKET: return "[";
+    case TOKEN_CLOSE_BRACKET: return "]";
+    case TOKEN_OPEN_BRACE: return "{";
+    case TOKEN_CLOSE_BRACE: return "}";
+    case TOKEN_COMMA: return ",";
+    case TOKEN_DOT: return ".";
+    case TOKEN_DOT_DOT: return "..";
+    case TOKEN_COLON: return ":";
+    case TOKEN_SEMICOLON: return ";";
+    case TOKEN_ASTERISK: return "*";
+    case TOKEN_MINUS: return "-";
+    case TOKEN_QUESTION_MARK: return "?";
+    case TOKEN_PLUS: return "+";
+    case TOKEN_PERCENT: return "%";
+    case TOKEN_FWSLASH: return "/";
+    case TOKEN_BWSLASH: return "\\";
+    case TOKEN_HASH: return "#";
+    case TOKEN_EQ: return "=";
+    case TOKEN_STRING: return "string";
+    case TOKEN_INTEGER: return "integer";
+    case TOKEN_NUMBER: return "number";
+    case TOKEN_HEX: return "hex";
+    case TOKEN_FLOAT: return "float";
+    case TOKEN_MINUS_MINUS_MINUS: return "---";
+    case TOKEN_DOT_DOT_DOT: return "...";
     }
     error("Unhandled token kind.");
     return "TOKEN_UNKNOWN";

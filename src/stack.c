@@ -3,18 +3,21 @@
 
 #include <assert.h>
 
-Stack* make_stack(void) {
+Stack* make_stack(void)
+{
     Stack* stack = xmalloc(sizeof(Stack));
     stack->head = NULL;
     return stack;
 }
 
-typedef struct {
+typedef struct
+{
     int id;
     float val;
 } Test_Type;
 
-void stack_tests(void) {
+void stack_tests(void)
+{
     Stack* test_stack = make_stack();
     Test_Type* marcus = xmalloc(sizeof(Test_Type));
     marcus->id = 0;
@@ -31,7 +34,8 @@ void stack_tests(void) {
     assert((Test_Type*)stack_pop(test_stack) == NULL);
 }
 
-void* stack_push(Stack* stack, void* data) {
+void* stack_push(Stack* stack, void* data)
+{
     assert(stack);
     assert(data);
     _StackNode* tmp = xmalloc(sizeof(Stack));
@@ -41,10 +45,10 @@ void* stack_push(Stack* stack, void* data) {
     return data;
 }
 
-void* stack_pop(Stack* stack) {
+void* stack_pop(Stack* stack)
+{
     assert(stack);
-    if (!stack->head)
-        return NULL;
+    if (!stack->head) return NULL;
     _StackNode* tmp = stack->head;
     void* popped = tmp->data;
     stack->head = stack->head->next;

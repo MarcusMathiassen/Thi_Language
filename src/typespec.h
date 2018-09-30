@@ -19,10 +19,10 @@ Typespec* make_typespec_float(i8 bits);
 Typespec* make_typespec_pointer(Typespec* pointee);
 Typespec* make_typespec_struct(const char* name, Arg* members);
 Typespec* make_typespec_enum(const char* name, const char** members);
-Typespec* make_typespec_function(const char* name, Arg* args,
-                                 Typespec* ret_type);
+Typespec* make_typespec_function(const char* name, Arg* args, Typespec* ret_type);
 
-enum Typespec_Kind {
+enum Typespec_Kind
+{
     TYPESPEC_INT,
     TYPESPEC_FLOAT,
     TYPESPEC_POINTER,
@@ -32,33 +32,41 @@ enum Typespec_Kind {
     TYPESPEC_FUNCTION,
 };
 
-struct Arg {
+struct Arg
+{
     const char* name;
     Typespec* type;
 };
 
-struct Typespec {
+struct Typespec
+{
     Typespec_Kind kind;
     union {
-        struct {
+        struct
+        {
             i8 bits;
             i8 is_unsigned;
         } Int;
-        struct {
+        struct
+        {
             i8 bits;
         } Float;
-        struct {
+        struct
+        {
             Typespec* pointee;
         } Pointer;
-        struct {
+        struct
+        {
             const char* name;
             const char** members;
         } Enum;
-        struct {
+        struct
+        {
             const char* name;
             Arg* members;
         } Struct;
-        struct {
+        struct
+        {
             const char* name;
             Arg* args;
             Typespec* ret_type;

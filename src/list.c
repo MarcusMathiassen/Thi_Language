@@ -3,18 +3,19 @@
 #include <assert.h>
 #include <stdlib.h> // malloc
 
-List* make_list(void) {
+List* make_list(void)
+{
     List* list = malloc(sizeof(List));
     list->head = NULL;
     list->tail = NULL;
     return list;
 }
 
-void list_tests(void) {
-
+void list_tests(void)
+{
     List* list = make_list();
 
-    int* num = xmalloc(sizeof(int)*10);
+    int* num = xmalloc(sizeof(int) * 10);
     num[0] = 1;
     num[1] = 2;
     num[2] = 3;
@@ -55,15 +56,15 @@ void list_tests(void) {
     }
 }
 
-void* list_remove(List* list, i64 index) {
+void* list_remove(List* list, i64 index)
+{
     assert(list);
     assert(index >= 0);
 
     --list->count;
 
     if (index == 0) {
-        if (list->head->next)
-            list->head = list->head->next;
+        if (list->head->next) list->head = list->head->next;
         // free(list->head);
         return list->head->data;
     }
@@ -85,7 +86,8 @@ void* list_remove(List* list, i64 index) {
     return current->data;
 }
 
-void* list_at(List* list, i64 index) {
+void* list_at(List* list, i64 index)
+{
     assert(list);
     assert(index >= 0);
 
@@ -103,7 +105,8 @@ void* list_at(List* list, i64 index) {
     return current->data;
 }
 
-void* list_prepend(List* list, void* data) {
+void* list_prepend(List* list, void* data)
+{
     assert(list);
 
     ++list->count;
@@ -123,7 +126,8 @@ void* list_prepend(List* list, void* data) {
     return data;
 }
 
-void* list_append(List* list, void* data) {
+void* list_append(List* list, void* data)
+{
     assert(list);
 
     ++list->count;
@@ -144,12 +148,14 @@ void* list_append(List* list, void* data) {
     return data;
 }
 
-void* list_first(List* list) {
+void* list_first(List* list)
+{
     assert(list);
     return list->head->data;
 }
 
-void* list_last(List* list) {
+void* list_last(List* list)
+{
     assert(list);
     return list->tail->data;
 }

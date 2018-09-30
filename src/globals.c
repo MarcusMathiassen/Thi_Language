@@ -1,8 +1,8 @@
 #include "globals.h"
 
+#include "list.h"    // List
 #include "map.h"     // Map
-#include "list.h"     // List
-#include "stack.h"     // Stack
+#include "stack.h"   // Stack
 #include "utility.h" // warning, error
 #include <assert.h>  // assert
 
@@ -11,7 +11,8 @@ static Map* builtin_type_map = NULL;
 static Stack* timer_stack = NULL;
 static List* timers = NULL;
 
-void initilize_globals(void) {
+void initilize_globals(void)
+{
 
     symbol_map = make_map();
     builtin_type_map = make_map();
@@ -20,7 +21,8 @@ void initilize_globals(void) {
     timer_stack = make_stack();
 }
 
-void print_symbol_map(void) {
+void print_symbol_map(void)
+{
     u64 count = symbol_map->size;
     info("symbol_map count: %d", count);
     for (u64 i = 0; i < count; ++i) {
@@ -28,14 +30,15 @@ void print_symbol_map(void) {
     }
 }
 
-bool is_builtin_type(const char* name) {
+bool is_builtin_type(const char* name)
+{
     assert(name);
-    if (map_get(builtin_type_map, name))
-        return true;
+    if (map_get(builtin_type_map, name)) return true;
     return false;
 }
 
-void add_builtin_type(const char* name, Typespec* type) {
+void add_builtin_type(const char* name, Typespec* type)
+{
     assert(name);
     assert(type);
     if (map_set(builtin_type_map, name, type) == MAP_EXISTS) {
@@ -44,7 +47,8 @@ void add_builtin_type(const char* name, Typespec* type) {
     info("added builtin type: %s", name);
 }
 
-Typespec* get_builtin_type(const char* name) {
+Typespec* get_builtin_type(const char* name)
+{
     assert(name);
     Typespec* type = (Typespec*)map_get(builtin_type_map, name);
     if (!type) {
@@ -53,7 +57,8 @@ Typespec* get_builtin_type(const char* name) {
     return type;
 }
 
-void add_symbol(const char* name, Typespec* type) {
+void add_symbol(const char* name, Typespec* type)
+{
     assert(name);
     assert(type);
     if (map_set(symbol_map, name, type) == MAP_EXISTS) {
@@ -62,7 +67,8 @@ void add_symbol(const char* name, Typespec* type) {
     info("added symbol: '%s' of type '%s'", name, typespec_to_str(type));
 }
 
-Typespec* get_symbol(const char* name) {
+Typespec* get_symbol(const char* name)
+{
     assert(name);
     Typespec* type = (Typespec*)map_get(symbol_map, name);
     if (!type) {
@@ -71,17 +77,18 @@ Typespec* get_symbol(const char* name) {
     return type;
 }
 
-
 List* get_timers(void) { return timers; }
 
-void push_timer(const char* desc) {
+void push_timer(const char* desc)
+{
     Timer* tm = malloc(sizeof(Timer));
     tm->ms = get_time();
     tm->desc = desc;
     stack_push(timer_stack, tm);
 }
 
-void pop_timer(void) {
+void pop_timer(void)
+{
     Timer* tm = (Timer*)stack_pop(timer_stack);
     tm->ms = get_time() - tm->ms;
     list_append(timers, tm);

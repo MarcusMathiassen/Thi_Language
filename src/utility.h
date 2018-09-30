@@ -41,7 +41,8 @@ const char* get_unique_color(void);
 //                               Timing Functions
 //------------------------------------------------------------------------------
 
-typedef struct {
+typedef struct
+{
     f64 ms;
     const char* desc;
 } Timer;

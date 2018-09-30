@@ -13,8 +13,8 @@
 #include "value.h"    // Value
 #include <assert.h>   // assert
 #include <stdio.h>    // sprintf
-#include <string.h>   // strcmp
 #include <stdlib.h>   // free
+#include <string.h>   // strcmp
 
 //------------------------------------------------------------------------------
 //                               Main Driver
@@ -22,7 +22,7 @@
 
 void run_all_tests(void);
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     run_all_tests();
 
@@ -37,8 +37,8 @@ int main(int argc, char **argv)
         error("too many arguments.");
 
     // Grab the source file
-    const char *source_file = argv[1];
-    const char *exec_name = argv[2];
+    const char* source_file = argv[1];
+    const char* exec_name = argv[2];
     success("Compiling %s", source_file);
 
     // Setup types
@@ -56,9 +56,9 @@ int main(int argc, char **argv)
     add_builtin_type("f32", make_typespec_float(32));
     add_builtin_type("f64", make_typespec_float(64));
 
-    const char *ext = get_file_ext(source_file);
-    const char *dir = get_file_dir(source_file);
-    const char *name = get_file_name(source_file);
+    const char* ext = get_file_ext(source_file);
+    const char* dir = get_file_dir(source_file);
+    const char* name = get_file_name(source_file);
 
     info(source_file);
     info("ext: %s", ext);
@@ -67,18 +67,16 @@ int main(int argc, char **argv)
     info("exec_name: %s", exec_name);
 
     // Make sure it's actually a .thi file
-    if (strcmp(ext, "thi") != 0)
-        error("%s is not a .thi file.", source_file);
+    if (strcmp(ext, "thi") != 0) error("%s is not a .thi file.", source_file);
 
     // Read in the contents of the source file
-    char *source = get_file_content(source_file);
+    char* source = get_file_content(source_file);
 
     // Lexing
     push_timer("Lexing");
-    Token *tokens = generate_tokens_from_source(source);
+    Token* tokens = generate_tokens_from_source(source);
     pop_timer();
-    if (tokens)
-        print_tokens(tokens);
+    if (tokens) print_tokens(tokens);
 
     // we can free the source
     free(source);
@@ -92,25 +90,22 @@ int main(int argc, char **argv)
 
     // Parsing
     push_timer("Parsing");
-    AST **ast = generate_ast_from_tokens(tokens);
+    AST** ast = generate_ast_from_tokens(tokens);
     pop_timer();
-    if (ast)
-        print_ast(ast);
+    if (ast) print_ast(ast);
 
     // Codegen
     push_timer("Codegen");
-    char *output = generate_code_from_ast(ast);
+    char* output = generate_code_from_ast(ast);
     pop_timer();
     // if (output)
     // info(output);
 
     // Write to file
-    if (output)
-    {
-        const char *output_filename = "output.asm";
+    if (output) {
+        const char* output_filename = "output.asm";
         write_to_file(output_filename, output);
-    }
-    else
+    } else
         error("generating code from ast failed.");
 
     // Linking
@@ -148,13 +143,13 @@ int main(int argc, char **argv)
 
     pop_timer();
 
-    List *timers = get_timers();
+    List* timers = get_timers();
 
     success("==------------ Thi ------------==");
 
     LIST_FOREACH(timers)
     {
-        Timer *tm = (Timer *)it->data;
+        Timer* tm = (Timer*)it->data;
         success("%s: %f s", tm->desc, tm->ms / 1e3);
     }
     success("==------------ === ------------==");

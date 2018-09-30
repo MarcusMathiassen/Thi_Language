@@ -12,12 +12,14 @@
 #define MAP_SUCCESS 0
 #define MAP_FAILED -1
 
-typedef struct Map_Element {
+typedef struct Map_Element
+{
     u64 key;
     void* data;
 } Map_Element;
 
-typedef struct Map {
+typedef struct Map
+{
     u64 table_size;
     u64 size;
     Map_Element* data;

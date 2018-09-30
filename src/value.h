@@ -7,13 +7,15 @@
 typedef struct Value Value;
 typedef enum Value_Kind Value_Kind;
 
-enum Value_Kind {
+enum Value_Kind
+{
     VALUE_INT,
     VALUE_VARIABLE,
     VALUE_FUNCTION,
 };
 
-typedef struct CodeBlock {
+typedef struct CodeBlock
+{
     string* block;
     const char* color;
 } CodeBlock;
@@ -25,12 +27,14 @@ void add_lines_to_codeblock(CodeBlock* cb, const char* line);
 //                          Value Structures
 //------------------------------------------------------------------------------
 
-typedef struct {
+typedef struct
+{
     const char* name;
     u64 stack_pos;
 } Variable;
 
-typedef struct {
+typedef struct
+{
     const char* name;
     u64 stack_allocated;
 
@@ -40,12 +44,14 @@ typedef struct {
     u8 regs_used_count;
 } Function;
 
-typedef struct {
+typedef struct
+{
     u8 bytes;
     u64 value;
 } Int;
 
-struct Value {
+struct Value
+{
     Value_Kind kind;
     Typespec* type;
     union {
@@ -71,7 +77,8 @@ void emit(string* output, const char* fmt, ...);
 //------------------------------------------------------------------------------
 //                               Scope
 //------------------------------------------------------------------------------
-typedef struct {
+typedef struct
+{
     Value** local_variables;
     u64 count;
     u64 alloc_count;

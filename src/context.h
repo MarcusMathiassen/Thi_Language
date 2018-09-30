@@ -8,7 +8,8 @@
 typedef struct Context Context;
 
 // The context holds information about the current state of the codegen phase.
-struct Context {
+struct Context
+{
     Value* current_function;
 
     Stack stack;

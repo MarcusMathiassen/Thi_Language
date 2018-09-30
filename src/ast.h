@@ -12,7 +12,8 @@ typedef struct Expr Expr;
 typedef struct Expr AST;
 typedef enum Expr_Kind Expr_Kind;
 
-enum Expr_Kind {
+enum Expr_Kind
+{
     EXPR_NOTE,
     EXPR_INT,
     EXPR_FLOAT,
@@ -37,52 +38,66 @@ enum Expr_Kind {
 //                          AST Expression Structures
 //------------------------------------------------------------------------------
 
-struct Expr {
+struct Expr
+{
     Expr_Kind kind;
     union {
-        struct {
+        struct
+        {
             Expr* expr;
         } Note;
-        struct {
+        struct
+        {
             Expr* expr;
         } Grouping;
-        struct {
+        struct
+        {
             Expr** stmts;
         } Block;
-        struct {
+        struct
+        {
             Expr* expr;
         } Ret;
-        struct {
+        struct
+        {
             u64 val;
         } Int;
-        struct {
+        struct
+        {
             f64 val;
         } Float;
-        struct {
+        struct
+        {
             Typespec* type;
             Expr* body;
         } Function;
-        struct {
+        struct
+        {
             Typespec* type;
         } Struct;
-        struct {
+        struct
+        {
             const char* name;
         } Ident;
-        struct {
+        struct
+        {
             Token_Kind op;
             Expr* operand;
         } Unary;
-        struct {
+        struct
+        {
             Token_Kind op;
             Expr* lhs;
             Expr* rhs;
         } Binary;
-        struct {
+        struct
+        {
             const char* name;
             Typespec* type;
             Expr* value;
         } Variable_Decl;
-        struct {
+        struct
+        {
             const char* name;
             Expr* value;
         } Variable_Decl_Type_Inf;

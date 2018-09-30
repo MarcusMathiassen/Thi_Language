@@ -4,4 +4,13 @@ IndentWidth: 4
 ---
 Language: Cpp
 PointerAlignment: Left
-ColumnLimit: 80
+ColumnLimit: 120
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: true
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterEnum: true
+  AfterStruct: true
+  AfterFunction: true
+  SplitEmptyFunction: false
