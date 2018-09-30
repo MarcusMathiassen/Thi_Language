@@ -232,14 +232,20 @@ static Token get_token()
         break;
         CASE_SINGLE_TOKEN('?', TOKEN_QUESTION_MARK);
         break;
-        CASE_SINGLE_TOKEN('!', TOKEN_BANG);
-        break;
         CASE_SINGLE_TOKEN('\\', TOKEN_BWSLASH);
         break;
 
         CASE_SINGLE_TOKEN('/', TOKEN_FWSLASH);
         switch (*c) {
             CASE_SINGLE_TOKEN('=', TOKEN_FWSLASH_EQ);
+            CASE_SINGLE_TOKEN('=', TOKEN_FWSLASH_EQ);
+            break;
+        }
+        break;
+        
+        CASE_SINGLE_TOKEN('!', TOKEN_BANG);
+        switch (*c) {
+            CASE_SINGLE_TOKEN('=', TOKEN_BANG_EQ);
             break;
         }
         break;
