@@ -10,7 +10,7 @@
 
 #include "globals.h" // add_symbol
 
-#define BIN_OP_COUNT 46
+#define BIN_OP_COUNT 47
 static struct
 {
     Token_Kind kind;
@@ -23,6 +23,7 @@ static struct
     {TOKEN_PLUS_PLUS, 90},   // ++
     {TOKEN_MINUS_MINUS, 90}, // --
 
+    {TOKEN_BANG, 80},     // !
     {TOKEN_ASTERISK, 80}, // *
     {TOKEN_FWSLASH, 80},  // /
 

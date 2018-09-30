@@ -1,5 +1,3 @@
-// @depends: variable
-
 int2 :: struct {
     x: i32
     y: i32

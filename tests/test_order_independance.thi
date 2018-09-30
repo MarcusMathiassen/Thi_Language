@@ -1,5 +1,3 @@
-// @depends: function
-
 main :: () -> i32 {
     ret get_integer(1)
 }

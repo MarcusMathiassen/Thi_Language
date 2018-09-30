@@ -238,7 +238,6 @@ static Token get_token()
         CASE_SINGLE_TOKEN('/', TOKEN_FWSLASH);
         switch (*c) {
             CASE_SINGLE_TOKEN('=', TOKEN_FWSLASH_EQ);
-            CASE_SINGLE_TOKEN('=', TOKEN_FWSLASH_EQ);
             break;
         }
         break;
