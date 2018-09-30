@@ -13,7 +13,6 @@ static List* timers = NULL;
 
 void initilize_globals(void)
 {
-
     symbol_map = make_map();
     builtin_type_map = make_map();
 

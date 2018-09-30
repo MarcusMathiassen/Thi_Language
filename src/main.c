@@ -98,8 +98,6 @@ int main(int argc, char** argv)
     push_timer("Codegen");
     char* output = generate_code_from_ast(ast);
     pop_timer();
-    // if (output)
-    // info(output);
 
     // Write to file
     if (output) {
