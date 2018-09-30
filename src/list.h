@@ -3,27 +3,29 @@
 
 #include "typedefs.h"
 
-typedef struct List_Node {
-    void* data;
-    struct List_Node* next;
+typedef struct List_Node
+{
+    void *data;
+    struct List_Node *next;
 } List_Node;
 
-typedef struct List {
-    List_Node* head;
-    List_Node* tail;
+typedef struct List
+{
+    List_Node *head;
+    List_Node *tail;
     u64 count;
 } List;
 
-#define LIST_FOREACH(list, item) \
-    for (List_Node *(item) = (list->head); (item); (item) = (item)->next)
+#define LIST_FOREACH(list) \
+    for (List_Node *it = (list->head); (it); (it) = (it)->next)
 
 void list_tests(void);
-List* make_list(void);
-void* list_append(List* list, void* data);
-void* list_prepend(List* list, void* data);
-void* list_last(List* list);
-void* list_first(List* list);
-void* list_at(List* list, i64 index);
-void* list_remove(List* list, i64 index);
+List *make_list(void);
+void *list_append(List *list, void *data);
+void *list_prepend(List *list, void *data);
+void *list_last(List *list);
+void *list_first(List *list);
+void *list_at(List *list, i64 index);
+void *list_remove(List *list, i64 index);
 
 #endif

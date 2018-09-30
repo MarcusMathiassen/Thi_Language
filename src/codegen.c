@@ -11,56 +11,63 @@
 #include "value.h"   // Value, Scope
 #include <assert.h>  // assert
 
-Typespec* integer_literal_type = NULL;
+Typespec *integer_literal_type = NULL;
 
-Context* ctx = NULL;
-string* output = NULL;
-Scope* scope = NULL;
+Context *ctx = NULL;
+string *output = NULL;
+Scope *scope = NULL;
 
-static Value* codegen_expr(Expr* expr);
+static Value *codegen_expr(Expr *expr);
 
-static void append_variable_to_scope(Scope* s, Value* value) {
+static void append_variable_to_scope(Scope *s, Value *value)
+{
     assert(s);
     assert(value);
     // allocate more space if needed
-    if (s->alloc_count < s->count + 1) {
+    if (s->alloc_count < s->count + 1)
+    {
         s->alloc_count += 1;
         s->local_variables =
-            xrealloc(s->local_variables, sizeof(Value*) * s->alloc_count);
+            xrealloc(s->local_variables, sizeof(Value *) * s->alloc_count);
     }
     s->local_variables[s->count++] = value;
 }
 
-static void print_scope(Scope* scope) {
+static void print_scope(Scope *scope)
+{
     info("Scope count %d", scope->count);
     info("Scope alloc_count %d", scope->alloc_count);
-    for (u64 i = 0; i < scope->count; ++i) {
+    for (u64 i = 0; i < scope->count; ++i)
+    {
         info("Scope index: %llu variable: %s", i,
              scope->local_variables[i]->Variable.name);
     }
 }
 
 /// Returns the value, or NULL if not found.
-Value* get_variable_in_scope(Scope* scope, const char* name) {
+Value *get_variable_in_scope(Scope *scope, const char *name)
+{
     assert(scope);
     assert(name);
     u64 variable_count = scope->count;
-    for (u64 i = 0; i < variable_count; ++i) {
-        Value* v = scope->local_variables[i];
+    for (u64 i = 0; i < variable_count; ++i)
+    {
+        Value *v = scope->local_variables[i];
         if (v->Variable.name == name)
             return v;
     }
     return NULL;
 }
 
-void add_variable_to_scope(Scope* scope, Value* variable) {
+void add_variable_to_scope(Scope *scope, Value *variable)
+{
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
 
-    const char* name = variable->Variable.name;
+    const char *name = variable->Variable.name;
 
     // Check for redeclaration
-    Value* res = get_variable_in_scope(scope, name);
+    Value *res = get_variable_in_scope(scope, name);
     if (res)
         error("redeclaration of variable %s", name);
 
@@ -69,12 +76,14 @@ void add_variable_to_scope(Scope* scope, Value* variable) {
     // print_scope(scope);
 }
 
-void remove_variable_in_scope(Scope* scope, const char* name) {
-    Value* v = get_variable_in_scope(scope, name);
-    if (v) {
+void remove_variable_in_scope(Scope *scope, const char *name)
+{
+    Value *v = get_variable_in_scope(scope, name);
+    if (v)
+    {
         info("removing value: %s", name);
         // Swap this element with the last element;
-        Value* temp = scope->local_variables[scope->count];
+        Value *temp = scope->local_variables[scope->count];
         scope->local_variables[scope->count] = v;
         v = temp;
         free(v);
@@ -84,7 +93,8 @@ void remove_variable_in_scope(Scope* scope, const char* name) {
     error("Trying to remove unknown variable: %s", name);
 }
 
-static void emit_store(Value* variable) {
+static void emit_store(Value *variable)
+{
     assert(variable->kind == VALUE_VARIABLE);
     u64 size = get_size_of_value(variable);
     int reg_n = get_rax_reg_of_byte_size(size);
@@ -92,27 +102,36 @@ static void emit_store(Value* variable) {
     emit(output, "MOV [RSP-%d], %s", stack_pos, get_reg(reg_n));
 }
 
-static void emit_load(Value* value) {
+static void emit_load(Value *value)
+{
     int reg_n = get_rax_reg_of_byte_size(get_size_of_value(value));
-    switch (value->kind) {
-    case VALUE_INT: {
+    switch (value->kind)
+    {
+    case VALUE_INT:
+    {
         emit(output, "MOV %s, %d", get_reg(reg_n), value->Int.value);
-    } break;
+    }
+    break;
 
-    case VALUE_VARIABLE: {
+    case VALUE_VARIABLE:
+    {
         emit(output, "MOV %s, [RSP-%d]", get_reg(reg_n),
              get_stack_pos_of_variable(value));
-    } break;
+    }
+    break;
 
-    case VALUE_FUNCTION: {
+    case VALUE_FUNCTION:
+    {
         error("VALUE_FUNCTION EMIT_LOAD NOT IMPLEMENETED");
-    } break;
+    }
+    break;
     }
 }
 
-static Value* codegen_function(Expr* expr) {
-    const char* func_name = expr->Function.type->Function.name;
-    Value* function = make_value_function(expr->Function.type);
+static Value *codegen_function(Expr *expr)
+{
+    const char *func_name = expr->Function.type->Function.name;
+    Value *function = make_value_function(expr->Function.type);
     ctx->current_function = function;
 
     emit(output, "%s:", func_name);
@@ -121,18 +140,19 @@ static Value* codegen_function(Expr* expr) {
     u64 index = 0;
     u64 stack_before_func = ctx->stack_index;
 
-    Arg* args = expr->Function.type->Function.args;
+    Arg *args = expr->Function.type->Function.args;
     int arg_count = sb_count(args);
     if (arg_count)
         info("Printing function parameters");
 
     u64 temp_stack_index = ctx->stack_index;
-    for (int i = 0; i < arg_count; ++i) {
-        Arg* arg = &args[i];
+    for (int i = 0; i < arg_count; ++i)
+    {
+        Arg *arg = &args[i];
 
         u64 size = get_size_of_typespec(arg->type);
         u64 stack_pos = temp_stack_index + size;
-        Value* var = make_value_variable(arg->name, arg->type, stack_pos);
+        Value *var = make_value_variable(arg->name, arg->type, stack_pos);
 
         add_variable_to_scope(scope, var);
         emit(output, "MOV [RSP-%d], %s", stack_pos,
@@ -154,52 +174,60 @@ static Value* codegen_function(Expr* expr) {
     return function;
 }
 
-static Value* codegen_ident(Expr* expr) {
-    const char* name = expr->Ident.name;
-    Value* var = get_variable_in_scope(scope, name);
+static Value *codegen_ident(Expr *expr)
+{
+    const char *name = expr->Ident.name;
+    Value *var = get_variable_in_scope(scope, name);
     assert(var);
     emit_load(var);
     return var;
 }
 
-static Value* codegen_int(Expr* expr) {
-    Value* val = make_value_int(DEFAULT_INTEGER_BYTE_SIZE, integer_literal_type,
+static Value *codegen_int(Expr *expr)
+{
+    Value *val = make_value_int(DEFAULT_INTEGER_BYTE_SIZE, integer_literal_type,
                                 expr->Int.val);
     emit_load(val);
     return val;
 }
 
-static Value* codegen_block(Expr* expr) {
-    Expr** stmts = expr->Block.stmts;
+static Value *codegen_block(Expr *expr)
+{
+    Expr **stmts = expr->Block.stmts;
     u64 stmts_count = sb_count(stmts);
-    Value* last = NULL;
-    for (u64 i = 0; i < stmts_count; ++i) {
+    Value *last = NULL;
+    for (u64 i = 0; i < stmts_count; ++i)
+    {
         last = codegen_expr(stmts[i]);
     }
     return last;
 }
 
-static Value* codegen_unary(Expr* expr) {
+static Value *codegen_unary(Expr *expr)
+{
     Token_Kind op = expr->Unary.op;
-    Expr* operand = expr->Unary.operand;
+    Expr *operand = expr->Unary.operand;
 
-    Value* operand_val = codegen_expr(operand);
+    Value *operand_val = codegen_expr(operand);
     int reg_n = get_rax_reg_of_byte_size(get_size_of_value(operand_val));
-    Value* result = operand_val;
+    Value *result = operand_val;
 
-    switch (op) {
+    switch (op)
+    {
     case THI_SYNTAX_ADDRESS:
         error("AST_Unary '*' not implemented");
         break;
     case THI_SYNTAX_POINTER:
         error("AST_Unary '&' not implemented");
         break;
-    case TOKEN_BANG: {
+    case TOKEN_BANG:
+    {
         emit(output, "CMP %s, 0", get_reg(reg_n));
         emit(output, "SETE AL");
         break;
     }
-    case TOKEN_MINUS: {
+    case TOKEN_MINUS:
+    {
         emit(output, "NEG %s", get_reg(reg_n));
         break;
     }
@@ -210,23 +238,27 @@ static Value* codegen_unary(Expr* expr) {
     return result;
 }
 
-static Value* codegen_binary(Expr* expr) {
+static Value *codegen_binary(Expr *expr)
+{
     Token_Kind op = expr->Binary.op;
-    Expr* lhs = expr->Binary.lhs;
-    Expr* rhs = expr->Binary.rhs;
+    Expr *lhs = expr->Binary.lhs;
+    Expr *rhs = expr->Binary.rhs;
 
-    switch (op) {
-    case TOKEN_EQ: {
-        Value* lhs_val = codegen_expr(lhs);
+    switch (op)
+    {
+    case TOKEN_EQ:
+    {
+        Value *lhs_val = codegen_expr(lhs);
         if (lhs_val->kind != VALUE_VARIABLE)
             error("lhs of an assignment must be a variable.");
-        Value* rhs_val = codegen_expr(rhs);
-        Value* variable = get_variable_in_scope(scope, lhs->Variable_Decl.name);
+        Value *rhs_val = codegen_expr(rhs);
+        Value *variable = get_variable_in_scope(scope, lhs->Variable_Decl.name);
         emit_store(variable);
         return rhs_val;
     }
-    case TOKEN_PLUS: {
-        Value* lhs_val = codegen_expr(lhs);
+    case TOKEN_PLUS:
+    {
+        Value *lhs_val = codegen_expr(lhs);
         u64 lhs_size = get_size_of_value(lhs_val);
         int res_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
@@ -236,19 +268,21 @@ static Value* codegen_binary(Expr* expr) {
         emit(output, "ADD %s, %s", get_reg(res_n), get_reg(temp_reg_n));
         return lhs_val;
     }
-    case TOKEN_MINUS: {
-        Value* rhs_val = codegen_expr(rhs);
+    case TOKEN_MINUS:
+    {
+        Value *rhs_val = codegen_expr(rhs);
         u64 rhs_size = get_size_of_value(rhs_val);
         int temp_reg_n = get_next_available_reg(rhs_size);
         function_push_reg(ctx->current_function, temp_reg_n);
         int reg_n = get_rax_reg_of_byte_size(rhs_size);
         emit(output, "MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
-        Value* lhs_val = codegen_expr(lhs);
+        Value *lhs_val = codegen_expr(lhs);
         emit(output, "SUB %s, %s", get_reg(reg_n), get_reg(temp_reg_n));
         return lhs_val;
     }
-    case TOKEN_ASTERISK: {
-        Value* lhs_val = codegen_expr(lhs);
+    case TOKEN_ASTERISK:
+    {
+        Value *lhs_val = codegen_expr(lhs);
         u64 lhs_size = get_size_of_value(lhs_val);
         int res_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
@@ -258,8 +292,9 @@ static Value* codegen_binary(Expr* expr) {
         emit(output, "IMUL %s, %s", get_reg(res_n), get_reg(temp_reg_n));
         return lhs_val;
     }
-    case TOKEN_FWSLASH: {
-        Value* rhs_val = codegen_expr(rhs);
+    case TOKEN_FWSLASH:
+    {
+        Value *rhs_val = codegen_expr(rhs);
         u64 rhs_size = get_size_of_value(rhs_val);
         int reg_n = get_rax_reg_of_byte_size(rhs_size);
         int temp_reg_n = get_next_available_reg(rhs_size);
@@ -271,8 +306,9 @@ static Value* codegen_binary(Expr* expr) {
         return rhs_val;
     }
 
-    case TOKEN_AND_AND: {
-        Value* lhs_val = codegen_expr(lhs);
+    case TOKEN_AND_AND:
+    {
+        Value *lhs_val = codegen_expr(lhs);
         u64 lhs_size = get_size_of_value(lhs_val);
         int reg_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
@@ -288,8 +324,9 @@ static Value* codegen_binary(Expr* expr) {
         return lhs_val;
     }
 
-    case TOKEN_PIPE_PIPE: {
-        Value* lhs_val = codegen_expr(lhs);
+    case TOKEN_PIPE_PIPE:
+    {
+        Value *lhs_val = codegen_expr(lhs);
         u64 lhs_size = get_size_of_value(lhs_val);
         int reg_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
@@ -301,8 +338,9 @@ static Value* codegen_binary(Expr* expr) {
         return lhs_val;
     }
 
-    case TOKEN_LT: {
-        Value* lhs_val = codegen_expr(lhs);
+    case TOKEN_LT:
+    {
+        Value *lhs_val = codegen_expr(lhs);
         u64 lhs_size = get_size_of_value(lhs_val);
         int reg_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
@@ -314,8 +352,9 @@ static Value* codegen_binary(Expr* expr) {
         return lhs_val;
     }
 
-    case TOKEN_GT: {
-        Value* lhs_val = codegen_expr(lhs);
+    case TOKEN_GT:
+    {
+        Value *lhs_val = codegen_expr(lhs);
         u64 lhs_size = get_size_of_value(lhs_val);
         int reg_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
@@ -327,8 +366,9 @@ static Value* codegen_binary(Expr* expr) {
         return lhs_val;
     }
 
-    case TOKEN_LT_EQ: {
-        Value* lhs_val = codegen_expr(lhs);
+    case TOKEN_LT_EQ:
+    {
+        Value *lhs_val = codegen_expr(lhs);
         u64 lhs_size = get_size_of_value(lhs_val);
         int reg_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
@@ -340,8 +380,9 @@ static Value* codegen_binary(Expr* expr) {
         return lhs_val;
     }
 
-    case TOKEN_GT_EQ: {
-        Value* lhs_val = codegen_expr(lhs);
+    case TOKEN_GT_EQ:
+    {
+        Value *lhs_val = codegen_expr(lhs);
         u64 lhs_size = get_size_of_value(lhs_val);
         int reg_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
@@ -353,8 +394,9 @@ static Value* codegen_binary(Expr* expr) {
         return lhs_val;
     }
 
-    case TOKEN_EQ_EQ: {
-        Value* lhs_val = codegen_expr(lhs);
+    case TOKEN_EQ_EQ:
+    {
+        Value *lhs_val = codegen_expr(lhs);
         u64 lhs_size = get_size_of_value(lhs_val);
         int reg_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
@@ -366,8 +408,9 @@ static Value* codegen_binary(Expr* expr) {
         return lhs_val;
     }
 
-    case TOKEN_BANG_EQ: {
-        Value* lhs_val = codegen_expr(lhs);
+    case TOKEN_BANG_EQ:
+    {
+        Value *lhs_val = codegen_expr(lhs);
         u64 lhs_size = get_size_of_value(lhs_val);
         int reg_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
@@ -379,12 +422,13 @@ static Value* codegen_binary(Expr* expr) {
         return lhs_val;
     }
 
-    case TOKEN_PLUS_EQ: {
-        Value* variable = codegen_expr(lhs);
+    case TOKEN_PLUS_EQ:
+    {
+        Value *variable = codegen_expr(lhs);
         if (variable->kind != VALUE_VARIABLE)
             error("lhs of += must be a variable.");
 
-        Value* rhs_val = codegen_expr(rhs);
+        Value *rhs_val = codegen_expr(rhs);
         u64 rhs_size = get_size_of_value(rhs_val);
         u64 reg_n = get_rax_reg_of_byte_size(rhs_size);
         u64 stack_pos = get_stack_pos_of_variable(variable);
@@ -393,8 +437,9 @@ static Value* codegen_binary(Expr* expr) {
         return variable;
     }
 
-    case TOKEN_MINUS_EQ: {
-        Value* rhs_val = codegen_expr(rhs);
+    case TOKEN_MINUS_EQ:
+    {
+        Value *rhs_val = codegen_expr(rhs);
         u64 rhs_size = get_size_of_value(rhs_val);
         u64 reg_n = get_rax_reg_of_byte_size(rhs_size);
 
@@ -402,7 +447,7 @@ static Value* codegen_binary(Expr* expr) {
         // curr_func->add_used_reg(temp_reg.reg);
         emit(output, "MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
 
-        Value* variable = codegen_expr(lhs);
+        Value *variable = codegen_expr(lhs);
         if (variable->kind != VALUE_VARIABLE)
             error("lhs of -= must be a variable.");
 
@@ -411,12 +456,13 @@ static Value* codegen_binary(Expr* expr) {
         return variable;
     }
 
-    case TOKEN_ASTERISK_EQ: {
-        Value* variable = codegen_expr(lhs);
+    case TOKEN_ASTERISK_EQ:
+    {
+        Value *variable = codegen_expr(lhs);
         if (variable->kind != VALUE_VARIABLE)
             error("lhs of += must be a variable.");
 
-        Value* rhs_val = codegen_expr(rhs);
+        Value *rhs_val = codegen_expr(rhs);
         u64 rhs_size = get_size_of_value(rhs_val);
         u64 reg_n = get_rax_reg_of_byte_size(rhs_size);
         u64 stack_pos = get_stack_pos_of_variable(variable);
@@ -435,8 +481,9 @@ static Value* codegen_binary(Expr* expr) {
     case TOKEN_BITWISE_RIGHTSHIFT:
         error("bitwise_rightshift not implemented.");
 
-    case TOKEN_FWSLASH_EQ: {
-        Value* rhs_val = codegen_expr(rhs);
+    case TOKEN_FWSLASH_EQ:
+    {
+        Value *rhs_val = codegen_expr(rhs);
         u64 rhs_size = get_size_of_value(rhs_val);
         u64 reg_n = get_rax_reg_of_byte_size(rhs_size);
 
@@ -444,7 +491,7 @@ static Value* codegen_binary(Expr* expr) {
         // curr_func->add_used_reg(temp_reg.reg);
         emit(output, "MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
 
-        Value* variable = codegen_expr(lhs);
+        Value *variable = codegen_expr(lhs);
         if (variable->kind != VALUE_VARIABLE)
             error("lhs of /= must be a variable.");
 
@@ -462,22 +509,24 @@ static Value* codegen_binary(Expr* expr) {
         error("pipe not implemented.");
 
     // Ternary operator
-    case TOKEN_QUESTION_MARK: {
-        Value* lhs_val = codegen_expr(lhs);
+    case TOKEN_QUESTION_MARK:
+    {
+        Value *lhs_val = codegen_expr(lhs);
         u64 lhs_size = get_size_of_value(lhs_val);
         u64 reg_n = get_rax_reg_of_byte_size(lhs_size);
         emit(output, "CMP %s, 0", get_reg(reg_n));
         ctx_pop_label(ctx);
         emit(output, "JE %s", ctx_get_unique_label(ctx, "E3"));
-        Value* rhs_val = codegen_expr(rhs);
+        Value *rhs_val = codegen_expr(rhs);
         emit(output, "JMP %s", ctx_get_unique_label(ctx, "CONTINUE"));
         return rhs_val;
     }
-    case TOKEN_COLON: {
+    case TOKEN_COLON:
+    {
         ctx_push_label(ctx);
         codegen_expr(lhs);
         emit(output, "%s:", ctx_get_unique_label(ctx, "E3"));
-        Value* rhs_val = codegen_expr(rhs);
+        Value *rhs_val = codegen_expr(rhs);
         emit(output, "%s:", ctx_get_unique_label(ctx, "CONTINUE"));
         return rhs_val;
     }
@@ -487,27 +536,29 @@ static Value* codegen_binary(Expr* expr) {
     return NULL;
 }
 
-static Value* codegen_variable_decl_type_inf(Expr* expr) {
-    const char* name = expr->Variable_Decl_Type_Inf.name;
-    Expr* assignment_expr = expr->Variable_Decl_Type_Inf.value;
+static Value *codegen_variable_decl_type_inf(Expr *expr)
+{
+    const char *name = expr->Variable_Decl_Type_Inf.name;
+    Expr *assignment_expr = expr->Variable_Decl_Type_Inf.value;
 
-    Value* assign_expr_val = codegen_expr(
+    Value *assign_expr_val = codegen_expr(
         assignment_expr); // Any value this creates is stored in RAX
-    Typespec* type = assign_expr_val->type;
+    Typespec *type = assign_expr_val->type;
     u64 type_size = get_size_of_typespec(type);
     u64 stack_pos = type_size + ctx->stack_index;
 
-    Value* variable = make_value_variable(name, type, stack_pos);
+    Value *variable = make_value_variable(name, type, stack_pos);
     add_variable_to_scope(scope, variable);
     emit_store(variable); // The variable is set to whatevers in RAX
     ctx->stack_index += type_size;
 
     return variable;
 }
-static Value* codegen_variable_decl(Expr* expr) {
-    const char* name = expr->Variable_Decl.name;
-    Typespec* type = expr->Variable_Decl.type;
-    Expr* assignment_expr = expr->Variable_Decl.value;
+static Value *codegen_variable_decl(Expr *expr)
+{
+    const char *name = expr->Variable_Decl.name;
+    Typespec *type = expr->Variable_Decl.type;
+    Expr *assignment_expr = expr->Variable_Decl.value;
 
     if (assignment_expr)
         codegen_expr(
@@ -515,7 +566,7 @@ static Value* codegen_variable_decl(Expr* expr) {
 
     u64 type_size = get_size_of_typespec(type);
     u64 stack_pos = type_size + ctx->stack_index;
-    Value* variable = make_value_variable(name, type, stack_pos);
+    Value *variable = make_value_variable(name, type, stack_pos);
     add_variable_to_scope(scope, variable);
 
     emit_store(variable); // The variable is set to whatevers in RAX
@@ -524,9 +575,10 @@ static Value* codegen_variable_decl(Expr* expr) {
     return variable;
 }
 
-static Value* codegen_ret(Expr* expr) {
-    Expr* ret_expr = expr->Ret.expr;
-    Value* ret_val = codegen_expr(ret_expr);
+static Value *codegen_ret(Expr *expr)
+{
+    Expr *ret_expr = expr->Ret.expr;
+    Value *ret_val = codegen_expr(ret_expr);
 
     // Pop off regs
     //    u64* regs = ctx->current_function->Function.regs_used;
@@ -548,9 +600,11 @@ static Value* codegen_ret(Expr* expr) {
     return ret_val;
 }
 
-static Value* codegen_expr(Expr* expr) {
+static Value *codegen_expr(Expr *expr)
+{
     info("Generating code for: %s", expr_to_str(expr));
-    switch (expr->kind) {
+    switch (expr->kind)
+    {
     case EXPR_NOTE:
         error("EXPR_NOTE codegen not implemented");
     case EXPR_INT:
@@ -592,7 +646,8 @@ static Value* codegen_expr(Expr* expr) {
     return NULL;
 }
 
-char* generate_code_from_ast(AST** ast) {
+char *generate_code_from_ast(AST **ast)
+{
     success("Generating X64 Assembly from AST");
 
     integer_literal_type = make_typespec_int(DEFAULT_INTEGER_BIT_SIZE, false);
@@ -605,7 +660,8 @@ char* generate_code_from_ast(AST** ast) {
     emit(output, "section .text");
 
     u64 ast_count = sb_count(ast);
-    for (u64 i = 0; i < ast_count; ++i) {
+    for (u64 i = 0; i < ast_count; ++i)
+    {
         codegen_expr(ast[i]);
     }
 
