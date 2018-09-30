@@ -148,7 +148,7 @@ int main(int argc, char** argv)
     LIST_FOREACH(timers)
     {
         Timer* tm = (Timer*)it->data;
-        success("%s: %f s", tm->desc, tm->ms / 1e3);
+        success("%s: %f seconds", tm->desc, tm->ms / 1e3);
     }
     success("==------------ === ------------==");
 

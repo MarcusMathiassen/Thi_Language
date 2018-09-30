@@ -15,15 +15,23 @@ Typespec* integer_literal_type = NULL;
 
 Context* ctx = NULL;
 string* output = NULL;
-Scope* scope = NULL;
+
+Stack* scope_stack = NULL;
 
 static Value* codegen_expr(Expr* expr);
+
+static void push_scope()
+{
+    Scope* new_scope = make_scope(10);
+    stack_push(scope_stack, new_scope);
+}
+
+static void pop_scope() { stack_pop(scope_stack); }
 
 static void append_variable_to_scope(Scope* s, Value* value)
 {
     assert(s);
     assert(value);
-    // allocate more space if needed
     if (s->alloc_count < s->count + 1) {
         s->alloc_count += 1;
         s->local_variables = xrealloc(s->local_variables, sizeof(Value*) * s->alloc_count);
@@ -41,7 +49,7 @@ static void print_scope(Scope* scope)
 }
 
 /// Returns the value, or NULL if not found.
-Value* get_variable_in_scope(Scope* scope, const char* name)
+static Value* get_variable_in_scope(Scope* scope, const char* name)
 {
     assert(scope);
     assert(name);
@@ -53,7 +61,7 @@ Value* get_variable_in_scope(Scope* scope, const char* name)
     return NULL;
 }
 
-void add_variable_to_scope(Scope* scope, Value* variable)
+static void add_variable_to_scope(Scope* scope, Value* variable)
 {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
@@ -69,7 +77,7 @@ void add_variable_to_scope(Scope* scope, Value* variable)
     // print_scope(scope);
 }
 
-void remove_variable_in_scope(Scope* scope, const char* name)
+static void remove_variable_in_scope(Scope* scope, const char* name)
 {
     Value* v = get_variable_in_scope(scope, name);
     if (v) {
@@ -85,6 +93,32 @@ void remove_variable_in_scope(Scope* scope, const char* name)
     error("Trying to remove unknown variable: %s", name);
 }
 
+static Value* get_variable(const char* name)
+{
+    STACK_FOREACH(scope_stack)
+    {
+        Scope* scope = (Scope*)it->data;
+        Value* res = get_variable_in_scope(scope, name);
+        if (res) return res;
+    }
+}
+
+static void add_variable(Value* variable)
+{
+    Scope* top = (Scope*)stack_peek(scope_stack);
+    add_variable_to_scope(top, variable);
+}
+
+static void remove_variable(Value* variable)
+{
+    STACK_FOREACH(scope_stack)
+    {
+        Scope* scope = (Scope*)it->data;
+        remove_variable_in_scope(scope, variable->Variable.name);
+        return;
+    }
+}
+
 static void emit_store(Value* variable)
 {
     assert(variable->kind == VALUE_VARIABLE);
@@ -97,7 +131,9 @@ static void emit_store(Value* variable)
 static void emit_load(Value* value)
 {
     int reg_n = get_rax_reg_of_byte_size(get_size_of_value(value));
+
     switch (value->kind) {
+
     case VALUE_INT: {
         emit(output, "MOV %s, %d", get_reg(reg_n), value->Int.value);
     } break;
@@ -109,6 +145,7 @@ static void emit_load(Value* value)
     case VALUE_FUNCTION: {
         error("VALUE_FUNCTION EMIT_LOAD NOT IMPLEMENETED");
     } break;
+
     }
 }
 
@@ -117,6 +154,8 @@ static Value* codegen_function(Expr* expr)
     const char* func_name = expr->Function.type->Function.name;
     Value* function = make_value_function(expr->Function.type);
     ctx->current_function = function;
+
+    push_scope();
 
     emit(output, "%s:", func_name);
 
@@ -136,7 +175,7 @@ static Value* codegen_function(Expr* expr)
         u64 stack_pos = temp_stack_index + size;
         Value* var = make_value_variable(arg->name, arg->type, stack_pos);
 
-        add_variable_to_scope(scope, var);
+        add_variable(var);
         emit(output, "MOV [RSP-%d], %s", stack_pos, get_reg(get_parameter_reg(index, size)));
 
         temp_stack_index += size;
@@ -148,8 +187,9 @@ static Value* codegen_function(Expr* expr)
     function->Function.stack_allocated = stack_used;
 
     if (stack_used) emit(output, "SUB RSP, %d", stack_used);
-
     codegen_expr(expr->Function.body);
+
+    pop_scope();
 
     return function;
 }
@@ -157,7 +197,7 @@ static Value* codegen_function(Expr* expr)
 static Value* codegen_ident(Expr* expr)
 {
     const char* name = expr->Ident.name;
-    Value* var = get_variable_in_scope(scope, name);
+    Value* var = get_variable(name);
     assert(var);
     emit_load(var);
     return var;
@@ -218,7 +258,7 @@ static Value* codegen_binary(Expr* expr)
         Value* lhs_val = codegen_expr(lhs);
         if (lhs_val->kind != VALUE_VARIABLE) error("lhs of an assignment must be a variable.");
         Value* rhs_val = codegen_expr(rhs);
-        Value* variable = get_variable_in_scope(scope, lhs->Variable_Decl.name);
+        Value* variable = get_variable(lhs->Variable_Decl.name);
         emit_store(variable);
         return rhs_val;
     }
@@ -483,7 +523,7 @@ static Value* codegen_variable_decl_type_inf(Expr* expr)
     u64 stack_pos = type_size + ctx->stack_index;
 
     Value* variable = make_value_variable(name, type, stack_pos);
-    add_variable_to_scope(scope, variable);
+    add_variable(variable);
     emit_store(variable); // The variable is set to whatevers in RAX
     ctx->stack_index += type_size;
 
@@ -500,7 +540,7 @@ static Value* codegen_variable_decl(Expr* expr)
     u64 type_size = get_size_of_typespec(type);
     u64 stack_pos = type_size + ctx->stack_index;
     Value* variable = make_value_variable(name, type, stack_pos);
-    add_variable_to_scope(scope, variable);
+    add_variable(variable);
 
     emit_store(variable); // The variable is set to whatevers in RAX
     ctx->stack_index += type_size;
@@ -512,6 +552,9 @@ static Value* codegen_ret(Expr* expr)
 {
     Expr* ret_expr = expr->Ret.expr;
     Value* ret_val = codegen_expr(ret_expr);
+
+    // We have to pop off any regs used.
+    // Also deallocate any stack used.
 
     // Pop off regs
     //    u64* regs = ctx->current_function->Function.regs_used;
@@ -533,6 +576,7 @@ static Value* codegen_ret(Expr* expr)
     return ret_val;
 }
 
+// @Hotpath
 static Value* codegen_expr(Expr* expr)
 {
     info("Generating code for: %s", expr_to_str(expr));
@@ -556,7 +600,6 @@ static Value* codegen_expr(Expr* expr)
     case EXPR_WHILE: error("EXPR_WHILE codegen not implemented");
     case EXPR_GROUPING: return codegen_expr(expr->Grouping.expr);
     }
-
     return NULL;
 }
 
@@ -567,7 +610,7 @@ char* generate_code_from_ast(AST** ast)
     integer_literal_type = make_typespec_int(DEFAULT_INTEGER_BIT_SIZE, false);
 
     ctx = ctx_make();
-    scope = make_scope(10);
+    scope_stack = make_stack();
     output = make_string("");
 
     emit(output, "global main");

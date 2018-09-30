@@ -38,7 +38,7 @@ void* stack_push(Stack* stack, void* data)
 {
     assert(stack);
     assert(data);
-    _StackNode* tmp = xmalloc(sizeof(Stack));
+    Stack_Node* tmp = xmalloc(sizeof(Stack));
     tmp->data = data;
     tmp->next = stack->head;
     stack->head = tmp;
@@ -49,7 +49,7 @@ void* stack_pop(Stack* stack)
 {
     assert(stack);
     if (!stack->head) return NULL;
-    _StackNode* tmp = stack->head;
+    Stack_Node* tmp = stack->head;
     void* popped = tmp->data;
     stack->head = stack->head->next;
     free(tmp);

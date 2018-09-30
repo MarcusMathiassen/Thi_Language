@@ -3,7 +3,7 @@
 #include "list.h"    // List
 #include "map.h"     // Map
 #include "stack.h"   // Stack
-#include "utility.h" // warning, error
+#include "utility.h" // warning, error, xmalloc
 #include <assert.h>  // assert
 
 static Map* symbol_map = NULL;
@@ -80,7 +80,7 @@ List* get_timers(void) { return timers; }
 
 void push_timer(const char* desc)
 {
-    Timer* tm = malloc(sizeof(Timer));
+    Timer* tm = xmalloc(sizeof(Timer));
     tm->ms = get_time();
     tm->desc = desc;
     stack_push(timer_stack, tm);

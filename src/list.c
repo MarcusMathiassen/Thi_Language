@@ -1,11 +1,11 @@
 #include "list.h"
-#include "utility.h" // error
+#include "utility.h" // error, xmalloc
 #include <assert.h>
 #include <stdlib.h> // malloc
 
 List* make_list(void)
 {
-    List* list = malloc(sizeof(List));
+    List* list = xmalloc(sizeof(List));
     list->head = NULL;
     list->tail = NULL;
     return list;
@@ -47,13 +47,13 @@ void list_tests(void)
     list_remove(list, 0);
     assert((int)list_at(list, 0) == 1);
 
-    // Uncomment to print the list
-    warning("List count: %d", list->count);
-    List_Node* current = list->head;
-    while (current != NULL) {
-        warning("%d", (int)current->data);
-        current = current->next;
-    }
+    // // Uncomment to print the list
+    // warning("List count: %d", list->count);
+    // List_Node* current = list->head;
+    // while (current != NULL) {
+    //     warning("%d", (int)current->data);
+    //     current = current->next;
+    // }
 }
 
 void* list_remove(List* list, i64 index)
@@ -111,7 +111,7 @@ void* list_prepend(List* list, void* data)
 
     ++list->count;
 
-    List_Node* new_node = malloc(sizeof(List_Node));
+    List_Node* new_node = xmalloc(sizeof(List_Node));
     new_node->data = data;
 
     if (list->head == NULL) {
@@ -132,7 +132,7 @@ void* list_append(List* list, void* data)
 
     ++list->count;
 
-    List_Node* new_node = malloc(sizeof(List_Node));
+    List_Node* new_node = xmalloc(sizeof(List_Node));
     new_node->data = data;
     new_node->next = NULL;
 
