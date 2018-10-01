@@ -566,13 +566,14 @@ static Value* codegen_ret(Expr* expr)
     // We have to pop off any regs used.
     // Also deallocate any stack used.
 
-    // Pop off regs
+    // Pop off regs in reverse order
     u8* regs_used = ctx->current_function->Function.regs_used;
     u8 regs_count = ctx->current_function->Function.regs_used_count;
-    for (u8 i = 0; i < regs_count; ++i) {
-        int reg_n = get_push_or_popable_reg(regs_used[i]);
-        emit_s("POP %s", get_reg(reg_n));
-    }
+    if (regs_count)
+        for (int i = regs_count - 1; i >= 0; --i) {
+            int reg_n = get_push_or_popable_reg(regs_used[i]);
+            emit_s("POP %s", get_reg(reg_n));
+        }
 
     // Deallocate stack used by the function
     u64 stack_used = ctx->current_function->Function.stack_allocated;

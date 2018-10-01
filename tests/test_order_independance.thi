@@ -1,5 +1,5 @@
 main :: () -> i32 {
-    ret get_integer(1)
+    ret get_integer(255/2 + 255/2 + 3)
 }
 
 get_integer :: (i: i32) -> i32 {
