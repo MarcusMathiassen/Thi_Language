@@ -79,5 +79,5 @@ void string_tests(void)
     append_string(&s, " It's nice to see you again. How are you?");
     assert(s.len == 67);
     assert(strcmp(s.c_str, "Hello, Marcus Mathiasssen. It's nice to see you "
-                            "again. How are you?") == 0);
+                           "again. How are you?") == 0);
 }

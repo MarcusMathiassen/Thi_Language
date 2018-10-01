@@ -1,10 +1,10 @@
 #include "utility.h"
-#include <assert.h>          // assert
-#include <stdarg.h>          // va_list, va_start, va_end
-#include <stdio.h>           // printf, vprintf
-#include <stdlib.h>          // malloc
-#include <string.h>          // memcpy
-#include <time.h>            // timeval
+#include <assert.h> // assert
+#include <stdarg.h> // va_list, va_start, va_end
+#include <stdio.h>  // printf, vprintf
+#include <stdlib.h> // malloc
+#include <string.h> // memcpy
+#include <time.h>   // timeval
 
 //------------------------------------------------------------------------------
 //                               Printing Functions

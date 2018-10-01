@@ -17,7 +17,6 @@ typedef struct
     float val;
 } Test_Type;
 
-
 void list_tests(void)
 {
     List* list = make_list();
@@ -51,8 +50,9 @@ void list_tests(void)
 
     // Uncomment to print the list
     info("List count: %d", list->count);
-    LIST_FOREACH(list) {
-        Test_Type *tp = (Test_Type*)it->data;
+    LIST_FOREACH(list)
+    {
+        Test_Type* tp = (Test_Type*)it->data;
         info("Test_Type id: %d, val: %f", tp->id, tp->val);
     }
 }
