@@ -619,12 +619,27 @@ static Value* codegen_call(Expr* expr)
     return make_value_call(callee, func_t->Function.ret_type);
 }
 
+static Value* codegen_note(Expr* expr)
+{
+    start_codeblock(ctx->current_function, "codegen_note");
+    assert(expr->kind == EXPR_NOTE);
+    Expr* int_expr = expr->Note.expr;
+    assert(int_expr->kind == EXPR_INT);
+    int int_val = int_expr->Int.val;
+    if (int_val < 1)
+        error("note parameters start at 1.");
+    const char* name = ctx->current_function->type->Function.args[int_val-1].name;
+    Value* var = get_variable(name);
+    emit_load(var);
+    return var;
+}
+
 // @Hotpath
 static Value* codegen_expr(Expr* expr)
 {
     // info("Generating code for: %s", expr_to_str(expr));
     switch (expr->kind) {
-    case EXPR_NOTE: error("EXPR_NOTE codegen not implemented");
+    case EXPR_NOTE: return codegen_note(expr);
     case EXPR_INT: return codegen_int(expr);
     case EXPR_FLOAT: error("EXPR_FLOAT codegen not implemented");
     case EXPR_IDENT: return codegen_ident(expr);
