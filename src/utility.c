@@ -239,12 +239,11 @@ static const char* colors[6] = {
     "\033[36m", // cyan,
 };
 static int counter = 0;
-static int colors_count = 5;
+static int colors_count = 6;
 const char* get_next_color(void)
 {
-    ++counter;
-    if (counter > colors_count) counter = 0;
-    return colors[counter];
+    if (counter == colors_count) counter = 0;
+    return colors[counter++];
 }
 char* wrap_with_colored_parens(char* str)
 {
