@@ -26,8 +26,7 @@ u64 get_size_of_value(Value* value)
     case VALUE_VARIABLE: return get_size_of_typespec(value->type);
     case VALUE_FUNCTION: error("Asking for the size of a function? Why?");
     }
-    error("get_size_of_value no valid size found");
-    return 0;
+    return get_size_of_typespec(value->type);
 }
 
 void emit_s(const char* fmt, ...)

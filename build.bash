@@ -15,6 +15,7 @@ if [ $? == 0 ]; then
     ./test.bash
     # ./test.bash ./tests/test_basic_setup.thi ./tests/test_hex.thi ./tests/test_logical_and.thi ./tests/test_logical_or.thi ./tests/test_not.thi ./tests/test_math.thi ./tests/test_math_plus.thi ./tests/test_math_minus.thi ./tests/test_math_div.thi ./tests/test_math_mul.thi  ./tests/test_variable_assignment.thi  ./tests/test_variable_typedefered.thi  ./tests/test_variable_declaration.thi ./tests/test_not_equal_to.thi
     # ./test.bash ./tests/test_math.thi
+    # ./test.bash ./tests/test_function_call_2.thi
     # ./test.bash ./tests/test_basic_setup.thi
     # ./test.bash ./tests/test_ternary.thi
     # ./test.bash ./tests/test_function_call.thi
