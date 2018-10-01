@@ -74,7 +74,7 @@ void start_codeblock(Value* function, const char* desc)
     cb->block = make_string("");
     cb->color = get_unique_color();
     sb_push(function->Function.codeblocks, cb);
-    current_output = cb->block;
+    current_output = &cb->block;
 }
 
 //------------------------------------------------------------------------------
@@ -166,8 +166,8 @@ void function_print_debug(Value* function)
         const char* cb_c = cb->color;
 
         // Print line
-        if (cb->block->len) {
-            const char* line = cb->block->c_str;
+        if (cb->block.len) {
+            const char* line = cb->block.c_str;
             info("%s%s\033[00m", cb_c, line);
         }
     }

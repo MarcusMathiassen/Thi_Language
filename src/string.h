@@ -8,8 +8,7 @@ typedef struct
     u64 len;
 } string;
 
-string* make_string(const char* str);
-
+string make_string(const char* str);
 void append_string(string* s, const char* str);
 void free_string(string* s);
 

@@ -17,8 +17,8 @@ enum Value_Kind
 
 typedef struct CodeBlock
 {
-    string* desc;
-    string* block;
+    string desc;
+    string block;
     const char* color;
 } CodeBlock;
 

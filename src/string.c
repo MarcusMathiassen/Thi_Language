@@ -7,15 +7,15 @@
 #include <stdlib.h>  // free
 #include <string.h>  // memcpy
 
-string* make_string(const char* str)
+string make_string(const char* str)
 {
     assert(str);
-    string* s = malloc(sizeof(string));
+    string s;
     u64 str_len = strlen(str);
-    s->c_str = xmalloc(str_len + 1);
-    s->len = str_len;
-    memcpy(s->c_str, str, str_len);
-    s->c_str[s->len] = 0;
+    s.c_str = xmalloc(str_len + 1);
+    s.len = str_len;
+    memcpy(s.c_str, str, str_len);
+    s.c_str[s.len] = 0;
     return s;
 }
 
@@ -70,14 +70,14 @@ const char* str_intern(const char* str) { return str_intern_range(str, str + str
 void string_tests(void)
 {
     // string test
-    string* s = make_string("Hello");
-    assert(s->len == 5);
-    assert(strcmp(s->c_str, "Hello") == 0);
-    append_string(s, ", Marcus Mathiasssen.");
-    assert(s->len == 26);
-    assert(strcmp(s->c_str, "Hello, Marcus Mathiasssen.") == 0);
-    append_string(s, " It's nice to see you again. How are you?");
-    assert(s->len == 67);
-    assert(strcmp(s->c_str, "Hello, Marcus Mathiasssen. It's nice to see you "
+    string s = make_string("Hello");
+    assert(s.len == 5);
+    assert(strcmp(s.c_str, "Hello") == 0);
+    append_string(&s, ", Marcus Mathiasssen.");
+    assert(s.len == 26);
+    assert(strcmp(s.c_str, "Hello, Marcus Mathiasssen.") == 0);
+    append_string(&s, " It's nice to see you again. How are you?");
+    assert(s.len == 67);
+    assert(strcmp(s.c_str, "Hello, Marcus Mathiasssen. It's nice to see you "
                             "again. How are you?") == 0);
 }

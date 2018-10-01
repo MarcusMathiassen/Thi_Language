@@ -11,13 +11,10 @@
 #include "value.h"   // Value, Scope
 #include <assert.h>  // assert
 
-Typespec* integer_literal_type = NULL;
-
-Context* ctx = NULL;
-string* output = NULL;
-
-Stack* scope_stack = NULL;
-
+static Typespec* integer_literal_type = NULL;
+static Context* ctx = NULL;
+static string output;
+static Stack* scope_stack = NULL;
 static Value** functions = NULL;
 
 static Value* codegen_expr(Expr* expr);
@@ -73,7 +70,7 @@ static void add_variable_to_scope(Scope* scope, Value* variable)
     Value* res = get_variable_in_scope(scope, name);
     if (res) error("variable %s already exists in current scope.", name);
 
-    info("Added variable %s", name);
+    // info("Added variable %s", name);
     append_variable_to_scope(scope, variable);
     // print_scope(scope);
 }
@@ -110,7 +107,7 @@ static void add_variable(Value* variable)
 {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
-    warning("adding variable: %s %llu", variable->Variable.name, variable->Variable.stack_pos);
+    // warning("adding variable: %s %llu", variable->Variable.name, variable->Variable.stack_pos);
     Scope* top = (Scope*)stack_peek(scope_stack);
     add_variable_to_scope(top, variable);
 }
@@ -658,8 +655,8 @@ char* generate_code_from_ast(AST** ast)
     scope_stack = make_stack();
     output = make_string("");
 
-    emit(output, "global main");
-    emit(output, "section .text");
+    emit(&output, "global main");
+    emit(&output, "section .text");
 
     u64 ast_count = sb_count(ast);
     for (u64 i = 0; i < ast_count; ++i) {
@@ -671,26 +668,26 @@ char* generate_code_from_ast(AST** ast)
         Value* func_v = functions[i];
         const char* func_name = func_v->Function.name;
 
-        emit(output, "%s:", func_name);
+        emit(&output, "%s:", func_name);
 
         u8* regs_used = func_v->Function.regs_used;
         u8 regs_count = func_v->Function.regs_used_count;
         for (u8 k = 0; k < regs_count; ++k) {
             int reg_n = get_push_or_popable_reg(regs_used[k]);
-            emit(output, "   PUSH %s", get_reg(reg_n));
+            emit(&output, "   PUSH %s", get_reg(reg_n));
         }
 
         u64 stack_allocated = func_v->Function.stack_allocated;
         // Allocate stack space
         if (stack_allocated) {
-            emit(output, "   SUB RSP, %llu", stack_allocated);
+            emit(&output, "   SUB RSP, %llu", stack_allocated);
             info("function '%s' allocated %d bytes on the stack", func_name, stack_allocated);
         }
 
         CodeBlock** codeblocks = func_v->Function.codeblocks;
         int cb_count = sb_count(codeblocks);
         for (int j = 0; j < cb_count; ++j) {
-            if (codeblocks[j]->block->len) emit(output, "%s", codeblocks[j]->block->c_str);
+            if (codeblocks[j]->block.len) emit(&output, "%s", codeblocks[j]->block.c_str);
         }
     }
 
@@ -699,5 +696,5 @@ char* generate_code_from_ast(AST** ast)
         function_print_debug(func_v);
     }
 
-    return output->c_str;
+    return output.c_str;
 }
