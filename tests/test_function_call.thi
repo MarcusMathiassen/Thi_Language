@@ -1,13 +1,8 @@
 
-foo :: (a: i32, b: i32) -> i32 {
-    ret a - b
-}
-
-add :: (a1: i32) -> i32
-{
-    ret foo(a1, 1)
+foo :: (a: i32) -> i32 {
+    ret a
 }
 
 main :: () -> i32 {
-    ret add(2)
+    ret foo(1)
 }

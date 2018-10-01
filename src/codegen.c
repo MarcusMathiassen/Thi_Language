@@ -18,6 +18,8 @@ string* output = NULL;
 
 Stack* scope_stack = NULL;
 
+static Value** functions = NULL;
+
 static Value* codegen_expr(Expr* expr);
 
 static void push_scope()
@@ -25,7 +27,6 @@ static void push_scope()
     Scope* new_scope = make_scope(10);
     stack_push(scope_stack, new_scope);
 }
-
 static void pop_scope() { stack_pop(scope_stack); }
 
 static void append_variable_to_scope(Scope* s, Value* value)
@@ -70,7 +71,7 @@ static void add_variable_to_scope(Scope* scope, Value* variable)
 
     // Check for redeclaration
     Value* res = get_variable_in_scope(scope, name);
-    if (res) error("redeclaration of variable %s", name);
+    if (res) error("variable %s already exists in current scope.", name);
 
     info("Added variable %s", name);
     append_variable_to_scope(scope, variable);
@@ -101,6 +102,8 @@ static Value* get_variable(const char* name)
         Value* res = get_variable_in_scope(scope, name);
         if (res) return res;
     }
+    error("no variable with %s", name);
+    return NULL;
 }
 
 static void add_variable(Value* variable)
@@ -124,22 +127,24 @@ static void remove_variable(Value* variable)
 
 static void emit_store(Value* variable)
 {
+    start_codeblock(ctx->current_function, "emit_store");
     assert(variable->kind == VALUE_VARIABLE);
     u64 size = get_size_of_value(variable);
     int reg_n = get_rax_reg_of_byte_size(size);
     u64 stack_pos = get_stack_pos_of_variable(variable);
-    emit(output, "MOV [RSP-%d], %s", stack_pos, get_reg(reg_n));
+    emit_s("MOV [RSP-%d], %s", stack_pos, get_reg(reg_n));
 }
 
 static void emit_load(Value* value)
 {
+    start_codeblock(ctx->current_function, "emit_load");
     int reg_n = get_rax_reg_of_byte_size(get_size_of_value(value));
     switch (value->kind) {
     case VALUE_INT: {
-        emit(output, "MOV %s, %d", get_reg(reg_n), value->Int.value);
+        emit_s("MOV %s, %d", get_reg(reg_n), value->Int.value);
     } break;
     case VALUE_VARIABLE: {
-        emit(output, "MOV %s, [RSP-%d]", get_reg(reg_n), get_stack_pos_of_variable(value));
+        emit_s("MOV %s, [RSP-%d]", get_reg(reg_n), get_stack_pos_of_variable(value));
     } break;
     case VALUE_FUNCTION: {
         error("VALUE_FUNCTION EMIT_LOAD NOT IMPLEMENETED");
@@ -155,7 +160,9 @@ static Value* codegen_function(Expr* expr)
 
     push_scope();
 
-    emit(output, "%s:", func_name);
+    start_codeblock(ctx->current_function, "codegen_function");
+
+    sb_push(functions, function);
 
     u64 index = 0;
     u64 stack_before_func = ctx->stack_index;
@@ -173,7 +180,7 @@ static Value* codegen_function(Expr* expr)
         Value* var = make_value_variable(arg->name, arg->type, stack_pos);
 
         add_variable(var);
-        emit(output, "MOV [RSP-%d], %s", stack_pos, get_reg(get_parameter_reg(index, size)));
+        emit_s("MOV [RSP-%d], %s", stack_pos, get_reg(get_parameter_reg(index, size)));
 
         temp_stack_index += size;
         ++index;
@@ -183,7 +190,6 @@ static Value* codegen_function(Expr* expr)
     u64 stack_used = temp_stack_index - stack_before_func;
     function->Function.stack_allocated = stack_used;
 
-    if (stack_used) emit(output, "SUB RSP, %d", stack_used);
     codegen_expr(expr->Function.body);
 
     pop_scope();
@@ -193,6 +199,7 @@ static Value* codegen_function(Expr* expr)
 
 static Value* codegen_ident(Expr* expr)
 {
+    start_codeblock(ctx->current_function, "codegen_ident");
     const char* name = expr->Ident.name;
     Value* var = get_variable(name);
     assert(var);
@@ -202,6 +209,7 @@ static Value* codegen_ident(Expr* expr)
 
 static Value* codegen_int(Expr* expr)
 {
+    start_codeblock(ctx->current_function, "codegen_int");
     Value* val = make_value_int(DEFAULT_INTEGER_BYTE_SIZE, integer_literal_type, expr->Int.val);
     emit_load(val);
     return val;
@@ -209,17 +217,21 @@ static Value* codegen_int(Expr* expr)
 
 static Value* codegen_block(Expr* expr)
 {
+    start_codeblock(ctx->current_function, "codegen_block");
+    push_scope();
     Expr** stmts = expr->Block.stmts;
     u64 stmts_count = sb_count(stmts);
     Value* last = NULL;
     for (u64 i = 0; i < stmts_count; ++i) {
         last = codegen_expr(stmts[i]);
     }
+    pop_scope();
     return last;
 }
 
 static Value* codegen_unary(Expr* expr)
 {
+    start_codeblock(ctx->current_function, "codegen_unary");
     Token_Kind op = expr->Unary.op;
     Expr* operand = expr->Unary.operand;
 
@@ -231,12 +243,12 @@ static Value* codegen_unary(Expr* expr)
     case THI_SYNTAX_ADDRESS: error("AST_Unary '*' not implemented"); break;
     case THI_SYNTAX_POINTER: error("AST_Unary '&' not implemented"); break;
     case TOKEN_BANG: {
-        emit(output, "CMP %s, 0", get_reg(reg_n));
-        emit(output, "SETE AL");
+        emit_s("CMP %s, 0", get_reg(reg_n));
+        emit_s("SETE AL");
         break;
     }
     case TOKEN_MINUS: {
-        emit(output, "NEG %s", get_reg(reg_n));
+        emit_s("NEG %s", get_reg(reg_n));
         break;
     }
     default: error("unhandled unary case: %c", token_kind_to_str(op)); break;
@@ -246,6 +258,7 @@ static Value* codegen_unary(Expr* expr)
 
 static Value* codegen_binary(Expr* expr)
 {
+    start_codeblock(ctx->current_function, "codegen_binary");
     Token_Kind op = expr->Binary.op;
     Expr* lhs = expr->Binary.lhs;
     Expr* rhs = expr->Binary.rhs;
@@ -265,9 +278,9 @@ static Value* codegen_binary(Expr* expr)
         int res_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
         function_push_reg(ctx->current_function, temp_reg_n);
-        emit(output, "MOV %s, %s", get_reg(temp_reg_n), get_reg(res_n));
+        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(res_n));
         codegen_expr(rhs);
-        emit(output, "ADD %s, %s", get_reg(res_n), get_reg(temp_reg_n));
+        emit_s("ADD %s, %s", get_reg(res_n), get_reg(temp_reg_n));
         return lhs_val;
     }
     case TOKEN_MINUS: {
@@ -276,9 +289,9 @@ static Value* codegen_binary(Expr* expr)
         int temp_reg_n = get_next_available_reg(rhs_size);
         function_push_reg(ctx->current_function, temp_reg_n);
         int reg_n = get_rax_reg_of_byte_size(rhs_size);
-        emit(output, "MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
         Value* lhs_val = codegen_expr(lhs);
-        emit(output, "SUB %s, %s", get_reg(reg_n), get_reg(temp_reg_n));
+        emit_s("SUB %s, %s", get_reg(reg_n), get_reg(temp_reg_n));
         return lhs_val;
     }
     case TOKEN_ASTERISK: {
@@ -287,9 +300,9 @@ static Value* codegen_binary(Expr* expr)
         int res_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
         function_push_reg(ctx->current_function, temp_reg_n);
-        emit(output, "MOV %s, %s", get_reg(temp_reg_n), get_reg(res_n));
+        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(res_n));
         codegen_expr(rhs);
-        emit(output, "IMUL %s, %s", get_reg(res_n), get_reg(temp_reg_n));
+        emit_s("IMUL %s, %s", get_reg(res_n), get_reg(temp_reg_n));
         return lhs_val;
     }
     case TOKEN_FWSLASH: {
@@ -298,10 +311,10 @@ static Value* codegen_binary(Expr* expr)
         int reg_n = get_rax_reg_of_byte_size(rhs_size);
         int temp_reg_n = get_next_available_reg(rhs_size);
         function_push_reg(ctx->current_function, temp_reg_n);
-        emit(output, "MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
         codegen_expr(lhs);
-        emit(output, "CDQ");
-        emit(output, "IDIV %s", get_reg(temp_reg_n));
+        emit_s("CDQ");
+        emit_s("IDIV %s", get_reg(temp_reg_n));
         return rhs_val;
     }
 
@@ -311,14 +324,14 @@ static Value* codegen_binary(Expr* expr)
         int reg_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
         function_push_reg(ctx->current_function, temp_reg_n);
-        emit(output, "MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
         codegen_expr(rhs);
         int temp_lower_byte = get_reg_as_another_size(temp_reg_n, 1);
-        emit(output, "CMP %s, 0", get_reg(temp_reg_n));
-        emit(output, "SETNE %s", get_reg(temp_lower_byte));
-        emit(output, "CMP %s, 0", get_reg(reg_n));
-        emit(output, "SETNE AL");
-        emit(output, "AND %s, AL", get_reg(temp_lower_byte));
+        emit_s("CMP %s, 0", get_reg(temp_reg_n));
+        emit_s("SETNE %s", get_reg(temp_lower_byte));
+        emit_s("CMP %s, 0", get_reg(reg_n));
+        emit_s("SETNE AL");
+        emit_s("AND %s, AL", get_reg(temp_lower_byte));
         return lhs_val;
     }
 
@@ -328,10 +341,10 @@ static Value* codegen_binary(Expr* expr)
         int reg_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
         function_push_reg(ctx->current_function, temp_reg_n);
-        emit(output, "MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
         codegen_expr(rhs);
-        emit(output, "OR %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
-        emit(output, "SETNE AL");
+        emit_s("OR %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        emit_s("SETNE AL");
         return lhs_val;
     }
 
@@ -341,10 +354,10 @@ static Value* codegen_binary(Expr* expr)
         int reg_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
         function_push_reg(ctx->current_function, temp_reg_n);
-        emit(output, "MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
         codegen_expr(rhs);
-        emit(output, "CMP %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
-        emit(output, "SETL AL");
+        emit_s("CMP %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        emit_s("SETL AL");
         return lhs_val;
     }
 
@@ -354,10 +367,10 @@ static Value* codegen_binary(Expr* expr)
         int reg_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
         function_push_reg(ctx->current_function, temp_reg_n);
-        emit(output, "MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
         codegen_expr(rhs);
-        emit(output, "CMP %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
-        emit(output, "SETG AL");
+        emit_s("CMP %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        emit_s("SETG AL");
         return lhs_val;
     }
 
@@ -367,10 +380,10 @@ static Value* codegen_binary(Expr* expr)
         int reg_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
         function_push_reg(ctx->current_function, temp_reg_n);
-        emit(output, "MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
         codegen_expr(rhs);
-        emit(output, "CMP %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
-        emit(output, "SETLE AL");
+        emit_s("CMP %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        emit_s("SETLE AL");
         return lhs_val;
     }
 
@@ -380,10 +393,10 @@ static Value* codegen_binary(Expr* expr)
         int reg_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
         function_push_reg(ctx->current_function, temp_reg_n);
-        emit(output, "MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
         codegen_expr(rhs);
-        emit(output, "CMP %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
-        emit(output, "SETGE AL");
+        emit_s("CMP %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        emit_s("SETGE AL");
         return lhs_val;
     }
 
@@ -393,10 +406,10 @@ static Value* codegen_binary(Expr* expr)
         int reg_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
         function_push_reg(ctx->current_function, temp_reg_n);
-        emit(output, "MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
         codegen_expr(rhs);
-        emit(output, "CMP %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
-        emit(output, "SETE AL");
+        emit_s("CMP %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        emit_s("SETE AL");
         return lhs_val;
     }
 
@@ -406,10 +419,10 @@ static Value* codegen_binary(Expr* expr)
         int reg_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
         function_push_reg(ctx->current_function, temp_reg_n);
-        emit(output, "MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
         codegen_expr(rhs);
-        emit(output, "CMP %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
-        emit(output, "SETNE AL");
+        emit_s("CMP %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        emit_s("SETNE AL");
         return lhs_val;
     }
 
@@ -421,7 +434,7 @@ static Value* codegen_binary(Expr* expr)
         u64 rhs_size = get_size_of_value(rhs_val);
         u64 reg_n = get_rax_reg_of_byte_size(rhs_size);
         u64 stack_pos = get_stack_pos_of_variable(variable);
-        emit(output, "ADD [RSP-%d], %s", stack_pos, get_reg(reg_n));
+        emit_s("ADD [RSP-%d], %s", stack_pos, get_reg(reg_n));
 
         return variable;
     }
@@ -433,12 +446,12 @@ static Value* codegen_binary(Expr* expr)
 
         int temp_reg_n = get_next_available_reg(rhs_size);
         // curr_func->add_used_reg(temp_reg.reg);
-        emit(output, "MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
 
         Value* variable = codegen_expr(lhs);
         if (variable->kind != VALUE_VARIABLE) error("lhs of -= must be a variable.");
 
-        emit(output, "SUB %s, %s", get_reg(reg_n), get_reg(temp_reg_n));
+        emit_s("SUB %s, %s", get_reg(reg_n), get_reg(temp_reg_n));
         emit_store(variable);
         return variable;
     }
@@ -451,7 +464,7 @@ static Value* codegen_binary(Expr* expr)
         u64 rhs_size = get_size_of_value(rhs_val);
         u64 reg_n = get_rax_reg_of_byte_size(rhs_size);
         u64 stack_pos = get_stack_pos_of_variable(variable);
-        emit(output, "IMUL %s, [RSP-%d]", get_reg(reg_n), stack_pos);
+        emit_s("IMUL %s, [RSP-%d]", get_reg(reg_n), stack_pos);
         emit_store(variable);
         return variable;
     }
@@ -468,13 +481,13 @@ static Value* codegen_binary(Expr* expr)
 
         int temp_reg_n = get_next_available_reg(rhs_size);
         // curr_func->add_used_reg(temp_reg.reg);
-        emit(output, "MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
 
         Value* variable = codegen_expr(lhs);
         if (variable->kind != VALUE_VARIABLE) error("lhs of /= must be a variable.");
 
-        emit(output, "CDQ");
-        emit(output, "IDIV %s", get_reg(temp_reg_n));
+        emit_s("CDQ");
+        emit_s("IDIV %s", get_reg(temp_reg_n));
         emit_store(variable);
         return variable;
     }
@@ -488,19 +501,19 @@ static Value* codegen_binary(Expr* expr)
         Value* lhs_val = codegen_expr(lhs);
         u64 lhs_size = get_size_of_value(lhs_val);
         u64 reg_n = get_rax_reg_of_byte_size(lhs_size);
-        emit(output, "CMP %s, 0", get_reg(reg_n));
+        emit_s("CMP %s, 0", get_reg(reg_n));
         ctx_pop_label(ctx);
-        emit(output, "JE %s", ctx_get_unique_label(ctx, "E3"));
+        emit_s("JE %s", ctx_get_unique_label(ctx, "E3"));
         Value* rhs_val = codegen_expr(rhs);
-        emit(output, "JMP %s", ctx_get_unique_label(ctx, "CONTINUE"));
+        emit_s("JMP %s", ctx_get_unique_label(ctx, "CONTINUE"));
         return rhs_val;
     }
     case TOKEN_COLON: {
         ctx_push_label(ctx);
         codegen_expr(lhs);
-        emit(output, "%s:", ctx_get_unique_label(ctx, "E3"));
+        emit_s("%s:", ctx_get_unique_label(ctx, "E3"));
         Value* rhs_val = codegen_expr(rhs);
-        emit(output, "%s:", ctx_get_unique_label(ctx, "CONTINUE"));
+        emit_s("%s:", ctx_get_unique_label(ctx, "CONTINUE"));
         return rhs_val;
     }
     }
@@ -511,6 +524,7 @@ static Value* codegen_binary(Expr* expr)
 
 static Value* codegen_variable_decl_type_inf(Expr* expr)
 {
+    start_codeblock(ctx->current_function, "codegen_variable_decl_type_inf");
     const char* name = expr->Variable_Decl_Type_Inf.name;
     Expr* assignment_expr = expr->Variable_Decl_Type_Inf.value;
 
@@ -528,6 +542,7 @@ static Value* codegen_variable_decl_type_inf(Expr* expr)
 }
 static Value* codegen_variable_decl(Expr* expr)
 {
+    start_codeblock(ctx->current_function, "codegen_variable_decl");
     const char* name = expr->Variable_Decl.name;
     Typespec* type = expr->Variable_Decl.type;
     Expr* assignment_expr = expr->Variable_Decl.value;
@@ -547,6 +562,7 @@ static Value* codegen_variable_decl(Expr* expr)
 
 static Value* codegen_ret(Expr* expr)
 {
+    start_codeblock(ctx->current_function, "codegen_ret");
     Expr* ret_expr = expr->Ret.expr;
     Value* ret_val = codegen_expr(ret_expr);
 
@@ -554,23 +570,55 @@ static Value* codegen_ret(Expr* expr)
     // Also deallocate any stack used.
 
     // Pop off regs
-    //    u64* regs = ctx->current_function->Function.regs_used;
-    //    u64 regs_count = ctx->current_function->Function.regs_used_count;
-    //    for (int i = 0; i < regs_count; ++i)
-    //    {
-    //        int reg_n = get_push_or_popable_reg(regs[i]);
-    //        emit(output, "POP %s", get_reg(reg_n));
-    //    }
-    //
-    //    // Deallocate stack used by the function
-    //    u64 stack_used = ctx->current_function->Function.stack_allocated;
-    //    if (stack_used)
-    //    {
-    //        emit(output, "ADD RSP, %llu", stack_used);
-    //    }
+    u8* regs_used = ctx->current_function->Function.regs_used;
+    u8 regs_count = ctx->current_function->Function.regs_used_count;
+    for (u8 i = 0; i < regs_count; ++i) {
+        int reg_n = get_push_or_popable_reg(regs_used[i]);
+        emit_s("POP %s", get_reg(reg_n));
+    }
 
-    emit(output, "RET");
+    // Deallocate stack used by the function
+    u64 stack_used = ctx->current_function->Function.stack_allocated;
+    if (stack_used) {
+        emit_s("ADD RSP, %llu", stack_used);
+    }
+
+    emit_s("RET");
     return ret_val;
+}
+
+static Value* codegen_call(Expr* expr)
+{
+    start_codeblock(ctx->current_function, "codegen_call");
+
+    const char* callee = expr->Call.callee;
+    Expr** args = expr->Call.args;
+
+    Typespec* func_t = get_symbol(callee);
+
+    // push the arguments in reverse order onto the stack
+    int func_arg_count = typespec_function_get_arg_count(func_t);
+    int arg_count = sb_count(args);
+
+    if (func_arg_count != arg_count) error("wrong amount of parameters for call to function '%s'", callee);
+
+    int bytes_to_remove = 0;
+    for (int i = arg_count - 1; i >= 0; --i) {
+        Arg* arg = args[i];
+
+        Value* val = codegen_expr(arg);
+        int size = get_size_of_value(val);
+        int reg_n = get_rax_reg_of_byte_size(size);
+
+        int param_reg_n = get_parameter_reg(i, size);
+        emit_s("MOV %s, %s", get_reg(param_reg_n), get_reg(reg_n));
+
+        ctx->stack_index += size;
+        bytes_to_remove += size;
+    }
+
+    emit_s("CALL %s", callee);
+    return make_value_call(callee, func_t->Function.ret_type);
 }
 
 // @Hotpath
@@ -582,7 +630,7 @@ static Value* codegen_expr(Expr* expr)
     case EXPR_INT: return codegen_int(expr);
     case EXPR_FLOAT: error("EXPR_FLOAT codegen not implemented");
     case EXPR_IDENT: return codegen_ident(expr);
-    case EXPR_CALL: error("EXPR_CALL codegen not implemented");
+    case EXPR_CALL: return codegen_call(expr);
     case EXPR_UNARY: return codegen_unary(expr);
     case EXPR_BINARY: return codegen_binary(expr);
     case EXPR_COMPOUND: error("EXPR_COMPOUND codegen not implemented");
@@ -616,6 +664,40 @@ char* generate_code_from_ast(AST** ast)
     u64 ast_count = sb_count(ast);
     for (u64 i = 0; i < ast_count; ++i) {
         codegen_expr(ast[i]);
+    }
+
+    int func_count = sb_count(functions);
+    for (int i = 0; i < func_count; ++i) {
+        Value* func_v = functions[i];
+        const char* func_name = func_v->Function.name;
+
+        emit(output, "%s:", func_name);
+
+        u8* regs_used = func_v->Function.regs_used;
+        u8 regs_count = func_v->Function.regs_used_count;
+        for (u8 k = 0; k < regs_count; ++k) {
+            int reg_n = get_push_or_popable_reg(regs_used[k]);
+            emit(output, "   PUSH %s", get_reg(reg_n));
+        }
+
+        u64 stack_allocated = func_v->Function.stack_allocated;
+        // Allocate stack space 
+        if (stack_allocated) {
+            emit(output, "   SUB RSP, %llu", stack_allocated);
+            info("function '%s' allocated %d bytes on the stack", func_name, stack_allocated);
+        }
+
+        CodeBlock** codeblocks = func_v->Function.codeblocks;
+        int cb_count = sb_count(codeblocks);
+        for (int j = 0; j < cb_count; ++j) {
+            if (codeblocks[j]->block->len) 
+                emit(output, "%s", codeblocks[j]->block->c_str);
+        }
+    }
+
+    for (int i = 0; i < func_count; ++i) {
+        Value* func_v = functions[i];
+        function_print_debug(func_v);
     }
 
     return output->c_str;

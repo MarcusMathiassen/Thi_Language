@@ -76,6 +76,7 @@ static void eat_kind(Token_Kind kind);
 static Expr* get_definition(const char* ident);
 static Expr* get_variable_declaration(const char* ident);
 static Expr* get_variable_typeinferred(const char* ident);
+static Expr* get_function_call(const char* ident);
 static Expr* parse_top_level(void);
 static Expr* parse_statement(void);
 static Expr* parse_primary(void);
@@ -238,9 +239,9 @@ static Expr* parse_identifier()
     switch (curr_tok.kind) {
     case TOKEN_COLON_COLON: return get_definition(ident);
     case TOKEN_COLON_EQ: return get_variable_typeinferred(ident);
-    case TOKEN_COLON:
-        return get_variable_declaration(ident);
-        // case TOKEN_OPEN_PAREN:    return get_function_call();
+    case TOKEN_COLON: return get_variable_declaration(ident);
+    case TOKEN_OPEN_PAREN:
+        return get_function_call(ident);
         // case TOKEN_OPEN_BRACKET:  return get_subscript_access();
     }
     return make_expr_ident(ident);
@@ -263,6 +264,25 @@ static Expr* parse_ret()
     eat();
     Expr* exp = parse_expression();
     return make_expr_ret(exp);
+}
+
+static Expr* get_function_call(const char* ident)
+{
+    eat_kind(TOKEN_OPEN_PAREN);
+    Expr** args = NULL;
+
+    bool has_multiple_arguments = false;
+    while (!tok_is(TOKEN_CLOSE_PAREN)) {
+        if (has_multiple_arguments) eat_kind(TOKEN_COMMA);
+        Expr* arg = parse_expression();
+        if (arg)
+            sb_push(args, arg);
+        else
+            error("Invalid expression in function call %s", ident);
+        has_multiple_arguments = true;
+    }
+    eat_kind(TOKEN_CLOSE_PAREN);
+    return make_expr_call(ident, args);
 }
 
 static Expr* get_variable_typeinferred(const char* ident)

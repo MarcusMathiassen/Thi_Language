@@ -81,6 +81,11 @@ struct Expr
         } Ident;
         struct
         {
+            const char* callee;
+            Expr** args;
+        } Call;
+        struct
+        {
             Token_Kind op;
             Expr* operand;
         } Unary;
@@ -109,6 +114,7 @@ Expr* make_expr_int(u64 value);
 Expr* make_expr_float(f64 value);
 Expr* make_expr_ident(const char* ident);
 Expr* make_expr_struct(Typespec* struct_t);
+Expr* make_expr_call(const char* callee, Expr** args);
 Expr* make_expr_function(Typespec* func_t, Expr* body);
 Expr* make_expr_unary(Token_Kind op, Expr* operand);
 Expr* make_expr_binary(Token_Kind op, Expr* lhs, Expr* rhs);

@@ -6,6 +6,7 @@
 int get_num_registers();
 const char* get_reg(int reg_n);
 
+int get_push_or_popable_reg(int reg);
 int get_rax_reg_of_byte_size(u8 bytes);
 int get_parameter_reg(i8 i, i8 size);
 int get_next_available_reg(i8 size);

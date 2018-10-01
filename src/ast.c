@@ -85,6 +85,10 @@ char* expr_to_str(Expr* expr)
     } break;
 
     case EXPR_GROUPING: result = strf("(%s)", expr_to_str(expr->Grouping.expr)); break;
+    case EXPR_CALL: {
+        string* str = make_string(strf("%s", expr->Call.callee));
+        result = str->c_str;
+    } break;
     }
     assert(result);
     return wrap_with_colored_parens(result);
@@ -184,6 +188,15 @@ Expr* make_expr_block(Expr** stmts)
     return e;
 }
 
+Expr* make_expr_call(const char* callee, Expr** args)
+{
+    assert(callee);
+    assert(args);
+    Expr* e = make_expr(EXPR_CALL);
+    e->Call.callee = callee;
+    e->Call.args = args;
+    return e;
+}
 Expr* make_expr_grouping(Expr* expr)
 {
     assert(expr);

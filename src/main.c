@@ -134,10 +134,10 @@ int main(int argc, char** argv)
     pop_timer();
 
     // Debug info. Writing out sizes of our types.
-    info("size of Token: %lu bytes", sizeof(Token));
-    info("size of Expr: %lu bytes", sizeof(Expr));
-    info("size of Typespec: %lu bytes", sizeof(Typespec));
-    info("size of Value: %lu bytes", sizeof(Value));
+    // info("size of Token: %lu bytes", sizeof(Token));
+    // info("size of Expr: %lu bytes", sizeof(Expr));
+    // info("size of Typespec: %lu bytes", sizeof(Typespec));
+    // info("size of Value: %lu bytes", sizeof(Value));
 
     pop_timer();
 

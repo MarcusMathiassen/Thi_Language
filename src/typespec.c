@@ -30,6 +30,13 @@ u64 get_size_of_typespec(Typespec* type)
     return 0;
 }
 
+u64 typespec_function_get_arg_count(Typespec* type)
+{
+    assert(type);
+    assert(type->kind == TYPESPEC_FUNCTION);
+    return sb_count(type->Function.args);
+}
+
 char* typespec_to_str(Typespec* type)
 {
     switch (type->kind) {
@@ -50,8 +57,9 @@ char* typespec_to_str(Typespec* type)
         Arg* args = type->Function.args;
         u64 arg_count = sb_count(args);
         if (arg_count)
-            for (int i = 0; i < sb_count(args); ++i) {
+            for (int i = 0; i < arg_count; ++i) {
                 append_string(str, strf("%s: %s", args[i].name, typespec_to_str(args[i].type)));
+                if (i != arg_count - 1) append_string(str, ", ");
             }
 
         append_string(str, strf(") -> %s", typespec_to_str(type->Function.ret_type)));

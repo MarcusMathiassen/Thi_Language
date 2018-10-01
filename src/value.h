@@ -11,17 +11,20 @@ enum Value_Kind
 {
     VALUE_INT,
     VALUE_VARIABLE,
+    VALUE_CALL,
     VALUE_FUNCTION,
 };
 
 typedef struct CodeBlock
 {
+    string* desc;
     string* block;
     const char* color;
 } CodeBlock;
 
-CodeBlock* make_codeblock(const char* desc, const char* color);
 void add_lines_to_codeblock(CodeBlock* cb, const char* line);
+
+void start_codeblock(Value* function, const char* desc);
 
 //------------------------------------------------------------------------------
 //                          Value Structures
@@ -37,6 +40,7 @@ typedef struct
 {
     const char* name;
     u64 stack_allocated;
+    CodeBlock** codeblocks;
 
     // An array of all scrap regs used by the function.
     // These are pushed at the start of the function and popped at the end.
@@ -50,6 +54,11 @@ typedef struct
     u64 value;
 } Int;
 
+typedef struct
+{
+    const char* callee;
+} Call;
+
 struct Value
 {
     Value_Kind kind;
@@ -57,21 +66,25 @@ struct Value
     union {
         Int Int;
         Variable Variable;
+        Call Call;
         Function Function;
     };
 };
 
 Value* make_value_int(u8 bytes, Typespec* type, u64 value);
 Value* make_value_variable(const char* name, Typespec* type, u64 stack_pos);
+Value* make_value_call(const char* callee, Typespec* type);
 Value* make_value_function(Typespec* type);
 
 u64 get_size_of_value(Value* value);
 u64 get_stack_pos_of_variable(Value* variable);
 
+void function_print_debug(Value* function);
 void function_get_stack_used(Value* function);
 void function_push_reg(Value* function, u64 reg_n);
 u64 function_pop_reg(Value* function);
 
+void emit_s(const char* fmt, ...);
 void emit(string* output, const char* fmt, ...);
 
 //------------------------------------------------------------------------------

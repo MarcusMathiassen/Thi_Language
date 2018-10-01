@@ -241,7 +241,7 @@ static Token get_token()
             break;
         }
         break;
-        
+
         CASE_SINGLE_TOKEN('!', TOKEN_BANG);
         switch (*c) {
             CASE_SINGLE_TOKEN('=', TOKEN_BANG_EQ);
