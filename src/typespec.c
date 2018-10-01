@@ -1,6 +1,6 @@
 #include "typespec.h"
 
-#include "stretchy_buffer.h" // sb_free
+#include "stretchy_buffer.h" // sb_free, sb_count
 #include "string.h"          // strf, append_string, string
 #include "utility.h"         // error
 #include <assert.h>          // assert
@@ -55,7 +55,7 @@ char* typespec_to_str(Typespec* type)
         string* str = make_string(strf("%s :: (", type->Function.name));
         strf("func. name: %d", type->Function.name);
         Arg* args = type->Function.args;
-        u64 arg_count = sb_count(args);
+        int arg_count = sb_count(args);
         if (arg_count)
             for (int i = 0; i < arg_count; ++i) {
                 append_string(str, strf("%s: %s", args[i].name, typespec_to_str(args[i].type)));

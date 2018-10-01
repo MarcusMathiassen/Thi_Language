@@ -154,7 +154,7 @@ static void emit_load(Value* value)
 
 static Value* codegen_function(Expr* expr)
 {
-    const char* func_name = expr->Function.type->Function.name;
+    // const char* func_name = expr->Function.type->Function.name;
     Value* function = make_value_function(expr->Function.type);
     ctx->current_function = function;
 
@@ -604,7 +604,7 @@ static Value* codegen_call(Expr* expr)
 
     int bytes_to_remove = 0;
     for (int i = arg_count - 1; i >= 0; --i) {
-        Arg* arg = args[i];
+        Expr* arg = args[i];
 
         Value* val = codegen_expr(arg);
         int size = get_size_of_value(val);
@@ -624,7 +624,7 @@ static Value* codegen_call(Expr* expr)
 // @Hotpath
 static Value* codegen_expr(Expr* expr)
 {
-    info("Generating code for: %s", expr_to_str(expr));
+    // info("Generating code for: %s", expr_to_str(expr));
     switch (expr->kind) {
     case EXPR_NOTE: error("EXPR_NOTE codegen not implemented");
     case EXPR_INT: return codegen_int(expr);
@@ -681,7 +681,7 @@ char* generate_code_from_ast(AST** ast)
         }
 
         u64 stack_allocated = func_v->Function.stack_allocated;
-        // Allocate stack space 
+        // Allocate stack space
         if (stack_allocated) {
             emit(output, "   SUB RSP, %llu", stack_allocated);
             info("function '%s' allocated %d bytes on the stack", func_name, stack_allocated);
@@ -690,8 +690,7 @@ char* generate_code_from_ast(AST** ast)
         CodeBlock** codeblocks = func_v->Function.codeblocks;
         int cb_count = sb_count(codeblocks);
         for (int j = 0; j < cb_count; ++j) {
-            if (codeblocks[j]->block->len) 
-                emit(output, "%s", codeblocks[j]->block->c_str);
+            if (codeblocks[j]->block->len) emit(output, "%s", codeblocks[j]->block->c_str);
         }
     }
 

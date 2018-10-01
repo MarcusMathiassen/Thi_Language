@@ -43,7 +43,7 @@ void add_builtin_type(const char* name, Typespec* type)
     if (map_set(builtin_type_map, name, type) == MAP_EXISTS) {
         warning("type redecl: '%s'", name);
     }
-    info("added builtin type: %s", name);
+    info("added builtin type: %s of type '%s'", name, typespec_to_str(type));
 }
 
 Typespec* get_builtin_type(const char* name)

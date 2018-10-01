@@ -76,7 +76,7 @@ int main(int argc, char** argv)
     push_timer("Lexing");
     Token* tokens = generate_tokens_from_source(source);
     pop_timer();
-    if (tokens) print_tokens(tokens);
+    // if (tokens) print_tokens(tokens);
 
     // we can free the source
     free(source);
@@ -86,13 +86,13 @@ int main(int argc, char** argv)
     push_timer("Order-independence");
     generate_symbol_table_from_tokens(tokens);
     pop_timer();
-    print_symbol_map();
+    // print_symbol_map();
 
     // Parsing
     push_timer("Parsing");
     AST** ast = generate_ast_from_tokens(tokens);
     pop_timer();
-    if (ast) print_ast(ast);
+    // if (ast) print_ast(ast);
 
     // Codegen
     push_timer("Codegen");
@@ -123,7 +123,7 @@ int main(int argc, char** argv)
     sprintf(comp_call, compiler_call "%s.o", exec_name);
     sprintf(link_call, linker_call "%s %s.o -e main", exec_name, exec_name);
 
-    system("cat output.asm");
+    // system("cat output.asm");
     system(comp_call);
     system(link_call);
 
@@ -141,10 +141,8 @@ int main(int argc, char** argv)
 
     pop_timer();
 
-    List* timers = get_timers();
-
     success("==------------ Thi ------------==");
-
+    List* timers = get_timers();
     LIST_FOREACH(timers)
     {
         Timer* tm = (Timer*)it->data;

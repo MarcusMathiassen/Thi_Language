@@ -1,6 +1,4 @@
 #include "utility.h"
-
-#include "stretchy_buffer.h" // sb_free
 #include <assert.h>          // assert
 #include <stdarg.h>          // va_list, va_start, va_end
 #include <stdio.h>           // printf, vprintf

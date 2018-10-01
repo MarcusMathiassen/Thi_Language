@@ -541,7 +541,8 @@ static Expr* get_definition(const char* ident)
     case TOKEN_ENUM: {
         eat();
         skip_enum_signature();
-        return get_symbol(ident);
+        // return make_expr_enum(get_symbol(ident));
+        return NULL;
     }
     case TOKEN_STRUCT: {
         eat();

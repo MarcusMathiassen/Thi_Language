@@ -2,6 +2,7 @@
 #include "utility.h" // xmalloc, warning
 
 #include <assert.h>
+#include <stdlib.h> // free
 
 Stack* make_stack(void)
 {

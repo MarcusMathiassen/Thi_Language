@@ -11,49 +11,50 @@ List* make_list(void)
     return list;
 }
 
+typedef struct
+{
+    int id;
+    float val;
+} Test_Type;
+
+
 void list_tests(void)
 {
     List* list = make_list();
 
-    int* num = xmalloc(sizeof(int) * 10);
-    num[0] = 1;
-    num[1] = 2;
-    num[2] = 3;
-    num[3] = 4;
-    num[4] = 5;
-    num[5] = 6;
+    Test_Type marcus;
+    marcus.id = 0;
+    marcus.val = 3.43f;
 
-    num[6] = 53;
-    num[7] = 5;
+    Test_Type aylin;
+    aylin.id = 1;
+    aylin.val = 6.41f;
 
     // Append
-    for (int i = 0; i < 6; ++i) {
-        list_append(list, num[i]);
-        assert((int)list_last(list) == num[i]);
+    list_append(list, &marcus);
+    list_append(list, &aylin);
+
+    // At
+    assert(((Test_Type*)list_at(list, 0))->val == 3.43f);
+    assert(((Test_Type*)list_last(list))->val == 6.41f);
+
+    // // Prepend
+    // list_prepend(list, num[4] /* 5 */);
+    // list_prepend(list, num[6] /* 53 */);
+    // assert((int)list_at(list, 0) == 53);
+    // assert((int)list_at(list, 1) == 5);
+
+    // // Remove
+    // list_remove(list, 0);
+    // list_remove(list, 0);
+    // assert((int)list_at(list, 0) == 1);
+
+    // Uncomment to print the list
+    info("List count: %d", list->count);
+    LIST_FOREACH(list) {
+        Test_Type *tp = (Test_Type*)it->data;
+        info("Test_Type id: %d, val: %f", tp->id, tp->val);
     }
-
-    // List at
-    assert((int)list_last(list) == 6);
-    assert((int)list_at(list, 3) == 4);
-
-    // Prepend
-    list_prepend(list, num[4] /* 5 */);
-    list_prepend(list, num[6] /* 53 */);
-    assert((int)list_at(list, 0) == 53);
-    assert((int)list_at(list, 1) == 5);
-
-    // Remove
-    list_remove(list, 0);
-    list_remove(list, 0);
-    assert((int)list_at(list, 0) == 1);
-
-    // // Uncomment to print the list
-    // warning("List count: %d", list->count);
-    // List_Node* current = list->head;
-    // while (current != NULL) {
-    //     warning("%d", (int)current->data);
-    //     current = current->next;
-    // }
 }
 
 void* list_remove(List* list, i64 index)
@@ -68,7 +69,7 @@ void* list_remove(List* list, i64 index)
         // free(list->head);
         return list->head->data;
     }
-    u64 iterator = 0;
+    i64 iterator = 0;
     List_Node* current = list->head;
     List_Node* prev = current;
     while (current->next != NULL && iterator != index) {
@@ -91,7 +92,7 @@ void* list_at(List* list, i64 index)
     assert(list);
     assert(index >= 0);
 
-    u64 iterator = 0;
+    i64 iterator = 0;
     List_Node* current = list->head;
 
     while (current->next != NULL && iterator != index) {

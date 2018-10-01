@@ -1,12 +1,12 @@
 #include "value.h"
-#include "typedefs.h"
+#include "register.h"        // error, xmallox
 #include "stretchy_buffer.h" // sb_push
-#include "utility.h"         // error, xmallox
-#include "register.h"         // error, xmallox
-#include <assert.h>          // assert
-#include <stdarg.h>          // va_list, va_start, va_end
-#include <stdio.h>           // strncat,
-#include <string.h>          // strncat,
+#include "typedefs.h"
+#include "utility.h" // error, xmallox
+#include <assert.h>  // assert
+#include <stdarg.h>  // va_list, va_start, va_end
+#include <stdio.h>   // strncat,
+#include <string.h>  // strncat,
 
 //------------------------------------------------------------------------------
 //                               value.c
@@ -165,7 +165,7 @@ void function_print_debug(Value* function)
         CodeBlock* cb = codeblocks[j];
         const char* cb_c = cb->color;
 
-        // Print line 
+        // Print line
         if (cb->block->len) {
             const char* line = cb->block->c_str;
             info("%s%s\033[00m", cb_c, line);
