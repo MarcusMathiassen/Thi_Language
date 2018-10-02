@@ -16,9 +16,9 @@ struct Stack
     Stack_Node* head;
 };
 
-#define STACK_FOREACH(stack) for (Stack_Node* it = (stack->head); (it); (it) = (it)->next)
+#define STACK_FOREACH(stack) for (Stack_Node* it = (stack.head); (it); (it) = (it)->next)
 
-Stack* make_stack(void);
+void stack_init(Stack* stack);
 void* stack_push(Stack* stack, void* data);
 void* stack_pop(Stack* stack);
 void* stack_peek(Stack* stack);

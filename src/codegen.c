@@ -14,7 +14,7 @@
 static Typespec* integer_literal_type = NULL;
 static Context* ctx = NULL;
 static string output;
-static Stack* scope_stack = NULL;
+static Stack scope_stack;
 static Value** functions = NULL;
 
 static Value* codegen_expr(Expr* expr);
@@ -22,9 +22,9 @@ static Value* codegen_expr(Expr* expr);
 static void push_scope()
 {
     Scope* new_scope = make_scope(10);
-    stack_push(scope_stack, new_scope);
+    stack_push(&scope_stack, new_scope);
 }
-static void pop_scope() { stack_pop(scope_stack); }
+static void pop_scope() { stack_pop(&scope_stack); }
 
 static void append_variable_to_scope(Scope* s, Value* value)
 {
@@ -108,7 +108,7 @@ static void add_variable(Value* variable)
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     // warning("adding variable: %s %llu", variable->Variable.name, variable->Variable.stack_pos);
-    Scope* top = (Scope*)stack_peek(scope_stack);
+    Scope* top = (Scope*)stack_peek(&scope_stack);
     add_variable_to_scope(top, variable);
 }
 
@@ -668,7 +668,7 @@ char* generate_code_from_ast(AST** ast)
     integer_literal_type = make_typespec_int(DEFAULT_INTEGER_BIT_SIZE, false);
 
     ctx = ctx_make();
-    scope_stack = make_stack();
+    stack_init(&scope_stack);
     output = make_string("");
 
     emit(&output, "global main");

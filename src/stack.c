@@ -4,11 +4,9 @@
 #include <assert.h>
 #include <stdlib.h> // free
 
-Stack* make_stack(void)
+void stack_init(Stack* stack)
 {
-    Stack* stack = xmalloc(sizeof(Stack));
     stack->head = NULL;
-    return stack;
 }
 
 typedef struct
@@ -19,20 +17,21 @@ typedef struct
 
 void stack_tests(void)
 {
-    Stack* test_stack = make_stack();
-    Test_Type* marcus = xmalloc(sizeof(Test_Type));
-    marcus->id = 0;
-    marcus->val = 3.43f;
+    Stack test_stack;
+    stack_init(&test_stack);
+    Test_Type marcus;
+    marcus.id = 0;
+    marcus.val = 3.43f;
 
-    Test_Type* aylin = xmalloc(sizeof(Test_Type));
-    aylin->id = 1;
-    aylin->val = 6.41f;
+    Test_Type aylin;
+    aylin.id = 1;
+    aylin.val = 6.41f;
 
-    stack_push(test_stack, marcus);
-    stack_push(test_stack, aylin);
-    assert(((Test_Type*)stack_pop(test_stack))->val == 6.41f);
-    assert(((Test_Type*)stack_pop(test_stack))->val == 3.43f);
-    assert((Test_Type*)stack_pop(test_stack) == NULL);
+    stack_push(&test_stack, &marcus);
+    stack_push(&test_stack, &aylin);
+    assert(((Test_Type*)stack_pop(&test_stack))->val == 6.41f);
+    assert(((Test_Type*)stack_pop(&test_stack))->val == 3.43f);
+    assert((Test_Type*)stack_pop(&test_stack) == NULL);
 }
 
 void* stack_push(Stack* stack, void* data)

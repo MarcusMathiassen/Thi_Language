@@ -16,10 +16,10 @@ typedef struct List
     u64 count;
 } List;
 
-#define LIST_FOREACH(list) for (List_Node* it = (list->head); (it); (it) = (it)->next)
+#define LIST_FOREACH(list) for (List_Node* it = (list.head); (it); (it) = (it)->next)
 
 void list_tests(void);
-List* make_list(void);
+void list_init(List* list);
 void* list_append(List* list, void* data);
 void* list_prepend(List* list, void* data);
 void* list_last(List* list);

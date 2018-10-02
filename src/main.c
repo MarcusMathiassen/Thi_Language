@@ -142,7 +142,7 @@ int main(int argc, char** argv)
     pop_timer();
 
     success("==------------ Thi ------------==");
-    List* timers = get_timers();
+    List timers = get_timers();
     LIST_FOREACH(timers)
     {
         Timer* tm = (Timer*)it->data;

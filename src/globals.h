@@ -18,6 +18,6 @@ void init_symbol_map(void);
 
 void push_timer(const char* desc);
 void pop_timer(void);
-struct List* get_timers(void);
+struct List get_timers(void);
 
 #endif

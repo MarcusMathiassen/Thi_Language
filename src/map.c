@@ -15,31 +15,29 @@ typedef struct
 
 void map_tests(void)
 {
+    Map test_map;
+    map_init(&test_map);
 
-    Map* test_map = make_map();
+    Test_Type marcus;
+    marcus.id = 0;
+    marcus.val = 3.43f;
 
-    Test_Type* marcus = xmalloc(sizeof(Test_Type));
-    marcus->id = 0;
-    marcus->val = 3.43f;
+    Test_Type aylin;
+    aylin.id = 1;
+    aylin.val = 6.41f;
 
-    Test_Type* aylin = xmalloc(sizeof(Test_Type));
-    aylin->id = 1;
-    aylin->val = 6.41f;
-
-    map_set(test_map, "marcus", marcus);
-    map_set(test_map, "aylin", aylin);
-    assert(((Test_Type*)map_get(test_map, "marcus"))->val == 3.43f);
-    assert(((Test_Type*)map_get(test_map, "aylin"))->val == 6.41f);
+    map_set(&test_map, "marcus", &marcus);
+    map_set(&test_map, "aylin", &aylin);
+    assert(((Test_Type*)map_get(&test_map, "marcus"))->val == 3.43f);
+    assert(((Test_Type*)map_get(&test_map, "aylin"))->val == 6.41f);
 }
 
-Map* make_map(void)
-{
-    Map* map = xmalloc(sizeof(Map));
-    map->data = NULL;
-    map->data = xcalloc(INITIAL_SIZE, sizeof(Map_Element));
+
+void map_init(Map* map) {
     map->table_size = INITIAL_SIZE;
     map->size = 0;
-    return map;
+    map->data = NULL;
+    map->data = xcalloc(INITIAL_SIZE, sizeof(Map_Element));
 }
 
 // Add a pointer to the hashmap with some key
