@@ -32,8 +32,8 @@ void map_tests(void)
     assert(((Test_Type*)map_get(&test_map, "aylin"))->val == 6.41f);
 }
 
-
-void map_init(Map* map) {
+void map_init(Map* map)
+{
     map->table_size = INITIAL_SIZE;
     map->size = 0;
     map->data = NULL;

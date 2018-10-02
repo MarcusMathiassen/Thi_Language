@@ -45,6 +45,9 @@ char* expr_to_str(Expr* expr)
 {
     char* result = NULL;
     switch (expr->kind) {
+    case EXPR_NOTE: {
+        result = strf("$%s", expr_to_str(expr->Note.expr));
+    } break;
     case EXPR_INT: {
         result = strf("%lld", expr->Int.val);
     } break;

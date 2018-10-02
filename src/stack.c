@@ -4,10 +4,7 @@
 #include <assert.h>
 #include <stdlib.h> // free
 
-void stack_init(Stack* stack)
-{
-    stack->head = NULL;
-}
+void stack_init(Stack* stack) { stack->head = NULL; }
 
 typedef struct
 {

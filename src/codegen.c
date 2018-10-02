@@ -621,14 +621,13 @@ static Value* codegen_call(Expr* expr)
 
 static Value* codegen_note(Expr* expr)
 {
-    start_codeblock(ctx->current_function, "codegen_note");
     assert(expr->kind == EXPR_NOTE);
+    start_codeblock(ctx->current_function, "codegen_note");
     Expr* int_expr = expr->Note.expr;
     assert(int_expr->kind == EXPR_INT);
-    int int_val = int_expr->Int.val;
-    if (int_val < 1)
-        error("note parameters start at 1.");
-    const char* name = ctx->current_function->type->Function.args[int_val-1].name;
+    int integer_value = int_expr->Int.val;
+    if (integer_value < 1) error("note parameters start at 1.");
+    const char* name = ctx->current_function->type->Function.args[integer_value - 1].name;
     Value* var = get_variable(name);
     emit_load(var);
     return var;
@@ -637,7 +636,7 @@ static Value* codegen_note(Expr* expr)
 // @Hotpath
 static Value* codegen_expr(Expr* expr)
 {
-    // info("Generating code for: %s", expr_to_str(expr));
+    info("Generating code for: %s", expr_to_str(expr));
     switch (expr->kind) {
     case EXPR_NOTE: return codegen_note(expr);
     case EXPR_INT: return codegen_int(expr);
