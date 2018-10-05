@@ -123,7 +123,7 @@ int main(int argc, char** argv)
     sprintf(comp_call, compiler_call "%s.o", exec_name);
     sprintf(link_call, linker_call "%s %s.o -e main", exec_name, exec_name);
 
-    // system("cat output.asm");
+    system("cat output.asm");
     system(comp_call);
     system(link_call);
 
@@ -140,11 +140,9 @@ int main(int argc, char** argv)
     info("size of Value: %lu bytes", sizeof(Value));
 
     pop_timer();
-
     success("==------------ Thi ------------==");
     List timers = get_timers();
-    LIST_FOREACH(timers)
-    {
+    LIST_FOREACH(timers) {
         Timer* tm = (Timer*)it->data;
         success("%s: %f seconds", tm->desc, tm->ms / 1e3);
     }
