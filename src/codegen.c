@@ -181,23 +181,21 @@ static Value* codegen_function(Expr* expr)
     int arg_count = sb_count(args);
     if (arg_count) info("Printing function parameters");
 
-    u64 temp_stack_index = ctx->stack_index;
     for (int i = 0; i < arg_count; ++i) {
         Arg* arg = &args[i];
 
         u64 size = get_size_of_typespec(arg->type);
-        u64 stack_pos = temp_stack_index + size;
+        u64 stack_pos = ctx->stack_index + size;
         Value* var = make_value_variable(arg->name, arg->type, stack_pos);
 
         add_variable(var);
         emit_s("MOV [RSP-%d], %s", stack_pos, get_reg(get_parameter_reg(index, size)));
 
-        temp_stack_index += size;
+        ctx->stack_index += size;
         ++index;
     }
 
-    ctx->stack_index = temp_stack_index;
-    u64 stack_used = temp_stack_index - stack_before_func;
+    u64 stack_used = ctx->stack_index - stack_before_func;
     function->Function.stack_allocated += stack_used;
 
     codegen_expr(expr->Function.body);
@@ -680,7 +678,7 @@ static Value* codegen_expr(Expr* expr)
 
 char* generate_code_from_ast(AST** ast)
 {
-    success("Generating X64 Assembly from AST");
+    info("Generating X64 Assembly from AST");
 
     integer_literal_type = make_typespec_int(DEFAULT_INTEGER_BIT_SIZE, false);
 

@@ -11,6 +11,8 @@ static Map builtin_type_map;
 static Stack timer_stack;
 static List timers;
 
+bool detailed_print = false;
+
 void initilize_globals(void)
 {
     map_init(&symbol_map);

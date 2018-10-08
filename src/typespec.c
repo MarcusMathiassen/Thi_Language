@@ -45,9 +45,31 @@ char* typespec_to_str(Typespec* type)
                                            : "i"
                                              "%d"),
                     type->Int.bits);
+    case TYPESPEC_FLOAT: return strf("f%d", type->Float.bits);
+    case TYPESPEC_STRUCT: {
+        string str = make_string(strf("%s :: {\n", type->Struct.name));
+        Arg* args = type->Struct.members;
+        int arg_count = sb_count(args);
+        if (arg_count)
+        {
+            for (int i = 0; i < arg_count; ++i) {
+                append_string(&str, strf("%s: %s", args[i].name, typespec_to_str(args[i].type)));
+                if (i != arg_count - 1) append_string(&str, ", ");
+            }
+        }
+        append_string(&str, "}\n");
+        return str.c_str;
+    };
     case TYPESPEC_ENUM: {
-        warning("typespec_to_str ENUM not implemented.");
-        string str = make_string(strf("%s :: enum {", type->Function.name));
+        string str = make_string(strf("%s :: enum {", type->Enum.name));
+        const char** args = type->Enum.members;
+        int arg_count = sb_count(args);
+        if (arg_count) {
+            for (int i = 0; i < arg_count; ++i) {
+                append_string(&str, strf("%s", args[i]));
+                if (i != arg_count - 1) append_string(&str, ", ");
+            }
+        }
         return str.c_str;
     };
 
@@ -56,16 +78,17 @@ char* typespec_to_str(Typespec* type)
         strf("func. name: %d", type->Function.name);
         Arg* args = type->Function.args;
         int arg_count = sb_count(args);
-        if (arg_count)
+        if (arg_count) {
             for (int i = 0; i < arg_count; ++i) {
                 append_string(&str, strf("%s: %s", args[i].name, typespec_to_str(args[i].type)));
                 if (i != arg_count - 1) append_string(&str, ", ");
             }
+        }
 
         append_string(&str, strf(") -> %s", typespec_to_str(type->Function.ret_type)));
         return str.c_str;
     }
-    default: warning("not implemented kind %d", type->kind);
+        default: warning("not implemented kind %d", type->kind);
     }
     return NULL;
 }

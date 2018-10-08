@@ -118,8 +118,7 @@ static Token top_tok;
 
 AST** generate_ast_from_tokens(Token* tokens)
 {
-    success("Generating AST from Tokens..");
-
+    info("Generating AST from Tokens..");
     g_tokens = tokens;
     token_index = 0;
     top_tok.kind = TOKEN_UNKNOWN;
@@ -139,7 +138,7 @@ AST** generate_ast_from_tokens(Token* tokens)
 
 void generate_symbol_table_from_tokens(Token* tokens)
 {
-    success("Generating symbol table..");
+    info("Generating symbol table..");
     g_tokens = tokens;
     token_index = 0;
     top_tok.kind = TOKEN_UNKNOWN;

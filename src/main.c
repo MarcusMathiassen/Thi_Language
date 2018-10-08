@@ -39,7 +39,7 @@ int main(int argc, char** argv)
     // Grab the source file
     const char* source_file = argv[1];
     const char* exec_name = argv[2];
-    success("Compiling %s", source_file);
+    info("Compiling %s", source_file);
 
     // Setup types
     add_builtin_type("char", make_typespec_int(8, true));
@@ -123,7 +123,7 @@ int main(int argc, char** argv)
     sprintf(comp_call, compiler_call "%s.o", exec_name);
     sprintf(link_call, linker_call "%s %s.o -e main", exec_name, exec_name);
 
-    system("cat output.asm");
+    // system("cat output.asm");
     system(comp_call);
     system(link_call);
 
@@ -139,14 +139,14 @@ int main(int argc, char** argv)
     info("size of Typespec: %lu bytes", sizeof(Typespec));
     info("size of Value: %lu bytes", sizeof(Value));
 
-    pop_timer();
-    success("==------------ Thi ------------==");
+    pop_timer(); 
+    info("==------------ Thi ------------==");
     List timers = get_timers();
     LIST_FOREACH(timers) {
         Timer* tm = (Timer*)it->data;
-        success("%s: %f seconds", tm->desc, tm->ms / 1e3);
+        info("%s: %f seconds", tm->desc, tm->ms / 1e3);
     }
-    success("==------------ === ------------==");
+    info("==------------ === ------------==");
 
     return 0;
 }

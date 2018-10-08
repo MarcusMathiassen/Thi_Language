@@ -1,4 +1,5 @@
 #include "utility.h"
+#include "globals.h"
 #include <assert.h> // assert
 #include <stdarg.h> // va_list, va_start, va_end
 #include <stdio.h>  // printf, vprintf
@@ -19,6 +20,7 @@
 
 void info(const char* fmt, ...)
 {
+    if (!detailed_print) return;
     assert(fmt);
     va_list args;
     va_start(args, fmt);

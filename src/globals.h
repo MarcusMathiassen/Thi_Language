@@ -4,6 +4,8 @@
 #include "typedefs.h"
 #include "typespec.h" // Typespec
 
+extern bool detailed_print;
+
 #define DEFAULT_INTEGER_BYTE_SIZE 4
 #define DEFAULT_INTEGER_BIT_SIZE DEFAULT_INTEGER_BYTE_SIZE * 8
 
