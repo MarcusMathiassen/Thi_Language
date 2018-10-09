@@ -7,7 +7,7 @@
 - [x] integer literals
 - [ ] string literals
 - [x] functions
-- [ ] function calls
+- [-] function calls
 - [ ] multiple compilation files using 'load'
 - [ ] C stdlib interop
 
