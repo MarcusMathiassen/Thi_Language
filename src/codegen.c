@@ -21,12 +21,11 @@ static Value* codegen_expr(Expr* expr);
 
 static char* get_op_size(i8 bytes)
 {
-    switch (bytes)
-    {
-        case 1: return "BYTE";
-        case 2: return "WORD";
-        case 4: return "DWORD";
-        case 8: return "QWORD";
+    switch (bytes) {
+    case 1: return "BYTE";
+    case 2: return "WORD";
+    case 4: return "DWORD";
+    case 8: return "QWORD";
     }
     error("get_op_size unknown byte size: %d", bytes);
     return NULL;

@@ -50,8 +50,7 @@ char* typespec_to_str(Typespec* type)
         string str = make_string(strf("%s :: {\n", type->Struct.name));
         Arg* args = type->Struct.members;
         int arg_count = sb_count(args);
-        if (arg_count)
-        {
+        if (arg_count) {
             for (int i = 0; i < arg_count; ++i) {
                 append_string(&str, strf("%s: %s", args[i].name, typespec_to_str(args[i].type)));
                 if (i != arg_count - 1) append_string(&str, ", ");
@@ -88,7 +87,7 @@ char* typespec_to_str(Typespec* type)
         append_string(&str, strf(") -> %s", typespec_to_str(type->Function.ret_type)));
         return str.c_str;
     }
-        default: warning("not implemented kind %d", type->kind);
+    default: warning("not implemented kind %d", type->kind);
     }
     return NULL;
 }

@@ -81,7 +81,7 @@ void print_tokens(Token* tokens)
 Token* generate_tokens_from_source(char* source)
 {
     info("Generating Tokens from Source");
-    
+
     //
     Token* tokens = NULL;
 

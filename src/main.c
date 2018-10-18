@@ -139,10 +139,11 @@ int main(int argc, char** argv)
     info("size of Typespec: %lu bytes", sizeof(Typespec));
     info("size of Value: %lu bytes", sizeof(Value));
 
-    pop_timer(); 
+    pop_timer();
     info("==------------ Thi ------------==");
     List timers = get_timers();
-    LIST_FOREACH(timers) {
+    LIST_FOREACH(timers)
+    {
         Timer* tm = (Timer*)it->data;
         info("%s: %f seconds", tm->desc, tm->ms / 1e3);
     }
