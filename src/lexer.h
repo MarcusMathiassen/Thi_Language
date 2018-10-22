@@ -94,6 +94,8 @@ typedef enum
     TOKEN_BWSLASH,
     TOKEN_HASH,
     TOKEN_EQ,
+    TOKEN_COMMENT,
+    TOKEN_WHITESPACE,
 
 } Token_Kind;
 

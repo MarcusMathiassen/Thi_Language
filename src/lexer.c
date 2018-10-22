@@ -1,5 +1,6 @@
 #include "lexer.h"
 
+#include "globals.h"         // get_source_file
 #include "stretchy_buffer.h" // sb_push, sb_count
 #include "string.h"          // str_intern_range
 #include "typedefs.h"
@@ -17,11 +18,12 @@
 //                               Character Stream
 //------------------------------------------------------------------------------
 
-static char* c;
+static char* c = NULL;
 static Token token;
-static u64 line_count = 0;
-
+static u64 line_count = 1;
+static char* start_of_line = NULL;
 //------------------------------------------------------------------------------
+
 //                               Lexer Functions
 //------------------------------------------------------------------------------
 
@@ -88,6 +90,7 @@ Token* generate_tokens_from_source(char* source)
     // 'c' represents the current character in the stream.
     // char* gets set to the start of the stream
     c = source;
+    start_of_line = c;
 
     // Fill the tokens
     while (token.kind != TOKEN_EOF) {
@@ -105,6 +108,8 @@ Token* generate_tokens_from_source(char* source)
 //                               Private
 //------------------------------------------------------------------------------
 
+static u64 get_line_pos() { return c - start_of_line + 1; }
+
 const char EOF = '\0';
 
 static void skip_whitespace()
@@ -120,16 +125,16 @@ static void skip_line()
     while (*c != '\n' && *c != '\r') {
         ++c;
     }
-    ++line_count;
     if (*c != EOF) {
-        get_token();
+        ++c; // eat the last one
+        ++line_count;
+        start_of_line = c;
     }
 }
 
 static void skip_comments()
 {
     if (*c == '#') {
-        ++c; // skip the '#'
         skip_line();
     }
 }
@@ -203,6 +208,12 @@ static Token get_token()
     token.value = c;
 
     switch (*c) {
+    case ' ': info("WHITESPACE"); break;
+    case '\n': info("newline"); break;
+    case '\r': info("r"); break;
+    case '\t':
+        info("tab");
+        break;
         CASE_SINGLE_TOKEN(EOF, TOKEN_EOF);
         break;
         CASE_SINGLE_TOKEN('(', TOKEN_OPEN_PAREN);
@@ -430,7 +441,9 @@ static Token get_token()
         return token;
     } break;
 
-    default: error("Unhandled token character %c in file", *c);
+    default:
+        error("Unhandled token character %c in file %s line %d col %d", *c, get_source_file(), line_count,
+              get_line_pos());
     }
 
     if (token.kind != TOKEN_EOF) {
@@ -465,6 +478,7 @@ const char* token_kind_to_str(Token_Kind kind)
     case TOKEN_STRUCT: return "struct";
     case TOKEN_ENUM: return "enum";
     case TOKEN_CONTINUE: return "continue";
+    case TOKEN_WHITESPACE: return "whitespace";
     case TOKEN_PIPE_PIPE: return "||";
     case TOKEN_AND_AND: return "&&";
     case TOKEN_PLUS_EQ: return "+=";
@@ -512,6 +526,7 @@ const char* token_kind_to_str(Token_Kind kind)
     case TOKEN_MINUS: return "-";
     case TOKEN_QUESTION_MARK: return "?";
     case TOKEN_PLUS: return "+";
+    case TOKEN_COMMENT: return "#";
     case TOKEN_PERCENT: return "%";
     case TOKEN_FWSLASH: return "/";
     case TOKEN_BWSLASH: return "\\";

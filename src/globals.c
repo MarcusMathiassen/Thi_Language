@@ -3,6 +3,7 @@
 #include "list.h"    // List
 #include "map.h"     // Map
 #include "stack.h"   // Stack
+#include "string.h"  // string
 #include "utility.h" // warning, error, xmalloc
 #include <assert.h>  // assert
 
@@ -11,7 +12,11 @@ static Map builtin_type_map;
 static Stack timer_stack;
 static List timers;
 
-bool detailed_print = false;
+static string source_file;
+void set_source_file(const char* file_name) { source_file = make_string(file_name); }
+char* get_source_file() { return source_file.c_str; }
+
+bool detailed_print = true;
 
 void initilize_globals(void)
 {

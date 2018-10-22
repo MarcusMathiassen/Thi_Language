@@ -9,6 +9,8 @@ extern bool detailed_print;
 #define DEFAULT_INTEGER_BYTE_SIZE 4
 #define DEFAULT_INTEGER_BIT_SIZE DEFAULT_INTEGER_BYTE_SIZE * 8
 
+void set_source_file(const char* file_name);
+char* get_source_file(void);
 void initilize_globals(void);
 bool is_builtin_type(const char* name);
 void add_builtin_type(const char* name, Typespec* type);
