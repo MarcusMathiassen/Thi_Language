@@ -1,4 +1,6 @@
-    §
+# Hello
 main :: () -> i32 {
     ret 1
+    # This is a multiline comment
+    # This is a multiline comment
 }
