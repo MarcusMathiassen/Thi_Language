@@ -16,7 +16,7 @@ static string source_file;
 void set_source_file(const char* file_name) { source_file = make_string(file_name); }
 char* get_source_file() { return source_file.c_str; }
 
-bool detailed_print = true;
+bool detailed_print = false;
 
 void initilize_globals(void)
 {
