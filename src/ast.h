@@ -89,6 +89,13 @@ struct Expr
         } If;
         struct
         {
+            const char* iterator_name;
+            Expr* start;
+            Expr* end;
+            Expr* body;
+        } For;
+        struct
+        {
             const char* callee;
             Expr** args;
         } Call;
@@ -124,6 +131,7 @@ Expr* make_expr_ident(const char* ident);
 Expr* make_expr_struct(Typespec* struct_t);
 Expr* make_expr_call(const char* callee, Expr** args);
 Expr* make_expr_if(Expr* cond, Expr* then_body, Expr* else_body);
+Expr* make_expr_for(const char* iterator_name, Expr* start, Expr* end, Expr* body);
 Expr* make_expr_function(Typespec* func_t, Expr* body);
 Expr* make_expr_unary(Token_Kind op, Expr* operand);
 Expr* make_expr_binary(Token_Kind op, Expr* lhs, Expr* rhs);

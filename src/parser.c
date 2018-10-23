@@ -90,6 +90,7 @@ static Expr* parse_binary(int expr_prec, Expr* lhs);
 static Expr* parse_integer(void);
 static Expr* parse_parens(void);
 static Expr* parse_if(void);
+static Expr* parse_for(void);
 
 static Typespec* parse_struct_signature(const char* struct_name);
 static Typespec* parse_function_signature(const char* func_name);
@@ -199,7 +200,7 @@ static Expr* parse_statement(void)
     // case TOKEN_BREAK:             return parse_break();
     // case TOKEN_CONTINUE:          return parse_continue();
     case TOKEN_IF: return parse_if();
-    // case TOKEN_FOR_LOOP:          return parse_for();
+    case TOKEN_FOR: return parse_for();
     // case TOKEN_WHILE_LOOP:        return parse_while();
     // case TOKEN_REPEAT:            return parse_repeat();
     default: error("Unhandled token '%s' was not a valid statement", curr_tok.value);
@@ -207,6 +208,22 @@ static Expr* parse_statement(void)
     return NULL;
 }
 
+static Expr* parse_for(void)
+{
+    eat_kind(TOKEN_FOR);
+    const char* iterator_name = curr_tok.value;
+    eat_kind(TOKEN_IDENTIFIER);
+    eat_kind(TOKEN_COLON);
+    Expr* start = parse_expression();
+    if (!start) {
+        error("missing start value in for loop");
+    }
+    eat_kind(TOKEN_DOT_DOT);
+    Expr* end = parse_expression();
+    if (!end) error("missing end value in for loop");
+    Expr* body = parse_block();
+    return make_expr_for(iterator_name, start, end, body);
+}
 static Expr* parse_if(void)
 {
     eat_kind(TOKEN_IF);

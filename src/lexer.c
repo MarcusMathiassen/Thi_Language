@@ -126,7 +126,6 @@ static void skip_line()
         ++c;
     }
     if (*c != EOF) {
-        ++c; // eat the last one
         ++line_count;
         start_of_line = c;
     }

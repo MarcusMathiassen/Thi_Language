@@ -112,7 +112,7 @@ static Value* get_variable(const char* name)
         Value* res = get_variable_in_scope(scope, name);
         if (res) return res;
     }
-    error("no variable with %s", name);
+    error("no variable with name '%s'", name);
     return NULL;
 }
 
@@ -642,6 +642,59 @@ static Value* codegen_call(Expr* expr)
     return make_value_call(callee, func_t->Function.ret_type);
 }
 
+static Value* codegen_for(Expr* expr)
+{
+    assert(expr->kind == EXPR_FOR);
+
+    const char* iterator_name = expr->For.iterator_name;
+    Expr* start = expr->For.start;
+    Expr* end = expr->For.end;
+    Expr* body = expr->For.body;
+
+    ctx_push_label(&ctx);
+
+    // block->set_break_label(block->get_label("cont"));
+    // block->set_continue_label(block->get_label("cond"));
+
+    // Setup the iterator variable with the start value.
+    Value* start_val = codegen_expr(start);
+    int type_size = get_size_of_value(start_val);
+    int stack_pos = type_size + ctx.stack_index;
+    Value* iterator_var = make_value_variable(iterator_name, start_val->type, stack_pos);
+    add_variable(iterator_var);
+    emit_store(iterator_var);
+
+    // Jump to the condition.
+    emit_s("JMP %s", ctx_get_unique_label(&ctx, "forcond"));
+
+    // COND:
+    emit_s("%s:", ctx_get_unique_label(&ctx, "forcond"));
+    int res_reg = get_rax_reg_of_byte_size(type_size);
+
+    // Compare the iterator to the end value
+    codegen_expr(end);
+    emit_s("CMP %s, [RSP-%d]", get_reg(res_reg), iterator_var->Variable.stack_pos);
+    emit_s("JE %s", ctx_get_unique_label(&ctx, "forcont"));
+    emit_s("JMP %s", ctx_get_unique_label(&ctx, "forbody"));
+
+    // BODY:
+    emit_s("%s:", ctx_get_unique_label(&ctx, "forbody"));
+    codegen_expr(body);
+
+    // INC:
+    emit_s("%s:", ctx_get_unique_label(&ctx, "forinc"));
+
+    emit_load(iterator_var);
+    emit_s("INC %s [RSP-%d]", get_op_size(type_size), iterator_var->Variable.stack_pos);
+    emit_s("JMP %s", ctx_get_unique_label(&ctx, "forcond"));
+
+    // CONT:
+    emit_s("%s:", ctx_get_unique_label(&ctx, "forcont"));
+    ctx_pop_label(&ctx);
+
+    return NULL;
+}
+
 static Value* codegen_if(Expr* expr)
 {
     assert(expr->kind == EXPR_IF);
@@ -708,7 +761,7 @@ static Value* codegen_expr(Expr* expr)
     case EXPR_FUNCTION: return codegen_function(expr);
     case EXPR_STRUCT: error("EXPR_STRUCT codegen not implemented");
     case EXPR_IF: return codegen_if(expr);
-    case EXPR_FOR: error("EXPR_FOR codegen not implemented");
+    case EXPR_FOR: return codegen_for(expr);
     case EXPR_BLOCK: return codegen_block(expr);
     case EXPR_WHILE: error("EXPR_WHILE codegen not implemented");
     case EXPR_GROUPING: return codegen_expr(expr->Grouping.expr);
