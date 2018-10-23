@@ -615,8 +615,6 @@ static Value* codegen_call(Expr* expr)
     if (func_arg_count != arg_count) error("wrong amount of parameters for call to function '%s'", callee);
 
     int bytes_to_remove = 0;
-    int index = 0;
-
     Value** param_vals = NULL;
 
     for (int i = 0; i < arg_count; ++i) {
@@ -626,19 +624,17 @@ static Value* codegen_call(Expr* expr)
         emit_s("PUSH RAX");
     }
 
-    for (int i = arg_count - 1; i >= 0; --i) {
-
+    for (int i = arg_count-1; i >= 0; --i) {
         Value* val = param_vals[i];
         int size = get_size_of_value(val);
         int reg_n = get_rax_reg_of_byte_size(size);
-        int param_reg_n = get_parameter_reg(index, size);
+        int param_reg_n = get_parameter_reg(i, size);
 
         emit_s("POP RAX");
         emit_s("MOV %s, %s", get_reg(param_reg_n), get_reg(reg_n));
 
         ctx->stack_index += size;
         bytes_to_remove += size;
-        ++index;
     }
 
     sb_free(param_vals);
