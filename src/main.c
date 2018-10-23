@@ -20,11 +20,13 @@
 //                               Main Driver
 //------------------------------------------------------------------------------
 
-void run_all_tests(void);
-
 int main(int argc, char** argv)
 {
-    run_all_tests();
+    utility_tests();
+    string_tests();
+    map_tests();
+    list_tests();
+    stack_tests();
 
     initilize_globals();
 
@@ -155,13 +157,4 @@ int main(int argc, char** argv)
     info("==------------ === ------------==");
 
     return 0;
-}
-
-void run_all_tests(void)
-{
-    utility_tests();
-    string_tests();
-    map_tests();
-    list_tests();
-    stack_tests();
 }

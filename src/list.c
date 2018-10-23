@@ -39,23 +39,21 @@ void list_tests(void)
     assert(((Test_Type*)list_last(&list))->val == 6.41f);
 
     // // Prepend
-    // list_prepend(list, num[4] /* 5 */);
-    // list_prepend(list, num[6] /* 53 */);
-    // assert((int)list_at(list, 0) == 53);
-    // assert((int)list_at(list, 1) == 5);
+    list_prepend(&list, &aylin);
+    assert(((Test_Type*)list_at(&list, 0))->val == 6.41f);
 
-    // // Remove
-    // list_remove(list, 0);
-    // list_remove(list, 0);
-    // assert((int)list_at(list, 0) == 1);
+    // Remove
+    list_remove(&list, 0);
+    assert(((Test_Type*)list_at(&list, 0))->val == 3.43f);
+    assert(((Test_Type*)list_at(&list, 1))->val == 6.41f);
 
     // Uncomment to print the list
-    info("List count: %d", list.count);
-    LIST_FOREACH(list)
-    {
-        Test_Type* tp = (Test_Type*)it->data;
-        info("Test_Type name: %s, val: %f", tp->name, tp->val);
-    }
+    // info("List count: %d", list.count);
+    // LIST_FOREACH(list)
+    // {
+    // Test_Type* tp = (Test_Type*)it->data;
+    // info("Test_Type name: %s, val: %f", tp->name, tp->val);
+    // }
 }
 
 void* list_remove(List* list, i64 index)

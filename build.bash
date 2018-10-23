@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 output=./thi
-compiler=clang
 olvl=
+compiler=clang
 src=./src/*.c
 flags=-Wall\ -Werror\ -Wextra\ -Wno-switch\ -Wno-unused-function
 std=c99

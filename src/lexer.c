@@ -201,7 +201,7 @@ static inline bool is_valid_digit() { return isdigit(*c) || *c == '.' || *c == '
 
 static Token get_token()
 {
-    scan:
+scan:
     skip_whitespace();
     skip_comments();
 
@@ -212,8 +212,9 @@ static Token get_token()
     case ' ':
     case '\n':
     case '\r':
-    case '\t': goto scan;
-    
+    case '\t':
+        goto scan;
+
         CASE_SINGLE_TOKEN(EOF, TOKEN_EOF);
         break;
         CASE_SINGLE_TOKEN('(', TOKEN_OPEN_PAREN);

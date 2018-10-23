@@ -7,6 +7,7 @@
 #include "stretchy_buffer.h" // sb_free
 #include "string.h"          // string
 #include "typedefs.h"
+#include "list.h"
 #include "utility.h" // error warning info, etc
 #include "value.h"   // Value, Scope
 #include <assert.h>  // assert
@@ -37,8 +38,6 @@ static void push_scope()
     stack_push(&scope_stack, new_scope);
 }
 static void pop_scope() { stack_pop(&scope_stack); }
-
-
 
 static void append_variable_to_scope(Scope* s, Value* value)
 {
@@ -617,20 +616,32 @@ static Value* codegen_call(Expr* expr)
 
     int bytes_to_remove = 0;
     int index = 0;
-    for (int i = arg_count - 1; i >= 0; --i) {
-        Expr* arg = args[index];
 
+    Value** param_vals = NULL;
+
+    for (int i = 0; i < arg_count; ++i) {
+        Expr* arg = args[i];
         Value* val = codegen_expr(arg);
+        sb_push(param_vals, val);
+        emit_s("PUSH RAX");
+    }
+
+    for (int i = arg_count - 1; i >= 0; --i) {
+
+        Value* val = param_vals[i];
         int size = get_size_of_value(val);
         int reg_n = get_rax_reg_of_byte_size(size);
-
         int param_reg_n = get_parameter_reg(index, size);
+
+        emit_s("POP RAX");
         emit_s("MOV %s, %s", get_reg(param_reg_n), get_reg(reg_n));
 
         ctx->stack_index += size;
         bytes_to_remove += size;
         ++index;
     }
+
+    sb_free(param_vals);
 
     emit_s("CALL %s", callee);
     return make_value_call(callee, func_t->Function.ret_type);
