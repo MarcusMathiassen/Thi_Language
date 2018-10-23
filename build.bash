@@ -28,7 +28,8 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_asterisk_equal.thi
     # ./test.bash ./tests/test_logical_or.clear.thi
     # ./test.bash ./tests/test_if.thi
-    ./test.bash ./tests/test_for.thi
+    # ./test.bash ./tests/test_for.thi
+    ./test.bash ./tests/test_while.thi
     # ./test.bash ./tests/test_not_equal_to.thi
     # ./test.bash ./tests/test_enum.thi
     # ./test.bash ./tests/test_basic_setup.thi

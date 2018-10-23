@@ -642,6 +642,38 @@ static Value* codegen_call(Expr* expr)
     return make_value_call(callee, func_t->Function.ret_type);
 }
 
+static Value* codegen_while(Expr* expr)
+{
+    assert(expr->kind == EXPR_WHILE);
+    Expr* condition = expr->While.cond;
+    Expr* body = expr->While.body;
+
+    ctx_push_label(&ctx);
+    // block->set_break_label(block->get_label("cont"));
+    // block->set_continue_label(block->get_label("cond"));
+
+    // Jump to the condition.
+    emit_s("JMP %s", ctx_get_unique_label(&ctx, "whilecond"));
+
+    // COND:
+    emit_s("%s:", ctx_get_unique_label(&ctx, "whilecond"));
+
+    // Compare the iterator to the end value
+    codegen_expr(condition);
+    emit_s("JE %s", ctx_get_unique_label(&ctx, "whilecont"));
+    emit_s("JMP %s", ctx_get_unique_label(&ctx, "whilebody"));
+
+    // BODY:
+    emit_s("%s:", ctx_get_unique_label(&ctx, "whilebody"));
+    codegen_expr(body);
+    emit_s("JMP %s", ctx_get_unique_label(&ctx, "whilecond"));
+
+    // CONT:
+    emit_s("%s:", ctx_get_unique_label(&ctx, "whilecont"));
+    ctx_pop_label(&ctx);
+
+    return NULL;
+}
 static Value* codegen_for(Expr* expr)
 {
     assert(expr->kind == EXPR_FOR);
@@ -763,7 +795,7 @@ static Value* codegen_expr(Expr* expr)
     case EXPR_IF: return codegen_if(expr);
     case EXPR_FOR: return codegen_for(expr);
     case EXPR_BLOCK: return codegen_block(expr);
-    case EXPR_WHILE: error("EXPR_WHILE codegen not implemented");
+    case EXPR_WHILE: return codegen_while(expr);
     case EXPR_GROUPING: return codegen_expr(expr->Grouping.expr);
     }
     return NULL;

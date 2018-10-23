@@ -88,6 +88,9 @@ char* expr_to_str(Expr* expr)
     } break;
 
     case EXPR_GROUPING: result = strf("(%s)", expr_to_str(expr->Grouping.expr)); break;
+    case EXPR_WHILE: {
+        result = strf("while %s {\n\t%s }", expr_to_str(expr->While.cond), expr_to_str(expr->While.body));
+    } break;
     case EXPR_FOR: {
         string str = make_string(strf("for %s: %s..%s {\n\t%s }", expr->For.iterator_name, expr_to_str(expr->For.start),
                                       expr_to_str(expr->For.end), expr_to_str(expr->For.body)));
@@ -201,6 +204,15 @@ Expr* make_expr_block(Expr** stmts)
     return e;
 }
 
+Expr* make_expr_while(Expr* cond, Expr* body)
+{
+    assert(cond);
+    assert(body);
+    Expr* e = make_expr(EXPR_WHILE);
+    e->While.cond = cond;
+    e->While.body = body;
+    return e;
+}
 Expr* make_expr_for(const char* iterator_name, Expr* start, Expr* end, Expr* body)
 {
     assert(iterator_name);

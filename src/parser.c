@@ -91,6 +91,7 @@ static Expr* parse_integer(void);
 static Expr* parse_parens(void);
 static Expr* parse_if(void);
 static Expr* parse_for(void);
+static Expr* parse_while(void);
 
 static Typespec* parse_struct_signature(const char* struct_name);
 static Typespec* parse_function_signature(const char* func_name);
@@ -201,13 +202,23 @@ static Expr* parse_statement(void)
     // case TOKEN_CONTINUE:          return parse_continue();
     case TOKEN_IF: return parse_if();
     case TOKEN_FOR: return parse_for();
-    // case TOKEN_WHILE_LOOP:        return parse_while();
+    case TOKEN_WHILE: return parse_while();
     // case TOKEN_REPEAT:            return parse_repeat();
     default: error("Unhandled token '%s' was not a valid statement", curr_tok.value);
     }
     return NULL;
 }
 
+static Expr* parse_while(void)
+{
+    eat_kind(TOKEN_WHILE);
+    Expr* cond = parse_expression();
+    if (!cond) {
+        error("missing cond value in while loop");
+    }
+    Expr* body = parse_block();
+    return make_expr_while(cond, body);
+}
 static Expr* parse_for(void)
 {
     eat_kind(TOKEN_FOR);
