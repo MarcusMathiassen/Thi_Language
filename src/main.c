@@ -43,6 +43,9 @@ int main(int argc, char** argv)
 
     // Setup types
     add_builtin_type("char", make_typespec_int(8, true));
+    add_builtin_type("int", make_typespec_int(32, false));
+    add_builtin_type("float", make_typespec_float(32));
+    add_builtin_type("double", make_typespec_float(64));
 
     add_builtin_type("i8", make_typespec_int(8, false));
     add_builtin_type("i16", make_typespec_int(16, false));
@@ -125,7 +128,7 @@ int main(int argc, char** argv)
     sprintf(comp_call, compiler_call "%s.o", exec_name);
     sprintf(link_call, linker_call "%s %s.o -e main", exec_name, exec_name);
 
-    // system("cat output.asm");
+    system("cat output.asm");
     system(comp_call);
     system(link_call);
 

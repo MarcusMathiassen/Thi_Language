@@ -38,6 +38,8 @@ static void push_scope()
 }
 static void pop_scope() { stack_pop(&scope_stack); }
 
+
+
 static void append_variable_to_scope(Scope* s, Value* value)
 {
     assert(s);
