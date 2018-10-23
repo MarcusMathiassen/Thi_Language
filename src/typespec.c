@@ -40,11 +40,7 @@ u64 typespec_function_get_arg_count(Typespec* type)
 char* typespec_to_str(Typespec* type)
 {
     switch (type->kind) {
-    case TYPESPEC_INT:
-        return strf((type->Int.is_unsigned ? "u"
-                                           : "i"
-                                             "%d"),
-                    type->Int.bits);
+    case TYPESPEC_INT: return strf(type->Int.is_unsigned ? "u%d" : "i%d", type->Int.bits);
     case TYPESPEC_FLOAT: return strf("f%d", type->Float.bits);
     case TYPESPEC_STRUCT: {
         string str = make_string(strf("%s :: {\n", type->Struct.name));
