@@ -111,7 +111,7 @@ int main(int argc, char** argv)
     // Linking
     push_timer("Linking");
 #define format "macho64"
-#define compiler "nasm"
+#define compiler "/usr/local/bin/nasm"
 #define src "output.asm"
 #define flags " -g "
 #define linker "ld"
