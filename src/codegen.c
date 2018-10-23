@@ -642,6 +642,39 @@ static Value* codegen_call(Expr* expr)
     return make_value_call(callee, func_t->Function.ret_type);
 }
 
+static Value* codegen_if(Expr* expr)
+{
+    assert(expr->kind == EXPR_IF);
+
+    Expr* condition = expr->If.cond;
+    Expr* then_body = expr->If.then_body;
+    Expr* else_body = expr->If.else_body;
+
+    // COND:
+    ctx_push_label(&ctx);
+    Value* condition_val = codegen_expr(condition);
+    int condition_size = get_size_of_value(condition_val);
+    int res_reg = get_rax_reg_of_byte_size(condition_size);
+
+    emit_s("CMP %s, 0", get_reg(res_reg));
+    emit_s("JE %s", else_body ? ctx_get_unique_label(&ctx, "ifelse") : ctx_get_unique_label(&ctx, "ifcont"));
+    emit_s("JMP %s", ctx_get_unique_label(&ctx, "ifthen"));
+
+    // THEN:
+    emit_s("%s:", ctx_get_unique_label(&ctx, "ifthen"));
+    codegen_expr(then_body);
+
+    // ELSE:
+    if (else_body) {
+        emit_s("%s:", ctx_get_unique_label(&ctx, "ifelse"));
+        codegen_expr(else_body);
+    }
+
+    emit_s("%s:", ctx_get_unique_label(&ctx, "ifcont"));
+    ctx_pop_label(&ctx);
+
+    return NULL;
+}
 static Value* codegen_note(Expr* expr)
 {
     assert(expr->kind == EXPR_NOTE);
@@ -674,7 +707,7 @@ static Value* codegen_expr(Expr* expr)
     case EXPR_VARIABLE_DECL_TYPE_INF: return codegen_variable_decl_type_inf(expr);
     case EXPR_FUNCTION: return codegen_function(expr);
     case EXPR_STRUCT: error("EXPR_STRUCT codegen not implemented");
-    case EXPR_IF: error("EXPR_IF codegen not implemented");
+    case EXPR_IF: return codegen_if(expr);
     case EXPR_FOR: error("EXPR_FOR codegen not implemented");
     case EXPR_BLOCK: return codegen_block(expr);
     case EXPR_WHILE: error("EXPR_WHILE codegen not implemented");

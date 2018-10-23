@@ -89,6 +89,7 @@ static Expr* parse_unary(void);
 static Expr* parse_binary(int expr_prec, Expr* lhs);
 static Expr* parse_integer(void);
 static Expr* parse_parens(void);
+static Expr* parse_if(void);
 
 static Typespec* parse_struct_signature(const char* struct_name);
 static Typespec* parse_function_signature(const char* func_name);
@@ -169,7 +170,7 @@ void generate_symbol_table_from_tokens(Token* tokens)
 //                               Private Functions
 //------------------------------------------------------------------------------
 
-static Expr* parse_top_level()
+static Expr* parse_top_level(void)
 {
 
     top_tok = curr_tok;
@@ -187,7 +188,7 @@ static Expr* parse_top_level()
     return NULL;
 }
 
-static Expr* parse_statement()
+static Expr* parse_statement(void)
 {
     switch (curr_tok.kind) {
     case TOKEN_IDENTIFIER: return parse_expression();
@@ -197,7 +198,7 @@ static Expr* parse_statement()
     // case TOKEN_PRINT:             return parse_print();
     // case TOKEN_BREAK:             return parse_break();
     // case TOKEN_CONTINUE:          return parse_continue();
-    // case TOKEN_IF_STATEMENT:      return parse_if();
+    case TOKEN_IF: return parse_if();
     // case TOKEN_FOR_LOOP:          return parse_for();
     // case TOKEN_WHILE_LOOP:        return parse_while();
     // case TOKEN_REPEAT:            return parse_repeat();
@@ -206,6 +207,18 @@ static Expr* parse_statement()
     return NULL;
 }
 
+static Expr* parse_if(void)
+{
+    eat_kind(TOKEN_IF);
+    Expr* cond = parse_expression();
+    Expr* then_body = parse_block();
+    Expr* else_body = NULL;
+    if (tok_is(TOKEN_ELSE)) {
+        eat();
+        else_body = parse_block();
+    }
+    return make_expr_if(cond, then_body, else_body);
+}
 static Expr* parse_primary()
 {
     switch (curr_tok.kind) {

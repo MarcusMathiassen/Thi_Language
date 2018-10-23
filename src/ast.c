@@ -88,6 +88,11 @@ char* expr_to_str(Expr* expr)
     } break;
 
     case EXPR_GROUPING: result = strf("(%s)", expr_to_str(expr->Grouping.expr)); break;
+    case EXPR_IF: {
+        string str = make_string(strf("if %s {\n\t%s }", expr_to_str(expr->If.cond), expr_to_str(expr->If.then_body)));
+        if (expr->If.else_body) append_string(&str, strf("\t%s\n", expr_to_str(expr->If.else_body)));
+        result = str.c_str;
+    } break;
     case EXPR_CALL: {
         string str = make_string(strf("%s", expr->Call.callee));
         result = str.c_str;
@@ -188,6 +193,17 @@ Expr* make_expr_block(Expr** stmts)
 {
     Expr* e = make_expr(EXPR_BLOCK);
     e->Block.stmts = stmts;
+    return e;
+}
+
+Expr* make_expr_if(Expr* cond, Expr* then_body, Expr* else_body)
+{
+    assert(cond);
+    assert(then_body);
+    Expr* e = make_expr(EXPR_IF);
+    e->If.cond = cond;
+    e->If.then_body = then_body;
+    e->If.else_body = else_body;
     return e;
 }
 
