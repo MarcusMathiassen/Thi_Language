@@ -1,5 +1,6 @@
 #include "ast.h"     // AST
 #include "codegen.h" // generate_code_from_ast
+#include "context.h" // ctx_tests
 #include "globals.h" // init_maps
 #include "lexer.h"   // generate_tokens_from_source, print_tokens
 #include "list.h"    // list_tests
@@ -27,6 +28,7 @@ int main(int argc, char** argv)
     map_tests();
     list_tests();
     stack_tests();
+    ctx_tests();
 
     initilize_globals();
 

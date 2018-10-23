@@ -26,7 +26,8 @@ struct Context
     // Global variables
 };
 
-Context* ctx_make(void);
+void ctx_tests(void);
+void ctx_init(Context* ctx);
 void ctx_push_label(Context* ctx);
 void ctx_pop_label(Context* ctx);
 char* ctx_get_unique_label(Context* ctx, const char* label_name);
