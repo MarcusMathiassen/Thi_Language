@@ -653,23 +653,26 @@ static Value* codegen_while(Expr* expr)
     // block->set_continue_label(block->get_label("cond"));
 
     // Jump to the condition.
-    emit_s("JMP %s", ctx_get_unique_label(&ctx, "whilecond"));
+    const char* condition_label = ctx_get_unique_label(&ctx, "whilecondition");
+    const char* continue_label = ctx_get_unique_label(&ctx, "whilecontinue");
+    const char* body_label = ctx_get_unique_label(&ctx, "whilebody");
+    emit_s("JMP %s", condition_label);
 
     // COND:
-    emit_s("%s:", ctx_get_unique_label(&ctx, "whilecond"));
+    emit_s("%s:", condition_label);
 
     // Compare the iterator to the end value
     codegen_expr(condition);
-    emit_s("JE %s", ctx_get_unique_label(&ctx, "whilecont"));
-    emit_s("JMP %s", ctx_get_unique_label(&ctx, "whilebody"));
+    emit_s("JE %s", continue_label);
+    emit_s("JMP %s", body_label);
 
     // BODY:
-    emit_s("%s:", ctx_get_unique_label(&ctx, "whilebody"));
+    emit_s("%s:", body_label);
     codegen_expr(body);
-    emit_s("JMP %s", ctx_get_unique_label(&ctx, "whilecond"));
+    emit_s("JMP %s", condition_label);
 
     // CONT:
-    emit_s("%s:", ctx_get_unique_label(&ctx, "whilecont"));
+    emit_s("%s:", continue_label);
     ctx_pop_label(&ctx);
 
     return NULL;
@@ -684,6 +687,10 @@ static Value* codegen_for(Expr* expr)
     Expr* body = expr->For.body;
 
     ctx_push_label(&ctx);
+    const char* condition_label = ctx_get_unique_label(&ctx, "forcond");
+    const char* continue_label = ctx_get_unique_label(&ctx, "forcont");
+    const char* body_label = ctx_get_unique_label(&ctx, "forbody");
+    const char* inc_label = ctx_get_unique_label(&ctx, "forinc");
 
     // block->set_break_label(block->get_label("cont"));
     // block->set_continue_label(block->get_label("cond"));
@@ -697,31 +704,31 @@ static Value* codegen_for(Expr* expr)
     emit_store(iterator_var);
 
     // Jump to the condition.
-    emit_s("JMP %s", ctx_get_unique_label(&ctx, "forcond"));
+    emit_s("JMP %s", condition_label);
 
     // COND:
-    emit_s("%s:", ctx_get_unique_label(&ctx, "forcond"));
+    emit_s("%s:", condition_label);
     int res_reg = get_rax_reg_of_byte_size(type_size);
 
     // Compare the iterator to the end value
     codegen_expr(end);
     emit_s("CMP %s, [RSP-%d]", get_reg(res_reg), iterator_var->Variable.stack_pos);
-    emit_s("JE %s", ctx_get_unique_label(&ctx, "forcont"));
-    emit_s("JMP %s", ctx_get_unique_label(&ctx, "forbody"));
+    emit_s("JE %s", continue_label);
+    emit_s("JMP %s", body_label);
 
     // BODY:
-    emit_s("%s:", ctx_get_unique_label(&ctx, "forbody"));
+    emit_s("%s:", body_label);
     codegen_expr(body);
 
     // INC:
-    emit_s("%s:", ctx_get_unique_label(&ctx, "forinc"));
+    emit_s("%s:", inc_label);
 
     emit_load(iterator_var);
     emit_s("INC %s [RSP-%d]", get_op_size(type_size), iterator_var->Variable.stack_pos);
-    emit_s("JMP %s", ctx_get_unique_label(&ctx, "forcond"));
+    emit_s("JMP %s", condition_label);
 
     // CONT:
-    emit_s("%s:", ctx_get_unique_label(&ctx, "forcont"));
+    emit_s("%s:", continue_label);
     ctx_pop_label(&ctx);
 
     return NULL;
@@ -737,25 +744,29 @@ static Value* codegen_if(Expr* expr)
 
     // COND:
     ctx_push_label(&ctx);
+    const char* then_label = ctx_get_unique_label(&ctx, "ifthen");
+    const char* continue_label = ctx_get_unique_label(&ctx, "ifcont");
+    const char* else_label = ctx_get_unique_label(&ctx, "ifelse");
+
     Value* condition_val = codegen_expr(condition);
     int condition_size = get_size_of_value(condition_val);
     int res_reg = get_rax_reg_of_byte_size(condition_size);
 
     emit_s("CMP %s, 0", get_reg(res_reg));
-    emit_s("JE %s", else_body ? ctx_get_unique_label(&ctx, "ifelse") : ctx_get_unique_label(&ctx, "ifcont"));
-    emit_s("JMP %s", ctx_get_unique_label(&ctx, "ifthen"));
+    emit_s("JE %s", else_body ? else_label : continue_label);
+    emit_s("JMP %s", then_label);
 
     // THEN:
-    emit_s("%s:", ctx_get_unique_label(&ctx, "ifthen"));
+    emit_s("%s:", then_label);
     codegen_expr(then_body);
 
     // ELSE:
     if (else_body) {
-        emit_s("%s:", ctx_get_unique_label(&ctx, "ifelse"));
+        emit_s("%s:", else_label);
         codegen_expr(else_body);
     }
 
-    emit_s("%s:", ctx_get_unique_label(&ctx, "ifcont"));
+    emit_s("%s:", continue_label);
     ctx_pop_label(&ctx);
 
     return NULL;
@@ -777,7 +788,7 @@ static Value* codegen_note(Expr* expr)
 // @Hotpath
 static Value* codegen_expr(Expr* expr)
 {
-    info("Generating code for: %s", expr_to_str(expr));
+    // info("Generating code for: %s", expr_to_str(expr));
     switch (expr->kind) {
     case EXPR_NOTE: return codegen_note(expr);
     case EXPR_INT: return codegen_int(expr);

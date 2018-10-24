@@ -12,7 +12,9 @@ test_files=$@
 if [ ${#test_files} == 0 ]; then
     test_files="./tests/*.thi"
 fi
+
 failed_test_files=()
+compiled_but_failed_test_files=()
 passing_test_files=()
 
 num_tests_total=${#test_files[@]}
@@ -46,6 +48,7 @@ do
         ((num_tests_passed++))
         echo -e "${RGB_GRAY}[TEST] ${NC}${GREEN} PASSED ${NC} ${RGB_GRAY} $tf ${NC} "
     else
+        compiled_but_failed_test_files+=" $tf"
         failed_test_files+=" $tf"
         echo -e "${RGB_GRAY}[TEST] ${NC}${RED} FAILED ${NC} ${RGB_GRAY} $tf ${NC} "
         echo -e "${RGB_GRAY}[TEST] returned $res ${NC}"
@@ -59,6 +62,7 @@ echo -e "${RGB_GRAY}[TEST] ${NC}${RGB_GRAY}PASSED/COMPILED/TOTAL: ${num_tests_pa
 if [ ${#failed_test_files[@]} -ne 0 ]; then
     echo -e "${RGB_GRAY}[TEST] ${NC}${GREEN}PASSED TESTS: ${passing_test_files} ${NC}"
     echo -e "${RGB_GRAY}[TEST] ${NC}${RED}FAILED TESTS: ${failed_test_files} ${NC}"
+    echo -e "${RGB_GRAY}[TEST] ${NC}${RED}COMPILED BUT FAILED TESTS: ${compiled_but_failed_test_files} ${NC}"
 else
     echo -e "${RGB_GRAY}[TEST] ${NC}${GREEN}ALL TESTS PASSED${NC}"
 fi
