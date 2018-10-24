@@ -16,7 +16,7 @@ thi_executable=./thi
 
 # Compile the file
 name="./test_0"
-thi $test_file ./test_0
+$thi_executable $test_file ./test_0
 if [ -f $name ]; then
     # Debug it
     lldb $name

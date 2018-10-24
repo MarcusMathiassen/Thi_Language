@@ -1,10 +1,16 @@
-main :: () -> i32 {
-    ret fib(10)
+fib :: (num: i32) -> i32 {
+    a := 1
+    b := 0
+    temp := 0
+    while num >= 0 {
+        temp = a
+        a = a + b
+        b = temp
+        num -= 1
+    }
+    ret b
 }
 
-fib :: (n: i32) -> i32 {
-    if n <= 1 {
-        ret n
-    }
-    ret fib(n - 1) + fib(n - 2)
+main :: () -> i32 {
+    ret fib(10) - 54
 }
