@@ -7,6 +7,7 @@
 #include "utility.h" // warning, error, xmalloc
 #include <assert.h>  // assert
 
+static Map foreign_function_map;
 static Map symbol_map;
 static Map builtin_type_map;
 static Stack timer_stack;
@@ -20,6 +21,7 @@ bool detailed_print = true;
 
 void initilize_globals(void)
 {
+    map_init(&foreign_function_map);
     map_init(&symbol_map);
     map_init(&builtin_type_map);
     list_init(&timers);
@@ -62,6 +64,24 @@ Typespec* get_builtin_type(const char* name)
     return type;
 }
 
+void add_foreign_function(const char* name, Typespec* type)
+{
+    assert(type);
+    if (map_set(&foreign_function_map, name, type) == MAP_EXISTS) {
+        warning("foreign function redecl: '%s'", name);
+    }
+    info("added foreign function: '%s' of type '%s'", name, typespec_to_str(type));
+}
+
+Typespec* get_foreign_function(const char* name)
+{
+    assert(name);
+    Typespec* type = (Typespec*)map_get(&foreign_function_map, name);
+    if (!type) {
+        error("no foreign function with name '%s'", name);
+    }
+    return type;
+}
 void add_symbol(const char* name, Typespec* type)
 {
     assert(name);

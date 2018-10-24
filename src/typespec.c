@@ -75,12 +75,14 @@ char* typespec_to_str(Typespec* type)
         int arg_count = sb_count(args);
         if (arg_count) {
             for (int i = 0; i < arg_count; ++i) {
-                append_string(&str, strf("%s: %s", args[i].name, typespec_to_str(args[i].type)));
+                if (args[i].name)
+                    append_string(&str, strf("%s: %s", args[i].name, typespec_to_str(args[i].type)));
+                else
+                    append_string(&str, strf("%s", typespec_to_str(args[i].type)));
                 if (i != arg_count - 1) append_string(&str, ", ");
             }
         }
-
-        append_string(&str, strf(") -> %s", typespec_to_str(type->Function.ret_type)));
+        if (type->Function.ret_type) append_string(&str, strf(") -> %s", typespec_to_str(type->Function.ret_type)));
         return str.c_str;
     }
     default: warning("not implemented kind %d", type->kind);

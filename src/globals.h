@@ -18,7 +18,9 @@ Typespec* get_builtin_type(const char* name);
 void add_symbol(const char* name, Typespec* type);
 Typespec* get_symbol(const char* name);
 void print_symbol_map(void);
-void init_symbol_map(void);
+
+void add_foreign_function(const char* name, Typespec* type);
+Typespec* get_foreign_function(const char* name);
 
 void push_timer(const char* desc);
 void pop_timer(void);

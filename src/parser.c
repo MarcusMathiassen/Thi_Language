@@ -161,8 +161,12 @@ void generate_symbol_table_from_tokens(Token* tokens)
         } break;
 
         case TOKEN_FOREIGN: {
-            error("TOKEN_LOAD parser not implemented.");
-            // parse_and_add_foreign_function(current_token.value);
+            eat_kind(TOKEN_FOREIGN);
+            const char* func_name = curr_tok.value;
+            eat_kind(TOKEN_IDENTIFIER);
+            eat_kind(TOKEN_COLON_COLON);
+            Typespec* func_t = parse_function_signature(func_name);
+            add_foreign_function(func_name, func_t);
         } break;
         }
     }
@@ -174,19 +178,17 @@ void generate_symbol_table_from_tokens(Token* tokens)
 
 static Expr* parse_top_level(void)
 {
-
     top_tok = curr_tok;
-
     switch (curr_tok.kind) {
-
-    case TOKEN_FOREIGN:
-        error("MISSING IMPLEENTATI FOR FOREIGN TOP LEVEL");
-        // eat();
-        // skip_function_signature();
-        // break;
+    case TOKEN_FOREIGN: {
+        eat_kind(TOKEN_FOREIGN);
+        eat_kind(TOKEN_IDENTIFIER);
+        eat_kind(TOKEN_COLON_COLON);
+        skip_function_signature();
+        break;
+    }
     case TOKEN_IDENTIFIER: return parse_statement();
     }
-
     return NULL;
 }
 
@@ -553,6 +555,7 @@ static Typespec* parse_function_signature(const char* func_name)
 
         // foreign's dont have named parameters
         if (top_tok.kind == TOKEN_FOREIGN) {
+            arg.name = NULL;
             arg.type = get_type();
         } else {
             eat_kind(TOKEN_IDENTIFIER);
@@ -565,7 +568,6 @@ static Typespec* parse_function_signature(const char* func_name)
     }
     eat();
     Typespec* ret_type = NULL;
-
     if (tok_is(TOKEN_RIGHT_ARROW)) {
         eat();
         ret_type = get_type();
@@ -671,9 +673,13 @@ static void skip_function_signature(void)
     bool has_multiple_arguments = false;
     while (!tok_is(TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(TOKEN_COMMA);
-        eat_kind(TOKEN_IDENTIFIER);
-        eat_kind(TOKEN_COLON);
-        skip_type();
+        if (top_tok.kind == TOKEN_FOREIGN) {
+            eat();
+        } else {
+            eat_kind(TOKEN_IDENTIFIER);
+            eat_kind(TOKEN_COLON);
+            skip_type();
+        }
         has_multiple_arguments = true;
     }
     eat();
