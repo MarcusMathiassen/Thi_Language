@@ -1,9 +1,9 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
+#include "list.h" // List
 #include "typedefs.h"
 #include "typespec.h" // Typespec
-
 extern bool detailed_print;
 
 #define DEFAULT_INTEGER_BYTE_SIZE 4
@@ -20,7 +20,7 @@ Typespec* get_symbol(const char* name);
 void print_symbol_map(void);
 
 void add_foreign_function(const char* name, Typespec* type);
-Typespec* get_foreign_function(const char* name);
+List get_foreign_function_list(void);
 
 void push_timer(const char* desc);
 void pop_timer(void);

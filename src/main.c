@@ -130,7 +130,7 @@ int main(int argc, char** argv)
     char comp_call[256];
     char link_call[256];
     sprintf(comp_call, compiler_call "%s.o", exec_name);
-    sprintf(link_call, linker_call "%s %s.o -e main", exec_name, exec_name);
+    sprintf(link_call, linker_call "%s %s.o -e _main -lc", exec_name, exec_name);
 
     if (detailed_print) system("cat output.asm");
     system(comp_call);

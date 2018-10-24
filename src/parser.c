@@ -167,6 +167,7 @@ void generate_symbol_table_from_tokens(Token* tokens)
             eat_kind(TOKEN_COLON_COLON);
             Typespec* func_t = parse_function_signature(func_name);
             add_foreign_function(func_name, func_t);
+            add_symbol(func_name, func_t);
         } break;
         }
     }

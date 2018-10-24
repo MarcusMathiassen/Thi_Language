@@ -637,8 +637,7 @@ static Value* codegen_call(Expr* expr)
     }
 
     sb_free(param_vals);
-
-    emit_s("CALL %s", callee);
+    emit_s("CALL _%s", callee);
     return make_value_call(callee, func_t->Function.ret_type);
 }
 
@@ -822,7 +821,14 @@ char* generate_code_from_ast(AST** ast)
     stack_init(&scope_stack);
     output = make_string("");
 
-    emit(&output, "global main");
+    List foreign_function_list = get_foreign_function_list();
+    LIST_FOREACH(foreign_function_list)
+    {
+        const char* func_name = ((Typespec*)it->data)->Function.name;
+        emit(&output, strf("extern _%s", func_name));
+    }
+
+    emit(&output, "global _main");
     emit(&output, "section .text");
 
     u64 ast_count = sb_count(ast);
@@ -835,7 +841,7 @@ char* generate_code_from_ast(AST** ast)
         Value* func_v = functions[i];
         const char* func_name = func_v->Function.name;
 
-        emit(&output, "%s:", func_name);
+        emit(&output, "_%s:", func_name);
 
         u8* regs_used = func_v->Function.regs_used;
         u8 regs_count = func_v->Function.regs_used_count;
