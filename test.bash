@@ -62,7 +62,9 @@ echo -e "${RGB_GRAY}[TEST] ${NC}${RGB_GRAY}PASSED/COMPILED/TOTAL: ${num_tests_pa
 if [ ${#failed_test_files[@]} -ne 0 ]; then
     echo -e "${RGB_GRAY}[TEST] ${NC}${GREEN}PASSED TESTS: ${passing_test_files} ${NC}"
     echo -e "${RGB_GRAY}[TEST] ${NC}${RED}FAILED TESTS: ${failed_test_files} ${NC}"
-    echo -e "${RGB_GRAY}[TEST] ${NC}${RED}COMPILED BUT FAILED TESTS: ${compiled_but_failed_test_files} ${NC}"
+    if [ ${#compiled_but_failed_test_files[@]} -ne 0 ]; then
+        echo -e "${RGB_GRAY}[TEST] ${NC}${RED}COMPILED BUT FAILED TESTS: ${compiled_but_failed_test_files} ${NC}"
+    fi
 else
     echo -e "${RGB_GRAY}[TEST] ${NC}${GREEN}ALL TESTS PASSED${NC}"
 fi
