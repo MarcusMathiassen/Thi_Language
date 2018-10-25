@@ -273,6 +273,7 @@ Expr* make_expr_variable_decl(const char* name, Typespec* type, Expr* value)
     e->Variable_Decl.value = value;
     return e;
 }
+
 Expr* make_expr_variable_decl_type_inf(const char* name, Expr* value)
 {
     assert(name);

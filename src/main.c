@@ -114,9 +114,9 @@ int main(int argc, char** argv)
         write_to_file(output_filename, output);
     } else
         error("generating code from ast failed.");
-
-    // Linking
-    push_timer("Linking");
+    
+        // Linking
+        push_timer("Linking");
 #define format "macho64"
 #define compiler "/usr/local/bin/nasm"
 #define src "output.asm"
