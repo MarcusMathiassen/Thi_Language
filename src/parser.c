@@ -119,7 +119,7 @@ static Token top_tok;
 //                               Public Functions
 //------------------------------------------------------------------------------
 
-AST** generate_ast_from_tokens(Token* tokens)
+List generate_ast_from_tokens(Token* tokens)
 {
     info("Generating AST from Tokens..");
     g_tokens = tokens;
@@ -128,15 +128,18 @@ AST** generate_ast_from_tokens(Token* tokens)
     curr_tok.kind = TOKEN_UNKNOWN;
     eat();
 
-    Expr** ast = NULL;
+    List ast_list;
+    list_init(&ast_list);
+
+    // Expr** ast = NULL;
     while (!tok_is(TOKEN_EOF)) {
         Expr* stmt = parse_top_level();
         if (stmt) {
-            sb_push(ast, stmt);
+            list_append(&ast_list, stmt);
         }
     }
 
-    return ast;
+    return ast_list;
 }
 
 void generate_symbol_table_from_tokens(Token* tokens)
@@ -206,7 +209,6 @@ static Expr* parse_statement(void)
     case TOKEN_IF: return parse_if();
     case TOKEN_FOR: return parse_for();
     case TOKEN_WHILE: return parse_while();
-    // case TOKEN_REPEAT:            return parse_repeat();
     default: error("Unhandled token '%s' was not a valid statement", curr_tok.value);
     }
     return NULL;
@@ -579,7 +581,7 @@ static Typespec* parse_function_signature(const char* func_name)
 
 static Expr* get_definition(const char* ident)
 {
-    eat();
+    eat_kind(TOKEN_COLON_COLON);
     switch (curr_tok.kind) {
     case TOKEN_ENUM: {
         eat();
@@ -597,7 +599,10 @@ static Expr* get_definition(const char* ident)
         Expr* body = parse_block();
         return make_expr_function(get_symbol(ident), body);
     }
-        // default: return get_constant(ident);
+    default: {
+        // Macro def
+        return make_expr_macro(ident, parse_expression());
+    }
     }
 
     error("GET DEF RETURNING NULL");
@@ -718,9 +723,8 @@ static void add_new_symbol(void)
             return;
         }
         default: {
-            eat();
-            // auto expr = parse_expression();
-            // add_constant(new AST_Constant_Variable(ident, expr));
+            Expr* expr = parse_expression();
+            add_macro_def(ident, expr);
             return;
         }
         }

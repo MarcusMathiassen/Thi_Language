@@ -20,6 +20,8 @@
 //------------------------------------------------------------------------------
 //                               Main Driver
 //------------------------------------------------------------------------------
+void assemble(const char* asm_file, const char* exec_name);
+void link(const char* exec_name);
 
 int main(int argc, char** argv)
 {
@@ -99,9 +101,9 @@ int main(int argc, char** argv)
 
     // Parsing
     push_timer("Parsing");
-    AST** ast = generate_ast_from_tokens(tokens);
+    List ast = generate_ast_from_tokens(tokens);
     pop_timer();
-    if (ast) print_ast(ast);
+    if (list_empty(ast)) print_ast(ast);
 
     // Codegen
     push_timer("Codegen");
@@ -112,35 +114,10 @@ int main(int argc, char** argv)
     if (output) {
         const char* output_filename = "output.asm";
         write_to_file(output_filename, output);
+        assemble(output_filename, exec_name);
+        link(exec_name);
     } else
         error("generating code from ast failed.");
-    
-        // Linking
-        push_timer("Linking");
-#define format "macho64"
-#define compiler "/usr/local/bin/nasm"
-#define src "output.asm"
-#define flags " -g "
-#define linker "ld"
-#define linker_options "-macosx_version_min 10.14 -lSystem" // -lc";
-
-#define compiler_call compiler " -f " format flags src " -o "
-#define linker_call linker " " linker_options " -o "
-
-    char comp_call[256];
-    char link_call[256];
-    sprintf(comp_call, compiler_call "%s.o", exec_name);
-    sprintf(link_call, linker_call "%s %s.o -e _main -lc", exec_name, exec_name);
-
-    if (detailed_print) system("cat output.asm");
-    system(comp_call);
-    system(link_call);
-
-    char rm_call[256];
-    sprintf(rm_call, "rm %s.o", exec_name);
-    system(rm_call);
-    system("rm output.asm");
-    pop_timer();
 
     // Debug info. Writing out sizes of our types.
     info("size of Token: %lu bytes", sizeof(Token));
@@ -149,14 +126,44 @@ int main(int argc, char** argv)
     info("size of Value: %lu bytes", sizeof(Value));
 
     pop_timer();
-    info("==------------ Thi ------------==");
+    success("==------------ Thi ------------==");
     List timers = get_timers();
     LIST_FOREACH(timers)
     {
         Timer* tm = (Timer*)it->data;
-        info("%s: %f seconds", tm->desc, tm->ms / 1e3);
+        success("%s: %f seconds", tm->desc, tm->ms / 1e3);
     }
-    info("==------------ === ------------==");
+    success("==------------ === ------------==");
 
     return 0;
+}
+
+void assemble(const char* asm_file, const char* exec_name)
+{
+    char comp_call[256];
+    sprintf(comp_call, "nasm -f macho64 -g %s -o %s.o", asm_file, exec_name);
+    push_timer("Assembler");
+    system(comp_call);
+    pop_timer();
+
+    system("cat output.asm");
+
+    // Cleanup
+    char rm_asm_file[256];
+    sprintf(rm_asm_file, "rm %s", asm_file);
+    system(rm_asm_file);
+}
+
+void link(const char* exec_name)
+{
+    char link_call[256];
+    sprintf(link_call, "ld -macosx_version_min 10.14 -lSystem -o %s %s.o -e _main -lc", exec_name, exec_name);
+    push_timer("Linker");
+    system(link_call);
+    pop_timer();
+
+    // Cleanup
+    char rm_call[256];
+    sprintf(rm_call, "rm %s.o", exec_name);
+    system(rm_call);
 }

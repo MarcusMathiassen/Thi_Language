@@ -69,6 +69,7 @@ static Value* get_variable_in_scope(Scope* scope, const char* name)
         Value* v = scope->local_variables[i];
         if (v->Variable.name == name) return v;
     }
+
     return NULL;
 }
 
@@ -209,6 +210,14 @@ static Value* codegen_ident(Expr* expr)
 {
     start_codeblock(ctx.current_function, "codegen_ident");
     const char* name = expr->Ident.name;
+
+    // Macro?
+    Expr* macro_expr = get_macro_def(name);
+    if (macro_expr) {
+        warning("ITS A MACRO IDENT");
+        return codegen_expr(macro_expr);
+    }
+
     Value* var = get_variable(name);
     assert(var);
     emit_load(var);
@@ -770,6 +779,11 @@ static Value* codegen_if(Expr* expr)
 
     return NULL;
 }
+static Value* codegen_macro(Expr* expr)
+{
+    assert(expr->kind == EXPR_MACRO);
+    return NULL;
+}
 static Value* codegen_note(Expr* expr)
 {
     assert(expr->kind == EXPR_NOTE);
@@ -789,6 +803,7 @@ static Value* codegen_expr(Expr* expr)
 {
     // info("Generating code for: %s", expr_to_str(expr));
     switch (expr->kind) {
+    case EXPR_MACRO: return codegen_macro(expr);
     case EXPR_NOTE: return codegen_note(expr);
     case EXPR_INT: return codegen_int(expr);
     case EXPR_FLOAT: error("EXPR_FLOAT codegen not implemented");
@@ -811,7 +826,7 @@ static Value* codegen_expr(Expr* expr)
     return NULL;
 }
 
-char* generate_code_from_ast(AST** ast)
+char* generate_code_from_ast(List ast)
 {
     info("Generating X64 Assembly from AST");
 
@@ -831,10 +846,7 @@ char* generate_code_from_ast(AST** ast)
     emit(&output, "global _main");
     emit(&output, "section .text");
 
-    u64 ast_count = sb_count(ast);
-    for (u64 i = 0; i < ast_count; ++i) {
-        codegen_expr(ast[i]);
-    }
+    LIST_FOREACH(ast) { codegen_expr((Expr*)it->data); }
 
     int func_count = sb_count(functions);
     for (int i = 0; i < func_count; ++i) {

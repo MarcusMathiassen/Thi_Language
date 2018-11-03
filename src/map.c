@@ -15,8 +15,8 @@ typedef struct
 
 void map_tests(void)
 {
-    Map test_map;
-    map_init(&test_map);
+    Map map;
+    map_init(&map);
 
     Test_Type marcus;
     marcus.id = 0;
@@ -26,10 +26,10 @@ void map_tests(void)
     aylin.id = 1;
     aylin.val = 6.41f;
 
-    map_set(&test_map, "marcus", &marcus);
-    map_set(&test_map, "aylin", &aylin);
-    assert(((Test_Type*)map_get(&test_map, "marcus"))->val == 3.43f);
-    assert(((Test_Type*)map_get(&test_map, "aylin"))->val == 6.41f);
+    map_set(&map, "marcus", &marcus);
+    map_set(&map, "aylin", &aylin);
+    assert(((Test_Type*)map_get(&map, "marcus"))->val == 3.43f);
+    assert(((Test_Type*)map_get(&map, "aylin"))->val == 6.41f);
 }
 
 void map_init(Map* map)

@@ -56,6 +56,8 @@ void list_tests(void)
     // }
 }
 
+bool list_empty(List list) { return list.count; }
+
 void* list_remove(List* list, i64 index)
 {
     assert(list);

@@ -11,6 +11,7 @@ bool detailed_print = true;
 
 static List foreign_function_list;
 static Map symbol_map;
+static Map macro_map;
 static Map builtin_type_map;
 static Stack timer_stack;
 static List timers;
@@ -23,6 +24,7 @@ void initilize_globals(void)
 {
     list_init(&foreign_function_list);
     map_init(&symbol_map);
+    map_init(&macro_map);
     map_init(&builtin_type_map);
     list_init(&timers);
     stack_init(&timer_stack);
@@ -90,6 +92,26 @@ Typespec* get_symbol(const char* name)
         error("no symbol with name '%s'", name);
     }
     return type;
+}
+
+void add_macro_def(const char* name, Expr* expr)
+{
+    assert(name);
+    assert(expr);
+    if (map_set(&macro_map, name, expr) == MAP_EXISTS) {
+        warning("macro redecl: '%s'", name);
+    }
+    info("added macro: '%s' with expr '%s'", name, expr_to_str(expr));
+}
+
+Expr* get_macro_def(const char* name)
+{
+    assert(name);
+    Expr* expr = (Expr*)map_get(&macro_map, name);
+    // if (!expr) {
+    // error("no macro with name '%s'", name);
+    // }
+    return expr;
 }
 
 List get_timers(void) { return timers; }

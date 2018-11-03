@@ -26,5 +26,6 @@ void* list_last(List* list);
 void* list_first(List* list);
 void* list_at(List* list, i64 index);
 void* list_remove(List* list, i64 index);
+bool list_empty(List list);
 
 #endif

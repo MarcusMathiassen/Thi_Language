@@ -1,5 +1,4 @@
 #include "ast.h"
-
 #include "lexer.h"           // token_kind_to_str,
 #include "stretchy_buffer.h" // sb_push
 #include "string.h"          // strf, append_string, string
@@ -19,6 +18,7 @@
 const char* expr_kind_to_str(Expr_Kind kind)
 {
     switch (kind) {
+    case EXPR_MACRO: return "EXPR_MACRO";
     case EXPR_NOTE: return "EXPR_NOTE";
     case EXPR_INT: return "EXPR_INT";
     case EXPR_FLOAT: return "EXPR_FLOAT";
@@ -45,6 +45,9 @@ char* expr_to_str(Expr* expr)
 {
     char* result = NULL;
     switch (expr->kind) {
+    case EXPR_MACRO: {
+        result = strf("%s :: %s", expr->Macro.name, expr_to_str(expr->Macro.expr));
+    } break;
     case EXPR_NOTE: {
         result = strf("$%s", expr_to_str(expr->Note.expr));
     } break;
@@ -110,12 +113,10 @@ char* expr_to_str(Expr* expr)
     return wrap_with_colored_parens(result);
 }
 
-void print_ast(AST** ast)
+void print_ast(List ast)
 {
     info("Printing AST..");
-    for (int i = 0; i < sb_count(ast); ++i) {
-        info("%s", expr_to_str(ast[i]));
-    }
+    LIST_FOREACH(ast) { info("%s", expr_to_str((Expr*)it->data)); }
 }
 
 //------------------------------------------------------------------------------
@@ -128,6 +129,17 @@ Expr* make_expr(Expr_Kind kind)
     e->kind = kind;
     return e;
 }
+
+Expr* make_expr_macro(const char* name, Expr* expr)
+{
+    assert(name);
+    assert(expr);
+    Expr* e = make_expr(EXPR_MACRO);
+    e->Macro.name = name;
+    e->Macro.expr = expr;
+    return e;
+}
+
 Expr* make_expr_note(Expr* expr)
 {
     assert(expr);

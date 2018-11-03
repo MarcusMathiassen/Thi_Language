@@ -2,18 +2,19 @@
 #define AST_H
 
 #include "lexer.h"    // Token_Kind
+#include "list.h"     // list
 #include "typespec.h" // Typespec
 
 //------------------------------------------------------------------------------
 //                               ast.h
 //------------------------------------------------------------------------------
-
 typedef struct Expr Expr;
 typedef struct Expr AST;
 typedef enum Expr_Kind Expr_Kind;
 
 enum Expr_Kind
 {
+    EXPR_MACRO,
     EXPR_NOTE,
     EXPR_INT,
     EXPR_FLOAT,
@@ -44,6 +45,11 @@ struct Expr
 {
     Expr_Kind kind;
     union {
+        struct
+        {
+            const char* name;
+            Expr* expr;
+        } Macro;
         struct
         {
             Expr* expr;
@@ -129,6 +135,7 @@ struct Expr
     };
 };
 
+Expr* make_expr_macro(const char* name, Expr* expr);
 Expr* make_expr_note(Expr* expr);
 Expr* make_expr_int(u64 value);
 Expr* make_expr_float(f64 value);
@@ -147,7 +154,7 @@ Expr* make_expr_grouping(Expr* expr);
 Expr* make_expr_variable_decl(const char* name, Typespec* type, Expr* value);
 Expr* make_expr_variable_decl_type_inf(const char* name, Expr* value);
 
-void print_ast(AST** ast);
+void print_ast(List ast);
 char* expr_to_str(Expr* expr);
 const char* expr_kind_to_str(Expr_Kind kind);
 
