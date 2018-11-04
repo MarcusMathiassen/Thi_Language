@@ -115,6 +115,7 @@ static Token* g_tokens = NULL;
 static u64 token_index = 0;
 static Token curr_tok;
 static Token top_tok;
+static List* g_ast_list = NULL;
 
 //------------------------------------------------------------------------------
 //                               Public Functions
@@ -130,13 +131,15 @@ List generate_ast_from_tokens(Token* tokens)
     eat();
 
     List ast_list;
-    list_init(&ast_list);
+    g_ast_list = &ast_list;
+
+    list_init(g_ast_list);
     
     while (!tok_is(TOKEN_EOF)) {
         Expr* stmt = parse_top_level();
         if (stmt) {
             info("%s", expr_to_str(stmt));
-            list_append(&ast_list, stmt);
+            list_append(g_ast_list, stmt);
         }
     }
 
@@ -172,12 +175,13 @@ void generate_symbol_table_from_tokens(Token*  tokens)
             Token* tokense = generate_tokens_from_source(source);
             assert(tokense);
 
-
             // Save off current progress
             int s_token_index = token_index;
             Token_Kind s_k = curr_tok.kind;
 
             generate_symbol_table_from_tokens(tokense);
+            List aast = generate_ast_from_tokens(tokense);
+            list_append_content_of(g_ast_list, aast);
             success("Continuing on: '%s'", get_source_file());
 
             // Load the saved off progress from previous file
@@ -187,7 +191,6 @@ void generate_symbol_table_from_tokens(Token*  tokens)
             curr_tok.kind = s_k;
 
             eat_kind(TOKEN_STRING);
-            // error("TOKEN_LOAD parser not implemented.");
         } break;
 
         case TOKEN_FOREIGN: {

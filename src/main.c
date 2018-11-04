@@ -23,6 +23,12 @@
 void assemble(const char* asm_file, const char* exec_name);
 void link(const char* exec_name);
 
+
+/*
+    Figure out all the files that are loaded by the source.
+    
+*/
+
 int main(int argc, char** argv)
 {
     utility_tests();

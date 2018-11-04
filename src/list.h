@@ -25,6 +25,7 @@ void* list_prepend(List* list, void* data);
 void* list_last(List* list);
 void* list_first(List* list);
 void* list_at(List* list, i64 index);
+void list_append_content_of(List* list, List other_list);
 void* list_remove(List* list, i64 index);
 bool list_empty(List list);
 
