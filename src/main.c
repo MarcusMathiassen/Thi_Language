@@ -70,6 +70,7 @@ int main(int argc, char** argv)
     const char* name = get_file_name(source_file);
 
     set_source_file(name);
+    set_current_dir(dir);
 
     info(source_file);
     info("ext: %s", ext);

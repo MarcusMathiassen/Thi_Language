@@ -5,6 +5,7 @@
 #include "typedefs.h"        // i32, i64, etc.
 #include "typespec.h"        // Typespec
 #include "utility.h"         // info, error, warning, success
+#include "string.h"
 #include <assert.h>          // assert
 #include <ctype.h>           // atoll
 
@@ -130,19 +131,18 @@ List generate_ast_from_tokens(Token* tokens)
 
     List ast_list;
     list_init(&ast_list);
-
-    // Expr** ast = NULL;
+    
     while (!tok_is(TOKEN_EOF)) {
         Expr* stmt = parse_top_level();
         if (stmt) {
+            info("%s", expr_to_str(stmt));
             list_append(&ast_list, stmt);
         }
     }
 
     return ast_list;
 }
-
-void generate_symbol_table_from_tokens(Token* tokens)
+void generate_symbol_table_from_tokens(Token*  tokens)
 {
     info("Generating symbol table..");
     g_tokens = tokens;
@@ -160,7 +160,34 @@ void generate_symbol_table_from_tokens(Token* tokens)
         } break;
 
         case TOKEN_LOAD: {
-            error("TOKEN_LOAD parser not implemented.");
+            eat_kind(TOKEN_LOAD);
+            // Set the current directory to the directory of the added file
+            string file = make_string(strf("%s%s", get_current_dir(), curr_tok.value));
+            const char* dir = get_file_dir(file.c_str);
+            set_current_dir(dir);
+            // add_file(file);
+            success("Parsing: '%s'", file.c_str);
+            char* source = get_file_content(file.c_str);
+            warning("%s", source);
+            Token* tokense = generate_tokens_from_source(source);
+            assert(tokense);
+
+
+            // Save off current progress
+            int s_token_index = token_index;
+            Token_Kind s_k = curr_tok.kind;
+
+            generate_symbol_table_from_tokens(tokense);
+            success("Continuing on: '%s'", get_source_file());
+
+            // Load the saved off progress from previous file
+            token_index = s_token_index;
+            top_tok.kind = TOKEN_UNKNOWN;
+            g_tokens = tokens;
+            curr_tok.kind = s_k;
+
+            eat_kind(TOKEN_STRING);
+            // error("TOKEN_LOAD parser not implemented.");
         } break;
 
         case TOKEN_FOREIGN: {
@@ -189,8 +216,7 @@ static Expr* parse_top_level(void)
         eat_kind(TOKEN_IDENTIFIER);
         eat_kind(TOKEN_COLON_COLON);
         skip_function_signature();
-        break;
-    }
+    } break;
     case TOKEN_IDENTIFIER: return parse_statement();
     }
     return NULL;
@@ -631,7 +657,7 @@ static void eat_kind(Token_Kind kind)
     if (curr_tok.kind == kind) {
         eat();
     } else {
-        error("expected '%s'", token_kind_to_str(kind));
+        error("expected '%s' got '%s'", token_kind_to_str(kind), token_kind_to_str(curr_tok.kind));
     }
 }
 

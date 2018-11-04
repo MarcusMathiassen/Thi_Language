@@ -17,8 +17,12 @@ static Stack timer_stack;
 static List timers;
 
 static string source_file;
+static string current_directory;
+
 void set_source_file(const char* file_name) { source_file = make_string(file_name); }
 char* get_source_file() { return source_file.c_str; }
+void set_current_dir(const char* dir_name) { current_directory = make_string(dir_name); }
+char* get_current_dir() { return current_directory.c_str; }
 
 void initilize_globals(void)
 {

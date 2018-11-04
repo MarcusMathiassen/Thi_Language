@@ -83,6 +83,7 @@ void print_tokens(Token* tokens)
 Token* generate_tokens_from_source(char* source)
 {
     info("Generating Tokens from Source");
+    // info("%s", source);
 
     //
     Token* tokens = NULL;
@@ -91,11 +92,13 @@ Token* generate_tokens_from_source(char* source)
     // char* gets set to the start of the stream
     c = source;
     start_of_line = c;
-
+    token.kind = TOKEN_UNKNOWN;
+    
     // Fill the tokens
     while (token.kind != TOKEN_EOF) {
         get_token();
         sb_push(tokens, token);
+        // info("%s %s", token_kind_to_str(token.kind), token.value);
     }
 
     // Print some result info
@@ -365,7 +368,7 @@ scan:
         token.value = c;
         while (*c != '"')
             ++c;
-        token.value = str_intern_range(token.value, c);
+        token.value = str_intern_range(token.value, c++);
         return token;
     } break;
     case '0':

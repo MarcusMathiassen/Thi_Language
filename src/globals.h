@@ -12,6 +12,10 @@ extern bool detailed_print;
 
 void set_source_file(const char* file_name);
 char* get_source_file(void);
+
+void set_current_dir(const char* dir_name);
+char* get_current_dir();
+
 void initilize_globals(void);
 bool is_builtin_type(const char* name);
 void add_builtin_type(const char* name, Typespec* type);
