@@ -93,7 +93,7 @@ Token* generate_tokens_from_source(char* source)
     c = source;
     start_of_line = c;
     token.kind = TOKEN_UNKNOWN;
-    
+
     // Fill the tokens
     while (token.kind != TOKEN_EOF) {
         get_token();

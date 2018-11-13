@@ -65,8 +65,8 @@ int main(int argc, char** argv)
     add_builtin_type("f32", make_typespec_float(32));
     add_builtin_type("f64", make_typespec_float(64));
 
-    const char* ext = get_file_ext(source_file);
-    const char* dir = get_file_dir(source_file);
+    const char* ext = get_file_extension(source_file);
+    const char* dir = get_file_directory(source_file);
     const char* name = get_file_name(source_file);
 
     set_source_file(name);

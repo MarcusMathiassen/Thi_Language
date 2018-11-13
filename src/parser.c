@@ -2,12 +2,12 @@
 
 #include "lexer.h"           // Token, Token_Kind
 #include "stretchy_buffer.h" // sb_push
-#include "typedefs.h"        // i32, i64, etc.
-#include "typespec.h"        // Typespec
-#include "utility.h"         // info, error, warning, success
 #include "string.h"
-#include <assert.h>          // assert
-#include <ctype.h>           // atoll
+#include "typedefs.h" // i32, i64, etc.
+#include "typespec.h" // Typespec
+#include "utility.h"  // info, error, warning, success
+#include <assert.h>   // assert
+#include <ctype.h>    // atoll
 
 #include "globals.h" // add_symbol
 
@@ -131,7 +131,7 @@ List generate_ast_from_tokens(Token* tokens)
 
     List ast_list;
     list_init(&ast_list);
-    
+
     while (!tok_is(TOKEN_EOF)) {
         Expr* stmt = parse_top_level();
         if (stmt) {
@@ -142,7 +142,7 @@ List generate_ast_from_tokens(Token* tokens)
 
     return ast_list;
 }
-void generate_symbol_table_from_tokens(Token*  tokens)
+void generate_symbol_table_from_tokens(Token* tokens)
 {
     info("Generating symbol table..");
     g_tokens = tokens;
@@ -160,34 +160,34 @@ void generate_symbol_table_from_tokens(Token*  tokens)
         } break;
 
         case TOKEN_LOAD: {
-            eat_kind(TOKEN_LOAD);
-            // Set the current directory to the directory of the added file
-            string file = make_string(strf("%s%s", get_current_dir(), curr_tok.value));
-            const char* dir = get_file_dir(file.c_str);
-            set_current_dir(dir);
-            // add_file(file);
-            success("Parsing: '%s'", file.c_str);
-            char* source = get_file_content(file.c_str);
-            warning("%s", source);
-            Token* tokense = generate_tokens_from_source(source);
-            assert(tokense);
+            // eat_kind(TOKEN_LOAD);
+            // // Set the current directory to the directory of the added file
+            // string file = make_string(strf("%s%s", get_current_dir(), curr_tok.value));
+            // const char* dir = get_file_directory(file.c_str);
+            // set_current_dir(dir);
 
+            // // add_file(file);
+            // success("Parsing: '%s'", file.c_str);
+            // char* source = get_file_content(file.c_str);
+            // warning("%s", source);
+            // Token* tokense = generate_tokens_from_source(source);
+            // assert(tokense);
 
-            // Save off current progress
-            int s_token_index = token_index;
-            Token_Kind s_k = curr_tok.kind;
+            // // Save off current progress
+            // int s_token_index = token_index;
+            // Token_Kind s_k = curr_tok.kind;
 
-            generate_symbol_table_from_tokens(tokense);
-            success("Continuing on: '%s'", get_source_file());
+            // generate_symbol_table_from_tokens(tokense);
+            // success("Continuing on: '%s'", get_source_file());
 
-            // Load the saved off progress from previous file
-            token_index = s_token_index;
-            top_tok.kind = TOKEN_UNKNOWN;
-            g_tokens = tokens;
-            curr_tok.kind = s_k;
+            // // Load the saved off progress from previous file
+            // token_index = s_token_index;
+            // top_tok.kind = TOKEN_UNKNOWN;
+            // g_tokens = tokens;
+            // curr_tok.kind = s_k;
 
-            eat_kind(TOKEN_STRING);
-            // error("TOKEN_LOAD parser not implemented.");
+            // eat_kind(TOKEN_STRING);
+            error("TOKEN_LOAD parser not implemented.");
         } break;
 
         case TOKEN_FOREIGN: {
@@ -266,6 +266,7 @@ static Expr* parse_for(void)
     Expr* body = parse_block();
     return make_expr_for(iterator_name, start, end, body);
 }
+
 static Expr* parse_if(void)
 {
     eat_kind(TOKEN_IF);
@@ -273,7 +274,7 @@ static Expr* parse_if(void)
     Expr* then_body = parse_block();
     Expr* else_body = NULL;
     if (tok_is(TOKEN_ELSE)) {
-        eat();
+        eat_kind(TOKEN_ELSE);
         else_body = parse_block();
     }
     return make_expr_if(cond, then_body, else_body);
@@ -306,7 +307,7 @@ static Expr* parse_primary()
 static Expr* parse_identifier()
 {
     const char* ident = curr_tok.value;
-    eat();
+    eat_kind(TOKEN_IDENTIFIER);
     switch (curr_tok.kind) {
     case TOKEN_COLON_COLON: return get_definition(ident);
     case TOKEN_COLON_EQ: return get_variable_typeinferred(ident);
@@ -321,18 +322,18 @@ static Expr* parse_identifier()
 static Expr* parse_block()
 {
     Expr** statements = NULL;
-    eat();
+    eat_kind(TOKEN_OPEN_BRACE);
     while (!tok_is(TOKEN_CLOSE_BRACE)) {
         Expr* stmt = parse_statement();
         if (stmt) sb_push(statements, stmt);
     }
-    eat();
+    eat_kind(TOKEN_CLOSE_BRACE);
     return make_expr_block(statements);
 }
 
 static Expr* parse_ret()
 {
-    eat();
+    eat_kind(TOKEN_RETURN);
     Expr* exp = parse_expression();
     return make_expr_ret(exp);
 }
@@ -358,17 +359,17 @@ static Expr* get_function_call(const char* ident)
 
 static Expr* get_variable_typeinferred(const char* ident)
 {
-    eat();
+    eat_kind(TOKEN_COLON_EQ);
     Expr* assignment_expr = parse_expression();
     return make_expr_variable_decl_type_inf(ident, assignment_expr);
 }
 static Expr* get_variable_declaration(const char* ident)
 {
-    eat();
+    eat_kind(TOKEN_COLON);
     Typespec* variable_type = get_type();
     Expr* assignment_expr = NULL;
     if (tok_is(TOKEN_EQ)) {
-        eat();
+        eat_kind(TOKEN_EQ);
         assignment_expr = parse_expression();
     }
     return make_expr_variable_decl(ident, variable_type, assignment_expr);
@@ -427,7 +428,7 @@ static Expr* parse_unary()
 
 static Expr* parse_note()
 {
-    eat();
+    eat_kind(TOKEN_DOLLAR_SIGN);
     Expr* expr = NULL;
     switch (curr_tok.kind) {
     case TOKEN_HEX: expr = parse_integer(); break;
@@ -481,7 +482,7 @@ static u64 get_integer(void)
 static f64 get_float(void)
 {
     f64 value = atof(curr_tok.value);
-    eat();
+    eat_kind(TOKEN_FLOAT);
     return value;
 }
 
@@ -538,15 +539,13 @@ static Typespec* get_type(void)
 static Typespec* parse_enum_signature(const char* name)
 {
     info("Parsing enum: %s", name);
-    assert(tok_is(TOKEN_ENUM));
-    eat();
-    assert(tok_is(TOKEN_OPEN_BRACE));
-    eat();
+    eat_kind(TOKEN_ENUM);
+    eat_kind(TOKEN_OPEN_BRACE);
     while (!tok_is(TOKEN_CLOSE_BRACE)) {
         info("  enum member: %s", curr_tok.value);
         eat_kind(TOKEN_IDENTIFIER);
     }
-    eat();
+    eat_kind(TOKEN_CLOSE_BRACE);
 
     return make_typespec_enum(name, NULL);
 }
@@ -565,7 +564,7 @@ static Typespec* parse_struct_signature(const char* struct_name)
         member.type = get_type();
         sb_push(members, member);
     }
-    eat();
+    eat_kind(TOKEN_CLOSE_BRACE);
     return make_typespec_struct(struct_name, members);
 }
 
@@ -595,10 +594,10 @@ static Typespec* parse_function_signature(const char* func_name)
         has_multiple_arguments = true;
         sb_push(args, arg);
     }
-    eat();
+    eat_kind(TOKEN_CLOSE_PAREN);
     Typespec* ret_type = NULL;
     if (tok_is(TOKEN_RIGHT_ARROW)) {
-        eat();
+        eat_kind(TOKEN_RIGHT_ARROW);
         ret_type = get_type();
     }
 
@@ -610,13 +609,13 @@ static Expr* get_definition(const char* ident)
     eat_kind(TOKEN_COLON_COLON);
     switch (curr_tok.kind) {
     case TOKEN_ENUM: {
-        eat();
+        eat_kind(TOKEN_ENUM);
         skip_enum_signature();
         // return make_expr_enum(get_symbol(ident));
         return NULL;
     }
     case TOKEN_STRUCT: {
-        eat();
+        eat_kind(TOKEN_STRUCT);
         skip_struct_signature();
         return make_expr_struct(get_symbol(ident));
     }
@@ -654,11 +653,8 @@ static void eat(void) { curr_tok = g_tokens[token_index++]; }
 
 static void eat_kind(Token_Kind kind)
 {
-    if (curr_tok.kind == kind) {
-        eat();
-    } else {
-        error("expected '%s' got '%s'", token_kind_to_str(kind), token_kind_to_str(curr_tok.kind));
-    }
+    assert(curr_tok.kind == kind);
+    eat();
 }
 
 //------------------------------------------------------------------------------
@@ -696,7 +692,7 @@ static void skip_struct_signature(void)
         eat_kind(TOKEN_COLON);
         skip_type();
     }
-    eat();
+    eat_kind(TOKEN_CLOSE_BRACE);
 }
 
 static void skip_function_signature(void)
@@ -714,9 +710,9 @@ static void skip_function_signature(void)
         }
         has_multiple_arguments = true;
     }
-    eat();
+    eat_kind(TOKEN_CLOSE_PAREN);
     if (tok_is(TOKEN_RIGHT_ARROW)) {
-        eat();
+        eat_kind(TOKEN_RIGHT_ARROW);
         skip_type();
     }
 }
@@ -730,7 +726,7 @@ static void add_new_symbol(void)
     const char* ident = curr_tok.value;
     eat_kind(TOKEN_IDENTIFIER);
     if (tok_is(TOKEN_COLON_COLON)) {
-        eat();
+        eat_kind(TOKEN_COLON_COLON);
         switch (curr_tok.kind) {
         case TOKEN_ENUM: {
             Typespec* type = parse_enum_signature(ident);

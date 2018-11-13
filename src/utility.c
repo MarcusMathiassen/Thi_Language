@@ -70,7 +70,7 @@ void error(const char* fmt, ...)
 //                               File Utility Functions
 //------------------------------------------------------------------------------
 
-char* get_file_path_from_dir(const char* dir, const char* filename)
+char* get_file_path_from_directory(const char* dir, const char* filename)
 {
     assert(dir);
     assert(filename);
@@ -87,7 +87,7 @@ char* get_file_path_from_dir(const char* dir, const char* filename)
     return str;
 }
 
-char* get_file_ext(const char* filename)
+char* get_file_extension(const char* filename)
 {
     assert(filename);
     u64 len = strlen(filename);
@@ -101,7 +101,7 @@ char* get_file_ext(const char* filename)
     return str;
 }
 
-char* get_file_dir(const char* filename)
+char* get_file_directory(const char* filename)
 {
     assert(filename);
     u64 len = strlen(filename);
@@ -312,19 +312,19 @@ void utility_tests(void)
 {
     // These leak memory.
 
-    // get_file_dir
-    assert(strcmp(get_file_dir("./b/m.thi"), "./b/") == 0);
-    assert(strcmp(get_file_dir("./b/m/m.thi"), "./b/m/") == 0);
+    // get_file_directory
+    assert(strcmp(get_file_directory("./b/m.thi"), "./b/") == 0);
+    assert(strcmp(get_file_directory("./b/m/m.thi"), "./b/m/") == 0);
 
-    // get_file_ext
-    assert(strcmp(get_file_ext("./b/m.thi"), "thi") == 0);
-    assert(strcmp(get_file_ext("./b/m.thigegerg/o.hrifj"), "hrifj") == 0);
+    // get_file_extension
+    assert(strcmp(get_file_extension("./b/m.thi"), "thi") == 0);
+    assert(strcmp(get_file_extension("./b/m.thigegerg/o.hrifj"), "hrifj") == 0);
 
     // get_file_name
     assert(strcmp(get_file_name("./b/m.thi"), "m.thi") == 0);
     assert(strcmp(get_file_name("./b/m/hergergerg.thi"), "hergergerg.thi") == 0);
 
-    // get_file_path_from_dir
-    assert(strcmp(get_file_path_from_dir("./b/", "test.thi"), "./b/test.thi") == 0);
-    assert(strcmp(get_file_path_from_dir("./b/b/", "test.thi"), "./b/b/test.thi") == 0);
+    // get_file_path_from_directory
+    assert(strcmp(get_file_path_from_directory("./b/", "test.thi"), "./b/test.thi") == 0);
+    assert(strcmp(get_file_path_from_directory("./b/b/", "test.thi"), "./b/b/test.thi") == 0);
 }

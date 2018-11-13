@@ -1,5 +1,26 @@
 # Thi_Language
 
+# Syntax
+
+    ':' definition operator.
+    '::' constant definition operator.
+    '=' assignment operator.
+    ':=' type inferred assignment operator.
+
+    '+' plus
+    '-' minus
+    '/' division
+    '*' multiplication
+    '%' modulo
+    '!' not
+    '&' or
+    '&&' logical or
+    '!!' logical not
+    '|' AND
+    '||' logical and
+
+    <ident> :: (<params>) <ret_type> { <body> }1
+
 # Not actually a readme but a todo scratchpad
 
 
