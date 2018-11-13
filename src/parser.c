@@ -115,7 +115,6 @@ static Token* g_tokens = NULL;
 static u64 token_index = 0;
 static Token curr_tok;
 static Token top_tok;
-static List* g_ast_list = NULL;
 
 //------------------------------------------------------------------------------
 //                               Public Functions
@@ -137,7 +136,7 @@ List generate_ast_from_tokens(Token* tokens)
         Expr* stmt = parse_top_level();
         if (stmt) {
             info("%s", expr_to_str(stmt));
-            list_append(g_ast_list, stmt);
+            list_append(&ast_list, stmt);
         }
     }
 
