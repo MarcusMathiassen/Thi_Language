@@ -19,7 +19,16 @@
     '|' AND
     '||' logical and
 
-    <ident> :: (<params>) <ret_type> { <body> }1
+    Constant variable def <=>        <ident> :: <expr>
+    Constant variable def <=>        <ident> :: (<params>) -> <ret_type> { <body> }
+    Variable decl <=>                <ident> : <type>
+    Variable decl with assignmen <=> <ident> : <type> = <expr>
+    Variable decl type inf <=>       <ident> := <expr>
+
+    Control flow
+    if <=> if <expr> { <body> }
+    for <=> for <ident>: <range> { <body> }
+    while <=> while <expr> { <body> }
 
 # Not actually a readme but a todo scratchpad
 
@@ -46,11 +55,11 @@
 
 - [ ] enums
 
-- [ ] if
-- [ ] for
-- [ ] while
+- [x] if
+- [x] for
+- [x] while
 - [ ] break
-- [ ] return
+- [x] return
 - [ ] continue
 
 - [ ] switch
