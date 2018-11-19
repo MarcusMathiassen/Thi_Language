@@ -20,6 +20,7 @@ static Value** functions = NULL;
 
 static Value* codegen_expr(Expr* expr);
 static Value* codegen_break(Expr* expr);
+static Value* codegen_continue(Expr* expr);
 
 static char* get_op_size(i8 bytes)
 {
@@ -788,6 +789,12 @@ static Value* codegen_macro(Expr* expr)
     return NULL;
 }
 
+static Value* codegen_continue(Expr* expr)
+{
+    assert(expr->kind == EXPR_CONTINUE);
+    emit_s("JMP %s", ctx.label_continue_to);
+    return NULL;   
+}
 static Value* codegen_break(Expr* expr)
 {
     assert(expr->kind == EXPR_BREAK);
@@ -814,6 +821,7 @@ static Value* codegen_expr(Expr* expr)
 {
     // info("Generating code for: %s", expr_to_str(expr));
     switch (expr->kind) {
+    case EXPR_CONTINUE: return codegen_continue(expr);
     case EXPR_BREAK: return codegen_break(expr);
     case EXPR_MACRO: return codegen_macro(expr);
     case EXPR_NOTE: return codegen_note(expr);
@@ -888,10 +896,10 @@ char* generate_code_from_ast(List ast)
         }
     }
 
-    // for (int i = 0; i < func_count; ++i) {
-    //     Value* func_v = functions[i];
-    //     function_print_debug(func_v);
-    // }
+    for (int i = 0; i < func_count; ++i) {
+        Value* func_v = functions[i];
+        function_print_debug(func_v);
+    }
 
     return output.c_str;
 }

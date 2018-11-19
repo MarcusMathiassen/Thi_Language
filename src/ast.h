@@ -34,6 +34,7 @@ enum Expr_Kind
     EXPR_FOR,
 
     EXPR_BREAK,
+    EXPR_CONTINUE,
 
     EXPR_BLOCK,
     EXPR_WHILE,
@@ -138,6 +139,7 @@ struct Expr
     };
 };
 
+Expr* make_expr_continue(void);
 Expr* make_expr_break(void);
 Expr* make_expr_macro(const char* name, Expr* expr);
 Expr* make_expr_note(Expr* expr);

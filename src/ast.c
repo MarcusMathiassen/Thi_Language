@@ -18,6 +18,7 @@
 const char* expr_kind_to_str(Expr_Kind kind)
 {
     switch (kind) {
+    case EXPR_CONTINUE: return "EXPR_CONTINUE";
     case EXPR_BREAK: return "EXPR_BREAK";
     case EXPR_MACRO: return "EXPR_MACRO";
     case EXPR_NOTE: return "EXPR_NOTE";
@@ -46,6 +47,9 @@ char* expr_to_str(Expr* expr)
 {
     char* result = NULL;
     switch (expr->kind) {
+    case EXPR_CONTINUE: {
+        return "continue";
+    } break;
     case EXPR_BREAK: {
         return "break";
     } break;
@@ -131,6 +135,12 @@ Expr* make_expr(Expr_Kind kind)
 {
     Expr* e = xmalloc(sizeof(Expr));
     e->kind = kind;
+    return e;
+}
+
+Expr* make_expr_continue(void)
+{
+    Expr* e = make_expr(EXPR_CONTINUE);
     return e;
 }
 
