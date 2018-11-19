@@ -704,8 +704,8 @@ static Value* codegen_for(Expr* expr)
     const char* body_label = ctx_get_unique_label(&ctx, "forbody");
     const char* inc_label = ctx_get_unique_label(&ctx, "forinc");
 
-    // block->set_break_label(block->get_label("cont"));
-    // block->set_continue_label(block->get_label("cond"));
+    ctx_set_break_label(&ctx, continue_label);
+    ctx_set_continue_label(&ctx, inc_label);
 
     // Setup the iterator variable with the start value.
     Value* start_val = codegen_expr(start);
@@ -714,9 +714,6 @@ static Value* codegen_for(Expr* expr)
     Value* iterator_var = make_value_variable(iterator_name, start_val->type, stack_pos);
     add_variable(iterator_var);
     emit_store(iterator_var);
-
-    // Jump to the condition.
-    emit_s("JMP %s", condition_label);
 
     // COND:
     emit_s("%s:", condition_label);
