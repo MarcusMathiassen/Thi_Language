@@ -12,8 +12,8 @@ main :: () -> i32 {
     # of the call. Like CallInst, ValueInst
 
     for k: 0 .. 9 {
-        if i == 3 {
-            continue
+        if k == 3 {
+            break
         }
 
         i += 1

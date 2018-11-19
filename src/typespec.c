@@ -14,6 +14,21 @@
 //                               Public
 //------------------------------------------------------------------------------
 
+const char* typespec_kind_to_str(Typespec_Kind kind)
+{
+    switch (kind) {
+    case TYPESPEC_INT: return "TYPESPEC_INT";
+    case TYPESPEC_FLOAT: return "TYPESPEC_FLOAT";
+    case TYPESPEC_POINTER: return "TYPESPEC_POINTER";
+    case TYPESPEC_ARRAY: return "TYPESPEC_ARRAY";
+    case TYPESPEC_ENUM: return "TYPESPEC_ENUM";
+    case TYPESPEC_STRUCT: return "TYPESPEC_STRUCT";
+    case TYPESPEC_FUNCTION: return "TYPESPEC_FUNCTION";
+    default: error("not implemented typespec_kind_to_str kind %d", kind);
+    }
+    return "";
+}
+
 u64 get_size_of_typespec(Typespec* type)
 {
     switch (type->kind) {
@@ -25,7 +40,7 @@ u64 get_size_of_typespec(Typespec* type)
         }
         return accum_size;
     }
-    default: error("not implemented kind %d", type->kind);
+    default: error("get_size_of_typespec kind %s not implemented.", typespec_kind_to_str(type->kind));
     }
     return 0;
 }
@@ -40,6 +55,7 @@ u64 typespec_function_get_arg_count(Typespec* type)
 char* typespec_to_str(Typespec* type)
 {
     switch (type->kind) {
+    case TYPESPEC_ARRAY: return strf("%s[%d]", typespec_to_str(type->Array.type), type->Array.size);
     case TYPESPEC_INT: return strf(type->Int.is_unsigned ? "u%d" : "i%d", type->Int.bits);
     case TYPESPEC_FLOAT: return strf("f%d", type->Float.bits);
     case TYPESPEC_STRUCT: {
@@ -99,6 +115,17 @@ Typespec* make_typespec(Typespec_Kind kind)
     Typespec* t = xmalloc(sizeof(Typespec));
     t->kind = kind;
     return t;
+}
+
+Typespec* make_typespec_array(Typespec* type, int size)
+{
+    assert(type);
+    assert(size > 0);
+    Typespec* t = make_typespec(TYPESPEC_ARRAY);
+    t->Array.type = type;
+    t->Array.size = size;
+    return t;
+
 }
 
 Typespec* make_typespec_int(i8 bits, bool is_unsigned)

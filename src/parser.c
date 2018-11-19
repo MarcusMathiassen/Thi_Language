@@ -307,7 +307,6 @@ static Expr* parse_primary()
     case TOKEN_OPEN_PAREN: return parse_parens();
     case TOKEN_OPEN_BRACE:
         return parse_block();
-        // case TOKEN_OPEN_BRACKET:   return parse_array();
         // case TOKEN_TRUE:           return parse_constant();
         // case TOKEN_FALSE:          return parse_constant();
         // case TOKEN_NIL:            return parse_nil();
@@ -537,8 +536,7 @@ static Typespec* get_type(void)
         i64 size = 0;
         if (tok_is(TOKEN_INTEGER) || tok_is(TOKEN_HEX)) size = get_integer();
         eat_kind(TOKEN_CLOSE_BRACKET);
-        // return make_typespec_array(type, size);
-        // return new Type_Array(type, size);
+        return make_typespec_array(type, size);
     }
 
     if (!type) error("no type found for type '%s'", type_name);

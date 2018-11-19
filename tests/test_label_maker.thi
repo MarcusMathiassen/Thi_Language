@@ -1,5 +1,11 @@
 main :: () -> i32 {
     if 0 > 1 {
+
+        for k: 0 .. 10 {
+            if k == 4 {
+                break
+            }
+        }
         ret 1
     }
     if 2 == 1 {
