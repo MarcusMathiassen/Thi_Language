@@ -3,10 +3,9 @@ main :: () -> i32 {
 
     i := 0
 
-    repeat {
+    while i != 9 {
         i += 1
         break
-        continue
     }
     
     ret i

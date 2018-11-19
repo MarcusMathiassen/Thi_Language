@@ -93,6 +93,7 @@ static Expr* parse_parens(void);
 static Expr* parse_if(void);
 static Expr* parse_for(void);
 static Expr* parse_while(void);
+static Expr* parse_break(void);
 
 static Typespec* parse_struct_signature(const char* struct_name);
 static Typespec* parse_function_signature(const char* func_name);
@@ -230,7 +231,7 @@ static Expr* parse_statement(void)
     case TOKEN_OPEN_BRACE: return parse_block();
     case TOKEN_OPEN_PAREN: return parse_parens();
     // case TOKEN_PRINT:             return parse_print();
-    // case TOKEN_BREAK:             return parse_break();
+    case TOKEN_BREAK:             return parse_break();
     // case TOKEN_CONTINUE:          return parse_continue();
     case TOKEN_IF: return parse_if();
     case TOKEN_FOR: return parse_for();
@@ -240,6 +241,11 @@ static Expr* parse_statement(void)
     return NULL;
 }
 
+static Expr* parse_break(void)
+{
+    eat_kind(TOKEN_BREAK);
+    return make_expr_break();
+}
 static Expr* parse_while(void)
 {
     eat_kind(TOKEN_WHILE);

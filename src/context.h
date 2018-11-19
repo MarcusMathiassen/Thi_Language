@@ -30,5 +30,7 @@ void ctx_tests(void);
 void ctx_init(Context* ctx);
 void ctx_push_label(Context* ctx);
 void ctx_pop_label(Context* ctx);
+void ctx_set_continue_label(Context* ctx, const char* label);
+void ctx_set_break_label(Context* ctx, const char* label);
 char* ctx_get_unique_label(Context* ctx, const char* label_name);
 #endif

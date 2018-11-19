@@ -58,10 +58,8 @@ main :: () -> i32 {
         print error_msg
     }
 
-    /*
-        Integers are implicitly cast to integers of different bitwidth.
-        Floats are implicitly cast to floats of different bitwidth.
-    */
+    # Integers are implicitly cast to integers of different bitwidth.
+    # Floats are implicitly cast to floats of different bitwidth.
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1)
@@ -88,7 +86,6 @@ main :: () -> i32 {
     glClearColor(0.01, 0.01, 0.01, 1.0)
 
     my_triangle := make_triangle(vec2(0.0, 0.0), vec4(1.0, 1.0, 1.0, 1.0))
-
 
     time := sqrt(glfwGetTime())
 

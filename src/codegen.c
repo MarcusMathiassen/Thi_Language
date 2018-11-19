@@ -19,6 +19,7 @@ static Stack scope_stack;
 static Value** functions = NULL;
 
 static Value* codegen_expr(Expr* expr);
+static Value* codegen_break(Expr* expr);
 
 static char* get_op_size(i8 bytes)
 {
@@ -657,13 +658,15 @@ static Value* codegen_while(Expr* expr)
     Expr* body = expr->While.body;
 
     ctx_push_label(&ctx);
-    // block->set_break_label(block->get_label("cont"));
-    // block->set_continue_label(block->get_label("cond"));
 
-    // Jump to the condition.
     const char* condition_label = ctx_get_unique_label(&ctx, "whilecondition");
     const char* continue_label = ctx_get_unique_label(&ctx, "whilecontinue");
     const char* body_label = ctx_get_unique_label(&ctx, "whilebody");
+
+    ctx_set_break_label(&ctx, continue_label);
+    ctx_set_continue_label(&ctx, condition_label);
+
+    // Jump to the condition.
     emit_s("JMP %s", condition_label);
 
     // COND:
@@ -784,6 +787,14 @@ static Value* codegen_macro(Expr* expr)
     assert(expr->kind == EXPR_MACRO);
     return NULL;
 }
+
+static Value* codegen_break(Expr* expr)
+{
+    assert(expr->kind == EXPR_BREAK);
+    emit_s("JMP %s", ctx.label_break_to);
+    return NULL;
+}
+
 static Value* codegen_note(Expr* expr)
 {
     assert(expr->kind == EXPR_NOTE);
@@ -803,6 +814,7 @@ static Value* codegen_expr(Expr* expr)
 {
     // info("Generating code for: %s", expr_to_str(expr));
     switch (expr->kind) {
+    case EXPR_BREAK: return codegen_break(expr);
     case EXPR_MACRO: return codegen_macro(expr);
     case EXPR_NOTE: return codegen_note(expr);
     case EXPR_INT: return codegen_int(expr);
