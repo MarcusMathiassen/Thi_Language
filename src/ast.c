@@ -227,8 +227,8 @@ char* expr_to_json(Expr* expr)
     case EXPR_FUNCTION: { result = strf("{\"%s\": {\"signature\": \"%s\", \"body\": %s }}", expr_kind_to_str(expr->kind), typespec_to_str(expr->Function.type), expr_to_json(expr->Function.body)); } break;
     case EXPR_GROUPING: { result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), expr_to_json(expr->Grouping.expr)); } break;
     case EXPR_WHILE: { result = strf("{%s}", expr_to_json(expr)); } break;
-    case EXPR_FOR: { result = strf("{%s}", expr_to_json(expr)); } break;
-    case EXPR_IF: { result = strf("{%s}", expr_to_json(expr)); } break;
+    case EXPR_FOR: { result = strf("{\"%s\": {\"cond\": %s, \"cond\": %s, \"cond\": %s }}", expr_kind_to_str(expr->kind), expr_to_json(expr->If.cond), expr_to_json(expr->If.then_body), expr_to_json(expr->If.body)); } break;
+    case EXPR_IF: { result = strf("{\"%s\": {\"cond\": %s, \"cond\": %s, \"cond\": %s }}", expr_kind_to_str(expr->kind), expr_to_json(expr->If.cond), expr_to_json(expr->If.then_body), expr->If.else_body ? expr_to_json(expr->If.else_body) : "null"); } break;
     case EXPR_CALL: {
         string str = make_string("");
         append_string_f(&str, "{\"%s\": {\"callee\": %s, ", expr_kind_to_str(expr->kind), expr->Call.callee); 
