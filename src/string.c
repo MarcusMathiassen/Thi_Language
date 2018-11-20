@@ -4,6 +4,8 @@
 #include "typedefs.h"
 #include "utility.h" // xmalloc, xrealloc, xstrlen
 #include <assert.h>  // assert
+#include <stdarg.h>  // va_list, va_start, va_end
+#include <stdio.h>   // printf, vprintf
 #include <stdlib.h>  // free
 #include <string.h>  // memcpy
 
@@ -19,6 +21,48 @@ string make_string(const char* str)
     return s;
 }
 
+string make_string_f(const char* fmt, ...)
+{
+    assert(fmt);
+    va_list args;
+    va_start(args, fmt);
+    u64 n = 1 + vsnprintf(0, 0, fmt, args);
+    va_end(args);
+
+    string s;
+    s.c_str = xmalloc(n);
+    s.len = n;
+
+    va_start(args, fmt);
+    vsnprintf(s.c_str, n, fmt, args);
+    va_end(args);
+
+    return s;
+}
+
+void append_string_f(string* s, const char* fmt, ...)
+{
+    assert(s);
+    assert(fmt);
+    va_list args;
+    va_start(args, fmt);
+    u64 n = 1 + vsnprintf(0, 0, fmt, args);
+    va_end(args);
+
+    char* temp = xmalloc(n);
+
+    va_start(args, fmt);
+    vsnprintf(temp, n, fmt, args);
+    va_end(args);
+
+    assert(n != 0);
+    s->c_str = xrealloc(s->c_str, s->len + n + 1);
+    memcpy(s->c_str + s->len, temp, n);
+    s->len += n;
+    s->c_str[s->len] = 0;
+
+    free(temp);
+}
 void append_string(string* s, const char* str)
 {
     assert(s);

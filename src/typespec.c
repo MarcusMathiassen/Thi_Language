@@ -52,6 +52,60 @@ u64 typespec_function_get_arg_count(Typespec* type)
     return sb_count(type->Function.args);
 }
 
+char* typespec_to_json(Typespec* type)
+{
+    switch (type->kind) {
+    case TYPESPEC_ARRAY: return strf("%s[%d]", typespec_to_str(type->Array.type), type->Array.size);
+    case TYPESPEC_INT: return strf(type->Int.is_unsigned ? "u%d" : "i%d", type->Int.bits);
+    case TYPESPEC_FLOAT: return strf("f%d", type->Float.bits);
+    case TYPESPEC_STRUCT: {
+        string str = make_string(strf("%s :: {\n", type->Struct.name));
+        Arg* args = type->Struct.members;
+        int arg_count = sb_count(args);
+        if (arg_count) {
+            for (int i = 0; i < arg_count; ++i) {
+                append_string(&str, strf("%s: %s", args[i].name, typespec_to_str(args[i].type)));
+                if (i != arg_count - 1) append_string(&str, ", ");
+            }
+        }
+        append_string(&str, "}\n");
+        return str.c_str;
+    };
+    case TYPESPEC_ENUM: {
+        string str = make_string(strf("%s :: enum {", type->Enum.name));
+        const char** args = type->Enum.members;
+        int arg_count = sb_count(args);
+        if (arg_count) {
+            for (int i = 0; i < arg_count; ++i) {
+                append_string(&str, strf("%s", args[i]));
+                if (i != arg_count - 1) append_string(&str, ", ");
+            }
+        }
+        return str.c_str;
+    };
+
+    case TYPESPEC_FUNCTION: {
+        string str = make_string(strf("%s :: (", type->Function.name));
+        strf("func. name: %d", type->Function.name);
+        Arg* args = type->Function.args;
+        int arg_count = sb_count(args);
+        if (arg_count) {
+            for (int i = 0; i < arg_count; ++i) {
+                if (args[i].name)
+                    append_string(&str, strf("%s: %s", args[i].name, typespec_to_str(args[i].type)));
+                else
+                    append_string(&str, strf("%s", typespec_to_str(args[i].type)));
+                if (i != arg_count - 1) append_string(&str, ", ");
+            }
+        }
+        if (type->Function.ret_type) append_string(&str, strf(") -> %s", typespec_to_str(type->Function.ret_type)));
+        return str.c_str;
+    }
+    default: warning("typespec_to_json not implemented kind %d", typespec_kind_to_str(type->kind));
+    }
+    return NULL;
+}
+
 char* typespec_to_str(Typespec* type)
 {
     switch (type->kind) {

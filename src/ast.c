@@ -48,10 +48,10 @@ char* expr_to_str(Expr* expr)
     char* result = NULL;
     switch (expr->kind) {
     case EXPR_CONTINUE: {
-        return "continue";
+        result = "continue";
     } break;
     case EXPR_BREAK: {
-        return "break";
+        result = "break";
     } break;
     case EXPR_MACRO: {
         result = strf("%s :: %s", expr->Macro.name, expr_to_str(expr->Macro.expr));
@@ -87,14 +87,14 @@ char* expr_to_str(Expr* expr)
     case EXPR_BLOCK: {
         string str = make_string("");
         for (int i = 0; i < sb_count(expr->Block.stmts); ++i) {
-            append_string(&str, strf("\t%s\n", expr_to_str(expr->Block.stmts[i])));
+            append_string_f(&str, "\t%s\n", expr_to_str(expr->Block.stmts[i]));
         }
         result = str.c_str;
     } break;
 
     case EXPR_FUNCTION: {
         string str =
-            make_string(strf("%s  {\n%s}", typespec_to_str(expr->Function.type), expr_to_str(expr->Function.body)));
+            make_string_f("%s  {\n%s}", typespec_to_str(expr->Function.type), expr_to_str(expr->Function.body));
         result = str.c_str;
     } break;
 
@@ -103,17 +103,95 @@ char* expr_to_str(Expr* expr)
         result = strf("while %s {\n\t%s }", expr_to_str(expr->While.cond), expr_to_str(expr->While.body));
     } break;
     case EXPR_FOR: {
-        string str = make_string(strf("for %s: %s..%s {\n\t%s }", expr->For.iterator_name, expr_to_str(expr->For.start),
-                                      expr_to_str(expr->For.end), expr_to_str(expr->For.body)));
+        string str = make_string_f("for %s: %s..%s {\n\t%s }", expr->For.iterator_name, expr_to_str(expr->For.start),
+                                   expr_to_str(expr->For.end), expr_to_str(expr->For.body));
         result = str.c_str;
     } break;
     case EXPR_IF: {
-        string str = make_string(strf("if %s {\n\t%s }", expr_to_str(expr->If.cond), expr_to_str(expr->If.then_body)));
-        if (expr->If.else_body) append_string(&str, strf("\t%s\n", expr_to_str(expr->If.else_body)));
+        string str = make_string_f("if %s {\n\t%s }", expr_to_str(expr->If.cond), expr_to_str(expr->If.then_body));
+        if (expr->If.else_body) append_string_f(&str, "\t%s\n", expr_to_str(expr->If.else_body));
         result = str.c_str;
     } break;
     case EXPR_CALL: {
-        string str = make_string(strf("%s", expr->Call.callee));
+        string str = make_string_f("%s", expr->Call.callee);
+        result = str.c_str;
+    } break;
+    }
+    assert(result);
+    return result;
+}
+
+char* expr_to_str_debug_paren(Expr* expr)
+{
+    char* result = NULL;
+    switch (expr->kind) {
+    case EXPR_CONTINUE: {
+        result = "continue";
+    } break;
+    case EXPR_BREAK: {
+        result = "break";
+    } break;
+    case EXPR_MACRO: {
+        result = strf("%s :: %s", expr->Macro.name, expr_to_str(expr->Macro.expr));
+    } break;
+    case EXPR_NOTE: {
+        result = strf("$%s", expr_to_str(expr->Note.expr));
+    } break;
+    case EXPR_INT: {
+        result = strf("%lld", expr->Int.val);
+    } break;
+    case EXPR_IDENT: {
+        result = strf("%s", expr->Ident.name);
+    } break;
+    case EXPR_UNARY: {
+        result = strf("%s%s", token_kind_to_str(expr->Unary.op), expr_to_str(expr->Unary.operand));
+    } break;
+    case EXPR_BINARY: {
+        result = strf("%s %s %s", expr_to_str(expr->Binary.lhs), token_kind_to_str(expr->Binary.op),
+                      expr_to_str(expr->Binary.rhs));
+    } break;
+    case EXPR_RET: {
+        result = strf("ret %s", expr_to_str(expr->Ret.expr));
+    } break;
+    case EXPR_VARIABLE_DECL: {
+        result = strf(expr->Variable_Decl.value ? "%s: %s = %s" : "%s: %s", expr->Variable_Decl.name,
+                      typespec_to_str(expr->Variable_Decl.type),
+                      expr->Variable_Decl.value ? expr_to_str(expr->Variable_Decl.value) : "");
+    } break;
+    case EXPR_VARIABLE_DECL_TYPE_INF: {
+        result = strf("%s := %s", expr->Variable_Decl_Type_Inf.name, expr_to_str(expr->Variable_Decl_Type_Inf.value));
+    } break;
+
+    case EXPR_BLOCK: {
+        string str = make_string("");
+        for (int i = 0; i < sb_count(expr->Block.stmts); ++i) {
+            append_string_f(&str, "\t%s\n", expr_to_str(expr->Block.stmts[i]));
+        }
+        result = str.c_str;
+    } break;
+
+    case EXPR_FUNCTION: {
+        string str =
+            make_string_f("%s  {\n%s}", typespec_to_str(expr->Function.type), expr_to_str(expr->Function.body));
+        result = str.c_str;
+    } break;
+
+    case EXPR_GROUPING: result = strf("(%s)", expr_to_str(expr->Grouping.expr)); break;
+    case EXPR_WHILE: {
+        result = strf("while %s {\n\t%s }", expr_to_str(expr->While.cond), expr_to_str(expr->While.body));
+    } break;
+    case EXPR_FOR: {
+        string str = make_string_f("for %s: %s..%s {\n\t%s }", expr->For.iterator_name, expr_to_str(expr->For.start),
+                                   expr_to_str(expr->For.end), expr_to_str(expr->For.body));
+        result = str.c_str;
+    } break;
+    case EXPR_IF: {
+        string str = make_string_f("if %s {\n\t%s }", expr_to_str(expr->If.cond), expr_to_str(expr->If.then_body));
+        if (expr->If.else_body) append_string_f(&str, "\t%s\n", expr_to_str(expr->If.else_body));
+        result = str.c_str;
+    } break;
+    case EXPR_CALL: {
+        string str = make_string_f("%s", expr->Call.callee);
         result = str.c_str;
     } break;
     }
@@ -121,10 +199,67 @@ char* expr_to_str(Expr* expr)
     return wrap_with_colored_parens(result);
 }
 
+char* expr_to_json(Expr* expr)
+{
+    char* result = NULL;
+    switch (expr->kind) {
+    case EXPR_CONTINUE: { result = strf("{\"%s\": {%s}}", expr_kind_to_str(expr->kind), "continue"); } break;
+    case EXPR_BREAK: { result = strf("{\"%s\": {%s}}", expr_kind_to_str(expr->kind), "break"); } break;
+    case EXPR_MACRO: { result = strf("{\"%s\": {\"name\": \"%s\", \"expr\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->Macro.name, expr_to_json(expr)); } break;
+    case EXPR_NOTE: { result = strf("{\"%s\": {\"note\":\"%s\"}}", expr_kind_to_str(expr->kind), expr_to_json(expr)); } break;
+    case EXPR_INT: { result = strf("{\"%s\": {\"int\": %lld}}", expr_kind_to_str(expr->kind), expr->Int.val); } break;
+    case EXPR_IDENT: { result = strf("{\"%s\": {\"ident\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->Ident.name); } break;
+    case EXPR_UNARY: { result = strf("{\"%s\": {\"op\": \"%s\", \"expr\": \"%s\"}}", expr_kind_to_str(expr->kind), token_kind_to_str(expr->Unary.op), expr_to_json(expr->Unary.operand)); } break;
+    case EXPR_BINARY: { result = strf("{\"%s\": {\"op\": \"%s\", \"lhs\": %s, \"rhs\": %s}}", expr_kind_to_str(expr->kind), token_kind_to_str(expr->Binary.op), expr_to_json(expr->Binary.lhs), expr_to_json(expr->Binary.rhs)); } break;
+    case EXPR_RET: { result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), expr_to_json(expr->Ret.expr)); } break;
+    case EXPR_VARIABLE_DECL: { result = strf("{\"%s\": {\"name\": \"%s\", \"type\": \"%s\", \"value\": %s}}", expr_kind_to_str(expr->kind), expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type), expr_to_json(expr->Variable_Decl.value)); } break;
+    case EXPR_VARIABLE_DECL_TYPE_INF: { result = strf("{\"%s\": {\"name\": \"%s\", \"type\": \"%s\", \"value\": %s}}", expr_kind_to_str(expr->kind), expr->Variable_Decl_Type_Inf.name, expr_to_json(expr->Variable_Decl_Type_Inf.value)); } break;
+    case EXPR_BLOCK: {
+        int block_count = sb_count(expr->Block.stmts);
+        string str = make_string("{\"EXPR_BLOCK\": [");
+        for (int i = 0; i < block_count; ++i) {
+            append_string(&str, expr_to_json(expr->Block.stmts[i]));
+            if (i != block_count - 1) append_string(&str, ", ");
+        }
+        append_string(&str, "]}");
+        result = str.c_str;
+    } break;
+    case EXPR_FUNCTION: { result = strf("{\"%s\": {\"signature\": \"%s\", \"body\": %s }}", expr_kind_to_str(expr->kind), typespec_to_str(expr->Function.type), expr_to_json(expr->Function.body)); } break;
+    case EXPR_GROUPING: { result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), expr_to_json(expr->Grouping.expr)); } break;
+    case EXPR_WHILE: { result = strf("{%s}", expr_to_json(expr)); } break;
+    case EXPR_FOR: { result = strf("{%s}", expr_to_json(expr)); } break;
+    case EXPR_IF: { result = strf("{%s}", expr_to_json(expr)); } break;
+    case EXPR_CALL: {
+        string str = make_string("");
+        append_string_f(&str, "{\"%s\": {\"callee\": %s, ", expr_kind_to_str(expr->kind), expr->Call.callee); 
+        append_string(&str, "\"args\": [");
+        int arg_count = sb_count(expr->Call.args);
+        for (int i = 0; i < arg_count; ++i) {
+            append_string(&str, expr_to_json(expr->Call.args[i]));
+            if (i != arg_count - 1) append_string(&str, ", ");
+        }
+        append_string(&str, "]}}");
+        result = str.c_str;
+        } break;
+    }
+    assert(result);
+    return result;
+}
 void print_ast(List ast)
 {
     info("Printing AST..");
-    LIST_FOREACH(ast) { info("%s", expr_to_str((Expr*)it->data)); }
+    LIST_FOREACH(ast) { info("%s", expr_to_str_debug_paren((Expr*)it->data)); }
+}
+
+char* ast_to_json(List ast)
+{
+    info("Printing AST as JSON..");
+    string json = make_string("");
+    LIST_FOREACH(ast) { 
+        Expr* expr = (Expr*)it->data;
+        append_string_f(&json, "%s", expr_to_json(expr)); 
+    }
+    return json.c_str;
 }
 
 //------------------------------------------------------------------------------

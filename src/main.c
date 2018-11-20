@@ -111,6 +111,10 @@ int main(int argc, char** argv)
     pop_timer();
     if (list_empty(ast)) print_ast(ast);
 
+    char* json = NULL;
+    if (list_empty(ast)) json = ast_to_json(ast);
+    if (list_empty(ast)) info("%s", json);
+
     // Codegen
     push_timer("Codegen");
     char* output = generate_code_from_ast(ast);
