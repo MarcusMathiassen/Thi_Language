@@ -201,19 +201,49 @@ char* expr_to_str_debug_paren(Expr* expr)
 
 char* expr_to_json(Expr* expr)
 {
+    info("%s", expr_kind_to_str(expr->kind));
     char* result = NULL;
     switch (expr->kind) {
-    case EXPR_CONTINUE: { result = strf("{\"%s\": {%s}}", expr_kind_to_str(expr->kind), "continue"); } break;
-    case EXPR_BREAK: { result = strf("{\"%s\": {%s}}", expr_kind_to_str(expr->kind), "break"); } break;
-    case EXPR_MACRO: { result = strf("{\"%s\": {\"name\": \"%s\", \"expr\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->Macro.name, expr_to_json(expr)); } break;
-    case EXPR_NOTE: { result = strf("{\"%s\": {\"note\":\"%s\"}}", expr_kind_to_str(expr->kind), expr_to_json(expr)); } break;
-    case EXPR_INT: { result = strf("{\"%s\": {\"int\": %lld}}", expr_kind_to_str(expr->kind), expr->Int.val); } break;
-    case EXPR_IDENT: { result = strf("{\"%s\": {\"ident\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->Ident.name); } break;
-    case EXPR_UNARY: { result = strf("{\"%s\": {\"op\": \"%s\", \"expr\": \"%s\"}}", expr_kind_to_str(expr->kind), token_kind_to_str(expr->Unary.op), expr_to_json(expr->Unary.operand)); } break;
-    case EXPR_BINARY: { result = strf("{\"%s\": {\"op\": \"%s\", \"lhs\": %s, \"rhs\": %s}}", expr_kind_to_str(expr->kind), token_kind_to_str(expr->Binary.op), expr_to_json(expr->Binary.lhs), expr_to_json(expr->Binary.rhs)); } break;
-    case EXPR_RET: { result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), expr_to_json(expr->Ret.expr)); } break;
-    case EXPR_VARIABLE_DECL: { result = strf("{\"%s\": {\"name\": \"%s\", \"type\": \"%s\", \"value\": %s}}", expr_kind_to_str(expr->kind), expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type), expr_to_json(expr->Variable_Decl.value)); } break;
-    case EXPR_VARIABLE_DECL_TYPE_INF: { result = strf("{\"%s\": {\"name\": \"%s\", \"type\": \"%s\", \"value\": %s}}", expr_kind_to_str(expr->kind), expr->Variable_Decl_Type_Inf.name, expr_to_json(expr->Variable_Decl_Type_Inf.value)); } break;
+    case EXPR_CONTINUE: {
+        result = strf("{\"%s\": {%s}}", expr_kind_to_str(expr->kind), "continue");
+    } break;
+    case EXPR_BREAK: {
+        result = strf("{\"%s\": {%s}}", expr_kind_to_str(expr->kind), "break");
+    } break;
+    case EXPR_MACRO: {
+        result = strf("{\"%s\": {\"name\": \"%s\", \"expr\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->Macro.name,
+                      expr_to_json(expr));
+    } break;
+    case EXPR_NOTE: {
+        result = strf("{\"%s\": {\"note\":\"%s\"}}", expr_kind_to_str(expr->kind), expr_to_json(expr->Note.expr));
+    } break;
+    case EXPR_INT: {
+        result = strf("{\"%s\": {\"value\": %lld}}", expr_kind_to_str(expr->kind), expr->Int.val);
+    } break;
+    case EXPR_IDENT: {
+        result = strf("{\"%s\": {\"ident\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->Ident.name);
+    } break;
+    case EXPR_UNARY: {
+        result = strf("{\"%s\": {\"op\": \"%s\", \"expr\": \"%s\"}}", expr_kind_to_str(expr->kind),
+                      token_kind_to_str(expr->Unary.op), expr_to_json(expr->Unary.operand));
+    } break;
+    case EXPR_BINARY: {
+        result =
+            strf("{\"%s\": {\"op\": \"%s\", \"lhs\": %s, \"rhs\": %s}}", expr_kind_to_str(expr->kind),
+                 token_kind_to_str(expr->Binary.op), expr_to_json(expr->Binary.lhs), expr_to_json(expr->Binary.rhs));
+    } break;
+    case EXPR_RET: {
+        result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), expr_to_json(expr->Ret.expr));
+    } break;
+    case EXPR_VARIABLE_DECL: {
+        result = strf("{\"%s\": {\"name\": \"%s\", \"type\": \"%s\", \"value\": %s}}", expr_kind_to_str(expr->kind),
+                      expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type),
+                      expr->Variable_Decl.value ? expr_to_json(expr->Variable_Decl.value) : "");
+    } break;
+    case EXPR_VARIABLE_DECL_TYPE_INF: {
+        result = strf("{\"%s\": {\"name\": \"%s\", \"value\": %s}}", expr_kind_to_str(expr->kind),
+                      expr->Variable_Decl_Type_Inf.name, expr_to_json(expr->Variable_Decl_Type_Inf.value));
+    } break;
     case EXPR_BLOCK: {
         int block_count = sb_count(expr->Block.stmts);
         string str = make_string("{\"EXPR_BLOCK\": [");
@@ -224,14 +254,30 @@ char* expr_to_json(Expr* expr)
         append_string(&str, "]}");
         result = str.c_str;
     } break;
-    case EXPR_FUNCTION: { result = strf("{\"%s\": {\"signature\": \"%s\", \"body\": %s }}", expr_kind_to_str(expr->kind), typespec_to_str(expr->Function.type), expr_to_json(expr->Function.body)); } break;
-    case EXPR_GROUPING: { result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), expr_to_json(expr->Grouping.expr)); } break;
-    case EXPR_WHILE: { result = strf("{%s}", expr_to_json(expr)); } break;
-    case EXPR_FOR: { result = strf("{\"%s\": {\"cond\": %s, \"cond\": %s, \"cond\": %s }}", expr_kind_to_str(expr->kind), expr_to_json(expr->If.cond), expr_to_json(expr->If.then_body), expr_to_json(expr->If.body)); } break;
-    case EXPR_IF: { result = strf("{\"%s\": {\"cond\": %s, \"cond\": %s, \"cond\": %s }}", expr_kind_to_str(expr->kind), expr_to_json(expr->If.cond), expr_to_json(expr->If.then_body), expr->If.else_body ? expr_to_json(expr->If.else_body) : "null"); } break;
+    case EXPR_FUNCTION: {
+        result = strf("{\"%s\": {\"signature\": \"%s\", \"body\": %s }}", expr_kind_to_str(expr->kind),
+                      typespec_to_str(expr->Function.type), expr_to_json(expr->Function.body));
+    } break;
+    case EXPR_GROUPING: {
+        result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), expr_to_json(expr->Grouping.expr));
+    } break;
+    case EXPR_WHILE: {
+        result = strf("{\"%s\": {\"cond\": %s, \"body\": %s}}", expr_kind_to_str(expr->kind),
+                      expr_to_json(expr->While.cond), expr_to_json(expr->While.body));
+    } break;
+    case EXPR_FOR: {
+        result = strf("{\"%s\": {\"iterator_name\": %s, \"start\": %s, \"end\": %s, \"body\": %s }}",
+                      expr_kind_to_str(expr->kind), expr->For.iterator_name, expr_to_json(expr->For.start),
+                      expr_to_json(expr->For.end), expr_to_json(expr->For.body));
+    } break;
+    case EXPR_IF: {
+        result = strf("{\"%s\": {\"cond\": %s, \"cond\": %s, \"cond\": %s }}", expr_kind_to_str(expr->kind),
+                      expr_to_json(expr->If.cond), expr_to_json(expr->If.then_body),
+                      expr->If.else_body ? expr_to_json(expr->If.else_body) : "null");
+    } break;
     case EXPR_CALL: {
         string str = make_string("");
-        append_string_f(&str, "{\"%s\": {\"callee\": %s, ", expr_kind_to_str(expr->kind), expr->Call.callee); 
+        append_string_f(&str, "{\"%s\": {\"callee\": %s, ", expr_kind_to_str(expr->kind), expr->Call.callee);
         append_string(&str, "\"args\": [");
         int arg_count = sb_count(expr->Call.args);
         for (int i = 0; i < arg_count; ++i) {
@@ -240,7 +286,7 @@ char* expr_to_json(Expr* expr)
         }
         append_string(&str, "]}}");
         result = str.c_str;
-        } break;
+    } break;
     }
     assert(result);
     return result;
@@ -255,9 +301,10 @@ char* ast_to_json(List ast)
 {
     info("Printing AST as JSON..");
     string json = make_string("");
-    LIST_FOREACH(ast) { 
+    LIST_FOREACH(ast)
+    {
         Expr* expr = (Expr*)it->data;
-        append_string_f(&json, "%s", expr_to_json(expr)); 
+        append_string_f(&json, "%s", expr_to_json(expr));
     }
     return json.c_str;
 }

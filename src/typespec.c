@@ -179,7 +179,6 @@ Typespec* make_typespec_array(Typespec* type, int size)
     t->Array.type = type;
     t->Array.size = size;
     return t;
-
 }
 
 Typespec* make_typespec_int(i8 bits, bool is_unsigned)

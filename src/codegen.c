@@ -790,7 +790,7 @@ static Value* codegen_continue(Expr* expr)
 {
     assert(expr->kind == EXPR_CONTINUE);
     emit_s("JMP %s", ctx.label_continue_to);
-    return NULL;   
+    return NULL;
 }
 static Value* codegen_break(Expr* expr)
 {

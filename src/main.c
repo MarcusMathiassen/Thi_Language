@@ -25,7 +25,6 @@ void link(const char* exec_name);
 
 /*
     Figure out all the files that are loaded by the source.
-
 */
 
 int main(int argc, char** argv)
