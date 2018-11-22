@@ -155,7 +155,7 @@ void assemble(const char* asm_file, const char* exec_name)
     system(comp_call);
     pop_timer();
 
-    system("cat output.asm");
+    // system("cat output.asm");
 
     // Cleanup
     char rm_asm_file[256];

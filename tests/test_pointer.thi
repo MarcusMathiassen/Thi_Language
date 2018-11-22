@@ -1,0 +1,4 @@
+main :: () -> int {
+    i: int = 0
+    ret 1
+}

@@ -78,6 +78,8 @@ static Expr* get_definition(const char* ident);
 static Expr* get_variable_declaration(const char* ident);
 static Expr* get_variable_typeinferred(const char* ident);
 static Expr* get_function_call(const char* ident);
+static Expr* get_subscript(const char* ident);
+
 static Expr* parse_top_level(void);
 static Expr* parse_statement(void);
 static Expr* parse_primary(void);
@@ -232,8 +234,8 @@ static Expr* parse_statement(void)
     case TOKEN_OPEN_BRACE: return parse_block();
     case TOKEN_OPEN_PAREN: return parse_parens();
     // case TOKEN_PRINT:             return parse_print();
-    case TOKEN_BREAK:             return parse_break();
-    case TOKEN_CONTINUE:          return parse_continue();
+    case TOKEN_BREAK: return parse_break();
+    case TOKEN_CONTINUE: return parse_continue();
     case TOKEN_IF: return parse_if();
     case TOKEN_FOR: return parse_for();
     case TOKEN_WHILE: return parse_while();
@@ -325,9 +327,8 @@ static Expr* parse_identifier()
     case TOKEN_COLON_COLON: return get_definition(ident);
     case TOKEN_COLON_EQ: return get_variable_typeinferred(ident);
     case TOKEN_COLON: return get_variable_declaration(ident);
-    case TOKEN_OPEN_PAREN:
-        return get_function_call(ident);
-        // case TOKEN_OPEN_BRACKET:  return get_subscript_access();
+    case TOKEN_OPEN_PAREN: return get_function_call(ident);
+    case TOKEN_OPEN_BRACKET: return get_subscript(ident);
     }
     return make_expr_ident(ident);
 }
@@ -349,6 +350,14 @@ static Expr* parse_ret()
     eat_kind(TOKEN_RETURN);
     Expr* exp = parse_expression();
     return make_expr_ret(exp);
+}
+
+static Expr* get_subscript(const char* ident)
+{
+    eat_kind(TOKEN_OPEN_BRACKET);
+    Expr* expr = parse_expression();
+    eat_kind(TOKEN_CLOSE_BRACKET);
+    return make_expr_subscript(ident, expr);
 }
 
 static Expr* get_function_call(const char* ident)
@@ -519,6 +528,7 @@ static void skip_type(void)
 static Typespec* get_type(void)
 {
     const char* type_name = curr_tok.value;
+
     eat_kind(TOKEN_IDENTIFIER);
     Typespec* type = NULL;
 
@@ -527,16 +537,22 @@ static Typespec* get_type(void)
     else
         type = get_symbol(type_name);
 
-    // Is a pointer or array?
-    if (tok_is(THI_SYNTAX_POINTER)) {
-        eat_kind(THI_SYNTAX_POINTER);
-        return make_typespec_pointer(type);
-    } else if (tok_is(TOKEN_OPEN_BRACKET)) {
+    switch (curr_tok.kind) {
+    case THI_SYNTAX_POINTER: {
+        while (tok_is(THI_SYNTAX_POINTER)) {
+            eat_kind(THI_SYNTAX_POINTER);
+            type = make_typespec_pointer(type);
+        }
+    } break;
+    case TOKEN_OPEN_BRACKET: {
         eat_kind(TOKEN_OPEN_BRACKET);
         i64 size = 0;
-        if (tok_is(TOKEN_INTEGER) || tok_is(TOKEN_HEX)) size = get_integer();
+        if (tok_is(TOKEN_INTEGER) || tok_is(TOKEN_HEX)) {
+            size = get_integer();
+        }
         eat_kind(TOKEN_CLOSE_BRACKET);
-        return make_typespec_array(type, size);
+        type = make_typespec_array(type, size);
+    } break;
     }
 
     if (!type) error("no type found for type '%s'", type_name);
@@ -665,7 +681,9 @@ static void eat(void) { curr_tok = g_tokens[token_index++]; }
 
 static void eat_kind(Token_Kind kind)
 {
-    assert(curr_tok.kind == kind);
+    if (curr_tok.kind != kind) {
+        error("expected '%s' got '%s'", token_kind_to_str(kind), token_kind_to_str(curr_tok.kind));
+    }
     eat();
 }
 

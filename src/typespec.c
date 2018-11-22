@@ -33,6 +33,9 @@ u64 get_size_of_typespec(Typespec* type)
 {
     switch (type->kind) {
     case TYPESPEC_INT: return type->Int.bits / 8;
+    case TYPESPEC_FLOAT: return type->Float.bits / 8;
+    case TYPESPEC_POINTER: return 8;
+    case TYPESPEC_ARRAY: return get_size_of_typespec(type->Array.type) * type->Array.size;
     case TYPESPEC_FUNCTION: {
         u64 accum_size = 0;
         for (int i = 0; i < sb_count(type->Function.args); ++i) {
@@ -111,6 +114,7 @@ char* typespec_to_str(Typespec* type)
     switch (type->kind) {
     case TYPESPEC_ARRAY: return strf("%s[%d]", typespec_to_str(type->Array.type), type->Array.size);
     case TYPESPEC_INT: return strf(type->Int.is_unsigned ? "u%d" : "i%d", type->Int.bits);
+    case TYPESPEC_POINTER: return strf("%s*", typespec_to_str(type->Pointer.pointee));
     case TYPESPEC_FLOAT: return strf("f%d", type->Float.bits);
     case TYPESPEC_STRUCT: {
         string str = make_string(strf("%s :: {\n", type->Struct.name));
@@ -155,7 +159,7 @@ char* typespec_to_str(Typespec* type)
         if (type->Function.ret_type) append_string(&str, strf(") -> %s", typespec_to_str(type->Function.ret_type)));
         return str.c_str;
     }
-    default: warning("not implemented kind %d", type->kind);
+    default: warning("typespec_to_str not implemented kind %d", typespec_kind_to_str(type->kind));
     }
     return NULL;
 }
@@ -201,7 +205,7 @@ Typespec* make_typespec_float(i8 bits)
 
 Typespec* make_typespec_pointer(Typespec* pointee)
 {
-    Typespec* t = make_typespec(TYPESPEC_FLOAT);
+    Typespec* t = make_typespec(TYPESPEC_POINTER);
     t->Pointer.pointee = pointee;
     return t;
 }

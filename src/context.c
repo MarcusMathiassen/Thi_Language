@@ -11,14 +11,8 @@ void ctx_init(Context* ctx)
     ctx->stack_index = 0;
 }
 
-void ctx_set_continue_label(Context* ctx, const char* label)
-{
-    ctx->label_continue_to = label;
-}
-void ctx_set_break_label(Context* ctx, const char* label)
-{
-    ctx->label_break_to = label;
-}
+void ctx_set_continue_label(Context* ctx, const char* label) { ctx->label_continue_to = label; }
+void ctx_set_break_label(Context* ctx, const char* label) { ctx->label_break_to = label; }
 void ctx_push_label(Context* ctx)
 {
     assert(ctx);

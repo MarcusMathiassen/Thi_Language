@@ -31,6 +31,8 @@ enum Expr_Kind
     EXPR_STRUCT,
     EXPR_FUNCTION,
 
+    EXPR_SUBSCRIPT,
+
     EXPR_IF,
     EXPR_FOR,
 
@@ -50,6 +52,11 @@ struct Expr
 {
     Expr_Kind kind;
     union {
+        struct
+        {
+            const char* variable_name;
+            Expr* expr;
+        } Subscript;
         struct
         {
             const char* name;
@@ -140,6 +147,7 @@ struct Expr
     };
 };
 
+Expr* make_expr_subscript(const char* variable_name, Expr* expr);
 Expr* make_expr_continue(void);
 Expr* make_expr_break(void);
 Expr* make_expr_macro(const char* name, Expr* expr);

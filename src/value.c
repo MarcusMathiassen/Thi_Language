@@ -167,7 +167,7 @@ void function_print_debug(Value* function)
         // Print line
         if (cb->block.len) {
             const char* line = cb->block.c_str;
-            info("%s%s\033[00m", cb_c, line);
+            info("%s%s;%s\033[00m", cb_c, line, cb->desc.c_str);
         }
     }
 }

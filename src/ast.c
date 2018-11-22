@@ -18,6 +18,7 @@
 const char* expr_kind_to_str(Expr_Kind kind)
 {
     switch (kind) {
+    case EXPR_SUBSCRIPT: return "EXPR_SUBSCRIPT";
     case EXPR_CONTINUE: return "EXPR_CONTINUE";
     case EXPR_BREAK: return "EXPR_BREAK";
     case EXPR_MACRO: return "EXPR_MACRO";
@@ -47,6 +48,9 @@ char* expr_to_str(Expr* expr)
 {
     char* result = NULL;
     switch (expr->kind) {
+    case EXPR_SUBSCRIPT: {
+        result = strf("%s[%s]", expr->Subscript.variable_name, expr_to_str(expr->Subscript.expr));
+    } break;
     case EXPR_CONTINUE: {
         result = "continue";
     } break;
@@ -125,6 +129,9 @@ char* expr_to_str_debug_paren(Expr* expr)
 {
     char* result = NULL;
     switch (expr->kind) {
+    case EXPR_SUBSCRIPT: {
+        result = strf("%s[%s]", expr->Subscript.variable_name, expr_to_str(expr->Subscript.expr));
+    } break;
     case EXPR_CONTINUE: {
         result = "continue";
     } break;
@@ -204,6 +211,10 @@ char* expr_to_json(Expr* expr)
     info("%s", expr_kind_to_str(expr->kind));
     char* result = NULL;
     switch (expr->kind) {
+    case EXPR_SUBSCRIPT: {
+        result = strf("{\"%s\": {\"ident\": %s, \"expr\": %s}}", expr_kind_to_str(expr->kind),
+                      expr->Subscript.variable_name, expr_to_str(expr->Subscript.expr));
+    } break;
     case EXPR_CONTINUE: {
         result = strf("{\"%s\": {%s}}", expr_kind_to_str(expr->kind), "continue");
     } break;
@@ -317,6 +328,16 @@ Expr* make_expr(Expr_Kind kind)
 {
     Expr* e = xmalloc(sizeof(Expr));
     e->kind = kind;
+    return e;
+}
+
+Expr* make_expr_subscript(const char* variable_name, Expr* expr)
+{
+    assert(variable_name);
+    assert(expr);
+    Expr* e = make_expr(EXPR_SUBSCRIPT);
+    e->Subscript.variable_name = variable_name;
+    e->Subscript.expr = expr;
     return e;
 }
 

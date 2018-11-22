@@ -140,7 +140,6 @@ static void remove_variable(Value* variable)
 
 static void emit_store(Value* variable)
 {
-    start_codeblock(ctx.current_function, "emit_store");
     assert(variable->kind == VALUE_VARIABLE);
     u64 size = get_size_of_value(variable);
     int reg_n = get_rax_reg_of_byte_size(size);
@@ -150,7 +149,6 @@ static void emit_store(Value* variable)
 
 static void emit_load(Value* value)
 {
-    start_codeblock(ctx.current_function, "emit_load");
     int reg_n = get_rax_reg_of_byte_size(get_size_of_value(value));
     switch (value->kind) {
     case VALUE_INT: {
@@ -172,8 +170,6 @@ static Value* codegen_function(Expr* expr)
     ctx.current_function = function;
 
     push_scope();
-
-    start_codeblock(ctx.current_function, "codegen_function");
 
     sb_push(functions, function);
 
@@ -210,7 +206,6 @@ static Value* codegen_function(Expr* expr)
 
 static Value* codegen_ident(Expr* expr)
 {
-    start_codeblock(ctx.current_function, "codegen_ident");
     const char* name = expr->Ident.name;
 
     // Macro?
@@ -228,7 +223,6 @@ static Value* codegen_ident(Expr* expr)
 
 static Value* codegen_int(Expr* expr)
 {
-    start_codeblock(ctx.current_function, "codegen_int");
     Value* val = make_value_int(DEFAULT_INTEGER_BYTE_SIZE, integer_literal_type, expr->Int.val);
     emit_load(val);
     return val;
@@ -236,7 +230,6 @@ static Value* codegen_int(Expr* expr)
 
 static Value* codegen_block(Expr* expr)
 {
-    start_codeblock(ctx.current_function, "codegen_block");
     push_scope();
     Expr** stmts = expr->Block.stmts;
     u64 stmts_count = sb_count(stmts);
@@ -250,7 +243,6 @@ static Value* codegen_block(Expr* expr)
 
 static Value* codegen_unary(Expr* expr)
 {
-    start_codeblock(ctx.current_function, "codegen_unary");
     Token_Kind op = expr->Unary.op;
     Expr* operand = expr->Unary.operand;
 
@@ -277,7 +269,6 @@ static Value* codegen_unary(Expr* expr)
 
 static Value* codegen_binary(Expr* expr)
 {
-    start_codeblock(ctx.current_function, "codegen_binary");
     Token_Kind op = expr->Binary.op;
     Expr* lhs = expr->Binary.lhs;
     Expr* rhs = expr->Binary.rhs;
@@ -542,7 +533,6 @@ static Value* codegen_binary(Expr* expr)
 
 static Value* codegen_variable_decl_type_inf(Expr* expr)
 {
-    start_codeblock(ctx.current_function, "codegen_variable_decl_type_inf");
     const char* name = expr->Variable_Decl_Type_Inf.name;
     Expr* assignment_expr = expr->Variable_Decl_Type_Inf.value;
 
@@ -562,7 +552,6 @@ static Value* codegen_variable_decl_type_inf(Expr* expr)
 }
 static Value* codegen_variable_decl(Expr* expr)
 {
-    start_codeblock(ctx.current_function, "codegen_variable_decl");
     const char* name = expr->Variable_Decl.name;
     Typespec* type = expr->Variable_Decl.type;
     Expr* assignment_expr = expr->Variable_Decl.value;
@@ -583,7 +572,6 @@ static Value* codegen_variable_decl(Expr* expr)
 
 static Value* codegen_ret(Expr* expr)
 {
-    start_codeblock(ctx.current_function, "codegen_ret");
     Expr* ret_expr = expr->Ret.expr;
     Value* ret_val = codegen_expr(ret_expr);
 
@@ -611,8 +599,6 @@ static Value* codegen_ret(Expr* expr)
 
 static Value* codegen_call(Expr* expr)
 {
-    start_codeblock(ctx.current_function, "codegen_call");
-
     const char* callee = expr->Call.callee;
     Expr** args = expr->Call.args;
 
@@ -799,10 +785,21 @@ static Value* codegen_break(Expr* expr)
     return NULL;
 }
 
+static Value* codegen_subscript(Expr* expr)
+{
+    assert(expr->kind == EXPR_SUBSCRIPT);
+    Value* access_val = codegen_expr(expr->Subscript.expr);
+    int access_val_size = get_size_of_value(access_val);
+    int reg_n = get_next_available_reg(access_val_size);
+    emit_s("MOV %s, %s", get_reg(reg_n), get_rax_reg_of_byte_size(access_val_size));
+    Value* variable = get_variable(expr->Subscript.variable_name);
+    int memloc = variable->Variable.stack_pos;
+    emit_s("MOV %s, RSP[%d + %s]", get_rax_reg_of_byte_size(get_size_of_value(variable)), memloc, get_reg(reg_n));
+    return variable;
+}
 static Value* codegen_note(Expr* expr)
 {
     assert(expr->kind == EXPR_NOTE);
-    start_codeblock(ctx.current_function, "codegen_note");
     Expr* int_expr = expr->Note.expr;
     assert(int_expr->kind == EXPR_INT);
     int integer_value = int_expr->Int.val;
@@ -817,7 +814,10 @@ static Value* codegen_note(Expr* expr)
 static Value* codegen_expr(Expr* expr)
 {
     // info("Generating code for: %s", expr_to_str(expr));
+    if (expr->kind == EXPR_FUNCTION) return codegen_function(expr);
+    start_codeblock(ctx.current_function, expr_to_str(expr));
     switch (expr->kind) {
+    case EXPR_SUBSCRIPT: return codegen_subscript(expr);
     case EXPR_CONTINUE: return codegen_continue(expr);
     case EXPR_BREAK: return codegen_break(expr);
     case EXPR_MACRO: return codegen_macro(expr);
@@ -832,7 +832,6 @@ static Value* codegen_expr(Expr* expr)
     case EXPR_RET: return codegen_ret(expr);
     case EXPR_VARIABLE_DECL: return codegen_variable_decl(expr);
     case EXPR_VARIABLE_DECL_TYPE_INF: return codegen_variable_decl_type_inf(expr);
-    case EXPR_FUNCTION: return codegen_function(expr);
     case EXPR_STRUCT: error("EXPR_STRUCT codegen not implemented");
     case EXPR_IF: return codegen_if(expr);
     case EXPR_FOR: return codegen_for(expr);
