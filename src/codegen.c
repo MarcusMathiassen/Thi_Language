@@ -210,6 +210,7 @@ static Value* codegen_ident(Expr* expr)
 {
     const char* name = expr->Ident.name;
 
+
     // Macro?
     Expr* macro_expr = get_macro_def(name);
     if (macro_expr) {
@@ -225,6 +226,7 @@ static Value* codegen_ident(Expr* expr)
 
 static Value* codegen_int(Expr* expr)
 {
+    assert(expr->kind == EXPR_INT);
     Value* val = make_value_int(DEFAULT_INTEGER_BYTE_SIZE, integer_literal_type, expr->Int.val);
     emit_load(val);
     return val;

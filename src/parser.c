@@ -79,7 +79,7 @@ static Expr* get_variable_declaration(const char* ident);
 static Expr* get_variable_typeinferred(const char* ident);
 static Expr* get_function_call(const char* ident);
 static Expr* get_subscript(const char* ident);
-static Expr* get_statement_body();
+static Expr* get_body();
 
 static Expr* parse_top_level(void);
 static Expr* parse_statement(void);
@@ -102,6 +102,7 @@ static Expr* parse_continue(void);
 static Typespec* parse_struct_signature(const char* struct_name);
 static Typespec* parse_function_signature(const char* func_name);
 
+static void skip_statement_body(void);
 static void skip_block(void);
 static void skip_enum_signature(void);
 static void skip_struct_signature(void);
@@ -223,6 +224,7 @@ static Expr* parse_top_level(void)
         skip_function_signature();
     } break;
     case TOKEN_IDENTIFIER: return parse_statement();
+    default: warning("unknown toplevel token '%s'", curr_tok.value); eat();
     }
     return NULL;
 }
@@ -287,11 +289,11 @@ static Expr* parse_if(void)
 {
     eat_kind(TOKEN_IF);
     Expr* cond = parse_expression();
-    Expr* then_body = get_statement_body();
+    Expr* then_body = get_body();
     Expr* else_body = NULL;
     if (tok_is(TOKEN_ELSE)) {
         eat_kind(TOKEN_ELSE);
-        else_body = get_statement_body();
+        else_body = get_body();
     }
     return make_expr_if(cond, then_body, else_body);
 }
@@ -336,7 +338,7 @@ static Expr* parse_identifier()
 
 static Expr* parse_block()
 {
-    return get_statement_body(); // @TEMP REMOVE
+    return get_body(); // @TEMP REMOVE
 
     Expr** statements = NULL;
     eat_kind(TOKEN_OPEN_BRACE);
@@ -355,15 +357,17 @@ static Expr* parse_ret()
     return make_expr_ret(exp);
 }
 
-static Expr* get_statement_body()
+static Expr* get_body()
 {
     Expr** statements = NULL;
+
     if (tok_is(TOKEN_DO)) {
         eat_kind(TOKEN_DO);
-        Expr* stmt = parse_expression();
+        Expr* stmt = parse_statement();
         if (stmt) sb_push(statements, stmt);
         return make_expr_block(statements);
     }
+
     if (tok_is(TOKEN_OPEN_BRACE)) {
         eat_kind(TOKEN_OPEN_BRACE);
         while (!tok_is(TOKEN_CLOSE_BRACE)) {
@@ -402,6 +406,15 @@ static Expr* get_function_call(const char* ident)
         has_multiple_arguments = true;
     }
     eat_kind(TOKEN_CLOSE_PAREN);
+
+    // Is this actually a function def?
+    if (tok_is(TOKEN_IDENTIFIER)) {
+        Typespec* ret_type = get_type();
+        if (ret_type) // its a function def.
+            return make_expr_function(get_symbol(ident), get_body());
+    }
+
+
     return make_expr_call(ident, args);
 }
 
@@ -505,10 +518,8 @@ static Expr* parse_parens()
 {
     eat_kind(TOKEN_OPEN_PAREN);
     Expr* exp = parse_expression();
-    if (!exp) {
-        return NULL;
-    }
     eat_kind(TOKEN_CLOSE_PAREN);
+    if (!exp) { return NULL; }
     return make_expr_grouping(exp);
 }
 //------------------------------------------------------------------------------
@@ -675,7 +686,7 @@ static Expr* get_definition(const char* ident)
     }
     case TOKEN_OPEN_PAREN: {
         skip_function_signature();
-        Expr* body = parse_block();
+        Expr* body = get_body();
         return make_expr_function(get_symbol(ident), body);
     }
     default: {
@@ -717,6 +728,21 @@ static void eat_kind(Token_Kind kind)
 //                               Skip Functions
 //------------------------------------------------------------------------------
 
+static void skip_statement_body(void)
+{
+    if(tok_is(TOKEN_OPEN_BRACE))
+    {
+        skip_block();
+        return;
+    }
+
+    if(tok_is(TOKEN_DO)) {
+        eat_kind(TOKEN_DO);
+        Expr* expr = parse_statement();
+        if(expr) warning("wefwef wef %s", expr_to_str(expr));
+        return;
+    }
+}
 static void skip_block(void)
 {
     eat_kind(TOKEN_OPEN_BRACE);
@@ -796,7 +822,7 @@ static void add_new_symbol(void)
         }
         case TOKEN_OPEN_PAREN: {
             Typespec* type = parse_function_signature(ident);
-            skip_block();
+            skip_statement_body();
             add_symbol(ident, type);
             return;
         }

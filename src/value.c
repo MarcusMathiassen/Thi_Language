@@ -41,9 +41,8 @@ void emit_s(const char* fmt, ...)
     vsnprintf(str, str_len, fmt, args);
     va_end(args);
 
-    append_string(current_output, "   ");
+    append_string(current_output, "\n    ");
     append_string(current_output, str);
-    append_string(current_output, "\n");
 }
 
 void emit(string* output, const char* fmt, ...)
@@ -167,7 +166,7 @@ void function_print_debug(Value* function)
         // Print line
         if (cb->block.len) {
             const char* line = cb->block.c_str;
-            info("%s%s;%s\033[00m", cb_c, line, cb->desc.c_str);
+            info("%s;%s%s\033[00m", cb_c, cb->desc.c_str, line);
         }
     }
 }

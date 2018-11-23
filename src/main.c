@@ -149,30 +149,30 @@ int main(int argc, char** argv)
 
 void assemble(const char* asm_file, const char* exec_name)
 {
-    char comp_call[256];
-    sprintf(comp_call, "nasm -f macho64 -g %s -o %s.o", asm_file, exec_name);
+    string comp_call = make_string_f("nasm -f macho64 -g %s -o %s.o", asm_file, exec_name);
     push_timer("Assembler");
-    system(comp_call);
+    system(comp_call.c_str);
+    free_string(&comp_call);
     pop_timer();
 
     // system("cat output.asm");
 
     // Cleanup
-    char rm_asm_file[256];
-    sprintf(rm_asm_file, "rm %s", asm_file);
-    system(rm_asm_file);
+    string rm_asm_file = make_string_f("rm %s", asm_file);
+    system(rm_asm_file.c_str);
+    free_string(&rm_asm_file);
 }
 
 void link(const char* exec_name)
 {
-    char link_call[256];
-    sprintf(link_call, "ld -macosx_version_min 10.14 -lSystem -o %s %s.o -e _main -lc", exec_name, exec_name);
+    string link_call = make_string_f("ld -macosx_version_min 10.14 -lSystem -o %s %s.o -e _main -lc", exec_name, exec_name);
     push_timer("Linker");
-    system(link_call);
+    system(link_call.c_str);
+    free_string(&link_call);
     pop_timer();
 
     // Cleanup
-    char rm_call[256];
-    sprintf(rm_call, "rm %s.o", exec_name);
-    system(rm_call);
+    string rm_call = make_string_f("rm %s.o", exec_name);
+    system(rm_call.c_str);
+    free_string(&rm_call);
 }
