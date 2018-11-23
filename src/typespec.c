@@ -88,7 +88,7 @@ char* typespec_to_json(Typespec* type)
     };
 
     case TYPESPEC_FUNCTION: {
-        string str = make_string(strf("%s :: (", type->Function.name));
+        string str = make_string(strf("%s (", type->Function.name));
         strf("func. name: %d", type->Function.name);
         Arg* args = type->Function.args;
         int arg_count = sb_count(args);
@@ -101,7 +101,7 @@ char* typespec_to_json(Typespec* type)
                 if (i != arg_count - 1) append_string(&str, ", ");
             }
         }
-        if (type->Function.ret_type) append_string(&str, strf(") -> %s", typespec_to_str(type->Function.ret_type)));
+        if (type->Function.ret_type) append_string(&str, strf(") %s", typespec_to_str(type->Function.ret_type)));
         return str.c_str;
     }
     default: warning("typespec_to_json not implemented kind %d", typespec_kind_to_str(type->kind));

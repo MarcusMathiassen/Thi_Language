@@ -360,6 +360,7 @@ scan:
         CASE_SINGLE_TOKEN('=', TOKEN_EQ);
         switch (*c) {
             CASE_SINGLE_TOKEN('=', TOKEN_EQ_EQ);
+            break;
             CASE_SINGLE_TOKEN('>', TOKEN_EQ_GT);
             break;
         }

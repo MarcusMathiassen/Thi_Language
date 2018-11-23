@@ -48,102 +48,49 @@ enum Expr_Kind
 //                          AST Expression Structures
 //------------------------------------------------------------------------------
 
+typedef struct { const char* variable_name; Expr* expr; } AST_Subscript;
+typedef struct { const char* name; Expr* expr; } AST_Macro;
+typedef struct { Expr* expr; } AST_Note;
+typedef struct { Expr* expr; } AST_Grouping;
+typedef struct { Expr** stmts; } AST_Block;
+typedef struct { Expr* expr; } AST_Ret;
+typedef struct { u64 val; } AST_Int;
+typedef struct { f64 val; } AST_Float;
+typedef struct { Typespec* type; Expr* body; } AST_Function; 
+typedef struct { Typespec* type; } AST_Struct;
+typedef struct { const char* name; } AST_Ident;
+typedef struct { Expr* cond; Expr* then_body; Expr* else_body; } AST_If;
+typedef struct { const char* iterator_name; Expr* start; Expr* end; Expr* body; } AST_For;
+typedef struct { Expr* cond; Expr* body; } AST_While;
+typedef struct { const char* callee; Expr** args; } AST_Call;
+typedef struct { Token_Kind op; Expr* operand; } AST_Unary;
+typedef struct { Token_Kind op; Expr* lhs; Expr* rhs; } AST_Binary;
+typedef struct { const char* name; Typespec* type; Expr* value; } AST_Variable_Decl;
+typedef struct { const char* name; Expr* value; } AST_Variable_Decl_Type_Inf;
+
 struct Expr
 {
     Expr_Kind kind;
     union {
-        struct
-        {
-            const char* variable_name;
-            Expr* expr;
-        } Subscript;
-        struct
-        {
-            const char* name;
-            Expr* expr;
-        } Macro;
-        struct
-        {
-            Expr* expr;
-        } Note;
-        struct
-        {
-            Expr* expr;
-        } Grouping;
-        struct
-        {
-            Expr** stmts;
-        } Block;
-        struct
-        {
-            Expr* expr;
-        } Ret;
-        struct
-        {
-            u64 val;
-        } Int;
-        struct
-        {
-            f64 val;
-        } Float;
-        struct
-        {
-            Typespec* type;
-            Expr* body;
-        } Function;
-        struct
-        {
-            Typespec* type;
-        } Struct;
-        struct
-        {
-            const char* name;
-        } Ident;
-        struct
-        {
-            Expr* cond;
-            Expr* then_body;
-            Expr* else_body;
-        } If;
-        struct
-        {
-            const char* iterator_name;
-            Expr* start;
-            Expr* end;
-            Expr* body;
-        } For;
-        struct
-        {
-            Expr* cond;
-            Expr* body;
-        } While;
-        struct
-        {
-            const char* callee;
-            Expr** args;
-        } Call;
-        struct
-        {
-            Token_Kind op;
-            Expr* operand;
-        } Unary;
-        struct
-        {
-            Token_Kind op;
-            Expr* lhs;
-            Expr* rhs;
-        } Binary;
-        struct
-        {
-            const char* name;
-            Typespec* type;
-            Expr* value;
-        } Variable_Decl;
-        struct
-        {
-            const char* name;
-            Expr* value;
-        } Variable_Decl_Type_Inf;
+        AST_Subscript Subscript;
+        AST_Macro Macro;
+        AST_Note Note;
+        AST_Grouping Grouping;
+        AST_Block Block;
+        AST_Ret Ret;
+        AST_Int Int;
+        AST_Float Float;
+        AST_Function Function; 
+        AST_Struct Struct;
+        AST_Ident Ident;
+        AST_If If;
+        AST_For For;
+        AST_While While;
+        AST_Call Call;
+        AST_Unary Unary;
+        AST_Binary Binary;
+        AST_Variable_Decl Variable_Decl;
+        AST_Variable_Decl_Type_Inf Variable_Decl_Type_Inf;
     };
 };
 

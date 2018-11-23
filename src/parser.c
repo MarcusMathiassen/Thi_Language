@@ -79,7 +79,6 @@ static Expr* get_variable_declaration(const char* ident);
 static Expr* get_variable_typeinferred(const char* ident);
 static Expr* get_function_call(const char* ident);
 static Expr* get_subscript(const char* ident);
-static Expr* get_body();
 
 static Expr* parse_top_level(void);
 static Expr* parse_statement(void);
@@ -215,6 +214,7 @@ void generate_symbol_table_from_tokens(Token* tokens)
 
 static Expr* parse_top_level(void)
 {
+    info("parse_top_level");
     top_tok = curr_tok;
     switch (curr_tok.kind) {
     case TOKEN_FOREIGN: {
@@ -231,6 +231,7 @@ static Expr* parse_top_level(void)
 
 static Expr* parse_statement(void)
 {
+    info("parse_statement");
     switch (curr_tok.kind) {
     case TOKEN_IDENTIFIER: return parse_expression();
     case TOKEN_RETURN: return parse_ret();
@@ -289,17 +290,19 @@ static Expr* parse_if(void)
 {
     eat_kind(TOKEN_IF);
     Expr* cond = parse_expression();
-    Expr* then_body = get_body();
+    Expr* then_body = parse_block();
     Expr* else_body = NULL;
     if (tok_is(TOKEN_ELSE)) {
         eat_kind(TOKEN_ELSE);
-        else_body = get_body();
+        else_body = parse_block();
     }
     return make_expr_if(cond, then_body, else_body);
 }
 
 static Expr* parse_primary()
 {
+    info("parse_primary");
+
     switch (curr_tok.kind) {
     case TOKEN_IDENTIFIER: return parse_identifier();
     case TOKEN_DOLLAR_SIGN: return parse_note();
@@ -324,6 +327,8 @@ static Expr* parse_primary()
 
 static Expr* parse_identifier()
 {
+    info("parse_identifier");
+
     const char* ident = curr_tok.value;
     eat_kind(TOKEN_IDENTIFIER);
     switch (curr_tok.kind) {
@@ -338,8 +343,6 @@ static Expr* parse_identifier()
 
 static Expr* parse_block()
 {
-    return get_body(); // @TEMP REMOVE
-
     Expr** statements = NULL;
     eat_kind(TOKEN_OPEN_BRACE);
     while (!tok_is(TOKEN_CLOSE_BRACE)) {
@@ -357,29 +360,6 @@ static Expr* parse_ret()
     return make_expr_ret(exp);
 }
 
-static Expr* get_body()
-{
-    Expr** statements = NULL;
-
-    if (tok_is(TOKEN_OPEN_BRACE)) {
-        eat_kind(TOKEN_OPEN_BRACE);
-        while (!tok_is(TOKEN_CLOSE_BRACE)) {
-            Expr* stmt = parse_statement();
-            if (stmt) sb_push(statements, stmt);
-        }
-        eat_kind(TOKEN_CLOSE_BRACE);
-        return make_expr_block(statements);
-
-    } else { // single line statement
-        Expr* stmt = parse_statement();
-        if (stmt) sb_push(statements, stmt);
-        return make_expr_block(statements);
-    }
-
-    error("missing statement body");
-    return NULL;
-}
-
 static Expr* get_subscript(const char* ident)
 {
     eat_kind(TOKEN_OPEN_BRACKET);
@@ -390,6 +370,7 @@ static Expr* get_subscript(const char* ident)
 
 static Expr* get_function_call(const char* ident)
 {
+    info("get_function_call");
     eat_kind(TOKEN_OPEN_PAREN);
     Expr** args = NULL;
 
@@ -404,14 +385,6 @@ static Expr* get_function_call(const char* ident)
         has_multiple_arguments = true;
     }
     eat_kind(TOKEN_CLOSE_PAREN);
-
-    // Is this actually a function def?
-    if (tok_is(TOKEN_IDENTIFIER)) {
-        Typespec* ret_type = get_type();
-        if (ret_type) // its a function def.
-            return make_expr_function(get_symbol(ident), get_body());
-    }
-
 
     return make_expr_call(ident, args);
 }
@@ -487,6 +460,8 @@ static Expr* parse_unary()
 
 static Expr* parse_note()
 {
+    info("parse_note");
+
     eat_kind(TOKEN_DOLLAR_SIGN);
     Expr* expr = NULL;
     switch (curr_tok.kind) {
@@ -514,6 +489,7 @@ static Expr* parse_integer()
 
 static Expr* parse_parens()
 {
+    info("parse_parens");
     eat_kind(TOKEN_OPEN_PAREN);
     Expr* exp = parse_expression();
     eat_kind(TOKEN_CLOSE_PAREN);
@@ -526,6 +502,8 @@ static Expr* parse_parens()
 
 static u64 get_integer(void)
 {
+    info("get_integer: %s", curr_tok.value);
+
     u64 value = 0;
     switch (curr_tok.kind) {
     case TOKEN_INTEGER: value = atoll(curr_tok.value); break;
@@ -538,6 +516,7 @@ static u64 get_integer(void)
 
 static f64 get_float(void)
 {
+    info("get_float: %s", curr_tok.value);
     f64 value = atof(curr_tok.value);
     eat_kind(TOKEN_FLOAT);
     return value;
@@ -545,6 +524,8 @@ static f64 get_float(void)
 
 static void skip_type(void)
 {
+    info("skip_type: %s", curr_tok.value);
+
     eat_kind(TOKEN_IDENTIFIER);
 
     // Is a pointer or array?
@@ -564,6 +545,8 @@ static void skip_type(void)
 // Returns NULL if the current token is not a type.
 static Typespec* get_type(void)
 {
+    info("get_type: %s", curr_tok.value);
+
     const char* type_name = curr_tok.value;
 
     eat_kind(TOKEN_IDENTIFIER);
@@ -635,11 +618,11 @@ static Typespec* parse_struct_signature(const char* struct_name)
 
 static Typespec* parse_function_signature(const char* func_name)
 {
+    info("parse_function_signature");
     eat_kind(TOKEN_OPEN_PAREN);
     Arg* args = NULL;
     bool has_multiple_arguments = false;
     while (!tok_is(TOKEN_CLOSE_PAREN)) {
-
         if (has_multiple_arguments) eat_kind(TOKEN_COMMA);
 
         Arg arg;
@@ -662,9 +645,11 @@ static Typespec* parse_function_signature(const char* func_name)
     eat_kind(TOKEN_CLOSE_PAREN);
 
     Typespec* ret_type = NULL;
-    if (tok_is(TOKEN_IDENTIFIER)) {
+    if (tok_is(TOKEN_RIGHT_ARROW)) {
+        eat_kind(TOKEN_RIGHT_ARROW);
         ret_type = get_type();
     }
+
     return make_typespec_function(func_name, args, ret_type);
 }
 
@@ -685,7 +670,7 @@ static Expr* get_definition(const char* ident)
     }
     case TOKEN_OPEN_PAREN: {
         skip_function_signature();
-        Expr* body = get_body();
+        Expr* body = parse_block();
         return make_expr_function(get_symbol(ident), body);
     }
     default: {
@@ -772,6 +757,7 @@ static void skip_struct_signature(void)
 
 static void skip_function_signature(void)
 {
+    info("skip_function_signature");
     eat();
     bool has_multiple_arguments = false;
     while (!tok_is(TOKEN_CLOSE_PAREN)) {
@@ -787,9 +773,11 @@ static void skip_function_signature(void)
     }
     eat_kind(TOKEN_CLOSE_PAREN);
 
-    if (tok_is(TOKEN_IDENTIFIER)) {
-        skip_type();
+    if (tok_is(TOKEN_RIGHT_ARROW)) {
+        eat_kind(TOKEN_RIGHT_ARROW);
+        eat_kind(TOKEN_IDENTIFIER);
     }
+
 }
 
 //------------------------------------------------------------------------------
@@ -798,9 +786,12 @@ static void skip_function_signature(void)
 
 static void add_new_symbol(void)
 {
+    info("add_new_symbol");
+
     const char* ident = curr_tok.value;
     eat_kind(TOKEN_IDENTIFIER);
-    if (tok_is(TOKEN_COLON_COLON)) {
+    if(tok_is(TOKEN_COLON_COLON))
+    {
         eat_kind(TOKEN_COLON_COLON);
         switch (curr_tok.kind) {
         case TOKEN_ENUM: {
