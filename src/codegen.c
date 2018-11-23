@@ -792,15 +792,14 @@ static Value* codegen_break(Expr* expr)
 static Value* codegen_subscript(Expr* expr)
 {
     assert(expr->kind == EXPR_SUBSCRIPT);
-    Value* access_val = codegen_expr(expr->Subscript.expr);
-    int access_val_size = get_size_of_value(access_val);
-    int reg_n = get_next_available_reg(access_val_size);
-    emit_s("MOV %s, %s", get_reg(reg_n), get_rax_reg_of_byte_size(access_val_size));
+    codegen_expr(expr->Subscript.expr);
     Value* variable = get_variable(expr->Subscript.variable_name);
     int memloc = variable->Variable.stack_pos;
-    emit_s("MOV %s, RSP[%d + %s]", get_rax_reg_of_byte_size(get_size_of_value(variable)), memloc, get_reg(reg_n));
+    int internal_size_of_t = get_size_of_typespec(variable->type->Array.type);
+    emit_s("MOV %s, [rsp-%d+%s*%d]", get_reg(get_rax_reg_of_byte_size(get_size_of_value(variable))), memloc, get_reg(get_rax_reg_of_byte_size(get_size_of_value(variable))), internal_size_of_t);
     return variable;
 }
+
 static Value* codegen_note(Expr* expr)
 {
     assert(expr->kind == EXPR_NOTE);
@@ -817,7 +816,7 @@ static Value* codegen_note(Expr* expr)
 // @Hotpath
 static Value* codegen_expr(Expr* expr)
 {
-    // info("Generating code for: %s", expr_to_str(expr));
+    info("Generating code for: %s", expr_to_str(expr));
     if (expr->kind == EXPR_FUNCTION) return codegen_function(expr);
     start_codeblock(ctx.current_function, expr_to_str(expr));
     switch (expr->kind) {

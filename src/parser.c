@@ -362,6 +362,7 @@ static Expr* parse_ret()
 
 static Expr* get_subscript(const char* ident)
 {
+    info("get_subscript");
     eat_kind(TOKEN_OPEN_BRACKET);
     Expr* expr = parse_expression();
     eat_kind(TOKEN_CLOSE_BRACKET);
