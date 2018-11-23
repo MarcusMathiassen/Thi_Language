@@ -1,13 +1,3 @@
-
-
-
-
-# Keywords
-# 'do' expects a single expression after it. Use for one line if, for, while statements or function.
-# '{' opens a block
-# '}' closes a block
-
-
-
-main () int do 
+main () int {
     ret 1
+}

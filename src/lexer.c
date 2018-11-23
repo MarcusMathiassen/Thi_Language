@@ -360,6 +360,7 @@ scan:
         CASE_SINGLE_TOKEN('=', TOKEN_EQ);
         switch (*c) {
             CASE_SINGLE_TOKEN('=', TOKEN_EQ_EQ);
+            CASE_SINGLE_TOKEN('>', TOKEN_EQ_GT);
             break;
         }
         break;
@@ -500,6 +501,7 @@ const char* token_kind_to_str(Token_Kind kind)
     case TOKEN_BITWISE_LEFTSHIFT: return "<<=";
     case TOKEN_BITWISE_RIGHTSHIFT: return ">>=";
     case TOKEN_EQ_EQ: return "==";
+    case TOKEN_EQ_GT: return "=>";
     case TOKEN_BANG_EQ: return "!=";
     case TOKEN_COLON_COLON: return "::";
     case TOKEN_COLON_EQ: return ":=";

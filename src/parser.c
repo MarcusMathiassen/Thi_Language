@@ -361,13 +361,6 @@ static Expr* get_body()
 {
     Expr** statements = NULL;
 
-    if (tok_is(TOKEN_DO)) {
-        eat_kind(TOKEN_DO);
-        Expr* stmt = parse_statement();
-        if (stmt) sb_push(statements, stmt);
-        return make_expr_block(statements);
-    }
-
     if (tok_is(TOKEN_OPEN_BRACE)) {
         eat_kind(TOKEN_OPEN_BRACE);
         while (!tok_is(TOKEN_CLOSE_BRACE)) {
@@ -375,6 +368,11 @@ static Expr* get_body()
             if (stmt) sb_push(statements, stmt);
         }
         eat_kind(TOKEN_CLOSE_BRACE);
+        return make_expr_block(statements);
+
+    } else { // single line statement
+        Expr* stmt = parse_statement();
+        if (stmt) sb_push(statements, stmt);
         return make_expr_block(statements);
     }
 
@@ -562,6 +560,8 @@ static void skip_type(void)
     }
     return;
 }
+
+// Returns NULL if the current token is not a type.
 static Typespec* get_type(void)
 {
     const char* type_name = curr_tok.value;
@@ -592,7 +592,7 @@ static Typespec* get_type(void)
     } break;
     }
 
-    if (!type) error("no type found for type '%s'", type_name);
+    if (!type) warning("no type found for type '%s'", type_name);
 
     return type;
 }
@@ -660,12 +660,11 @@ static Typespec* parse_function_signature(const char* func_name)
         sb_push(args, arg);
     }
     eat_kind(TOKEN_CLOSE_PAREN);
+
     Typespec* ret_type = NULL;
-    if (tok_is(TOKEN_RIGHT_ARROW)) {
-        eat_kind(TOKEN_RIGHT_ARROW);
+    if (tok_is(TOKEN_IDENTIFIER)) {
         ret_type = get_type();
     }
-
     return make_typespec_function(func_name, args, ret_type);
 }
 
@@ -735,13 +734,7 @@ static void skip_statement_body(void)
         skip_block();
         return;
     }
-
-    if(tok_is(TOKEN_DO)) {
-        eat_kind(TOKEN_DO);
-        Expr* expr = parse_statement();
-        if(expr) warning("wefwef wef %s", expr_to_str(expr));
-        return;
-    }
+    parse_statement();
 }
 static void skip_block(void)
 {
@@ -793,8 +786,8 @@ static void skip_function_signature(void)
         has_multiple_arguments = true;
     }
     eat_kind(TOKEN_CLOSE_PAREN);
-    if (tok_is(TOKEN_RIGHT_ARROW)) {
-        eat_kind(TOKEN_RIGHT_ARROW);
+
+    if (tok_is(TOKEN_IDENTIFIER)) {
         skip_type();
     }
 }
