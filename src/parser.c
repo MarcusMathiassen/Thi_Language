@@ -79,6 +79,7 @@ static Expr* get_variable_declaration(const char* ident);
 static Expr* get_variable_typeinferred(const char* ident);
 static Expr* get_function_call(const char* ident);
 static Expr* get_subscript(const char* ident);
+static Expr* get_statement_body();
 
 static Expr* parse_top_level(void);
 static Expr* parse_statement(void);
@@ -286,11 +287,11 @@ static Expr* parse_if(void)
 {
     eat_kind(TOKEN_IF);
     Expr* cond = parse_expression();
-    Expr* then_body = parse_block();
+    Expr* then_body = get_statement_body();
     Expr* else_body = NULL;
     if (tok_is(TOKEN_ELSE)) {
         eat_kind(TOKEN_ELSE);
-        else_body = parse_block();
+        else_body = get_statement_body();
     }
     return make_expr_if(cond, then_body, else_body);
 }
@@ -335,6 +336,8 @@ static Expr* parse_identifier()
 
 static Expr* parse_block()
 {
+    return get_statement_body(); // @TEMP REMOVE
+
     Expr** statements = NULL;
     eat_kind(TOKEN_OPEN_BRACE);
     while (!tok_is(TOKEN_CLOSE_BRACE)) {
@@ -350,6 +353,29 @@ static Expr* parse_ret()
     eat_kind(TOKEN_RETURN);
     Expr* exp = parse_expression();
     return make_expr_ret(exp);
+}
+
+static Expr* get_statement_body()
+{
+    Expr** statements = NULL;
+    if (tok_is(TOKEN_DO)) {
+        eat_kind(TOKEN_DO);
+        Expr* stmt = parse_expression();
+        if (stmt) sb_push(statements, stmt);
+        return make_expr_block(statements);
+    }
+    if (tok_is(TOKEN_OPEN_BRACE)) {
+        eat_kind(TOKEN_OPEN_BRACE);
+        while (!tok_is(TOKEN_CLOSE_BRACE)) {
+            Expr* stmt = parse_statement();
+            if (stmt) sb_push(statements, stmt);
+        }
+        eat_kind(TOKEN_CLOSE_BRACE);
+        return make_expr_block(statements);
+    }
+
+    error("missing statement body");
+    return NULL;
 }
 
 static Expr* get_subscript(const char* ident)

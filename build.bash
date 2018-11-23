@@ -12,7 +12,7 @@ end=`date +%s`
 echo Compilation finished. Time: $((end-start)) seconds
 
 if [ $? == 0 ]; then
-    ./test.bash 
+    ./test.bash
     # ./test.bash ./tests/test_order_independance.thi
     # ./test.bash ./tests/test_function_call_2.thi
     # ./test.bash  ./tests/test_pointer.thi
@@ -35,6 +35,7 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_macro_definition.thi
     # ./test.bash ./tests/test_asterisk_equal.thi
     # ./test.bash ./tests/test_logical_or.clear.thi
+    # ./test.bash ./tests/test_do.thi
     # ./test.bash ./tests/test_if.thi
     # ./test.bash ./tests/test_for.thi
     # ./test.bash ./tests/test_while.thi
@@ -52,5 +53,5 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_anonymous_scope.thi ./tests/test_asterisk_equal.thi ./tests/test_basic_setup.thi ./tests/test_equal_to.thi ./tests/test_foreign.thi ./tests/test_function_call.thi ./tests/test_function_call_2.thi ./tests/test_fwslash_equal.thi ./tests/test_greater.thi ./tests/test_hex.thi ./tests/test_hex_2.thi ./tests/test_hex_3.thi ./tests/test_less.thi ./tests/test_load.thi ./tests/test_load_2.thi ./tests/test_logical_and.thi ./tests/test_logical_or.thi ./tests/test_math.thi ./tests/test_math_div.thi ./tests/test_math_minus.thi ./tests/test_math_mul.thi ./tests/test_math_plus.thi ./tests/test_minus_equal.thi ./tests/test_neg.thi ./tests/test_not.thi ./tests/test_not_equal_to.thi ./tests/test_order_independance.thi ./tests/test_plus_equal.thi ./tests/test_variable.thi ./tests/test_variable_assignment.thi ./tests/test_variable_declaration.thi ./tests/test_variable_typedefered.thi
 fi
 
-#if debug 
+#if debug
 rm ./thi

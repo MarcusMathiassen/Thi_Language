@@ -2,12 +2,12 @@ main :: () -> i32 {
 
     i := 0
 
-    # The issue here is that we're 
+    # The issue here is that we're
     # generating the code from the bottom of the tree
-    # so the if statements has a continue trying to 
-    # jump to a contiue label. That label hasnt been 
-    # set up yet by the for loop. 
-    # 
+    # so the if statements has a continue trying to
+    # jump to a contiue label. That label hasnt been
+    # set up yet by the for loop.
+    #
     # We need to do like LLVM and return an abstraction
     # of the call. Like CallInst, ValueInst
 

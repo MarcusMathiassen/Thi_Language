@@ -57,13 +57,14 @@ typedef enum
     KEY_REPEAT,
     KEY_BREAK,
     KEY_CONTINUE,
+    KEY_DO,
 
 } Keyword_Kind;
 
-#define KEYWORD_COUNT 19
+#define KEYWORD_COUNT 20
 static const char* keywords_str[KEYWORD_COUNT] = {
     "foreign", "nil", "print", "load", "true",   "false", "cast",   "malloc", "sizeof",   "if",
-    "else",    "for", "while", "ret",  "struct", "enum",  "repeat", "break",  "continue",
+    "else", "for", "while", "ret",  "struct", "enum",  "repeat", "break",  "continue", "do",
 };
 
 //------------------------------------------------------------------------------
@@ -180,6 +181,7 @@ static Token_Kind get_identifier_kind(const char* identifier)
     case KEY_CAST: return TOKEN_CAST;
     case KEY_MALLOC: return TOKEN_MALLOC;
     case KEY_SIZEOF: return TOKEN_SIZEOF;
+    case KEY_DO: return TOKEN_DO;
     case KEY_IF: return TOKEN_IF;
     case KEY_ELSE: return TOKEN_ELSE;
     case KEY_FOR: return TOKEN_FOR;
@@ -471,6 +473,7 @@ const char* token_kind_to_str(Token_Kind kind)
     case TOKEN_RETURN: return "ret";
     case TOKEN_TRUE: return "true";
     case TOKEN_FALSE: return "false";
+    case TOKEN_DO: return "do";
     case TOKEN_IF: return "if";
     case TOKEN_ELSE: return "else";
     case TOKEN_FOR: return "for";
