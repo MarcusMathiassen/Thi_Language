@@ -794,9 +794,10 @@ static Value* codegen_subscript(Expr* expr)
     assert(expr->kind == EXPR_SUBSCRIPT);
     codegen_expr(expr->Subscript.expr);
     Value* variable = get_variable(expr->Subscript.variable_name);
-    int memloc = variable->Variable.stack_pos;
-    int internal_size_of_t = get_size_of_typespec(variable->type->Array.type);
-    emit_s("MOV %s, [rsp-%d+%s*%d]", get_reg(get_rax_reg_of_byte_size(get_size_of_value(variable))), memloc, get_reg(get_rax_reg_of_byte_size(get_size_of_value(variable))), internal_size_of_t);
+    const int memloc = variable->Variable.stack_pos;
+    const int internal_size_of_t = get_size_of_typespec(variable->type->Array.type);
+    const int reg_n = get_rax_reg_of_byte_size(get_size_of_value(variable));
+    emit_s("MOV %s, [rsp-%d+%s*%d]", get_reg(reg_n), memloc,get_reg(reg_n), internal_size_of_t);
     return variable;
 }
 
