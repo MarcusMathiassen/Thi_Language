@@ -169,6 +169,8 @@ static Value* codegen_function(Expr* expr)
     Value* function = make_value_function(expr->Function.type);
     ctx.current_function = function;
 
+    start_codeblock(ctx.current_function, expr_to_str(expr));
+
     push_scope();
 
     sb_push(functions, function);
