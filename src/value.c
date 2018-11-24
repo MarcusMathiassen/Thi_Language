@@ -1,7 +1,7 @@
 #include "value.h"
+#include "typedefs.h"
 #include "register.h"        // error, xmallox
 #include "stretchy_buffer.h" // sb_push
-#include "typedefs.h"
 #include "utility.h" // error, xmallox
 #include <assert.h>  // assert
 #include <stdarg.h>  // va_list, va_start, va_end

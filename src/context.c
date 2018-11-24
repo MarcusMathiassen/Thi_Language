@@ -16,7 +16,6 @@ void ctx_set_break_label(Context* ctx, const char* label) { ctx->label_break_to 
 void ctx_push_label(Context* ctx)
 {
     assert(ctx);
-    ++ctx->current_label_counter;
     ++ctx->total_label_counter;
 }
 
@@ -24,14 +23,14 @@ void ctx_pop_label(Context* ctx)
 {
     assert(ctx);
     --ctx->current_label_counter;
+    --ctx->total_label_counter;
 }
 
-char* ctx_get_unique_label(Context* ctx, const char* label_name)
+char* ctx_get_unique_label(Context* ctx)
 {
     assert(ctx);
-    assert(label_name);
-    char* str = strf("%s%d%d", label_name, ctx->total_label_counter, ctx->current_label_counter);
-    return str;
+    ++ctx->current_label_counter;
+    return strf("L%d%d", ctx->total_label_counter, ctx->current_label_counter);;
 }
 
 void ctx_tests(void)
@@ -42,19 +41,8 @@ void ctx_tests(void)
 
     // {
     //     ctx_push_label(&ctx);
-    //     char* label = ctx_get_unique_label(&ctx, "a");
-    //     assert(strcmp(label, "a1") == 0);
-    //     info("a1 %s", label);
-    //     {
-    //         ctx_push_label(&ctx);
-    //         label = ctx_get_unique_label(&ctx, "a");
-    //         assert(strcmp(label, "a2") == 0);
-    //         info("a2 %s", label);
-    //         ctx_pop_label(&ctx);
-    //     }
-    //     label = ctx_get_unique_label(&ctx, "a");
-    //     info("a1 %s", label);
-    //     assert(strcmp(label, "a1") == 0);
+    //     char* label = ctx_get_unique_label(&ctx);
+    //     assert(strcmp(label, "L11") == 0);
     //     ctx_pop_label(&ctx);
     // }
 }

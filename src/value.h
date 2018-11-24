@@ -37,7 +37,7 @@ typedef struct
 {
     const char* name;
     u64 stack_pos;
-} Variable;
+} Value_Variable;
 
 typedef struct
 {
@@ -49,43 +49,25 @@ typedef struct
     // These are pushed at the start of the function and popped at the end.
     u8 regs_used[5];
     u8 regs_used_count;
-} Function;
+} Value_Function;
 
-typedef struct
-{
-    u8 bytes;
-    u64 value;
-} Int;
-
-typedef struct
-{
-    const char* callee;
-} Call;
-
-typedef struct
-{
-    Value* variable;
-    u64 offset;
-} LoadInst;
-
-typedef struct
-{
-    Value* variable;
-    u64 offset;
-} StoreInst;
+typedef struct { u8 bytes; u64 value; } Value_Int;
+typedef struct { const char* callee; } Value_Call;
+typedef struct { Value* variable; u64 offset; } Value_LoadInst;
+typedef struct { Value* variable; u64 offset; } Value_StoreInst;
 
 struct Value
 {
     Value_Kind kind;
     Typespec* type;
     union {
-        Int Int;
-        Variable Variable;
-        Call Call;
-        Function Function;
+        Value_Int           Int;
+        Value_Variable      Variable;
+        Value_Call          Call;
+        Value_Function      Function;
 
-        LoadInst LoadInst;
-        StoreInst StoreInst;
+        Value_LoadInst      LoadInst;
+        Value_StoreInst     StoreInst;
     };
 };
 

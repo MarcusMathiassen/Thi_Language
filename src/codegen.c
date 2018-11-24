@@ -529,17 +529,17 @@ Value* codegen_binary(Expr* expr)
         u64 reg_n = get_rax_reg_of_byte_size(lhs_size);
         emit_s("CMP %s, 0", get_reg(reg_n));
         ctx_pop_label(&ctx);
-        emit_s("JE %s", ctx_get_unique_label(&ctx, "E3"));
+        emit_s("JE %s", ctx_get_unique_label(&ctx));
         Value* rhs_val = codegen_expr(rhs);
-        emit_s("JMP %s", ctx_get_unique_label(&ctx, "CONTINUE"));
+        emit_s("JMP %s", ctx_get_unique_label(&ctx));
         return rhs_val;
     }
     case TOKEN_COLON: {
         ctx_push_label(&ctx);
         codegen_expr(lhs);
-        emit_s("%s:", ctx_get_unique_label(&ctx, "E3"));
+        emit_s("%s:", ctx_get_unique_label(&ctx));
         Value* rhs_val = codegen_expr(rhs);
-        emit_s("%s:", ctx_get_unique_label(&ctx, "CONTINUE"));
+        emit_s("%s:", ctx_get_unique_label(&ctx));
         return rhs_val;
     }
     }
@@ -663,9 +663,9 @@ Value* codegen_while(Expr* expr)
 
     ctx_push_label(&ctx);
 
-    const char* condition_label = ctx_get_unique_label(&ctx, "whilecondition");
-    const char* continue_label = ctx_get_unique_label(&ctx, "whilecontinue");
-    const char* body_label = ctx_get_unique_label(&ctx, "whilebody");
+    const char* condition_label = ctx_get_unique_label(&ctx);
+    const char* continue_label = ctx_get_unique_label(&ctx);
+    const char* body_label = ctx_get_unique_label(&ctx);
 
     ctx_set_break_label(&ctx, continue_label);
     ctx_set_continue_label(&ctx, condition_label);
@@ -702,10 +702,10 @@ Value* codegen_for(Expr* expr)
     Expr* body = expr->For.body;
 
     ctx_push_label(&ctx);
-    const char* condition_label = ctx_get_unique_label(&ctx, "forcond");
-    const char* continue_label = ctx_get_unique_label(&ctx, "forcont");
-    const char* body_label = ctx_get_unique_label(&ctx, "forbody");
-    const char* inc_label = ctx_get_unique_label(&ctx, "forinc");
+    const char* condition_label = ctx_get_unique_label(&ctx);
+    const char* continue_label = ctx_get_unique_label(&ctx);
+    const char* body_label = ctx_get_unique_label(&ctx);
+    const char* inc_label = ctx_get_unique_label(&ctx);
 
     ctx_set_break_label(&ctx, continue_label);
     ctx_set_continue_label(&ctx, inc_label);
@@ -756,17 +756,17 @@ Value* codegen_if(Expr* expr)
 
     // COND:
     ctx_push_label(&ctx);
-    const char* then_label = ctx_get_unique_label(&ctx, "ifthen");
-    const char* continue_label = ctx_get_unique_label(&ctx, "ifcont");
-    const char* else_label = ctx_get_unique_label(&ctx, "ifelse");
-
+    const char* then_label = ctx_get_unique_label(&ctx);
+    const char* continue_label = ctx_get_unique_label(&ctx);
+    const char* else_label = ctx_get_unique_label(&ctx);
+    
     Value* condition_val = codegen_expr(condition);
     int condition_size = get_size_of_value(condition_val);
     int res_reg = get_rax_reg_of_byte_size(condition_size);
 
     emit_s("CMP %s, 0", get_reg(res_reg));
     emit_s("JE %s", else_body ? else_label : continue_label);
-    emit_s("JMP %s", then_label);
+    // emit_s("JMP %s", then_label);
 
     // THEN:
     emit_s("%s:", then_label);
