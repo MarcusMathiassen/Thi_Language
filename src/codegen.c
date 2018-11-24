@@ -12,17 +12,15 @@
 #include "value.h"   // Value, Scope
 #include <assert.h>  // assert
 
-static Typespec* integer_literal_type = NULL;
-static Context ctx;
-static string output;
-static Stack scope_stack;
-static Value** functions = NULL;
+Typespec* integer_literal_type = NULL;
+Context ctx;
+string output;
+Stack scope_stack;
+Value** functions = NULL;
 
-static Value* codegen_expr(Expr* expr);
-static Value* codegen_break(Expr* expr);
-static Value* codegen_continue(Expr* expr);
+Value* codegen_expr(Expr* expr);
 
-static char* get_op_size(i8 bytes)
+char* get_op_size(i8 bytes)
 {
     switch (bytes) {
     case 1: return "BYTE";
@@ -34,14 +32,14 @@ static char* get_op_size(i8 bytes)
     return NULL;
 }
 
-static void push_scope()
+void push_scope()
 {
     Scope* new_scope = make_scope(10);
     stack_push(&scope_stack, new_scope);
 }
-static void pop_scope() { stack_pop(&scope_stack); }
+void pop_scope() { stack_pop(&scope_stack); }
 
-static void append_variable_to_scope(Scope* s, Value* value)
+void append_variable_to_scope(Scope* s, Value* value)
 {
     assert(s);
     assert(value);
@@ -52,7 +50,7 @@ static void append_variable_to_scope(Scope* s, Value* value)
     s->local_variables[s->count++] = value;
 }
 
-static void print_scope(Scope* scope)
+void print_scope(Scope* scope)
 {
     info("Scope count %d", scope->count);
     info("Scope alloc_count %d", scope->alloc_count);
@@ -62,7 +60,7 @@ static void print_scope(Scope* scope)
 }
 
 /// Returns the value, or NULL if not found.
-static Value* get_variable_in_scope(Scope* scope, const char* name)
+Value* get_variable_in_scope(Scope* scope, const char* name)
 {
     assert(scope);
     assert(name);
@@ -75,7 +73,7 @@ static Value* get_variable_in_scope(Scope* scope, const char* name)
     return NULL;
 }
 
-static void add_variable_to_scope(Scope* scope, Value* variable)
+void add_variable_to_scope(Scope* scope, Value* variable)
 {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
@@ -91,7 +89,7 @@ static void add_variable_to_scope(Scope* scope, Value* variable)
     // print_scope(scope);
 }
 
-static void remove_variable_in_scope(Scope* scope, const char* name)
+void remove_variable_in_scope(Scope* scope, const char* name)
 {
     Value* v = get_variable_in_scope(scope, name);
     if (v) {
@@ -107,7 +105,7 @@ static void remove_variable_in_scope(Scope* scope, const char* name)
     error("Trying to remove unknown variable: %s", name);
 }
 
-static Value* get_variable(const char* name)
+Value* get_variable(const char* name)
 {
     STACK_FOREACH(scope_stack)
     {
@@ -119,7 +117,7 @@ static Value* get_variable(const char* name)
     return NULL;
 }
 
-static void add_variable(Value* variable)
+void add_variable(Value* variable)
 {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
@@ -128,7 +126,7 @@ static void add_variable(Value* variable)
     add_variable_to_scope(top, variable);
 }
 
-static void remove_variable(Value* variable)
+void remove_variable(Value* variable)
 {
     STACK_FOREACH(scope_stack)
     {
@@ -138,7 +136,7 @@ static void remove_variable(Value* variable)
     }
 }
 
-static void emit_store(Value* variable)
+void emit_store(Value* variable)
 {
     assert(variable->kind == VALUE_VARIABLE);
     u64 size = get_size_of_value(variable);
@@ -147,7 +145,7 @@ static void emit_store(Value* variable)
     emit_s("MOV [RSP-%d], %s", stack_pos, get_reg(reg_n));
 }
 
-static void emit_load(Value* value)
+void emit_load(Value* value)
 {
     int reg_n = get_rax_reg_of_byte_size(get_size_of_value(value));
     switch (value->kind) {
@@ -163,7 +161,7 @@ static void emit_load(Value* value)
     }
 }
 
-static Value* codegen_function(Expr* expr)
+Value* codegen_function(Expr* expr)
 {
     // const char* func_name = expr->Function.type->Function.name;
     Value* function = make_value_function(expr->Function.type);
@@ -206,10 +204,9 @@ static Value* codegen_function(Expr* expr)
     return function;
 }
 
-static Value* codegen_ident(Expr* expr)
+Value* codegen_ident(Expr* expr)
 {
     const char* name = expr->Ident.name;
-
 
     // Macro?
     Expr* macro_expr = get_macro_def(name);
@@ -221,18 +218,26 @@ static Value* codegen_ident(Expr* expr)
     Value* var = get_variable(name);
     assert(var);
     emit_load(var);
+
+    /*
+    
+        MOV RAX, [RSP - STACK_POS + OFFSET]
+
+    */
+
     return var;
 }
 
-static Value* codegen_int(Expr* expr)
+Value* codegen_int(Expr* expr)
 {
     assert(expr->kind == EXPR_INT);
     Value* val = make_value_int(DEFAULT_INTEGER_BYTE_SIZE, integer_literal_type, expr->Int.val);
     emit_load(val);
+
     return val;
 }
 
-static Value* codegen_block(Expr* expr)
+Value* codegen_block(Expr* expr)
 {
     push_scope();
     Expr** stmts = expr->Block.stmts;
@@ -245,7 +250,7 @@ static Value* codegen_block(Expr* expr)
     return last;
 }
 
-static Value* codegen_unary(Expr* expr)
+Value* codegen_unary(Expr* expr)
 {
     Token_Kind op = expr->Unary.op;
     Expr* operand = expr->Unary.operand;
@@ -271,7 +276,7 @@ static Value* codegen_unary(Expr* expr)
     return result;
 }
 
-static Value* codegen_binary(Expr* expr)
+Value* codegen_binary(Expr* expr)
 {
     Token_Kind op = expr->Binary.op;
     Expr* lhs = expr->Binary.lhs;
@@ -279,7 +284,15 @@ static Value* codegen_binary(Expr* expr)
 
     switch (op) {
     case TOKEN_EQ: {
+
+        /*
+            LHS of assignment must be a load instruction
+        */
         Value* lhs_val = codegen_expr(lhs);
+        if (lhs_val->kind != VALUE_LOAD_INST)
+        {
+            warning("LHS of assignment must be a load instruction.");
+        }
         if (lhs_val->kind != VALUE_VARIABLE) error("lhs of an assignment must be a variable.");
         Value* rhs_val = codegen_expr(rhs);
         Value* variable = get_variable(lhs->Variable_Decl.name);
@@ -535,7 +548,7 @@ static Value* codegen_binary(Expr* expr)
     return NULL;
 }
 
-static Value* codegen_variable_decl_type_inf(Expr* expr)
+Value* codegen_variable_decl_type_inf(Expr* expr)
 {
     const char* name = expr->Variable_Decl_Type_Inf.name;
     Expr* assignment_expr = expr->Variable_Decl_Type_Inf.value;
@@ -554,7 +567,7 @@ static Value* codegen_variable_decl_type_inf(Expr* expr)
 
     return variable;
 }
-static Value* codegen_variable_decl(Expr* expr)
+Value* codegen_variable_decl(Expr* expr)
 {
     const char* name = expr->Variable_Decl.name;
     Typespec* type = expr->Variable_Decl.type;
@@ -574,7 +587,7 @@ static Value* codegen_variable_decl(Expr* expr)
     return variable;
 }
 
-static Value* codegen_ret(Expr* expr)
+Value* codegen_ret(Expr* expr)
 {
     Expr* ret_expr = expr->Ret.expr;
     Value* ret_val = codegen_expr(ret_expr);
@@ -601,7 +614,7 @@ static Value* codegen_ret(Expr* expr)
     return ret_val;
 }
 
-static Value* codegen_call(Expr* expr)
+Value* codegen_call(Expr* expr)
 {
     const char* callee = expr->Call.callee;
     Expr** args = expr->Call.args;
@@ -642,7 +655,7 @@ static Value* codegen_call(Expr* expr)
     return make_value_call(callee, func_t->Function.ret_type);
 }
 
-static Value* codegen_while(Expr* expr)
+Value* codegen_while(Expr* expr)
 {
     assert(expr->kind == EXPR_WHILE);
     Expr* condition = expr->While.cond;
@@ -679,7 +692,7 @@ static Value* codegen_while(Expr* expr)
 
     return NULL;
 }
-static Value* codegen_for(Expr* expr)
+Value* codegen_for(Expr* expr)
 {
     assert(expr->kind == EXPR_FOR);
 
@@ -733,7 +746,7 @@ static Value* codegen_for(Expr* expr)
     return NULL;
 }
 
-static Value* codegen_if(Expr* expr)
+Value* codegen_if(Expr* expr)
 {
     assert(expr->kind == EXPR_IF);
 
@@ -770,26 +783,26 @@ static Value* codegen_if(Expr* expr)
 
     return NULL;
 }
-static Value* codegen_macro(Expr* expr)
+Value* codegen_macro(Expr* expr)
 {
     assert(expr->kind == EXPR_MACRO);
     return NULL;
 }
 
-static Value* codegen_continue(Expr* expr)
+Value* codegen_continue(Expr* expr)
 {
     assert(expr->kind == EXPR_CONTINUE);
     emit_s("JMP %s", ctx.label_continue_to);
     return NULL;
 }
-static Value* codegen_break(Expr* expr)
+Value* codegen_break(Expr* expr)
 {
     assert(expr->kind == EXPR_BREAK);
     emit_s("JMP %s", ctx.label_break_to);
     return NULL;
 }
 
-static Value* codegen_subscript(Expr* expr)
+Value* codegen_subscript(Expr* expr)
 {
     assert(expr->kind == EXPR_SUBSCRIPT);
     codegen_expr(expr->Subscript.expr);
@@ -798,10 +811,10 @@ static Value* codegen_subscript(Expr* expr)
     const int internal_size_of_t = get_size_of_typespec(variable->type->Array.type);
     const int reg_n = get_rax_reg_of_byte_size(get_size_of_value(variable));
     emit_s("MOV %s, [rsp-%d+%s*%d]", get_reg(reg_n), memloc,get_reg(reg_n), internal_size_of_t);
-    return variable;
+    return make_value_variable("temp_", variable->type->Array.type, memloc+internal_size_of_t);
 }
 
-static Value* codegen_note(Expr* expr)
+Value* codegen_note(Expr* expr)
 {
     assert(expr->kind == EXPR_NOTE);
     Expr* int_expr = expr->Note.expr;
@@ -815,9 +828,9 @@ static Value* codegen_note(Expr* expr)
 }
 
 // @Hotpath
-static Value* codegen_expr(Expr* expr)
+Value* codegen_expr(Expr* expr)
 {
-    info("Generating code for: %s", expr_to_str(expr));
+    info("Generating code for: %s", expr_to_str_debug(expr));
     if (expr->kind == EXPR_FUNCTION) return codegen_function(expr);
     start_codeblock(ctx.current_function, expr_to_str(expr));
     switch (expr->kind) {
@@ -896,6 +909,7 @@ char* generate_code_from_ast(List ast)
         }
     }
 
+    /* Prints out a debug version of the output assembly */
     for (int i = 0; i < func_count; ++i) {
         Value* func_v = functions[i];
         function_print_debug(func_v);

@@ -5,7 +5,7 @@
 #include "utility.h" // error, xmallox
 #include <assert.h>  // assert
 #include <stdarg.h>  // va_list, va_start, va_end
-#include <stdio.h>   // strncat,
+#include <stdio.h>   // 
 #include <string.h>  // strncat,
 
 //------------------------------------------------------------------------------
@@ -16,7 +16,7 @@
 //                               Public
 //------------------------------------------------------------------------------
 
-static string* current_output = NULL;
+string* current_output = NULL;
 
 u64 get_size_of_value(Value* value)
 {
@@ -85,6 +85,27 @@ Value* make_value(Value_Kind kind)
     v->kind = kind;
     return v;
 }
+
+Value* make_value_load_inst(Value* variable, u64 offset)
+{
+    assert(variable);
+    Value* v = make_value(VALUE_LOAD_INST);
+    v->LoadInst.variable = variable;
+    v->type = NULL;
+    v->LoadInst.offset = offset;
+    return v;
+}
+
+Value* make_value_store_inst(Value* variable, u64 offset)
+{
+    assert(variable);
+    Value* v = make_value(VALUE_STORE_INST);
+    v->StoreInst.variable = variable;
+    v->type = NULL;
+    v->StoreInst.offset = offset;
+    return v;
+}
+
 Value* make_value_int(u8 bytes, Typespec* type, u64 value)
 {
     assert(bytes > 0 && bytes < 9);

@@ -13,6 +13,9 @@ enum Value_Kind
     VALUE_VARIABLE,
     VALUE_CALL,
     VALUE_FUNCTION,
+
+    VALUE_LOAD_INST,
+    VALUE_STORE_INST,
 };
 
 typedef struct CodeBlock
@@ -59,6 +62,18 @@ typedef struct
     const char* callee;
 } Call;
 
+typedef struct
+{
+    Value* variable;
+    u64 offset;
+} LoadInst;
+
+typedef struct
+{
+    Value* variable;
+    u64 offset;
+} StoreInst;
+
 struct Value
 {
     Value_Kind kind;
@@ -68,8 +83,14 @@ struct Value
         Variable Variable;
         Call Call;
         Function Function;
+
+        LoadInst LoadInst;
+        StoreInst StoreInst;
     };
 };
+
+Value* make_value_load_inst(Value* variable, u64 offset);
+Value* make_value_store_inst(Value* variable, u64 offset);
 
 Value* make_value_int(u8 bytes, Typespec* type, u64 value);
 Value* make_value_variable(const char* name, Typespec* type, u64 stack_pos);

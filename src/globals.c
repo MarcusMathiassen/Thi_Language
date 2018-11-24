@@ -9,15 +9,15 @@
 
 bool detailed_print = true;
 
-static List foreign_function_list;
-static Map symbol_map;
-static Map macro_map;
-static Map builtin_type_map;
-static Stack timer_stack;
-static List timers;
+List foreign_function_list;
+Map symbol_map;
+Map macro_map;
+Map builtin_type_map;
+Stack timer_stack;
+List timers;
 
-static string source_file;
-static string current_directory;
+string source_file;
+string current_directory;
 
 void set_source_file(const char* file_name) { source_file = make_string(file_name); }
 char* get_source_file() { return source_file.c_str; }

@@ -18,21 +18,21 @@
 //                               Character Stream
 //------------------------------------------------------------------------------
 
-static char* c = NULL;
-static Token token;
-static u64 line_count = 1;
-static char* start_of_line = NULL;
+char* c = NULL;
+Token token;
+u64 line_count = 1;
+char* start_of_line = NULL;
 //------------------------------------------------------------------------------
 
 //                               Lexer Functions
 //------------------------------------------------------------------------------
 
-static Token get_token(void);
-static bool is_valid_digit(void);
-static bool is_valid_identifier(void);
+Token get_token(void);
+bool is_valid_digit(void);
+bool is_valid_identifier(void);
 
-static int get_keyword_index(const char* identifier);
-static Token_Kind get_identifier_kind(const char* identifier);
+int get_keyword_index(const char* identifier);
+Token_Kind get_identifier_kind(const char* identifier);
 //------------------------------------------------------------------------------
 //                               Keywords
 //------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ typedef enum
 } Keyword_Kind;
 
 #define KEYWORD_COUNT 20
-static const char* keywords_str[KEYWORD_COUNT] = {
+const char* keywords_str[KEYWORD_COUNT] = {
     "foreign", "nil", "print", "load", "true",   "false", "cast",   "malloc", "sizeof",   "if",
     "else", "for", "while", "ret",  "struct", "enum",  "repeat", "break",  "continue", "do",
 };
@@ -112,11 +112,11 @@ Token* generate_tokens_from_source(char* source)
 //                               Private
 //------------------------------------------------------------------------------
 
-static u64 get_line_pos() { return c - start_of_line + 1; }
+u64 get_line_pos() { return c - start_of_line + 1; }
 
 const char EOF = '\0';
 
-static void skip_whitespace()
+void skip_whitespace()
 {
     while (*c == ' ' || *c == '\t' || *c == '\n' || *c == '\r') {
         if (*c == '\n') ++line_count;
@@ -124,7 +124,7 @@ static void skip_whitespace()
     }
 }
 
-static void skip_line()
+void skip_line()
 {
     while (*c != '\n' && *c != '\r') {
         ++c;
@@ -135,14 +135,14 @@ static void skip_line()
     }
 }
 
-static void skip_comments()
+void skip_comments()
 {
     if (*c == '#') {
         skip_line();
     }
 }
 
-static void scan_digit()
+void scan_digit()
 {
     bool is_hex = false;
     bool is_float = false;
@@ -162,13 +162,13 @@ static void scan_digit()
     if (is_float) token.kind = TOKEN_FLOAT;
 }
 
-static int get_keyword_index(const char* identifier)
+int get_keyword_index(const char* identifier)
 {
     for (int i = 0; i < KEYWORD_COUNT; ++i)
         if (strcmp(identifier, keywords_str[i]) == 0) return i;
     return -1;
 }
-static Token_Kind get_identifier_kind(const char* identifier)
+Token_Kind get_identifier_kind(const char* identifier)
 {
 
     switch (get_keyword_index(identifier)) {
@@ -197,13 +197,13 @@ static Token_Kind get_identifier_kind(const char* identifier)
     return TOKEN_IDENTIFIER;
 }
 
-static inline bool is_valid_identifier() { return isalnum(*c) || *c == '_'; }
-static inline bool is_valid_digit() { return isdigit(*c) || *c == '.' || *c == '_' || *c == 'e' || *c == 'x'; }
+inline bool is_valid_identifier() { return isalnum(*c) || *c == '_'; }
+inline bool is_valid_digit() { return isdigit(*c) || *c == '.' || *c == '_' || *c == 'e' || *c == 'x'; }
 
 #define CASE_SINGLE_TOKEN(c1, t_kind)                                                                                  \
     case c1: token.kind = t_kind; ++c;
 
-static Token get_token()
+Token get_token()
 {
 scan:
     skip_whitespace();

@@ -96,7 +96,7 @@ char* expr_to_str(Expr* expr)
     return result;
 }
 
-char* expr_to_str_debug_paren(Expr* expr)
+char* expr_to_str_debug(Expr* expr)
 {
     char* result = NULL;
     switch (expr->kind) {
@@ -275,7 +275,7 @@ char* expr_to_json(Expr* expr)
 void print_ast(List ast)
 {
     info("Printing AST..");
-    LIST_FOREACH(ast) { info("%s", expr_to_str_debug_paren((Expr*)it->data)); }
+    LIST_FOREACH(ast) { info("%s", expr_to_str_debug((Expr*)it->data)); }
 }
 
 char* ast_to_json(List ast)

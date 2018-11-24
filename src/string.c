@@ -87,8 +87,8 @@ typedef struct Intern_Str
     const char* str;
 } Intern_Str;
 
-static Intern_Str* interns;
-static u64 interns_mem_alloc_size = 0;
+Intern_Str* interns;
+u64 interns_mem_alloc_size = 0;
 const char* str_intern_range(const char* start, const char* end)
 {
     u64 len = end - start;

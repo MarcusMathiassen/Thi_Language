@@ -5,7 +5,7 @@
 
 #define INITIAL_SIZE 16
 
-static u32 hash_it(const char* str);
+u32 hash_it(const char* str);
 
 typedef struct
 {
@@ -82,7 +82,7 @@ void* map_get(Map* map, const char* key)
 //                               Hash Function
 //------------------------------------------------------------------------------
 
-static u32 hash_it(const char* str)
+u32 hash_it(const char* str)
 {
     assert(str);
     u32 hash = 5381;

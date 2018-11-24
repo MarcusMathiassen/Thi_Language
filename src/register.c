@@ -2,7 +2,7 @@
 #include "utility.h" // error
 
 #define REG_COUNT 68
-static const char* reg[REG_COUNT] = {
+const char* reg[REG_COUNT] = {
     "RAX",  "EAX",  "AX",   "AL",   "AH",   "RCX",  "ECX",  "CX",   "CL",   "CH",   "RDX",
     "EDX",  "DX",   "DL",   "DH",   "RBX",  "EBX",  "BX",   "BL",   "BH",
 
@@ -79,7 +79,7 @@ int get_parameter_reg(i8 i, i8 size)
     return -1; // to silence warning
 };
 
-static int next_available_reg_index = 0;
+int next_available_reg_index = 0;
 int get_next_available_reg(i8 size)
 {
     int res = -1;

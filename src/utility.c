@@ -232,7 +232,7 @@ char* strf(const char* fmt, ...)
 }
 
 // Color Whell
-static const char* colors[6] = {
+const char* colors[6] = {
     "\033[31m", // red
     "\033[32m", // green
     "\033[33m", // yellow
@@ -240,8 +240,8 @@ static const char* colors[6] = {
     "\033[35m", // magenta
     "\033[36m", // cyan,
 };
-static int counter = 0;
-static int colors_count = 6;
+int counter = 0;
+int colors_count = 6;
 const char* get_next_color(void)
 {
     if (counter == colors_count) counter = 0;
