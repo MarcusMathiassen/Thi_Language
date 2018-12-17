@@ -13,7 +13,6 @@ enum Value_Kind
     VALUE_VARIABLE,
     VALUE_CALL,
     VALUE_FUNCTION,
-
     VALUE_LOAD_INST,
     VALUE_STORE_INST,
 };
@@ -65,7 +64,6 @@ struct Value
         Value_Variable      Variable;
         Value_Call          Call;
         Value_Function      Function;
-
         Value_LoadInst      LoadInst;
         Value_StoreInst     StoreInst;
     };

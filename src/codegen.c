@@ -6,7 +6,7 @@
 #include "list.h"
 #include "register.h"
 #include "stretchy_buffer.h" // sb_free
-#include "string.h"          // string
+#include "string.h" // string
 #include "typedefs.h"
 #include "utility.h" // error warning info, etc
 #include "value.h"   // Value, Scope
@@ -758,7 +758,7 @@ Value* codegen_if(Expr* expr)
     ctx_push_label(&ctx);
     const char* then_label = ctx_get_unique_label(&ctx);
     const char* continue_label = ctx_get_unique_label(&ctx);
-    const char* else_label = ctx_get_unique_label(&ctx);
+    const char* else_label = else_body ? ctx_get_unique_label(&ctx) : NULL;
     
     Value* condition_val = codegen_expr(condition);
     int condition_size = get_size_of_value(condition_val);
@@ -766,11 +766,11 @@ Value* codegen_if(Expr* expr)
 
     emit_s("CMP %s, 0", get_reg(res_reg));
     emit_s("JE %s", else_body ? else_label : continue_label);
-    // emit_s("JMP %s", then_label);
 
     // THEN:
     emit_s("%s:", then_label);
     codegen_expr(then_body);
+    emit_s("JMP %s", continue_label);
 
     // ELSE:
     if (else_body) {
@@ -778,7 +778,9 @@ Value* codegen_if(Expr* expr)
         codegen_expr(else_body);
     }
 
+    // CONT:
     emit_s("%s:", continue_label);
+
     ctx_pop_label(&ctx);
 
     return NULL;

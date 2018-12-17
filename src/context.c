@@ -22,15 +22,15 @@ void ctx_push_label(Context* ctx)
 void ctx_pop_label(Context* ctx)
 {
     assert(ctx);
-    --ctx->current_label_counter;
     --ctx->total_label_counter;
+    ctx->current_label_counter = 0;
 }
 
 char* ctx_get_unique_label(Context* ctx)
 {
     assert(ctx);
     ++ctx->current_label_counter;
-    return strf("L%d%d", ctx->total_label_counter, ctx->current_label_counter);;
+    return strf("L%d%d", ctx->total_label_counter, ctx->current_label_counter);
 }
 
 void ctx_tests(void)
@@ -41,8 +41,10 @@ void ctx_tests(void)
 
     // {
     //     ctx_push_label(&ctx);
-    //     char* label = ctx_get_unique_label(&ctx);
-    //     assert(strcmp(label, "L11") == 0);
+    //     char* l1 = ctx_get_unique_label(&ctx);
+    //     assert(strcmp(l1, "L11") == 0);
     //     ctx_pop_label(&ctx);
+    //     char* l2 = ctx_get_unique_label(&ctx);
+    //     assert(strcmp(l1, l2) == 0);
     // }
 }

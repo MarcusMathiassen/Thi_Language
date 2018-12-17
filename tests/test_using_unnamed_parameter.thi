@@ -1,4 +1,5 @@
 min :: (a: i32, b: i32) -> i32 { ret $1 < $2 ? $1 : $2 }
 main :: () -> i32 {
-    ret min(1, min(2, 3))
+    res := min(2, 3)
+    ret min(1, res)
 }

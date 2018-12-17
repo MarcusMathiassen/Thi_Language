@@ -529,18 +529,20 @@ void skip_type(void)
 
     eat_kind(TOKEN_IDENTIFIER);
 
-    // Is a pointer or array?
-    if (tok_is(THI_SYNTAX_POINTER)) {
-        eat_kind(THI_SYNTAX_POINTER);
-        return;
-    } else if (tok_is(TOKEN_OPEN_BRACKET)) {
+    switch (curr_tok.kind) {
+    case THI_SYNTAX_POINTER: {
+        while (tok_is(THI_SYNTAX_POINTER)) {
+            eat_kind(THI_SYNTAX_POINTER);
+        }
+    } break;
+    case TOKEN_OPEN_BRACKET: {
         eat_kind(TOKEN_OPEN_BRACKET);
-        if (tok_is(TOKEN_INTEGER) || tok_is(TOKEN_HEX)) get_integer();
+        if (tok_is(TOKEN_INTEGER) || tok_is(TOKEN_HEX)) {
+            get_integer();
+        }
         eat_kind(TOKEN_CLOSE_BRACKET);
-        // return make_typespec_array(type, size);
-        // return new Type_Array(type, size);
+    } break;
     }
-    return;
 }
 
 // Returns NULL if the current token is not a type.
@@ -776,7 +778,7 @@ void skip_function_signature(void)
 
     if (tok_is(TOKEN_RIGHT_ARROW)) {
         eat_kind(TOKEN_RIGHT_ARROW);
-        eat_kind(TOKEN_IDENTIFIER);
+        skip_type();
     }
 
 }
