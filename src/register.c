@@ -16,6 +16,12 @@ const char* reg[REG_COUNT] = {
 
 int get_num_registers() { return REG_COUNT; }
 const char* get_reg(int reg_n) { return reg[reg_n]; }
+const char* get_reg_fitting_value(Value* value)
+{
+    u64 size = get_size_of_value(value);
+    u64 reg_n = get_rax_reg_of_byte_size(size);
+    return reg[reg_n];
+}
 
 int get_rax_reg_of_byte_size(u8 bytes)
 {

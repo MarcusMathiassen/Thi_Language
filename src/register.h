@@ -2,9 +2,11 @@
 #define REGISTER_H
 
 #include "typedefs.h"
+#include "value.h"
 
 int get_num_registers();
 const char* get_reg(int reg_n);
+const char* get_reg_fitting_value(Value* value);
 
 int get_push_or_popable_reg(int reg);
 int get_rax_reg_of_byte_size(u8 bytes);

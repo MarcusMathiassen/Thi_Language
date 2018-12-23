@@ -103,8 +103,8 @@ char* expr_to_str_debug(Expr* expr)
     case EXPR_SUBSCRIPT: {
         result = strf("%s[%s]", expr->Subscript.variable_name, expr_to_str(expr->Subscript.expr));
     } break;
-    case EXPR_CONTINUE: {
-        result = "continue";
+    case EXPR_CONTINUE: { 
+        result = "continue"; 
     } break;
     case EXPR_BREAK: {
         result = "break";

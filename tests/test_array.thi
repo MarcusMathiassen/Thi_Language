@@ -1,7 +1,6 @@
-
-main :: () -> i32 {
-    a: i32[5]   # 'a' is an array of type 'i32' with size of '5'
-    a[0] = 6    # sets the '0' index of 'a' to '6'
-    a[3] = 5 + (a[0] = 3) # 'a[3]' will equal '8'
+main :: () -> i32 { 
+    a: i32[5] 
+    a[0] = 6
+    a[3] = 5 + (a[0] = 3)
     ret 9 - a[0+3]
 }

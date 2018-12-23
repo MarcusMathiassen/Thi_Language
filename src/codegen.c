@@ -284,15 +284,10 @@ Value* codegen_binary(Expr* expr)
 
     switch (op) {
     case TOKEN_EQ: {
-
-        /*
-            LHS of assignment must be a load instruction
-        */
         Value* lhs_val = codegen_expr(lhs);
-        if (lhs_val->kind != VALUE_LOAD_INST)
-        {
+        if (lhs_val->kind != VALUE_LOAD_INST) 
             warning("LHS of assignment must be a load instruction.");
-        }
+        info("LHS of ASSIGNMENT is '%s'", lhs->variable_Decl.name);
         if (lhs_val->kind != VALUE_VARIABLE) error("lhs of an assignment must be a variable.");
         Value* rhs_val = codegen_expr(rhs);
         Value* variable = get_variable(lhs->Variable_Decl.name);
@@ -523,23 +518,43 @@ Value* codegen_binary(Expr* expr)
     case TOKEN_PIPE: error("pipe not implemented.");
 
     // Ternary operator
+
+    /*
+        // CODEGEN LHS
+        cmp     edi, dword ptr [rbp - 24]
+        jne     L01
+
+        // CODEGEN RHS
+        mov     eax, dword ptr [rbp - 8]
+        mov     dword ptr [rbp - 28], eax # 4-byte Spill
+
+        // JMP TO CONTINUE
+        jmp     CONTINUE
+L01:
+        mov     eax, 1
+        mov     dword ptr [rbp - 28], eax # 4-byte Spill
+        jmp     CONTINUE
+CONTINUE:
+        mov     eax, dword ptr [rbp - 28] # 4-byte Reload
+        mov     dword ptr [rbp - 20], eax
+        mov     eax, dword ptr [rbp - 
+    */
+
     case TOKEN_QUESTION_MARK: {
-        Value* lhs_val = codegen_expr(lhs);
-        u64 lhs_size = get_size_of_value(lhs_val);
-        u64 reg_n = get_rax_reg_of_byte_size(lhs_size);
-        emit_s("CMP %s, 0", get_reg(reg_n));
-        ctx_pop_label(&ctx);
-        emit_s("JE %s", ctx_get_unique_label(&ctx));
+        ctx_push_label(&ctx);
+        emit_s("CMP %s, 0", get_reg_fitting_value(codegen_expr(lhs)));
+        emit_s("JE %s", ctx.temp_label0 = ctx_get_unique_label(&ctx));
+        ctx.temp_label1 = ctx_get_unique_label(&ctx);
         Value* rhs_val = codegen_expr(rhs);
-        emit_s("JMP %s", ctx_get_unique_label(&ctx));
+        emit_s("JMP %s", ctx.temp_label1);
         return rhs_val;
     }
     case TOKEN_COLON: {
-        ctx_push_label(&ctx);
         codegen_expr(lhs);
-        emit_s("%s:", ctx_get_unique_label(&ctx));
+        emit_s("%s:", ctx.temp_label0);
         Value* rhs_val = codegen_expr(rhs);
-        emit_s("%s:", ctx_get_unique_label(&ctx));
+        emit_s("%s:", ctx.temp_label1);
+        ctx_pop_label(&ctx);
         return rhs_val;
     }
     }
@@ -665,13 +680,9 @@ Value* codegen_while(Expr* expr)
 
     const char* condition_label = ctx_get_unique_label(&ctx);
     const char* continue_label = ctx_get_unique_label(&ctx);
-    const char* body_label = ctx_get_unique_label(&ctx);
 
     ctx_set_break_label(&ctx, continue_label);
     ctx_set_continue_label(&ctx, condition_label);
-
-    // Jump to the condition.
-    emit_s("JMP %s", condition_label);
 
     // COND:
     emit_s("%s:", condition_label);
@@ -679,10 +690,8 @@ Value* codegen_while(Expr* expr)
     // Compare the iterator to the end value
     codegen_expr(condition);
     emit_s("JE %s", continue_label);
-    emit_s("JMP %s", body_label);
 
-    // BODY:
-    emit_s("%s:", body_label);
+    // BODY
     codegen_expr(body);
     emit_s("JMP %s", condition_label);
 
@@ -704,7 +713,6 @@ Value* codegen_for(Expr* expr)
     ctx_push_label(&ctx);
     const char* condition_label = ctx_get_unique_label(&ctx);
     const char* continue_label = ctx_get_unique_label(&ctx);
-    const char* body_label = ctx_get_unique_label(&ctx);
     const char* inc_label = ctx_get_unique_label(&ctx);
 
     ctx_set_break_label(&ctx, continue_label);
@@ -726,10 +734,8 @@ Value* codegen_for(Expr* expr)
     codegen_expr(end);
     emit_s("CMP %s, [RSP-%d]", get_reg(res_reg), iterator_var->Variable.stack_pos);
     emit_s("JE %s", continue_label);
-    emit_s("JMP %s", body_label);
 
-    // BODY:
-    emit_s("%s:", body_label);
+    // BODY
     codegen_expr(body);
 
     // INC:
@@ -756,7 +762,6 @@ Value* codegen_if(Expr* expr)
 
     // COND:
     ctx_push_label(&ctx);
-    const char* then_label = ctx_get_unique_label(&ctx);
     const char* continue_label = ctx_get_unique_label(&ctx);
     const char* else_label = else_body ? ctx_get_unique_label(&ctx) : NULL;
     
@@ -767,8 +772,7 @@ Value* codegen_if(Expr* expr)
     emit_s("CMP %s, 0", get_reg(res_reg));
     emit_s("JE %s", else_body ? else_label : continue_label);
 
-    // THEN:
-    emit_s("%s:", then_label);
+    // THEN
     codegen_expr(then_body);
     emit_s("JMP %s", continue_label);
 

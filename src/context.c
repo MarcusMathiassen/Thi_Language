@@ -22,22 +22,20 @@ void ctx_push_label(Context* ctx)
 void ctx_pop_label(Context* ctx)
 {
     assert(ctx);
-    --ctx->total_label_counter;
-    ctx->current_label_counter = 0;
 }
 
-char* ctx_get_unique_label(Context* ctx)
+const char* ctx_get_unique_label(Context* ctx)
 {
     assert(ctx);
     ++ctx->current_label_counter;
-    return strf("L%d%d", ctx->total_label_counter, ctx->current_label_counter);
+    return strf("L%d", ctx->current_label_counter);
 }
 
 void ctx_tests(void)
 {
     // Uniqueness check
-    Context ctx;
-    ctx_init(&ctx);
+    // Context ctx;
+    // ctx_init(&ctx);
 
     // {
     //     ctx_push_label(&ctx);

@@ -73,7 +73,7 @@ main :: () -> i32 {
 
     window := glfwCreateWindow(512, 512, &window_title, 0, 0)
     glfwMakeContextCurrent(window)
-
+    
     if glewInit() != GLEW_OK {
         error_msg := "error initilizing GLEW"
         print error_msg
@@ -101,7 +101,6 @@ main :: () -> i32 {
         if glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS {
             running = false
         }
-
 
         width: i32
         height: i32

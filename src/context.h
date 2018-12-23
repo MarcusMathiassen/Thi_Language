@@ -20,10 +20,11 @@ struct Context
     u64 total_label_counter;
     u64 current_label_counter;
 
+    const char* temp_label0;
+    const char* temp_label1;
+
     const char* label_continue_to;
     const char* label_break_to;
-
-    // Global variables
 };
 
 void ctx_tests(void);
@@ -32,5 +33,5 @@ void ctx_push_label(Context* ctx);
 void ctx_pop_label(Context* ctx);
 void ctx_set_continue_label(Context* ctx, const char* label);
 void ctx_set_break_label(Context* ctx, const char* label);
-char* ctx_get_unique_label(Context* ctx);
+const char* ctx_get_unique_label(Context* ctx);
 #endif
