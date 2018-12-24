@@ -12,7 +12,7 @@ end=`date +%s`
 echo Compilation finished. Time taken: $((end-start)) seconds
 
 if [ $? == 0 ]; then
-    # ./test.bash
+    ./test.bash
     # ./test.bash ./tests/test_array.thi
     # ./test.bash ./tests/test_subscript_access.thi
     # ./test.bash ./tests/test_order_independance.thi
@@ -28,7 +28,7 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_foreign.thi
     # ./test.bash ./tests/test_basic_setup.thi
     # ./test.bash ./tests/test_basic_ternary.thi
-    ./test.bash ./tests/test_ternary.thi
+    # ./test.bash ./tests/test_ternary.thi
     # ./test.bash ./tests/test_function_call.thi
     # ./test.bash ./tests/test_macro_definition_2.thi
     # ./test.bash ./tests/test_function_call_2.thi
@@ -38,7 +38,6 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_macro_definition.thi
     # ./test.bash ./tests/test_asterisk_equal.thi
     # ./test.bash ./tests/test_logical_or.clear.thi
-    # ./test.bash ./tests/test_do.thi
     # ./test.bash ./tests/test_if.thi
     # ./test.bash ./tests/test_for.thi
     # ./test.bash ./tests/test_while.thi

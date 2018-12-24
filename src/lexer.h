@@ -24,7 +24,6 @@ typedef enum
     TOKEN_FOREIGN,
     TOKEN_LOAD,
 
-    TOKEN_DO,
     TOKEN_IF,
     TOKEN_ELSE,
     TOKEN_FOR,
