@@ -145,15 +145,16 @@ void emit_store(Value* variable)
     emit_s("MOV [RSP-%d], %s", stack_pos, get_reg(reg_n));
 }
 
-void emit_load(Value* value)
+void emit_load(Value* variable)
 {
-    int reg_n = get_rax_reg_of_byte_size(get_size_of_value(value));
-    switch (value->kind) {
+    assert(variable->kind == VALUE_VARIABLE);
+    int reg_n = get_rax_reg_of_byte_size(get_size_of_value(variable));
+    switch (variable->kind) {
     case VALUE_INT: {
-        emit_s("MOV %s, %d", get_reg(reg_n), value->Int.value);
+        emit_s("MOV %s, %d", get_reg(reg_n), variable->Int.value);
     } break;
     case VALUE_VARIABLE: {
-        emit_s("MOV %s, [RSP-%d]", get_reg(reg_n), get_stack_pos_of_variable(value));
+        emit_s("MOV %s, [RSP-%d]", get_reg(reg_n), get_stack_pos_of_variable(variable));
     } break;
     case VALUE_FUNCTION: {
         error("VALUE_FUNCTION EMIT_LOAD NOT IMPLEMENETED");
@@ -601,6 +602,17 @@ Value* codegen_variable_decl(Expr* expr)
     return variable;
 }
 
+
+/*
+    c version: return
+    thi version: ret
+    
+
+    asm 
+        mov eax, val
+        ret 
+
+*/
 Value* codegen_ret(Expr* expr)
 {
     Expr* ret_expr = expr->Ret.expr;
@@ -618,7 +630,7 @@ Value* codegen_ret(Expr* expr)
             emit_s("POP %s", get_reg(reg_n));
         }
 
-    // Deallocate stack used by the function
+    // Deallocate stack used by the function 
     u64 stack_used = ctx.current_function->Function.stack_allocated;
     if (stack_used) {
         emit_s("ADD RSP, %llu", stack_used);
