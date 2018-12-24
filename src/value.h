@@ -46,7 +46,7 @@ typedef struct
 
     // An array of all scrap regs used by the function.
     // These are pushed at the start of the function and popped at the end.
-    u8 regs_used[5];
+    u8 regs_used[6]; // there are max 6 poppabel regs
     u8 regs_used_count;
 } Value_Function;
 
