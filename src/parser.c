@@ -62,10 +62,6 @@ struct
 
     {TOKEN_BITWISE_LEFTSHIFT, 10},  // <<=
     {TOKEN_BITWISE_RIGHTSHIFT, 10}, // >>=
-
-    // Ternary operator
-    {TOKEN_QUESTION_MARK, 5}, // >>=
-    {TOKEN_COLON, 5},         // >>=
 };
 
 //------------------------------------------------------------------------------

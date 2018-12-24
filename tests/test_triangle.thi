@@ -17,7 +17,7 @@ vec2 :: (x: f32, y: f32) -> vec2 {
 vec4 :: (x: f32, y: f32, z: f32, w: f32) -> vec4 {
     v: vec4
     v.x = x
-    v.y = y
+    v.y = y 
     v.z = z
     v.w = w
     ret v
