@@ -8,6 +8,7 @@
 #include <assert.h>  // assert
 
 bool detailed_print = true;
+string* current_output;
 
 List foreign_function_list;
 Map symbol_map;

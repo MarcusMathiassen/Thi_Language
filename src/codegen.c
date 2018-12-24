@@ -220,9 +220,7 @@ Value* codegen_ident(Expr* expr)
     emit_load(var);
 
     /*
-    
         MOV RAX, [RSP - STACK_POS + OFFSET]
-
     */
 
     return var;
@@ -287,7 +285,6 @@ Value* codegen_binary(Expr* expr)
         Value* lhs_val = codegen_expr(lhs);
         if (lhs_val->kind != VALUE_LOAD_INST) 
             warning("LHS of assignment must be a load instruction.");
-        info("LHS of ASSIGNMENT is '%s'", lhs->variable_Decl.name);
         if (lhs_val->kind != VALUE_VARIABLE) error("lhs of an assignment must be a variable.");
         Value* rhs_val = codegen_expr(rhs);
         Value* variable = get_variable(lhs->Variable_Decl.name);
@@ -517,8 +514,7 @@ Value* codegen_binary(Expr* expr)
     case TOKEN_HAT: error("hat not implemented.");
     case TOKEN_PIPE: error("pipe not implemented.");
 
-    // Ternary operator
-
+    /* Ternary operator */
     /*
         // CODEGEN LHS
         cmp     edi, dword ptr [rbp - 24]
@@ -549,8 +545,11 @@ CONTINUE:
         emit_s("JMP %s", ctx.temp_label1);
         return rhs_val;
     }
+
+    // ex. cond ? expr : expr
+    // This comes before '?'
     case TOKEN_COLON: {
-        codegen_expr(lhs);
+        codegen_expr(lhs); // '?' part
         emit_s("%s:", ctx.temp_label0);
         Value* rhs_val = codegen_expr(rhs);
         emit_s("%s:", ctx.temp_label1);
@@ -569,15 +568,15 @@ Value* codegen_variable_decl_type_inf(Expr* expr)
     Expr* assignment_expr = expr->Variable_Decl_Type_Inf.value;
 
     Value* assign_expr_val = codegen_expr(assignment_expr); // Any value this creates is stored in RAX
+
     Typespec* type = assign_expr_val->type;
     u64 type_size = get_size_of_typespec(type);
     u64 stack_pos = type_size + ctx.stack_index;
-
     Value* variable = make_value_variable(name, type, stack_pos);
     add_variable(variable);
+
     emit_store(variable); // The variable is set to whatevers in RAX
     ctx.stack_index += type_size;
-
     ctx.current_function->Function.stack_allocated += ctx.stack_index;
 
     return variable;

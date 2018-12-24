@@ -242,7 +242,7 @@ int get_push_or_popable_reg(int reg)
     case R15D:
     case R15W:
     case R15B: return R15;
-    default: error("get_push_or_popable_reg unhandled register.");
+    default: error("get_push_or_popable_reg unhandled register: %s", get_reg(reg));
     }
     return -1; // to silence warning
 }

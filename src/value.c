@@ -3,6 +3,7 @@
 #include "register.h"        // error, xmallox
 #include "stretchy_buffer.h" // sb_push
 #include "utility.h" // error, xmallox
+#include "globals.h" // current_output
 #include <assert.h>  // assert
 #include <stdarg.h>  // va_list, va_start, va_end
 #include <stdio.h>   // 
@@ -15,8 +16,6 @@
 //------------------------------------------------------------------------------
 //                               Public
 //------------------------------------------------------------------------------
-
-string* current_output = NULL;
 
 u64 get_size_of_value(Value* value)
 {
@@ -41,7 +40,7 @@ void emit_s(const char* fmt, ...)
     vsnprintf(str, str_len, fmt, args);
     va_end(args);
 
-    append_string(current_output, "\n    ");
+    append_string(current_output, "\n");
     append_string(current_output, str);
 }
 
@@ -173,12 +172,12 @@ void function_print_debug(Value* function)
     u8 regs_count = function->Function.regs_used_count;
     for (u8 k = 0; k < regs_count; ++k) {
         int reg_n = get_push_or_popable_reg(regs_used[k]);
-        info("   %sPUSH %s\033[00m", cb_0_c, get_reg(reg_n));
+        info("    %sPUSH %s\033[00m", cb_0_c, get_reg(reg_n));
     }
 
     // Allocate stack space
     u64 stack_allocated = function->Function.stack_allocated;
-    if (stack_allocated) info("   %sSUB RSP, %d\033[00m", cb_0_c, stack_allocated);
+    if (stack_allocated) info("    %sSUB RSP, %d\033[00m", cb_0_c, stack_allocated);
 
     for (int j = 0; j < cb_count; ++j) {
         CodeBlock* cb = codeblocks[j];
@@ -186,8 +185,24 @@ void function_print_debug(Value* function)
 
         // Print line
         if (cb->block.len) {
+
+            // If the line is a label format it 
             const char* line = cb->block.c_str;
-            info("%s;%s%s\033[00m", cb_c, cb->desc.c_str, line);
+            bool is_label = false;
+            // for (u32 i = 0; i < strlen(line); ++i) {
+            //     if (line[i] == ':') {
+            //         is_label = true;
+            //         info("LABEL %s", line);
+            //         break;
+            //     }
+            // }
+
+            if (is_label) 
+                  info("%s%s\033[00m", cb_c, line);
+            else  info("     %s%s\033[00m", cb_c, line);
+
+            // uncomment this for lines with their description.
+            // info("%s;%s%s\033[00m", cb_c, cb->desc.c_str, line);
         }
     }
 }

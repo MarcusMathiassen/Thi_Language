@@ -155,7 +155,7 @@ void assemble(const char* asm_file, const char* exec_name)
     free_string(&comp_call);
     pop_timer();
 
-    system("cat output.asm");
+    // system("cat output.asm");
 
     // Cleanup
     string rm_asm_file = make_string_f("rm %s", asm_file);

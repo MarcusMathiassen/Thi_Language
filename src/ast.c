@@ -217,7 +217,7 @@ char* expr_to_json(Expr* expr)
         result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), expr_to_json(expr->Ret.expr));
     } break;
     case EXPR_VARIABLE_DECL: {
-        result = strf("{\"%s\": {\"name\": \"%s\", \"type\": \"%s\", \"value\": %s}}", expr_kind_to_str(expr->kind),
+        result = strf("{\"%s\": {\"name\": \"%s\", \"type\": \"%s\", \"value\": \"%s\"}}", expr_kind_to_str(expr->kind),
                       expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type),
                       expr->Variable_Decl.value ? expr_to_json(expr->Variable_Decl.value) : "");
     } break;

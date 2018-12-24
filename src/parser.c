@@ -47,6 +47,9 @@ struct
     {TOKEN_HAT, 30},  // ^
     {TOKEN_PIPE, 20}, // |
 
+    {TOKEN_QUESTION_MARK, 15}, // ?
+    {TOKEN_COLON, 15}, // :
+
     {TOKEN_EQ, 10},          // =
     {TOKEN_PLUS_EQ, 10},     // +=
     {TOKEN_MINUS_EQ, 10},    // -=

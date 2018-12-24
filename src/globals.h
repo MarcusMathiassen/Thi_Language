@@ -3,9 +3,11 @@
 
 #include "ast.h"  // expr
 #include "list.h" // List
+#include "string.h" // string
 #include "typedefs.h"
 #include "typespec.h" // Typespec
 extern bool detailed_print;
+extern string* current_output;
 
 #define DEFAULT_INTEGER_BYTE_SIZE 4
 #define DEFAULT_INTEGER_BIT_SIZE DEFAULT_INTEGER_BYTE_SIZE * 8

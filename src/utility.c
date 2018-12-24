@@ -63,6 +63,7 @@ void error(const char* fmt, ...)
     vprintf(fmt, args);
     printf(RESET "\n");
     va_end(args);
+    puts(current_output->c_str);
     exit(1);
 }
 
