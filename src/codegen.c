@@ -27,8 +27,8 @@ char* get_op_size(i8 bytes)
     case 2: return "WORD";
     case 4: return "DWORD";
     case 8: return "QWORD";
+    default: error("get_op_size unknown byte size: %d", bytes);
     }
-    error("get_op_size unknown byte size: %d", bytes);
     return NULL;
 }
 
@@ -136,6 +136,16 @@ void remove_variable(Value* variable)
     }
 }
 
+int save_rax_to_temporary_reg(Value* variable)
+{
+    u64 size = get_size_of_value(variable);
+    int reg_n = get_rax_reg_of_byte_size(size);
+    int temp_reg_n = get_next_available_reg(size);
+    function_push_reg(ctx.current_function, temp_reg_n);
+    emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+    return temp_reg_n;
+}
+
 void emit_store(Value* variable)
 {
     assert(variable->kind == VALUE_VARIABLE);
@@ -148,18 +158,10 @@ void emit_store(Value* variable)
 void emit_load(Value* variable)
 {
     assert(variable->kind == VALUE_VARIABLE);
-    int reg_n = get_rax_reg_of_byte_size(get_size_of_value(variable));
-    switch (variable->kind) {
-    case VALUE_INT: {
-        emit_s("MOV %s, %d", get_reg(reg_n), variable->Int.value);
-    } break;
-    case VALUE_VARIABLE: {
-        emit_s("MOV %s, [RSP-%d]", get_reg(reg_n), get_stack_pos_of_variable(variable));
-    } break;
-    case VALUE_FUNCTION: {
-        error("VALUE_FUNCTION EMIT_LOAD NOT IMPLEMENETED");
-    } break;
-    }
+    u64 size = get_size_of_value(variable);
+    int reg_n = get_rax_reg_of_byte_size(size);
+    u64 stack_pos = get_stack_pos_of_variable(variable);
+    emit_s("MOV %s, [RSP-%d]", get_reg(reg_n), stack_pos);
 }
 
 Value* codegen_function(Expr* expr)
@@ -215,24 +217,20 @@ Value* codegen_ident(Expr* expr)
         warning("ITS A MACRO IDENT");
         return codegen_expr(macro_expr);
     }
-
     Value* var = get_variable(name);
     assert(var);
-    emit_load(var);
 
-    /*
-        MOV RAX, [RSP - STACK_POS + OFFSET]
-    */
+    // emit_load(var);
 
-    return var;
+    return make_value_load_inst(var, 0);
 }
 
 Value* codegen_int(Expr* expr)
 {
     assert(expr->kind == EXPR_INT);
     Value* val = make_value_int(DEFAULT_INTEGER_BYTE_SIZE, integer_literal_type, expr->Int.val);
-    emit_load(val);
-
+    int reg_n = get_rax_reg_of_byte_size(get_size_of_value(val));
+    emit_s("MOV %s, %d", get_reg(reg_n), val->Int.value);
     return val;
 }
 
@@ -259,8 +257,8 @@ Value* codegen_unary(Expr* expr)
     Value* result = operand_val;
 
     switch (op) {
-    case THI_SYNTAX_ADDRESS: error("AST_Unary '*' not implemented"); break;
-    case THI_SYNTAX_POINTER: error("AST_Unary '&' not implemented"); break;
+    case THI_SYNTAX_ADDRESS: error("Unary '&' not implemented"); break;
+    case THI_SYNTAX_POINTER: error("Unary '*' not implemented"); break;
     case TOKEN_BANG: {
         emit_s("CMP %s, 0", get_reg(reg_n));
         emit_s("SETE AL");
@@ -282,25 +280,54 @@ Value* codegen_binary(Expr* expr)
     Expr* rhs = expr->Binary.rhs;
 
     switch (op) {
-    case TOKEN_EQ: {
-        Value* lhs_val = codegen_expr(lhs);
-        if (lhs_val->kind != VALUE_LOAD_INST) 
-            warning("LHS of assignment must be a load instruction.");
-        if (lhs_val->kind != VALUE_VARIABLE) error("lhs of an assignment must be a variable.");
-        Value* rhs_val = codegen_expr(rhs);
-        Value* variable = get_variable(lhs->Variable_Decl.name);
-        emit_store(variable);
+    case THI_SYNTAX_ASSIGNMENT: {
+        Value* rhs_val = NULL;
+
+        // @Messy
+        // @Messy
+        // @Messy
+        // @Messy
+        if (lhs->kind == EXPR_SUBSCRIPT)
+        {
+            codegen_expr(lhs->Subscript.expr);
+            const char* var_name = lhs->Subscript.variable_name;
+
+            Value* variable = get_variable(var_name);
+
+            // The offset is saved in RAX. So save it away for later
+            u64 lhs_size = get_size_of_value(variable);
+            int reg = get_rax_reg_of_byte_size(lhs_size);
+            int temp_reg = get_next_available_reg(lhs_size);
+            function_push_reg(ctx.current_function, temp_reg);
+            emit_s("MOV %s, %s", get_reg(temp_reg), get_reg(reg));
+
+            rhs_val = codegen_expr(rhs);
+
+            u64 rhs_size = get_size_of_value(rhs_val);
+            int reg_n = get_rax_reg_of_byte_size(rhs_size);
+            int memloc = get_stack_pos_of_variable(variable);
+            temp_reg = get_push_or_popable_reg(temp_reg);
+        
+            int internal_size_of_t = lhs_size;
+            emit_s("MOV [RSP-%d+%s*%d], %s", memloc, get_reg(temp_reg), internal_size_of_t, get_reg(reg_n));
+
+        } else {
+            rhs_val = codegen_expr(rhs);
+            Value* variable = get_variable(lhs->Variable_Decl.name);
+            emit_store(variable);
+        }
+        assert(rhs_val);
         return rhs_val;
     }
     case TOKEN_PLUS: {
         Value* lhs_val = codegen_expr(lhs);
         u64 lhs_size = get_size_of_value(lhs_val);
-        int res_n = get_rax_reg_of_byte_size(lhs_size);
+        int reg_n = get_rax_reg_of_byte_size(lhs_size);
         int temp_reg_n = get_next_available_reg(lhs_size);
         function_push_reg(ctx.current_function, temp_reg_n);
-        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(res_n));
+        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
         codegen_expr(rhs);
-        emit_s("ADD %s, %s", get_reg(res_n), get_reg(temp_reg_n));
+        emit_s("ADD %s, %s", get_reg(reg_n), get_reg(temp_reg_n));
         return lhs_val;
     }
     case TOKEN_MINUS: {
@@ -582,6 +609,7 @@ Value* codegen_variable_decl_type_inf(Expr* expr)
 
     return variable;
 }
+
 Value* codegen_variable_decl(Expr* expr)
 {
     const char* name = expr->Variable_Decl.name;
@@ -602,17 +630,6 @@ Value* codegen_variable_decl(Expr* expr)
     return variable;
 }
 
-
-/*
-    c version: return
-    thi version: ret
-    
-
-    asm 
-        mov eax, val
-        ret 
-
-*/
 Value* codegen_ret(Expr* expr)
 {
     Expr* ret_expr = expr->Ret.expr;
@@ -822,13 +839,15 @@ Value* codegen_break(Expr* expr)
 Value* codegen_subscript(Expr* expr)
 {
     assert(expr->kind == EXPR_SUBSCRIPT);
-    codegen_expr(expr->Subscript.expr);
+    Value* result = codegen_expr(expr->Subscript.expr);
+    assert(result->kind == VALUE_INT);
     Value* variable = get_variable(expr->Subscript.variable_name);
     const int memloc = variable->Variable.stack_pos;
     const int internal_size_of_t = get_size_of_typespec(variable->type->Array.type);
     const int reg_n = get_rax_reg_of_byte_size(get_size_of_value(variable));
     emit_s("MOV %s, [rsp-%d+%s*%d]", get_reg(reg_n), memloc,get_reg(reg_n), internal_size_of_t);
-    return make_value_variable("temp_", variable->type->Array.type, memloc+internal_size_of_t);
+    return make_value_load_inst(variable, 0);
+    // return make_value_variable("temp_", variable->type->Array.type, memloc+internal_size_of_t);
 }
 
 Value* codegen_note(Expr* expr)

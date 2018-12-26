@@ -24,6 +24,9 @@ u64 get_size_of_value(Value* value)
     case VALUE_INT: return value->Int.bytes;
     case VALUE_VARIABLE: return get_size_of_typespec(value->type);
     case VALUE_FUNCTION: error("Asking for the size of a function? Why?");
+    case VALUE_LOAD_INST: return get_size_of_typespec(value->LoadInst.variable->type);
+    case VALUE_STORE_INST: return get_size_of_typespec(value->StoreInst.variable->type);
+    default: error("get_size_of_value: unhandled case %d", value->kind);
     }
     return get_size_of_typespec(value->type);
 }
@@ -155,7 +158,15 @@ Value* make_value_function(Typespec* type)
 //                               Value Helper Functions
 //------------------------------------------------------------------------------
 
-u64 get_stack_pos_of_variable(Value* variable) { return variable->Variable.stack_pos; }
+u64 get_stack_pos_of_variable(Value* variable) 
+{ 
+    switch (variable->kind)
+    {
+    case VALUE_LOAD_INST: return get_stack_pos_of_variable(variable->LoadInst.variable);
+    case VALUE_VARIABLE: return variable->Variable.stack_pos;  
+    }
+    return 0;
+}
 
 void function_print_debug(Value* function)
 {

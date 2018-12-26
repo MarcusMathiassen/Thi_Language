@@ -83,7 +83,9 @@ int main(int argc, char** argv)
     info("exec_name: %s", exec_name);
 
     // Make sure it's actually a .thi file
-    if (strcmp(ext, "thi") != 0) error("%s is not a .thi file.", source_file);
+    if (strcmp(ext, "thi") != 0) {
+        error("%s is not a .thi file.", source_file);
+    }
 
     // Read in the contents of the source file
     char* source = get_file_content(source_file);
@@ -92,7 +94,7 @@ int main(int argc, char** argv)
     push_timer("Lexing");
     Token* tokens = generate_tokens_from_source(source);
     pop_timer();
-    if (tokens) print_tokens(tokens);
+    if (tokens) { print_tokens(tokens); }
 
     // we can free the source
     free(source);
@@ -108,11 +110,13 @@ int main(int argc, char** argv)
     push_timer("Parsing");
     List ast = generate_ast_from_tokens(tokens);
     pop_timer();
-    if (list_empty(ast)) print_ast(ast);
+    if (list_empty(ast)) { print_ast(ast); }
 
     char* json = NULL;
-    if (list_empty(ast)) json = ast_to_json(ast);
-    if (list_empty(ast)) info("%s", json);
+    if (list_empty(ast)) { 
+        json = ast_to_json(ast);
+        info("%s", json);
+    }
 
     // Codegen
     push_timer("Codegen");
@@ -125,8 +129,9 @@ int main(int argc, char** argv)
         write_to_file(output_filename, output);
         assemble(output_filename, exec_name);
         link(exec_name);
-    } else
+    } else {
         error("generating code from ast failed.");
+    }
 
     // Debug info. Writing out sizes of our types.
     info("size of Token: %lu bytes", sizeof(Token));

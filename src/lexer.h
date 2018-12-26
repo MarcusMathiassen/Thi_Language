@@ -115,6 +115,8 @@ typedef enum
 #define THI_SYNTAX_CONSTANT_DEF TOKEN_COLON_COLON
 #define THI_SYNTAX_VARIABLE_DECL_TYPE_INF TOKEN_CLOSE_BRACE
 
+#define THI_SYNTAX_ASSIGNMENT TOKEN_EQ
+
 typedef struct Token Token;
 
 struct Token

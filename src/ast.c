@@ -182,7 +182,7 @@ char* expr_to_json(Expr* expr)
     char* result = NULL;
     switch (expr->kind) {
     case EXPR_SUBSCRIPT: {
-        result = strf("{\"%s\": {\"ident\": %s, \"expr\": %s}}", expr_kind_to_str(expr->kind),
+        result = strf("{\"%s\": {\"ident\": \"%s\", \"expr\": %s}}", expr_kind_to_str(expr->kind),
                       expr->Subscript.variable_name, expr_to_str(expr->Subscript.expr));
     } break;
     case EXPR_CONTINUE: {
