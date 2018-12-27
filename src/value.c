@@ -181,7 +181,7 @@ void function_print_debug(Value* function)
     const char* cb_0_c = codeblocks[0]->color;
     info("%s%s: \033[00m", cb_0_c, function->Function.name);
 
-    info("%sPUSH RSP\033[00m", cb_0_c);
+    info("%sPUSH RBP\033[00m", cb_0_c);
     info("%sMOV RBP, RSP\033[00m", cb_0_c);
 
     // Allocate stack space

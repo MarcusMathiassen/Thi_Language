@@ -20,6 +20,29 @@ Value** functions = NULL;
 
 Value* codegen_expr(Expr* expr);
 
+void push_s(int reg)
+{
+    emit_s("PUSH %s", get_reg(reg));
+    ctx.stack_index += 8;
+}
+
+void pop_s(int reg)
+{
+    emit_s("POP %s", get_reg(reg));
+    ctx.stack_index -= 8;
+    assert(ctx.stack_index >= 0);
+}
+
+void push(int reg) 
+{
+    emit(&output, "PUSH %s", get_reg(reg));
+}
+
+void pop(int reg)
+{
+    emit(&output, "POP %s", get_reg(reg));
+}
+
 char* get_op_size(i8 bytes)
 {
     switch (bytes) {
@@ -174,12 +197,12 @@ void emit_store(Value* variable)
     {
         int temp_reg_n = get_push_or_popable_reg(pop_result_from_temporary_reg());
         size = get_size_of_typespec(variable->type->Array.type);
-        emit_s("MOV [RSP-%d+%s*%d], %s ; emit_store on '%s'", stack_pos, get_reg(temp_reg_n), size, get_reg(reg_n), variable->Variable.name);
+        emit_s("MOV [RBP-%d+%s*%d], %s ; emit_store on '%s'", stack_pos, get_reg(temp_reg_n), size, get_reg(reg_n), variable->Variable.name);
         break;
     }
     default:
     {
-        emit_s("MOV [RSP-%d], %s", stack_pos, get_reg(reg_n));
+        emit_s("MOV [RBP-%d], %s", stack_pos, get_reg(reg_n));
         break;
     }
     }
@@ -198,12 +221,12 @@ void emit_load(Value* variable)
     {
         size = get_size_of_typespec(variable->type->Array.type);
         // reg_n = get_rax_reg_of_byte_size(size);
-        emit_s("MOV %s, [RSP-%d+%s*%d] ; emit_load on '%s'", get_reg(reg_n), stack_pos, get_reg(reg_n), size, variable->Variable.name);
+        emit_s("MOV %s, [RBP-%d+%s*%d] ; emit_load on '%s'", get_reg(reg_n), stack_pos, get_reg(reg_n), size, variable->Variable.name);
         break;
     }
     default: 
     {
-        emit_s("MOV %s, [RSP-%d]", get_reg(reg_n), stack_pos);
+        emit_s("MOV %s, [RBP-%d]", get_reg(reg_n), stack_pos);
         break;
     }
     }
@@ -236,7 +259,7 @@ Value* codegen_function(Expr* expr)
         Value* var = make_value_variable(arg->name, arg->type, stack_pos);
 
         add_variable(var);
-        emit_s("MOV [RSP-%d], %s", stack_pos, get_reg(get_parameter_reg(index, size)));
+        emit_s("MOV [RBP-%d], %s", stack_pos, get_reg(get_parameter_reg(index, size)));
 
         ctx.stack_index += size;
         ++index;
@@ -317,38 +340,35 @@ Value* codegen_binary(Expr* expr)
     }
     case TOKEN_PLUS: {
         Value* lhs_v = codegen_expr(lhs);
-        push_result_to_temporary_reg(lhs_v);
-        Value* rhs_v = codegen_expr(rhs);
-        int lhs_r = pop_result_from_temporary_reg();
-        int rhs_r = get_rax_reg_of_byte_size(get_size_of_value(rhs_v));
-        emit_s("ADD %s, %s", get_reg(rhs_r), get_reg(lhs_r));
+        push_s(RAX);
+        codegen_expr(rhs);
+        pop_s(RCX);
+        emit_s("ADD RAX, RCX");
         return lhs_v;
     }
     case TOKEN_MINUS: {
-        Value* rhs_v = codegen_expr(rhs);
-        push_result_to_temporary_reg(rhs_v);
+        codegen_expr(rhs);
+        push_s(RAX);
         Value* lhs_v = codegen_expr(lhs);
-        int rhs_r = pop_result_from_temporary_reg();
-        int lhs_r = get_rax_reg_of_byte_size(get_size_of_value(lhs_v));
-        emit_s("SUB %s, %s", get_reg(lhs_r), get_reg(rhs_r));
+        pop_s(RCX);
+        emit_s("SUB RAX, RCX");
         return lhs_v;
     }
     case TOKEN_ASTERISK: {
         Value* lhs_v = codegen_expr(lhs);
-        push_result_to_temporary_reg(lhs_v);
+        push_s(RAX);
         Value* rhs_v = codegen_expr(rhs);
-        int lhs_r = pop_result_from_temporary_reg();
-        int rhs_r = get_rax_reg_of_byte_size(get_size_of_value(rhs_v));
-        emit_s("IMUL %s, %s", get_reg(rhs_r), get_reg(lhs_r));
+        pop_s(RCX);
+        emit_s("IMUL RAX, RCX");
         return lhs_v;
     }
     case TOKEN_FWSLASH: {
         Value* rhs_v = codegen_expr(rhs);
-        push_result_to_temporary_reg(rhs_v);
+        push_s(RAX);
         codegen_expr(lhs);
-        int rhs_r = pop_result_from_temporary_reg();
+        pop_s(RCX);
         emit_s("CDQ");
-        emit_s("IDIV %s", get_reg(rhs_r));
+        emit_s("IDIV RCX");
         return rhs_v;
     }
 
@@ -453,7 +473,7 @@ Value* codegen_binary(Expr* expr)
         u64 rhs_size = get_size_of_value(rhs_val);
         u64 reg_n = get_rax_reg_of_byte_size(rhs_size);
         u64 stack_pos = get_stack_pos_of_variable(lhs_v);
-        emit_s("ADD [RSP-%d], %s", stack_pos, get_reg(reg_n));
+        emit_s("ADD [RBP-%d], %s", stack_pos, get_reg(reg_n));
 
         return lhs_v;
     }
@@ -479,7 +499,7 @@ Value* codegen_binary(Expr* expr)
         u64 rhs_size = get_size_of_value(rhs_val);
         u64 reg_n = get_rax_reg_of_byte_size(rhs_size);
         u64 stack_pos = get_stack_pos_of_variable(variable);
-        emit_s("IMUL %s, [RSP-%d]", get_reg(reg_n), stack_pos);
+        emit_s("IMUL %s, [RBP-%d]", get_reg(reg_n), stack_pos);
         emit_store(variable);
         return variable;
     }
@@ -609,12 +629,12 @@ Value* codegen_ret(Expr* expr)
     for (int i = regs_used_total-1; i >= 0; --i) {
         switch (i)
         {
-            case 0: emit_s("POP R10"); break;
-            case 1: emit_s("POP R11"); break;
-            case 2: emit_s("POP R12"); break;
-            case 3: emit_s("POP R13"); break;
-            case 4: emit_s("POP R14"); break;
-            case 5: emit_s("POP R15"); break;
+            case 0: pop_s(R10); break;
+            case 1: pop_s(R11); break;
+            case 2: pop_s(R12); break;
+            case 3: pop_s(R13); break;
+            case 4: pop_s(R14); break;
+            case 5: pop_s(R15); break;
         }
     }
 
@@ -624,7 +644,7 @@ Value* codegen_ret(Expr* expr)
         emit_s("ADD RSP, %llu", stack_used);
     }
 
-    emit_s("POP RBP");
+    pop_s(RBP);
     emit_s("RET");
 
     return ret_val;
@@ -643,14 +663,13 @@ Value* codegen_call(Expr* expr)
 
     if (func_arg_count != arg_count) error("wrong amount of parameters for call to function '%s'", callee);
 
-    int bytes_to_remove = 0;
     Value** param_vals = NULL;
 
     for (int i = 0; i < arg_count; ++i) {
         Expr* arg = args[i];
         Value* val = codegen_expr(arg);
         sb_push(param_vals, val);
-        emit_s("PUSH RAX");
+        push_s(RAX);
     }
 
     for (int i = arg_count - 1; i >= 0; --i) {
@@ -659,7 +678,7 @@ Value* codegen_call(Expr* expr)
         int reg_n = get_rax_reg_of_byte_size(size);
         int param_reg_n = get_parameter_reg(i, size);
 
-        emit_s("POP RAX");
+        pop_s(RAX);
         emit_s("MOV %s, %s", get_reg(param_reg_n), get_reg(reg_n));
     }
 
@@ -730,7 +749,7 @@ Value* codegen_for(Expr* expr)
 
     // Compare the iterator to the end value
     codegen_expr(end);
-    emit_s("CMP %s, [RSP-%d]", get_reg(res_reg), iterator_var->Variable.stack_pos);
+    emit_s("CMP %s, [RBP-%d]", get_reg(res_reg), iterator_var->Variable.stack_pos);
     emit_s("JE %s", continue_label);
 
     // BODY
@@ -740,7 +759,7 @@ Value* codegen_for(Expr* expr)
     emit_s("%s:", inc_label);
 
     emit_load(iterator_var);
-    emit_s("INC %s [RSP-%d]", get_op_size(type_size), iterator_var->Variable.stack_pos);
+    emit_s("INC %s [RBP-%d]", get_op_size(type_size), iterator_var->Variable.stack_pos);
     emit_s("JMP %s", condition_label);
 
     // CONT:
@@ -906,7 +925,7 @@ char* generate_code_from_ast(List ast)
 
         emit(&output, "_%s:", func_name);
 
-        emit(&output, "PUSH RSP");
+        push(RBP);
         emit(&output, "MOV RBP, RSP");
 
         u64 stack_allocated = func_v->Function.stack_allocated;
@@ -920,12 +939,12 @@ char* generate_code_from_ast(List ast)
         for (u8 i = 0; i < regs_used_total; ++i) {
             switch (i)
             {
-                case 0: emit(&output, "PUSH R10"); break;
-                case 1: emit(&output, "PUSH R11"); break;
-                case 2: emit(&output, "PUSH R12"); break;
-                case 3: emit(&output, "PUSH R13"); break;
-                case 4: emit(&output, "PUSH R14"); break;
-                case 5: emit(&output, "PUSH R15"); break;
+                case 0: push(R10); break;
+                case 1: push(R11); break;
+                case 2: push(R12); break;
+                case 3: push(R13); break;
+                case 4: push(R14); break;
+                case 5: push(R15); break;
             }
         }
 
