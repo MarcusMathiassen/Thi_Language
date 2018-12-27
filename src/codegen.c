@@ -197,6 +197,7 @@ void emit_load(Value* variable)
     case TYPESPEC_ARRAY:
     {
         size = get_size_of_typespec(variable->type->Array.type);
+        // reg_n = get_rax_reg_of_byte_size(size);
         emit_s("MOV %s, [RSP-%d+%s*%d] ; emit_load on '%s'", get_reg(reg_n), stack_pos, get_reg(reg_n), size, variable->Variable.name);
         break;
     }
@@ -601,17 +602,8 @@ Value* codegen_ret(Expr* expr)
     Value* ret_val = codegen_expr(ret_expr);
 
     // We have to pop off any regs used.
-    // Also deallocate any stack used.
 
     // Pop off regs in reverse order
-    // u8* regs_used = ctx.current_function->Function.regs_used;
-    // u8 regs_used_count = ctx.current_function->Function.regs_used_count;
-    // if (regs_used_count) {
-    //     for (int i = regs_used_count-1; i >= 0; --i) {
-    //         emit_s("POP %s", get_reg(get_push_or_popable_reg(regs_used[i])));
-    //     }
-    // }
-
     u8 regs_used_total = ctx.current_function->Function.regs_used_total;
     if (regs_used_total) 
     for (int i = regs_used_total-1; i >= 0; --i) {
@@ -915,6 +907,13 @@ char* generate_code_from_ast(List ast)
 
         emit(&output, "_%s:", func_name);
 
+        u64 stack_allocated = func_v->Function.stack_allocated;
+        // Allocate stack space
+        if (stack_allocated) {
+            emit(&output, "   SUB RSP, %llu", stack_allocated);
+            info("function '%s' allocated %d bytes on the stack", func_name, stack_allocated);
+        }
+
         u8 regs_used_total = func_v->Function.regs_used_total;
         for (u8 i = 0; i < regs_used_total; ++i) {
             switch (i)
@@ -926,13 +925,6 @@ char* generate_code_from_ast(List ast)
                 case 4: emit(&output, "PUSH R14"); break;
                 case 5: emit(&output, "PUSH R15"); break;
             }
-        }
-
-        u64 stack_allocated = func_v->Function.stack_allocated;
-        // Allocate stack space
-        if (stack_allocated) {
-            emit(&output, "   SUB RSP, %llu", stack_allocated);
-            info("function '%s' allocated %d bytes on the stack", func_name, stack_allocated);
         }
 
         CodeBlock** codeblocks = func_v->Function.codeblocks;

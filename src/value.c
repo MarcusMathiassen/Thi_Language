@@ -181,6 +181,11 @@ void function_print_debug(Value* function)
     const char* cb_0_c = codeblocks[0]->color;
     info("%s%s: \033[00m", cb_0_c, function->Function.name);
 
+        // Allocate stack space
+    u64 stack_allocated = function->Function.stack_allocated;
+    if (stack_allocated) info("%sSUB RSP, %d\033[00m", cb_0_c, stack_allocated);
+
+
     // Save off any scrap regs used
     u8 regs_used_total = function->Function.regs_used_total;
     for (u8 i = 0; i < regs_used_total; ++i) {
@@ -194,10 +199,6 @@ void function_print_debug(Value* function)
             case 5: info("%sPUSH R15\033[00m", cb_0_c); break;
         }
     }
-
-    // Allocate stack space
-    u64 stack_allocated = function->Function.stack_allocated;
-    if (stack_allocated) info("%sSUB RSP, %d\033[00m", cb_0_c, stack_allocated);
 
     for (int j = 0; j < cb_count; ++j) {
         CodeBlock* cb = codeblocks[j];
@@ -228,7 +229,7 @@ void function_push_reg(Value* function, u64 reg_n)
     u8 count = function->Function.regs_used_count++;
     function->Function.regs_used[count] = reg_n;
 
-    if (count + 1 > function->Function.regs_used_total)
+    if (count + 1 >= function->Function.regs_used_total)
         function->Function.regs_used_total++;
 }
 
