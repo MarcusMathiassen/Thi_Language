@@ -244,6 +244,7 @@ Value* codegen_function(Expr* expr)
 
     u64 stack_used = ctx.stack_index - stack_before_func;
     function->Function.stack_allocated += stack_used;
+    ctx.stack_index = 0;
 
     codegen_expr(expr->Function.body);
 
@@ -567,8 +568,7 @@ Value* codegen_variable_decl_type_inf(Expr* expr)
     Value* variable = make_value_variable(name, type, stack_pos);
     add_variable(variable);
 
-    if (type->kind != TYPESPEC_ARRAY)
-        emit_store(variable); // The variable is set to whatevers in RAX
+    emit_store(variable);
     ctx.stack_index += type_size;
     ctx.current_function->Function.stack_allocated += ctx.stack_index;
 
@@ -624,7 +624,9 @@ Value* codegen_ret(Expr* expr)
         emit_s("ADD RSP, %llu", stack_used);
     }
 
+    emit_s("POP RBP");
     emit_s("RET");
+
     return ret_val;
 }
 
@@ -659,9 +661,6 @@ Value* codegen_call(Expr* expr)
 
         emit_s("POP RAX");
         emit_s("MOV %s, %s", get_reg(param_reg_n), get_reg(reg_n));
-
-        ctx.stack_index += size;
-        bytes_to_remove += size;
     }
 
     sb_free(param_vals);
@@ -906,6 +905,9 @@ char* generate_code_from_ast(List ast)
         const char* func_name = func_v->Function.name;
 
         emit(&output, "_%s:", func_name);
+
+        emit(&output, "PUSH RSP");
+        emit(&output, "MOV RBP, RSP");
 
         u64 stack_allocated = func_v->Function.stack_allocated;
         // Allocate stack space

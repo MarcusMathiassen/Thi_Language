@@ -1,14 +1,9 @@
-fib :: (num: i32) -> i32 {
-    a := 1
-    b := 0
-    temp := 0
-    while num >= 0 {
-        temp = a
-        a = a + b
-        b = temp
-        num -= 1
+fib :: (n: i32) -> i32 {
+    if (n == 0 || n == 1) {
+        ret n
+    } else {
+        ret fib(n - 1) + fib(n - 2)
     }
-    ret b
 }
 
 main :: () -> i32 {

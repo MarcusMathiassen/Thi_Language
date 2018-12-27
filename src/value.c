@@ -181,7 +181,10 @@ void function_print_debug(Value* function)
     const char* cb_0_c = codeblocks[0]->color;
     info("%s%s: \033[00m", cb_0_c, function->Function.name);
 
-        // Allocate stack space
+    info("%sPUSH RSP\033[00m", cb_0_c);
+    info("%sMOV RBP, RSP\033[00m", cb_0_c);
+
+    // Allocate stack space
     u64 stack_allocated = function->Function.stack_allocated;
     if (stack_allocated) info("%sSUB RSP, %d\033[00m", cb_0_c, stack_allocated);
 
