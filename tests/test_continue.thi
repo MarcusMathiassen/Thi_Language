@@ -2,7 +2,7 @@ main :: () -> i32 {
 
     i := 0
 
-    # The issue here is that we're
+    # The issue here is that were
     # generating the code from the bottom of the tree
     # so the if statements has a continue trying to
     # jump to a contiue label. That label hasnt been
@@ -12,12 +12,9 @@ main :: () -> i32 {
     # of the call. Like CallInst, ValueInst
 
     for k: 0 .. 9 {
-        if i == 3 {
-            continue
-        }
-
+        continue
         i += 1
     }
 
-    ret i - 2
+    ret i + 1
 }

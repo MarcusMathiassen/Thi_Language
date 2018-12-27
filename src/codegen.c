@@ -357,7 +357,7 @@ Value* codegen_binary(Expr* expr)
     case TOKEN_ASTERISK: {
         Value* lhs_v = codegen_expr(lhs);
         push_s(RAX);
-        Value* rhs_v = codegen_expr(rhs);
+        codegen_expr(rhs);
         pop_s(RCX);
         emit_s("IMUL RAX, RCX");
         return lhs_v;
@@ -374,93 +374,83 @@ Value* codegen_binary(Expr* expr)
 
     case TOKEN_AND_AND: {
         Value* lhs_v = codegen_expr(lhs);
-        push_result_to_temporary_reg(lhs_v);
-        Value* rhs_v = codegen_expr(rhs);
-        int lhs_r = pop_result_from_temporary_reg();
-        int rhs_r = get_rax_reg_of_byte_size(get_size_of_value(rhs_v));
-        int temp_lower_byte = get_reg_as_another_size(lhs_r, 1);
-        emit_s("CMP %s, 0", get_reg(lhs_r));
-        emit_s("SETNE %s", get_reg(temp_lower_byte));
-        emit_s("CMP %s, 0", get_reg(rhs_r));
+        push_s(RAX);
+        codegen_expr(rhs);
+        pop_s(RCX);
+        emit_s("CMP RCX, 0");
+        emit_s("SETNE CL");
+        emit_s("CMP RAX, 0");
         emit_s("SETNE AL");
-        emit_s("AND %s, AL", get_reg(temp_lower_byte));
+        emit_s("AND CL, AL");
         return lhs_v;
     }
 
     case TOKEN_PIPE_PIPE: {
         Value* lhs_v = codegen_expr(lhs);
-        push_result_to_temporary_reg(lhs_v);
-        Value* rhs_v = codegen_expr(rhs);
-        int lhs_r = pop_result_from_temporary_reg();
-        int rhs_r = get_rax_reg_of_byte_size(get_size_of_value(rhs_v));
-        emit_s("OR %s, %s", get_reg(lhs_r), get_reg(rhs_r));
+        push_s(RAX);
+        codegen_expr(rhs);
+        pop_s(RCX);
+        emit_s("OR RCX, RAX");
         emit_s("SETNE AL");
         return lhs_v;
     }
 
     case TOKEN_LT: {
         Value* lhs_v = codegen_expr(lhs);
-        push_result_to_temporary_reg(lhs_v);
-        Value* rhs_v = codegen_expr(rhs);
-        int lhs_r = pop_result_from_temporary_reg();
-        int rhs_r = get_rax_reg_of_byte_size(get_size_of_value(rhs_v));
-        emit_s("CMP %s, %s", get_reg(lhs_r), get_reg(rhs_r));
+        push_s(RAX);
+        codegen_expr(rhs);
+        pop_s(RCX);
+        emit_s("CMP RCX, RAX");
         emit_s("SETL AL");
         return lhs_v;
     }
 
     case TOKEN_GT: {
         Value* lhs_v = codegen_expr(lhs);
-        push_result_to_temporary_reg(lhs_v);
-        Value* rhs_v = codegen_expr(rhs);
-        int lhs_r = pop_result_from_temporary_reg();
-        int rhs_r = get_rax_reg_of_byte_size(get_size_of_value(rhs_v));
-        emit_s("CMP %s, %s", get_reg(lhs_r), get_reg(rhs_r));
+        push_s(RAX);
+        codegen_expr(rhs);
+        pop_s(RCX);
+        emit_s("CMP RCX, RAX");
         emit_s("SETG AL");
         return lhs_v;
     }
 
     case TOKEN_LT_EQ: {
         Value* lhs_v = codegen_expr(lhs);
-        push_result_to_temporary_reg(lhs_v);
-        Value* rhs_v = codegen_expr(rhs);
-        int lhs_r = pop_result_from_temporary_reg();
-        int rhs_r = get_rax_reg_of_byte_size(get_size_of_value(rhs_v));
-        emit_s("CMP %s, %s", get_reg(lhs_r), get_reg(rhs_r));
+        push_s(RAX);
+        codegen_expr(rhs);
+        pop_s(RCX);
+        emit_s("CMP RCX, RAX");
         emit_s("SETLE AL");
         return lhs_v;
     }
 
     case TOKEN_GT_EQ: {
         Value* lhs_v = codegen_expr(lhs);
-        push_result_to_temporary_reg(lhs_v);
-        Value* rhs_v = codegen_expr(rhs);
-        int lhs_r = pop_result_from_temporary_reg();
-        int rhs_r = get_rax_reg_of_byte_size(get_size_of_value(rhs_v));
+        push_s(RAX);
         codegen_expr(rhs);
-        emit_s("CMP %s, %s", get_reg(lhs_r), get_reg(rhs_r));
+        pop_s(RCX);
+        emit_s("CMP RCX, RAX");
         emit_s("SETGE AL");
         return lhs_v;
     }
 
     case TOKEN_EQ_EQ: {
         Value* lhs_v = codegen_expr(lhs);
-        push_result_to_temporary_reg(lhs_v);
-        Value* rhs_v = codegen_expr(rhs);
-        int lhs_r = pop_result_from_temporary_reg();
-        int rhs_r = get_rax_reg_of_byte_size(get_size_of_value(rhs_v));
-        emit_s("CMP %s, %s", get_reg(lhs_r), get_reg(rhs_r));
+        push_s(RAX);
+        codegen_expr(rhs);
+        pop_s(RCX);
+        emit_s("CMP RCX, RAX");
         emit_s("SETE AL");
         return lhs_v;
     }
 
     case TOKEN_BANG_EQ: {
         Value* lhs_v = codegen_expr(lhs);
-        push_result_to_temporary_reg(lhs_v);
-        Value* rhs_v = codegen_expr(rhs);
-        int lhs_r = pop_result_from_temporary_reg();
-        int rhs_r = get_rax_reg_of_byte_size(get_size_of_value(rhs_v));
-        emit_s("CMP %s, %s", get_reg(lhs_r), get_reg(rhs_r));
+        push_s(RAX);
+        codegen_expr(rhs);
+        pop_s(RCX);
+        emit_s("CMP RCX, RAX");
         emit_s("SETNE AL");
         return lhs_v;
     }
@@ -741,7 +731,9 @@ Value* codegen_for(Expr* expr)
     int stack_pos = type_size + ctx.stack_index;
     Value* iterator_var = make_value_variable(iterator_name, start_val->type, stack_pos);
     add_variable(iterator_var);
+    ctx.current_function->Function.stack_allocated += type_size;
     emit_store(iterator_var);
+    ctx.stack_index += type_size;
 
     // COND:
     emit_s("%s:", condition_label);
@@ -765,6 +757,9 @@ Value* codegen_for(Expr* expr)
     // CONT:
     emit_s("%s:", continue_label);
     ctx_pop_label(&ctx);
+
+    remove_variable(iterator_var);
+    ctx.stack_index -= type_size;
 
     return NULL;
 }
