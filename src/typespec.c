@@ -19,6 +19,7 @@ const char* typespec_kind_to_str(Typespec_Kind kind)
     switch (kind) {
     case TYPESPEC_INT: return "TYPESPEC_INT";
     case TYPESPEC_FLOAT: return "TYPESPEC_FLOAT";
+    case TYPESPEC_STRING: return "TYPESPEC_STRING";
     case TYPESPEC_POINTER: return "TYPESPEC_POINTER";
     case TYPESPEC_ARRAY: return "TYPESPEC_ARRAY";
     case TYPESPEC_ENUM: return "TYPESPEC_ENUM";
@@ -34,6 +35,7 @@ u64 get_size_of_typespec(Typespec* type)
     switch (type->kind) {
     case TYPESPEC_INT: return type->Int.bits / 8;
     case TYPESPEC_FLOAT: return type->Float.bits / 8;
+    case TYPESPEC_STRING: return type->String.len;
     case TYPESPEC_POINTER: return 8;
     case TYPESPEC_ARRAY: return get_size_of_typespec(type->Array.type) * type->Array.size;
     case TYPESPEC_FUNCTION: {
@@ -68,6 +70,7 @@ char* typespec_to_json(Typespec* type)
     case TYPESPEC_ARRAY: return strf("%s[%d]", typespec_to_str(type->Array.type), type->Array.size);
     case TYPESPEC_INT: return strf(type->Int.is_unsigned ? "u%d" : "i%d", type->Int.bits);
     case TYPESPEC_FLOAT: return strf("f%d", type->Float.bits);
+    case TYPESPEC_STRING: return strf("\"\", %d", type->String.len);
     case TYPESPEC_STRUCT: {
         string str = make_string(strf("%s :: {\n", type->Struct.name));
         Arg* args = type->Struct.members;
@@ -123,6 +126,7 @@ char* typespec_to_str(Typespec* type)
     case TYPESPEC_INT: return strf(type->Int.is_unsigned ? "u%d" : "i%d", type->Int.bits);
     case TYPESPEC_POINTER: return strf("%s*", typespec_to_str(type->Pointer.pointee));
     case TYPESPEC_FLOAT: return strf("f%d", type->Float.bits);
+    case TYPESPEC_STRING: return strf("\"\", %d", type->String.len);
     case TYPESPEC_STRUCT: {
         string str = make_string(strf("%s :: {\n", type->Struct.name));
         Arg* args = type->Struct.members;
@@ -207,6 +211,14 @@ Typespec* make_typespec_float(i8 bits)
     assert(bits > 7 && bits < 65);
     Typespec* t = make_typespec(TYPESPEC_FLOAT);
     t->Float.bits = bits;
+    return t;
+}
+
+Typespec* make_typespec_string(u64 len)
+{
+    assert(len);
+    Typespec* t = make_typespec(TYPESPEC_STRING);
+    t->String.len = len;
     return t;
 }
 

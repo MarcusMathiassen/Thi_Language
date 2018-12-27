@@ -34,6 +34,9 @@ void print_symbol_map(void);
 void add_foreign_function(const char* name, Typespec* type);
 List get_foreign_function_list(void);
 
+void add_constant_string(const char* name, Typespec* type);
+List get_constant_string_list(void);
+
 void push_timer(const char* desc);
 void pop_timer(void);
 struct List get_timers(void);

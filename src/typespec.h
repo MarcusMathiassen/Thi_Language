@@ -16,6 +16,7 @@ char* typespec_to_str(Typespec* type);
 
 Typespec* make_typespec_int(i8 bits, bool is_unsigned);
 Typespec* make_typespec_float(i8 bits);
+Typespec* make_typespec_string(u64 len);
 Typespec* make_typespec_pointer(Typespec* pointee);
 Typespec* make_typespec_array(Typespec* type, int size);
 Typespec* make_typespec_struct(const char* name, Arg* members);
@@ -29,6 +30,7 @@ enum Typespec_Kind
 {
     TYPESPEC_INT,
     TYPESPEC_FLOAT,
+    TYPESPEC_STRING,
     TYPESPEC_POINTER,
     TYPESPEC_ARRAY,
 
@@ -56,6 +58,10 @@ struct Typespec
         {
             i8 bits;
         } Float;
+        struct
+        {
+            u64 len;
+        } String;
         struct
         {
             Typespec* pointee;

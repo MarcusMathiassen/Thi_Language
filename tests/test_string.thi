@@ -1,0 +1,6 @@
+main :: () -> i32 {
+
+    name := "Marcus"
+
+    ret 1
+}

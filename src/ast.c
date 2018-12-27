@@ -25,6 +25,7 @@ const char* expr_kind_to_str(Expr_Kind kind)
     case EXPR_NOTE: return "EXPR_NOTE";
     case EXPR_INT: return "EXPR_INT";
     case EXPR_FLOAT: return "EXPR_FLOAT";
+    case EXPR_STRING: return "EXPR_STRING";
     case EXPR_IDENT: return "EXPR_IDENT";
     case EXPR_CALL: return "EXPR_CALL";
     case EXPR_UNARY: return "EXPR_UNARY";
@@ -54,6 +55,7 @@ char* expr_to_str(Expr* expr)
     case EXPR_MACRO: { result = strf("%s :: %s", expr->Macro.name, expr_to_str(expr->Macro.expr)); } break;
     case EXPR_NOTE: { result = strf("$%s", expr_to_str(expr->Note.expr)); } break;
     case EXPR_INT: { result = strf("%lld", expr->Int.val); } break;
+    case EXPR_STRING: { result = strf("\"%s\"", expr->String.val); } break;
     case EXPR_IDENT: { result = strf("%s", expr->Ident.name); } break;
     case EXPR_UNARY: { result = strf("%s%s", token_kind_to_str(expr->Unary.op), expr_to_str(expr->Unary.operand)); } break;
     case EXPR_BINARY: { result = strf("%s %s %s", expr_to_str(expr->Binary.lhs), token_kind_to_str(expr->Binary.op), expr_to_str(expr->Binary.rhs)); } break;
@@ -117,6 +119,9 @@ char* expr_to_str_debug(Expr* expr)
     } break;
     case EXPR_INT: {
         result = strf("%lld", expr->Int.val);
+    } break;
+    case EXPR_STRING: {
+        result = strf("\"%s\"", expr->String.val);
     } break;
     case EXPR_IDENT: {
         result = strf("%s", expr->Ident.name);
@@ -200,6 +205,9 @@ char* expr_to_json(Expr* expr)
     } break;
     case EXPR_INT: {
         result = strf("{\"%s\": {\"value\": %lld}}", expr_kind_to_str(expr->kind), expr->Int.val);
+    } break;
+    case EXPR_STRING: {
+        result = strf("{\"%s\": {\"value\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->String.val);
     } break;
     case EXPR_IDENT: {
         result = strf("{\"%s\": {\"ident\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->Ident.name);
@@ -352,6 +360,13 @@ Expr* make_expr_float(f64 value)
 {
     Expr* e = make_expr(EXPR_FLOAT);
     e->Float.val = value;
+    return e;
+}
+
+Expr* make_expr_string(const char* value)
+{
+    Expr* e = make_expr(EXPR_STRING);
+    e->String.val = value;
     return e;
 }
 

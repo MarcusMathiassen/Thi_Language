@@ -846,6 +846,15 @@ Value* codegen_subscript(Expr* expr)
     return variable;
 }
 
+Value* codegen_string(Expr* expr)
+{
+    assert(expr->kind == EXPR_STRING);
+    const char* val = expr->String.val;
+    Typespec* t = make_typespec_string(xstrlen(val));
+    add_constant_string(val, t);
+    return make_value_string(val, t);
+}
+
 Value* codegen_note(Expr* expr)
 {
     assert(expr->kind == EXPR_NOTE);
@@ -873,6 +882,7 @@ Value* codegen_expr(Expr* expr)
     case EXPR_NOTE: return codegen_note(expr);
     case EXPR_INT: return codegen_int(expr);
     case EXPR_FLOAT: error("EXPR_FLOAT codegen not implemented");
+    case EXPR_STRING: return codegen_string(expr);
     case EXPR_IDENT: return codegen_ident(expr);
     case EXPR_CALL: return codegen_call(expr);
     case EXPR_UNARY: return codegen_unary(expr);
@@ -906,6 +916,14 @@ char* generate_code_from_ast(List ast)
     {
         const char* func_name = ((Typespec*)it->data)->Function.name;
         emit(&output, strf("extern _%s", func_name));
+    }
+
+    emit(&output, "section .data");
+    List constant_string_list = get_constant_string_list();
+    LIST_FOREACH(constant_string_list)
+    { 
+        Value* str_val = ((Value*)it->data);
+        emit(&output, strf("db \"%s\", %llu", str_val->String.value, str_val->String.len));
     }
 
     emit(&output, "global _main");

@@ -22,6 +22,7 @@ u64 get_size_of_value(Value* value)
     assert(value);
     switch (value->kind) {
     case VALUE_INT: return value->Int.bytes;
+    case VALUE_STRING: return value->String.len;
     case VALUE_VARIABLE: return get_size_of_typespec(value->type);
     case VALUE_FUNCTION: error("Asking for the size of a function? Why?");
     case VALUE_CALL: return get_size_of_typespec(value->type);
@@ -117,6 +118,17 @@ Value* make_value_int(u8 bytes, Typespec* type, u64 value)
     v->type = type;
     v->Int.bytes = bytes;
     v->Int.value = value;
+    return v;
+}
+
+Value* make_value_string(const char* value, Typespec* type)
+{
+    assert(value);
+    assert(type);
+    Value* v = make_value(VALUE_STRING);
+    v->type = type;
+    v->String.value = value;
+    v->String.len = strlen(value);
     return v;
 }
 

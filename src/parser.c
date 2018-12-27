@@ -96,6 +96,7 @@ Expr* parse_for(void);
 Expr* parse_while(void);
 Expr* parse_break(void);
 Expr* parse_continue(void);
+Expr* parse_string(void);
 
 Typespec* parse_struct_signature(const char* struct_name);
 Typespec* parse_function_signature(const char* func_name);
@@ -298,7 +299,7 @@ Expr* parse_if(void)
     return make_expr_if(cond, then_body, else_body);
 }
 
-Expr* parse_primary()
+Expr* parse_primary(void)
 {
     info("parse_primary");
 
@@ -310,7 +311,7 @@ Expr* parse_primary()
     case TOKEN_INTEGER: return parse_integer();
     // case TOKEN_FLOATING_POINT: return parse_float();
 
-    // case TOKEN_STRING:         return parse_string();
+    case TOKEN_STRING:         return parse_string();
     case TOKEN_OPEN_PAREN: return parse_parens();
     case TOKEN_OPEN_BRACE:
         return parse_block();
@@ -324,7 +325,7 @@ Expr* parse_primary()
     return NULL;
 }
 
-Expr* parse_identifier()
+Expr* parse_identifier(void)
 {
     info("parse_identifier");
 
@@ -338,6 +339,13 @@ Expr* parse_identifier()
     case TOKEN_OPEN_BRACKET:    return get_subscript(ident);
     }
     return make_expr_ident(ident);
+}
+
+Expr* parse_string()
+{
+    const char* value = curr_tok.value;
+    eat_kind(TOKEN_STRING);
+    return make_expr_string(value);
 }
 
 Expr* parse_block()
@@ -765,7 +773,7 @@ void skip_function_signature(void)
     while (!tok_is(TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(TOKEN_COMMA);
         if (top_tok.kind == TOKEN_FOREIGN) {
-            eat();
+            skip_type();
         } else {
             eat_kind(TOKEN_IDENTIFIER);
             eat_kind(TOKEN_COLON);

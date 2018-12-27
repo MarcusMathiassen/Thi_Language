@@ -18,6 +18,7 @@ enum Expr_Kind
     EXPR_NOTE,
     EXPR_INT,
     EXPR_FLOAT,
+    EXPR_STRING,
     EXPR_IDENT,
     EXPR_CALL,
     EXPR_UNARY,
@@ -50,6 +51,7 @@ typedef struct { Expr** stmts; } AST_Block;
 typedef struct { Expr* expr; } AST_Ret;
 typedef struct { u64 val; } AST_Int;
 typedef struct { f64 val; } AST_Float;
+typedef struct { const char* val; } AST_String;
 typedef struct { Typespec* type; Expr* body; } AST_Function; 
 typedef struct { Typespec* type; } AST_Struct;
 typedef struct { const char* name; } AST_Ident;
@@ -74,6 +76,7 @@ struct Expr
         AST_Ret Ret;
         AST_Int Int;
         AST_Float Float;
+        AST_String String;
         AST_Function Function; 
         AST_Struct Struct;
         AST_Ident Ident;
@@ -95,6 +98,7 @@ Expr* make_expr_macro(const char* name, Expr* expr);
 Expr* make_expr_note(Expr* expr); 
 Expr* make_expr_int(u64 value);
 Expr* make_expr_float(f64 value);
+Expr* make_expr_string(const char* value);
 Expr* make_expr_ident(const char* ident);
 Expr* make_expr_struct(Typespec* struct_t);
 Expr* make_expr_call(const char* callee, Expr** args);
