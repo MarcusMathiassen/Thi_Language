@@ -23,7 +23,8 @@ u64 get_size_of_value(Value* value)
     switch (value->kind) {
     case VALUE_INT: return value->Int.bytes;
     case VALUE_VARIABLE: return get_size_of_typespec(value->type);
-    case VALUE_FUNCTION: error("Asking for the size of a function? Why?");
+    // case VALUE_FUNCTION: error("Asking for the size of a function? Why?");
+    // case VALUE_CALL: error("Asking for the size of a function call? Why?");
     case VALUE_LOAD_INST: return get_size_of_typespec(value->LoadInst.variable->type);
     case VALUE_STORE_INST: return get_size_of_typespec(value->StoreInst.variable->type);
     default: error("get_size_of_value: unhandled case %d", value->kind);
