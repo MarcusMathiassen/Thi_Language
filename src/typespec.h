@@ -23,6 +23,7 @@ Typespec* make_typespec_enum(const char* name, const char** members);
 Typespec* make_typespec_function(const char* name, Arg* args, Typespec* ret_type);
 
 u64 typespec_function_get_arg_count(Typespec* type);
+u64 typespec_array_get_count(Typespec* type);
 
 enum Typespec_Kind
 {

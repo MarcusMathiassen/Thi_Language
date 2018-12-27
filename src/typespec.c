@@ -55,6 +55,13 @@ u64 typespec_function_get_arg_count(Typespec* type)
     return sb_count(type->Function.args);
 }
 
+u64 typespec_array_get_count(Typespec* type)
+{
+    assert(type);
+    assert(type->kind == TYPESPEC_ARRAY);
+    return type->Array.size;
+}
+
 char* typespec_to_json(Typespec* type)
 {
     switch (type->kind) {
