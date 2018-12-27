@@ -44,10 +44,14 @@ typedef struct
     u64 stack_allocated;
     CodeBlock** codeblocks;
 
-    // An array of all scrap regs used by the function.
-    // These are pushed at the start of the function and popped at the end.
-    u8 regs_used[6]; // there are max 6 poppabel regs
+    /* There is a maximum of 6 scratch registers available
+       for temporary use inside a function. These must be 
+       pushed to the stack at the prolog and popped off before
+       the function returns. 
+    */
+    u8 regs_used[6];
     u8 regs_used_count;
+    u8 regs_used_total;
 } Value_Function;
 
 typedef struct { u8 bytes; u64 value; } Value_Int;

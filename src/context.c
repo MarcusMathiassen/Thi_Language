@@ -9,6 +9,7 @@ void ctx_init(Context* ctx)
     ctx->current_label_counter = 0;
     ctx->total_label_counter = 0;
     ctx->stack_index = 0;
+    ctx->next_available_reg_index = 0;
 }
 
 void ctx_set_continue_label(Context* ctx, const char* label) { ctx->label_continue_to = label; }

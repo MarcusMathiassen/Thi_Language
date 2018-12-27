@@ -1,5 +1,6 @@
 #include "register.h"
 #include "utility.h" // error
+#include "context.h" // Context
 
 #define REG_COUNT 68
 const char* reg[REG_COUNT] = {
@@ -86,11 +87,10 @@ int get_parameter_reg(i8 i, i8 size)
     return -1; // to silence warning
 };
 
-int next_available_reg_index = 0;
-int get_next_available_reg(i8 size)
+int get_next_available_reg(Context* ctx, i8 size)
 {
     int res = -1;
-    switch (next_available_reg_index) {
+    switch (ctx->next_available_reg_index) {
     case 0:
         switch (size) {
         case 8: res = R10; break;
@@ -139,12 +139,14 @@ int get_next_available_reg(i8 size)
         case 1: res = R15B; break;
         }
         break;
-    default: error("get_next_available_reg unhandled register: %d", next_available_reg_index);
     }
 
-    if (next_available_reg_index == 5) next_available_reg_index = 0;
 
-    ++next_available_reg_index;
+    if (ctx->next_available_reg_index == 5) { 
+        ctx->next_available_reg_index = 0;
+    }
+
+    ++ctx->next_available_reg_index;
 
     return res;
 };

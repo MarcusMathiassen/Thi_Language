@@ -23,8 +23,8 @@ u64 get_size_of_value(Value* value)
     switch (value->kind) {
     case VALUE_INT: return value->Int.bytes;
     case VALUE_VARIABLE: return get_size_of_typespec(value->type);
-    // case VALUE_FUNCTION: error("Asking for the size of a function? Why?");
-    // case VALUE_CALL: error("Asking for the size of a function call? Why?");
+    case VALUE_FUNCTION: error("Asking for the size of a function? Why?");
+    case VALUE_CALL: return get_size_of_typespec(value->type);
     case VALUE_LOAD_INST: return get_size_of_typespec(value->LoadInst.variable->type);
     case VALUE_STORE_INST: return get_size_of_typespec(value->StoreInst.variable->type);
     default: error("get_size_of_value: unhandled case %d", value->kind);
@@ -152,6 +152,7 @@ Value* make_value_function(Typespec* type)
     v->Function.codeblocks = NULL;
     v->Function.stack_allocated = 0;
     v->Function.regs_used_count = 0;
+    v->Function.regs_used_total = 0;
     return v;
 }
 
@@ -179,17 +180,24 @@ void function_print_debug(Value* function)
 
     const char* cb_0_c = codeblocks[0]->color;
     info("%s%s: \033[00m", cb_0_c, function->Function.name);
+
     // Save off any scrap regs used
-    u8* regs_used = function->Function.regs_used;
-    u8 regs_count = function->Function.regs_used_count;
-    for (u8 k = 0; k < regs_count; ++k) {
-        int reg_n = get_push_or_popable_reg(regs_used[k]);
-        info("    %sPUSH %s\033[00m", cb_0_c, get_reg(reg_n));
+    u8 regs_used_total = function->Function.regs_used_total;
+    for (u8 i = 0; i < regs_used_total; ++i) {
+        switch (i)
+        {
+            case 0: info("%sPUSH R10\033[00m", cb_0_c); break;
+            case 1: info("%sPUSH R11\033[00m", cb_0_c); break;
+            case 2: info("%sPUSH R12\033[00m", cb_0_c); break;
+            case 3: info("%sPUSH R13\033[00m", cb_0_c); break;
+            case 4: info("%sPUSH R14\033[00m", cb_0_c); break;
+            case 5: info("%sPUSH R15\033[00m", cb_0_c); break;
+        }
     }
 
     // Allocate stack space
     u64 stack_allocated = function->Function.stack_allocated;
-    if (stack_allocated) info("    %sSUB RSP, %d\033[00m", cb_0_c, stack_allocated);
+    if (stack_allocated) info("%sSUB RSP, %d\033[00m", cb_0_c, stack_allocated);
 
     for (int j = 0; j < cb_count; ++j) {
         CodeBlock* cb = codeblocks[j];
@@ -200,19 +208,7 @@ void function_print_debug(Value* function)
 
             // If the line is a label format it 
             const char* line = cb->block.c_str;
-            bool is_label = false;
-            // for (u32 i = 0; i < strlen(line); ++i) {
-            //     if (line[i] == ':') {
-            //         is_label = true;
-            //         info("LABEL %s", line);
-            //         break;
-            //     }
-            // }
-
-            if (is_label) 
-                  info("%s%s\033[00m", cb_c, line);
-            else  info("     %s%s\033[00m", cb_c, line);
-
+            info("%s%s\033[00m", cb_c, line);
             // uncomment this for lines with their description.
             // info("%s;%s%s\033[00m", cb_c, cb->desc.c_str, line);
         }
@@ -226,19 +222,21 @@ void function_get_stack_used(Value* function)
 }
 
 void function_push_reg(Value* function, u64 reg_n)
-{
+{ 
     assert(function);
     assert(function->kind == VALUE_FUNCTION);
-    u64 count = function->Function.regs_used_count;
+    u8 count = function->Function.regs_used_count++;
     function->Function.regs_used[count] = reg_n;
-    ++function->Function.regs_used_count;
+
+    if (count + 1 > function->Function.regs_used_total)
+        function->Function.regs_used_total++;
 }
 
 u64 function_pop_reg(Value* function)
 {
     assert(function);
     assert(function->kind == VALUE_FUNCTION);
-    u64 count = function->Function.regs_used_count--;
+    u64 count = --function->Function.regs_used_count;
     return function->Function.regs_used[count];
 }
 

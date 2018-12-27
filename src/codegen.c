@@ -136,27 +136,29 @@ void remove_variable(Value* variable)
     }
 }
 
-int save_rax_to_temporary_reg(Value* variable)
+void push_result_to_temporary_reg(Value* val)
 {
-    u64 size = get_size_of_value(variable);
-    if (variable->type->kind == TYPESPEC_ARRAY)
-    {
-        size = get_size_of_typespec(variable->type->Array.type);   
+    u64 size = get_size_of_value(val);
+    if (val->type->kind == TYPESPEC_ARRAY) {
+        size = get_size_of_typespec(val->type->Array.type);   
     }
     int reg_n = get_rax_reg_of_byte_size(size);
-    int temp_reg_n = get_next_available_reg(size);
-    function_push_reg(ctx.current_function, temp_reg_n);
+    int temp_reg_n = get_next_available_reg(&ctx, size);
     emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
-    return temp_reg_n;
+    function_push_reg(ctx.current_function, temp_reg_n);
 }
+
+int pop_result_from_temporary_reg()
+{
+    return function_pop_reg(ctx.current_function);
+}
+
 
 int get_latest_used_temp_reg_in_function()
 {
     u8* regs_used = ctx.current_function->Function.regs_used;
     u8 regs_count = ctx.current_function->Function.regs_used_count;
-
-    if (regs_count == 0) error("no regs used yet.");
-    return regs_used[regs_count-1];
+    return regs_used[regs_count];
 }
 
 void emit_store(Value* variable)
@@ -167,11 +169,10 @@ void emit_store(Value* variable)
     int reg_n = get_rax_reg_of_byte_size(size);
     u64 stack_pos = get_stack_pos_of_variable(variable);
 
-    switch (variable->type->kind)
-    {
+    switch (variable->type->kind) {
     case TYPESPEC_ARRAY:
     {
-        int temp_reg_n = get_push_or_popable_reg(get_latest_used_temp_reg_in_function());
+        int temp_reg_n = get_push_or_popable_reg(pop_result_from_temporary_reg());
         size = get_size_of_typespec(variable->type->Array.type);
         emit_s("MOV [RSP-%d+%s*%d], %s ; emit_store on '%s'", stack_pos, get_reg(temp_reg_n), size, get_reg(reg_n), variable->Variable.name);
         break;
@@ -192,8 +193,7 @@ void emit_load(Value* variable)
     int reg_n = get_rax_reg_of_byte_size(size);
     u64 stack_pos = get_stack_pos_of_variable(variable);
 
-    switch (variable->type->kind)
-    {
+    switch (variable->type->kind) {
     case TYPESPEC_ARRAY:
     {
         size = get_size_of_typespec(variable->type->Array.type);
@@ -299,9 +299,6 @@ Value* codegen_unary(Expr* expr)
     return result;
 }
 
-
-
-
 Value* codegen_binary(Expr* expr)
 {
     Token_Kind op = expr->Binary.op;
@@ -317,187 +314,160 @@ Value* codegen_binary(Expr* expr)
         return rhs_val;
     }
     case TOKEN_PLUS: {
-        Value* lhs_val = codegen_expr(lhs);
-        u64 lhs_size = get_size_of_value(lhs_val);
-        int reg_n = get_rax_reg_of_byte_size(lhs_size);
-        int temp_reg_n = get_next_available_reg(lhs_size);
-        function_push_reg(ctx.current_function, temp_reg_n);
-        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
-        codegen_expr(rhs);
-        emit_s("ADD %s, %s", get_reg(reg_n), get_reg(temp_reg_n));
-        return lhs_val;
+        Value* lhs_v = codegen_expr(lhs);
+        push_result_to_temporary_reg(lhs_v);
+        Value* rhs_v = codegen_expr(rhs);
+        int lhs_r = pop_result_from_temporary_reg();
+        int rhs_r = get_rax_reg_of_byte_size(get_size_of_value(rhs_v));
+        emit_s("ADD %s, %s", get_reg(rhs_r), get_reg(lhs_r));
+        return lhs_v;
     }
     case TOKEN_MINUS: {
-        Value* rhs_val = codegen_expr(rhs);
-        u64 rhs_size = get_size_of_value(rhs_val);
-        int temp_reg_n = get_next_available_reg(rhs_size);
-        function_push_reg(ctx.current_function, temp_reg_n);
-        int reg_n = get_rax_reg_of_byte_size(rhs_size);
-        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
-        Value* lhs_val = codegen_expr(lhs);
-        emit_s("SUB %s, %s", get_reg(reg_n), get_reg(temp_reg_n));
-        return lhs_val;
+        Value* rhs_v = codegen_expr(rhs);
+        push_result_to_temporary_reg(rhs_v);
+        Value* lhs_v = codegen_expr(lhs);
+        int rhs_r = pop_result_from_temporary_reg();
+        int lhs_r = get_rax_reg_of_byte_size(get_size_of_value(lhs_v));
+        emit_s("SUB %s, %s", get_reg(lhs_r), get_reg(rhs_r));
+        return lhs_v;
     }
     case TOKEN_ASTERISK: {
-        Value* lhs_val = codegen_expr(lhs);
-        u64 lhs_size = get_size_of_value(lhs_val);
-        int res_n = get_rax_reg_of_byte_size(lhs_size);
-        int temp_reg_n = get_next_available_reg(lhs_size);
-        function_push_reg(ctx.current_function, temp_reg_n);
-        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(res_n));
-        codegen_expr(rhs);
-        emit_s("IMUL %s, %s", get_reg(res_n), get_reg(temp_reg_n));
-        return lhs_val;
+        Value* lhs_v = codegen_expr(lhs);
+        push_result_to_temporary_reg(lhs_v);
+        Value* rhs_v = codegen_expr(rhs);
+        int lhs_r = pop_result_from_temporary_reg();
+        int rhs_r = get_rax_reg_of_byte_size(get_size_of_value(rhs_v));
+        emit_s("IMUL %s, %s", get_reg(rhs_r), get_reg(lhs_r));
+        return lhs_v;
     }
     case TOKEN_FWSLASH: {
-        Value* rhs_val = codegen_expr(rhs);
-        u64 rhs_size = get_size_of_value(rhs_val);
-        int reg_n = get_rax_reg_of_byte_size(rhs_size);
-        int temp_reg_n = get_next_available_reg(rhs_size);
-        function_push_reg(ctx.current_function, temp_reg_n);
-        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        Value* rhs_v = codegen_expr(rhs);
+        push_result_to_temporary_reg(rhs_v);
         codegen_expr(lhs);
+        int rhs_r = pop_result_from_temporary_reg();
         emit_s("CDQ");
-        emit_s("IDIV %s", get_reg(temp_reg_n));
-        return rhs_val;
+        emit_s("IDIV %s", get_reg(rhs_r));
+        return rhs_v;
     }
 
     case TOKEN_AND_AND: {
-        Value* lhs_val = codegen_expr(lhs);
-        u64 lhs_size = get_size_of_value(lhs_val);
-        int reg_n = get_rax_reg_of_byte_size(lhs_size);
-        int temp_reg_n = get_next_available_reg(lhs_size);
-        function_push_reg(ctx.current_function, temp_reg_n);
-        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
-        codegen_expr(rhs);
-        int temp_lower_byte = get_reg_as_another_size(temp_reg_n, 1);
-        emit_s("CMP %s, 0", get_reg(temp_reg_n));
+        Value* lhs_v = codegen_expr(lhs);
+        push_result_to_temporary_reg(lhs_v);
+        Value* rhs_v = codegen_expr(rhs);
+        int lhs_r = pop_result_from_temporary_reg();
+        int rhs_r = get_rax_reg_of_byte_size(get_size_of_value(rhs_v));
+        int temp_lower_byte = get_reg_as_another_size(lhs_r, 1);
+        emit_s("CMP %s, 0", get_reg(lhs_r));
         emit_s("SETNE %s", get_reg(temp_lower_byte));
-        emit_s("CMP %s, 0", get_reg(reg_n));
+        emit_s("CMP %s, 0", get_reg(rhs_r));
         emit_s("SETNE AL");
         emit_s("AND %s, AL", get_reg(temp_lower_byte));
-        return lhs_val;
+        return lhs_v;
     }
 
     case TOKEN_PIPE_PIPE: {
-        Value* lhs_val = codegen_expr(lhs);
-        u64 lhs_size = get_size_of_value(lhs_val);
-        int reg_n = get_rax_reg_of_byte_size(lhs_size);
-        int temp_reg_n = get_next_available_reg(lhs_size);
-        function_push_reg(ctx.current_function, temp_reg_n);
-        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
-        codegen_expr(rhs);
-        emit_s("OR %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        Value* lhs_v = codegen_expr(lhs);
+        push_result_to_temporary_reg(lhs_v);
+        Value* rhs_v = codegen_expr(rhs);
+        int lhs_r = pop_result_from_temporary_reg();
+        int rhs_r = get_rax_reg_of_byte_size(get_size_of_value(rhs_v));
+        emit_s("OR %s, %s", get_reg(lhs_r), get_reg(rhs_r));
         emit_s("SETNE AL");
-        return lhs_val;
+        return lhs_v;
     }
 
     case TOKEN_LT: {
-        Value* lhs_val = codegen_expr(lhs);
-        u64 lhs_size = get_size_of_value(lhs_val);
-        int reg_n = get_rax_reg_of_byte_size(lhs_size);
-        int temp_reg_n = get_next_available_reg(lhs_size);
-        function_push_reg(ctx.current_function, temp_reg_n);
-        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
-        codegen_expr(rhs);
-        emit_s("CMP %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        Value* lhs_v = codegen_expr(lhs);
+        push_result_to_temporary_reg(lhs_v);
+        Value* rhs_v = codegen_expr(rhs);
+        int lhs_r = pop_result_from_temporary_reg();
+        int rhs_r = get_rax_reg_of_byte_size(get_size_of_value(rhs_v));
+        emit_s("CMP %s, %s", get_reg(lhs_r), get_reg(rhs_r));
         emit_s("SETL AL");
-        return lhs_val;
+        return lhs_v;
     }
 
     case TOKEN_GT: {
-        Value* lhs_val = codegen_expr(lhs);
-        u64 lhs_size = get_size_of_value(lhs_val);
-        int reg_n = get_rax_reg_of_byte_size(lhs_size);
-        int temp_reg_n = get_next_available_reg(lhs_size);
-        function_push_reg(ctx.current_function, temp_reg_n);
-        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
-        codegen_expr(rhs);
-        emit_s("CMP %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        Value* lhs_v = codegen_expr(lhs);
+        push_result_to_temporary_reg(lhs_v);
+        Value* rhs_v = codegen_expr(rhs);
+        int lhs_r = pop_result_from_temporary_reg();
+        int rhs_r = get_rax_reg_of_byte_size(get_size_of_value(rhs_v));
+        emit_s("CMP %s, %s", get_reg(lhs_r), get_reg(rhs_r));
         emit_s("SETG AL");
-        return lhs_val;
+        return lhs_v;
     }
 
     case TOKEN_LT_EQ: {
-        Value* lhs_val = codegen_expr(lhs);
-        u64 lhs_size = get_size_of_value(lhs_val);
-        int reg_n = get_rax_reg_of_byte_size(lhs_size);
-        int temp_reg_n = get_next_available_reg(lhs_size);
-        function_push_reg(ctx.current_function, temp_reg_n);
-        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
-        codegen_expr(rhs);
-        emit_s("CMP %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        Value* lhs_v = codegen_expr(lhs);
+        push_result_to_temporary_reg(lhs_v);
+        Value* rhs_v = codegen_expr(rhs);
+        int lhs_r = pop_result_from_temporary_reg();
+        int rhs_r = get_rax_reg_of_byte_size(get_size_of_value(rhs_v));
+        emit_s("CMP %s, %s", get_reg(lhs_r), get_reg(rhs_r));
         emit_s("SETLE AL");
-        return lhs_val;
+        return lhs_v;
     }
 
     case TOKEN_GT_EQ: {
-        Value* lhs_val = codegen_expr(lhs);
-        u64 lhs_size = get_size_of_value(lhs_val);
-        int reg_n = get_rax_reg_of_byte_size(lhs_size);
-        int temp_reg_n = get_next_available_reg(lhs_size);
-        function_push_reg(ctx.current_function, temp_reg_n);
-        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        Value* lhs_v = codegen_expr(lhs);
+        push_result_to_temporary_reg(lhs_v);
+        Value* rhs_v = codegen_expr(rhs);
+        int lhs_r = pop_result_from_temporary_reg();
+        int rhs_r = get_rax_reg_of_byte_size(get_size_of_value(rhs_v));
         codegen_expr(rhs);
-        emit_s("CMP %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        emit_s("CMP %s, %s", get_reg(lhs_r), get_reg(rhs_r));
         emit_s("SETGE AL");
-        return lhs_val;
+        return lhs_v;
     }
 
     case TOKEN_EQ_EQ: {
-        Value* lhs_val = codegen_expr(lhs);
-        u64 lhs_size = get_size_of_value(lhs_val);
-        int reg_n = get_rax_reg_of_byte_size(lhs_size);
-        int temp_reg_n = get_next_available_reg(lhs_size);
-        function_push_reg(ctx.current_function, temp_reg_n);
-        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
-        codegen_expr(rhs);
-        emit_s("CMP %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        Value* lhs_v = codegen_expr(lhs);
+        push_result_to_temporary_reg(lhs_v);
+        Value* rhs_v = codegen_expr(rhs);
+        int lhs_r = pop_result_from_temporary_reg();
+        int rhs_r = get_rax_reg_of_byte_size(get_size_of_value(rhs_v));
+        emit_s("CMP %s, %s", get_reg(lhs_r), get_reg(rhs_r));
         emit_s("SETE AL");
-        return lhs_val;
+        return lhs_v;
     }
 
     case TOKEN_BANG_EQ: {
-        Value* lhs_val = codegen_expr(lhs);
-        u64 lhs_size = get_size_of_value(lhs_val);
-        int reg_n = get_rax_reg_of_byte_size(lhs_size);
-        int temp_reg_n = get_next_available_reg(lhs_size);
-        function_push_reg(ctx.current_function, temp_reg_n);
-        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
-        codegen_expr(rhs);
-        emit_s("CMP %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        Value* lhs_v = codegen_expr(lhs);
+        push_result_to_temporary_reg(lhs_v);
+        Value* rhs_v = codegen_expr(rhs);
+        int lhs_r = pop_result_from_temporary_reg();
+        int rhs_r = get_rax_reg_of_byte_size(get_size_of_value(rhs_v));
+        emit_s("CMP %s, %s", get_reg(lhs_r), get_reg(rhs_r));
         emit_s("SETNE AL");
-        return lhs_val;
+        return lhs_v;
     }
 
     case TOKEN_PLUS_EQ: {
-        Value* variable = codegen_expr(lhs);
-        if (variable->kind != VALUE_VARIABLE) error("lhs of += must be a variable.");
+        Value* lhs_v = codegen_expr(lhs);
+        if (lhs_v->kind != VALUE_VARIABLE) error("lhs of += must be a variable.");
 
         Value* rhs_val = codegen_expr(rhs);
         u64 rhs_size = get_size_of_value(rhs_val);
         u64 reg_n = get_rax_reg_of_byte_size(rhs_size);
-        u64 stack_pos = get_stack_pos_of_variable(variable);
+        u64 stack_pos = get_stack_pos_of_variable(lhs_v);
         emit_s("ADD [RSP-%d], %s", stack_pos, get_reg(reg_n));
 
-        return variable;
+        return lhs_v;
     }
 
     case TOKEN_MINUS_EQ: {
-        Value* rhs_val = codegen_expr(rhs);
-        u64 rhs_size = get_size_of_value(rhs_val);
-        u64 reg_n = get_rax_reg_of_byte_size(rhs_size);
+        Value* rhs_v = codegen_expr(rhs);
+        push_result_to_temporary_reg(rhs_v);
 
-        int temp_reg_n = get_next_available_reg(rhs_size);
-        // curr_func->add_used_reg(temp_reg.reg);
-        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        Value* lhs_v = codegen_expr(lhs);
+        if (lhs_v->kind != VALUE_VARIABLE) error("lhs of -= must be a variable.");
+        int rhs_r = pop_result_from_temporary_reg();
+        int lhs_r = get_rax_reg_of_byte_size(get_size_of_value(lhs_v));
 
-        Value* variable = codegen_expr(lhs);
-        if (variable->kind != VALUE_VARIABLE) error("lhs of -= must be a variable.");
-
-        emit_s("SUB %s, %s", get_reg(reg_n), get_reg(temp_reg_n));
-        emit_store(variable);
-        return variable;
+        emit_s("SUB %s, %s", get_reg(lhs_r), get_reg(rhs_r));
+        emit_store(lhs_v);
+        return lhs_v;
     }
 
     case TOKEN_ASTERISK_EQ: {
@@ -517,21 +487,18 @@ Value* codegen_binary(Expr* expr)
     case TOKEN_BITWISE_LEFTSHIFT: error("bitwise_leftshift not implemented.");
     case TOKEN_BITWISE_RIGHTSHIFT: error("bitwise_rightshift not implemented.");
     case TOKEN_FWSLASH_EQ: {
-        Value* rhs_val = codegen_expr(rhs);
-        u64 rhs_size = get_size_of_value(rhs_val);
-        u64 reg_n = get_rax_reg_of_byte_size(rhs_size);
+        Value* rhs_v = codegen_expr(rhs);
+        push_result_to_temporary_reg(rhs_v);
 
-        int temp_reg_n = get_next_available_reg(rhs_size);
-        // curr_func->add_used_reg(temp_reg.reg);
-        emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+        Value* lhs_v = codegen_expr(lhs);
+        if (lhs_v->kind != VALUE_VARIABLE) error("lhs of /= must be a variable.");
 
-        Value* variable = codegen_expr(lhs);
-        if (variable->kind != VALUE_VARIABLE) error("lhs of /= must be a variable.");
+        int rhs_r = pop_result_from_temporary_reg();
 
         emit_s("CDQ");
-        emit_s("IDIV %s", get_reg(temp_reg_n));
-        emit_store(variable);
-        return variable;
+        emit_s("IDIV %s", get_reg(rhs_r));
+        emit_store(lhs_v);
+        return lhs_v;
     }
 
     case TOKEN_AT: error("at not implemented.");
@@ -637,13 +604,27 @@ Value* codegen_ret(Expr* expr)
     // Also deallocate any stack used.
 
     // Pop off regs in reverse order
-    u8* regs_used = ctx.current_function->Function.regs_used;
-    u8 regs_count = ctx.current_function->Function.regs_used_count;
-    if (regs_count)
-        for (int i = regs_count - 1; i >= 0; --i) {
-            int reg_n = get_push_or_popable_reg(regs_used[i]);
-            emit_s("POP %s", get_reg(reg_n));
+    // u8* regs_used = ctx.current_function->Function.regs_used;
+    // u8 regs_used_count = ctx.current_function->Function.regs_used_count;
+    // if (regs_used_count) {
+    //     for (int i = regs_used_count-1; i >= 0; --i) {
+    //         emit_s("POP %s", get_reg(get_push_or_popable_reg(regs_used[i])));
+    //     }
+    // }
+
+    u8 regs_used_total = ctx.current_function->Function.regs_used_total;
+    if (regs_used_total) 
+    for (int i = regs_used_total-1; i >= 0; --i) {
+        switch (i)
+        {
+            case 0: emit_s("POP R10"); break;
+            case 1: emit_s("POP R11"); break;
+            case 2: emit_s("POP R12"); break;
+            case 3: emit_s("POP R13"); break;
+            case 4: emit_s("POP R14"); break;
+            case 5: emit_s("POP R15"); break;
         }
+    }
 
     // Deallocate stack used by the function 
     u64 stack_used = ctx.current_function->Function.stack_allocated;
@@ -855,7 +836,7 @@ Value* codegen_subscript(Expr* expr)
     Value* result = codegen_expr(expr->Subscript.expr);
     assert(result->kind == VALUE_INT);
     Value* variable = get_variable(expr->Subscript.variable_name);
-    save_rax_to_temporary_reg(result);
+    push_result_to_temporary_reg(result);
     emit_load(variable);
     return variable;
 }
@@ -934,11 +915,17 @@ char* generate_code_from_ast(List ast)
 
         emit(&output, "_%s:", func_name);
 
-        u8* regs_used = func_v->Function.regs_used;
-        u8 regs_count = func_v->Function.regs_used_count;
-        for (u8 k = 0; k < regs_count; ++k) {
-            int reg_n = get_push_or_popable_reg(regs_used[k]);
-            emit(&output, "   PUSH %s", get_reg(reg_n));
+        u8 regs_used_total = func_v->Function.regs_used_total;
+        for (u8 i = 0; i < regs_used_total; ++i) {
+            switch (i)
+            {
+                case 0: emit(&output, "PUSH R10"); break;
+                case 1: emit(&output, "PUSH R11"); break;
+                case 2: emit(&output, "PUSH R12"); break;
+                case 3: emit(&output, "PUSH R13"); break;
+                case 4: emit(&output, "PUSH R14"); break;
+                case 5: emit(&output, "PUSH R15"); break;
+            }
         }
 
         u64 stack_allocated = func_v->Function.stack_allocated;
