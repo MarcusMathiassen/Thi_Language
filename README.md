@@ -35,11 +35,11 @@
 
 # Minumum features needed for self-hosting
 - [x] integer literals
-- [ ] string literals
+- [-] string literals
 - [x] functions
-- [-] function calls
+- [x] function calls
 - [ ] multiple compilation files using 'load'
-- [ ] C stdlib interop
+- [x] C stdlib interop
 
 - [x] variables
 - [ ] global variables
@@ -48,7 +48,7 @@
 - [ ] char
 - [ ] pointer
 
-- [ ] subscript access
+- [x] subscript access
 
 - [ ] structs
 - [ ] field access
@@ -58,9 +58,9 @@
 - [x] if
 - [x] for
 - [x] while
-- [ ] break
+- [x] break
 - [x] return
-- [ ] continue
+- [x] continue
 
 - [ ] switch
 - [ ] case
