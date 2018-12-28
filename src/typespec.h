@@ -18,7 +18,7 @@ Typespec* make_typespec_int(i8 bits, bool is_unsigned);
 Typespec* make_typespec_float(i8 bits);
 Typespec* make_typespec_string(u64 len);
 Typespec* make_typespec_pointer(Typespec* pointee);
-Typespec* make_typespec_array(Typespec* type, int size);
+Typespec* make_typespec_array(Typespec* type, i32 size);
 Typespec* make_typespec_struct(char* name, Arg* members);
 Typespec* make_typespec_enum(char* name, char** members);
 Typespec* make_typespec_function(char* name, Arg* args, Typespec* ret_type);
@@ -69,7 +69,7 @@ struct Typespec
         struct
         {
             Typespec* type;
-            int size;
+            i32 size;
         } Array;
         struct
         {

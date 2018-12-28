@@ -9,7 +9,7 @@ u32 hash_it(char* str);
 
 typedef struct
 {
-    int id;
+    i32 id;
     float val;
 } Test_Type;
 
@@ -18,18 +18,18 @@ void map_tests(void)
     Map map;
     map_init(&map);
 
-    Test_Type marcus;
-    marcus.id = 0;
-    marcus.val = 3.43f;
+    Test_Type t1;
+    t1.id = 0;
+    t1.val = 3.43f;
 
-    Test_Type aylin;
-    aylin.id = 1;
-    aylin.val = 6.41f;
+    Test_Type t2;
+    t2.id = 1;
+    t2.val = 6.41f;
 
-    map_set(&map, "marcus", &marcus);
-    map_set(&map, "aylin", &aylin);
-    assert(((Test_Type*)map_get(&map, "marcus"))->val == 3.43f);
-    assert(((Test_Type*)map_get(&map, "aylin"))->val == 6.41f);
+    map_set(&map, "t1", &t1);
+    map_set(&map, "t2", &t2);
+    assert(((Test_Type*)map_get(&map, "t1"))->val == 3.43f);
+    assert(((Test_Type*)map_get(&map, "t2"))->val == 6.41f);
 }
 
 void map_init(Map* map)

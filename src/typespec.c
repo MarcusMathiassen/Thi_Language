@@ -74,7 +74,7 @@ char* typespec_to_json(Typespec* type)
     case TYPESPEC_STRUCT: {
         string str = make_string(strf("%s :: {\n", type->Struct.name));
         Arg* args = type->Struct.members;
-        int arg_count = sb_count(args);
+        i32 arg_count = sb_count(args);
         if (arg_count) {
             for (int i = 0; i < arg_count; ++i) {
                 append_string(&str, strf("%s: %s", args[i].name, typespec_to_str(args[i].type)));
@@ -87,7 +87,7 @@ char* typespec_to_json(Typespec* type)
     case TYPESPEC_ENUM: {
         string str = make_string(strf("%s :: enum {", type->Enum.name));
         char** args = type->Enum.members;
-        int arg_count = sb_count(args);
+        i32 arg_count = sb_count(args);
         if (arg_count) {
             for (int i = 0; i < arg_count; ++i) {
                 append_string(&str, strf("%s", args[i]));
@@ -101,7 +101,7 @@ char* typespec_to_json(Typespec* type)
         string str = make_string(strf("%s (", type->Function.name));
         strf("func. name: %d", type->Function.name);
         Arg* args = type->Function.args;
-        int arg_count = sb_count(args);
+        i32 arg_count = sb_count(args);
         if (arg_count) {
             for (int i = 0; i < arg_count; ++i) {
                 if (args[i].name)
@@ -130,7 +130,7 @@ char* typespec_to_str(Typespec* type)
     case TYPESPEC_STRUCT: {
         string str = make_string(strf("%s :: {\n", type->Struct.name));
         Arg* args = type->Struct.members;
-        int arg_count = sb_count(args);
+        i32 arg_count = sb_count(args);
         if (arg_count) {
             for (int i = 0; i < arg_count; ++i) {
                 append_string(&str, strf("%s: %s", args[i].name, typespec_to_str(args[i].type)));
@@ -143,7 +143,7 @@ char* typespec_to_str(Typespec* type)
     case TYPESPEC_ENUM: {
         string str = make_string(strf("%s :: enum {", type->Enum.name));
         char** args = type->Enum.members;
-        int arg_count = sb_count(args);
+        i32 arg_count = sb_count(args);
         if (arg_count) {
             for (int i = 0; i < arg_count; ++i) {
                 append_string(&str, strf("%s", args[i]));
@@ -157,7 +157,7 @@ char* typespec_to_str(Typespec* type)
         string str = make_string(strf("%s :: (", type->Function.name));
         strf("func. name: %d", type->Function.name);
         Arg* args = type->Function.args;
-        int arg_count = sb_count(args);
+        i32 arg_count = sb_count(args);
         if (arg_count) {
             for (int i = 0; i < arg_count; ++i) {
                 if (args[i].name)
@@ -186,7 +186,7 @@ Typespec* make_typespec(Typespec_Kind kind)
     return t;
 }
 
-Typespec* make_typespec_array(Typespec* type, int size)
+Typespec* make_typespec_array(Typespec* type, i32 size)
 {
     assert(type);
     assert(size > 0);

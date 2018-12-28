@@ -8,7 +8,7 @@ void stack_init(Stack* stack) { stack->head = NULL; }
 
 typedef struct
 {
-    int id;
+    i32 id;
     float val;
 } Test_Type;
 
@@ -16,16 +16,16 @@ void stack_tests(void)
 {
     Stack test_stack;
     stack_init(&test_stack);
-    Test_Type marcus;
-    marcus.id = 0;
-    marcus.val = 3.43f;
+    Test_Type t1;
+    t1.id = 0;
+    t1.val = 3.43f;
 
-    Test_Type aylin;
-    aylin.id = 1;
-    aylin.val = 6.41f;
+    Test_Type t2;
+    t2.id = 1;
+    t2.val = 6.41f;
 
-    stack_push(&test_stack, &marcus);
-    stack_push(&test_stack, &aylin);
+    stack_push(&test_stack, &t1);
+    stack_push(&test_stack, &t2);
     assert(((Test_Type*)stack_pop(&test_stack))->val == 6.41f);
     assert(((Test_Type*)stack_pop(&test_stack))->val == 3.43f);
     assert((Test_Type*)stack_pop(&test_stack) == NULL);

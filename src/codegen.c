@@ -165,8 +165,8 @@ void push_result_to_temporary_reg(Value* val)
     if (val->type->kind == TYPESPEC_ARRAY) {
         size = get_size_of_typespec(val->type->Array.type);   
     }
-    int reg_n = get_rax_reg_of_byte_size(size);
-    int temp_reg_n = get_next_available_reg(&ctx, size);
+    i32 reg_n = get_rax_reg_of_byte_size(size);
+    i32 temp_reg_n = get_next_available_reg(&ctx, size);
     emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
     function_push_reg(ctx.current_function, temp_reg_n);
 }
@@ -189,13 +189,13 @@ void emit_store(Value* variable)
     assert(variable->kind == VALUE_VARIABLE);
 
     u64 size = get_size_of_value(variable);
-    int reg_n = get_rax_reg_of_byte_size(size);
+    i32 reg_n = get_rax_reg_of_byte_size(size);
     u64 stack_pos = get_stack_pos_of_variable(variable);
 
     switch (variable->type->kind) {
     case TYPESPEC_ARRAY:
     {
-        int temp_reg_n = get_push_or_popable_reg(pop_result_from_temporary_reg());
+        i32 temp_reg_n = get_push_or_popable_reg(pop_result_from_temporary_reg());
         size = get_size_of_typespec(variable->type->Array.type);
         emit_s("MOV [RBP-%d+%s*%d], %s ; emit_store on '%s'", stack_pos, get_reg(temp_reg_n), size, get_reg(reg_n), variable->Variable.name);
         break;
@@ -213,7 +213,7 @@ void emit_load(Value* variable)
 {
     assert(variable->kind == VALUE_VARIABLE);
     u64 size = get_size_of_value(variable);
-    int reg_n = get_rax_reg_of_byte_size(size);
+    i32 reg_n = get_rax_reg_of_byte_size(size);
     u64 stack_pos = get_stack_pos_of_variable(variable);
 
     switch (variable->type->kind) {
@@ -248,7 +248,7 @@ Value* codegen_function(Expr* expr)
     u64 stack_before_func = ctx.stack_index;
 
     Arg* args = expr->Function.type->Function.args;
-    int arg_count = sb_count(args);
+    i32 arg_count = sb_count(args);
     if (arg_count) info("Printing function parameters");
 
     for (int i = 0; i < arg_count; ++i) {
@@ -280,7 +280,7 @@ Value* codegen_int(Expr* expr)
 {
     assert(expr->kind == EXPR_INT);
     Value* val = make_value_int(DEFAULT_INTEGER_BYTE_SIZE, integer_literal_type, expr->Int.val);
-    int reg_n = get_rax_reg_of_byte_size(get_size_of_value(val));
+    i32 reg_n = get_rax_reg_of_byte_size(get_size_of_value(val));
     emit_s("MOV %s, %d", get_reg(reg_n), val->Int.value);
     return val;
 }
@@ -304,7 +304,7 @@ Value* codegen_unary(Expr* expr)
     Expr* operand = expr->Unary.operand;
 
     Value* operand_val = codegen_expr(operand);
-    int reg_n = get_rax_reg_of_byte_size(get_size_of_value(operand_val));
+    i32 reg_n = get_rax_reg_of_byte_size(get_size_of_value(operand_val));
     Value* result = operand_val;
 
     switch (op) {
@@ -474,8 +474,8 @@ Value* codegen_binary(Expr* expr)
 
         Value* lhs_v = codegen_expr(lhs);
         if (lhs_v->kind != VALUE_VARIABLE) error("lhs of -= must be a variable.");
-        int rhs_r = pop_result_from_temporary_reg();
-        int lhs_r = get_rax_reg_of_byte_size(get_size_of_value(lhs_v));
+        i32 rhs_r = pop_result_from_temporary_reg();
+        i32 lhs_r = get_rax_reg_of_byte_size(get_size_of_value(lhs_v));
 
         emit_s("SUB %s, %s", get_reg(lhs_r), get_reg(rhs_r));
         emit_store(lhs_v);
@@ -505,7 +505,7 @@ Value* codegen_binary(Expr* expr)
         Value* lhs_v = codegen_expr(lhs);
         if (lhs_v->kind != VALUE_VARIABLE) error("lhs of /= must be a variable.");
 
-        int rhs_r = pop_result_from_temporary_reg();
+        i32 rhs_r = pop_result_from_temporary_reg();
 
         emit_s("CDQ");
         emit_s("IDIV %s", get_reg(rhs_r));
@@ -648,8 +648,8 @@ Value* codegen_call(Expr* expr)
     Typespec* func_t = get_symbol(callee);
 
     // push the arguments in reverse order onto the stack
-    int func_arg_count = typespec_function_get_arg_count(func_t);
-    int arg_count = sb_count(args);
+    i32 func_arg_count = typespec_function_get_arg_count(func_t);
+    i32 arg_count = sb_count(args);
 
     if (func_arg_count != arg_count) error("wrong amount of parameters for call to function '%s'", callee);
 
@@ -664,9 +664,9 @@ Value* codegen_call(Expr* expr)
 
     for (int i = arg_count - 1; i >= 0; --i) {
         Value* val = param_vals[i];
-        int size = get_size_of_value(val);
-        int reg_n = get_rax_reg_of_byte_size(size);
-        int param_reg_n = get_parameter_reg(i, size);
+        i32 size = get_size_of_value(val);
+        i32 reg_n = get_rax_reg_of_byte_size(size);
+        i32 param_reg_n = get_parameter_reg(i, size);
 
         pop_s(RAX);
         emit_s("MOV %s, %s", get_reg(param_reg_n), get_reg(reg_n));
@@ -727,8 +727,8 @@ Value* codegen_for(Expr* expr)
 
     // Setup the iterator variable with the start value.
     Value* start_val = codegen_expr(start);
-    int type_size = get_size_of_value(start_val);
-    int stack_pos = type_size + ctx.stack_index;
+    i32 type_size = get_size_of_value(start_val);
+    i32 stack_pos = type_size + ctx.stack_index;
     Value* iterator_var = make_value_variable(iterator_name, start_val->type, stack_pos);
     add_variable(iterator_var);
     ctx.current_function->Function.stack_allocated += type_size;
@@ -737,7 +737,7 @@ Value* codegen_for(Expr* expr)
 
     // COND:
     emit_s("%s:", condition_label);
-    int res_reg = get_rax_reg_of_byte_size(type_size);
+    i32 res_reg = get_rax_reg_of_byte_size(type_size);
 
     // Compare the iterator to the end value
     codegen_expr(end);
@@ -778,8 +778,8 @@ Value* codegen_if(Expr* expr)
     char* else_label = else_body ? ctx_get_unique_label(&ctx) : NULL;
     
     Value* condition_val = codegen_expr(condition);
-    int condition_size = get_size_of_value(condition_val);
-    int res_reg = get_rax_reg_of_byte_size(condition_size);
+    i32 condition_size = get_size_of_value(condition_val);
+    i32 res_reg = get_rax_reg_of_byte_size(condition_size);
 
     emit_s("CMP %s, 0", get_reg(res_reg));
     emit_s("JE %s", else_body ? else_label : continue_label);
@@ -860,7 +860,7 @@ Value* codegen_note(Expr* expr)
     assert(expr->kind == EXPR_NOTE);
     Expr* int_expr = expr->Note.expr;
     assert(int_expr->kind == EXPR_INT);
-    int integer_value = int_expr->Int.val;
+    i32 integer_value = int_expr->Int.val;
     if (integer_value < 1) error("note parameters start at 1.");
     char* name = ctx.current_function->type->Function.args[integer_value - 1].name;
     Value* var = get_variable(name);
@@ -932,7 +932,7 @@ char* generate_code_from_ast(List ast)
 
     LIST_FOREACH(ast) { codegen_expr((Expr*)it->data); }
 
-    int func_count = sb_count(functions);
+    i32 func_count = sb_count(functions);
     for (int i = 0; i < func_count; ++i) {
         Value* func_v = functions[i];
         char* func_name = func_v->Function.name;
@@ -963,7 +963,7 @@ char* generate_code_from_ast(List ast)
         }
 
         CodeBlock** codeblocks = func_v->Function.codeblocks;
-        int cb_count = sb_count(codeblocks);
+        i32 cb_count = sb_count(codeblocks);
         for (int j = 0; j < cb_count; ++j) {
             if (codeblocks[j]->block.len) emit(&output, "%s", codeblocks[j]->block.c_str);
         }

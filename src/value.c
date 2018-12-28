@@ -188,7 +188,7 @@ void function_print_debug(Value* function)
     assert(function->kind == VALUE_FUNCTION);
 
     CodeBlock** codeblocks = function->Function.codeblocks;
-    int cb_count = sb_count(codeblocks);
+    i32 cb_count = sb_count(codeblocks);
 
     char* cb_0_c = codeblocks[0]->color;
     info("%s%s: \033[00m", cb_0_c, function->Function.name);

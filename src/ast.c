@@ -234,7 +234,7 @@ char* expr_to_json(Expr* expr)
                       expr->Variable_Decl_Type_Inf.name, expr_to_json(expr->Variable_Decl_Type_Inf.value));
     } break;
     case EXPR_BLOCK: {
-        int block_count = sb_count(expr->Block.stmts);
+        i32 block_count = sb_count(expr->Block.stmts);
         string str = make_string("{\"EXPR_BLOCK\": [");
         for (int i = 0; i < block_count; ++i) {
             append_string(&str, expr_to_json(expr->Block.stmts[i]));
@@ -268,7 +268,7 @@ char* expr_to_json(Expr* expr)
         string str = make_string("");
         append_string_f(&str, "{\"%s\": {\"callee\": %s, ", expr_kind_to_str(expr->kind), expr->Call.callee);
         append_string(&str, "\"args\": [");
-        int arg_count = sb_count(expr->Call.args);
+        i32 arg_count = sb_count(expr->Call.args);
         for (int i = 0; i < arg_count; ++i) {
             append_string(&str, expr_to_json(expr->Call.args[i]));
             if (i != arg_count - 1) append_string(&str, ", ");

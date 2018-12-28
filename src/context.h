@@ -26,7 +26,7 @@ struct Context
     char* label_continue_to;
     char* label_break_to;
 
-    int next_available_reg_index;
+    i32 next_available_reg_index;
 };
 
 void ctx_tests(void);

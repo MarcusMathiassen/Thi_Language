@@ -89,7 +89,7 @@ int get_parameter_reg(i8 i, i8 size)
 
 int get_next_available_reg(Context* ctx, i8 size)
 {
-    int res = -1;
+    i32 res = -1;
     switch (ctx->next_available_reg_index) {
     case 0:
         switch (size) {

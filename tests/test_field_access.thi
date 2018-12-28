@@ -4,7 +4,7 @@ person :: struct {
 
 
 main :: () -> i32 {
-    aylin: person 
-    aylin.alder = 1 
-    ret aylin.alder
+    p: person 
+    p.alder = 1 
+    ret p.alder
 }

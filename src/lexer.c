@@ -75,7 +75,7 @@ void print_token(Token token) { info("%s %s", token_kind_to_str(token.kind), tok
 
 void print_tokens(Token* tokens)
 {
-    int count = sb_count(tokens);
+    i32 count = sb_count(tokens);
     info("Printing %d tokens..", count);
     for (int i = 0; i < count; ++i)
         print_token(tokens[i]);

@@ -15,7 +15,7 @@
 struct
 {
     Token_Kind kind;
-    int p;
+    i32 p;
 } binop_precedence[BIN_OP_COUNT] = {
     {TOKEN_DOT, 100},          // .
     {TOKEN_OPEN_PAREN, 100},   // ()
@@ -179,7 +179,7 @@ void generate_symbol_table_from_tokens(Token* tokens)
             // assert(tokense);
 
             // // Save off current progress
-            // int s_token_index = token_index;
+            // i32 s_token_index = token_index;
             // Token_Kind s_k = curr_tok.kind;
 
             // generate_symbol_table_from_tokens(tokense);
@@ -420,7 +420,7 @@ Expr* parse_binary(int expr_prec, Expr* lhs)
 {
     // If this is a binop, find its precedence.
     while (1) {
-        const int tok_prec = get_tok_precedence();
+        const i32 tok_prec = get_tok_precedence();
 
         // If this is a binop that binds at least as tightly as the current
         // binop, consume it, otherwise we are done.
@@ -437,7 +437,7 @@ Expr* parse_binary(int expr_prec, Expr* lhs)
         }
         // If BinOp binds less tightly with rhs than the operator after rhs, let
         // the pending operator take rhs as its lhs.
-        int next_prec = get_tok_precedence();
+        i32 next_prec = get_tok_precedence();
         if (tok_prec < next_prec) {
             rhs = parse_binary(tok_prec + 1, rhs);
 

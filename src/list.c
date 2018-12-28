@@ -22,24 +22,24 @@ void list_tests(void)
     List list;
     list_init(&list);
 
-    Test_Type marcus;
-    marcus.name = "marcus";
-    marcus.val = 3.43f;
+    Test_Type t1;
+    t1.name = "t1";
+    t1.val = 3.43f;
 
-    Test_Type aylin;
-    aylin.name = "aylin";
-    aylin.val = 6.41f;
+    Test_Type t2;
+    t2.name = "t2";
+    t2.val = 6.41f;
 
     // Append
-    list_append(&list, &marcus);
-    list_append(&list, &aylin);
+    list_append(&list, &t1);
+    list_append(&list, &t2);
 
     // At
     assert(((Test_Type*)list_at(&list, 0))->val == 3.43f);
     assert(((Test_Type*)list_last(&list))->val == 6.41f);
 
     // // Prepend
-    list_prepend(&list, &aylin);
+    list_prepend(&list, &t2);
     assert(((Test_Type*)list_at(&list, 0))->val == 6.41f);
 
     // Remove
