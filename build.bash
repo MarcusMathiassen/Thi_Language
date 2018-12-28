@@ -14,8 +14,8 @@ echo Compilation finished. Time taken: $((end-start)) seconds
 if [ $? == 0 ]; then
     # ./test.bash 
     # ./test.bash ./tests/test_stdlib.thi
-    # ./test.bash ./tests/test_stdlib_2.thi
-    ./test.bash ./tests/test_string.thi
+    ./test.bash ./tests/test_stdlib_2.thi
+    # ./test.bash ./tests/test_string.thi
     # ./test.bash ./tests/test_break.thi
     # ./test.bash ./tests/test_continue.thi
     # ./test.bash ./tests/test_math.thi

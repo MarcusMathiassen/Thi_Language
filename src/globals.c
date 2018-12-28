@@ -84,12 +84,10 @@ List get_foreign_function_list(void)
     return foreign_function_list; 
 }
 
-void add_constant_string(const char* name, Typespec* type)
+void add_constant_string(char* name)
 {
     assert(name);
-    assert(type);
-    list_append(&constant_string_list, type);
-    info("added constant string: '%s' of type '%s'", name, typespec_to_str(type));
+    list_append(&constant_string_list, name);
 }
 List get_constant_string_list(void)
 {

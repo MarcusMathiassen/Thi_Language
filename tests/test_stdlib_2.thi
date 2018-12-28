@@ -1,21 +1,6 @@
-foreign printf :: (i8*) -> i8
+foreign printf :: (i8*, i8*) -> i8
 
 main :: () -> i32 {
-    
-    printf(72)
-    printf(101)
-    printf(108)
-    printf(108)
-    printf(111)
-    printf(44)
-    printf(32)
-    printf(87)
-    printf(111)
-    printf(114)
-    printf(108)
-    printf(100)
-    printf(33)
-    printf(10)
-
+    printf("%d\n", 12345)
     ret 1
 }

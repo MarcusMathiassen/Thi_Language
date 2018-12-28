@@ -343,8 +343,9 @@ Expr* parse_identifier(void)
 
 Expr* parse_string()
 {
-    const char* value = curr_tok.value;
+    char* value = curr_tok.value;
     eat_kind(TOKEN_STRING);
+    add_constant_string(value);
     return make_expr_string(value);
 }
 

@@ -850,8 +850,8 @@ Value* codegen_string(Expr* expr)
 {
     assert(expr->kind == EXPR_STRING);
     const char* val = expr->String.val;
+    emit_s("MOV RAX, %s", val);
     Typespec* t = make_typespec_string(xstrlen(val));
-    add_constant_string(val, t);
     return make_value_string(val, t);
 }
 
@@ -922,8 +922,9 @@ char* generate_code_from_ast(List ast)
     List constant_string_list = get_constant_string_list();
     LIST_FOREACH(constant_string_list)
     { 
-        Value* str_val = ((Value*)it->data);
-        emit(&output, strf("db \"%s\", %llu", str_val->String.value, str_val->String.len));
+        const char* val = (const char*)it->data;
+        u64 len = xstrlen(val);
+        emit(&output, strf("%s: db \"%s\", %llu", val, val, len));
     }
 
     emit(&output, "global _main");
