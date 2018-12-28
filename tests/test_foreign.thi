@@ -1,5 +1,5 @@
-foreign puts :: (i8) -> i32
+foreign putchar :: (i32) -> i32
 main :: () -> i32 {
-    puts(65)
+    putchar(65)
     ret 1
 }
