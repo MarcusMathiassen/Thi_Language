@@ -27,7 +27,7 @@ typedef struct Map
 
 void map_init(Map* map);
 void map_tests(void);
-void* map_get(Map* map, const char* key);
-int map_set(Map* map, const char* key, void* value);
+void* map_get(Map* map, char* key);
+int map_set(Map* map, char* key, void* value);
 
 #endif

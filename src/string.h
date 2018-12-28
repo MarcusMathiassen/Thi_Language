@@ -8,14 +8,14 @@ typedef struct
     u64 len;
 } string;
 
-string make_string(const char* str);
-string make_string_f(const char* fmt, ...);
-void append_string(string* s, const char* str);
-void append_string_f(string* s, const char* fmt, ...);
+string make_string(char* str);
+string make_string_f(char* fmt, ...);
+void append_string(string* s, char* str);
+void append_string_f(string* s, char* fmt, ...);
 void free_string(string* s);
 
-const char* str_intern_range(const char* start, const char* end);
-const char* str_intern(const char* str);
+char* str_intern_range(char* start, char* end);
+char* str_intern(char* str);
 
 //------------------------------------------------------------------------------
 //                               Tests

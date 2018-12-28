@@ -33,7 +33,7 @@ u64 get_size_of_value(Value* value)
     return get_size_of_typespec(value->type);
 }
 
-void emit_s(const char* fmt, ...)
+void emit_s(char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -49,7 +49,7 @@ void emit_s(const char* fmt, ...)
     append_string(current_output, str);
 }
 
-void emit(string* output, const char* fmt, ...)
+void emit(string* output, char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -65,7 +65,7 @@ void emit(string* output, const char* fmt, ...)
     append_string(output, "\n");
 }
 
-void start_codeblock(Value* function, const char* desc)
+void start_codeblock(Value* function, char* desc)
 {
     assert(function);
     assert(function->kind == VALUE_FUNCTION);
@@ -121,7 +121,7 @@ Value* make_value_int(u8 bytes, Typespec* type, u64 value)
     return v;
 }
 
-Value* make_value_string(const char* value, Typespec* type)
+Value* make_value_string(char* value, Typespec* type)
 {
     assert(value);
     assert(type);
@@ -132,7 +132,7 @@ Value* make_value_string(const char* value, Typespec* type)
     return v;
 }
 
-Value* make_value_variable(const char* name, Typespec* type, u64 stack_pos)
+Value* make_value_variable(char* name, Typespec* type, u64 stack_pos)
 {
     assert(name);
     assert(type);
@@ -144,7 +144,7 @@ Value* make_value_variable(const char* name, Typespec* type, u64 stack_pos)
     return v;
 }
 
-Value* make_value_call(const char* callee, Typespec* type)
+Value* make_value_call(char* callee, Typespec* type)
 {
     assert(callee);
     assert(type);
@@ -190,7 +190,7 @@ void function_print_debug(Value* function)
     CodeBlock** codeblocks = function->Function.codeblocks;
     int cb_count = sb_count(codeblocks);
 
-    const char* cb_0_c = codeblocks[0]->color;
+    char* cb_0_c = codeblocks[0]->color;
     info("%s%s: \033[00m", cb_0_c, function->Function.name);
 
     info("%sPUSH RBP\033[00m", cb_0_c);
@@ -217,13 +217,13 @@ void function_print_debug(Value* function)
 
     for (int j = 0; j < cb_count; ++j) {
         CodeBlock* cb = codeblocks[j];
-        const char* cb_c = cb->color;
+        char* cb_c = cb->color;
 
         // Print line
         if (cb->block.len) {
 
             // If the line is a label format it 
-            const char* line = cb->block.c_str;
+            char* line = cb->block.c_str;
             info("%s%s\033[00m", cb_c, line);
             // uncomment this for lines with their description.
             // info("%s;%s%s\033[00m", cb_c, cb->desc.c_str, line);

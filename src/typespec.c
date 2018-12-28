@@ -14,7 +14,7 @@
 //                               Public
 //------------------------------------------------------------------------------
 
-const char* typespec_kind_to_str(Typespec_Kind kind)
+char* typespec_kind_to_str(Typespec_Kind kind)
 {
     switch (kind) {
     case TYPESPEC_INT: return "TYPESPEC_INT";
@@ -86,7 +86,7 @@ char* typespec_to_json(Typespec* type)
     };
     case TYPESPEC_ENUM: {
         string str = make_string(strf("%s :: enum {", type->Enum.name));
-        const char** args = type->Enum.members;
+        char** args = type->Enum.members;
         int arg_count = sb_count(args);
         if (arg_count) {
             for (int i = 0; i < arg_count; ++i) {
@@ -142,7 +142,7 @@ char* typespec_to_str(Typespec* type)
     };
     case TYPESPEC_ENUM: {
         string str = make_string(strf("%s :: enum {", type->Enum.name));
-        const char** args = type->Enum.members;
+        char** args = type->Enum.members;
         int arg_count = sb_count(args);
         if (arg_count) {
             for (int i = 0; i < arg_count; ++i) {
@@ -229,7 +229,7 @@ Typespec* make_typespec_pointer(Typespec* pointee)
     return t;
 }
 
-Typespec* make_typespec_enum(const char* name, const char** members)
+Typespec* make_typespec_enum(char* name, char** members)
 {
     assert(name);
     Typespec* t = make_typespec(TYPESPEC_ENUM);
@@ -238,7 +238,7 @@ Typespec* make_typespec_enum(const char* name, const char** members)
     return t;
 }
 
-Typespec* make_typespec_struct(const char* name, Arg* members)
+Typespec* make_typespec_struct(char* name, Arg* members)
 {
     assert(name);
     Typespec* t = make_typespec(TYPESPEC_STRUCT);
@@ -247,7 +247,7 @@ Typespec* make_typespec_struct(const char* name, Arg* members)
     return t;
 }
 
-Typespec* make_typespec_function(const char* name, Arg* args, Typespec* ret_type)
+Typespec* make_typespec_function(char* name, Arg* args, Typespec* ret_type)
 {
     assert(name);
     Typespec* t = make_typespec(TYPESPEC_FUNCTION);

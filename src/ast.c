@@ -15,7 +15,7 @@
 //                               Public
 //------------------------------------------------------------------------------
 
-const char* expr_kind_to_str(Expr_Kind kind)
+char* expr_kind_to_str(Expr_Kind kind)
 {
     switch (kind) {
     case EXPR_SUBSCRIPT: return "EXPR_SUBSCRIPT";
@@ -309,7 +309,7 @@ Expr* make_expr(Expr_Kind kind)
     return e;
 }
 
-Expr* make_expr_subscript(const char* variable_name, Expr* expr)
+Expr* make_expr_subscript(char* variable_name, Expr* expr)
 {
     assert(variable_name);
     assert(expr);
@@ -331,7 +331,7 @@ Expr* make_expr_break(void)
     return e;
 }
 
-Expr* make_expr_macro(const char* name, Expr* expr)
+Expr* make_expr_macro(char* name, Expr* expr)
 {
     assert(name);
     assert(expr);
@@ -363,14 +363,14 @@ Expr* make_expr_float(f64 value)
     return e;
 }
 
-Expr* make_expr_string(const char* value)
+Expr* make_expr_string(char* value)
 {
     Expr* e = make_expr(EXPR_STRING);
     e->String.val = value;
     return e;
 }
 
-Expr* make_expr_ident(const char* ident)
+Expr* make_expr_ident(char* ident)
 {
     assert(ident);
     Expr* e = make_expr(EXPR_IDENT);
@@ -436,7 +436,7 @@ Expr* make_expr_while(Expr* cond, Expr* body)
     return e;
 }
 
-Expr* make_expr_for(const char* iterator_name, Expr* start, Expr* end, Expr* body)
+Expr* make_expr_for(char* iterator_name, Expr* start, Expr* end, Expr* body)
 {
     assert(iterator_name);
     assert(start);
@@ -461,7 +461,7 @@ Expr* make_expr_if(Expr* cond, Expr* then_body, Expr* else_body)
     return e;
 }
 
-Expr* make_expr_call(const char* callee, Expr** args)
+Expr* make_expr_call(char* callee, Expr** args)
 {
     assert(callee);
     assert(args);
@@ -487,7 +487,7 @@ Expr* make_expr_ret(Expr* expr)
     return e;
 }
 
-Expr* make_expr_variable_decl(const char* name, Typespec* type, Expr* value)
+Expr* make_expr_variable_decl(char* name, Typespec* type, Expr* value)
 {
     assert(name);
     assert(type);
@@ -499,7 +499,7 @@ Expr* make_expr_variable_decl(const char* name, Typespec* type, Expr* value)
     return e;
 }
 
-Expr* make_expr_variable_decl_type_inf(const char* name, Expr* value)
+Expr* make_expr_variable_decl_type_inf(char* name, Expr* value)
 {
     assert(name);
     assert(value);

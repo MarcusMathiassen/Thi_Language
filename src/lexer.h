@@ -122,12 +122,12 @@ typedef struct Token Token;
 struct Token
 {
     Token_Kind kind;
-    const char* value;
+    char* value;
 };
 
 Token* generate_tokens_from_source(char* source);
 void print_tokens(Token* tokens);
 void print_token(Token token);
-const char* token_kind_to_str(Token_Kind kind);
+char* token_kind_to_str(Token_Kind kind);
 
 #endif

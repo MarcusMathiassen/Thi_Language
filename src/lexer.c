@@ -31,8 +31,8 @@ Token get_token(void);
 bool is_valid_digit(void);
 bool is_valid_identifier(void);
 
-int get_keyword_index(const char* identifier);
-Token_Kind get_identifier_kind(const char* identifier);
+int get_keyword_index(char* identifier);
+Token_Kind get_identifier_kind(char* identifier);
 //------------------------------------------------------------------------------
 //                               Keywords
 //------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ typedef enum
 } Keyword_Kind;
 
 #define KEYWORD_COUNT 20
-const char* keywords_str[KEYWORD_COUNT] = {
+char* keywords_str[KEYWORD_COUNT] = {
     "foreign", "nil", "print", "load", "true",   "false", "cast",   "malloc", "sizeof",   "if",
     "else", "for", "while", "ret",  "struct", "enum",  "repeat", "break",  "continue", "do",
 };
@@ -162,13 +162,13 @@ void scan_digit()
     if (is_float) token.kind = TOKEN_FLOAT;
 }
 
-int get_keyword_index(const char* identifier)
+int get_keyword_index(char* identifier)
 {
     for (int i = 0; i < KEYWORD_COUNT; ++i)
         if (strcmp(identifier, keywords_str[i]) == 0) return i;
     return -1;
 }
-Token_Kind get_identifier_kind(const char* identifier)
+Token_Kind get_identifier_kind(char* identifier)
 {
 
     switch (get_keyword_index(identifier)) {
@@ -459,7 +459,7 @@ scan:
     return token;
 }
 
-const char* token_kind_to_str(Token_Kind kind)
+char* token_kind_to_str(Token_Kind kind)
 {
     switch (kind) {
     case TOKEN_EOF: return "eof";

@@ -5,7 +5,7 @@
 
 #define INITIAL_SIZE 16
 
-u32 hash_it(const char* str);
+u32 hash_it(char* str);
 
 typedef struct
 {
@@ -41,7 +41,7 @@ void map_init(Map* map)
 }
 
 // Add a pointer to the hashmap with some key
-int map_set(Map* map, const char* key, void* value)
+int map_set(Map* map, char* key, void* value)
 {
     assert(map);
     assert(key);
@@ -65,7 +65,7 @@ int map_set(Map* map, const char* key, void* value)
 }
 
 // Get your pointer out of the hashmap with a key
-void* map_get(Map* map, const char* key)
+void* map_get(Map* map, char* key)
 {
     assert(map);
     assert(key);
@@ -82,7 +82,7 @@ void* map_get(Map* map, const char* key)
 //                               Hash Function
 //------------------------------------------------------------------------------
 
-u32 hash_it(const char* str)
+u32 hash_it(char* str)
 {
     assert(str);
     u32 hash = 5381;

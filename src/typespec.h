@@ -19,9 +19,9 @@ Typespec* make_typespec_float(i8 bits);
 Typespec* make_typespec_string(u64 len);
 Typespec* make_typespec_pointer(Typespec* pointee);
 Typespec* make_typespec_array(Typespec* type, int size);
-Typespec* make_typespec_struct(const char* name, Arg* members);
-Typespec* make_typespec_enum(const char* name, const char** members);
-Typespec* make_typespec_function(const char* name, Arg* args, Typespec* ret_type);
+Typespec* make_typespec_struct(char* name, Arg* members);
+Typespec* make_typespec_enum(char* name, char** members);
+Typespec* make_typespec_function(char* name, Arg* args, Typespec* ret_type);
 
 u64 typespec_function_get_arg_count(Typespec* type);
 u64 typespec_array_get_count(Typespec* type);
@@ -41,7 +41,7 @@ enum Typespec_Kind
 
 struct Arg
 {
-    const char* name;
+    char* name;
     Typespec* type;
 };
 
@@ -73,17 +73,17 @@ struct Typespec
         } Array;
         struct
         {
-            const char* name;
-            const char** members;
+            char* name;
+            char** members;
         } Enum;
         struct
         {
-            const char* name;
+            char* name;
             Arg* members;
         } Struct;
         struct
         {
-            const char* name;
+            char* name;
             Arg* args;
             Typespec* ret_type;
         } Function;

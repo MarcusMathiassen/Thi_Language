@@ -20,8 +20,8 @@
 //------------------------------------------------------------------------------
 //                               Main Driver
 //------------------------------------------------------------------------------
-void assemble(const char* asm_file, const char* exec_name);
-void link(const char* exec_name);
+void assemble(char* asm_file, char* exec_name);
+void link(char* exec_name);
 
 /*
     Figure out all the files that are loaded by the source.
@@ -47,8 +47,8 @@ int main(int argc, char** argv)
         error("too many arguments.");
 
     // Grab the source file
-    const char* source_file = argv[1];
-    const char* exec_name = argv[2];
+    char* source_file = argv[1];
+    char* exec_name = argv[2];
     info("Compiling %s", source_file);
 
     // Setup types
@@ -69,9 +69,9 @@ int main(int argc, char** argv)
     add_builtin_type("f32", make_typespec_float(32));
     add_builtin_type("f64", make_typespec_float(64));
 
-    const char* ext = get_file_extension(source_file);
-    const char* dir = get_file_directory(source_file);
-    const char* name = get_file_name(source_file);
+    char* ext = get_file_extension(source_file);
+    char* dir = get_file_directory(source_file);
+    char* name = get_file_name(source_file);
 
     set_source_file(name);
     set_current_dir(dir);
@@ -125,7 +125,7 @@ int main(int argc, char** argv)
 
     // Write to file
     if (output) {
-        const char* output_filename = "output.asm";
+        char* output_filename = "output.asm";
         write_to_file(output_filename, output);
         assemble(output_filename, exec_name);
         link(exec_name);
@@ -152,7 +152,7 @@ int main(int argc, char** argv)
     return 0;
 }
 
-void assemble(const char* asm_file, const char* exec_name)
+void assemble(char* asm_file, char* exec_name)
 {
     string comp_call = make_string_f("nasm -f macho64 -g %s -o %s.o", asm_file, exec_name);
     push_timer("Assembler");
@@ -168,7 +168,7 @@ void assemble(const char* asm_file, const char* exec_name)
     free_string(&rm_asm_file);
 }
 
-void link(const char* exec_name)
+void link(char* exec_name)
 {
     string link_call = make_string_f("ld -macosx_version_min 10.14 -lSystem -o %s %s.o -e _main -lc", exec_name, exec_name);
     push_timer("Linker");

@@ -22,12 +22,12 @@ typedef struct CodeBlock
 {
     string desc;
     string block;
-    const char* color;
+    char* color;
 } CodeBlock;
 
-void add_lines_to_codeblock(CodeBlock* cb, const char* line);
+void add_lines_to_codeblock(CodeBlock* cb, char* line);
 
-void start_codeblock(Value* function, const char* desc);
+void start_codeblock(Value* function, char* desc);
 
 //------------------------------------------------------------------------------
 //                          Value Structures
@@ -35,13 +35,13 @@ void start_codeblock(Value* function, const char* desc);
 
 typedef struct
 {
-    const char* name;
+    char* name;
     u64 stack_pos;
 } Value_Variable;
 
 typedef struct
 {
-    const char* name;
+    char* name;
     u64 stack_allocated;
     CodeBlock** codeblocks;
 
@@ -56,8 +56,8 @@ typedef struct
 } Value_Function;
 
 typedef struct { u8 bytes; u64 value; } Value_Int;
-typedef struct { const char* value; u64 len; } Value_String;
-typedef struct { const char* callee; } Value_Call;
+typedef struct { char* value; u64 len; } Value_String;
+typedef struct { char* callee; } Value_Call;
 typedef struct { Value* variable; u64 offset; } Value_LoadInst;
 typedef struct { Value* variable; u64 offset; } Value_StoreInst;
 
@@ -80,9 +80,9 @@ Value* make_value_load_inst(Value* variable, u64 offset);
 Value* make_value_store_inst(Value* variable, u64 offset);
 
 Value* make_value_int(u8 bytes, Typespec* type, u64 value);
-Value* make_value_string(const char* value, Typespec* type);
-Value* make_value_variable(const char* name, Typespec* type, u64 stack_pos);
-Value* make_value_call(const char* callee, Typespec* type);
+Value* make_value_string(char* value, Typespec* type);
+Value* make_value_variable(char* name, Typespec* type, u64 stack_pos);
+Value* make_value_call(char* callee, Typespec* type);
 Value* make_value_function(Typespec* type);
 
 u64 get_size_of_value(Value* value);
@@ -93,8 +93,8 @@ void function_get_stack_used(Value* function);
 void function_push_reg(Value* function, u64 reg_n);
 u64 function_pop_reg(Value* function);
 
-void emit_s(const char* fmt, ...);
-void emit(string* output, const char* fmt, ...);
+void emit_s(char* fmt, ...);
+void emit(string* output, char* fmt, ...);
 
 //------------------------------------------------------------------------------
 //                               Scope

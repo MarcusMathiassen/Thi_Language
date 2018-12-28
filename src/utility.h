@@ -7,20 +7,20 @@
 //                               Printing Functions
 //------------------------------------------------------------------------------
 
-void info(const char* fmt, ...);
-void warning(const char* fmt, ...);
-void success(const char* fmt, ...);
-void error(const char* fmt, ...);
+void info(char* fmt, ...);
+void warning(char* fmt, ...);
+void success(char* fmt, ...);
+void error(char* fmt, ...);
 
 //------------------------------------------------------------------------------
 //                               File Functions
 //------------------------------------------------------------------------------
-char* get_file_path_from_directory(const char* dir, const char* filename);
-char* get_file_extension(const char* filename);
-char* get_file_directory(const char* filename);
-char* get_file_name(const char* filename);
-char* get_file_content(const char* filename);
-void write_to_file(const char* filename, const char* buffer);
+char* get_file_path_from_directory(char* dir, char* filename);
+char* get_file_extension(char* filename);
+char* get_file_directory(char* filename);
+char* get_file_name(char* filename);
+char* get_file_content(char* filename);
+void write_to_file(char* filename, char* buffer);
 
 //------------------------------------------------------------------------------
 //                               General Purpose
@@ -28,14 +28,14 @@ void write_to_file(const char* filename, const char* buffer);
 void* xmalloc(u64 bytes);
 void* xcalloc(u64 size, u64 bytes);
 void* xrealloc(void* ptr, u64 bytes);
-u64 xstrlen(const char* str);
+u64 xstrlen(char* str);
 
-char* strf(const char* fmt, ...);
+char* strf(char* fmt, ...);
 
-const char* get_next_color(void);
+char* get_next_color(void);
 char* wrap_with_colored_parens(char* str);
 char* give_unique_color(char* str);
-const char* get_unique_color(void);
+char* get_unique_color(void);
 
 //------------------------------------------------------------------------------
 //                               Timing Functions
@@ -44,7 +44,7 @@ const char* get_unique_color(void);
 typedef struct
 {
     f64 ms;
-    const char* desc;
+    char* desc;
 } Timer;
 f64 get_time(void);
 

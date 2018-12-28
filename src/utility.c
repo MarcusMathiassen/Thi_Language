@@ -19,7 +19,7 @@
 #define YELLOW "\033[33m"
 #define RGB_GRAY "\033[38;2;110;110;110;m"
 
-void info(const char* fmt, ...)
+void info(char* fmt, ...)
 {
     if (!detailed_print) return;
     assert(fmt);
@@ -31,7 +31,7 @@ void info(const char* fmt, ...)
     va_end(args);
 }
 
-void warning(const char* fmt, ...)
+void warning(char* fmt, ...)
 {
     assert(fmt);
     va_list args;
@@ -42,7 +42,7 @@ void warning(const char* fmt, ...)
     va_end(args);
 }
 
-void success(const char* fmt, ...)
+void success(char* fmt, ...)
 {
     assert(fmt);
     va_list args;
@@ -53,7 +53,7 @@ void success(const char* fmt, ...)
     va_end(args);
 }
 
-void error(const char* fmt, ...)
+void error(char* fmt, ...)
 {
     if (!detailed_print) exit(1);
     assert(fmt);
@@ -71,7 +71,7 @@ void error(const char* fmt, ...)
 //                               File Utility Functions
 //------------------------------------------------------------------------------
 
-char* get_file_path_from_directory(const char* dir, const char* filename)
+char* get_file_path_from_directory(char* dir, char* filename)
 {
     assert(dir);
     assert(filename);
@@ -88,7 +88,7 @@ char* get_file_path_from_directory(const char* dir, const char* filename)
     return str;
 }
 
-char* get_file_extension(const char* filename)
+char* get_file_extension(char* filename)
 {
     assert(filename);
     u64 len = strlen(filename);
@@ -102,7 +102,7 @@ char* get_file_extension(const char* filename)
     return str;
 }
 
-char* get_file_directory(const char* filename)
+char* get_file_directory(char* filename)
 {
     assert(filename);
     u64 len = strlen(filename);
@@ -114,7 +114,7 @@ char* get_file_directory(const char* filename)
     str[len] = 0;
     return str;
 }
-char* get_file_name(const char* filename)
+char* get_file_name(char* filename)
 {
     assert(filename);
     u64 len = strlen(filename);
@@ -127,7 +127,7 @@ char* get_file_name(const char* filename)
     str[i] = 0;
     return str;
 }
-void write_to_file(const char* filename, const char* buffer)
+void write_to_file(char* filename, char* buffer)
 {
     assert(filename);
     assert(buffer);
@@ -140,7 +140,7 @@ void write_to_file(const char* filename, const char* buffer)
     fclose(f);
 }
 
-char* get_file_content(const char* filename)
+char* get_file_content(char* filename)
 {
     assert(filename);
     char* buffer = NULL;
@@ -209,13 +209,13 @@ void* xrealloc(void* ptr, u64 bytes)
     return alloc;
 }
 
-u64 xstrlen(const char* str)
+u64 xstrlen(char* str)
 {
     assert(str);
     return str ? strlen(str) : 0;
 }
 
-char* strf(const char* fmt, ...)
+char* strf(char* fmt, ...)
 {
     assert(fmt);
     va_list args;
@@ -233,7 +233,7 @@ char* strf(const char* fmt, ...)
 }
 
 // Color Whell
-const char* colors[6] = {
+char* colors[6] = {
     "\033[31m", // red
     "\033[32m", // green
     "\033[33m", // yellow
@@ -243,22 +243,22 @@ const char* colors[6] = {
 };
 int counter = 0;
 int colors_count = 6;
-const char* get_next_color(void)
+char* get_next_color(void)
 {
     if (counter == colors_count) counter = 0;
     return colors[counter++];
 }
 char* wrap_with_colored_parens(char* str)
 {
-    const char* current_color = get_next_color();
+    char* current_color = get_next_color();
     return strf("%s(\033[00m%s%s)\033[00m", current_color, str, current_color);
 }
 char* give_unique_color(char* str)
 {
-    const char* current_color = get_next_color();
+    char* current_color = get_next_color();
     return strf("%s%s\033[00m", current_color, str);
 }
-const char* get_unique_color(void) { return get_next_color(); }
+char* get_unique_color(void) { return get_next_color(); }
 //
 
 //------------------------------------------------------------------------------

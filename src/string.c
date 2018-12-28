@@ -9,7 +9,7 @@
 #include <stdlib.h>  // free
 #include <string.h>  // memcpy
 
-string make_string(const char* str)
+string make_string(char* str)
 {
     assert(str);
     string s;
@@ -21,7 +21,7 @@ string make_string(const char* str)
     return s;
 }
 
-string make_string_f(const char* fmt, ...)
+string make_string_f(char* fmt, ...)
 {
     assert(fmt);
     va_list args;
@@ -40,7 +40,7 @@ string make_string_f(const char* fmt, ...)
     return s;
 }
 
-void append_string_f(string* s, const char* fmt, ...)
+void append_string_f(string* s, char* fmt, ...)
 {
     assert(s);
     assert(fmt);
@@ -63,7 +63,7 @@ void append_string_f(string* s, const char* fmt, ...)
 
     free(temp);
 }
-void append_string(string* s, const char* str)
+void append_string(string* s, char* str)
 {
     assert(s);
     assert(str);
@@ -84,12 +84,12 @@ void free_string(string* s) { free(s->c_str); }
 typedef struct Intern_Str
 {
     u64 len;
-    const char* str;
+    char* str;
 } Intern_Str;
 
 Intern_Str* interns;
 u64 interns_mem_alloc_size = 0;
-const char* str_intern_range(const char* start, const char* end)
+char* str_intern_range(char* start, char* end)
 {
     u64 len = end - start;
     for (int i = 0; i < sb_count(interns); ++i) {
@@ -105,7 +105,7 @@ const char* str_intern_range(const char* start, const char* end)
     return str;
 }
 
-const char* str_intern(const char* str) { return str_intern_range(str, str + strlen(str)); }
+char* str_intern(char* str) { return str_intern_range(str, str + strlen(str)); }
 
 //------------------------------------------------------------------------------
 //                               Tests

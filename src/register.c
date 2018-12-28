@@ -3,7 +3,7 @@
 #include "context.h" // Context
 
 #define REG_COUNT 68
-const char* reg[REG_COUNT] = {
+char* reg[REG_COUNT] = {
     "RAX",  "EAX",  "AX",   "AL",   "AH",   "RCX",  "ECX",  "CX",   "CL",   "CH",   "RDX",
     "EDX",  "DX",   "DL",   "DH",   "RBX",  "EBX",  "BX",   "BL",   "BH",
 
@@ -16,8 +16,8 @@ const char* reg[REG_COUNT] = {
 };
 
 int get_num_registers() { return REG_COUNT; }
-const char* get_reg(int reg_n) { return reg[reg_n]; }
-const char* get_reg_fitting_value(Value* value)
+char* get_reg(int reg_n) { return reg[reg_n]; }
+char* get_reg_fitting_value(Value* value)
 {
     u64 size = get_size_of_value(value);
     u64 reg_n = get_rax_reg_of_byte_size(size);

@@ -21,9 +21,9 @@ List timers;
 string source_file;
 string current_directory;
 
-void set_source_file(const char* file_name) { source_file = make_string(file_name); }
+void set_source_file(char* file_name) { source_file = make_string(file_name); }
 char* get_source_file() { return source_file.c_str; }
-void set_current_dir(const char* dir_name) { current_directory = make_string(dir_name); }
+void set_current_dir(char* dir_name) { current_directory = make_string(dir_name); }
 char* get_current_dir() { return current_directory.c_str; }
 
 void initilize_globals(void)
@@ -46,14 +46,14 @@ void print_symbol_map(void)
     }
 }
 
-bool is_builtin_type(const char* name)
+bool is_builtin_type(char* name)
 {
     assert(name);
     if (map_get(&builtin_type_map, name)) return true;
     return false;
 }
 
-void add_builtin_type(const char* name, Typespec* type)
+void add_builtin_type(char* name, Typespec* type)
 {
     assert(name);
     assert(type);
@@ -63,7 +63,7 @@ void add_builtin_type(const char* name, Typespec* type)
     info("added builtin type: %s of type '%s'", name, typespec_to_str(type));
 }
 
-Typespec* get_builtin_type(const char* name)
+Typespec* get_builtin_type(char* name)
 {
     assert(name);
     Typespec* type = (Typespec*)map_get(&builtin_type_map, name);
@@ -73,7 +73,7 @@ Typespec* get_builtin_type(const char* name)
     return type;
 }
 
-void add_foreign_function(const char* name, Typespec* type)
+void add_foreign_function(char* name, Typespec* type)
 {
     assert(type);
     list_append(&foreign_function_list, type);
@@ -94,7 +94,7 @@ List get_constant_string_list(void)
     return constant_string_list;
 }
 
-void add_symbol(const char* name, Typespec* type)
+void add_symbol(char* name, Typespec* type)
 {
     assert(name);
     assert(type);
@@ -104,7 +104,7 @@ void add_symbol(const char* name, Typespec* type)
     info("added symbol: '%s' of type '%s'", name, typespec_to_str(type));
 }
 
-Typespec* get_symbol(const char* name)
+Typespec* get_symbol(char* name)
 {
     assert(name);
     Typespec* type = (Typespec*)map_get(&symbol_map, name);
@@ -114,7 +114,7 @@ Typespec* get_symbol(const char* name)
     return type;
 }
 
-void add_macro_def(const char* name, Expr* expr)
+void add_macro_def(char* name, Expr* expr)
 {
     assert(name);
     assert(expr);
@@ -124,7 +124,7 @@ void add_macro_def(const char* name, Expr* expr)
     info("added macro: '%s' with expr '%s'", name, expr_to_str(expr));
 }
 
-Expr* get_macro_def(const char* name)
+Expr* get_macro_def(char* name)
 {
     assert(name);
     Expr* expr = (Expr*)map_get(&macro_map, name);
@@ -136,7 +136,7 @@ Expr* get_macro_def(const char* name)
 
 List get_timers(void) { return timers; }
 
-void push_timer(const char* desc)
+void push_timer(char* desc)
 {
     Timer* tm = xmalloc(sizeof(Timer));
     tm->ms = get_time();

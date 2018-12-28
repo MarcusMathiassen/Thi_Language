@@ -12,8 +12,8 @@ void ctx_init(Context* ctx)
     ctx->next_available_reg_index = 0;
 }
 
-void ctx_set_continue_label(Context* ctx, const char* label) { ctx->label_continue_to = label; }
-void ctx_set_break_label(Context* ctx, const char* label) { ctx->label_break_to = label; }
+void ctx_set_continue_label(Context* ctx, char* label) { ctx->label_continue_to = label; }
+void ctx_set_break_label(Context* ctx, char* label) { ctx->label_break_to = label; }
 void ctx_push_label(Context* ctx)
 {
     assert(ctx);
@@ -25,7 +25,7 @@ void ctx_pop_label(Context* ctx)
     assert(ctx);
 }
 
-const char* ctx_get_unique_label(Context* ctx)
+char* ctx_get_unique_label(Context* ctx)
 {
     assert(ctx);
     ++ctx->current_label_counter;

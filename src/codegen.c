@@ -83,7 +83,7 @@ void print_scope(Scope* scope)
 }
 
 /// Returns the value, or NULL if not found.
-Value* get_variable_in_scope(Scope* scope, const char* name)
+Value* get_variable_in_scope(Scope* scope, char* name)
 {
     assert(scope);
     assert(name);
@@ -101,7 +101,7 @@ void add_variable_to_scope(Scope* scope, Value* variable)
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
 
-    const char* name = variable->Variable.name;
+    char* name = variable->Variable.name;
 
     // Check for redeclaration
     Value* res = get_variable_in_scope(scope, name);
@@ -112,7 +112,7 @@ void add_variable_to_scope(Scope* scope, Value* variable)
     // print_scope(scope);
 }
 
-void remove_variable_in_scope(Scope* scope, const char* name)
+void remove_variable_in_scope(Scope* scope, char* name)
 {
     Value* v = get_variable_in_scope(scope, name);
     if (v) {
@@ -128,7 +128,7 @@ void remove_variable_in_scope(Scope* scope, const char* name)
     error("Trying to remove unknown variable: %s", name);
 }
 
-Value* get_variable(const char* name)
+Value* get_variable(char* name)
 {
     STACK_FOREACH(scope_stack)
     {
@@ -234,7 +234,7 @@ void emit_load(Value* variable)
 
 Value* codegen_function(Expr* expr)
 {
-    // const char* func_name = expr->Function.type->Function.name;
+    // char* func_name = expr->Function.type->Function.name;
     Value* function = make_value_function(expr->Function.type);
     ctx.current_function = function;
 
@@ -567,7 +567,7 @@ CONTINUE:
 
 Value* codegen_variable_decl_type_inf(Expr* expr)
 {
-    const char* name = expr->Variable_Decl_Type_Inf.name;
+    char* name = expr->Variable_Decl_Type_Inf.name;
     Expr* assignment_expr = expr->Variable_Decl_Type_Inf.value;
 
     Value* assign_expr_val = codegen_expr(assignment_expr); // Any value this creates is stored in RAX
@@ -587,7 +587,7 @@ Value* codegen_variable_decl_type_inf(Expr* expr)
 
 Value* codegen_variable_decl(Expr* expr)
 {
-    const char* name = expr->Variable_Decl.name;
+    char* name = expr->Variable_Decl.name;
     Typespec* type = expr->Variable_Decl.type;
     Expr* assignment_expr = expr->Variable_Decl.value;
 
@@ -642,7 +642,7 @@ Value* codegen_ret(Expr* expr)
 
 Value* codegen_call(Expr* expr)
 {
-    const char* callee = expr->Call.callee;
+    char* callee = expr->Call.callee;
     Expr** args = expr->Call.args;
 
     Typespec* func_t = get_symbol(callee);
@@ -685,8 +685,8 @@ Value* codegen_while(Expr* expr)
 
     ctx_push_label(&ctx);
 
-    const char* condition_label = ctx_get_unique_label(&ctx);
-    const char* continue_label = ctx_get_unique_label(&ctx);
+    char* condition_label = ctx_get_unique_label(&ctx);
+    char* continue_label = ctx_get_unique_label(&ctx);
 
     ctx_set_break_label(&ctx, continue_label);
     ctx_set_continue_label(&ctx, condition_label);
@@ -712,15 +712,15 @@ Value* codegen_for(Expr* expr)
 {
     assert(expr->kind == EXPR_FOR);
 
-    const char* iterator_name = expr->For.iterator_name;
+    char* iterator_name = expr->For.iterator_name;
     Expr* start = expr->For.start;
     Expr* end = expr->For.end;
     Expr* body = expr->For.body;
 
     ctx_push_label(&ctx);
-    const char* condition_label = ctx_get_unique_label(&ctx);
-    const char* continue_label = ctx_get_unique_label(&ctx);
-    const char* inc_label = ctx_get_unique_label(&ctx);
+    char* condition_label = ctx_get_unique_label(&ctx);
+    char* continue_label = ctx_get_unique_label(&ctx);
+    char* inc_label = ctx_get_unique_label(&ctx);
 
     ctx_set_break_label(&ctx, continue_label);
     ctx_set_continue_label(&ctx, inc_label);
@@ -774,8 +774,8 @@ Value* codegen_if(Expr* expr)
 
     // COND:
     ctx_push_label(&ctx);
-    const char* continue_label = ctx_get_unique_label(&ctx);
-    const char* else_label = else_body ? ctx_get_unique_label(&ctx) : NULL;
+    char* continue_label = ctx_get_unique_label(&ctx);
+    char* else_label = else_body ? ctx_get_unique_label(&ctx) : NULL;
     
     Value* condition_val = codegen_expr(condition);
     int condition_size = get_size_of_value(condition_val);
@@ -824,7 +824,7 @@ Value* codegen_break(Expr* expr)
 
 Value* codegen_ident(Expr* expr)
 {
-    const char* name = expr->Ident.name;
+    char* name = expr->Ident.name;
     Expr* macro_expr = get_macro_def(name);
     if (macro_expr) {
         return codegen_expr(macro_expr);
@@ -849,7 +849,7 @@ Value* codegen_subscript(Expr* expr)
 Value* codegen_string(Expr* expr)
 {
     assert(expr->kind == EXPR_STRING);
-    const char* val = expr->String.val;
+    char* val = expr->String.val;
     emit_s("MOV RAX, %s", val);
     Typespec* t = make_typespec_string(xstrlen(val));
     return make_value_string(val, t);
@@ -862,7 +862,7 @@ Value* codegen_note(Expr* expr)
     assert(int_expr->kind == EXPR_INT);
     int integer_value = int_expr->Int.val;
     if (integer_value < 1) error("note parameters start at 1.");
-    const char* name = ctx.current_function->type->Function.args[integer_value - 1].name;
+    char* name = ctx.current_function->type->Function.args[integer_value - 1].name;
     Value* var = get_variable(name);
     emit_load(var);
     return var;
@@ -914,7 +914,7 @@ char* generate_code_from_ast(List ast)
     List foreign_function_list = get_foreign_function_list();
     LIST_FOREACH(foreign_function_list)
     {
-        const char* func_name = ((Typespec*)it->data)->Function.name;
+        char* func_name = ((Typespec*)it->data)->Function.name;
         emit(&output, strf("extern _%s", func_name));
     }
 
@@ -922,7 +922,7 @@ char* generate_code_from_ast(List ast)
     List constant_string_list = get_constant_string_list();
     LIST_FOREACH(constant_string_list)
     { 
-        const char* val = (const char*)it->data;
+        char* val = (char*)it->data;
         u64 len = xstrlen(val);
         emit(&output, strf("%s: db \"%s\", %llu", val, val, len));
     }
@@ -935,7 +935,7 @@ char* generate_code_from_ast(List ast)
     int func_count = sb_count(functions);
     for (int i = 0; i < func_count; ++i) {
         Value* func_v = functions[i];
-        const char* func_name = func_v->Function.name;
+        char* func_name = func_v->Function.name;
 
         emit(&output, "_%s:", func_name);
 

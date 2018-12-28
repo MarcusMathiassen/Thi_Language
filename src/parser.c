@@ -73,11 +73,11 @@ int get_tok_precedence(void);
 void add_new_symbol(void);
 void eat(void);
 void eat_kind(Token_Kind kind);
-Expr* get_definition(const char* ident);
-Expr* get_variable_declaration(const char* ident);
-Expr* get_variable_typeinferred(const char* ident);
-Expr* get_function_call(const char* ident);
-Expr* get_subscript(const char* ident);
+Expr* get_definition(char* ident);
+Expr* get_variable_declaration(char* ident);
+Expr* get_variable_typeinferred(char* ident);
+Expr* get_function_call(char* ident);
+Expr* get_subscript(char* ident);
 
 Expr* parse_top_level(void);
 Expr* parse_statement(void);
@@ -98,8 +98,8 @@ Expr* parse_break(void);
 Expr* parse_continue(void);
 Expr* parse_string(void);
 
-Typespec* parse_struct_signature(const char* struct_name);
-Typespec* parse_function_signature(const char* func_name);
+Typespec* parse_struct_signature(char* struct_name);
+Typespec* parse_function_signature(char* func_name);
 
 void skip_statement_body(void);
 void skip_block(void);
@@ -168,7 +168,7 @@ void generate_symbol_table_from_tokens(Token* tokens)
             // eat_kind(TOKEN_LOAD);
             // // Set the current directory to the directory of the added file
             // string file = make_string(strf("%s%s", get_current_dir(), curr_tok.value));
-            // const char* dir = get_file_directory(file.c_str);
+            // char* dir = get_file_directory(file.c_str);
             // set_current_dir(dir);
 
             // // add_file(file);
@@ -197,7 +197,7 @@ void generate_symbol_table_from_tokens(Token* tokens)
 
         case TOKEN_FOREIGN: {
             eat_kind(TOKEN_FOREIGN);
-            const char* func_name = curr_tok.value;
+            char* func_name = curr_tok.value;
             eat_kind(TOKEN_IDENTIFIER);
             eat_kind(TOKEN_COLON_COLON);
             Typespec* func_t = parse_function_signature(func_name);
@@ -272,7 +272,7 @@ Expr* parse_while(void)
 Expr* parse_for(void)
 {
     eat_kind(TOKEN_FOR);
-    const char* iterator_name = curr_tok.value;
+    char* iterator_name = curr_tok.value;
     eat_kind(TOKEN_IDENTIFIER);
     eat_kind(TOKEN_COLON);
     Expr* start = parse_expression();
@@ -329,7 +329,7 @@ Expr* parse_identifier(void)
 {
     info("parse_identifier");
 
-    const char* ident = curr_tok.value;
+    char* ident = curr_tok.value;
     eat_kind(TOKEN_IDENTIFIER);
     switch (curr_tok.kind) {
     case TOKEN_COLON_COLON:     return get_definition(ident);
@@ -368,7 +368,7 @@ Expr* parse_ret()
     return make_expr_ret(exp);
 }
 
-Expr* get_subscript(const char* ident)
+Expr* get_subscript(char* ident)
 {
     info("get_subscript");
     eat_kind(TOKEN_OPEN_BRACKET);
@@ -377,7 +377,7 @@ Expr* get_subscript(const char* ident)
     return make_expr_subscript(ident, expr);
 }
 
-Expr* get_function_call(const char* ident)
+Expr* get_function_call(char* ident)
 {
     info("get_function_call");
     eat_kind(TOKEN_OPEN_PAREN);
@@ -398,13 +398,13 @@ Expr* get_function_call(const char* ident)
     return make_expr_call(ident, args);
 }
 
-Expr* get_variable_typeinferred(const char* ident)
+Expr* get_variable_typeinferred(char* ident)
 {
     eat_kind(TOKEN_COLON_EQ);
     Expr* assignment_expr = parse_expression();
     return make_expr_variable_decl_type_inf(ident, assignment_expr);
 }
-Expr* get_variable_declaration(const char* ident)
+Expr* get_variable_declaration(char* ident)
 {
     eat_kind(TOKEN_COLON);
     Typespec* variable_type = get_type();
@@ -558,7 +558,7 @@ Typespec* get_type(void)
 {
     info("get_type: %s", curr_tok.value);
 
-    const char* type_name = curr_tok.value;
+    char* type_name = curr_tok.value;
 
     eat_kind(TOKEN_IDENTIFIER);
     Typespec* type = NULL;
@@ -595,7 +595,7 @@ Typespec* get_type(void)
 //                               Parsing Utility Functions
 //------------------------------------------------------------------------------
 
-Typespec* parse_enum_signature(const char* name)
+Typespec* parse_enum_signature(char* name)
 {
     info("Parsing enum: %s", name);
     eat_kind(TOKEN_ENUM);
@@ -609,7 +609,7 @@ Typespec* parse_enum_signature(const char* name)
     return make_typespec_enum(name, NULL);
 }
 
-Typespec* parse_struct_signature(const char* struct_name)
+Typespec* parse_struct_signature(char* struct_name)
 {
     eat_kind(TOKEN_STRUCT);
     eat_kind(TOKEN_OPEN_BRACE);
@@ -627,7 +627,7 @@ Typespec* parse_struct_signature(const char* struct_name)
     return make_typespec_struct(struct_name, members);
 }
 
-Typespec* parse_function_signature(const char* func_name)
+Typespec* parse_function_signature(char* func_name)
 {
     info("parse_function_signature");
     eat_kind(TOKEN_OPEN_PAREN);
@@ -664,7 +664,7 @@ Typespec* parse_function_signature(const char* func_name)
     return make_typespec_function(func_name, args, ret_type);
 }
 
-Expr* get_definition(const char* ident)
+Expr* get_definition(char* ident)
 {
     eat_kind(TOKEN_COLON_COLON);
     switch (curr_tok.kind) {
@@ -799,7 +799,7 @@ void add_new_symbol(void)
 {
     info("add_new_symbol");
 
-    const char* ident = curr_tok.value;
+    char* ident = curr_tok.value;
     eat_kind(TOKEN_IDENTIFIER);
     if(tok_is(TOKEN_COLON_COLON))
     {
