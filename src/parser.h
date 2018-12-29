@@ -4,7 +4,7 @@
 #include "ast.h"
 #include "lexer.h"
 #include "list.h" // List
-List generate_ast_from_tokens(Token* tokens);
-void generate_symbol_table_from_tokens(Token* tokens);
+void generate_ast_from_tokens(List* ast, Token* tokens);
+void generate_symbol_table_from_tokens(List* ast, Token* tokens);
 
 #endif

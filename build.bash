@@ -13,6 +13,7 @@ echo Compilation finished. Time taken: $((end-start)) seconds
 
 if [ $? == 0 ]; then
     ./test.bash 
+    # ./test.bash ./tests/test_load.thi
     # ./test.bash ./tests/test_foreign.thi
     # ./test.bash ./tests/test_stdlib.thi
     # ./test.bash ./tests/test_stdlib_2.thi
@@ -46,7 +47,6 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_macro_definition_2.thi
     # ./test.bash ./tests/test_function_call_2.thi
     # ./test.bash ./tests/test_hex.thi
-    # ./test.bash ./tests/test_load.thi
     # ./test.bash ./tests/test_function_call.thi
     # ./test.bash ./tests/test_macro_definition.thi
     # ./test.bash ./tests/test_asterisk_equal.thi

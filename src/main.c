@@ -20,6 +20,7 @@
 //------------------------------------------------------------------------------
 //                               Main Driver
 //------------------------------------------------------------------------------
+List parse(char* source_file);
 void assemble(char* asm_file, char* exec_name);
 void link(char* exec_name);
 
@@ -30,7 +31,7 @@ void link(char* exec_name);
 int main(int argc, char** argv)
 {
     utility_tests();
-    string_tests();
+    string_tests(); 
     map_tests();
     list_tests();
     stack_tests();
@@ -100,15 +101,19 @@ int main(int argc, char** argv)
     free(source);
     source = NULL;
 
+    // AST
+    List ast;
+    list_init(&ast);
+
     // Order-independence
     push_timer("Order-independence");
-    generate_symbol_table_from_tokens(tokens);
+    generate_symbol_table_from_tokens(&ast, tokens);
     pop_timer();
     print_symbol_map();
 
     // Parsing
     push_timer("Parsing");
-    List ast = generate_ast_from_tokens(tokens);
+    generate_ast_from_tokens(&ast, tokens);
     pop_timer();
     if (list_empty(ast)) { print_ast(ast); }
 
