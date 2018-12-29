@@ -180,10 +180,13 @@ void generate_symbol_table_from_tokens(List* ast, Token* tokens)
 
             success("Parsing: '%s'", file.c_str);
             char* source = get_file_content(file.c_str);
+
+            push_timer(file.c_str);
             Token* tokense = generate_tokens_from_source(source);
 
             generate_symbol_table_from_tokens(ast, tokense);
             generate_ast_from_tokens(ast, tokense);
+            pop_timer();
 
             success("Continuing on: '%s'", get_source_file());
 
