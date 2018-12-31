@@ -331,6 +331,22 @@ Value* codegen_binary(Expr* expr)
     Expr* rhs = expr->Binary.rhs;
 
     switch (op) {
+
+
+    // Field access
+    case TOKEN_DOT: {
+        Value* variable = codegen_expr(lhs);
+        Typespec* type = variable->type;
+        assert(variable->kind == VALUE_VARIABLE);
+        assert(variable->type->kind == TYPESPEC_STRUCT);
+        emit_load(variable);
+        warning("FIELD ACCESS IS HACKED HACKED HACKED DOES NOT WORK WORK WORK");
+        warning("FIELD ACCESS IS HACKED HACKED HACKED DOES NOT WORK WORK WORK");
+        warning("FIELD ACCESS IS HACKED HACKED HACKED DOES NOT WORK WORK WORK");
+        warning("FIELD ACCESS IS HACKED HACKED HACKED DOES NOT WORK WORK WORK");
+        return variable;
+    }
+
     case THI_SYNTAX_ASSIGNMENT: {
         Value* variable = codegen_expr(lhs);
         assert(variable->kind == VALUE_VARIABLE);
@@ -868,12 +884,28 @@ Value* codegen_note(Expr* expr)
     return var;
 }
 
+Value* codegen_struct(Expr* expr)
+{
+    assert(expr->kind == EXPR_STRUCT);
+
+    Typespec* struct_t = expr->Struct.type;
+
+    /* Create the structure of the struct??
+
+         int2 :: struct {
+            x: i32
+            y: i32
+         }
+    */
+    return NULL;
+}
+
 // @Hotpath
 Value* codegen_expr(Expr* expr)
 {
     info("Generating code for: %s", expr_to_str_debug(expr));
     if (expr->kind == EXPR_FUNCTION) return codegen_function(expr);
-    if (expr->kind == EXPR_STRUCT) error("EXPR_STRUCT codegen not implemented");
+    if (expr->kind == EXPR_STRUCT) return codegen_struct(expr);
     start_codeblock(ctx.current_function, expr_to_str(expr));
     switch (expr->kind) {
     case EXPR_SUBSCRIPT: return codegen_subscript(expr);

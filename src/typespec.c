@@ -38,6 +38,16 @@ u64 get_size_of_typespec(Typespec* type)
     case TYPESPEC_STRING: return type->String.len;
     case TYPESPEC_POINTER: return 8;
     case TYPESPEC_ARRAY: return get_size_of_typespec(type->Array.type) * type->Array.size;
+    case TYPESPEC_STRUCT: {
+        u64 accum_size = 0;
+        int count = sb_count(type->Struct.members);
+        for (int i = 0; i < count; ++i)
+        {
+            Arg* mem = &type->Struct.members[i];
+            accum_size += get_size_of_typespec(mem->type);
+        }
+        return accum_size;
+    }
     case TYPESPEC_FUNCTION: {
         u64 accum_size = 0;
         for (int i = 0; i < sb_count(type->Function.args); ++i) {
