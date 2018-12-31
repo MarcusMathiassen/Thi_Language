@@ -162,12 +162,11 @@ void generate_symbol_table_from_tokens(List* ast, Token* tokens)
 
     while (!tok_is(&pctx, TOKEN_EOF)) {
         pctx.top_tok = pctx.curr_tok;
-        switch (pctx.curr_tok.kind) {
 
+        switch (pctx.curr_tok.kind) {
         case TOKEN_IDENTIFIER: {
             add_new_symbol(&pctx);
         } break;
-
 
         case TOKEN_LOAD: {
 
@@ -202,6 +201,8 @@ void generate_symbol_table_from_tokens(List* ast, Token* tokens)
             add_foreign_function(func_name, func_t);
             add_symbol(func_name, func_t);
         } break;
+
+        default: eat(&pctx);
         }
     }
 }
@@ -667,13 +668,11 @@ Expr* get_definition(Parse_Context* pctx, char* ident)
     eat_kind(pctx, TOKEN_COLON_COLON);
     switch (pctx->curr_tok.kind) {
     case TOKEN_ENUM: {
-        eat_kind(pctx, TOKEN_ENUM);
         skip_enum_signature(pctx);
         // return make_expr_enum(get_symbol(ident));
         return NULL;
     }
     case TOKEN_STRUCT: {
-        eat_kind(pctx, TOKEN_STRUCT);
         skip_struct_signature(pctx);
         return make_expr_struct(get_symbol(ident));
     }
@@ -800,6 +799,12 @@ void skip_function_signature(Parse_Context* pctx)
 
 void add_new_symbol(Parse_Context* pctx)
 {
+
+    /*  
+        Can this please also look for symbols inside toplevel functions??
+        Kinda want to define macros and structs inside other constructs
+        you know.
+    */
     info("add_new_symbol");
 
     char* ident = pctx->curr_tok.value;

@@ -873,6 +873,7 @@ Value* codegen_expr(Expr* expr)
 {
     info("Generating code for: %s", expr_to_str_debug(expr));
     if (expr->kind == EXPR_FUNCTION) return codegen_function(expr);
+    if (expr->kind == EXPR_STRUCT) error("EXPR_STRUCT codegen not implemented");
     start_codeblock(ctx.current_function, expr_to_str(expr));
     switch (expr->kind) {
     case EXPR_SUBSCRIPT: return codegen_subscript(expr);
@@ -891,7 +892,6 @@ Value* codegen_expr(Expr* expr)
     case EXPR_RET: return codegen_ret(expr);
     case EXPR_VARIABLE_DECL: return codegen_variable_decl(expr);
     case EXPR_VARIABLE_DECL_TYPE_INF: return codegen_variable_decl_type_inf(expr);
-    case EXPR_STRUCT: error("EXPR_STRUCT codegen not implemented");
     case EXPR_IF: return codegen_if(expr);
     case EXPR_FOR: return codegen_for(expr);
     case EXPR_BLOCK: return codegen_block(expr);

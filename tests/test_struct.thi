@@ -1,9 +1,12 @@
+
 int2 :: struct {
     x: i32
     y: i32
 }
 
 main :: () -> i32 {
+
     my_vec: int2
+
     ret 1
 }

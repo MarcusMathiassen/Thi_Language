@@ -69,7 +69,9 @@ char* expr_to_str(Expr* expr)
         }
         result = str.c_str;
     } break;
-
+    case EXPR_STRUCT: {
+        result = strf("%s", typespec_to_str(expr->Struct.type));
+    } break;
     case EXPR_FUNCTION: {
         string str =
             make_string_f("%s  {\n%s}", typespec_to_str(expr->Function.type), expr_to_str(expr->Function.body));
@@ -110,6 +112,9 @@ char* expr_to_str_debug(Expr* expr)
     } break;
     case EXPR_BREAK: {
         result = "break";
+    } break;
+    case EXPR_STRUCT: {
+        result = strf("%s", typespec_to_str(expr->Struct.type));
     } break;
     case EXPR_MACRO: {
         result = strf("%s :: %s", expr->Macro.name, expr_to_str(expr->Macro.expr));
@@ -209,6 +214,9 @@ char* expr_to_json(Expr* expr)
     } break;
     case EXPR_STRING: {
         result = strf("{\"%s\": {\"value\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->String.val);
+    } break;
+    case EXPR_STRUCT: {
+        result = strf("{\"%s\": {\"type\": \"%s\"}}", expr_kind_to_str(expr->kind), typespec_to_str(expr->Struct.type));
     } break;
     case EXPR_IDENT: {
         result = strf("{\"%s\": {\"ident\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->Ident.name);
