@@ -149,8 +149,8 @@ void scan_digit()
 
     // Number: [0-9._]+e[0-9]+
     if (isdigit(*c)) {
-        while (is_valid_digit()) {
-            if (!is_valid_digit()) break;
+        while (is_valid_digit() || (is_hex && is_valid_identifier())) {
+            // if (!is_valid_digit()) break;
             if (*c == 'x') is_hex = true;
             if (*c == '.') is_float = true;
             ++c;
@@ -455,7 +455,6 @@ scan:
     if (token.kind != TOKEN_EOF) {
         token.value = str_intern_range(token.value, c);
     }
-
     return token;
 }
 

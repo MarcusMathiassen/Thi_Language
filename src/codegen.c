@@ -315,6 +315,9 @@ Value* codegen_unary(Expr* expr)
         emit_s("SETE AL");
         break;
     }
+    case TOKEN_PLUS: {
+        // no nothing
+    } break;
     case TOKEN_MINUS: {
         emit_s("NEG %s", get_reg(reg_n));
         break;

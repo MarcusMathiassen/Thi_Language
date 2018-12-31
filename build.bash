@@ -13,6 +13,11 @@ echo Compilation finished. Time taken: $((end-start)) seconds
 
 if [ $? == 0 ]; then
     ./test.bash
+    # ./test.bash ./tests/test_hex.thi
+    # ./test.bash ./tests/test_hex_2.thi
+    # ./test.bash ./tests/test_unary.thi
+    # ./test.bash ./tests/test_foreign.thi
+    # ./test.bash ./tests/test_triangle.thi
     # ./test.bash ./tests/test_field_access.thi
     # ./test.bash ./tests/test_load.thi
     # ./test.bash ./tests/test_load_2.thi
@@ -41,7 +46,6 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_label_maker.thi
     # ./test.bash ./tests/test_using_unnamed_parameter.thi
     # ./test.bash ./tests/test_function_call_2.thi
-    # ./test.bash ./tests/test_foreign.thi
     # ./test.bash ./tests/test_basic_setup.thi
     # ./test.bash ./tests/test_basic_ternary.thi
     # ./test.bash ./tests/test_ternary.thi

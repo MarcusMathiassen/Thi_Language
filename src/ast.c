@@ -54,7 +54,7 @@ char* expr_to_str(Expr* expr)
     case EXPR_BREAK: { result = "break"; } break;
     case EXPR_MACRO: { result = strf("%s :: %s", expr->Macro.name, expr_to_str(expr->Macro.expr)); } break;
     case EXPR_NOTE: { result = strf("$%s", expr_to_str(expr->Note.expr)); } break;
-    case EXPR_INT: { result = strf("%lld", expr->Int.val); } break;
+    case EXPR_INT: { result = strf("%llu", expr->Int.val); } break;
     case EXPR_STRING: { result = strf("\"%s\"", expr->String.val); } break;
     case EXPR_IDENT: { result = strf("%s", expr->Ident.name); } break;
     case EXPR_UNARY: { result = strf("%s%s", token_kind_to_str(expr->Unary.op), expr_to_str(expr->Unary.operand)); } break;

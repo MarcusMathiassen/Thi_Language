@@ -188,7 +188,6 @@ void generate_symbol_table_from_tokens(List* ast, Token* tokens)
             pop_timer();
 
             success("Continuing on: '%s'", get_source_file());
-
             eat_kind(&pctx, TOKEN_STRING);
         } break;
 
@@ -452,7 +451,7 @@ Expr* parse_binary(Parse_Context* pctx, int expr_prec, Expr* lhs)
 
 Expr* parse_unary(Parse_Context* pctx)
 {
-    if (tok_is(pctx, TOKEN_BANG) || tok_is(pctx, THI_SYNTAX_POINTER) || tok_is(pctx, TOKEN_MINUS) || tok_is(pctx, THI_SYNTAX_ADDRESS)) {
+    if (tok_is(pctx, TOKEN_BANG) || tok_is(pctx, THI_SYNTAX_POINTER) || tok_is(pctx, TOKEN_MINUS) || tok_is(pctx, TOKEN_PLUS) || tok_is(pctx, THI_SYNTAX_ADDRESS)) {
         Token_Kind op = pctx->curr_tok.kind;
         eat(pctx);
 
@@ -516,7 +515,7 @@ u64 get_integer(Parse_Context* pctx)
     switch (pctx->curr_tok.kind) {
     case TOKEN_INTEGER: value = atoll(pctx->curr_tok.value); break;
     case TOKEN_HEX: value = strtoll(pctx->curr_tok.value, NULL, 0); break;
-    default: error("not an integer."); break;
+    default: error("not an integer.");
     }
     eat(pctx);
     return value;

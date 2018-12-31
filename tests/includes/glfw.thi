@@ -109,30 +109,26 @@ foreign glfwGetTimerFrequency :: () -> u64
 foreign glfwGetRequiredInstanceExtensions ::  (u32*) -> i8*
 
 
-/*
-foreign glfwSetWindowIconifyCallback   :: (void*, Window_Iconify_Proc) -> Window_Iconify_Proc
-foreign glfwSetWindowRefreshCallback   :: (void*, Window_Refresh_Proc) -> Window_Refresh_Proc
-foreign glfwSetWindowFocusCallback     :: (void*, Window_Focus_Proc) -> Window_Focus_Proc
-foreign glfwSetWindowCloseCallback     :: (void*, Window_Close_Proc) -> Window_Close_Proc
-foreign glfwSetWindowSizeCallback      :: (void*, Window_Size_Proc) -> Window_Size_Proc
-foreign glfwSetWindowPosCallback       :: (void*, Window_Pos_Proc) -> Window_Pos_Proc
-foreign glfwSetFramebufferSizeCallback :: (void*, Framebuffer_Size_Proc) -> Framebuffer_Size_Proc
-foreign glfwSetDropCallback            :: (void*, Drop_Proc) -> Drop_Proc
-foreign glfwSetMonitorCallback         :: (void*, Monitor_Proc) -> Monitor_Proc
-
-foreign glfwSetKeyCallback         :: (void*, Key_Proc) -> Key_Proc
-foreign glfwSetMouseButtonCallback :: (void*, Mouse_Button_Proc) -> Mouse_Button_Proc
-foreign glfwSetCursorPosCallback   :: (void*, Cursor_Pos_Proc) -> Cursor_Pos_Proc
-foreign glfwSetScrollCallback      :: (void*, Scroll_Proc) -> Scroll_Proc
-foreign glfwSetCharCallback        :: (void*, Char_Proc) -> Char_Proc
-foreign glfwSetCharModsCallback    :: (void*, Char_Mods_Proc) -> Char_Mods_Proc
-foreign glfwSetCursorEnterCallback :: (void*, Cursor_Enter_Proc) -> Cursor_Enter_Proc
-foreign glfwSetJoystickCallback    :: (void*, Joystick_Proc) -> Joystick_Proc
-
-foreign glfwSetErrorCallback :: (Error_Proc) -> Error_Proc
-*/
-
-
+#foreign glfwSetWindowIconifyCallback   :: (void*, Window_Iconify_Proc) -> Window_Iconify_Proc
+#foreign glfwSetWindowRefreshCallback   :: (void*, Window_Refresh_Proc) -> Window_Refresh_Proc
+#foreign glfwSetWindowFocusCallback     :: (void*, Window_Focus_Proc) -> Window_Focus_Proc
+#foreign glfwSetWindowCloseCallback     :: (void*, Window_Close_Proc) -> Window_Close_Proc
+#foreign glfwSetWindowSizeCallback      :: (void*, Window_Size_Proc) -> Window_Size_Proc
+#foreign glfwSetWindowPosCallback       :: (void*, Window_Pos_Proc) -> Window_Pos_Proc
+#foreign glfwSetFramebufferSizeCallback :: (void*, Framebuffer_Size_Proc) -> Framebuffer_Size_Proc
+#foreign glfwSetDropCallback            :: (void*, Drop_Proc) -> Drop_Proc
+#foreign glfwSetMonitorCallback         :: (void*, Monitor_Proc) -> Monitor_Proc
+#
+#foreign glfwSetKeyCallback         :: (void*, Key_Proc) -> Key_Proc
+#foreign glfwSetMouseButtonCallback :: (void*, Mouse_Button_Proc) -> Mouse_Button_Proc
+#foreign glfwSetCursorPosCallback   :: (void*, Cursor_Pos_Proc) -> Cursor_Pos_Proc
+#foreign glfwSetScrollCallback      :: (void*, Scroll_Proc) -> Scroll_Proc
+#foreign glfwSetCharCallback        :: (void*, Char_Proc) -> Char_Proc
+#foreign glfwSetCharModsCallback    :: (void*, Char_Mods_Proc) -> Char_Mods_Proc
+#foreign glfwSetCursorEnterCallback :: (void*, Cursor_Enter_Proc) -> Cursor_Enter_Proc
+#foreign glfwSetJoystickCallback    :: (void*, Joystick_Proc) -> Joystick_Proc
+#
+#foreign glfwSetErrorCallback :: (Error_Proc) -> Error_Proc
 
 GLFW_VERSION_MAJOR    :: 3
 GLFW_VERSION_MINOR    :: 2

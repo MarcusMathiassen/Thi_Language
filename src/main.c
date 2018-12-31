@@ -53,6 +53,10 @@ int main(int argc, char** argv)
     info("Compiling %s", source_file);
 
     // Setup types
+    add_builtin_type("void", make_typespec_int(8, true));
+    
+    add_builtin_type("bool", make_typespec_int(8, true));
+
     add_builtin_type("char", make_typespec_int(8, true));
     add_builtin_type("int", make_typespec_int(32, false));
     add_builtin_type("float", make_typespec_float(32));
