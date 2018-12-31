@@ -197,6 +197,7 @@ char* expr_to_json(Expr* expr)
         result = strf("{\"%s\": {%s}}", expr_kind_to_str(expr->kind), "break");
     } break;
     case EXPR_MACRO: {
+        warning("MACRO: %s", expr->Macro.name);
         result = strf("{\"%s\": {\"name\": \"%s\", \"expr\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->Macro.name,
                       expr_to_json(expr));
     } break;

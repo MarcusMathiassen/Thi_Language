@@ -6,7 +6,10 @@ load "includes/math.thi"
 vec2 :: struct { x: f32 y: f32 }
 vec4 :: struct { x: f32 y: f32 z: f32 w: f32 }
 
-Triangle :: struct { pos: vec2 color: vec4 }
+Triangle :: struct { 
+    pos:    vec2 
+    color:  vec4 
+}
 
 vec2 :: (x: f32, y: f32) -> vec2 { 
     v: vec2
@@ -14,6 +17,7 @@ vec2 :: (x: f32, y: f32) -> vec2 {
     v.y = y
     ret v
 }
+
 vec4 :: (x: f32, y: f32, z: f32, w: f32) -> vec4 {
     v: vec4
     v.x = x

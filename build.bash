@@ -45,6 +45,7 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_basic_ternary.thi
     # ./test.bash ./tests/test_ternary.thi
     # ./test.bash ./tests/test_function_call.thi
+    # ./test.bash ./tests/test_macro_definition_3.thi
     # ./test.bash ./tests/test_macro_definition_2.thi
     # ./test.bash ./tests/test_function_call_2.thi
     # ./test.bash ./tests/test_hex.thi

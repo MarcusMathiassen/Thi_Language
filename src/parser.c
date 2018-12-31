@@ -684,7 +684,9 @@ Expr* get_definition(Parse_Context* pctx, char* ident)
     }
     default: {
         // Macro def
-        return make_expr_macro(ident, parse_expression(pctx));
+        parse_expression(pctx);
+        return NULL;
+        // return make_expr_macro(ident, parse_expression(pctx));
     }
     }
 
