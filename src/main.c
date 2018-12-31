@@ -54,7 +54,7 @@ int main(int argc, char** argv)
 
     // Setup types
     add_builtin_type("void", make_typespec_int(8, true));
-    
+
     add_builtin_type("bool", make_typespec_int(8, true));
 
     add_builtin_type("char", make_typespec_int(8, true));
@@ -149,14 +149,14 @@ int main(int argc, char** argv)
     info("size of Value: %lu bytes", sizeof(Value));
 
     pop_timer();
-    success("==------------ Thi ------------==");
+    info("==------------ Thi ------------==");
     List timers = get_timers();
     LIST_FOREACH(timers)
     {
         Timer* tm = (Timer*)it->data;
-        success("%s: %f seconds", tm->desc, tm->ms / 1e3);
+        info("%s: %f seconds", tm->desc, tm->ms / 1e3);
     }
-    success("==------------ === ------------==");
+    info("==------------ === ------------==");
 
     return 0;
 }

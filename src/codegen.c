@@ -22,12 +22,14 @@ Value* codegen_expr(Expr* expr);
 
 void push_s(int reg)
 {
+    assert(reg >= 0 && reg <= 67);
     emit_s("PUSH %s", get_reg(reg));
     ctx.stack_index += 8;
 }
 
 void pop_s(int reg)
 {
+    assert(reg >= 0 && reg <= 67);
     emit_s("POP %s", get_reg(reg));
     ctx.stack_index -= 8;
     assert(ctx.stack_index >= 0);
@@ -59,8 +61,20 @@ void push_scope()
 {
     Scope* new_scope = make_scope(10);
     stack_push(&scope_stack, new_scope);
+} 
+void pop_scope() 
+{ 
+    stack_pop(&scope_stack);
+    // Scope* scope = stack_pop(&scope_stack);
+
+    // Free variables
+    // for (u64 i = 0; i < scope->count; ++i)
+    // {
+        // u64 size = get_size_of_value(scope->local_variables[i]);
+        // ctx.stack_index -= size;
+        // ctx.current_function->Function.stack_allocated -= size;
+    // }
 }
-void pop_scope() { stack_pop(&scope_stack); }
 
 void append_variable_to_scope(Scope* s, Value* value)
 {
@@ -342,10 +356,6 @@ Value* codegen_binary(Expr* expr)
         assert(variable->kind == VALUE_VARIABLE);
         assert(variable->type->kind == TYPESPEC_STRUCT);
         emit_load(variable);
-        warning("FIELD ACCESS IS HACKED HACKED HACKED DOES NOT WORK WORK WORK");
-        warning("FIELD ACCESS IS HACKED HACKED HACKED DOES NOT WORK WORK WORK");
-        warning("FIELD ACCESS IS HACKED HACKED HACKED DOES NOT WORK WORK WORK");
-        warning("FIELD ACCESS IS HACKED HACKED HACKED DOES NOT WORK WORK WORK");
         return variable;
     }
 
@@ -899,8 +909,6 @@ Value* codegen_struct(Expr* expr)
             y: i32
          }
     */
-    warning("struct incomplete?");
-    warning("struct incomplete?");
     warning("struct incomplete?");
     return NULL;
 }
