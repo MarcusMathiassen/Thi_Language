@@ -339,7 +339,6 @@ Value* codegen_binary(Expr* expr)
     // Field access
     case TOKEN_DOT: {
         Value* variable = codegen_expr(lhs);
-        Typespec* type = variable->type;
         assert(variable->kind == VALUE_VARIABLE);
         assert(variable->type->kind == TYPESPEC_STRUCT);
         emit_load(variable);
@@ -891,7 +890,7 @@ Value* codegen_struct(Expr* expr)
 {
     assert(expr->kind == EXPR_STRUCT);
 
-    Typespec* struct_t = expr->Struct.type;
+    // Typespec* struct_t = expr->Struct.type;
 
     /* Create the structure of the struct??
 
@@ -900,6 +899,9 @@ Value* codegen_struct(Expr* expr)
             y: i32
          }
     */
+    warning("struct incomplete?");
+    warning("struct incomplete?");
+    warning("struct incomplete?");
     return NULL;
 }
 

@@ -3,7 +3,7 @@ output=./thi
 olvl=
 compiler=clang
 src=./src/*.c
-flags=-Wall\ -Wextra\ -Wno-switch\ -Wno-unused-function
+flags=-Wall\ -Wextra\ -Wno-switch\ -Wno-unused-function\ -Werror
 std=c99
 
 start=`date +%s`
