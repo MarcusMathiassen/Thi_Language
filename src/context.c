@@ -6,10 +6,17 @@
 
 void ctx_init(Context* ctx)
 {
+    ctx->output = make_string("");
     ctx->current_label_counter = 0;
     ctx->total_label_counter = 0;
     ctx->stack_index = 0;
     ctx->next_available_reg_index = 0;
+}
+
+void ctx_free(Context* ctx)
+{
+    free_string(&ctx->output);
+    stack_free(&ctx->stack);
 }
 
 void ctx_set_continue_label(Context* ctx, char* label) { ctx->label_continue_to = label; }

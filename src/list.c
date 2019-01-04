@@ -56,8 +56,8 @@ void list_tests(void)
     // }
 }
 
-bool list_empty(List list) { return list.count; }
-void list_append_content_of(List* list, List other_list)
+bool list_empty(List* list) { return list->count; }
+void list_append_content_of(List* list, List* other_list)
 {
     assert(list);
     LIST_FOREACH(other_list) { list_append(list, it->data); }

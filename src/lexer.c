@@ -81,13 +81,17 @@ void print_tokens(Token* tokens)
         print_token(tokens[i]);
 }
 
-Token* generate_tokens_from_source(char* source)
+Token* generate_tokens_from_source(char* source_file)
 {
     info("Generating Tokens from Source");
-    // info("%s", source);
 
-    //
     Token* tokens = NULL;
+
+    char* source = get_file_content(source_file);
+    char* dir = get_file_directory(source_file);
+
+    set_source_file(source_file);
+    set_current_dir(dir);
 
     // 'c' represents the current character in the stream.
     // char* gets set to the start of the stream
@@ -99,11 +103,10 @@ Token* generate_tokens_from_source(char* source)
     while (token.kind != TOKEN_EOF) {
         get_token();
         sb_push(tokens, token);
-        // info("%s %s", token_kind_to_str(token.kind), token.value);
     }
 
     // Print some result info
-    info("Lines: %d | Tokens: %d", line_count, sb_count(tokens));
+    // info("Lines: %d | Tokens: %d", line_count, sb_count(tokens));
 
     return tokens;
 }

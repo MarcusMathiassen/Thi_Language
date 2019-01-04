@@ -12,6 +12,8 @@ struct Context
 {
     Value* current_function;
 
+    string output;
+
     Stack stack;
 
     u64 stack_index;
@@ -31,6 +33,7 @@ struct Context
 
 void ctx_tests(void);
 void ctx_init(Context* ctx);
+void ctx_free(Context* ctx);
 void ctx_push_label(Context* ctx);
 void ctx_pop_label(Context* ctx);
 void ctx_set_continue_label(Context* ctx, char* label);

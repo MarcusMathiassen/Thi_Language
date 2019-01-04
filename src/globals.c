@@ -7,7 +7,7 @@
 #include "utility.h" // warning, error, xmalloc
 #include <assert.h>  // assert
 
-bool detailed_print = true;
+bool detailed_print = false;
 string* current_output;
 
 List foreign_function_list;
@@ -19,17 +19,27 @@ Stack timer_stack;
 List timers;
 
 string source_file;
+char* previous_file;
 string current_directory;
+List file_list;
 
-void set_source_file(char* file_name) { source_file = make_string(file_name); }
-char* get_source_file() { return source_file.c_str; }
+void set_source_file(char* file_name)
+{
+    previous_file = source_file.c_str;
+    source_file = make_string(file_name);
+}
+char* get_source_file(void) { return source_file.c_str; }
+char* get_previous_source_file(void) { return previous_file; }
 void set_current_dir(char* dir_name) { current_directory = make_string(dir_name); }
 char* get_current_dir() { return current_directory.c_str; }
+
+List* get_file_list() { return &file_list; }
 
 void initilize_globals(void)
 {
     list_init(&foreign_function_list);
     list_init(&constant_string_list);
+    list_init(&file_list);
     map_init(&symbol_map);
     map_init(&macro_map);
     map_init(&builtin_type_map);
@@ -79,14 +89,14 @@ void add_foreign_function(char* name, Typespec* type)
     list_append(&foreign_function_list, type);
     info("added foreign function: '%s' of type '%s'", name, typespec_to_str(type));
 }
-List get_foreign_function_list(void) { return foreign_function_list; }
+List* get_foreign_function_list(void) { return &foreign_function_list; }
 
 void add_constant_string(char* name)
 {
     assert(name);
     list_append(&constant_string_list, name);
 }
-List get_constant_string_list(void) { return constant_string_list; }
+List* get_constant_string_list(void) { return &constant_string_list; }
 
 void add_symbol(char* name, Typespec* type)
 {
@@ -128,10 +138,17 @@ Expr* get_macro_def(char* name)
     return expr;
 }
 
-List get_timers(void) { return timers; }
+List* get_timers(void) { return &timers; }
+Timer* peek_timer(void) { return (Timer*)stack_peek(&timer_stack); }
+void set_current_timers_time(f64 new_time)
+{
+    Timer* tm = (Timer*)stack_peek(&timer_stack);
+    tm->ms = new_time;
+}
 
 void push_timer(char* desc)
 {
+    assert(desc);
     Timer* tm = xmalloc(sizeof(Timer));
     tm->ms = get_time();
     tm->desc = desc;

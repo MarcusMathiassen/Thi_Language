@@ -190,8 +190,8 @@ Expr* make_expr_grouping(Expr* expr);
 Expr* make_expr_variable_decl(char* name, Typespec* type, Expr* value);
 Expr* make_expr_variable_decl_type_inf(char* name, Expr* value);
 
-char* ast_to_json(List ast);
-void print_ast(List ast);
+char* ast_to_json(List* ast);
+void print_ast(List* ast);
 char* expr_to_str(Expr* expr);
 char* expr_to_str_debug(Expr* expr);
 char* expr_kind_to_str(Expr_Kind kind);

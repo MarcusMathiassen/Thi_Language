@@ -8,6 +8,7 @@
 #include "utility.h"  // info, error, warning, success
 #include <assert.h>   // assert
 #include <ctype.h>    // atoll
+#include <string.h>   // strcmp
 
 #include "globals.h" // add_symbol
 
@@ -126,6 +127,23 @@ Typespec* get_type(Parse_Context* pctx);
 //                               Public Functions
 //------------------------------------------------------------------------------
 
+void parse(List* ast, char* source_file)
+{
+    char* last_file = get_source_file();
+    char* last_dir = get_current_dir();
+
+    list_append(&file_list, source_file);
+
+    push_timer(source_file);
+    Token* tokens = generate_tokens_from_source(source_file);
+    generate_symbol_table_from_tokens(ast, tokens);
+    generate_ast_from_tokens(ast, tokens);
+    pop_timer();
+
+    set_source_file(last_file);
+    set_current_dir(last_dir);
+}
+
 void generate_ast_from_tokens(List* ast, Token* tokens)
 {
     info("Generating AST from Tokens..");
@@ -169,25 +187,17 @@ void generate_symbol_table_from_tokens(List* ast, Token* tokens)
         } break;
 
         case TOKEN_LOAD: {
-
             eat_kind(&pctx, TOKEN_LOAD);
-
-            // // Set the current directory to the directory of the added file
             string file = make_string(strf("%s%s", get_current_dir(), pctx.curr_tok.value));
-            char* dir = get_file_directory(file.c_str);
-            set_current_dir(dir);
-
-            success("Parsing: '%s'", file.c_str);
-            char* source = get_file_content(file.c_str);
-
-            push_timer(file.c_str);
-            Token* tokense = generate_tokens_from_source(source);
-
-            generate_symbol_table_from_tokens(ast, tokense);
-            generate_ast_from_tokens(ast, tokense);
-            pop_timer();
-
-            success("Continuing on: '%s'", get_source_file());
+            bool file_already_parsed = false;
+            LIST_FOREACH(get_file_list())
+            {
+                char* f = (char*)it->data;
+                if (strcmp(f, file.c_str) == 0) {
+                    file_already_parsed = true;
+                }
+            }
+            if (!file_already_parsed) parse(ast, file.c_str);
             eat_kind(&pctx, TOKEN_STRING);
         } break;
 
@@ -798,7 +808,6 @@ void skip_function_signature(Parse_Context* pctx)
 
 void add_new_symbol(Parse_Context* pctx)
 {
-
     /*
         Can this please also look for symbols inside toplevel functions??
         Kinda want to define macros and structs inside other constructs

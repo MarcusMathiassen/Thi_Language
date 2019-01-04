@@ -319,13 +319,13 @@ char* expr_to_json(Expr* expr)
     assert(result);
     return result;
 }
-void print_ast(List ast)
+void print_ast(List* ast)
 {
     info("Printing AST..");
     LIST_FOREACH(ast) { info("%s", expr_to_str_debug((Expr*)it->data)); }
 }
 
-char* ast_to_json(List ast)
+char* ast_to_json(List* ast)
 {
     info("Printing AST as JSON..");
     string json = make_string("");

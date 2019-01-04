@@ -5,7 +5,11 @@
 #include <stdlib.h> // free
 
 void stack_init(Stack* stack) { stack->head = NULL; }
-
+void stack_free(Stack* stack)
+{
+    while (stack_pop(stack) != NULL) {
+    }
+}
 typedef struct
 {
     i32 id;

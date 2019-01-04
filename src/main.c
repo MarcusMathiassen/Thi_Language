@@ -20,7 +20,6 @@
 //------------------------------------------------------------------------------
 //                               Main Driver
 //------------------------------------------------------------------------------
-List parse(char* source_file);
 void assemble(char* asm_file, char* exec_name);
 void link(char* exec_name);
 
@@ -92,48 +91,14 @@ int main(int argc, char** argv)
         error("%s is not a .thi file.", source_file);
     }
 
-    // Read in the contents of the source file
-    char* source = get_file_content(source_file);
-
-    // Lexing
-    push_timer("Lexing");
-    Token* tokens = generate_tokens_from_source(source);
-    pop_timer();
-    if (tokens) {
-        print_tokens(tokens);
-    }
-
-    // we can free the source
-    free(source);
-    source = NULL;
-
-    // AST
+    // Parse
     List ast;
     list_init(&ast);
-
-    // Order-independence
-    push_timer("Order-independence");
-    generate_symbol_table_from_tokens(&ast, tokens);
-    pop_timer();
-    print_symbol_map();
-
-    // Parsing
-    push_timer("Parsing");
-    generate_ast_from_tokens(&ast, tokens);
-    pop_timer();
-    if (list_empty(ast)) {
-        print_ast(ast);
-    }
-
-    char* json = NULL;
-    if (list_empty(ast)) {
-        json = ast_to_json(ast);
-        info("%s", json);
-    }
+    parse(&ast, source_file);
 
     // Codegen
     push_timer("Codegen");
-    char* output = generate_code_from_ast(ast);
+    char* output = generate_code_from_ast(&ast);
     pop_timer();
 
     // Write to file
@@ -154,7 +119,7 @@ int main(int argc, char** argv)
 
     pop_timer();
     info("==------------ Thi ------------==");
-    List timers = get_timers();
+    List* timers = get_timers();
     LIST_FOREACH(timers)
     {
         Timer* tm = (Timer*)it->data;

@@ -585,16 +585,16 @@ Value* codegen_variable_decl_type_inf(Expr* expr)
     char* name = expr->Variable_Decl_Type_Inf.name;
     Expr* assignment_expr = expr->Variable_Decl_Type_Inf.value;
 
-    Value* assign_expr_val = codegen_expr(assignment_expr); // Any value this creates is stored in RAX
+    Value* assignment_expr_value = codegen_expr(assignment_expr); // Any value this creates is stored in RAX
 
-    Typespec* type = assign_expr_val->type;
-    u64 type_size = get_size_of_typespec(type);
-    u64 stack_pos = type_size + ctx.stack_index;
-    Value* variable = make_value_variable(name, type, stack_pos);
+    Typespec* type = assignment_expr_value->type;
+    u64 size_of_assigned_type = get_size_of_typespec(type);
+    u64 variable_stack_pos = size_of_assigned_type + ctx.stack_index;
+    Value* variable = make_value_variable(name, type, variable_stack_pos);
     add_variable(variable);
 
     emit_store(variable);
-    ctx.stack_index += type_size;
+    ctx.stack_index += size_of_assigned_type;
     ctx.current_function->Function.stack_allocated += ctx.stack_index;
 
     return variable;
@@ -930,7 +930,7 @@ Value* codegen_expr(Expr* expr)
     return NULL;
 }
 
-char* generate_code_from_ast(List ast)
+char* generate_code_from_ast(List* ast)
 {
     info("Generating X64 Assembly from AST");
 
@@ -940,7 +940,7 @@ char* generate_code_from_ast(List ast)
     stack_init(&scope_stack);
     output = make_string("");
 
-    List foreign_function_list = get_foreign_function_list();
+    List* foreign_function_list = get_foreign_function_list();
     LIST_FOREACH(foreign_function_list)
     {
         char* func_name = ((Typespec*)it->data)->Function.name;
@@ -948,7 +948,7 @@ char* generate_code_from_ast(List ast)
     }
 
     emit(&output, "section .data");
-    List constant_string_list = get_constant_string_list();
+    List* constant_string_list = get_constant_string_list();
     LIST_FOREACH(constant_string_list)
     {
         char* val = (char*)it->data;
@@ -1002,6 +1002,8 @@ char* generate_code_from_ast(List ast)
         Value* func_v = functions[i];
         function_print_debug(func_v);
     }
+
+    ctx_free(&ctx);
 
     return output.c_str;
 }

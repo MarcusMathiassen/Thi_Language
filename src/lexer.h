@@ -124,7 +124,7 @@ struct Token
     char* value;
 };
 
-Token* generate_tokens_from_source(char* source);
+Token* generate_tokens_from_source(char* source_file);
 void print_tokens(Token* tokens);
 void print_token(Token token);
 char* token_kind_to_str(Token_Kind kind);
