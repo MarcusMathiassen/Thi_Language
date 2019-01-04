@@ -13,6 +13,8 @@ echo Compilation finished. Time taken: $((end-start)) seconds
 
 if [ $? == 0 ]; then
     ./test.bash
+    # ./test.bash ./tests/test_for.thi
+    # ./test.bash ./tests/test_break.thi
     # ./test.bash ./tests/test_hex.thi
     # ./test.bash ./tests/test_anonymous_scope.thi
     # ./test.bash ./tests/test_hex_2.thi

@@ -62,8 +62,7 @@ void pop_scope()
     // Scope* scope = stack_pop(&scope_stack);
 
     // Free variables
-    // for (u64 i = 0; i < scope->count; ++i)
-    // {
+    // for (u64 i = 0; i < scope->count; ++i) {
     // u64 size = get_size_of_value(scope->local_variables[i]);
     // ctx.stack_index -= size;
     // ctx.current_function->Function.stack_allocated -= size;
@@ -222,8 +221,7 @@ void emit_load(Value* variable)
     case TYPESPEC_ARRAY: {
         size = get_size_of_typespec(variable->type->Array.type);
         // reg_n = get_rax_reg_of_byte_size(size);
-        emit_s("MOV %s, [RBP-%d+%s*%d] ; emit_load on '%s'", get_reg(reg_n), stack_pos, get_reg(reg_n), size,
-               variable->Variable.name);
+        emit_s("MOV %s, [RBP-%d+%s*%d]", get_reg(reg_n), stack_pos, get_reg(reg_n), size, variable->Variable.name);
         break;
     }
     default: {
@@ -316,8 +314,7 @@ Value* codegen_unary(Expr* expr)
         emit_s("SETE AL");
         break;
     }
-    case TOKEN_PLUS: {
-        // no nothing
+    case TOKEN_PLUS: { // no nothing
     } break;
     case TOKEN_MINUS: {
         emit_s("NEG %s", get_reg(reg_n));
@@ -478,7 +475,6 @@ Value* codegen_binary(Expr* expr)
         u64 reg_n = get_rax_reg_of_byte_size(rhs_size);
         u64 stack_pos = get_stack_pos_of_variable(lhs_v);
         emit_s("ADD [RBP-%d], %s", stack_pos, get_reg(reg_n));
-
         return lhs_v;
     }
 
@@ -622,29 +618,14 @@ Value* codegen_variable_decl(Expr* expr)
 
 Value* codegen_ret(Expr* expr)
 {
-    Expr* ret_expr = expr->Ret.expr;
-    Value* ret_val = codegen_expr(ret_expr);
+    Value* ret_val = codegen_expr(expr->Ret.expr);
 
-    // TODO maybe the return value is a struct? so youll have to push the struct by value
+    // Allocate stack space
+    u64 stack_allocated = ctx.current_function->Function.stack_allocated;
+    if (stack_allocated) emit_s("ADD RSP, %llu", stack_allocated);
 
-    // Pop off regs in reverse order
-    // u8 regs_used_total = ctx.current_function->Function.regs_used_total;
-    // if (regs_used_total) {
-    //     for (int i = regs_used_total - 1; i >= 0; --i) {
-    //         switch (i) {
-    //         case 0: pop_s(R10); break;
-    //         case 1: pop_s(R11); break;
-    //         case 2: pop_s(R12); break;
-    //         case 3: pop_s(R13); break;
-    //         case 4: pop_s(R14); break;
-    //         case 5: pop_s(R15); break;
-    //         }
-    //     }
-    // }
-
-    emit_s("LEAVE");
+    pop_s(RBP);
     emit_s("RET");
-
     return ret_val;
 }
 
@@ -878,16 +859,6 @@ Value* codegen_note(Expr* expr)
 Value* codegen_struct(Expr* expr)
 {
     assert(expr->kind == EXPR_STRUCT);
-
-    // Typespec* struct_t = expr->Struct.type;
-
-    /* Create the structure of the struct??
-
-         int2 :: struct {
-            x: i32
-            y: i32
-         }
-    */
     warning("struct incomplete?");
     return NULL;
 }
@@ -969,21 +940,9 @@ char* generate_code_from_ast(List* ast)
         u64 stack_allocated = func_v->Function.stack_allocated;
         // Allocate stack space
         if (stack_allocated) {
-            emit(&output, "   SUB RSP, %llu", stack_allocated);
+            emit(&output, "SUB RSP, %llu", stack_allocated);
             info("function '%s' allocated %d bytes on the stack", func_name, stack_allocated);
         }
-
-        // u8 regs_used_total = func_v->Function.regs_used_total;
-        // for (u8 i = 0; i < regs_used_total; ++i) {
-        //     switch (i) {
-        //     case 0: push(R10); break;
-        //     case 1: push(R11); break;
-        //     case 2: push(R12); break;
-        //     case 3: push(R13); break;
-        //     case 4: push(R14); break;
-        //     case 5: push(R15); break;
-        //     }
-        // }
 
         CodeBlock** codeblocks = func_v->Function.codeblocks;
         i32 cb_count = sb_count(codeblocks);

@@ -199,19 +199,6 @@ void function_print_debug(Value* function)
     u64 stack_allocated = function->Function.stack_allocated;
     if (stack_allocated) info("%sSUB RSP, %d\033[00m", cb_0_c, stack_allocated);
 
-    // Save off any scrap regs used
-    u8 regs_used_total = function->Function.regs_used_total;
-    for (u8 i = 0; i < regs_used_total; ++i) {
-        switch (i) {
-        case 0: info("%sPUSH R10\033[00m", cb_0_c); break;
-        case 1: info("%sPUSH R11\033[00m", cb_0_c); break;
-        case 2: info("%sPUSH R12\033[00m", cb_0_c); break;
-        case 3: info("%sPUSH R13\033[00m", cb_0_c); break;
-        case 4: info("%sPUSH R14\033[00m", cb_0_c); break;
-        case 5: info("%sPUSH R15\033[00m", cb_0_c); break;
-        }
-    }
-
     for (int j = 0; j < cb_count; ++j) {
         CodeBlock* cb = codeblocks[j];
         char* cb_c = cb->color;
