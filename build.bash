@@ -38,6 +38,7 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_variable_assignment.thi
     # ./test.bash ./tests/test_subscript_access.thi
     # ./test.bash ./tests/test_order_independance.thi
+    # ./test.bash ./tests/test_function_call.thi
     # ./test.bash ./tests/test_function_call_2.thi
     # ./test.bash ./tests/test_pointer.thi
     # ./test.bash ./tests/test_basic_array.thi

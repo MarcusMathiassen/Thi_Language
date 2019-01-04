@@ -625,29 +625,24 @@ Value* codegen_ret(Expr* expr)
     Expr* ret_expr = expr->Ret.expr;
     Value* ret_val = codegen_expr(ret_expr);
 
-    // We have to pop off any regs used.
+    // TODO maybe the return value is a struct? so youll have to push the struct by value
 
     // Pop off regs in reverse order
-    u8 regs_used_total = ctx.current_function->Function.regs_used_total;
-    if (regs_used_total)
-        for (int i = regs_used_total - 1; i >= 0; --i) {
-            switch (i) {
-            case 0: pop_s(R10); break;
-            case 1: pop_s(R11); break;
-            case 2: pop_s(R12); break;
-            case 3: pop_s(R13); break;
-            case 4: pop_s(R14); break;
-            case 5: pop_s(R15); break;
-            }
-        }
+    // u8 regs_used_total = ctx.current_function->Function.regs_used_total;
+    // if (regs_used_total) {
+    //     for (int i = regs_used_total - 1; i >= 0; --i) {
+    //         switch (i) {
+    //         case 0: pop_s(R10); break;
+    //         case 1: pop_s(R11); break;
+    //         case 2: pop_s(R12); break;
+    //         case 3: pop_s(R13); break;
+    //         case 4: pop_s(R14); break;
+    //         case 5: pop_s(R15); break;
+    //         }
+    //     }
+    // }
 
-    // Deallocate stack used by the function
-    u64 stack_used = ctx.current_function->Function.stack_allocated;
-    if (stack_used) {
-        emit_s("ADD RSP, %llu", stack_used);
-    }
-
-    pop_s(RBP);
+    emit_s("LEAVE");
     emit_s("RET");
 
     return ret_val;
@@ -978,17 +973,17 @@ char* generate_code_from_ast(List* ast)
             info("function '%s' allocated %d bytes on the stack", func_name, stack_allocated);
         }
 
-        u8 regs_used_total = func_v->Function.regs_used_total;
-        for (u8 i = 0; i < regs_used_total; ++i) {
-            switch (i) {
-            case 0: push(R10); break;
-            case 1: push(R11); break;
-            case 2: push(R12); break;
-            case 3: push(R13); break;
-            case 4: push(R14); break;
-            case 5: push(R15); break;
-            }
-        }
+        // u8 regs_used_total = func_v->Function.regs_used_total;
+        // for (u8 i = 0; i < regs_used_total; ++i) {
+        //     switch (i) {
+        //     case 0: push(R10); break;
+        //     case 1: push(R11); break;
+        //     case 2: push(R12); break;
+        //     case 3: push(R13); break;
+        //     case 4: push(R14); break;
+        //     case 5: push(R15); break;
+        //     }
+        // }
 
         CodeBlock** codeblocks = func_v->Function.codeblocks;
         i32 cb_count = sb_count(codeblocks);

@@ -7,7 +7,7 @@
 #include "utility.h" // warning, error, xmalloc
 #include <assert.h>  // assert
 
-bool detailed_print = false;
+bool detailed_print = true;
 string* current_output;
 
 List foreign_function_list;
