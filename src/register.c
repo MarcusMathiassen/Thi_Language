@@ -1,6 +1,6 @@
 #include "register.h"
-#include "utility.h" // error
 #include "context.h" // Context
+#include "utility.h" // error
 
 #define REG_COUNT 68
 char* reg[REG_COUNT] = {
@@ -31,8 +31,7 @@ int get_rax_reg_of_byte_size(u8 bytes)
     case 2: return AX;
     case 4: return EAX;
     case 8: return RAX;
-    default: 
-        warning("get_rax_reg_of_byte_size unhandled case: %d. Defaulted to RAX.", bytes); 
+    default: warning("get_rax_reg_of_byte_size unhandled case: %d. Defaulted to RAX.", bytes);
     }
     return RAX;
 }
@@ -141,8 +140,7 @@ int get_next_available_reg(Context* ctx, i8 size)
         break;
     }
 
-
-    if (ctx->next_available_reg_index == 5) { 
+    if (ctx->next_available_reg_index == 5) {
         ctx->next_available_reg_index = 0;
     }
 

@@ -48,7 +48,7 @@ struct
     {TOKEN_PIPE, 20}, // |
 
     {TOKEN_QUESTION_MARK, 15}, // ?
-    {TOKEN_COLON, 15}, // :
+    {TOKEN_COLON, 15},         // :
 
     {TOKEN_EQ, 10},          // =
     {TOKEN_PLUS_EQ, 10},     // +=
@@ -68,8 +68,8 @@ struct
 //                               Parser
 //------------------------------------------------------------------------------
 
-typedef struct 
-{   
+typedef struct
+{
     Token* g_tokens;
     List* ast_list_ptr;
     u64 token_index;
@@ -306,10 +306,11 @@ Expr* parse_primary(Parse_Context* pctx)
     case TOKEN_DOLLAR_SIGN: return parse_note(pctx);
 
     case TOKEN_HEX: // fallthrough
-    case TOKEN_INTEGER: return parse_integer(pctx);
-    // case TOKEN_FLOATING_POINT: return parse_float();
+    case TOKEN_INTEGER:
+        return parse_integer(pctx);
+        // case TOKEN_FLOATING_POINT: return parse_float();
 
-    case TOKEN_STRING:         return parse_string(pctx);
+    case TOKEN_STRING: return parse_string(pctx);
     case TOKEN_OPEN_PAREN: return parse_parens(pctx);
     case TOKEN_OPEN_BRACE:
         return parse_block(pctx);
@@ -330,11 +331,11 @@ Expr* parse_identifier(Parse_Context* pctx)
     char* ident = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
     switch (pctx->curr_tok.kind) {
-    case TOKEN_COLON_COLON:     return get_definition(pctx, ident);
-    case TOKEN_COLON_EQ:        return get_variable_typeinferred(pctx, ident);
-    case TOKEN_COLON:           return get_variable_declaration(pctx, ident);
-    case TOKEN_OPEN_PAREN:      return get_function_call(pctx, ident);
-    case TOKEN_OPEN_BRACKET:    return get_subscript(pctx, ident);
+    case TOKEN_COLON_COLON: return get_definition(pctx, ident);
+    case TOKEN_COLON_EQ: return get_variable_typeinferred(pctx, ident);
+    case TOKEN_COLON: return get_variable_declaration(pctx, ident);
+    case TOKEN_OPEN_PAREN: return get_function_call(pctx, ident);
+    case TOKEN_OPEN_BRACKET: return get_subscript(pctx, ident);
     }
     return make_expr_ident(ident);
 }
@@ -451,7 +452,8 @@ Expr* parse_binary(Parse_Context* pctx, int expr_prec, Expr* lhs)
 
 Expr* parse_unary(Parse_Context* pctx)
 {
-    if (tok_is(pctx, TOKEN_BANG) || tok_is(pctx, THI_SYNTAX_POINTER) || tok_is(pctx, TOKEN_MINUS) || tok_is(pctx, TOKEN_PLUS) || tok_is(pctx, THI_SYNTAX_ADDRESS)) {
+    if (tok_is(pctx, TOKEN_BANG) || tok_is(pctx, THI_SYNTAX_POINTER) || tok_is(pctx, TOKEN_MINUS) ||
+        tok_is(pctx, TOKEN_PLUS) || tok_is(pctx, THI_SYNTAX_ADDRESS)) {
         Token_Kind op = pctx->curr_tok.kind;
         eat(pctx);
 
@@ -500,7 +502,9 @@ Expr* parse_parens(Parse_Context* pctx)
     eat_kind(pctx, TOKEN_OPEN_PAREN);
     Expr* exp = parse_expression(pctx);
     eat_kind(pctx, TOKEN_CLOSE_PAREN);
-    if (!exp) { return NULL; }
+    if (!exp) {
+        return NULL;
+    }
     return make_expr_grouping(exp);
 }
 //------------------------------------------------------------------------------
@@ -707,9 +711,7 @@ bool tok_is(Parse_Context* pctx, Token_Kind kind)
     return false;
 }
 
-void eat(Parse_Context* pctx) { 
-        pctx->curr_tok = pctx->g_tokens[pctx->token_index++];
-}
+void eat(Parse_Context* pctx) { pctx->curr_tok = pctx->g_tokens[pctx->token_index++]; }
 
 void eat_kind(Parse_Context* pctx, Token_Kind kind)
 {
@@ -725,8 +727,7 @@ void eat_kind(Parse_Context* pctx, Token_Kind kind)
 
 void skip_statement_body(Parse_Context* pctx)
 {
-    if(tok_is(pctx, TOKEN_OPEN_BRACE))
-    {
+    if (tok_is(pctx, TOKEN_OPEN_BRACE)) {
         skip_block(pctx);
         return;
     }
@@ -789,7 +790,6 @@ void skip_function_signature(Parse_Context* pctx)
         eat_kind(pctx, TOKEN_RIGHT_ARROW);
         skip_type(pctx);
     }
-
 }
 
 //------------------------------------------------------------------------------
@@ -799,7 +799,7 @@ void skip_function_signature(Parse_Context* pctx)
 void add_new_symbol(Parse_Context* pctx)
 {
 
-    /*  
+    /*
         Can this please also look for symbols inside toplevel functions??
         Kinda want to define macros and structs inside other constructs
         you know.
@@ -808,8 +808,7 @@ void add_new_symbol(Parse_Context* pctx)
 
     char* ident = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
-    if(tok_is(pctx, TOKEN_COLON_COLON))
-    {
+    if (tok_is(pctx, TOKEN_COLON_COLON)) {
         eat_kind(pctx, TOKEN_COLON_COLON);
         switch (pctx->curr_tok.kind) {
         case TOKEN_ENUM: {

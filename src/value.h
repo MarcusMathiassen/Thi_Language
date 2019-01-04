@@ -46,33 +46,52 @@ typedef struct
     CodeBlock** codeblocks;
 
     /* There is a maximum of 6 scratch registers available
-       for temporary use inside a function. These must be 
+       for temporary use inside a function. These must be
        pushed to the stack at the prolog and popped off before
-       the function returns. 
+       the function returns.
     */
     u8 regs_used[6];
     u8 regs_used_count;
     u8 regs_used_total;
 } Value_Function;
 
-typedef struct { u8 bytes; u64 value; } Value_Int;
-typedef struct { char* value; u64 len; } Value_String;
-typedef struct { char* callee; } Value_Call;
-typedef struct { Value* variable; u64 offset; } Value_LoadInst;
-typedef struct { Value* variable; u64 offset; } Value_StoreInst;
+typedef struct
+{
+    u8 bytes;
+    u64 value;
+} Value_Int;
+typedef struct
+{
+    char* value;
+    u64 len;
+} Value_String;
+typedef struct
+{
+    char* callee;
+} Value_Call;
+typedef struct
+{
+    Value* variable;
+    u64 offset;
+} Value_LoadInst;
+typedef struct
+{
+    Value* variable;
+    u64 offset;
+} Value_StoreInst;
 
 struct Value
 {
     Value_Kind kind;
     Typespec* type;
     union {
-        Value_Int           Int;
-        Value_String        String;
-        Value_Variable      Variable;
-        Value_Call          Call;
-        Value_Function      Function;
-        Value_LoadInst      LoadInst;
-        Value_StoreInst     StoreInst;
+        Value_Int Int;
+        Value_String String;
+        Value_Variable Variable;
+        Value_Call Call;
+        Value_Function Function;
+        Value_LoadInst LoadInst;
+        Value_StoreInst StoreInst;
     };
 };
 

@@ -41,8 +41,7 @@ u64 get_size_of_typespec(Typespec* type)
     case TYPESPEC_STRUCT: {
         u64 accum_size = 0;
         int count = sb_count(type->Struct.members);
-        for (int i = 0; i < count; ++i)
-        {
+        for (int i = 0; i < count; ++i) {
             Arg* mem = &type->Struct.members[i];
             accum_size += get_size_of_typespec(mem->type);
         }

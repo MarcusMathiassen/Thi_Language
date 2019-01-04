@@ -1,9 +1,9 @@
 #ifndef REGISTER_H
 #define REGISTER_H
 
+#include "context.h"
 #include "typedefs.h"
 #include "value.h"
-#include "context.h"
 
 int get_num_registers();
 char* get_reg(int reg_n);

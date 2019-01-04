@@ -30,7 +30,6 @@ typedef enum
     TOKEN_WHILE,
     TOKEN_RETURN,
 
-
     TOKEN_STRUCT,
     TOKEN_ENUM,
     TOKEN_REPEAT,

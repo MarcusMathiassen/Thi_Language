@@ -20,10 +20,7 @@ void ctx_push_label(Context* ctx)
     ++ctx->total_label_counter;
 }
 
-void ctx_pop_label(Context* ctx)
-{
-    assert(ctx);
-}
+void ctx_pop_label(Context* ctx) { assert(ctx); }
 
 char* ctx_get_unique_label(Context* ctx)
 {

@@ -49,19 +49,48 @@ char* expr_to_str(Expr* expr)
 {
     char* result = NULL;
     switch (expr->kind) {
-    case EXPR_SUBSCRIPT: { result = strf("%s[%s]", expr->Subscript.variable_name, expr_to_str(expr->Subscript.expr)); } break;
-    case EXPR_CONTINUE: { result = "continue"; } break;
-    case EXPR_BREAK: { result = "break"; } break;
-    case EXPR_MACRO: { result = strf("%s :: %s", expr->Macro.name, expr_to_str(expr->Macro.expr)); } break;
-    case EXPR_NOTE: { result = strf("$%s", expr_to_str(expr->Note.expr)); } break;
-    case EXPR_INT: { result = strf("%llu", expr->Int.val); } break;
-    case EXPR_STRING: { result = strf("\"%s\"", expr->String.val); } break;
-    case EXPR_IDENT: { result = strf("%s", expr->Ident.name); } break;
-    case EXPR_UNARY: { result = strf("%s%s", token_kind_to_str(expr->Unary.op), expr_to_str(expr->Unary.operand)); } break;
-    case EXPR_BINARY: { result = strf("%s %s %s", expr_to_str(expr->Binary.lhs), token_kind_to_str(expr->Binary.op), expr_to_str(expr->Binary.rhs)); } break;
-    case EXPR_RET: { result = strf("ret %s", expr_to_str(expr->Ret.expr)); } break;
-    case EXPR_VARIABLE_DECL: { result = strf(expr->Variable_Decl.value ? "%s: %s = %s" : "%s: %s", expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type), expr->Variable_Decl.value ? expr_to_str(expr->Variable_Decl.value) : ""); } break;
-    case EXPR_VARIABLE_DECL_TYPE_INF: { result = strf("%s := %s", expr->Variable_Decl_Type_Inf.name, expr_to_str(expr->Variable_Decl_Type_Inf.value)); } break;
+    case EXPR_SUBSCRIPT: {
+        result = strf("%s[%s]", expr->Subscript.variable_name, expr_to_str(expr->Subscript.expr));
+    } break;
+    case EXPR_CONTINUE: {
+        result = "continue";
+    } break;
+    case EXPR_BREAK: {
+        result = "break";
+    } break;
+    case EXPR_MACRO: {
+        result = strf("%s :: %s", expr->Macro.name, expr_to_str(expr->Macro.expr));
+    } break;
+    case EXPR_NOTE: {
+        result = strf("$%s", expr_to_str(expr->Note.expr));
+    } break;
+    case EXPR_INT: {
+        result = strf("%llu", expr->Int.val);
+    } break;
+    case EXPR_STRING: {
+        result = strf("\"%s\"", expr->String.val);
+    } break;
+    case EXPR_IDENT: {
+        result = strf("%s", expr->Ident.name);
+    } break;
+    case EXPR_UNARY: {
+        result = strf("%s%s", token_kind_to_str(expr->Unary.op), expr_to_str(expr->Unary.operand));
+    } break;
+    case EXPR_BINARY: {
+        result = strf("%s %s %s", expr_to_str(expr->Binary.lhs), token_kind_to_str(expr->Binary.op),
+                      expr_to_str(expr->Binary.rhs));
+    } break;
+    case EXPR_RET: {
+        result = strf("ret %s", expr_to_str(expr->Ret.expr));
+    } break;
+    case EXPR_VARIABLE_DECL: {
+        result = strf(expr->Variable_Decl.value ? "%s: %s = %s" : "%s: %s", expr->Variable_Decl.name,
+                      typespec_to_str(expr->Variable_Decl.type),
+                      expr->Variable_Decl.value ? expr_to_str(expr->Variable_Decl.value) : "");
+    } break;
+    case EXPR_VARIABLE_DECL_TYPE_INF: {
+        result = strf("%s := %s", expr->Variable_Decl_Type_Inf.name, expr_to_str(expr->Variable_Decl_Type_Inf.value));
+    } break;
     case EXPR_BLOCK: {
         string str = make_string("");
         for (int i = 0; i < sb_count(expr->Block.stmts); ++i) {
@@ -79,8 +108,9 @@ char* expr_to_str(Expr* expr)
     } break;
 
     case EXPR_GROUPING: result = strf("(%s)", expr_to_str(expr->Grouping.expr)); break;
-    case EXPR_WHILE: { result = strf("while %s {\n\t%s }", expr_to_str(expr->While.cond), expr_to_str(expr->While.body));
-    } break;    
+    case EXPR_WHILE: {
+        result = strf("while %s {\n\t%s }", expr_to_str(expr->While.cond), expr_to_str(expr->While.body));
+    } break;
     case EXPR_FOR: {
         string str = make_string_f("for %s: %s..%s {\n\t%s }", expr->For.iterator_name, expr_to_str(expr->For.start),
                                    expr_to_str(expr->For.end), expr_to_str(expr->For.body));
@@ -107,8 +137,8 @@ char* expr_to_str_debug(Expr* expr)
     case EXPR_SUBSCRIPT: {
         result = strf("%s[%s]", expr->Subscript.variable_name, expr_to_str(expr->Subscript.expr));
     } break;
-    case EXPR_CONTINUE: { 
-        result = "continue"; 
+    case EXPR_CONTINUE: {
+        result = "continue";
     } break;
     case EXPR_BREAK: {
         result = "break";

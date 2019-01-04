@@ -1,12 +1,12 @@
 #include "value.h"
-#include "typedefs.h"
+#include "globals.h"         // current_output
 #include "register.h"        // error, xmallox
 #include "stretchy_buffer.h" // sb_push
+#include "typedefs.h"
 #include "utility.h" // error, xmallox
-#include "globals.h" // current_output
 #include <assert.h>  // assert
 #include <stdarg.h>  // va_list, va_start, va_end
-#include <stdio.h>   // 
+#include <stdio.h>   //
 #include <string.h>  // strncat,
 
 //------------------------------------------------------------------------------
@@ -172,12 +172,11 @@ Value* make_value_function(Typespec* type)
 //                               Value Helper Functions
 //------------------------------------------------------------------------------
 
-u64 get_stack_pos_of_variable(Value* variable) 
-{ 
-    switch (variable->kind)
-    {
+u64 get_stack_pos_of_variable(Value* variable)
+{
+    switch (variable->kind) {
     case VALUE_LOAD_INST: return get_stack_pos_of_variable(variable->LoadInst.variable);
-    case VALUE_VARIABLE: return variable->Variable.stack_pos;  
+    case VALUE_VARIABLE: return variable->Variable.stack_pos;
     }
     return 0;
 }
@@ -200,18 +199,16 @@ void function_print_debug(Value* function)
     u64 stack_allocated = function->Function.stack_allocated;
     if (stack_allocated) info("%sSUB RSP, %d\033[00m", cb_0_c, stack_allocated);
 
-
     // Save off any scrap regs used
     u8 regs_used_total = function->Function.regs_used_total;
     for (u8 i = 0; i < regs_used_total; ++i) {
-        switch (i)
-        {
-            case 0: info("%sPUSH R10\033[00m", cb_0_c); break;
-            case 1: info("%sPUSH R11\033[00m", cb_0_c); break;
-            case 2: info("%sPUSH R12\033[00m", cb_0_c); break;
-            case 3: info("%sPUSH R13\033[00m", cb_0_c); break;
-            case 4: info("%sPUSH R14\033[00m", cb_0_c); break;
-            case 5: info("%sPUSH R15\033[00m", cb_0_c); break;
+        switch (i) {
+        case 0: info("%sPUSH R10\033[00m", cb_0_c); break;
+        case 1: info("%sPUSH R11\033[00m", cb_0_c); break;
+        case 2: info("%sPUSH R12\033[00m", cb_0_c); break;
+        case 3: info("%sPUSH R13\033[00m", cb_0_c); break;
+        case 4: info("%sPUSH R14\033[00m", cb_0_c); break;
+        case 5: info("%sPUSH R15\033[00m", cb_0_c); break;
         }
     }
 
@@ -222,7 +219,7 @@ void function_print_debug(Value* function)
         // Print line
         if (cb->block.len) {
 
-            // If the line is a label format it 
+            // If the line is a label format it
             char* line = cb->block.c_str;
             info("%s%s\033[00m", cb_c, line);
             // uncomment this for lines with their description.
@@ -238,14 +235,13 @@ void function_get_stack_used(Value* function)
 }
 
 void function_push_reg(Value* function, u64 reg_n)
-{ 
+{
     assert(function);
     assert(function->kind == VALUE_FUNCTION);
     u8 count = function->Function.regs_used_count++;
     function->Function.regs_used[count] = reg_n;
 
-    if (count + 1 >= function->Function.regs_used_total)
-        function->Function.regs_used_total++;
+    if (count + 1 >= function->Function.regs_used_total) function->Function.regs_used_total++;
 }
 
 u64 function_pop_reg(Value* function)

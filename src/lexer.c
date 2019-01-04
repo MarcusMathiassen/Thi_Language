@@ -64,7 +64,7 @@ typedef enum
 #define KEYWORD_COUNT 20
 char* keywords_str[KEYWORD_COUNT] = {
     "foreign", "nil", "print", "load", "true",   "false", "cast",   "malloc", "sizeof",   "if",
-    "else", "for", "while", "ret",  "struct", "enum",  "repeat", "break",  "continue", "do",
+    "else",    "for", "while", "ret",  "struct", "enum",  "repeat", "break",  "continue", "do",
 };
 
 //------------------------------------------------------------------------------

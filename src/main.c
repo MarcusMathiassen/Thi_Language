@@ -31,7 +31,7 @@ void link(char* exec_name);
 int main(int argc, char** argv)
 {
     utility_tests();
-    string_tests(); 
+    string_tests();
     map_tests();
     list_tests();
     stack_tests();
@@ -99,7 +99,9 @@ int main(int argc, char** argv)
     push_timer("Lexing");
     Token* tokens = generate_tokens_from_source(source);
     pop_timer();
-    if (tokens) { print_tokens(tokens); }
+    if (tokens) {
+        print_tokens(tokens);
+    }
 
     // we can free the source
     free(source);
@@ -119,10 +121,12 @@ int main(int argc, char** argv)
     push_timer("Parsing");
     generate_ast_from_tokens(&ast, tokens);
     pop_timer();
-    if (list_empty(ast)) { print_ast(ast); }
+    if (list_empty(ast)) {
+        print_ast(ast);
+    }
 
     char* json = NULL;
-    if (list_empty(ast)) { 
+    if (list_empty(ast)) {
         json = ast_to_json(ast);
         info("%s", json);
     }
@@ -179,7 +183,8 @@ void assemble(char* asm_file, char* exec_name)
 
 void link(char* exec_name)
 {
-    string link_call = make_string_f("ld -macosx_version_min 10.14 -lSystem -o %s %s.o -e _main -lc", exec_name, exec_name);
+    string link_call =
+        make_string_f("ld -macosx_version_min 10.14 -lSystem -o %s %s.o -e _main -lc", exec_name, exec_name);
     push_timer("Linker");
     system(link_call.c_str);
     free_string(&link_call);

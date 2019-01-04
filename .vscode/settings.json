@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "stretchy_buffer.h": "c",
+        "globals.h": "c"
+    }
+}

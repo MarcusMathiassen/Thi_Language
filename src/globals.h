@@ -1,8 +1,8 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-#include "ast.h"  // expr
-#include "list.h" // List
+#include "ast.h"    // expr
+#include "list.h"   // List
 #include "string.h" // string
 #include "typedefs.h"
 #include "typespec.h" // Typespec

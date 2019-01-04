@@ -6,7 +6,7 @@
 #include "list.h"
 #include "register.h"
 #include "stretchy_buffer.h" // sb_free
-#include "string.h" // string
+#include "string.h"          // string
 #include "typedefs.h"
 #include "utility.h" // error warning info, etc
 #include "value.h"   // Value, Scope
@@ -35,15 +35,9 @@ void pop_s(int reg)
     assert(ctx.stack_index >= 0);
 }
 
-void push(int reg) 
-{
-    emit(&output, "PUSH %s", get_reg(reg));
-}
+void push(int reg) { emit(&output, "PUSH %s", get_reg(reg)); }
 
-void pop(int reg)
-{
-    emit(&output, "POP %s", get_reg(reg));
-}
+void pop(int reg) { emit(&output, "POP %s", get_reg(reg)); }
 
 char* get_op_size(i8 bytes)
 {
@@ -61,18 +55,18 @@ void push_scope()
 {
     Scope* new_scope = make_scope(10);
     stack_push(&scope_stack, new_scope);
-} 
-void pop_scope() 
-{ 
+}
+void pop_scope()
+{
     stack_pop(&scope_stack);
     // Scope* scope = stack_pop(&scope_stack);
 
     // Free variables
     // for (u64 i = 0; i < scope->count; ++i)
     // {
-        // u64 size = get_size_of_value(scope->local_variables[i]);
-        // ctx.stack_index -= size;
-        // ctx.current_function->Function.stack_allocated -= size;
+    // u64 size = get_size_of_value(scope->local_variables[i]);
+    // ctx.stack_index -= size;
+    // ctx.current_function->Function.stack_allocated -= size;
     // }
 }
 
@@ -177,7 +171,7 @@ void push_result_to_temporary_reg(Value* val)
 {
     u64 size = get_size_of_value(val);
     if (val->type->kind == TYPESPEC_ARRAY) {
-        size = get_size_of_typespec(val->type->Array.type);   
+        size = get_size_of_typespec(val->type->Array.type);
     }
     i32 reg_n = get_rax_reg_of_byte_size(size);
     i32 temp_reg_n = get_next_available_reg(&ctx, size);
@@ -185,11 +179,7 @@ void push_result_to_temporary_reg(Value* val)
     function_push_reg(ctx.current_function, temp_reg_n);
 }
 
-int pop_result_from_temporary_reg()
-{
-    return function_pop_reg(ctx.current_function);
-}
-
+int pop_result_from_temporary_reg() { return function_pop_reg(ctx.current_function); }
 
 int get_latest_used_temp_reg_in_function()
 {
@@ -207,20 +197,18 @@ void emit_store(Value* variable)
     u64 stack_pos = get_stack_pos_of_variable(variable);
 
     switch (variable->type->kind) {
-    case TYPESPEC_ARRAY:
-    {
+    case TYPESPEC_ARRAY: {
         i32 temp_reg_n = get_push_or_popable_reg(pop_result_from_temporary_reg());
         size = get_size_of_typespec(variable->type->Array.type);
-        emit_s("MOV [RBP-%d+%s*%d], %s ; emit_store on '%s'", stack_pos, get_reg(temp_reg_n), size, get_reg(reg_n), variable->Variable.name);
+        emit_s("MOV [RBP-%d+%s*%d], %s ; emit_store on '%s'", stack_pos, get_reg(temp_reg_n), size, get_reg(reg_n),
+               variable->Variable.name);
         break;
     }
-    default:
-    {
+    default: {
         emit_s("MOV [RBP-%d], %s", stack_pos, get_reg(reg_n));
         break;
     }
     }
-
 }
 
 void emit_load(Value* variable)
@@ -231,15 +219,14 @@ void emit_load(Value* variable)
     u64 stack_pos = get_stack_pos_of_variable(variable);
 
     switch (variable->type->kind) {
-    case TYPESPEC_ARRAY:
-    {
+    case TYPESPEC_ARRAY: {
         size = get_size_of_typespec(variable->type->Array.type);
         // reg_n = get_rax_reg_of_byte_size(size);
-        emit_s("MOV %s, [RBP-%d+%s*%d] ; emit_load on '%s'", get_reg(reg_n), stack_pos, get_reg(reg_n), size, variable->Variable.name);
+        emit_s("MOV %s, [RBP-%d+%s*%d] ; emit_load on '%s'", get_reg(reg_n), stack_pos, get_reg(reg_n), size,
+               variable->Variable.name);
         break;
     }
-    default: 
-    {
+    default: {
         emit_s("MOV %s, [RBP-%d]", get_reg(reg_n), stack_pos);
         break;
     }
@@ -348,7 +335,6 @@ Value* codegen_binary(Expr* expr)
     Expr* rhs = expr->Binary.rhs;
 
     switch (op) {
-
 
     // Field access
     case TOKEN_DOT: {
@@ -543,29 +529,30 @@ Value* codegen_binary(Expr* expr)
 
     case TOKEN_AT: error("at not implemented.");
     case TOKEN_HAT: error("hat not implemented.");
-    case TOKEN_PIPE: error("pipe not implemented.");
+    case TOKEN_PIPE:
+        error("pipe not implemented.");
 
-    /* Ternary operator */
-    /*
-        // CODEGEN LHS
-        cmp     edi, dword ptr [rbp - 24]
-        jne     L01
+        /* Ternary operator */
+        /*
+            // CODEGEN LHS
+            cmp     edi, dword ptr [rbp - 24]
+            jne     L01
 
-        // CODEGEN RHS
-        mov     eax, dword ptr [rbp - 8]
-        mov     dword ptr [rbp - 28], eax # 4-byte Spill
+            // CODEGEN RHS
+            mov     eax, dword ptr [rbp - 8]
+            mov     dword ptr [rbp - 28], eax # 4-byte Spill
 
-        // JMP TO CONTINUE
-        jmp     CONTINUE
-L01:
-        mov     eax, 1
-        mov     dword ptr [rbp - 28], eax # 4-byte Spill
-        jmp     CONTINUE
-CONTINUE:
-        mov     eax, dword ptr [rbp - 28] # 4-byte Reload
-        mov     dword ptr [rbp - 20], eax
-        mov     eax, dword ptr [rbp - 
-    */
+            // JMP TO CONTINUE
+            jmp     CONTINUE
+    L01:
+            mov     eax, 1
+            mov     dword ptr [rbp - 28], eax # 4-byte Spill
+            jmp     CONTINUE
+    CONTINUE:
+            mov     eax, dword ptr [rbp - 28] # 4-byte Reload
+            mov     dword ptr [rbp - 20], eax
+            mov     eax, dword ptr [rbp -
+        */
 
     case TOKEN_QUESTION_MARK: {
         ctx_push_label(&ctx);
@@ -626,8 +613,7 @@ Value* codegen_variable_decl(Expr* expr)
     Value* variable = make_value_variable(name, type, stack_pos);
     add_variable(variable);
 
-    if (type->kind != TYPESPEC_ARRAY)
-        emit_store(variable); // The variable is set to whatevers in RAX
+    if (type->kind != TYPESPEC_ARRAY) emit_store(variable); // The variable is set to whatevers in RAX
     ctx.stack_index += type_size;
     ctx.current_function->Function.stack_allocated += ctx.stack_index;
 
@@ -643,20 +629,19 @@ Value* codegen_ret(Expr* expr)
 
     // Pop off regs in reverse order
     u8 regs_used_total = ctx.current_function->Function.regs_used_total;
-    if (regs_used_total) 
-    for (int i = regs_used_total-1; i >= 0; --i) {
-        switch (i)
-        {
+    if (regs_used_total)
+        for (int i = regs_used_total - 1; i >= 0; --i) {
+            switch (i) {
             case 0: pop_s(R10); break;
             case 1: pop_s(R11); break;
             case 2: pop_s(R12); break;
             case 3: pop_s(R13); break;
             case 4: pop_s(R14); break;
             case 5: pop_s(R15); break;
+            }
         }
-    }
 
-    // Deallocate stack used by the function 
+    // Deallocate stack used by the function
     u64 stack_used = ctx.current_function->Function.stack_allocated;
     if (stack_used) {
         emit_s("ADD RSP, %llu", stack_used);
@@ -804,7 +789,7 @@ Value* codegen_if(Expr* expr)
     ctx_push_label(&ctx);
     char* continue_label = ctx_get_unique_label(&ctx);
     char* else_label = else_body ? ctx_get_unique_label(&ctx) : NULL;
-    
+
     Value* condition_val = codegen_expr(condition);
     i32 condition_size = get_size_of_value(condition_val);
     i32 res_reg = get_rax_reg_of_byte_size(condition_size);
@@ -861,7 +846,6 @@ Value* codegen_ident(Expr* expr)
     emit_load(var);
     return var;
 }
-
 
 Value* codegen_subscript(Expr* expr)
 {
@@ -966,7 +950,7 @@ char* generate_code_from_ast(List ast)
     emit(&output, "section .data");
     List constant_string_list = get_constant_string_list();
     LIST_FOREACH(constant_string_list)
-    { 
+    {
         char* val = (char*)it->data;
         u64 len = xstrlen(val);
         emit(&output, strf("%s: db \"%s\", %llu", val, val, len));
@@ -996,14 +980,13 @@ char* generate_code_from_ast(List ast)
 
         u8 regs_used_total = func_v->Function.regs_used_total;
         for (u8 i = 0; i < regs_used_total; ++i) {
-            switch (i)
-            {
-                case 0: push(R10); break;
-                case 1: push(R11); break;
-                case 2: push(R12); break;
-                case 3: push(R13); break;
-                case 4: push(R14); break;
-                case 5: push(R15); break;
+            switch (i) {
+            case 0: push(R10); break;
+            case 1: push(R11); break;
+            case 2: push(R12); break;
+            case 3: push(R13); break;
+            case 4: push(R14); break;
+            case 5: push(R15); break;
             }
         }
 
