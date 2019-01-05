@@ -13,7 +13,7 @@ string make_string(char* str)
 {
     assert(str);
     string s;
-    u64 str_len = strlen(str);
+    i64 str_len = strlen(str);
     s.c_str = xmalloc(str_len + 1);
     s.len = str_len;
     memcpy(s.c_str, str, str_len);
@@ -26,7 +26,7 @@ string make_string_f(char* fmt, ...)
     assert(fmt);
     va_list args;
     va_start(args, fmt);
-    u64 n = 1 + vsnprintf(0, 0, fmt, args);
+    i64 n = 1 + vsnprintf(0, 0, fmt, args);
     va_end(args);
 
     string s;
@@ -46,7 +46,7 @@ void append_string_f(string* s, char* fmt, ...)
     assert(fmt);
     va_list args;
     va_start(args, fmt);
-    u64 n = 1 + vsnprintf(0, 0, fmt, args);
+    i64 n = 1 + vsnprintf(0, 0, fmt, args);
     va_end(args);
 
     char* temp = xmalloc(n);
@@ -67,7 +67,7 @@ void append_string(string* s, char* str)
 {
     assert(s);
     assert(str);
-    u64 str_len = xstrlen(str);
+    i64 str_len = xstrlen(str);
     assert(str_len != 0);
     s->c_str = xrealloc(s->c_str, s->len + str_len + 1);
     memcpy(s->c_str + s->len, str, str_len);
@@ -83,15 +83,15 @@ void free_string(string* s) { free(s->c_str); }
 
 typedef struct Intern_Str
 {
-    u64 len;
+    i64 len;
     char* str;
 } Intern_Str;
 
 Intern_Str* interns;
-u64 interns_mem_alloc_size = 0;
+i64 interns_mem_alloc_size = 0;
 char* str_intern_range(char* start, char* end)
 {
-    u64 len = end - start;
+    i64 len = end - start;
     for (int i = 0; i < sb_count(interns); ++i) {
         if (interns[i].len == len && strncmp(interns[i].str, start, len) == 0) {
             return interns[i].str;

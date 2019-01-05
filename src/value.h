@@ -36,13 +36,13 @@ void start_codeblock(Value* function, char* desc);
 typedef struct
 {
     char* name;
-    u64 stack_pos;
+    i64 stack_pos;
 } Value_Variable;
 
 typedef struct
 {
     char* name;
-    u64 stack_allocated;
+    i64 stack_allocated;
     CodeBlock** codeblocks;
 
     /* There is a maximum of 6 scratch registers available
@@ -58,12 +58,12 @@ typedef struct
 typedef struct
 {
     u8 bytes;
-    u64 value;
+    i64 value;
 } Value_Int;
 typedef struct
 {
     char* value;
-    u64 len;
+    i64 len;
 } Value_String;
 typedef struct
 {
@@ -72,12 +72,12 @@ typedef struct
 typedef struct
 {
     Value* variable;
-    u64 offset;
+    i64 offset;
 } Value_LoadInst;
 typedef struct
 {
     Value* variable;
-    u64 offset;
+    i64 offset;
 } Value_StoreInst;
 
 struct Value
@@ -95,22 +95,22 @@ struct Value
     };
 };
 
-Value* make_value_load_inst(Value* variable, u64 offset);
-Value* make_value_store_inst(Value* variable, u64 offset);
+Value* make_value_load_inst(Value* variable, i64 offset);
+Value* make_value_store_inst(Value* variable, i64 offset);
 
-Value* make_value_int(u8 bytes, Typespec* type, u64 value);
+Value* make_value_int(u8 bytes, Typespec* type, i64 value);
 Value* make_value_string(char* value, Typespec* type);
-Value* make_value_variable(char* name, Typespec* type, u64 stack_pos);
+Value* make_value_variable(char* name, Typespec* type, i64 stack_pos);
 Value* make_value_call(char* callee, Typespec* type);
 Value* make_value_function(Typespec* type);
 
-u64 get_size_of_value(Value* value);
-u64 get_stack_pos_of_variable(Value* variable);
+i64 get_size_of_value(Value* value);
+i64 get_stack_pos_of_variable(Value* variable);
 
 void function_print_debug(Value* function);
 void function_get_stack_used(Value* function);
-void function_push_reg(Value* function, u64 reg_n);
-u64 function_pop_reg(Value* function);
+void function_push_reg(Value* function, i64 reg_n);
+i64 function_pop_reg(Value* function);
 
 void emit_s(char* fmt, ...);
 void emit(string* output, char* fmt, ...);
@@ -121,10 +121,10 @@ void emit(string* output, char* fmt, ...);
 typedef struct
 {
     Value** local_variables;
-    u64 count;
-    u64 alloc_count;
+    i64 count;
+    i64 alloc_count;
 } Scope;
 
-Scope* make_scope(u64 pre_allocated_variable_count);
+Scope* make_scope(i64 pre_allocated_variable_count);
 
 #endif

@@ -13,7 +13,7 @@ typedef struct List
 {
     List_Node* head;
     List_Node* tail;
-    u64 count;
+    i64 count;
 } List;
 
 #define LIST_FOREACH(list) for (List_Node* it = (list->head); (it); (it) = (it)->next)

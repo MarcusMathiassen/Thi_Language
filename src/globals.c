@@ -49,9 +49,9 @@ void initilize_globals(void)
 
 void print_symbol_map(void)
 {
-    u64 count = symbol_map.size;
+    i64 count = symbol_map.size;
     info("symbol_map count: %d", count);
-    for (u64 i = 0; i < count; ++i) {
+    for (i64 i = 0; i < count; ++i) {
         info("%s", typespec_to_str(symbol_map.data[i].data));
     }
 }

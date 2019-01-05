@@ -46,8 +46,8 @@ int map_set(Map* map, char* key, void* value)
     assert(map);
     assert(key);
 
-    u64 hash_val = hash_it(key);
-    for (u64 i = 0; i < map->size; ++i) {
+    i64 hash_val = hash_it(key);
+    for (i64 i = 0; i < map->size; ++i) {
         if (map->data[i].key == hash_val) {
             return MAP_EXISTS;
         }
@@ -69,8 +69,8 @@ void* map_get(Map* map, char* key)
 {
     assert(map);
     assert(key);
-    u64 hash_val = hash_it(key);
-    for (u64 i = 0; i < map->size; ++i) {
+    i64 hash_val = hash_it(key);
+    for (i64 i = 0; i < map->size; ++i) {
         if (map->data[i].key == hash_val) {
             return map->data[i].data;
         }

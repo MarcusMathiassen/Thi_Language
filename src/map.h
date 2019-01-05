@@ -14,14 +14,14 @@
 
 typedef struct Map_Element
 {
-    u64 key;
+    i64 key;
     void* data;
 } Map_Element;
 
 typedef struct Map
 {
-    u64 table_size;
-    u64 size;
+    i64 table_size;
+    i64 size;
     Map_Element* data;
 } Map;
 

@@ -20,7 +20,7 @@
 
 char* c = NULL;
 Token token;
-u64 line_count = 1;
+i64 line_count = 1;
 char* start_of_line = NULL;
 //------------------------------------------------------------------------------
 
@@ -115,7 +115,7 @@ Token* generate_tokens_from_source(char* source_file)
 //                               Private
 //------------------------------------------------------------------------------
 
-u64 get_line_pos() { return c - start_of_line + 1; }
+i64 get_line_pos() { return c - start_of_line + 1; }
 
 const char EOF = '\0';
 

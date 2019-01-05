@@ -25,10 +25,10 @@ void write_to_file(char* filename, char* buffer);
 //------------------------------------------------------------------------------
 //                               General Purpose
 //------------------------------------------------------------------------------
-void* xmalloc(u64 bytes);
-void* xcalloc(u64 size, u64 bytes);
-void* xrealloc(void* ptr, u64 bytes);
-u64 xstrlen(char* str);
+void* xmalloc(i64 bytes);
+void* xcalloc(i64 size, i64 bytes);
+void* xrealloc(void* ptr, i64 bytes);
+i64 xstrlen(char* str);
 
 char* strf(char* fmt, ...);
 

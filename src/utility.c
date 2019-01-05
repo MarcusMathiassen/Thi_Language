@@ -76,9 +76,9 @@ char* get_file_path_from_directory(char* dir, char* filename)
     assert(dir);
     assert(filename);
     char strbuf[1000];
-    u64 d_len = strlen(dir);
-    u64 f_len = strlen(filename);
-    u64 len = d_len + f_len;
+    i64 d_len = strlen(dir);
+    i64 f_len = strlen(filename);
+    i64 len = d_len + f_len;
     assert(len < 1000);
     memcpy(strbuf, dir, d_len);              // copy dir into strbuf
     memcpy(strbuf + d_len, filename, f_len); // append filename
@@ -91,8 +91,8 @@ char* get_file_path_from_directory(char* dir, char* filename)
 char* get_file_extension(char* filename)
 {
     assert(filename);
-    u64 len = strlen(filename);
-    u64 i = 0;
+    i64 len = strlen(filename);
+    i64 i = 0;
     while (filename[len - (++i)] != '.')
         continue;
     ++len; // skip the '.'
@@ -105,7 +105,7 @@ char* get_file_extension(char* filename)
 char* get_file_directory(char* filename)
 {
     assert(filename);
-    u64 len = strlen(filename);
+    i64 len = strlen(filename);
     while (filename[--len] != '/')
         continue;
     ++len; // we preserve the '/'
@@ -117,8 +117,8 @@ char* get_file_directory(char* filename)
 char* get_file_name(char* filename)
 {
     assert(filename);
-    u64 len = strlen(filename);
-    u64 i = 0;
+    i64 len = strlen(filename);
+    i64 i = 0;
     while (filename[len - (++i)] != '/')
         continue;
     ++len; // skip the '/'
@@ -144,7 +144,7 @@ char* get_file_content(char* filename)
 {
     assert(filename);
     char* buffer = NULL;
-    u64 string_size, read_size;
+    i64 string_size, read_size;
     FILE* handler = fopen(filename, "r");
 
     if (handler) {
@@ -183,7 +183,7 @@ char* get_file_content(char* filename)
 //                               General Purpose
 //------------------------------------------------------------------------------
 
-void* xmalloc(u64 bytes)
+void* xmalloc(i64 bytes)
 {
     assert(bytes != 0);
     void* alloc = malloc(bytes);
@@ -191,7 +191,7 @@ void* xmalloc(u64 bytes)
     return alloc;
 }
 
-void* xcalloc(u64 size, u64 bytes)
+void* xcalloc(i64 size, i64 bytes)
 {
     assert(size != 0);
     assert(bytes != 0);
@@ -200,7 +200,7 @@ void* xcalloc(u64 size, u64 bytes)
     return alloc;
 }
 
-void* xrealloc(void* ptr, u64 bytes)
+void* xrealloc(void* ptr, i64 bytes)
 {
     assert(ptr);
     assert(bytes != 0);
@@ -209,7 +209,7 @@ void* xrealloc(void* ptr, u64 bytes)
     return alloc;
 }
 
-u64 xstrlen(char* str)
+i64 xstrlen(char* str)
 {
     assert(str);
     return str ? strlen(str) : 0;
@@ -220,7 +220,7 @@ char* strf(char* fmt, ...)
     assert(fmt);
     va_list args;
     va_start(args, fmt);
-    u64 n = 1 + vsnprintf(0, 0, fmt, args);
+    i64 n = 1 + vsnprintf(0, 0, fmt, args);
     va_end(args);
 
     char* str = xmalloc(n);

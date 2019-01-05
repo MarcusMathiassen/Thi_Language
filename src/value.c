@@ -17,7 +17,7 @@
 //                               Public
 //------------------------------------------------------------------------------
 
-u64 get_size_of_value(Value* value)
+i64 get_size_of_value(Value* value)
 {
     assert(value);
     switch (value->kind) {
@@ -37,7 +37,7 @@ void emit_s(char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    u64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
+    i64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
     va_end(args);
     char* str = xmalloc(str_len);
 
@@ -53,7 +53,7 @@ void emit(string* output, char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    u64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
+    i64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
     va_end(args);
     char* str = xmalloc(str_len);
 
@@ -90,7 +90,7 @@ Value* make_value(Value_Kind kind)
     return v;
 }
 
-Value* make_value_load_inst(Value* variable, u64 offset)
+Value* make_value_load_inst(Value* variable, i64 offset)
 {
     assert(variable);
     Value* v = make_value(VALUE_LOAD_INST);
@@ -100,7 +100,7 @@ Value* make_value_load_inst(Value* variable, u64 offset)
     return v;
 }
 
-Value* make_value_store_inst(Value* variable, u64 offset)
+Value* make_value_store_inst(Value* variable, i64 offset)
 {
     assert(variable);
     Value* v = make_value(VALUE_STORE_INST);
@@ -110,7 +110,7 @@ Value* make_value_store_inst(Value* variable, u64 offset)
     return v;
 }
 
-Value* make_value_int(u8 bytes, Typespec* type, u64 value)
+Value* make_value_int(u8 bytes, Typespec* type, i64 value)
 {
     assert(bytes > 0 && bytes < 9);
     assert(type);
@@ -132,7 +132,7 @@ Value* make_value_string(char* value, Typespec* type)
     return v;
 }
 
-Value* make_value_variable(char* name, Typespec* type, u64 stack_pos)
+Value* make_value_variable(char* name, Typespec* type, i64 stack_pos)
 {
     assert(name);
     assert(type);
@@ -172,7 +172,7 @@ Value* make_value_function(Typespec* type)
 //                               Value Helper Functions
 //------------------------------------------------------------------------------
 
-u64 get_stack_pos_of_variable(Value* variable)
+i64 get_stack_pos_of_variable(Value* variable)
 {
     switch (variable->kind) {
     case VALUE_LOAD_INST: return get_stack_pos_of_variable(variable->LoadInst.variable);
@@ -196,7 +196,7 @@ void function_print_debug(Value* function)
     info("%sMOV RBP, RSP\033[00m", cb_0_c);
 
     // Allocate stack space
-    u64 stack_allocated = function->Function.stack_allocated;
+    i64 stack_allocated = function->Function.stack_allocated;
     if (stack_allocated) info("%sSUB RSP, %d\033[00m", cb_0_c, stack_allocated);
 
     for (int j = 0; j < cb_count; ++j) {
@@ -221,7 +221,7 @@ void function_get_stack_used(Value* function)
     assert(function->kind == VALUE_FUNCTION);
 }
 
-void function_push_reg(Value* function, u64 reg_n)
+void function_push_reg(Value* function, i64 reg_n)
 {
     assert(function);
     assert(function->kind == VALUE_FUNCTION);
@@ -231,11 +231,11 @@ void function_push_reg(Value* function, u64 reg_n)
     if (count + 1 >= function->Function.regs_used_total) function->Function.regs_used_total++;
 }
 
-u64 function_pop_reg(Value* function)
+i64 function_pop_reg(Value* function)
 {
     assert(function);
     assert(function->kind == VALUE_FUNCTION);
-    u64 count = --function->Function.regs_used_count;
+    i64 count = --function->Function.regs_used_count;
     return function->Function.regs_used[count];
 }
 
@@ -243,7 +243,7 @@ u64 function_pop_reg(Value* function)
 //                               Scope
 //------------------------------------------------------------------------------
 
-Scope* make_scope(u64 pre_allocated_variable_count)
+Scope* make_scope(i64 pre_allocated_variable_count)
 {
     Scope* s = xmalloc(sizeof(Scope));
     s->local_variables = xmalloc(sizeof(Value*) * pre_allocated_variable_count);

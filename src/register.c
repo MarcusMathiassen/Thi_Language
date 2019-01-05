@@ -19,8 +19,8 @@ int get_num_registers() { return REG_COUNT; }
 char* get_reg(int reg_n) { return reg[reg_n]; }
 char* get_reg_fitting_value(Value* value)
 {
-    u64 size = get_size_of_value(value);
-    u64 reg_n = get_rax_reg_of_byte_size(size);
+    i64 size = get_size_of_value(value);
+    i64 reg_n = get_rax_reg_of_byte_size(size);
     return reg[reg_n];
 }
 

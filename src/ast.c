@@ -388,7 +388,7 @@ Expr* make_expr_note(Expr* expr)
     return e;
 }
 
-Expr* make_expr_int(u64 value)
+Expr* make_expr_int(i64 value)
 {
     Expr* e = make_expr(EXPR_INT);
     e->Int.val = value;

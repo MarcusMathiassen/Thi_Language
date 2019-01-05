@@ -73,7 +73,7 @@ typedef struct
 {
     Token* g_tokens;
     List* ast_list_ptr;
-    u64 token_index;
+    i64 token_index;
     Token curr_tok;
     Token top_tok;
 } Parse_Context;
@@ -119,7 +119,7 @@ void skip_function_signature(Parse_Context* pctx);
 
 void skip_type(Parse_Context* pctx);
 
-u64 get_integer(Parse_Context* pctx);
+i64 get_integer(Parse_Context* pctx);
 f64 get_float(Parse_Context* pctx);
 Typespec* get_type(Parse_Context* pctx);
 
@@ -521,11 +521,11 @@ Expr* parse_parens(Parse_Context* pctx)
 //                               Type Utilty Functions
 //------------------------------------------------------------------------------
 
-u64 get_integer(Parse_Context* pctx)
+i64 get_integer(Parse_Context* pctx)
 {
     info("get_integer: %s", pctx->curr_tok.value);
 
-    u64 value = 0;
+    i64 value = 0;
     switch (pctx->curr_tok.kind) {
     case TOKEN_INTEGER: value = atoll(pctx->curr_tok.value); break;
     case TOKEN_HEX: value = strtoll(pctx->curr_tok.value, NULL, 0); break;

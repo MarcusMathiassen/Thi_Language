@@ -103,8 +103,8 @@ foreign glfwSetClipboardString :: (void*, i8*)
 
 foreign glfwGetTime           :: () -> f64
 foreign glfwSetTime           :: (f64)
-foreign glfwGetTimerValue     :: () -> u64
-foreign glfwGetTimerFrequency :: () -> u64
+foreign glfwGetTimerValue     :: () -> i64
+foreign glfwGetTimerFrequency :: () -> i64
 
 foreign glfwGetRequiredInstanceExtensions ::  (u32*) -> i8*
 

@@ -16,11 +16,11 @@ struct Context
 
     Stack stack;
 
-    u64 stack_index;
+    i64 stack_index;
 
     // Label information
-    u64 total_label_counter;
-    u64 current_label_counter;
+    i64 total_label_counter;
+    i64 current_label_counter;
 
     char* temp_label0;
     char* temp_label1;

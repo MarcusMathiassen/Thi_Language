@@ -30,7 +30,7 @@ char* typespec_kind_to_str(Typespec_Kind kind)
     return "";
 }
 
-u64 get_size_of_typespec(Typespec* type)
+i64 get_size_of_typespec(Typespec* type)
 {
     switch (type->kind) {
     case TYPESPEC_INT: return type->Int.bits / 8;
@@ -39,7 +39,7 @@ u64 get_size_of_typespec(Typespec* type)
     case TYPESPEC_POINTER: return 8;
     case TYPESPEC_ARRAY: return get_size_of_typespec(type->Array.type) * type->Array.size;
     case TYPESPEC_STRUCT: {
-        u64 accum_size = 0;
+        i64 accum_size = 0;
         int count = sb_count(type->Struct.members);
         for (int i = 0; i < count; ++i) {
             Arg* mem = &type->Struct.members[i];
@@ -48,7 +48,7 @@ u64 get_size_of_typespec(Typespec* type)
         return accum_size;
     }
     case TYPESPEC_FUNCTION: {
-        u64 accum_size = 0;
+        i64 accum_size = 0;
         for (int i = 0; i < sb_count(type->Function.args); ++i) {
             accum_size += get_size_of_typespec(type->Function.args[i].type);
         }
@@ -59,14 +59,14 @@ u64 get_size_of_typespec(Typespec* type)
     return 0;
 }
 
-u64 typespec_function_get_arg_count(Typespec* type)
+i64 typespec_function_get_arg_count(Typespec* type)
 {
     assert(type);
     assert(type->kind == TYPESPEC_FUNCTION);
     return sb_count(type->Function.args);
 }
 
-u64 typespec_array_get_count(Typespec* type)
+i64 typespec_array_get_count(Typespec* type)
 {
     assert(type);
     assert(type->kind == TYPESPEC_ARRAY);
@@ -223,7 +223,7 @@ Typespec* make_typespec_float(i8 bits)
     return t;
 }
 
-Typespec* make_typespec_string(u64 len)
+Typespec* make_typespec_string(i64 len)
 {
     assert(len);
     Typespec* t = make_typespec(TYPESPEC_STRING);

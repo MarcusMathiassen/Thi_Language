@@ -5,7 +5,7 @@
 typedef struct
 {
     char* c_str;
-    u64 len;
+    i64 len;
 } string;
 
 string make_string(char* str);

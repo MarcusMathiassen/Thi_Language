@@ -99,4 +99,6 @@ int get_reg_as_another_size(int reg, i8 size);
 #define R15W 66
 #define R15B 67
 
+#define TOTAL_REG_COUNT 67
+
 #endif

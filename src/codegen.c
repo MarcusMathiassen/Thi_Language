@@ -22,22 +22,29 @@ Value* codegen_expr(Expr* expr);
 
 void push_s(int reg)
 {
-    assert(reg >= 0 && reg <= 67);
+    assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
     emit_s("PUSH %s", get_reg(reg));
     ctx.stack_index += 8;
 }
 
 void pop_s(int reg)
 {
-    assert(reg >= 0 && reg <= 67);
+    assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
     emit_s("POP %s", get_reg(reg));
     ctx.stack_index -= 8;
+    if (ctx.stack_index < 0) ctx.stack_index = 0;
     assert(ctx.stack_index >= 0);
 }
 
-void push(int reg) { emit(&output, "PUSH %s", get_reg(reg)); }
+void push(int reg)
+{ 
+    emit(&output, "PUSH %s", get_reg(reg)); 
+}
 
-void pop(int reg) { emit(&output, "POP %s", get_reg(reg)); }
+void pop(int reg)
+{ 
+    emit(&output, "POP %s", get_reg(reg)); 
+}
 
 char* get_op_size(i8 bytes)
 {
@@ -56,16 +63,38 @@ void push_scope()
     Scope* new_scope = make_scope(10);
     stack_push(&scope_stack, new_scope);
 }
+
+void alloc_variable(Value* variable)
+{
+    assert(variable);
+    assert(variable->kind == VALUE_VARIABLE);
+    i64 size = get_size_of_value(variable);
+    info("Allocating variable '%s' of size %lld", variable->Variable.name, size);
+    ctx.stack_index += size;
+    if (ctx.stack_index > ctx.current_function->Function.stack_allocated)
+    {
+        ctx.current_function->Function.stack_allocated += size;
+    }
+}
+
+void dealloc_variable(Value* variable)
+{
+    assert(variable);
+    assert(variable->kind == VALUE_VARIABLE);
+    i64 size = get_size_of_value(variable);
+    info("Deallocating variable '%s' of size %lld", variable->Variable.name, size);
+    warning("st%d", ctx.stack_index);
+    warning("s%d", size);
+    ctx.stack_index -= size;
+    assert(ctx.stack_index >= 0);
+}
+
 void pop_scope()
 {
     stack_pop(&scope_stack);
-    // Scope* scope = stack_pop(&scope_stack);
-
-    // Free variables
-    // for (u64 i = 0; i < scope->count; ++i) {
-    // u64 size = get_size_of_value(scope->local_variables[i]);
-    // ctx.stack_index -= size;
-    // ctx.current_function->Function.stack_allocated -= size;
+    // Scope* scope = (Scope*)stack_pop(&scope_stack);
+    // for (i64 i = 0; i < scope->count; ++i) {
+    //     dealloc_variable(scope->local_variables[i]);
     // }
 }
 
@@ -84,8 +113,8 @@ void print_scope(Scope* scope)
 {
     info("Scope count %d", scope->count);
     info("Scope alloc_count %d", scope->alloc_count);
-    for (u64 i = 0; i < scope->count; ++i) {
-        info("Scope index: %llu variable: %s", i, scope->local_variables[i]->Variable.name);
+    for (i64 i = 0; i < scope->count; ++i) {
+        info("Scope index: %lld variable: %s", i, scope->local_variables[i]->Variable.name);
     }
 }
 
@@ -94,8 +123,8 @@ Value* get_variable_in_scope(Scope* scope, char* name)
 {
     assert(scope);
     assert(name);
-    u64 variable_count = scope->count;
-    for (u64 i = 0; i < variable_count; ++i) {
+    i64 variable_count = scope->count;
+    for (i64 i = 0; i < variable_count; ++i) {
         Value* v = scope->local_variables[i];
         if (v->Variable.name == name) return v;
     }
@@ -151,7 +180,8 @@ void add_variable(Value* variable)
 {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
-    // warning("adding variable: %s %llu", variable->Variable.name, variable->Variable.stack_pos);
+    alloc_variable(variable);
+    info("Adding variable: '%s' to scope", variable->Variable.name);
     Scope* top = (Scope*)stack_peek(&scope_stack);
     add_variable_to_scope(top, variable);
 }
@@ -168,7 +198,7 @@ void remove_variable(Value* variable)
 
 void push_result_to_temporary_reg(Value* val)
 {
-    u64 size = get_size_of_value(val);
+    i64 size = get_size_of_value(val);
     if (val->type->kind == TYPESPEC_ARRAY) {
         size = get_size_of_typespec(val->type->Array.type);
     }
@@ -191,9 +221,9 @@ void emit_store(Value* variable)
 {
     assert(variable->kind == VALUE_VARIABLE);
 
-    u64 size = get_size_of_value(variable);
+    i64 size = get_size_of_value(variable);
     i32 reg_n = get_rax_reg_of_byte_size(size);
-    u64 stack_pos = get_stack_pos_of_variable(variable);
+    i64 stack_pos = get_stack_pos_of_variable(variable);
 
     switch (variable->type->kind) {
     case TYPESPEC_ARRAY: {
@@ -213,9 +243,9 @@ void emit_store(Value* variable)
 void emit_load(Value* variable)
 {
     assert(variable->kind == VALUE_VARIABLE);
-    u64 size = get_size_of_value(variable);
+    i64 size = get_size_of_value(variable);
     i32 reg_n = get_rax_reg_of_byte_size(size);
-    u64 stack_pos = get_stack_pos_of_variable(variable);
+    i64 stack_pos = get_stack_pos_of_variable(variable);
 
     switch (variable->type->kind) {
     case TYPESPEC_ARRAY: {
@@ -233,7 +263,6 @@ void emit_load(Value* variable)
 
 Value* codegen_function(Expr* expr)
 {
-    // char* func_name = expr->Function.type->Function.name;
     Value* function = make_value_function(expr->Function.type);
     ctx.current_function = function;
 
@@ -243,30 +272,25 @@ Value* codegen_function(Expr* expr)
 
     sb_push(functions, function);
 
-    u64 index = 0;
-    u64 stack_before_func = ctx.stack_index;
+    i64 index = 0;
 
     Arg* args = expr->Function.type->Function.args;
     i32 arg_count = sb_count(args);
-    if (arg_count) info("Printing function parameters");
 
     for (int i = 0; i < arg_count; ++i) {
         Arg* arg = &args[i];
 
-        u64 size = get_size_of_typespec(arg->type);
-        u64 stack_pos = ctx.stack_index + size;
+        i64 size = get_size_of_typespec(arg->type);
+        i64 stack_pos = ctx.stack_index + size;
         Value* var = make_value_variable(arg->name, arg->type, stack_pos);
-
         add_variable(var);
-        emit_s("MOV [RBP-%d], %s", stack_pos, get_reg(get_parameter_reg(index, size)));
 
-        ctx.stack_index += size;
+        char* param_reg = get_reg(get_parameter_reg(index, size));
+        emit_s("MOV [RBP-%lld], %s", stack_pos, param_reg);
+        assert(stack_pos >= 0);
+
         ++index;
     }
-
-    u64 stack_used = ctx.stack_index - stack_before_func;
-    function->Function.stack_allocated += stack_used;
-    ctx.stack_index = 0;
 
     codegen_expr(expr->Function.body);
 
@@ -288,9 +312,9 @@ Value* codegen_block(Expr* expr)
 {
     push_scope();
     Expr** stmts = expr->Block.stmts;
-    u64 stmts_count = sb_count(stmts);
+    i64 stmts_count = sb_count(stmts);
     Value* last = NULL;
-    for (u64 i = 0; i < stmts_count; ++i) {
+    for (i64 i = 0; i < stmts_count; ++i) {
         last = codegen_expr(stmts[i]);
     }
     pop_scope();
@@ -471,9 +495,9 @@ Value* codegen_binary(Expr* expr)
         if (lhs_v->kind != VALUE_VARIABLE) error("lhs of += must be a variable.");
 
         Value* rhs_val = codegen_expr(rhs);
-        u64 rhs_size = get_size_of_value(rhs_val);
-        u64 reg_n = get_rax_reg_of_byte_size(rhs_size);
-        u64 stack_pos = get_stack_pos_of_variable(lhs_v);
+        i64 rhs_size = get_size_of_value(rhs_val);
+        i64 reg_n = get_rax_reg_of_byte_size(rhs_size);
+        i64 stack_pos = get_stack_pos_of_variable(lhs_v);
         emit_s("ADD [RBP-%d], %s", stack_pos, get_reg(reg_n));
         return lhs_v;
     }
@@ -496,9 +520,9 @@ Value* codegen_binary(Expr* expr)
         Value* variable = codegen_expr(lhs);
         if (variable->kind != VALUE_VARIABLE) error("lhs of += must be a variable.");
         Value* rhs_val = codegen_expr(rhs);
-        u64 rhs_size = get_size_of_value(rhs_val);
-        u64 reg_n = get_rax_reg_of_byte_size(rhs_size);
-        u64 stack_pos = get_stack_pos_of_variable(variable);
+        i64 rhs_size = get_size_of_value(rhs_val);
+        i64 reg_n = get_rax_reg_of_byte_size(rhs_size);
+        i64 stack_pos = get_stack_pos_of_variable(variable);
         emit_s("IMUL %s, [RBP-%d]", get_reg(reg_n), stack_pos);
         emit_store(variable);
         return variable;
@@ -584,14 +608,14 @@ Value* codegen_variable_decl_type_inf(Expr* expr)
     Value* assignment_expr_value = codegen_expr(assignment_expr); // Any value this creates is stored in RAX
 
     Typespec* type = assignment_expr_value->type;
-    u64 size_of_assigned_type = get_size_of_typespec(type);
-    u64 variable_stack_pos = size_of_assigned_type + ctx.stack_index;
+    i64 size_of_assigned_type = get_size_of_typespec(type);
+    i64 variable_stack_pos = size_of_assigned_type + ctx.stack_index;
     Value* variable = make_value_variable(name, type, variable_stack_pos);
     add_variable(variable);
 
     emit_store(variable);
-    ctx.stack_index += size_of_assigned_type;
-    ctx.current_function->Function.stack_allocated += ctx.stack_index;
+    // ctx.stack_index += size_of_assigned_type;
+    // ctx.current_function->Function.stack_allocated += ctx.stack_index;
 
     return variable;
 }
@@ -604,14 +628,14 @@ Value* codegen_variable_decl(Expr* expr)
 
     if (assignment_expr) codegen_expr(assignment_expr); // Any value this creates is stored in RAX
 
-    u64 type_size = get_size_of_typespec(type);
-    u64 stack_pos = type_size + ctx.stack_index;
+    i64 type_size = get_size_of_typespec(type);
+    i64 stack_pos = type_size + ctx.stack_index;
     Value* variable = make_value_variable(name, type, stack_pos);
     add_variable(variable);
 
     if (type->kind != TYPESPEC_ARRAY) emit_store(variable); // The variable is set to whatevers in RAX
-    ctx.stack_index += type_size;
-    ctx.current_function->Function.stack_allocated += ctx.stack_index;
+    // ctx.stack_index += type_size;
+    // ctx.current_function->Function.stack_allocated += ctx.stack_index;
 
     return variable;
 }
@@ -620,12 +644,13 @@ Value* codegen_ret(Expr* expr)
 {
     Value* ret_val = codegen_expr(expr->Ret.expr);
 
-    // Allocate stack space
-    u64 stack_allocated = ctx.current_function->Function.stack_allocated;
-    if (stack_allocated) emit_s("ADD RSP, %llu", stack_allocated);
+    // Deallocate any stack used.
+    i64 stack_allocated = ctx.current_function->Function.stack_allocated;
+    if (stack_allocated) emit_s("ADD RSP, %lld", stack_allocated);
 
     pop_s(RBP);
     emit_s("RET");
+
     return ret_val;
 }
 
@@ -640,7 +665,8 @@ Value* codegen_call(Expr* expr)
     i32 func_arg_count = typespec_function_get_arg_count(func_t);
     i32 arg_count = sb_count(args);
 
-    if (func_arg_count != arg_count) error("wrong amount of parameters for call to function '%s'", callee);
+    if (func_arg_count != arg_count) 
+        error("wrong amount of parameters for call to function '%s'", callee);
 
     Value** param_vals = NULL;
 
@@ -720,9 +746,8 @@ Value* codegen_for(Expr* expr)
     i32 stack_pos = type_size + ctx.stack_index;
     Value* iterator_var = make_value_variable(iterator_name, start_val->type, stack_pos);
     add_variable(iterator_var);
-    ctx.current_function->Function.stack_allocated += type_size;
     emit_store(iterator_var);
-    ctx.stack_index += type_size;
+    // ctx.stack_index += type_size;
 
     // COND:
     emit_s("%s:", condition_label);
@@ -747,8 +772,7 @@ Value* codegen_for(Expr* expr)
     emit_s("%s:", continue_label);
     ctx_pop_label(&ctx);
 
-    remove_variable(iterator_var);
-    ctx.stack_index -= type_size;
+    // remove_variable(iterator_var);
 
     return NULL;
 }
@@ -866,7 +890,7 @@ Value* codegen_struct(Expr* expr)
 // @Hotpath
 Value* codegen_expr(Expr* expr)
 {
-    info("Generating code for: %s", expr_to_str_debug(expr));
+    // info("Generating code for: %s", expr_to_str_debug(expr));
     if (expr->kind == EXPR_FUNCTION) return codegen_function(expr);
     if (expr->kind == EXPR_STRUCT) return codegen_struct(expr);
     start_codeblock(ctx.current_function, expr_to_str(expr));
@@ -918,8 +942,8 @@ char* generate_code_from_ast(List* ast)
     LIST_FOREACH(constant_string_list)
     {
         char* val = (char*)it->data;
-        u64 len = xstrlen(val);
-        emit(&output, strf("%s: db \"%s\", %llu", val, val, len));
+        i64 len = xstrlen(val);
+        emit(&output, strf("%s: db \"%s\", %lld", val, val, len));
     }
 
     emit(&output, "global _main");
@@ -937,10 +961,10 @@ char* generate_code_from_ast(List* ast)
         push(RBP);
         emit(&output, "MOV RBP, RSP");
 
-        u64 stack_allocated = func_v->Function.stack_allocated;
+        i64 stack_allocated = func_v->Function.stack_allocated;
         // Allocate stack space
         if (stack_allocated) {
-            emit(&output, "SUB RSP, %llu", stack_allocated);
+            emit(&output, "SUB RSP, %lld", stack_allocated);
             info("function '%s' allocated %d bytes on the stack", func_name, stack_allocated);
         }
 
