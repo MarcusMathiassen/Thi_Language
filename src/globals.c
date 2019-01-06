@@ -18,6 +18,11 @@ Map builtin_type_map;
 Stack timer_stack;
 List timers;
 
+char* debug_success_color = GREEN;
+char* debug_info_color = RGB_GRAY;
+char* debug_warning_color = YELLOW;
+char* debug_error_color = RED;
+
 string source_file;
 char* previous_file;
 string current_directory;

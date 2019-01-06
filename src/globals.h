@@ -7,6 +7,19 @@
 #include "string.h" // string
 #include "typedefs.h"
 #include "typespec.h" // Typespec
+
+#define RESET "\033[0m"
+#define GRAY "\033[30m"
+#define RED "\033[31m"
+#define GREEN "\033[32m"
+#define YELLOW "\033[33m"
+#define RGB_GRAY "\033[38;2;110;110;110;m"
+
+extern char* debug_success_color;
+extern char* debug_info_color;
+extern char* debug_warning_color;
+extern char* debug_error_color;
+
 extern bool detailed_print;
 extern List file_list;
 extern string* current_output;

@@ -12,22 +12,15 @@
 //                               Printing Functions
 //------------------------------------------------------------------------------
 
-#define RESET "\033[0m"
-#define GRAY "\033[30m"
-#define RED "\033[31m"
-#define GREEN "\033[32m"
-#define YELLOW "\033[33m"
-#define RGB_GRAY "\033[38;2;110;110;110;m"
-
 void info(char* fmt, ...)
 {
     if (!detailed_print) return;
     assert(fmt);
     va_list args;
     va_start(args, fmt);
-    printf(RGB_GRAY);
+    printf("%s", debug_info_color);
     vprintf(fmt, args);
-    printf(RESET "\n");
+    puts(RESET);
     va_end(args);
 }
 
@@ -36,9 +29,9 @@ void warning(char* fmt, ...)
     assert(fmt);
     va_list args;
     va_start(args, fmt);
-    printf(YELLOW);
+    printf("%s", debug_warning_color);
     vprintf(fmt, args);
-    printf(RESET "\n");
+    puts(RESET);
     va_end(args);
 }
 
@@ -47,9 +40,9 @@ void success(char* fmt, ...)
     assert(fmt);
     va_list args;
     va_start(args, fmt);
-    printf(GREEN);
+    printf("%s", debug_success_color);
     vprintf(fmt, args);
-    printf(RESET "\n");
+    puts(RESET);
     va_end(args);
 }
 
@@ -59,11 +52,10 @@ void error(char* fmt, ...)
     assert(fmt);
     va_list args;
     va_start(args, fmt);
-    printf(RED);
+    printf("%s", debug_error_color);
     vprintf(fmt, args);
-    printf(RESET "\n");
+    puts(RESET);
     va_end(args);
-    puts(current_output->c_str);
     exit(1);
 }
 
@@ -243,6 +235,11 @@ char* colors[6] = {
 };
 int counter = 0;
 int colors_count = 6;
+char* get_previous_color(void)
+{
+    if (counter == 0) counter = 6;
+    return colors[--counter];
+}
 char* get_next_color(void)
 {
     if (counter == colors_count) counter = 0;

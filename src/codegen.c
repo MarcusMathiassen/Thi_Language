@@ -36,15 +36,9 @@ void pop_s(int reg)
     assert(ctx.stack_index >= 0);
 }
 
-void push(int reg)
-{ 
-    emit(&output, "PUSH %s", get_reg(reg)); 
-}
+void push(int reg) { emit(&output, "PUSH %s", get_reg(reg)); }
 
-void pop(int reg)
-{ 
-    emit(&output, "POP %s", get_reg(reg)); 
-}
+void pop(int reg) { emit(&output, "POP %s", get_reg(reg)); }
 
 char* get_op_size(i8 bytes)
 {
@@ -71,8 +65,7 @@ void alloc_variable(Value* variable)
     i64 size = get_size_of_value(variable);
     info("Allocating variable '%s' of size %lld", variable->Variable.name, size);
     ctx.stack_index += size;
-    if (ctx.stack_index > ctx.current_function->Function.stack_allocated)
-    {
+    if (ctx.stack_index > ctx.current_function->Function.stack_allocated) {
         ctx.current_function->Function.stack_allocated += size;
     }
 }
@@ -219,6 +212,7 @@ int get_latest_used_temp_reg_in_function()
 
 void emit_store(Value* variable)
 {
+    assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
 
     i64 size = get_size_of_value(variable);
@@ -227,6 +221,7 @@ void emit_store(Value* variable)
 
     switch (variable->type->kind) {
     case TYPESPEC_ARRAY: {
+
         i32 temp_reg_n = get_push_or_popable_reg(pop_result_from_temporary_reg());
         size = get_size_of_typespec(variable->type->Array.type);
         emit_s("MOV [RBP-%d+%s*%d], %s ; emit_store on '%s'", stack_pos, get_reg(temp_reg_n), size, get_reg(reg_n),
@@ -242,7 +237,9 @@ void emit_store(Value* variable)
 
 void emit_load(Value* variable)
 {
+    assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
+
     i64 size = get_size_of_value(variable);
     i32 reg_n = get_rax_reg_of_byte_size(size);
     i64 stack_pos = get_stack_pos_of_variable(variable);
@@ -250,8 +247,8 @@ void emit_load(Value* variable)
     switch (variable->type->kind) {
     case TYPESPEC_ARRAY: {
         size = get_size_of_typespec(variable->type->Array.type);
-        // reg_n = get_rax_reg_of_byte_size(size);
-        emit_s("MOV %s, [RBP-%d+%s*%d]", get_reg(reg_n), stack_pos, get_reg(reg_n), size, variable->Variable.name);
+        reg_n = get_rax_reg_of_byte_size(size);
+        emit_s("MOV RAX, [RBP-%d+%s*%d]", get_reg(reg_n), stack_pos, get_reg(reg_n), size, variable->Variable.name);
         break;
     }
     default: {
@@ -602,6 +599,9 @@ Value* codegen_binary(Expr* expr)
 
 Value* codegen_variable_decl_type_inf(Expr* expr)
 {
+    assert(expr);
+    assert(expr->kind == EXPR_VARIABLE_DECL_TYPE_INF);
+
     char* name = expr->Variable_Decl_Type_Inf.name;
     Expr* assignment_expr = expr->Variable_Decl_Type_Inf.value;
 
@@ -614,14 +614,13 @@ Value* codegen_variable_decl_type_inf(Expr* expr)
     add_variable(variable);
 
     emit_store(variable);
-    // ctx.stack_index += size_of_assigned_type;
-    // ctx.current_function->Function.stack_allocated += ctx.stack_index;
-
     return variable;
 }
 
 Value* codegen_variable_decl(Expr* expr)
 {
+    assert(expr);
+    assert(expr->kind == EXPR_VARIABLE_DECL);
     char* name = expr->Variable_Decl.name;
     Typespec* type = expr->Variable_Decl.type;
     Expr* assignment_expr = expr->Variable_Decl.value;
@@ -633,10 +632,7 @@ Value* codegen_variable_decl(Expr* expr)
     Value* variable = make_value_variable(name, type, stack_pos);
     add_variable(variable);
 
-    if (type->kind != TYPESPEC_ARRAY) emit_store(variable); // The variable is set to whatevers in RAX
-    // ctx.stack_index += type_size;
-    // ctx.current_function->Function.stack_allocated += ctx.stack_index;
-
+    emit_store(variable); // The variable is set to whatevers in RAX
     return variable;
 }
 
@@ -665,8 +661,7 @@ Value* codegen_call(Expr* expr)
     i32 func_arg_count = typespec_function_get_arg_count(func_t);
     i32 arg_count = sb_count(args);
 
-    if (func_arg_count != arg_count) 
-        error("wrong amount of parameters for call to function '%s'", callee);
+    if (func_arg_count != arg_count) error("wrong amount of parameters for call to function '%s'", callee);
 
     Value** param_vals = NULL;
 
@@ -846,16 +841,29 @@ Value* codegen_ident(Expr* expr)
     emit_load(var);
     return var;
 }
+/*
+    Subscript access
+    ex.
+        arr
+        load_instruction
 
+        [1]
+
+        arr := [1, 2, 3]
+        arr[1] = 5
+        # arr == [1, 5, 3]
+*/
 Value* codegen_subscript(Expr* expr)
 {
     assert(expr->kind == EXPR_SUBSCRIPT);
     Value* result = codegen_expr(expr->Subscript.expr);
     assert(result->kind == VALUE_INT);
-    Value* variable = get_variable(expr->Subscript.variable_name);
-    push_result_to_temporary_reg(result);
-    emit_load(variable);
-    return variable;
+    // Value* variable = get_variable(expr->Subscript.variable_name);
+
+    // push_result_to_temporary_reg(result);
+    // emit_load(variable);
+
+    return NULL;
 }
 
 Value* codegen_string(Expr* expr)

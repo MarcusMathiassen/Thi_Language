@@ -32,6 +32,7 @@ i64 xstrlen(char* str);
 
 char* strf(char* fmt, ...);
 
+char* get_previous_color(void);
 char* get_next_color(void);
 char* wrap_with_colored_parens(char* str);
 char* give_unique_color(char* str);

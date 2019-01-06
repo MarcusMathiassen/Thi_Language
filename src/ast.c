@@ -50,7 +50,7 @@ char* expr_to_str(Expr* expr)
     char* result = NULL;
     switch (expr->kind) {
     case EXPR_SUBSCRIPT: {
-        result = strf("%s[%s]", expr->Subscript.variable_name, expr_to_str(expr->Subscript.expr));
+        result = strf("[%s]", expr_to_str(expr->Subscript.expr));
     } break;
     case EXPR_CONTINUE: {
         result = "continue";
@@ -135,7 +135,7 @@ char* expr_to_str_debug(Expr* expr)
     char* result = NULL;
     switch (expr->kind) {
     case EXPR_SUBSCRIPT: {
-        result = strf("%s[%s]", expr->Subscript.variable_name, expr_to_str(expr->Subscript.expr));
+        result = strf("[%s]", expr_to_str(expr->Subscript.expr));
     } break;
     case EXPR_CONTINUE: {
         result = "continue";
@@ -222,8 +222,7 @@ char* expr_to_json(Expr* expr)
     char* result = NULL;
     switch (expr->kind) {
     case EXPR_SUBSCRIPT: {
-        result = strf("{\"%s\": {\"ident\": \"%s\", \"expr\": %s}}", expr_kind_to_str(expr->kind),
-                      expr->Subscript.variable_name, expr_to_str(expr->Subscript.expr));
+        result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), expr_to_str(expr->Subscript.expr));
     } break;
     case EXPR_CONTINUE: {
         result = strf("{\"%s\": {%s}}", expr_kind_to_str(expr->kind), "continue");
@@ -348,12 +347,10 @@ Expr* make_expr(Expr_Kind kind)
     return e;
 }
 
-Expr* make_expr_subscript(char* variable_name, Expr* expr)
+Expr* make_expr_subscript(Expr* expr)
 {
-    assert(variable_name);
     assert(expr);
     Expr* e = make_expr(EXPR_SUBSCRIPT);
-    e->Subscript.variable_name = variable_name;
     e->Subscript.expr = expr;
     return e;
 }

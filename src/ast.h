@@ -45,7 +45,6 @@ enum Expr_Kind
 
 typedef struct
 {
-    char* variable_name;
     Expr* expr;
 } AST_Subscript;
 typedef struct
@@ -167,7 +166,7 @@ struct Expr
     };
 };
 
-Expr* make_expr_subscript(char* variable_name, Expr* expr);
+Expr* make_expr_subscript(Expr* expr);
 Expr* make_expr_continue(void);
 Expr* make_expr_break(void);
 Expr* make_expr_macro(char* name, Expr* expr);
