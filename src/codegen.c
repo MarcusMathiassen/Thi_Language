@@ -220,18 +220,13 @@ void emit_store(Value* variable)
     i64 stack_pos = get_stack_pos_of_variable(variable);
 
     switch (variable->type->kind) {
+    case TYPESPEC_POINTER: // fallthrough
     case TYPESPEC_ARRAY: {
-
-        i32 temp_reg_n = get_push_or_popable_reg(pop_result_from_temporary_reg());
-        size = get_size_of_typespec(variable->type->Array.type);
-        emit_s("MOV [RBP-%d+%s*%d], %s ; emit_store on '%s'", stack_pos, get_reg(temp_reg_n), size, get_reg(reg_n),
-               variable->Variable.name);
-        break;
-    }
+        emit_s("MOV [RCX], RAX; store");
+    } break;
     default: {
-        emit_s("MOV [RBP-%d], %s", stack_pos, get_reg(reg_n));
-        break;
-    }
+        emit_s("MOV [RBP-%d], %s; store", stack_pos, get_reg(reg_n));
+    } break;
     }
 }
 
@@ -245,16 +240,13 @@ void emit_load(Value* variable)
     i64 stack_pos = get_stack_pos_of_variable(variable);
 
     switch (variable->type->kind) {
+    case TYPESPEC_POINTER:
     case TYPESPEC_ARRAY: {
-        size = get_size_of_typespec(variable->type->Array.type);
-        reg_n = get_rax_reg_of_byte_size(size);
-        emit_s("MOV RAX, [RBP-%d+%s*%d]", get_reg(reg_n), stack_pos, get_reg(reg_n), size, variable->Variable.name);
-        break;
-    }
+        emit_s("LEA RAX, [RBP-%d]; load", stack_pos);
+    } break;
     default: {
-        emit_s("MOV %s, [RBP-%d]", get_reg(reg_n), stack_pos);
-        break;
-    }
+        emit_s("MOV %s, [RBP-%d]; load", get_reg(reg_n), stack_pos);
+    } break;
     }
 }
 
@@ -329,12 +321,22 @@ Value* codegen_unary(Expr* expr)
 
     switch (op) {
     case THI_SYNTAX_ADDRESS: error("Unary '&' not implemented"); break;
-    case THI_SYNTAX_POINTER: error("Unary '*' not implemented"); break;
+    case THI_SYNTAX_POINTER: {
+        assert(operand_val->kind == VALUE_VARIABLE);
+        assert( operand_val->type->kind == TYPESPEC_ARRAY ||
+                operand_val->type->kind == TYPESPEC_POINTER);
+        Typespec* t = operand_val->type->Array.type;
+        if (t->kind == TYPESPEC_ARRAY)
+        {
+            emit_s("LEA RAX, [RAX]; deref");
+        } else {
+            emit_s("MOV RAX, [RAX]; deref");
+        }
+    } break;
     case TOKEN_BANG: {
         emit_s("CMP %s, 0", get_reg(reg_n));
         emit_s("SETE AL");
-        break;
-    }
+    } break;
     case TOKEN_PLUS: { // no nothing
     } break;
     case TOKEN_MINUS: {
@@ -362,11 +364,11 @@ Value* codegen_binary(Expr* expr)
         emit_load(variable);
         return variable;
     }
-
     case THI_SYNTAX_ASSIGNMENT: {
         Value* variable = codegen_expr(lhs);
-        assert(variable->kind == VALUE_VARIABLE);
+        push_s(RAX);
         Value* rhs_val = codegen_expr(rhs);
+        pop_s(RCX);
         emit_store(variable);
         return rhs_val;
     }
@@ -544,7 +546,6 @@ Value* codegen_binary(Expr* expr)
         return lhs_v;
     }
 
-    case TOKEN_AT: error("at not implemented.");
     case TOKEN_HAT: error("hat not implemented.");
     case TOKEN_PIPE:
         error("pipe not implemented.");
@@ -613,7 +614,9 @@ Value* codegen_variable_decl_type_inf(Expr* expr)
     Value* variable = make_value_variable(name, type, variable_stack_pos);
     add_variable(variable);
 
-    emit_store(variable);
+    if (type->kind != TYPESPEC_ARRAY)
+        emit_store(variable);
+
     return variable;
 }
 
@@ -632,7 +635,9 @@ Value* codegen_variable_decl(Expr* expr)
     Value* variable = make_value_variable(name, type, stack_pos);
     add_variable(variable);
 
-    emit_store(variable); // The variable is set to whatevers in RAX
+    if (assignment_expr && type->kind != TYPESPEC_ARRAY)
+        emit_store(variable);
+
     return variable;
 }
 
@@ -898,7 +903,7 @@ Value* codegen_struct(Expr* expr)
 // @Hotpath
 Value* codegen_expr(Expr* expr)
 {
-    // info("Generating code for: %s", expr_to_str_debug(expr));
+    info("Generating code for: %s", expr_to_str_debug(expr));
     if (expr->kind == EXPR_FUNCTION) return codegen_function(expr);
     if (expr->kind == EXPR_STRUCT) return codegen_struct(expr);
     start_codeblock(ctx.current_function, expr_to_str(expr));

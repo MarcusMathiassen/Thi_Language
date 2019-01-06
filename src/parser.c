@@ -267,7 +267,7 @@ Expr* parse_statement(Parse_Context* pctx)
     case TOKEN_IF:          statement = parse_if(pctx); break;
     case TOKEN_FOR:         statement = parse_for(pctx); break;
     case TOKEN_WHILE:       statement = parse_while(pctx); break;
-    default: error("Unhandled token '%s' was not a valid statement", pctx->curr_tok.value);
+    default: statement = parse_expression(pctx); // error("Unhandled token '%s' was not a valid statement", pctx->curr_tok.value);
     }
     DEBUG_STATEMENT_END;
     return statement;
@@ -507,6 +507,17 @@ Expr* parse_binary(Parse_Context* pctx, int expr_prec, Expr* lhs)
     return expr;
 }
 
+Expr* read_subscript_expr(Parse_Context* pctx, Expr* expr) {
+    eat_kind(pctx, TOKEN_OPEN_BRACKET);
+    Expr* sub = parse_expression(pctx);
+    // E1[E2] == *(E1+E12)
+    if (!sub) error("subscription expected");
+    eat_kind(pctx, TOKEN_CLOSE_BRACKET);
+    Expr* t = make_expr_binary(TOKEN_PLUS, expr, sub);
+    t = make_expr_grouping(t);
+    return make_expr_unary(THI_SYNTAX_POINTER, t);
+}
+
 Expr* parse_postfix_tail(Parse_Context* pctx, Expr* primary_expr)
 {
     DEBUG_START;
@@ -514,7 +525,7 @@ Expr* parse_postfix_tail(Parse_Context* pctx, Expr* primary_expr)
     while(1)
     {
         if (tok_is(pctx, TOKEN_OPEN_BRACKET)) {
-            primary_expr = parse_subscript(pctx);
+            primary_expr = read_subscript_expr(pctx, primary_expr);
             continue;
         }
         return primary_expr;
