@@ -236,8 +236,7 @@ int get_latest_used_temp_reg_in_function()
 }
 
 int align(int n, int m) {
-    int rem = n % m;
-    return (rem == 0) ? n : n - rem + m;
+    return (m - (n % m)) % m;
 }
 
 void emit_store(Value* variable)
@@ -245,17 +244,16 @@ void emit_store(Value* variable)
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
 
-    i64 size = get_size_of_value(variable);
-    i32 reg_n = get_rax_reg_of_byte_size(size);
-    i64 stack_pos = get_stack_pos_of_variable(variable);
-
     switch (variable->type->kind) {
     case TYPESPEC_POINTER: // fallthrough
-    case TYPESPEC_ARRAY: {
+    case TYPESPEC_ARRAY: { 
         emit("MOV [RAX], RCX; store1");
-        emit("MOV RAX, RCX; store2");
     } break;
+
     default: {
+        i64 size = get_size_of_value(variable);
+        i32 reg_n = get_rax_reg_of_byte_size(size);
+        i64 stack_pos = get_stack_pos_of_variable(variable);
         emit("MOV [RBP-%d], %s; store", stack_pos, get_reg(reg_n));
     } break;
     }
@@ -299,15 +297,14 @@ Value* codegen_function(Expr* expr)
     push(RBP);
     emit("MOV RBP, RSP");
 
-
     // Allocate stack space. ex variables etc.
     i64 stack_allocated = expr->Function.stack_allocated;
-    int padding = (16 - (stack_allocated % 16)) % 16;
+    int padding = align(stack_allocated, 16);
     ctx.current_function->Function.stack_allocated = stack_allocated + padding;
-    if (padding) {
-        emit("SUB RSP, %d; padding", stack_allocated + padding);
-    }
-    warning("stack_index %d", ctx.stack_index);
+    emit("SUB RSP, %d; %d alloc, %d padding", stack_allocated + padding, stack_allocated, padding);
+
+    ctx.stack_index = 0;
+    warning("stack_index at %d", ctx.stack_index);
     i64 index = 0;
 
     Arg* args = expr->Function.type->Function.args;
@@ -412,17 +409,14 @@ Value* codegen_binary(Expr* expr)
     }
     case THI_SYNTAX_ASSIGNMENT: {
         codegen_expr(rhs);
-        Value* variable;
         push(RAX);
-        if (lhs->kind == EXPR_UNARY)
-        {
+        Value* variable;
+        if (lhs->kind == EXPR_UNARY) { 
             variable = codegen_expr(lhs->Unary.operand);
-            pop(RCX);
-        } else 
-        {
-            variable = codegen_expr(lhs);
-            pop(RCX);
+        } else {
+            variable = get_variable(lhs->Ident.name);
         }
+        pop(RCX);
         emit_store(variable);
         return variable;
     }
@@ -570,13 +564,12 @@ Value* codegen_binary(Expr* expr)
     }
 
     case TOKEN_ASTERISK_EQ: {
+        if (lhs->kind == EXPR_UNARY) lhs = lhs->Unary.operand;
+        rhs = make_expr_binary(TOKEN_ASTERISK, lhs, rhs);
+        codegen_expr(rhs);
+        push(RAX);
         Value* variable = codegen_expr(lhs);
-        if (variable->kind != VALUE_VARIABLE) error("lhs of += must be a variable.");
-        Value* rhs_val = codegen_expr(rhs);
-        i64 rhs_size = get_size_of_value(rhs_val);
-        i64 reg_n = get_rax_reg_of_byte_size(rhs_size);
-        i64 stack_pos = get_stack_pos_of_variable(variable);
-        emit("IMUL %s, [RBP-%d]", get_reg(reg_n), stack_pos);
+        pop(RAX);
         emit_store(variable);
         return variable;
     }
@@ -1035,7 +1028,7 @@ char* generate_code_from_ast(List* ast)
                 switch (b_expr->kind)
                 {
                     case EXPR_VARIABLE_DECL: sum += get_size_of_typespec(b_expr->Variable_Decl.type); break;
-                    // case EXPR_VARIABLE_DECL_TYPE_INF: sum += get_size_of_typespec(b_expr->Variable_Decl.type); break;
+                    // case EXPR_VARIABLE_DECL_TYPE_INF: sum += get_size_of_typespec(b_expr->Variable_Decl_Type_Inf.expr); break;
                 }
             }
             expr->Function.stack_allocated = sum;

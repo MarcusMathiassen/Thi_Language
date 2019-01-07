@@ -513,11 +513,14 @@ Expr* read_subscript_expr(Parse_Context* pctx, Expr* expr)
     // E1[E2] == *(E1+E12)
     if (!sub) error("subscription expected");
     eat_kind(pctx, TOKEN_CLOSE_BRACKET);
-    Typespec* type = get_symbol(expr->Ident.name);
-    i64 size = get_size_of_underlying_typespec(type);
-    sub = make_expr_binary(TOKEN_ASTERISK, make_expr_int(size), sub);
+    // assert(expr->kind == EXPR_IDENT);
+    // Typespec* type = get_symbol(expr->Ident.name);
+    // i64 size = get_size_of_underlying_typespec(type);
+    warning("WE HARDCODE THE SUBSCRIPT TYPE SIZE AS 4");
+    warning("WE HARDCODE THE SUBSCRIPT TYPE SIZE AS 4");
+    warning("WE HARDCODE THE SUBSCRIPT TYPE SIZE AS 4");
+    sub = make_expr_binary(TOKEN_ASTERISK, make_expr_int(4), sub);
     Expr* t = make_expr_binary(TOKEN_PLUS, expr, sub);
-    t = make_expr_grouping(t);
     return make_expr_unary(THI_SYNTAX_POINTER, t);
 }
 

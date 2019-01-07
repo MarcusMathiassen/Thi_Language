@@ -141,9 +141,9 @@ void assemble(char* asm_file, char* exec_name)
     // system("cat output.asm");
 
     // Cleanup
-    string rm_asm_file = make_string_f("rm %s", asm_file);
-    system(rm_asm_file.c_str);
-    free_string(&rm_asm_file);
+    // string rm_asm_file = make_string_f("rm %s", asm_file);
+    // system(rm_asm_file.c_str);
+    // free_string(&rm_asm_file);
 }
 
 void link(char* exec_name)
