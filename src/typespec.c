@@ -30,6 +30,15 @@ char* typespec_kind_to_str(Typespec_Kind kind)
     return "";
 }
 
+i64 get_size_of_underlying_typespec(Typespec* type)
+{
+    switch (type->kind) {
+    case TYPESPEC_POINTER: return get_size_of_typespec(type->Pointer.pointee);
+    case TYPESPEC_ARRAY: return get_size_of_typespec(type->Array.type);
+    default: error("get_size_of_typespec kind %s not implemented.", typespec_kind_to_str(type->kind));
+    }
+    return 0;
+}
 i64 get_size_of_typespec(Typespec* type)
 {
     switch (type->kind) {

@@ -123,15 +123,13 @@ i64 get_integer(Parse_Context* pctx);
 f64 get_float(Parse_Context* pctx);
 Typespec* get_type(Parse_Context* pctx);
 
-#define DEBUG_START \
-    info("%s: %s", __func__, pctx->curr_tok.value);
+#define DEBUG_START info("%s: %s", __func__, pctx->curr_tok.value);
 
-#define DEBUG_STATEMENT_START \
-    info("%s: %s", __func__, pctx->curr_tok.value); \
-    debug_info_color = get_next_color(); 
+#define DEBUG_STATEMENT_START                                                                                          \
+    info("%s: %s", __func__, pctx->curr_tok.value);                                                                    \
+    debug_info_color = get_next_color();
 
-#define DEBUG_STATEMENT_END \
-    debug_info_color = get_previous_color();
+#define DEBUG_STATEMENT_END debug_info_color = get_previous_color();
 
 //------------------------------------------------------------------------------
 //                               Public Functions
@@ -148,9 +146,12 @@ void parse(List* ast, char* source_file)
     Token* tokens = generate_tokens_from_source(source_file);
     generate_symbol_table_from_tokens(ast, tokens);
     generate_ast_from_tokens(ast, tokens);
+
     pop_timer();
 
-    print_ast(ast);
+    // print_ast(ast);
+
+    // info("%s", ast_to_json(ast));
 
     set_source_file(last_file);
     set_current_dir(last_dir);
@@ -249,7 +250,6 @@ Expr* parse_top_level(Parse_Context* pctx)
     default: warning("unknown toplevel token '%s'", pctx->curr_tok.value); eat(pctx);
     }
 
-
     return expr;
 }
 
@@ -258,16 +258,18 @@ Expr* parse_statement(Parse_Context* pctx)
     DEBUG_STATEMENT_START;
     Expr* statement = NULL;
     switch (pctx->curr_tok.kind) {
-    case TOKEN_IDENTIFIER:  statement = parse_expression(pctx); break;
-    case TOKEN_RETURN:      statement = parse_ret(pctx); break;
-    case TOKEN_OPEN_PAREN:  statement = parse_parens(pctx); break;
-    case TOKEN_OPEN_BRACE:  statement = parse_block(pctx); break;
-    case TOKEN_BREAK:       statement = parse_break(pctx); break;
-    case TOKEN_CONTINUE:    statement = parse_continue(pctx); break;
-    case TOKEN_IF:          statement = parse_if(pctx); break;
-    case TOKEN_FOR:         statement = parse_for(pctx); break;
-    case TOKEN_WHILE:       statement = parse_while(pctx); break;
-    default: statement = parse_expression(pctx); // error("Unhandled token '%s' was not a valid statement", pctx->curr_tok.value);
+    case TOKEN_IDENTIFIER: statement = parse_expression(pctx); break;
+    case TOKEN_RETURN: statement = parse_ret(pctx); break;
+    case TOKEN_OPEN_PAREN: statement = parse_parens(pctx); break;
+    case TOKEN_OPEN_BRACE: statement = parse_block(pctx); break;
+    case TOKEN_BREAK: statement = parse_break(pctx); break;
+    case TOKEN_CONTINUE: statement = parse_continue(pctx); break;
+    case TOKEN_IF: statement = parse_if(pctx); break;
+    case TOKEN_FOR: statement = parse_for(pctx); break;
+    case TOKEN_WHILE: statement = parse_while(pctx); break;
+    default:
+        statement =
+            parse_expression(pctx); // error("Unhandled token '%s' was not a valid statement", pctx->curr_tok.value);
     }
     DEBUG_STATEMENT_END;
     return statement;
@@ -277,13 +279,13 @@ Expr* parse_primary(Parse_Context* pctx)
 {
     DEBUG_START;
     switch (pctx->curr_tok.kind) {
-    case TOKEN_IDENTIFIER:     return parse_identifier(pctx);
-    case TOKEN_DOLLAR_SIGN:    return parse_note(pctx);
-    case TOKEN_HEX:            // fallthrough
-    case TOKEN_INTEGER:        return parse_integer(pctx);
-    case TOKEN_STRING:         return parse_string(pctx);
-    case TOKEN_OPEN_PAREN:     return parse_parens(pctx);
-    case TOKEN_OPEN_BRACE:     return parse_block(pctx);
+    case TOKEN_IDENTIFIER: return parse_identifier(pctx);
+    case TOKEN_DOLLAR_SIGN: return parse_note(pctx);
+    case TOKEN_HEX: // fallthrough
+    case TOKEN_INTEGER: return parse_integer(pctx);
+    case TOKEN_STRING: return parse_string(pctx);
+    case TOKEN_OPEN_PAREN: return parse_parens(pctx);
+    case TOKEN_OPEN_BRACE: return parse_block(pctx);
     default: error("unhandled primary '%s'", pctx->curr_tok.value);
     }
     return NULL;
@@ -295,11 +297,12 @@ Expr* parse_identifier(Parse_Context* pctx)
     char* ident = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
     switch (pctx->curr_tok.kind) {
-    case TOKEN_COLON_COLON:     return get_definition(pctx, ident);
-    case TOKEN_COLON_EQ:        return get_variable_typeinferred(pctx, ident);
-    case TOKEN_COLON:           return get_variable_declaration(pctx, ident);
-    case TOKEN_OPEN_PAREN:      return get_function_call(pctx, ident);
+    case TOKEN_COLON_COLON: return get_definition(pctx, ident);
+    case TOKEN_COLON_EQ: return get_variable_typeinferred(pctx, ident);
+    case TOKEN_COLON: return get_variable_declaration(pctx, ident);
+    case TOKEN_OPEN_PAREN: return get_function_call(pctx, ident);
     }
+
     return make_expr_ident(ident);
 }
 
@@ -327,7 +330,6 @@ Expr* parse_while(Parse_Context* pctx)
     }
     Expr* body = parse_block(pctx);
 
-
     return make_expr_while(cond, body);
 }
 Expr* parse_for(Parse_Context* pctx)
@@ -346,7 +348,6 @@ Expr* parse_for(Parse_Context* pctx)
     Expr* end = parse_expression(pctx);
     if (!end) error("missing end value in for loop");
     Expr* body = parse_block(pctx);
-
 
     return make_expr_for(iterator_name, start, end, body);
 }
@@ -387,7 +388,6 @@ Expr* parse_block(Parse_Context* pctx)
 
     eat_kind(pctx, TOKEN_CLOSE_BRACE);
 
-
     return make_expr_block(statements);
 }
 
@@ -397,7 +397,6 @@ Expr* parse_ret(Parse_Context* pctx)
 
     eat_kind(pctx, TOKEN_RETURN);
     Expr* exp = parse_expression(pctx);
-
 
     return make_expr_ret(exp);
 }
@@ -430,7 +429,6 @@ Expr* get_function_call(Parse_Context* pctx, char* ident)
     }
     eat_kind(pctx, TOKEN_CLOSE_PAREN);
 
-
     return make_expr_call(ident, args);
 }
 
@@ -441,6 +439,7 @@ Expr* get_variable_typeinferred(Parse_Context* pctx, char* ident)
     eat_kind(pctx, TOKEN_COLON_EQ);
     Expr* assignment_expr = parse_expression(pctx);
 
+    // add_symbol(ident, make_typespec_int(32, 0));
 
     return make_expr_variable_decl_type_inf(ident, assignment_expr);
 }
@@ -456,6 +455,7 @@ Expr* get_variable_declaration(Parse_Context* pctx, char* ident)
         assignment_expr = parse_expression(pctx);
     }
 
+    add_symbol(ident, variable_type);
 
     return make_expr_variable_decl(ident, variable_type, assignment_expr);
 }
@@ -472,8 +472,9 @@ Expr* parse_binary(Parse_Context* pctx, int expr_prec, Expr* lhs)
 
         // If this is a binop that binds at least as tightly as the current
         // binop, consume it, otherwise we are done.
-        if (tok_prec < expr_prec) { 
-            expr = lhs; break; 
+        if (tok_prec < expr_prec) {
+            expr = lhs;
+            break;
         }
 
         // Okay, we know this is a binop.
@@ -502,17 +503,19 @@ Expr* parse_binary(Parse_Context* pctx, int expr_prec, Expr* lhs)
         lhs = make_expr_binary(binary_op_token, lhs, rhs);
     }
 
-
-
     return expr;
 }
 
-Expr* read_subscript_expr(Parse_Context* pctx, Expr* expr) {
+Expr* read_subscript_expr(Parse_Context* pctx, Expr* expr)
+{
     eat_kind(pctx, TOKEN_OPEN_BRACKET);
     Expr* sub = parse_expression(pctx);
     // E1[E2] == *(E1+E12)
     if (!sub) error("subscription expected");
     eat_kind(pctx, TOKEN_CLOSE_BRACKET);
+    Typespec* type = get_symbol(expr->Ident.name);
+    i64 size = get_size_of_underlying_typespec(type);
+    sub = make_expr_binary(TOKEN_ASTERISK, make_expr_int(size), sub);
     Expr* t = make_expr_binary(TOKEN_PLUS, expr, sub);
     t = make_expr_grouping(t);
     return make_expr_unary(THI_SYNTAX_POINTER, t);
@@ -522,8 +525,7 @@ Expr* parse_postfix_tail(Parse_Context* pctx, Expr* primary_expr)
 {
     DEBUG_START;
     if (!primary_expr) return NULL;
-    while(1)
-    {
+    while (1) {
         if (tok_is(pctx, TOKEN_OPEN_BRACKET)) {
             primary_expr = read_subscript_expr(pctx, primary_expr);
             continue;
@@ -588,7 +590,6 @@ Expr* parse_integer(Parse_Context* pctx)
 
     Expr* res = make_expr_int(get_integer(pctx));
 
-
     return res;
 }
 
@@ -599,7 +600,6 @@ Expr* parse_parens(Parse_Context* pctx)
     eat_kind(pctx, TOKEN_OPEN_PAREN);
     Expr* expr = parse_expression(pctx);
     eat_kind(pctx, TOKEN_CLOSE_PAREN);
-
 
     return make_expr_grouping(expr);
 }
@@ -708,7 +708,6 @@ Typespec* parse_enum_signature(Parse_Context* pctx, char* name)
     }
     eat_kind(pctx, TOKEN_CLOSE_BRACE);
 
-
     return make_typespec_enum(name, NULL);
 }
 
@@ -729,7 +728,6 @@ Typespec* parse_struct_signature(Parse_Context* pctx, char* struct_name)
         sb_push(members, member);
     }
     eat_kind(pctx, TOKEN_CLOSE_BRACE);
-
 
     return make_typespec_struct(struct_name, members);
 }
@@ -768,7 +766,6 @@ Typespec* parse_function_signature(Parse_Context* pctx, char* func_name)
         eat_kind(pctx, TOKEN_RIGHT_ARROW);
         ret_type = get_type(pctx);
     }
-
 
     return make_typespec_function(func_name, args, ret_type);
 }
@@ -885,7 +882,6 @@ void skip_struct_signature(Parse_Context* pctx)
         skip_type(pctx);
     }
     eat_kind(pctx, TOKEN_CLOSE_BRACE);
-
 }
 
 void skip_function_signature(Parse_Context* pctx)

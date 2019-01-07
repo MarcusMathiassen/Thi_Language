@@ -14,6 +14,7 @@
 #define GREEN "\033[32m"
 #define YELLOW "\033[33m"
 #define RGB_GRAY "\033[38;2;110;110;110;m"
+#define RGB_WHITE "\033[38;2;255;255;255;m"
 
 extern char* debug_success_color;
 extern char* debug_info_color;

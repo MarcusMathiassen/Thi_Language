@@ -303,13 +303,13 @@ char* expr_to_json(Expr* expr)
                       expr->If.else_body ? expr_to_json(expr->If.else_body) : "null");
     } break;
     case EXPR_CALL: {
-        string str = make_string("");
-        append_string_f(&str, "{\"%s\": {\"callee\": %s, ", expr_kind_to_str(expr->kind), expr->Call.callee);
-        append_string(&str, "\"args\": [");
         i32 arg_count = sb_count(expr->Call.args);
+        string str = make_string(strf("{\"%s\": {\"callee\": \"%s\", \"args\": [", expr_kind_to_str(expr->kind), expr->Call.callee));
         for (int i = 0; i < arg_count; ++i) {
             append_string(&str, expr_to_json(expr->Call.args[i]));
-            if (i != arg_count - 1) append_string(&str, ", ");
+            if (i != arg_count - 1) {
+                append_string(&str, ", ");
+            }
         }
         append_string(&str, "]}}");
         result = str.c_str;
@@ -318,6 +318,8 @@ char* expr_to_json(Expr* expr)
     assert(result);
     return result;
 }
+
+
 void print_ast(List* ast)
 {
     info("Printing AST..");

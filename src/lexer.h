@@ -12,13 +12,10 @@ typedef enum
 
     TOKEN_IDENTIFIER,
 
-    TOKEN_NIL,
     TOKEN_TRUE,
     TOKEN_FALSE,
 
-    TOKEN_PRINT,
     TOKEN_CAST,
-    TOKEN_MALLOC,
     TOKEN_SIZEOF,
 
     TOKEN_FOREIGN,
@@ -32,7 +29,6 @@ typedef enum
 
     TOKEN_STRUCT,
     TOKEN_ENUM,
-    TOKEN_REPEAT,
     TOKEN_BREAK,
     TOKEN_CONTINUE,
 

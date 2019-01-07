@@ -1,0 +1,9 @@
+foreign malloc :: (u64) -> u8*
+foreign putchar :: (i32) -> i32
+main :: () -> i32 { 
+    a: i32*
+    a = malloc(4*4)
+    a[1] = 1
+    ret a[1]
+}
+ 

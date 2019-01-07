@@ -112,8 +112,8 @@ void function_get_stack_used(Value* function);
 void function_push_reg(Value* function, i64 reg_n);
 i64 function_pop_reg(Value* function);
 
-void emit_s(char* fmt, ...);
-void emit(string* output, char* fmt, ...);
+// void emit_s(char* fmt, ...);
+// void emit(string* output, char* fmt, ...);
 
 //------------------------------------------------------------------------------
 //                               Scope

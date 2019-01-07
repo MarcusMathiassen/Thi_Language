@@ -11,6 +11,9 @@
 #include "utility.h" // error warning info, etc
 #include "value.h"   // Value, Scope
 #include <assert.h>  // assert
+#include <stdarg.h>  // va_list, va_start, va_end
+#include <stdio.h>   //
+#include <string.h>  // strncat,
 
 Typespec* integer_literal_type = NULL;
 Context ctx;
@@ -20,25 +23,53 @@ Value** functions = NULL;
 
 Value* codegen_expr(Expr* expr);
 
-void push_s(int reg)
+void emit_no_tab(char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    i64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
+    va_end(args);
+    char* str = xmalloc(str_len);
+
+    va_start(args, fmt);
+    vsnprintf(str, str_len, fmt, args);
+    va_end(args);
+
+    append_string(&output, str);
+    append_string(&output, "\n");
+}
+
+void emit(char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    i64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
+    va_end(args);
+    char* str = xmalloc(str_len);
+
+    va_start(args, fmt);
+    vsnprintf(str, str_len, fmt, args);
+    va_end(args);
+
+    append_string(&output, strf("\t%s", str));
+    append_string(&output, "\n");
+}
+
+void push(int reg)
 {
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
-    emit_s("PUSH %s", get_reg(reg));
+    emit("PUSH %s", get_reg(reg));
     ctx.stack_index += 8;
 }
 
-void pop_s(int reg)
+void pop(int reg)
 {
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
-    emit_s("POP %s", get_reg(reg));
+    emit("POP %s", get_reg(reg));
     ctx.stack_index -= 8;
     if (ctx.stack_index < 0) ctx.stack_index = 0;
     assert(ctx.stack_index >= 0);
 }
-
-void push(int reg) { emit(&output, "PUSH %s", get_reg(reg)); }
-
-void pop(int reg) { emit(&output, "POP %s", get_reg(reg)); }
 
 char* get_op_size(i8 bytes)
 {
@@ -76,8 +107,6 @@ void dealloc_variable(Value* variable)
     assert(variable->kind == VALUE_VARIABLE);
     i64 size = get_size_of_value(variable);
     info("Deallocating variable '%s' of size %lld", variable->Variable.name, size);
-    warning("st%d", ctx.stack_index);
-    warning("s%d", size);
     ctx.stack_index -= size;
     assert(ctx.stack_index >= 0);
 }
@@ -197,7 +226,7 @@ void push_result_to_temporary_reg(Value* val)
     }
     i32 reg_n = get_rax_reg_of_byte_size(size);
     i32 temp_reg_n = get_next_available_reg(&ctx, size);
-    emit_s("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
+    emit("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
     function_push_reg(ctx.current_function, temp_reg_n);
 }
 
@@ -208,6 +237,11 @@ int get_latest_used_temp_reg_in_function()
     u8* regs_used = ctx.current_function->Function.regs_used;
     u8 regs_count = ctx.current_function->Function.regs_used_count;
     return regs_used[regs_count];
+}
+
+int align(int n, int m) {
+    int rem = n % m;
+    return (rem == 0) ? n : n - rem + m;
 }
 
 void emit_store(Value* variable)
@@ -222,11 +256,11 @@ void emit_store(Value* variable)
     switch (variable->type->kind) {
     case TYPESPEC_POINTER: // fallthrough
     case TYPESPEC_ARRAY: {
-        emit_s("MOV [RAX], RCX; store");
-        emit_s("MOV RAX, RCX; store");
+        emit("MOV [RAX], RCX; store1");
+        emit("MOV RAX, RCX; store2");
     } break;
     default: {
-        emit_s("MOV [RBP-%d], %s; store", stack_pos, get_reg(reg_n));
+        emit("MOV [RBP-%d], %s; store", stack_pos, get_reg(reg_n));
     } break;
     }
 }
@@ -243,16 +277,19 @@ void emit_load(Value* variable)
     switch (variable->type->kind) {
     case TYPESPEC_POINTER:
     case TYPESPEC_ARRAY: {
-        emit_s("LEA RAX, [RBP-%d]; load", stack_pos);
+        emit("LEA RAX, [RBP-%d]; load", stack_pos);
     } break;
     default: {
-        emit_s("MOV %s, [RBP-%d]; load", get_reg(reg_n), stack_pos);
+        emit("MOV %s, [RBP-%d]; load", get_reg(reg_n), stack_pos);
     } break;
     }
 }
 
 Value* codegen_function(Expr* expr)
 {
+    assert(expr);
+    assert(expr->kind == EXPR_FUNCTION);
+
     Value* function = make_value_function(expr->Function.type);
     ctx.current_function = function;
 
@@ -261,6 +298,17 @@ Value* codegen_function(Expr* expr)
     push_scope();
 
     sb_push(functions, function);
+
+    emit_no_tab("_%s:", expr->Function.type->Function.name);
+    push(RBP);
+    emit("MOV RBP, RSP");
+
+    // Allocate stack space
+    i64 stack_allocated = expr->Function.stack_allocated;
+    if (stack_allocated) {
+        emit("SUB RSP, %lld", stack_allocated);
+        ctx.stack_index += stack_allocated;
+    }
 
     i64 index = 0;
 
@@ -276,7 +324,7 @@ Value* codegen_function(Expr* expr)
         add_variable(var);
 
         char* param_reg = get_reg(get_parameter_reg(index, size));
-        emit_s("MOV [RBP-%lld], %s", stack_pos, param_reg);
+        emit("MOV [RBP-%lld], %s", stack_pos, param_reg);
         assert(stack_pos >= 0);
 
         ++index;
@@ -294,7 +342,7 @@ Value* codegen_int(Expr* expr)
     assert(expr->kind == EXPR_INT);
     Value* val = make_value_int(DEFAULT_INTEGER_BYTE_SIZE, integer_literal_type, expr->Int.val);
     i32 reg_n = get_rax_reg_of_byte_size(get_size_of_value(val));
-    emit_s("MOV %s, %d", get_reg(reg_n), val->Int.value);
+    emit("MOV %s, %d", get_reg(reg_n), val->Int.value);
     return val;
 }
 
@@ -329,19 +377,19 @@ Value* codegen_unary(Expr* expr)
         Typespec* t = operand_val->type->Array.type;
         if (t->kind == TYPESPEC_ARRAY)
         {
-            emit_s("LEA RAX, [RAX]; deref");
+            emit("LEA RAX, [RAX]; deref");
         } else {
-            emit_s("MOV RAX, [RAX]; deref");
+            emit("MOV RAX, [RAX]; deref");
         }
     } break;
     case TOKEN_BANG: {
-        emit_s("CMP %s, 0", get_reg(reg_n));
-        emit_s("SETE AL");
+        emit("CMP %s, 0", get_reg(reg_n));
+        emit("SETE AL");
     } break;
     case TOKEN_PLUS: { // no nothing
     } break;
     case TOKEN_MINUS: {
-        emit_s("NEG %s", get_reg(reg_n));
+        emit("NEG %s", get_reg(reg_n));
         break;
     }
     default: error("unhandled unary case: %c", token_kind_to_str(op)); break;
@@ -368,133 +416,133 @@ Value* codegen_binary(Expr* expr)
     case THI_SYNTAX_ASSIGNMENT: {
         codegen_expr(rhs);
         Value* variable;
-        push_s(RAX);
+        push(RAX);
         if (lhs->kind == EXPR_UNARY)
         {
             variable = codegen_expr(lhs->Unary.operand);
-            pop_s(RCX);
+            pop(RCX);
         } else 
         {
             variable = codegen_expr(lhs);
-            pop_s(RAX);
+            pop(RCX);
         }
         emit_store(variable);
         return variable;
     }
     case TOKEN_PLUS: {
         Value* lhs_v = codegen_expr(lhs);
-        push_s(RAX);
+        push(RAX);
         codegen_expr(rhs);
-        pop_s(RCX);
-        emit_s("ADD RAX, RCX");
+        pop(RCX);
+        emit("ADD RAX, RCX");
         return lhs_v;
     }
     case TOKEN_MINUS: {
         codegen_expr(rhs);
-        push_s(RAX);
+        push(RAX);
         Value* lhs_v = codegen_expr(lhs);
-        pop_s(RCX);
-        emit_s("SUB RAX, RCX");
+        pop(RCX);
+        emit("SUB RAX, RCX");
         return lhs_v;
     }
     case TOKEN_ASTERISK: {
         Value* lhs_v = codegen_expr(lhs);
-        push_s(RAX);
+        push(RAX);
         codegen_expr(rhs);
-        pop_s(RCX);
-        emit_s("IMUL RAX, RCX");
+        pop(RCX);
+        emit("IMUL RAX, RCX");
         return lhs_v;
     }
     case TOKEN_FWSLASH: {
         Value* rhs_v = codegen_expr(rhs);
-        push_s(RAX);
+        push(RAX);
         codegen_expr(lhs);
-        pop_s(RCX);
-        emit_s("CDQ");
-        emit_s("IDIV RCX");
+        pop(RCX);
+        emit("CDQ");
+        emit("IDIV RCX");
         return rhs_v;
     }
 
     case TOKEN_AND_AND: {
         Value* lhs_v = codegen_expr(lhs);
-        push_s(RAX);
+        push(RAX);
         codegen_expr(rhs);
-        pop_s(RCX);
-        emit_s("CMP RCX, 0");
-        emit_s("SETNE CL");
-        emit_s("CMP RAX, 0");
-        emit_s("SETNE AL");
-        emit_s("AND CL, AL");
+        pop(RCX);
+        emit("CMP RCX, 0");
+        emit("SETNE CL");
+        emit("CMP RAX, 0");
+        emit("SETNE AL");
+        emit("AND CL, AL");
         return lhs_v;
     }
 
     case TOKEN_PIPE_PIPE: {
         Value* lhs_v = codegen_expr(lhs);
-        push_s(RAX);
+        push(RAX);
         codegen_expr(rhs);
-        pop_s(RCX);
-        emit_s("OR RCX, RAX");
-        emit_s("SETNE AL");
+        pop(RCX);
+        emit("OR RCX, RAX");
+        emit("SETNE AL");
         return lhs_v;
     }
 
     case TOKEN_LT: {
         Value* lhs_v = codegen_expr(lhs);
-        push_s(RAX);
+        push(RAX);
         codegen_expr(rhs);
-        pop_s(RCX);
-        emit_s("CMP RCX, RAX");
-        emit_s("SETL AL");
+        pop(RCX);
+        emit("CMP RCX, RAX");
+        emit("SETL AL");
         return lhs_v;
     }
 
     case TOKEN_GT: {
         Value* lhs_v = codegen_expr(lhs);
-        push_s(RAX);
+        push(RAX);
         codegen_expr(rhs);
-        pop_s(RCX);
-        emit_s("CMP RCX, RAX");
-        emit_s("SETG AL");
+        pop(RCX);
+        emit("CMP RCX, RAX");
+        emit("SETG AL");
         return lhs_v;
     }
 
     case TOKEN_LT_EQ: {
         Value* lhs_v = codegen_expr(lhs);
-        push_s(RAX);
+        push(RAX);
         codegen_expr(rhs);
-        pop_s(RCX);
-        emit_s("CMP RCX, RAX");
-        emit_s("SETLE AL");
+        pop(RCX);
+        emit("CMP RCX, RAX");
+        emit("SETLE AL");
         return lhs_v;
     }
 
     case TOKEN_GT_EQ: {
         Value* lhs_v = codegen_expr(lhs);
-        push_s(RAX);
+        push(RAX);
         codegen_expr(rhs);
-        pop_s(RCX);
-        emit_s("CMP RCX, RAX");
-        emit_s("SETGE AL");
+        pop(RCX);
+        emit("CMP RCX, RAX");
+        emit("SETGE AL");
         return lhs_v;
     }
 
     case TOKEN_EQ_EQ: {
         Value* lhs_v = codegen_expr(lhs);
-        push_s(RAX);
+        push(RAX);
         codegen_expr(rhs);
-        pop_s(RCX);
-        emit_s("CMP RCX, RAX");
-        emit_s("SETE AL");
+        pop(RCX);
+        emit("CMP RCX, RAX");
+        emit("SETE AL");
         return lhs_v;
     }
 
     case TOKEN_BANG_EQ: {
         Value* lhs_v = codegen_expr(lhs);
-        push_s(RAX);
+        push(RAX);
         codegen_expr(rhs);
-        pop_s(RCX);
-        emit_s("CMP RCX, RAX");
-        emit_s("SETNE AL");
+        pop(RCX);
+        emit("CMP RCX, RAX");
+        emit("SETNE AL");
         return lhs_v;
     }
 
@@ -506,7 +554,7 @@ Value* codegen_binary(Expr* expr)
         i64 rhs_size = get_size_of_value(rhs_val);
         i64 reg_n = get_rax_reg_of_byte_size(rhs_size);
         i64 stack_pos = get_stack_pos_of_variable(lhs_v);
-        emit_s("ADD [RBP-%d], %s", stack_pos, get_reg(reg_n));
+        emit("ADD [RBP-%d], %s", stack_pos, get_reg(reg_n));
         return lhs_v;
     }
 
@@ -519,7 +567,7 @@ Value* codegen_binary(Expr* expr)
         i32 rhs_r = pop_result_from_temporary_reg();
         i32 lhs_r = get_rax_reg_of_byte_size(get_size_of_value(lhs_v));
 
-        emit_s("SUB %s, %s", get_reg(lhs_r), get_reg(rhs_r));
+        emit("SUB %s, %s", get_reg(lhs_r), get_reg(rhs_r));
         emit_store(lhs_v);
         return lhs_v;
     }
@@ -531,7 +579,7 @@ Value* codegen_binary(Expr* expr)
         i64 rhs_size = get_size_of_value(rhs_val);
         i64 reg_n = get_rax_reg_of_byte_size(rhs_size);
         i64 stack_pos = get_stack_pos_of_variable(variable);
-        emit_s("IMUL %s, [RBP-%d]", get_reg(reg_n), stack_pos);
+        emit("IMUL %s, [RBP-%d]", get_reg(reg_n), stack_pos);
         emit_store(variable);
         return variable;
     }
@@ -549,8 +597,8 @@ Value* codegen_binary(Expr* expr)
 
         i32 rhs_r = pop_result_from_temporary_reg();
 
-        emit_s("CDQ");
-        emit_s("IDIV %s", get_reg(rhs_r));
+        emit("CDQ");
+        emit("IDIV %s", get_reg(rhs_r));
         emit_store(lhs_v);
         return lhs_v;
     }
@@ -583,11 +631,11 @@ Value* codegen_binary(Expr* expr)
 
     case TOKEN_QUESTION_MARK: {
         ctx_push_label(&ctx);
-        emit_s("CMP %s, 0", get_reg_fitting_value(codegen_expr(lhs)));
-        emit_s("JE %s", ctx.temp_label0 = ctx_get_unique_label(&ctx));
+        emit("CMP %s, 0", get_reg_fitting_value(codegen_expr(lhs)));
+        emit("JE %s", ctx.temp_label0 = ctx_get_unique_label(&ctx));
         ctx.temp_label1 = ctx_get_unique_label(&ctx);
         Value* rhs_val = codegen_expr(rhs);
-        emit_s("JMP %s", ctx.temp_label1);
+        emit("JMP %s", ctx.temp_label1);
         return rhs_val;
     }
 
@@ -595,9 +643,9 @@ Value* codegen_binary(Expr* expr)
     // This comes before '?'
     case TOKEN_COLON: {
         codegen_expr(lhs); // '?' part
-        emit_s("%s:", ctx.temp_label0);
+        emit_no_tab("%s:", ctx.temp_label0);
         Value* rhs_val = codegen_expr(rhs);
-        emit_s("%s:", ctx.temp_label1);
+        emit_no_tab("%s:", ctx.temp_label1);
         ctx_pop_label(&ctx);
         return rhs_val;
     }
@@ -656,10 +704,10 @@ Value* codegen_ret(Expr* expr)
 
     // Deallocate any stack used.
     i64 stack_allocated = ctx.current_function->Function.stack_allocated;
-    if (stack_allocated) emit_s("ADD RSP, %lld", stack_allocated);
+    if (stack_allocated) emit("ADD RSP, %lld", stack_allocated);
 
-    pop_s(RBP);
-    emit_s("RET");
+    pop(RBP);
+    emit("RET");
 
     return ret_val;
 }
@@ -677,27 +725,40 @@ Value* codegen_call(Expr* expr)
 
     if (func_arg_count != arg_count) error("wrong amount of parameters for call to function '%s'", callee);
 
-    Value** param_vals = NULL;
+    warning("stack_pos %d", ctx.stack_index);
+
+    int padding = (16 - (ctx.stack_index % 16)) % 16;
+    if (padding) {
+        emit("SUB RSP, %d; padding", padding);
+        ctx.stack_index += padding;
+    }
 
     for (int i = 0; i < arg_count; ++i) {
         Expr* arg = args[i];
-        Value* val = codegen_expr(arg);
-        sb_push(param_vals, val);
-        push_s(RAX);
+        codegen_expr(arg);
+        push(RAX);
     }
 
-    for (int i = arg_count - 1; i >= 0; --i) {
-        Value* val = param_vals[i];
-        i32 size = get_size_of_value(val);
-        i32 reg_n = get_rax_reg_of_byte_size(size);
-        i32 param_reg_n = get_parameter_reg(i, size);
-
-        pop_s(RAX);
-        emit_s("MOV %s, %s", get_reg(param_reg_n), get_reg(reg_n));
+    // %rdi, %rsi, %rdx, %rcx, %r8 and %r9 is used.
+    for (int i = arg_count-1; i >= 0; --i) {
+        switch(i)
+        {
+            case 0: pop(RDI); break;
+            case 1: pop(RSI); break;
+            case 2: pop(RDX); break; 
+            case 3: pop(RCX); break;
+            case 4: pop(R8);  break;
+            case 5: pop(R9);  break;
+        }
     }
 
-    sb_free(param_vals);
-    emit_s("CALL _%s", callee);
+    emit("CALL _%s", callee);
+
+    if (padding) {
+        emit("ADD RSP, %d; padding", padding);
+        ctx.stack_index -= padding;
+    }
+
     return make_value_call(callee, func_t->Function.ret_type);
 }
 
@@ -716,18 +777,18 @@ Value* codegen_while(Expr* expr)
     ctx_set_continue_label(&ctx, condition_label);
 
     // COND:
-    emit_s("%s:", condition_label);
+    emit_no_tab("%s:", condition_label);
 
     // Compare the iterator to the end value
     codegen_expr(condition);
-    emit_s("JE %s", continue_label);
+    emit("JE %s", continue_label);
 
     // BODY
     codegen_expr(body);
-    emit_s("JMP %s", condition_label);
+    emit("JMP %s", condition_label);
 
     // CONT:
-    emit_s("%s:", continue_label);
+    emit_no_tab("%s:", continue_label);
     ctx_pop_label(&ctx);
 
     return NULL;
@@ -756,29 +817,29 @@ Value* codegen_for(Expr* expr)
     Value* iterator_var = make_value_variable(iterator_name, start_val->type, stack_pos);
     add_variable(iterator_var);
     emit_store(iterator_var);
-    // ctx.stack_index += type_size;
+    // ctx.stack_index += type_size;  
 
     // COND:
-    emit_s("%s:", condition_label);
+    emit_no_tab("%s:", condition_label);
     i32 res_reg = get_rax_reg_of_byte_size(type_size);
 
     // Compare the iterator to the end value
     codegen_expr(end);
-    emit_s("CMP %s, [RBP-%d]", get_reg(res_reg), iterator_var->Variable.stack_pos);
-    emit_s("JE %s", continue_label);
+    emit("CMP %s, [RBP-%d]", get_reg(res_reg), iterator_var->Variable.stack_pos);
+    emit("JE %s", continue_label);
 
     // BODY
     codegen_expr(body);
 
     // INC:
-    emit_s("%s:", inc_label);
+    emit_no_tab("%s:", inc_label);
 
     emit_load(iterator_var);
-    emit_s("INC %s [RBP-%d]", get_op_size(type_size), iterator_var->Variable.stack_pos);
-    emit_s("JMP %s", condition_label);
+    emit("INC %s [RBP-%d]", get_op_size(type_size), iterator_var->Variable.stack_pos);
+    emit("JMP %s", condition_label);
 
     // CONT:
-    emit_s("%s:", continue_label);
+    emit_no_tab("%s:", continue_label);
     ctx_pop_label(&ctx);
 
     // remove_variable(iterator_var);
@@ -803,21 +864,21 @@ Value* codegen_if(Expr* expr)
     i32 condition_size = get_size_of_value(condition_val);
     i32 res_reg = get_rax_reg_of_byte_size(condition_size);
 
-    emit_s("CMP %s, 0", get_reg(res_reg));
-    emit_s("JE %s", else_body ? else_label : continue_label);
+    emit("CMP %s, 0", get_reg(res_reg));
+    emit("JE %s", else_body ? else_label : continue_label);
 
     // THEN
     codegen_expr(then_body);
-    emit_s("JMP %s", continue_label);
+    emit("JMP %s", continue_label);
 
     // ELSE:
     if (else_body) {
-        emit_s("%s:", else_label);
+        emit_no_tab("%s:", else_label);
         codegen_expr(else_body);
     }
 
     // CONT:
-    emit_s("%s:", continue_label);
+    emit_no_tab("%s:", continue_label);
 
     ctx_pop_label(&ctx);
 
@@ -833,14 +894,14 @@ Value* codegen_macro(Expr* expr)
 Value* codegen_continue(Expr* expr)
 {
     assert(expr->kind == EXPR_CONTINUE);
-    emit_s("JMP %s", ctx.label_continue_to);
+    emit("JMP %s", ctx.label_continue_to);
     return NULL;
 }
 
 Value* codegen_break(Expr* expr)
 {
     assert(expr->kind == EXPR_BREAK);
-    emit_s("JMP %s", ctx.label_break_to);
+    emit("JMP %s", ctx.label_break_to);
     return NULL;
 }
 
@@ -884,7 +945,7 @@ Value* codegen_string(Expr* expr)
 {
     assert(expr->kind == EXPR_STRING);
     char* val = expr->String.val;
-    emit_s("MOV RAX, %s", val);
+    emit("MOV RAX, %s", val);
     Typespec* t = make_typespec_string(xstrlen(val));
     return make_value_string(val, t);
 }
@@ -956,52 +1017,53 @@ char* generate_code_from_ast(List* ast)
     LIST_FOREACH(foreign_function_list)
     {
         char* func_name = ((Typespec*)it->data)->Function.name;
-        emit(&output, strf("extern _%s", func_name));
+        emit_no_tab(strf("extern _%s", func_name));
     }
 
-    emit(&output, "section .data");
+    emit_no_tab("section .data");
     List* constant_string_list = get_constant_string_list();
     LIST_FOREACH(constant_string_list)
     {
         char* val = (char*)it->data;
         i64 len = xstrlen(val);
-        emit(&output, strf("%s: db \"%s\", %lld", val, val, len));
+        emit_no_tab(strf("%s: db \"%s\", %lld", val, val, len));
     }
 
-    emit(&output, "global _main");
-    emit(&output, "section .text");
+    emit_no_tab("global _main");
+    emit_no_tab("section .text\n");
+
+    // Set each EXPR_FUNCTION's stack allocated.
+    // gather all allocations
+    LIST_FOREACH(ast) { 
+        Expr* expr = (Expr*)it->data; 
+        if (expr->kind == EXPR_FUNCTION)
+        {
+            i64 sum = 0;
+
+            // Sum the params
+            sum += get_size_of_typespec(expr->Function.type);
+
+            Expr** block = expr->Function.body->Block.stmts;
+            i32 block_count = sb_count(block);
+            for (int i = 0; i < block_count; ++i)
+            {
+                Expr* b_expr = block[i];
+                switch (b_expr->kind)
+                {
+                    case EXPR_VARIABLE_DECL: sum += get_size_of_typespec(b_expr->Variable_Decl.type); break;
+                    // case EXPR_VARIABLE_DECL_TYPE_INF: sum += get_size_of_typespec(b_expr->Variable_Decl.type); break;
+                }
+            }
+            expr->Function.stack_allocated = sum;
+            warning("func %s allocated %d stack", expr->Function.type->Function.name, sum);
+        }
+    }
 
     LIST_FOREACH(ast) { codegen_expr((Expr*)it->data); }
 
-    i32 func_count = sb_count(functions);
-    for (int i = 0; i < func_count; ++i) {
-        Value* func_v = functions[i];
-        char* func_name = func_v->Function.name;
-
-        emit(&output, "_%s:", func_name);
-
-        push(RBP);
-        emit(&output, "MOV RBP, RSP");
-
-        i64 stack_allocated = func_v->Function.stack_allocated;
-        // Allocate stack space
-        if (stack_allocated) {
-            emit(&output, "SUB RSP, %lld", stack_allocated);
-            info("function '%s' allocated %d bytes on the stack", func_name, stack_allocated);
-        }
-
-        CodeBlock** codeblocks = func_v->Function.codeblocks;
-        i32 cb_count = sb_count(codeblocks);
-        for (int j = 0; j < cb_count; ++j) {
-            if (codeblocks[j]->block.len) emit(&output, "%s", codeblocks[j]->block.c_str);
-        }
-    }
-
-    /* Prints out a debug version of the output assembly */
-    for (int i = 0; i < func_count; ++i) {
-        Value* func_v = functions[i];
-        function_print_debug(func_v);
-    }
+    debug_info_color = RGB_WHITE;
+    info("%s", output.c_str);
+    debug_info_color = RGB_GRAY;
 
     ctx_free(&ctx);
 

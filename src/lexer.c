@@ -39,13 +39,10 @@ Token_Kind get_identifier_kind(char* identifier);
 typedef enum
 {
     KEY_FOREIGN,
-    KEY_NIL,
-    KEY_PRINT,
     KEY_LOAD,
     KEY_TRUE,
     KEY_FALSE,
     KEY_CAST,
-    KEY_MALLOC,
     KEY_SIZEOF,
     KEY_IF,
     KEY_ELSE,
@@ -54,17 +51,27 @@ typedef enum
     KEY_RET,
     KEY_STRUCT,
     KEY_ENUM,
-    KEY_REPEAT,
     KEY_BREAK,
     KEY_CONTINUE,
-    KEY_DO,
-
 } Keyword_Kind;
 
-#define KEYWORD_COUNT 20
+#define KEYWORD_COUNT 15
 char* keywords_str[KEYWORD_COUNT] = {
-    "foreign", "nil", "print", "load", "true",   "false", "cast",   "malloc", "sizeof",   "if",
-    "else",    "for", "while", "ret",  "struct", "enum",  "repeat", "break",  "continue", "do",
+    "foreign", 
+    "load", 
+    "true",   
+    "false", 
+    "cast",   
+    "sizeof",   
+    "if",
+    "else",    
+    "for", 
+    "while", 
+    "ret", 
+    "struct", 
+    "enum",  
+    "break",  
+    "continue", 
 };
 
 //------------------------------------------------------------------------------
@@ -176,13 +183,10 @@ Token_Kind get_identifier_kind(char* identifier)
 
     switch (get_keyword_index(identifier)) {
     case KEY_FOREIGN: return TOKEN_FOREIGN;
-    case KEY_NIL: return TOKEN_NIL;
-    case KEY_PRINT: return TOKEN_PRINT;
     case KEY_LOAD: return TOKEN_LOAD;
     case KEY_TRUE: return TOKEN_TRUE;
     case KEY_FALSE: return TOKEN_FALSE;
     case KEY_CAST: return TOKEN_CAST;
-    case KEY_MALLOC: return TOKEN_MALLOC;
     case KEY_SIZEOF: return TOKEN_SIZEOF;
     case KEY_IF: return TOKEN_IF;
     case KEY_ELSE: return TOKEN_ELSE;
@@ -191,7 +195,6 @@ Token_Kind get_identifier_kind(char* identifier)
     case KEY_RET: return TOKEN_RETURN;
     case KEY_STRUCT: return TOKEN_STRUCT;
     case KEY_ENUM: return TOKEN_ENUM;
-    case KEY_REPEAT: return TOKEN_REPEAT;
     case KEY_BREAK: return TOKEN_BREAK;
     case KEY_CONTINUE: return TOKEN_CONTINUE;
     }
@@ -466,11 +469,8 @@ char* token_kind_to_str(Token_Kind kind)
     switch (kind) {
     case TOKEN_EOF: return "eof";
     case TOKEN_UNKNOWN: return "unknown";
-    case TOKEN_NIL: return "nil";
     case TOKEN_CAST: return "cast";
-    case TOKEN_MALLOC: return "malloc";
     case TOKEN_SIZEOF: return "sizeof";
-    case TOKEN_PRINT: return "print";
     case TOKEN_LOAD: return "load";
     case TOKEN_FOREIGN: return "foreign";
     case TOKEN_RETURN: return "ret";
@@ -482,7 +482,6 @@ char* token_kind_to_str(Token_Kind kind)
     case TOKEN_WHILE: return "while";
     case TOKEN_IDENTIFIER: return "identifier";
     case TOKEN_BREAK: return "break";
-    case TOKEN_REPEAT: return "repeat";
     case TOKEN_STRUCT: return "struct";
     case TOKEN_ENUM: return "enum";
     case TOKEN_CONTINUE: return "continue";

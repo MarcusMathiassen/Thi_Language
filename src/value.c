@@ -33,37 +33,37 @@ i64 get_size_of_value(Value* value)
     return get_size_of_typespec(value->type);
 }
 
-void emit_s(char* fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
-    i64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
-    va_end(args);
-    char* str = xmalloc(str_len);
+// void emit_s(char* fmt, ...)
+// {
+//     va_list args;
+//     va_start(args, fmt);
+//     i64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
+//     va_end(args);
+//     char* str = xmalloc(str_len);
 
-    va_start(args, fmt);
-    vsnprintf(str, str_len, fmt, args);
-    va_end(args);
+//     va_start(args, fmt);
+//     vsnprintf(str, str_len, fmt, args);
+//     va_end(args);
 
-    append_string(current_output, "\n");
-    append_string(current_output, str);
-}
+//     append_string(current_output, "\n");
+//     append_string(current_output, str);
+// }
 
-void emit(string* output, char* fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
-    i64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
-    va_end(args);
-    char* str = xmalloc(str_len);
+// void emit(string* output, char* fmt, ...)
+// {
+//     va_list args;
+//     va_start(args, fmt);
+//     i64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
+//     va_end(args);
+//     char* str = xmalloc(str_len);
 
-    va_start(args, fmt);
-    vsnprintf(str, str_len, fmt, args);
-    va_end(args);
+//     va_start(args, fmt);
+//     vsnprintf(str, str_len, fmt, args);
+//     va_end(args);
 
-    append_string(output, str);
-    append_string(output, "\n");
-}
+//     append_string(output, str);
+//     append_string(output, "\n");
+// }
 
 void start_codeblock(Value* function, char* desc)
 {

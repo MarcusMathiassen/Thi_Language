@@ -84,6 +84,7 @@ typedef struct
 {
     Typespec* type;
     Expr* body;
+    i64 stack_allocated;
 } AST_Function;
 typedef struct
 {

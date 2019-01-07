@@ -1,6 +1,6 @@
-foreign printf :: (i8*, i8*) -> i8
+foreign printf :: (i8*, ...) -> i8
 
 main :: () -> i32 {
-    printf("%d\n", 12345)
+    printf("%d", 100)
     ret 1
 }
