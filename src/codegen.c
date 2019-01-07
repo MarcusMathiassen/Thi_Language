@@ -67,7 +67,6 @@ void pop(int reg)
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
     emit("POP %s", get_reg(reg));
     ctx.stack_index -= 8;
-    if (ctx.stack_index < 0) ctx.stack_index = 0;
     assert(ctx.stack_index >= 0);
 }
 
@@ -96,9 +95,6 @@ void alloc_variable(Value* variable)
     i64 size = get_size_of_value(variable);
     info("Allocating variable '%s' of size %lld", variable->Variable.name, size);
     ctx.stack_index += size;
-    if (ctx.stack_index > ctx.current_function->Function.stack_allocated) {
-        ctx.current_function->Function.stack_allocated += size;
-    }
 }
 
 void dealloc_variable(Value* variable)
@@ -303,13 +299,15 @@ Value* codegen_function(Expr* expr)
     push(RBP);
     emit("MOV RBP, RSP");
 
-    // Allocate stack space
-    i64 stack_allocated = expr->Function.stack_allocated;
-    if (stack_allocated) {
-        emit("SUB RSP, %lld", stack_allocated);
-        ctx.stack_index += stack_allocated;
-    }
 
+    // Allocate stack space. ex variables etc.
+    i64 stack_allocated = expr->Function.stack_allocated;
+    int padding = (16 - (stack_allocated % 16)) % 16;
+    ctx.current_function->Function.stack_allocated = stack_allocated + padding;
+    if (padding) {
+        emit("SUB RSP, %d; padding", stack_allocated + padding);
+    }
+    warning("stack_index %d", ctx.stack_index);
     i64 index = 0;
 
     Arg* args = expr->Function.type->Function.args;
@@ -325,7 +323,6 @@ Value* codegen_function(Expr* expr)
 
         char* param_reg = get_reg(get_parameter_reg(index, size));
         emit("MOV [RBP-%lld], %s", stack_pos, param_reg);
-        assert(stack_pos >= 0);
 
         ++index;
     }
@@ -725,14 +722,6 @@ Value* codegen_call(Expr* expr)
 
     if (func_arg_count != arg_count) error("wrong amount of parameters for call to function '%s'", callee);
 
-    warning("stack_pos %d", ctx.stack_index);
-
-    int padding = (16 - (ctx.stack_index % 16)) % 16;
-    if (padding) {
-        emit("SUB RSP, %d; padding", padding);
-        ctx.stack_index += padding;
-    }
-
     for (int i = 0; i < arg_count; ++i) {
         Expr* arg = args[i];
         codegen_expr(arg);
@@ -753,11 +742,6 @@ Value* codegen_call(Expr* expr)
     }
 
     emit("CALL _%s", callee);
-
-    if (padding) {
-        emit("ADD RSP, %d; padding", padding);
-        ctx.stack_index -= padding;
-    }
 
     return make_value_call(callee, func_t->Function.ret_type);
 }
@@ -1059,6 +1043,7 @@ char* generate_code_from_ast(List* ast)
         }
     }
 
+    // Finaly, codegen the whole thing.
     LIST_FOREACH(ast) { codegen_expr((Expr*)it->data); }
 
     debug_info_color = RGB_WHITE;
