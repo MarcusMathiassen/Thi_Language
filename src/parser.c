@@ -515,6 +515,7 @@ Expr* read_subscript_expr(Parse_Context* pctx, Expr* expr) {
     eat_kind(pctx, TOKEN_CLOSE_BRACKET);
     Expr* t = make_expr_binary(TOKEN_PLUS, expr, sub);
     t = make_expr_grouping(t);
+    return t;
     return make_expr_unary(THI_SYNTAX_POINTER, t);
 }
 

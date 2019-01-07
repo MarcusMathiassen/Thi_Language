@@ -222,7 +222,7 @@ void emit_store(Value* variable)
     switch (variable->type->kind) {
     case TYPESPEC_POINTER: // fallthrough
     case TYPESPEC_ARRAY: {
-        emit_s("MOV [RCX], RAX; store");
+        emit_s("MOV [RAX], RCX; store");
     } break;
     default: {
         emit_s("MOV [RBP-%d], %s; store", stack_pos, get_reg(reg_n));
@@ -365,9 +365,9 @@ Value* codegen_binary(Expr* expr)
         return variable;
     }
     case THI_SYNTAX_ASSIGNMENT: {
-        Value* variable = codegen_expr(lhs);
-        push_s(RAX);
         Value* rhs_val = codegen_expr(rhs);
+        push_s(RAX);
+        Value* variable = codegen_expr(lhs);
         pop_s(RCX);
         emit_store(variable);
         return rhs_val;
