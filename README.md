@@ -1,5 +1,14 @@
 # Thi_Language
 
+# Basic example
+        touch main.thi
+    
+        # this is a comment
+        main :: () -> i32 {
+            ret 1
+        }
+
+        $ thi main.thi
 # Syntax
 
     ':' definition operator.
@@ -35,10 +44,10 @@
 
 # Minumum features needed for self-hosting
 - [x] integer literals
-- [-] string literals
+- [ ] string literals
 - [x] functions
 - [x] function calls
-- [ ] multiple compilation files using 'load'
+- [x] multiple compilation files using 'load'
 - [x] C stdlib interop
 
 - [x] variables
@@ -46,7 +55,7 @@
 
 - [x] i32
 - [ ] char
-- [ ] pointer
+- [x] pointer
 
 - [x] subscript access
 
