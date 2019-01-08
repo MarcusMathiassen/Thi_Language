@@ -29,9 +29,7 @@ char* expr_kind_to_str(Expr_Kind kind)
     case EXPR_CALL: return "EXPR_CALL";
     case EXPR_UNARY: return "EXPR_UNARY";
     case EXPR_BINARY: return "EXPR_BINARY";
-    case EXPR_RET: return "EXPR_RET";
     case EXPR_VARIABLE_DECL: return "EXPR_VARIABLE_DECL";
-    case EXPR_FUNCTION: return "EXPR_FUNCTION";
     case EXPR_STRUCT: return "EXPR_STRUCT";
     case EXPR_BLOCK: return "EXPR_BLOCK";
     case EXPR_GROUPING: return "EXPR_GROUPING";
@@ -68,9 +66,6 @@ char* expr_to_str(Expr* expr)
         result = strf("%s %s %s", expr_to_str(expr->Binary.lhs), token_kind_to_str(expr->Binary.op),
                       expr_to_str(expr->Binary.rhs));
     } break;
-    case EXPR_RET: {
-        result = strf("ret %s", expr_to_str(expr->Ret.expr));
-    } break;
     case EXPR_VARIABLE_DECL: {
         result = strf(expr->Variable_Decl.value ? "%s: %s = %s" : "%s: %s", expr->Variable_Decl.name,
                       typespec_to_str(expr->Variable_Decl.type),
@@ -86,12 +81,6 @@ char* expr_to_str(Expr* expr)
     case EXPR_STRUCT: {
         result = strf("%s", typespec_to_str(expr->Struct.type));
     } break;
-    case EXPR_FUNCTION: {
-        string str =
-            make_string_f("%s  {\n%s}", typespec_to_str(expr->Function.type), expr_to_str(expr->Function.body));
-        result = str.c_str;
-    } break;
-
     case EXPR_GROUPING: result = strf("(%s)", expr_to_str(expr->Grouping.expr)); break;
     case EXPR_CALL: {
         string str = make_string_f("%s", expr->Call.callee);
@@ -134,9 +123,6 @@ char* expr_to_str_debug(Expr* expr)
         result = strf("%s %s %s", expr_to_str(expr->Binary.lhs), token_kind_to_str(expr->Binary.op),
                       expr_to_str(expr->Binary.rhs));
     } break;
-    case EXPR_RET: {
-        result = strf("ret %s", expr_to_str(expr->Ret.expr));
-    } break;
     case EXPR_VARIABLE_DECL: {
         result = strf(expr->Variable_Decl.value ? "%s: %s = %s" : "%s: %s", expr->Variable_Decl.name,
                       typespec_to_str(expr->Variable_Decl.type),
@@ -149,13 +135,6 @@ char* expr_to_str_debug(Expr* expr)
         }
         result = str.c_str;
     } break;
-
-    case EXPR_FUNCTION: {
-        string str =
-            make_string_f("%s  {\n%s}", typespec_to_str(expr->Function.type), expr_to_str(expr->Function.body));
-        result = str.c_str;
-    } break;
-
     case EXPR_GROUPING: result = strf("(%s)", expr_to_str(expr->Grouping.expr)); break;
     case EXPR_CALL: {
         string str = make_string_f("%s", expr->Call.callee);
@@ -202,9 +181,6 @@ char* expr_to_json(Expr* expr)
             strf("{\"%s\": {\"op\": \"%s\", \"lhs\": %s, \"rhs\": %s}}", expr_kind_to_str(expr->kind),
                  token_kind_to_str(expr->Binary.op), expr_to_json(expr->Binary.lhs), expr_to_json(expr->Binary.rhs));
     } break;
-    case EXPR_RET: {
-        result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), expr_to_json(expr->Ret.expr));
-    } break;
     case EXPR_VARIABLE_DECL: {
         result = strf("{\"%s\": {\"name\": \"%s\", \"type\": \"%s\", \"value\": \"%s\"}}", expr_kind_to_str(expr->kind),
                       expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type),
@@ -219,10 +195,6 @@ char* expr_to_json(Expr* expr)
         }
         append_string(&str, "]}");
         result = str.c_str;
-    } break;
-    case EXPR_FUNCTION: {
-        result = strf("{\"%s\": {\"signature\": \"%s\", \"body\": %s }}", expr_kind_to_str(expr->kind),
-                      typespec_to_str(expr->Function.type), expr_to_json(expr->Function.body));
     } break;
     case EXPR_GROUPING: {
         result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), expr_to_json(expr->Grouping.expr));
@@ -259,7 +231,6 @@ Typespec* get_inferred_type_of_expr(Expr* expr)
     case EXPR_UNARY: return get_inferred_type_of_expr(expr->Unary.operand);
     case EXPR_BINARY: return get_inferred_type_of_expr(expr->Binary.rhs);
     case EXPR_VARIABLE_DECL: return expr->Variable_Decl.type;
-    case EXPR_FUNCTION: return expr->Function.type->Function.ret_type;
     case EXPR_STRUCT: return expr->Struct.type;
     case EXPR_GROUPING: return get_inferred_type_of_expr(expr->Grouping.expr);
     // default: error("%s has no type", expr_kind_to_str(expr->kind));
@@ -358,17 +329,6 @@ Expr* make_expr_struct(Typespec* struct_t)
     e->Struct.type = struct_t;
     return e;
 }
-Expr* make_expr_function(Typespec* func_t, Expr* body)
-{
-    assert(func_t);
-    assert(func_t->kind == TYPESPEC_FUNCTION);
-    assert(body);
-    assert(body->kind == EXPR_BLOCK);
-    Expr* e = make_expr(EXPR_FUNCTION);
-    e->Function.type = func_t;
-    e->Function.body = body;
-    return e;
-}
 
 Expr* make_expr_binary(Token_Kind op, Expr* lhs, Expr* rhs)
 {
@@ -414,14 +374,6 @@ Expr* make_expr_grouping(Expr* expr)
     assert(expr);
     Expr* e = make_expr(EXPR_GROUPING);
     e->Grouping.expr = expr;
-    return e;
-}
-
-Expr* make_expr_ret(Expr* expr)
-{
-    assert(expr);
-    Expr* e = make_expr(EXPR_RET);
-    e->Ret.expr = expr;
     return e;
 }
 

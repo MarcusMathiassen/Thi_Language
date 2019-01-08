@@ -291,58 +291,6 @@ void emit_load(Value* variable)
     }
 }
 
-Value* codegen_function(Expr* expr)
-{
-    assert(expr);
-    assert(expr->kind == EXPR_FUNCTION);
-
-    Value* function = make_value_function(expr->Function.type);
-    ctx.current_function = function;
-
-    start_codeblock(ctx.current_function, expr_to_str(expr));
-
-    push_scope();
-
-    sb_push(functions, function);
-
-    emit("_%s:", expr->Function.type->Function.name);
-    push(RBP);
-    emit("MOV RBP, RSP");
-
-    // Allocate stack space. ex variables etc.
-    i64 stack_allocated = expr->Function.stack_allocated;
-    int padding = align(stack_allocated, 16);
-    ctx.current_function->Function.stack_allocated = stack_allocated + padding;
-    if (stack_allocated + padding)
-        emit("SUB RSP, %d; %d alloc, %d padding", stack_allocated + padding, stack_allocated, padding);
-
-    ctx.stack_index = 0;
-    i64 index = 0;
-
-    Arg* args = expr->Function.type->Function.args;
-    i32 arg_count = sb_count(args);
-
-    for (int i = 0; i < arg_count; ++i) {
-        Arg* arg = &args[i];
-
-        i64 size = get_size_of_typespec(arg->type);
-        i64 stack_pos = ctx.stack_index + size;
-        Value* var = make_value_variable(arg->name, arg->type, stack_pos);
-        add_variable(var);
-
-        char* param_reg = get_reg(get_parameter_reg(index, size));
-        emit("MOV [RBP-%lld], %s", stack_pos, param_reg);
-
-        ++index;
-    }
-
-    codegen_expr(expr->Function.body);
-
-    pop_scope();
-
-    return function;
-}
-
 Value* codegen_int(Expr* expr)
 {
     assert(expr->kind == EXPR_INT);
@@ -678,20 +626,6 @@ Value* codegen_variable_decl(Expr* expr)
     return variable;
 }
 
-Value* codegen_ret(Expr* expr)
-{
-    Value* ret_val = codegen_expr(expr->Ret.expr);
-
-    // Deallocate any stack used.
-    i64 stack_allocated = ctx.current_function->Function.stack_allocated;
-    if (stack_allocated) emit("ADD RSP, %lld", stack_allocated);
-
-    pop(RBP);
-    emit("RET");
-
-    return ret_val;
-}
-
 Value* codegen_call(Expr* expr)
 {
     char* callee = expr->Call.callee;
@@ -780,12 +714,10 @@ Value* codegen_struct(Expr* expr)
 Value* codegen_expr(Expr* expr)
 {
     info("Generating code for: %s", expr_to_str_debug(expr));
-    if (expr->kind == EXPR_FUNCTION) return codegen_function(expr);
-    if (expr->kind == EXPR_STRUCT) return codegen_struct(expr);
-    start_codeblock(ctx.current_function, expr_to_str(expr));
     switch (expr->kind) {
     case EXPR_ASM: emit("%s", expr->Asm.str); return NULL;
     case EXPR_MACRO: return codegen_macro(expr);
+    case EXPR_STRUCT: return codegen_struct(expr);
     case EXPR_NOTE: return codegen_note(expr);
     case EXPR_INT: return codegen_int(expr);
     case EXPR_FLOAT: error("EXPR_FLOAT codegen not implemented");
@@ -794,7 +726,6 @@ Value* codegen_expr(Expr* expr)
     case EXPR_CALL: return codegen_call(expr);
     case EXPR_UNARY: return codegen_unary(expr);
     case EXPR_BINARY: return codegen_binary(expr);
-    case EXPR_RET: return codegen_ret(expr);
     case EXPR_VARIABLE_DECL: return codegen_variable_decl(expr);
     case EXPR_BLOCK: return codegen_block(expr);
     case EXPR_GROUPING: return codegen_expr(expr->Grouping.expr);
@@ -830,31 +761,6 @@ char* generate_code_from_ast(List* ast)
 
     emit_no_tab("global _main");
     emit_no_tab("section .text\n");
-
-    // Set each EXPR_FUNCTION's stack allocated.
-    // gather all allocations
-    LIST_FOREACH(ast) { 
-        Expr* expr = (Expr*)it->data; 
-        if (expr->kind == EXPR_FUNCTION)
-        {
-            i64 sum = 0;
-
-            // Sum the params
-            sum += get_size_of_typespec(expr->Function.type);
-
-            Expr** block = expr->Function.body->Block.stmts;
-            i32 block_count = sb_count(block);
-            for (int i = 0; i < block_count; ++i)
-            {
-                Expr* b_expr = block[i];
-                switch (b_expr->kind)
-                {
-                    case EXPR_VARIABLE_DECL: sum += get_size_of_typespec(b_expr->Variable_Decl.type); break;
-                }
-            }
-            expr->Function.stack_allocated = sum;
-        }
-    }
 
     // Finaly, codegen the whole thing.
     LIST_FOREACH(ast) { codegen_expr((Expr*)it->data); }

@@ -5,6 +5,7 @@
 #include "string.h"
 #include "typedefs.h" // i32, i64, etc.
 #include "typespec.h" // Typespec
+#include "register.h" // get_reg, get_parameter_reg
 #include "utility.h"  // info, error, warning, success
 #include <assert.h>   // assert
 #include <ctype.h>    // atoll
@@ -80,6 +81,7 @@ typedef struct
     char* lcontinue;
     char* obreak;
     char* lbreak;
+    char* l_end;
 } Parse_Context;
 
 bool tok_is(Parse_Context* pctx, Token_Kind kind);
@@ -149,9 +151,6 @@ void give_type_to_all_nodes(Expr* expr)
     case EXPR_UNARY:  give_type_to_all_nodes(expr->Unary.operand); break;
     case EXPR_BINARY:  give_type_to_all_nodes(expr->Binary.lhs); give_type_to_all_nodes(expr->Binary.rhs); break;
     case EXPR_GROUPING:  give_type_to_all_nodes(expr->Grouping.expr); break;
-    case EXPR_FUNCTION: {
-        give_type_to_all_nodes(expr->Function.body);
-    } break;
     case EXPR_BLOCK: {
         for (int i = 0; i < sb_count(expr->Block.stmts); ++i) {
             give_type_to_all_nodes(expr->Block.stmts[i]);
@@ -173,10 +172,10 @@ void parse(List* ast, char* source_file)
     generate_ast_from_tokens(ast, tokens);
 
     // Give each node a type
-    LIST_FOREACH(ast) { 
-        Expr* expr = (Expr*)it->data; 
-        give_type_to_all_nodes(expr);
-    }
+    // LIST_FOREACH(ast) { 
+    //     Expr* expr = (Expr*)it->data; 
+    //     give_type_to_all_nodes(expr);
+    // }
 
     pop_timer();
 
@@ -263,10 +262,14 @@ void generate_symbol_table_from_tokens(List* ast, Token* tokens)
 //                               Private Functions
 //------------------------------------------------------------------------------
 
+static int label_counter = 0;
+void reset_label_counter()
+{
+    label_counter = 0;
+}
 char* make_label()
 {
-    static int c = 0;
-    return strf(".L%d", c++);
+    return strf(".L%d", label_counter++);
 }
 
 Expr* parse_top_level(Parse_Context* pctx)
@@ -409,16 +412,17 @@ Expr* parse_for(Parse_Context* pctx)
     eat_kind(pctx, TOKEN_IDENTIFIER);
     eat_kind(pctx, TOKEN_COLON);
     Expr* start_expr = parse_expression(pctx);
+    
+    Typespec* type = get_inferred_type_of_expr(start_expr);
+    Expr* variable = make_expr_variable_decl(iterator_name, type, start_expr);
+    add_symbol(iterator_name, type);
+    
     eat_kind(pctx, TOKEN_DOT_DOT);
     Expr* end_expr = parse_expression(pctx);
 
     SET_JUMP_LABELS(mid, end);
     Expr* body = parse_block(pctx);
     RESTORE_JUMP_LABELS;
-
-    Typespec* type = get_inferred_type_of_expr(start_expr);
-    Expr* variable = make_expr_variable_decl(iterator_name, type, start_expr);
-    add_symbol(iterator_name, type);
 
     Expr* cond = make_expr_binary(TOKEN_EQ_EQ,  make_expr_ident(iterator_name), end_expr);
  
@@ -495,9 +499,11 @@ Expr* parse_ret(Parse_Context* pctx)
     DEBUG_START;
 
     eat_kind(pctx, TOKEN_RETURN);
-    Expr* exp = parse_expression(pctx);
 
-    return make_expr_ret(exp);
+    Expr** stmts = NULL;
+    sb_push(stmts, parse_expression(pctx));
+    sb_push(stmts, make_expr_asm(strf("JMP %s", pctx->l_end)));
+    return make_expr_block(stmts);
 }
 
 Expr* get_function_call(Parse_Context* pctx, char* ident)
@@ -866,8 +872,6 @@ Expr* get_definition(Parse_Context* pctx, char* ident)
 {
     DEBUG_START;
 
-    Expr* expr = NULL;
-
     eat_kind(pctx, TOKEN_COLON_COLON);
     switch (pctx->curr_tok.kind) {
     case TOKEN_ENUM: {
@@ -878,14 +882,66 @@ Expr* get_definition(Parse_Context* pctx, char* ident)
     }
     case TOKEN_STRUCT: {
         skip_struct_signature(pctx);
-        expr = make_expr_struct(get_symbol(ident));
-        break;
+        return make_expr_struct(get_symbol(ident));
     }
     case TOKEN_OPEN_PAREN: {
         skip_function_signature(pctx);
+
+        Expr** stmts = NULL;
+
+        char* start = make_label();
+        char* end = make_label();
+        pctx->l_end = end;
+
         Expr* body = parse_block(pctx);
-        expr = make_expr_function(get_symbol(ident), body);
-        break;
+        Typespec* type = get_symbol(ident);
+
+        i64 sum = 0;
+
+        // Sum the params
+        sum += get_size_of_typespec(type);
+
+        Expr** block = body->Block.stmts;
+        i32 block_count = sb_count(block);
+        for (int i = 0; i < block_count; ++i) {
+            Expr* b_expr = block[i];
+            switch (b_expr->kind) {
+                case EXPR_VARIABLE_DECL: sum += get_size_of_typespec(b_expr->Variable_Decl.type); break;
+            }
+        }
+
+        i64 stack_allocated = sum;
+        int padding = (16 - (stack_allocated % 16)) % 16;
+
+        sb_push(stmts, make_expr_asm(strf("_%s:", ident)));
+        sb_push(stmts, make_expr_asm("PUSH RBP"));
+        sb_push(stmts, make_expr_asm("MOV RBP, RSP"));
+
+        if (stack_allocated + padding)
+            sb_push(stmts, make_expr_asm(strf("SUB RSP, %d; %d alloc, %d padding", stack_allocated + padding, stack_allocated, padding)));
+
+        sb_push(stmts, make_expr_asm(strf("%s:", start)));
+        i32 arg_count = typespec_function_get_arg_count(type);
+        for (int i = 0; i< arg_count; ++i)
+        {
+            Arg arg = type->Function.args[i];
+            char* v_name = arg.name;
+            Typespec* v_type = arg.type;
+            Expr* variable = make_expr_variable_decl(v_name, v_type, make_expr_asm(strf("MOV RAX, %s", get_reg(get_parameter_reg(i, 8)))));
+            sb_push(stmts, variable);
+        }
+        sb_push(stmts, body);
+        sb_push(stmts, make_expr_asm(strf("%s:", end)));
+
+        if (stack_allocated + padding)
+            sb_push(stmts, make_expr_asm(strf("ADD RSP, %d; %d alloc, %d padding", stack_allocated + padding, stack_allocated, padding)));
+
+        sb_push(stmts, make_expr_asm("LEAVE"));
+        sb_push(stmts, make_expr_asm("RET"));
+
+        reset_label_counter();
+
+        return make_expr_block(stmts);
     }
     default: {
         // Macro def
@@ -896,7 +952,7 @@ Expr* get_definition(Parse_Context* pctx, char* ident)
     }
     }
 
-    return expr;
+    return NULL;
 }
 
 int get_tok_precedence(Parse_Context* pctx)

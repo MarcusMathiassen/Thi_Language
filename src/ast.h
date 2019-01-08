@@ -25,10 +25,8 @@ enum Expr_Kind
     EXPR_CALL,
     EXPR_UNARY,
     EXPR_BINARY,
-    EXPR_RET,
     EXPR_VARIABLE_DECL,
     EXPR_STRUCT,
-    EXPR_FUNCTION,
     EXPR_BLOCK,
     EXPR_GROUPING,
 };
@@ -76,12 +74,6 @@ typedef struct
 typedef struct
 {
     Typespec* type;
-    Expr* body;
-    i64 stack_allocated;
-} AST_Function;
-typedef struct
-{
-    Typespec* type;
 } AST_Struct;
 typedef struct
 {
@@ -125,7 +117,6 @@ struct Expr
         AST_Int Int;
         AST_Float Float;
         AST_String String;
-        AST_Function Function;
         AST_Struct Struct;
         AST_Ident Ident;
         AST_Call Call;
@@ -145,7 +136,6 @@ Expr* make_expr_string(char* value);
 Expr* make_expr_ident(char* ident);
 Expr* make_expr_struct(Typespec* struct_t);
 Expr* make_expr_call(char* callee, Expr** args);
-Expr* make_expr_function(Typespec* func_t, Expr* body);
 Expr* make_expr_unary(Token_Kind op, Expr* operand);
 Expr* make_expr_binary(Token_Kind op, Expr* lhs, Expr* rhs);
 Expr* make_expr_block(Expr** stmts);

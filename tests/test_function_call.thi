@@ -1,7 +1,7 @@
-foo :: (a: i32, b: i32) -> i32 {
-    ret a + b
+foo :: (a: i32) -> i32 {
+    ret a
 }
 
 main :: () -> i32 {
-    ret foo(1, 0)
+    ret foo(1)
 }
