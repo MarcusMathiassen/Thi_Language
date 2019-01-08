@@ -713,7 +713,7 @@ Value* codegen_struct(Expr* expr)
 // @Hotpath
 Value* codegen_expr(Expr* expr)
 {
-    info("Generating code for: %s", expr_to_str_debug(expr));
+    info("Generating code for: %s", wrap_with_colored_parens(expr_to_str(expr)));
     switch (expr->kind) {
     case EXPR_ASM: emit("%s", expr->Asm.str); return NULL;
     case EXPR_MACRO: return codegen_macro(expr);

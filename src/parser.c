@@ -412,7 +412,7 @@ Expr* parse_for(Parse_Context* pctx)
     eat_kind(pctx, TOKEN_IDENTIFIER);
     eat_kind(pctx, TOKEN_COLON);
     Expr* start_expr = parse_expression(pctx);
-    
+
     Typespec* type = get_inferred_type_of_expr(start_expr);
     Expr* variable = make_expr_variable_decl(iterator_name, type, start_expr);
     add_symbol(iterator_name, type);
@@ -889,8 +889,8 @@ Expr* get_definition(Parse_Context* pctx, char* ident)
 
         Expr** stmts = NULL;
 
-        char* start = make_label();
-        char* end = make_label();
+        char* start = ".BEGIN";
+        char* end = ".END";
         pctx->l_end = end;
 
         Expr* body = parse_block(pctx);

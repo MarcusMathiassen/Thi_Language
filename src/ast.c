@@ -91,132 +91,6 @@ char* expr_to_str(Expr* expr)
     return result;
 }
 
-char* expr_to_str_debug(Expr* expr)
-{
-    char* result = NULL;
-    switch (expr->kind) {
-    case EXPR_ASM: {
-        result = strf("%s", expr->Asm.str);
-    } break;
-    case EXPR_STRUCT: {
-        result = strf("%s", typespec_to_str(expr->Struct.type));
-    } break;
-    case EXPR_MACRO: {
-        result = strf("%s :: %s", expr->Macro.name, expr_to_str(expr->Macro.expr));
-    } break;
-    case EXPR_NOTE: {
-        result = strf("$%s", expr_to_str(expr->Note.expr));
-    } break;
-    case EXPR_INT: {
-        result = strf("%lld", expr->Int.val);
-    } break;
-    case EXPR_STRING: {
-        result = strf("\"%s\"", expr->String.val);
-    } break;
-    case EXPR_IDENT: {
-        result = strf("%s", expr->Ident.name);
-    } break;
-    case EXPR_UNARY: {
-        result = strf("%s%s", token_kind_to_str(expr->Unary.op), expr_to_str(expr->Unary.operand));
-    } break;
-    case EXPR_BINARY: {
-        result = strf("%s %s %s", expr_to_str(expr->Binary.lhs), token_kind_to_str(expr->Binary.op),
-                      expr_to_str(expr->Binary.rhs));
-    } break;
-    case EXPR_VARIABLE_DECL: {
-        result = strf(expr->Variable_Decl.value ? "%s: %s = %s" : "%s: %s", expr->Variable_Decl.name,
-                      typespec_to_str(expr->Variable_Decl.type),
-                      expr->Variable_Decl.value ? expr_to_str(expr->Variable_Decl.value) : "");
-    } break;
-    case EXPR_BLOCK: {
-        string str = make_string("");
-        for (int i = 0; i < sb_count(expr->Block.stmts); ++i) {
-            append_string_f(&str, "\t%s\n", expr_to_str(expr->Block.stmts[i]));
-        }
-        result = str.c_str;
-    } break;
-    case EXPR_GROUPING: result = strf("(%s)", expr_to_str(expr->Grouping.expr)); break;
-    case EXPR_CALL: {
-        string str = make_string_f("%s", expr->Call.callee);
-        result = str.c_str;
-    } break;
-    }
-    assert(result);
-    return wrap_with_colored_parens(result);
-}
-
-char* expr_to_json(Expr* expr)
-{
-    char* result = NULL;
-    switch (expr->kind) {
-    case EXPR_ASM: {
-        result = strf("{\"%s\": {\"asm\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->Asm.str);
-    } break;
-    case EXPR_MACRO: {
-        warning("MACRO: %s", expr->Macro.name);
-        result = strf("{\"%s\": {\"name\": \"%s\", \"expr\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->Macro.name,
-                      expr_to_json(expr));
-    } break;
-    case EXPR_NOTE: {
-        result = strf("{\"%s\": {\"note\":\"%s\"}}", expr_kind_to_str(expr->kind), expr_to_json(expr->Note.expr));
-    } break;
-    case EXPR_INT: {
-        result = strf("{\"%s\": {\"value\": %lld}}", expr_kind_to_str(expr->kind), expr->Int.val);
-    } break;
-    case EXPR_STRING: {
-        result = strf("{\"%s\": {\"value\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->String.val);
-    } break;
-    case EXPR_STRUCT: {
-        result = strf("{\"%s\": {\"type\": \"%s\"}}", expr_kind_to_str(expr->kind), typespec_to_str(expr->Struct.type));
-    } break;
-    case EXPR_IDENT: {
-        result = strf("{\"%s\": {\"ident\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->Ident.name);
-    } break;
-    case EXPR_UNARY: {
-        result = strf("{\"%s\": {\"op\": \"%s\", \"expr\": \"%s\"}}", expr_kind_to_str(expr->kind),
-                      token_kind_to_str(expr->Unary.op), expr_to_json(expr->Unary.operand));
-    } break;
-    case EXPR_BINARY: {
-        result =
-            strf("{\"%s\": {\"op\": \"%s\", \"lhs\": %s, \"rhs\": %s}}", expr_kind_to_str(expr->kind),
-                 token_kind_to_str(expr->Binary.op), expr_to_json(expr->Binary.lhs), expr_to_json(expr->Binary.rhs));
-    } break;
-    case EXPR_VARIABLE_DECL: {
-        result = strf("{\"%s\": {\"name\": \"%s\", \"type\": \"%s\", \"value\": \"%s\"}}", expr_kind_to_str(expr->kind),
-                      expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type),
-                      expr->Variable_Decl.value ? expr_to_json(expr->Variable_Decl.value) : "");
-    } break;
-    case EXPR_BLOCK: {
-        i32 block_count = sb_count(expr->Block.stmts);
-        string str = make_string("{\"EXPR_BLOCK\": [");
-        for (int i = 0; i < block_count; ++i) {
-            append_string(&str, expr_to_json(expr->Block.stmts[i]));
-            if (i != block_count - 1) append_string(&str, ", ");
-        }
-        append_string(&str, "]}");
-        result = str.c_str;
-    } break;
-    case EXPR_GROUPING: {
-        result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), expr_to_json(expr->Grouping.expr));
-    } break;
-    case EXPR_CALL: {
-        i32 arg_count = sb_count(expr->Call.args);
-        string str = make_string(strf("{\"%s\": {\"callee\": \"%s\", \"args\": [", expr_kind_to_str(expr->kind), expr->Call.callee));
-        for (int i = 0; i < arg_count; ++i) {
-            append_string(&str, expr_to_json(expr->Call.args[i]));
-            if (i != arg_count - 1) {
-                append_string(&str, ", ");
-            }
-        }
-        append_string(&str, "]}}");
-        result = str.c_str;
-    } break;
-    }
-    assert(result);
-    return result;
-}
-
-
 Typespec* get_inferred_type_of_expr(Expr* expr)
 {
     switch(expr->kind)
@@ -233,7 +107,7 @@ Typespec* get_inferred_type_of_expr(Expr* expr)
     case EXPR_VARIABLE_DECL: return expr->Variable_Decl.type;
     case EXPR_STRUCT: return expr->Struct.type;
     case EXPR_GROUPING: return get_inferred_type_of_expr(expr->Grouping.expr);
-    // default: error("%s has no type", expr_kind_to_str(expr->kind));
+    default: error("%s has no type", expr_kind_to_str(expr->kind));
     }
     return NULL;
 }
@@ -241,19 +115,7 @@ Typespec* get_inferred_type_of_expr(Expr* expr)
 void print_ast(List* ast)
 {
     info("Printing AST..");
-    LIST_FOREACH(ast) { info("%s", expr_to_str_debug((Expr*)it->data)); }
-}
-
-char* ast_to_json(List* ast)
-{
-    info("Printing AST as JSON..");
-    string json = make_string("");
-    LIST_FOREACH(ast)
-    {
-        Expr* expr = (Expr*)it->data;
-        append_string_f(&json, "%s", expr_to_json(expr));
-    }
-    return json.c_str;
+    LIST_FOREACH(ast) { info("%s", expr_to_str((Expr*)it->data)); }
 }
 
 //------------------------------------------------------------------------------

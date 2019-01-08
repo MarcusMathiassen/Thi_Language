@@ -145,7 +145,6 @@ Expr* make_expr_variable_decl(char* name, Typespec* type, Expr* value);
 
 Typespec* get_inferred_type_of_expr(Expr* expr);
 
-char* ast_to_json(List* ast);
 void print_ast(List* ast);
 char* expr_to_str(Expr* expr);
 char* expr_to_str_debug(Expr* expr);
