@@ -12,7 +12,8 @@ end=`date +%s`
 echo Compilation finished. Time taken: $((end-start)) seconds
 
 if [ $? == 0 ]; then
-    ./test.bash
+    # ./test.bash
+    ./test.bash ./tests/test_tilde.thi
     # ./test.bash ./tests/test_bitwise_leftshift.thi
     # ./test.bash ./tests/test_bitwise_rightshift.thi
     # ./test.bash ./tests/test_or.thi

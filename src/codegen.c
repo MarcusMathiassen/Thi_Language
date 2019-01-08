@@ -320,6 +320,9 @@ Value* codegen_unary(Expr* expr)
     } break;
     case TOKEN_PLUS: { // no nothing
     } break;
+    case TOKEN_TILDE: {
+        emit("NOT AL");
+    } break;
     case TOKEN_MINUS: {
         emit("NEG %s", get_reg(reg_n));
         break;

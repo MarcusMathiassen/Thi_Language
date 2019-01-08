@@ -678,7 +678,7 @@ Expr* parse_unary(Parse_Context* pctx)
     DEBUG_START;
     Expr* unary_expr = NULL;
     if (tok_is(pctx, TOKEN_BANG) || tok_is(pctx, THI_SYNTAX_POINTER) || tok_is(pctx, TOKEN_MINUS) ||
-        tok_is(pctx, TOKEN_PLUS) || tok_is(pctx, THI_SYNTAX_ADDRESS)) {
+        tok_is(pctx, TOKEN_PLUS) || tok_is(pctx, THI_SYNTAX_ADDRESS) || tok_is(pctx, TOKEN_TILDE)) {
         Token_Kind op = pctx->curr_tok.kind;
         eat(pctx);
 
