@@ -205,11 +205,11 @@ Expr* make_expr_function(Typespec* func_t, Expr* body)
 {
     assert(func_t);
     assert(func_t->kind == TYPESPEC_FUNCTION);
-    assert(body);
-    assert(body->kind == EXPR_BLOCK);
     Expr* e = make_expr(EXPR_FUNCTION);
     e->Function.type = func_t;
     e->Function.body = body;
+    e->Function.defers = xmalloc(sizeof(List));
+    list_init(e->Function.defers);
     return e;
 }
 

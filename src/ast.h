@@ -76,6 +76,7 @@ typedef struct
 {
     Typespec* type;
     Expr* body;
+    List* defers;
 } AST_Function;
 typedef struct
 {

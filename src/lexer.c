@@ -378,6 +378,14 @@ scan:
         }
         break;
 
+    case '\'': {
+        token.kind = TOKEN_CHAR;
+        ++c;
+        token.value = c;
+        ++c;
+        token.value = str_intern_range(token.value, c++);
+        return token;
+    } break;
     case '"': {
         token.kind = TOKEN_STRING;
         c++;
@@ -549,6 +557,7 @@ char* token_kind_to_str(Token_Kind kind)
     case TOKEN_HASH: return "#";
     case TOKEN_EQ: return "=";
     case TOKEN_STRING: return "string";
+    case TOKEN_CHAR: return "char";
     case TOKEN_INTEGER: return "integer";
     case TOKEN_NUMBER: return "number";
     case TOKEN_HEX: return "hex";

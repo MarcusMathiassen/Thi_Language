@@ -120,11 +120,11 @@ void dealloc_variable(Value* variable)
 
 void pop_scope()
 {
-    stack_pop(&scope_stack);
-    // Scope* scope = (Scope*)stack_pop(&scope_stack);
-    // for (i64 i = 0; i < scope->count; ++i) {
-    //     dealloc_variable(scope->local_variables[i]);
-    // }
+    // stack_pop(&scope_stack);
+    Scope* scope = (Scope*)stack_pop(&scope_stack);
+    for (i64 i = 0; i < scope->count; ++i) {
+        dealloc_variable(scope->local_variables[i]);
+    }
 }
 
 void append_variable_to_scope(Scope* s, Value* value)
@@ -155,9 +155,9 @@ Value* get_variable_in_scope(Scope* scope, char* name)
     i64 variable_count = scope->count;
     for (i64 i = 0; i < variable_count; ++i) {
         Value* v = scope->local_variables[i];
+        warning("v... %s", v->Variable.name);
         if (v->Variable.name == name) return v;
     }
-
     return NULL;
 }
 
@@ -355,6 +355,7 @@ Value* codegen_binary(Expr* expr)
         if (lhs->kind == EXPR_UNARY) { 
             variable = codegen_expr(lhs->Unary.operand);
         } else {
+            assert(lhs->kind == EXPR_IDENT);
             variable = get_variable(lhs->Ident.name);
         }
         pop(RCX);
@@ -697,7 +698,8 @@ i64 get_all_alloca_in_block(Expr* block)
     List* stmts = block->Block.stmts;
     LIST_FOREACH(stmts) {
         Expr* stmt = (Expr*)it->data;
-        switch (stmt->kind) {
+        switch (stmt->kind)
+        {
             case EXPR_VARIABLE_DECL: sum += get_size_of_typespec(stmt->Variable_Decl.type); break;
             case EXPR_BLOCK: sum += get_all_alloca_in_block(stmt); break;
         }
@@ -756,6 +758,13 @@ Value* codegen_function(Expr* expr)
     codegen_expr(func_body);
 
     emit(DEFAULT_FUNCTION_END_LABEL_NAME);
+
+    List* defers = expr->Function.defers;
+    LIST_FOREACH(defers) {
+        Expr* expr = (Expr*)it->data;
+        codegen_expr(expr);
+    }
+
     if (stack_allocated + padding)
         emit("ADD RSP, %d; %d alloc, %d padding", stack_allocated + padding, stack_allocated, padding);
 

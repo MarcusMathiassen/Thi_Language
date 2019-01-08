@@ -84,7 +84,7 @@ typedef struct
     Token curr_tok;
     Token top_tok;
 
-    List* stmts;
+    Expr* active_func;
     char* ocontinue;
     char* lcontinue;
     char* obreak;
@@ -145,8 +145,8 @@ Typespec* get_type(Parse_Context* pctx);
 
 #define DEBUG_STATEMENT_END debug_info_color = get_previous_color();
 
-#define SET_STATEMENTS(statements) pctx->stmts = statements
-#define GET_STATEMENTS pctx->stmts
+#define SET_ACTIVE_FUNC(func) pctx->active_func = func
+#define GET_ACTIVE_FUNC pctx->active_func
 
 #define SET_JUMP_LABELS(cont, brk)\
     pctx->ocontinue = pctx->lcontinue;\
@@ -204,8 +204,8 @@ void parse(List* ast, char* source_file)
 
     pop_timer();
 
-    print_tokens(tokens);
-    print_ast(ast);
+    // print_tokens(tokens);
+    // print_ast(ast);
 
     set_source_file(last_file);
     set_current_dir(last_dir);
@@ -346,6 +346,7 @@ Expr* parse_primary(Parse_Context* pctx)
     switch (pctx->curr_tok.kind) {
     case TOKEN_IDENTIFIER: return parse_identifier(pctx);
     case TOKEN_DOLLAR_SIGN: return parse_note(pctx);
+    case TOKEN_CHAR: // fallthrough
     case TOKEN_HEX: // fallthrough
     case TOKEN_INTEGER: return parse_integer(pctx);
     case TOKEN_STRING: return parse_string(pctx);
@@ -458,10 +459,11 @@ Expr* parse_for(Parse_Context* pctx)
 
 Expr* parse_defer(Parse_Context* pctx)
 {
-    assert(GET_STATEMENTS);
     eat_kind(pctx, TOKEN_DEFER);
     Expr* block = parse_block(pctx);
-    list_append(GET_STATEMENTS, block);
+    warning("%s", expr_to_str(block));
+    List* defers = GET_ACTIVE_FUNC->Function.defers;
+    list_append(defers, block);
     return NULL;
 }
 
@@ -521,7 +523,6 @@ Expr* parse_block(Parse_Context* pctx)
     }
 
     eat_kind(pctx, TOKEN_CLOSE_BRACE);
-    SET_STATEMENTS(stmts);
     return make_expr_block(stmts);
 }
 
@@ -745,6 +746,7 @@ i64 get_integer(Parse_Context* pctx)
 
     i64 value = 0;
     switch (pctx->curr_tok.kind) {
+    case TOKEN_CHAR: value = (int)pctx->curr_tok.value[0]; break;
     case TOKEN_INTEGER: value = atoll(pctx->curr_tok.value); break;
     case TOKEN_HEX: value = strtoll(pctx->curr_tok.value, NULL, 0); break;
     default: error("not an integer.");
@@ -778,7 +780,9 @@ void skip_type(Parse_Context* pctx)
     } break;
     case TOKEN_OPEN_BRACKET: {
         eat_kind(pctx, TOKEN_OPEN_BRACKET);
-        if (tok_is(pctx, TOKEN_INTEGER) || tok_is(pctx, TOKEN_HEX)) {
+        if (tok_is(pctx, TOKEN_INTEGER) || 
+            tok_is(pctx, TOKEN_HEX) ||
+            tok_is(pctx, TOKEN_CHAR)) {
             get_integer(pctx);
         }
         eat_kind(pctx, TOKEN_CLOSE_BRACKET);
@@ -925,9 +929,12 @@ Expr* get_definition(Parse_Context* pctx, char* ident)
     }
     case TOKEN_OPEN_PAREN: {
         skip_function_signature(pctx);
+        Expr* func = make_expr_function(get_symbol(ident), NULL);
+        SET_ACTIVE_FUNC(func);
         Expr* body = parse_block(pctx);
+        func->Function.body = body;
         reset_label_counter();
-        return make_expr_function(get_symbol(ident), body);
+        return func;
     }
     default: {
         // Macro def

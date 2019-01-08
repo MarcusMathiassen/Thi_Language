@@ -37,6 +37,7 @@ typedef enum
 
     TOKEN_NUMBER,
 
+    TOKEN_CHAR,
     TOKEN_INTEGER,
     TOKEN_FLOAT,
     TOKEN_HEX,
