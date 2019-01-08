@@ -13,6 +13,14 @@ echo Compilation finished. Time taken: $((end-start)) seconds
 
 if [ $? == 0 ]; then
     ./test.bash
+    # ./test.bash ./tests/test_bitwise_leftshift.thi
+    # ./test.bash ./tests/test_bitwise_rightshift.thi
+    # ./test.bash ./tests/test_or.thi
+    # ./test.bash ./tests/test_logical_or.thi
+    # ./test.bash ./tests/test_logical_and.thi
+    # ./test.bash ./tests/test_percent.thi
+    # ./test.bash ./tests/test_percent_eq.thi
+    # ./test.bash ./tests/test_not_equal_to.thi
     # ./test.bash ./tests/test_not_equal_to.thi
     # ./test.bash ./tests/test_using_unnamed_parameter.thi
     # ./test.bash ./tests/test_function_call.thi

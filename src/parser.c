@@ -26,12 +26,18 @@ struct
     {TOKEN_PLUS_PLUS, 90},   // ++
     {TOKEN_MINUS_MINUS, 90}, // --
 
-    {TOKEN_BANG, 80},     // !
+    {TOKEN_BANG, 85},     // !
+    {TOKEN_TILDE, 85},     // ~
+
     {TOKEN_ASTERISK, 80}, // *
     {TOKEN_FWSLASH, 80},  // /
+    {TOKEN_PERCENT, 80},  // /
 
     {TOKEN_MINUS, 70}, // -
     {TOKEN_PLUS, 70},  // +
+
+    {TOKEN_LT_LT, 65},    // <<
+    {TOKEN_GT_GT, 65},    // >>
 
     {TOKEN_LT, 60},    // <
     {TOKEN_GT, 60},    // >
@@ -62,8 +68,8 @@ struct
     {TOKEN_HAT_EQ, 10},      // ^=
     {TOKEN_PIPE_EQ, 10},     // |=
 
-    {TOKEN_BITWISE_LEFTSHIFT, 10},  // <<=
-    {TOKEN_BITWISE_RIGHTSHIFT, 10}, // >>=
+    {TOKEN_LT_LT_EQ, 10},  // <<=
+    {TOKEN_GT_GT_EQ, 10}, // >>=
 };
 
 //------------------------------------------------------------------------------

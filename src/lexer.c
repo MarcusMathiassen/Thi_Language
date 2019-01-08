@@ -506,8 +506,6 @@ char* token_kind_to_str(Token_Kind kind)
     case TOKEN_AND_EQ: return "&=";
     case TOKEN_PLUS_PLUS: return "++";
     case TOKEN_MINUS_MINUS: return "--";
-    case TOKEN_BITWISE_LEFTSHIFT: return "<<=";
-    case TOKEN_BITWISE_RIGHTSHIFT: return ">>=";
     case TOKEN_EQ_EQ: return "==";
     case TOKEN_EQ_GT: return "=>";
     case TOKEN_BANG_EQ: return "!=";
@@ -521,12 +519,14 @@ char* token_kind_to_str(Token_Kind kind)
     case TOKEN_HAT: return "^";
     case TOKEN_BANG: return "!";
     case TOKEN_AND: return "&";
+    case TOKEN_LT: return "<";
     case TOKEN_LT_EQ: return "<=";
     case TOKEN_LT_LT: return "<<";
-    case TOKEN_LT: return "<";
+    case TOKEN_LT_LT_EQ: return "<<=";
     case TOKEN_GT: return ">";
     case TOKEN_GT_GT: return ">>";
     case TOKEN_GT_EQ: return ">=";
+    case TOKEN_GT_GT_EQ: return ">>=";
     case TOKEN_OPEN_PAREN: return "(";
     case TOKEN_CLOSE_PAREN: return ")";
     case TOKEN_OPEN_BRACKET: return "[";

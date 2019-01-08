@@ -389,28 +389,66 @@ Value* codegen_binary(Expr* expr)
         emit("IDIV RCX");
         return rhs_v;
     }
-
+    case TOKEN_PERCENT: {
+        expr = make_expr_binary(TOKEN_FWSLASH, rhs, lhs);
+        Value* variable = codegen_expr(expr);
+        emit("MOV RAX, RDX");
+        return variable;
+    }
+    case TOKEN_PIPE: {
+        Value* lhs_v = codegen_expr(lhs);
+        push(RAX);
+        codegen_expr(rhs);
+        pop(RCX);
+        emit("OR CL, AL");
+        return lhs_v;
+    }
+    case TOKEN_AND: {
+        Value* lhs_v = codegen_expr(lhs);
+        push(RAX);
+        codegen_expr(rhs);
+        pop(RCX);
+        emit("AND CL, AL");
+        return lhs_v;
+    }
+    case TOKEN_HAT: {
+        Value* lhs_v = codegen_expr(lhs);
+        push(RAX);
+        codegen_expr(rhs);
+        pop(RCX);
+        emit("XOR CL, AL");
+        return lhs_v;
+    }
+    case TOKEN_LT_LT: {
+        Value* lhs_v = codegen_expr(lhs);
+        assert(rhs->kind == EXPR_INT);
+        emit("SHL AL, %lld", rhs->Int.val);
+        return lhs_v;
+    }
+    case TOKEN_GT_GT: {
+        Value* lhs_v = codegen_expr(lhs);
+        assert(rhs->kind == EXPR_INT);
+        emit("SHR AL, %lld", rhs->Int.val);
+        return lhs_v;
+    }
     case TOKEN_AND_AND: {
         Value* lhs_v = codegen_expr(lhs);
         push(RAX);
         codegen_expr(rhs);
         pop(RCX);
-        emit("CMP RCX, 0");
-        emit("SETNE CL");
         emit("CMP RAX, 0");
         emit("SETNE AL");
+        emit("CMP RCX, 0");
+        emit("SETNE CL");
         emit("AND CL, AL");
         return lhs_v;
     }
 
     case TOKEN_PIPE_PIPE: {
-        Value* lhs_v = codegen_expr(lhs);
-        push(RAX);
-        codegen_expr(rhs);
-        pop(RCX);
-        emit("OR RCX, RAX");
+        expr = make_expr_binary(TOKEN_PIPE, lhs, rhs);
+        Value* v = codegen_expr(expr);
         emit("SETNE AL");
-        return lhs_v;
+        return v;
     }
 
     case TOKEN_LT: {
@@ -462,14 +500,24 @@ Value* codegen_binary(Expr* expr)
         emit("SETE AL");
         return lhs_v;
     }
-
+    case TOKEN_LT_LT_EQ: {
+        rhs = make_expr_binary(TOKEN_LT_LT, lhs, rhs);
+        expr = make_expr_unary(TOKEN_EQ, rhs);
+        Value* variable = codegen_expr(expr);
+        return variable;
+    }
+    case TOKEN_GT_GT_EQ: {
+        rhs = make_expr_binary(TOKEN_GT_GT, lhs, rhs);
+        expr = make_expr_unary(TOKEN_EQ, rhs);
+        Value* variable = codegen_expr(expr);
+        return variable;
+    }
     case TOKEN_BANG_EQ: {
         rhs = make_expr_binary(TOKEN_EQ_EQ, lhs, rhs);
         expr = make_expr_unary(TOKEN_BANG, rhs);
         Value* variable = codegen_expr(expr);
         return variable;
     }
-
     case TOKEN_PLUS_EQ: {
         rhs = make_expr_binary(TOKEN_PLUS, lhs, rhs);
         expr = make_expr_binary(TOKEN_EQ, lhs, rhs);
@@ -494,16 +542,24 @@ Value* codegen_binary(Expr* expr)
         Value* variable = codegen_expr(expr);
         return variable;
     }
-
-    case TOKEN_PERCENT_EQ: error("percent_eq not implemented.");
-    case TOKEN_PIPE_EQ: error("pipe_eq not implemented.");
-    case TOKEN_HAT_EQ: error("hat_eq not implemented.");
-    case TOKEN_BITWISE_LEFTSHIFT: error("bitwise_leftshift not implemented.");
-    case TOKEN_BITWISE_RIGHTSHIFT: error("bitwise_rightshift not implemented.");
-    case TOKEN_HAT: error("hat not implemented.");
-    case TOKEN_PIPE:
-        error("pipe not implemented.");
-
+    case TOKEN_PERCENT_EQ: {
+        rhs = make_expr_binary(TOKEN_PERCENT, lhs, rhs);
+        expr = make_expr_binary(TOKEN_EQ, lhs, rhs);
+        Value* variable = codegen_expr(expr);
+        return variable;
+    }
+    case TOKEN_PIPE_EQ: {
+        rhs = make_expr_binary(TOKEN_PIPE, lhs, rhs);
+        expr = make_expr_binary(TOKEN_EQ, lhs, rhs);
+        Value* variable = codegen_expr(expr);
+        return variable;
+    }
+    case TOKEN_HAT_EQ: {
+        rhs = make_expr_binary(TOKEN_HAT, lhs, rhs);
+        expr = make_expr_binary(TOKEN_EQ, lhs, rhs);
+        Value* variable = codegen_expr(expr);
+        return variable;
+    }
     case TOKEN_QUESTION_MARK: {
         ctx_push_label(&ctx);
         emit("CMP %s, 0", get_reg_fitting_value(codegen_expr(lhs)));
