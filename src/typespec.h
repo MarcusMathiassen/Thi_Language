@@ -2,6 +2,7 @@
 #define TYPESPEC_H
 
 #include "typedefs.h"
+#include "list.h"
 
 //------------------------------------------------------------------------------
 //                               typespec.h
@@ -20,9 +21,9 @@ Typespec* make_typespec_float(i8 bits);
 Typespec* make_typespec_string(i64 len);
 Typespec* make_typespec_pointer(Typespec* pointee);
 Typespec* make_typespec_array(Typespec* type, i32 size);
-Typespec* make_typespec_struct(char* name, Arg* members);
-Typespec* make_typespec_enum(char* name, char** members);
-Typespec* make_typespec_function(char* name, Arg* args, Typespec* ret_type);
+Typespec* make_typespec_struct(char* name, List* members);
+Typespec* make_typespec_enum(char* name, List* members);
+Typespec* make_typespec_function(char* name, List* args, Typespec* ret_type);
 
 i64 typespec_function_get_arg_count(Typespec* type);
 i64 typespec_array_get_count(Typespec* type);
@@ -75,17 +76,17 @@ struct Typespec
         struct
         {
             char* name;
-            char** members;
+            List* members;
         } Enum;
         struct
         {
             char* name;
-            Arg* members;
+            List* members;
         } Struct;
         struct
         {
             char* name;
-            Arg* args;
+            List* args;
             Typespec* ret_type;
         } Function;
     };

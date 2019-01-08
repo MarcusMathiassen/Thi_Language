@@ -1,7 +1,6 @@
 #include "lexer.h"
 
 #include "globals.h"         // get_source_file
-#include "stretchy_buffer.h" // sb_push, sb_count
 #include "string.h"          // str_intern_range
 #include "typedefs.h"
 #include "utility.h" // info, success, error, warning
@@ -38,6 +37,7 @@ Token_Kind get_identifier_kind(char* identifier);
 //------------------------------------------------------------------------------
 typedef enum
 {
+    KEY_DEFER,
     KEY_FOREIGN,
     KEY_LOAD,
     KEY_TRUE,
@@ -55,8 +55,9 @@ typedef enum
     KEY_CONTINUE,
 } Keyword_Kind;
 
-#define KEYWORD_COUNT 15
+#define KEYWORD_COUNT 16
 char* keywords_str[KEYWORD_COUNT] = {
+    "defer", 
     "foreign", 
     "load", 
     "true",   
@@ -80,19 +81,21 @@ char* keywords_str[KEYWORD_COUNT] = {
 
 void print_token(Token token) { info("%s %s", token_kind_to_str(token.kind), token.value); }
 
-void print_tokens(Token* tokens)
+void print_tokens(List* tokens)
 {
-    i32 count = sb_count(tokens);
-    info("Printing %d tokens..", count);
-    for (int i = 0; i < count; ++i)
-        print_token(tokens[i]);
+    info("Printing tokens..");
+    LIST_FOREACH(tokens) {
+        Token* t = (Token*)it->data;
+        print_token(*t);
+    }
 }
 
-Token* generate_tokens_from_source(char* source_file)
+List* generate_tokens_from_source(char* source_file)
 {
     info("Generating Tokens from Source");
 
-    Token* tokens = NULL;
+    List* tokens = malloc(sizeof(List));
+    list_init(tokens);
 
     char* source = get_file_content(source_file);
     char* dir = get_file_directory(source_file);
@@ -103,18 +106,21 @@ Token* generate_tokens_from_source(char* source_file)
     // 'c' represents the current character in the stream.
     // char* gets set to the start of the stream
     c = source;
-    start_of_line = c;
+    start_of_line = c; 
     token.kind = TOKEN_UNKNOWN;
 
     // Fill the tokens
     while (token.kind != TOKEN_EOF) {
         get_token();
-        sb_push(tokens, token);
+        print_token(token);
+        Token* t = malloc(sizeof(Token));
+        t->kind = token.kind;
+        t->value = token.value;
+        list_append(tokens, t);
     }
 
-    // Print some result info
-    // info("Lines: %d | Tokens: %d", line_count, sb_count(tokens));
-
+    // // Print some result info
+    // // info("Lines: %d | Tokens: %d", line_count, sb_count(tokens));
     return tokens;
 }
 
@@ -182,6 +188,7 @@ Token_Kind get_identifier_kind(char* identifier)
 {
 
     switch (get_keyword_index(identifier)) {
+    case KEY_DEFER: return TOKEN_DEFER;
     case KEY_FOREIGN: return TOKEN_FOREIGN;
     case KEY_LOAD: return TOKEN_LOAD;
     case KEY_TRUE: return TOKEN_TRUE;
@@ -476,6 +483,7 @@ char* token_kind_to_str(Token_Kind kind)
     case TOKEN_RETURN: return "ret";
     case TOKEN_TRUE: return "true";
     case TOKEN_FALSE: return "false";
+    case TOKEN_DEFER: return "defer";
     case TOKEN_IF: return "if";
     case TOKEN_ELSE: return "else";
     case TOKEN_FOR: return "for";

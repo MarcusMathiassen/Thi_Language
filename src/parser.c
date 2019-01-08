@@ -1,7 +1,6 @@
 #include "parser.h"
 
 #include "lexer.h"           // Token, Token_Kind
-#include "stretchy_buffer.h" // sb_push
 #include "string.h"
 #include "typedefs.h" // i32, i64, etc.
 #include "typespec.h" // Typespec
@@ -10,6 +9,7 @@
 #include <assert.h>   // assert
 #include <ctype.h>    // atoll
 #include <string.h>   // strcmp
+#include <stdlib.h>   // malloc
 
 #include "globals.h" // add_symbol
 
@@ -72,11 +72,13 @@ struct
 
 typedef struct
 {
-    Token* g_tokens;
+    List* g_tokens;
     List* ast_list_ptr;
     i64 token_index;
     Token curr_tok;
     Token top_tok;
+
+    List* stmts;
     char* ocontinue;
     char* lcontinue;
     char* obreak;
@@ -106,6 +108,7 @@ Expr* parse_unary(Parse_Context* pctx);
 Expr* parse_binary(Parse_Context* pctx, int expr_prec, Expr* lhs);
 Expr* parse_integer(Parse_Context* pctx);
 Expr* parse_parens(Parse_Context* pctx);
+Expr* parse_defer(Parse_Context* pctx);
 Expr* parse_if(Parse_Context* pctx);
 Expr* parse_for(Parse_Context* pctx);
 Expr* parse_while(Parse_Context* pctx);
@@ -136,6 +139,20 @@ Typespec* get_type(Parse_Context* pctx);
 
 #define DEBUG_STATEMENT_END debug_info_color = get_previous_color();
 
+#define SET_STATEMENTS(statements) pctx->stmts = statements
+#define GET_STATEMENTS pctx->stmts
+
+#define SET_JUMP_LABELS(cont, brk)\
+    pctx->ocontinue = pctx->lcontinue;\
+    pctx->obreak = pctx->lbreak; \
+    pctx->lcontinue = cont;\
+    pctx->lbreak = brk;
+
+#define RESTORE_JUMP_LABELS \
+    pctx->lcontinue = pctx->ocontinue;\
+    pctx->lbreak = pctx->obreak;
+
+
 //------------------------------------------------------------------------------
 //                               Public Functions
 //------------------------------------------------------------------------------
@@ -152,8 +169,10 @@ void give_type_to_all_nodes(Expr* expr)
     case EXPR_BINARY:  give_type_to_all_nodes(expr->Binary.lhs); give_type_to_all_nodes(expr->Binary.rhs); break;
     case EXPR_GROUPING:  give_type_to_all_nodes(expr->Grouping.expr); break;
     case EXPR_BLOCK: {
-        for (int i = 0; i < sb_count(expr->Block.stmts); ++i) {
-            give_type_to_all_nodes(expr->Block.stmts[i]);
+        List* stmts = expr->Block.stmts;
+        LIST_FOREACH(stmts) {
+            Expr* stmt = (Expr*)it->data;
+            give_type_to_all_nodes(stmt);
         }
     } break;
     }
@@ -167,7 +186,7 @@ void parse(List* ast, char* source_file)
     list_append(&file_list, source_file);
 
     push_timer(source_file);
-    Token* tokens = generate_tokens_from_source(source_file);
+    List* tokens = generate_tokens_from_source(source_file);
     generate_symbol_table_from_tokens(ast, tokens);
     generate_ast_from_tokens(ast, tokens);
 
@@ -175,13 +194,12 @@ void parse(List* ast, char* source_file)
     // LIST_FOREACH(ast) { 
     //     Expr* expr = (Expr*)it->data; 
     //     give_type_to_all_nodes(expr);
-    // }
+    // 
 
     pop_timer();
 
-    // print_ast(ast);
-
-    // info("%s", ast_to_json(ast));
+    print_tokens(tokens);
+    print_ast(ast);
 
     set_source_file(last_file);
     set_current_dir(last_dir);
@@ -189,7 +207,7 @@ void parse(List* ast, char* source_file)
     debug_info_color = RGB_GRAY;
 }
 
-void generate_ast_from_tokens(List* ast, Token* tokens)
+void generate_ast_from_tokens(List* ast, List* tokens)
 {
     Parse_Context pctx;
     pctx.g_tokens = tokens;
@@ -208,7 +226,7 @@ void generate_ast_from_tokens(List* ast, Token* tokens)
     }
 }
 
-void generate_symbol_table_from_tokens(List* ast, Token* tokens)
+void generate_symbol_table_from_tokens(List* ast, List* tokens)
 {
     info("Generating symbol table..");
     Parse_Context pctx;
@@ -305,6 +323,7 @@ Expr* parse_statement(Parse_Context* pctx)
     case TOKEN_BREAK: statement = parse_break(pctx); break;
     case TOKEN_CONTINUE: statement = parse_continue(pctx); break;
     case TOKEN_IF: statement = parse_if(pctx); break;
+    case TOKEN_DEFER: statement = parse_defer(pctx); break;
     case TOKEN_FOR: statement = parse_for(pctx); break;
     case TOKEN_WHILE: statement = parse_while(pctx); break;
     default:
@@ -346,16 +365,6 @@ Expr* parse_identifier(Parse_Context* pctx)
     return make_expr_ident(ident);
 }
 
-#define SET_JUMP_LABELS(cont, brk)\
-    pctx->ocontinue = pctx->lcontinue;\
-    pctx->obreak = pctx->lbreak; \
-    pctx->lcontinue = cont;\
-    pctx->lbreak = brk;
-
-#define RESTORE_JUMP_LABELS \
-    pctx->lcontinue = pctx->ocontinue;\
-    pctx->lbreak = pctx->obreak;
-
 Expr* parse_continue(Parse_Context* pctx)
 {
     DEBUG_START;
@@ -375,7 +384,8 @@ Expr* parse_while(Parse_Context* pctx)
 
     eat_kind(pctx, TOKEN_WHILE);
 
-    Expr** stmts = NULL;
+    List* stmts = malloc(sizeof(List));
+    list_init(stmts);
 
     char* begin = make_label();
     char* end = make_label();
@@ -386,12 +396,12 @@ Expr* parse_while(Parse_Context* pctx)
     Expr* body = parse_block(pctx);
     RESTORE_JUMP_LABELS;
 
-    sb_push(stmts, make_expr_asm(strf("%s:", begin)));
-    sb_push(stmts, cond);
-    sb_push(stmts, make_expr_asm(strf("JE %s", end)));
-    sb_push(stmts, body);
-    sb_push(stmts, make_expr_asm(strf("JMP %s", begin)));
-    sb_push(stmts, make_expr_asm(strf("%s:", end)));
+    list_append(stmts, make_expr_asm(strf("%s:", begin)));
+    list_append(stmts, cond);
+    list_append(stmts, make_expr_asm(strf("JE %s", end)));
+    list_append(stmts, body);
+    list_append(stmts, make_expr_asm(strf("JMP %s", begin)));
+    list_append(stmts, make_expr_asm(strf("%s:", end)));
 
     return make_expr_block(stmts);
 }
@@ -402,7 +412,8 @@ Expr* parse_for(Parse_Context* pctx)
 
     eat_kind(pctx, TOKEN_FOR);
 
-    Expr** stmts = NULL;
+    List* stmts = malloc(sizeof(List));
+    list_init(stmts);
 
     char* begin = make_label();
     char* mid = make_label();
@@ -426,17 +437,26 @@ Expr* parse_for(Parse_Context* pctx)
 
     Expr* cond = make_expr_binary(TOKEN_EQ_EQ,  make_expr_ident(iterator_name), end_expr);
  
-    sb_push(stmts, variable);
-    sb_push(stmts, make_expr_asm(strf("%s:", begin)));
-    sb_push(stmts, cond);
-    sb_push(stmts, make_expr_asm(strf("JE %s", end)));
-    sb_push(stmts, body);
-    sb_push(stmts, make_expr_asm(strf("%s:", mid)));
-    sb_push(stmts, make_expr_binary(TOKEN_PLUS_EQ, make_expr_ident(iterator_name), make_expr_int(1)));
-    sb_push(stmts, make_expr_asm(strf("JMP %s", begin)));
-    sb_push(stmts, make_expr_asm(strf("%s:", end)));
+    list_append(stmts, variable);
+    list_append(stmts, make_expr_asm(strf("%s:", begin)));
+    list_append(stmts, cond);
+    list_append(stmts, make_expr_asm(strf("JE %s", end)));
+    list_append(stmts, body);
+    list_append(stmts, make_expr_asm(strf("%s:", mid)));
+    list_append(stmts, make_expr_binary(TOKEN_PLUS_EQ, make_expr_ident(iterator_name), make_expr_int(1)));
+    list_append(stmts, make_expr_asm(strf("JMP %s", begin)));
+    list_append(stmts, make_expr_asm(strf("%s:", end)));
 
     return make_expr_block(stmts);
+}
+
+Expr* parse_defer(Parse_Context* pctx)
+{
+    assert(GET_STATEMENTS);
+    eat_kind(pctx, TOKEN_DEFER);
+    Expr* block = parse_block(pctx);
+    list_append(GET_STATEMENTS, block);
+    return NULL;
 }
 
 Expr* parse_if(Parse_Context* pctx)
@@ -445,7 +465,8 @@ Expr* parse_if(Parse_Context* pctx)
 
     eat_kind(pctx, TOKEN_IF);
 
-    Expr** stmts = NULL;
+    List* stmts = malloc(sizeof(List));
+    list_init(stmts);
 
     char* else_l = make_label();
     char* end_l = make_label();
@@ -458,13 +479,13 @@ Expr* parse_if(Parse_Context* pctx)
         else_b = parse_block(pctx);
     }
 
-    sb_push(stmts, cond);
-    sb_push(stmts, make_expr_asm(strf("JNE %s", else_b ? else_l : end_l)));
-    sb_push(stmts, body);
-    sb_push(stmts, make_expr_asm(strf("JMP %s", end_l)));
-    sb_push(stmts, make_expr_asm(strf("%s:", else_l)));
-    if (else_b) sb_push(stmts, else_b);
-    sb_push(stmts, make_expr_asm(strf("%s:", end_l)));
+    list_append(stmts, cond);
+    list_append(stmts, make_expr_asm(strf("JNE %s", else_b ? else_l : end_l)));
+    list_append(stmts, body);
+    list_append(stmts, make_expr_asm(strf("JMP %s", end_l)));
+    list_append(stmts, make_expr_asm(strf("%s:", else_l)));
+    if (else_b) list_append(stmts, else_b);
+    list_append(stmts, make_expr_asm(strf("%s:", end_l)));
 
     return make_expr_block(stmts);
 }
@@ -482,27 +503,33 @@ Expr* parse_block(Parse_Context* pctx)
 {
     DEBUG_START;
 
-    Expr** statements = NULL;
+    List* stmts = malloc(sizeof(List));
+    list_init(stmts);
+
     eat_kind(pctx, TOKEN_OPEN_BRACE);
     while (!tok_is(pctx, TOKEN_CLOSE_BRACE)) {
         Expr* stmt = parse_statement(pctx);
-        if (stmt) sb_push(statements, stmt);
+        if (stmt) { 
+            list_append(stmts, stmt); 
+        }
     }
 
     eat_kind(pctx, TOKEN_CLOSE_BRACE);
-
-    return make_expr_block(statements);
+    SET_STATEMENTS(stmts);
+    return make_expr_block(stmts);
 }
 
 Expr* parse_ret(Parse_Context* pctx)
 {
     DEBUG_START;
-
     eat_kind(pctx, TOKEN_RETURN);
 
-    Expr** stmts = NULL;
-    sb_push(stmts, parse_expression(pctx));
-    sb_push(stmts, make_expr_asm(strf("JMP %s", pctx->l_end)));
+    List* stmts = malloc(sizeof(List));
+    list_init(stmts);
+
+    list_append(stmts, parse_expression(pctx));
+    list_append(stmts, make_expr_asm("JMP .END"));
+
     return make_expr_block(stmts);
 }
 
@@ -511,14 +538,16 @@ Expr* get_function_call(Parse_Context* pctx, char* ident)
     DEBUG_START;
 
     eat_kind(pctx, TOKEN_OPEN_PAREN);
-    Expr** args = NULL;
+
+    List* args = malloc(sizeof(List));
+    list_init(args);
 
     bool has_multiple_arguments = false;
     while (!tok_is(pctx, TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(pctx, TOKEN_COMMA);
         Expr* arg = parse_expression(pctx);
         if (arg)
-            sb_push(args, arg);
+            list_append(args, arg);
         else
             error("Invalid expression in function call %s", ident);
         has_multiple_arguments = true;
@@ -615,7 +644,6 @@ Expr* read_subscript_expr(Parse_Context* pctx, Expr* expr)
     i64 size = get_size_of_underlying_typespec(get_inferred_type_of_expr(expr));
     sub = make_expr_binary(TOKEN_ASTERISK, make_expr_int(size), sub);
     Expr* t = make_expr_binary(TOKEN_PLUS, expr, sub);
-    t = make_expr_grouping(t);
     return make_expr_unary(THI_SYNTAX_POINTER, t);
 }
 
@@ -816,14 +844,16 @@ Typespec* parse_struct_signature(Parse_Context* pctx, char* struct_name)
     eat_kind(pctx, TOKEN_STRUCT);
     eat_kind(pctx, TOKEN_OPEN_BRACE);
 
-    Arg* members = NULL;
+    List* members = malloc(sizeof(List));
+    list_init(members);
+
     while (!tok_is(pctx, TOKEN_CLOSE_BRACE)) {
-        Arg member;
-        member.name = pctx->curr_tok.value;
+        Arg* member = malloc(sizeof(Arg));
+        member->name = pctx->curr_tok.value;
         eat_kind(pctx, TOKEN_IDENTIFIER);
         eat_kind(pctx, TOKEN_COLON);
-        member.type = get_type(pctx);
-        sb_push(members, member);
+        member->type = get_type(pctx);
+        list_append(members, member);
     }
     eat_kind(pctx, TOKEN_CLOSE_BRACE);
 
@@ -835,27 +865,30 @@ Typespec* parse_function_signature(Parse_Context* pctx, char* func_name)
     DEBUG_START;
 
     eat_kind(pctx, TOKEN_OPEN_PAREN);
-    Arg* args = NULL;
+
+    List* args = malloc(sizeof(List));
+    list_init(args);
+
     bool has_multiple_arguments = false;
     while (!tok_is(pctx, TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(pctx, TOKEN_COMMA);
 
-        Arg arg;
-        arg.name = pctx->curr_tok.value;
-        arg.type = NULL;
+        Arg* arg = malloc(sizeof(Arg));
+        arg->name = pctx->curr_tok.value;
+        arg->type = NULL;
 
         // foreign's dont have named parameters
         if (pctx->top_tok.kind == TOKEN_FOREIGN) {
-            arg.name = NULL;
-            arg.type = get_type(pctx);
+            arg->name = NULL;
+            arg->type = get_type(pctx);
         } else {
             eat_kind(pctx, TOKEN_IDENTIFIER);
             eat_kind(pctx, TOKEN_COLON);
-            arg.type = get_type(pctx);
+            arg->type = get_type(pctx);
         }
 
         has_multiple_arguments = true;
-        sb_push(args, arg);
+        list_append(args, arg);
     }
     eat_kind(pctx, TOKEN_CLOSE_PAREN);
 
@@ -886,62 +919,9 @@ Expr* get_definition(Parse_Context* pctx, char* ident)
     }
     case TOKEN_OPEN_PAREN: {
         skip_function_signature(pctx);
-
-        Expr** stmts = NULL;
-
-        char* start = ".BEGIN";
-        char* end = ".END";
-        pctx->l_end = end;
-
         Expr* body = parse_block(pctx);
-        Typespec* type = get_symbol(ident);
-
-        i64 sum = 0;
-
-        // Sum the params
-        sum += get_size_of_typespec(type);
-
-        Expr** block = body->Block.stmts;
-        i32 block_count = sb_count(block);
-        for (int i = 0; i < block_count; ++i) {
-            Expr* b_expr = block[i];
-            switch (b_expr->kind) {
-                case EXPR_VARIABLE_DECL: sum += get_size_of_typespec(b_expr->Variable_Decl.type); break;
-            }
-        }
-
-        i64 stack_allocated = sum;
-        int padding = (16 - (stack_allocated % 16)) % 16;
-
-        sb_push(stmts, make_expr_asm(strf("_%s:", ident)));
-        sb_push(stmts, make_expr_asm("PUSH RBP"));
-        sb_push(stmts, make_expr_asm("MOV RBP, RSP"));
-
-        if (stack_allocated + padding)
-            sb_push(stmts, make_expr_asm(strf("SUB RSP, %d; %d alloc, %d padding", stack_allocated + padding, stack_allocated, padding)));
-
-        sb_push(stmts, make_expr_asm(strf("%s:", start)));
-        i32 arg_count = typespec_function_get_arg_count(type);
-        for (int i = 0; i< arg_count; ++i)
-        {
-            Arg arg = type->Function.args[i];
-            char* v_name = arg.name;
-            Typespec* v_type = arg.type;
-            Expr* variable = make_expr_variable_decl(v_name, v_type, make_expr_asm(strf("MOV RAX, %s", get_reg(get_parameter_reg(i, 8)))));
-            sb_push(stmts, variable);
-        }
-        sb_push(stmts, body);
-        sb_push(stmts, make_expr_asm(strf("%s:", end)));
-
-        if (stack_allocated + padding)
-            sb_push(stmts, make_expr_asm(strf("ADD RSP, %d; %d alloc, %d padding", stack_allocated + padding, stack_allocated, padding)));
-
-        sb_push(stmts, make_expr_asm("LEAVE"));
-        sb_push(stmts, make_expr_asm("RET"));
-
         reset_label_counter();
-
-        return make_expr_block(stmts);
+        return make_expr_function(get_symbol(ident), body);
     }
     default: {
         // Macro def
@@ -971,7 +951,7 @@ bool tok_is(Parse_Context* pctx, Token_Kind kind)
     return false;
 }
 
-void eat(Parse_Context* pctx) { pctx->curr_tok = pctx->g_tokens[pctx->token_index++]; }
+void eat(Parse_Context* pctx) { pctx->curr_tok = *(Token*)list_at(pctx->g_tokens, pctx->token_index++); }
 
 void eat_kind(Parse_Context* pctx, Token_Kind kind)
 {

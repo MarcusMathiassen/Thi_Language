@@ -1,0 +1,999 @@
+Searching 120 files for "sb_count"
+
+/Users/marcusmathiassen/Thi_Language/src/codegen.c:
+  636      // push the arguments in reverse order onto the stack
+  637      i32 func_arg_count = typespec_function_get_arg_count(func_t);
+  638:     i32 arg_count = sb_count(args);
+  639  
+  640      if (func_arg_count != arg_count) error("wrong amount of parameters for call to function '%s'", callee);
+  ...
+  760  
+  761      Arg* args = func_type->Function.args;
+  762:     i32 arg_count = sb_count(args);
+  763      for (int i = 0; i < arg_count; ++i) {
+  764          Arg* arg = &args[i];
+
+/Users/marcusmathiassen/Thi_Language/src/lexer.c:
+    2  
+    3  #include "globals.h"         // get_source_file
+    4: #include "stretchy_buffer.h" // sb_push, sb_count
+    5  #include "string.h"          // str_intern_range
+    6  #include "typedefs.h"
+    .
+   85  void print_tokens(Token* tokens)
+   86  {
+   87:     i32 count = sb_count(tokens);
+   88      info("Printing %d tokens..", count);
+   89      for (int i = 0; i < count; ++i)
+   ..
+  116  
+  117      // Print some result info
+  118:     // info("Lines: %d | Tokens: %d", line_count, sb_count(tokens));
+  119  
+  120      return tokens;
+
+/Users/marcusmathiassen/Thi_Language/src/stretchy_buffer.h:
+   64  //
+   65  //         sb_free(TYPE *a)           free the array
+   66: //         sb_count(TYPE *a)          the number of elements in the array
+   67  //         sb_push(TYPE *a, TYPE v)   adds v on the end of the array, a la
+   68  //         push_back sb_add(TYPE *a, i32 n)     adds n uninitialized elements at
+   ..
+  179  #define sb_free stb_sb_free
+  180  #define sb_push stb_sb_push
+  181: #define sb_count stb_sb_count
+  182  #define sb_add stb_sb_add
+  183  #define sb_last stb_sb_last
+  ...
+  186  #define stb_sb_free(a) ((a) ? free(stb__sbraw(a)), 0 : 0)
+  187  #define stb_sb_push(a, v) (stb__sbmaybegrow(a, 1), (a)[stb__sbn(a)++] = (v))
+  188: #define stb_sb_count(a) ((a) ? stb__sbn(a) : 0)
+  189  #define stb_sb_add(a, n) (stb__sbmaybegrow(a, n), stb__sbn(a) += (n), &(a)[stb__sbn(a) - (n)])
+  190  #define stb_sb_last(a) ((a)[stb__sbn(a) - 1])
+  ...
+  203  {
+  204      i32 dbl_cur = arr ? 2 * stb__sbm(arr) : 0;
+  205:     i32 min_needed = stb_sb_count(arr) + increment;
+  206      i32 m = dbl_cur > min_needed ? dbl_cur : min_needed;
+  207      int* p = (int*)realloc(arr ? stb__sbraw(arr) : 0, itemsize * m + sizeof(int) * 2);
+
+/Users/marcusmathiassen/Thi_Language/src/string.c:
+    1  #include "string.h"
+    2  
+    3: #include "stretchy_buffer.h" // sb_push, sb_count
+    4  #include "typedefs.h"
+    5  #include "utility.h" // xmalloc, xrealloc, xstrlen
+    .
+   93  {
+   94      i64 len = end - start;
+   95:     for (int i = 0; i < sb_count(interns); ++i) {
+   96          if (interns[i].len == len && strncmp(interns[i].str, start, len) == 0) {
+   97              return interns[i].str;
+
+/Users/marcusmathiassen/Thi_Language/src/typespec.c:
+    1  #include "typespec.h"
+    2  
+    3: #include "stretchy_buffer.h" // sb_free, sb_count
+    4  #include "string.h"          // strf, append_string, string
+    5  #include "utility.h"         // error
+    .
+   50      case TYPESPEC_STRUCT: {
+   51          i64 accum_size = 0;
+   52:         int count = sb_count(type->Struct.members);
+   53          for (int i = 0; i < count; ++i) {
+   54              Arg* mem = &type->Struct.members[i];
+   ..
+   59      case TYPESPEC_FUNCTION: {
+   60          i64 accum_size = 0;
+   61:         for (int i = 0; i < sb_count(type->Function.args); ++i) {
+   62              accum_size += get_size_of_typespec(type->Function.args[i].type);
+   63          }
+   ..
+   73      assert(type);
+   74      assert(type->kind == TYPESPEC_FUNCTION);
+   75:     return sb_count(type->Function.args);
+   76  }
+   77  
+   ..
+   93          string str = make_string(strf("%s :: {\n", type->Struct.name));
+   94          Arg* args = type->Struct.members;
+   95:         i32 arg_count = sb_count(args);
+   96          if (arg_count) {
+   97              for (int i = 0; i < arg_count; ++i) {
+   ..
+  106          string str = make_string(strf("%s :: enum {", type->Enum.name));
+  107          char** args = type->Enum.members;
+  108:         i32 arg_count = sb_count(args);
+  109          if (arg_count) {
+  110              for (int i = 0; i < arg_count; ++i) {
+  ...
+  120          strf("func. name: %d", type->Function.name);
+  121          Arg* args = type->Function.args;
+  122:         i32 arg_count = sb_count(args);
+  123          if (arg_count) {
+  124              for (int i = 0; i < arg_count; ++i) {
+  ...
+  149          string str = make_string(strf("%s :: {\n", type->Struct.name));
+  150          Arg* args = type->Struct.members;
+  151:         i32 arg_count = sb_count(args);
+  152          if (arg_count) {
+  153              for (int i = 0; i < arg_count; ++i) {
+  ...
+  162          string str = make_string(strf("%s :: enum {", type->Enum.name));
+  163          char** args = type->Enum.members;
+  164:         i32 arg_count = sb_count(args);
+  165          if (arg_count) {
+  166              for (int i = 0; i < arg_count; ++i) {
+  ...
+  176          strf("func. name: %d", type->Function.name);
+  177          Arg* args = type->Function.args;
+  178:         i32 arg_count = sb_count(args);
+  179          if (arg_count) {
+  180              for (int i = 0; i < arg_count; ++i) {
+
+/Users/marcusmathiassen/Thi_Language/src/value.c:
+  188  
+  189      CodeBlock** codeblocks = function->Function.codeblocks;
+  190:     i32 cb_count = sb_count(codeblocks);
+  191  
+  192      char* cb_0_c = codeblocks[0]->color;
+
+23 matches across 6 files
+
+
+Searching 120 files for "stretchy"
+
+/Users/marcusmathiassen/Thi_Language/.vscode/settings.json:
+    1  {
+    2      "files.associations": {
+    3:         "stretchy_buffer.h": "c",
+    4          "globals.h": "c",
+    5          "stack.h": "c",
+
+/Users/marcusmathiassen/Thi_Language/src/ast.c:
+    2  #include "globals.h"
+    3  #include "lexer.h"           // token_kind_to_str,
+    4: #include "stretchy_buffer.h" // sb_push
+    5  #include "string.h"          // strf, append_string, string
+    6  #include "utility.h"         // info, success, error, warning
+
+/Users/marcusmathiassen/Thi_Language/src/codegen.c:
+    6  #include "list.h"
+    7  #include "register.h"
+    8: #include "stretchy_buffer.h" // sb_free
+    9  #include "string.h"          // string
+   10  #include "typedefs.h"
+
+/Users/marcusmathiassen/Thi_Language/src/lexer.c:
+    2  
+    3  #include "globals.h"         // get_source_file
+    4: #include "stretchy_buffer.h" // sb_push, sb_count
+    5  #include "string.h"          // str_intern_range
+    6  #include "typedefs.h"
+
+/Users/marcusmathiassen/Thi_Language/src/parser.c:
+    2  
+    3  #include "lexer.h"           // Token, Token_Kind
+    4: #include "stretchy_buffer.h" // sb_push
+    5  #include "string.h"
+    6  #include "typedefs.h" // i32, i64, etc.
+
+/Users/marcusmathiassen/Thi_Language/src/stretchy_buffer.h:
+    1: // stretchy_buffer.h - v1.03 - public domain - nothings.org/stb
+    2  // a vector<>-like dynamic array for C
+    3  //
+    .
+   28  //    range checking, the object address isn't stable (see next section
+   29  //    for details), the set of methods available is small (although
+   30: //    the file stb.h has another implementation of stretchy buffers
+   31  //    called 'stb_arr' which provides more methods, e.g. for insertion
+   32  //    and deletion).
+   ..
+   38  //    much implementation is needed.
+   39  //
+   40: //    stretchy_buffer.h does not define any types, so you do not
+   41  //    need to #include it to before defining data types that are
+   42: //    stretchy buffers, only in files that *manipulate* stretchy
+   43  //    buffers.
+   44  //
+   45: //    If you want a stretchy buffer aka dynamic array containing
+   46  //    objects of TYPE, declare such an array as:
+   47  //
+   48  //       TYPE *myarray = NULL;
+   49  //
+   50: //    (There is no typesafe way to distinguish between stretchy
+   51  //    buffers and regular arrays/pointers; this is necessary to
+   52  //    make ordinary array indexing work on these objects.)
+   53  //
+   54: //    Unlike C++ vector<>, the stretchy_buffer has the same
+   55  //    semantics as an object that you manually malloc and realloc.
+   56  //    The pointer may relocate every time you add a new object
+   ..
+   71  //         (counting from 0) element of the array
+   72  //
+   73: //     #define STRETCHY_BUFFER_NO_SHORT_NAMES to only export
+   74  //     names of the form 'stb_sb_' if you have a name that would
+   75  //     otherwise collide.
+   ..
+   89  //     and optimize away some of the code, but it should only
+   90  //     be along the failure path. Nevertheless, for more security
+   91: //     in the face of such compilers, #define STRETCHY_BUFFER_OUT_OF_MEMORY
+   92  //     to a statement such as assert(0) or exit(1) or something
+   93  //     to force a failure when out-of-memory occurs.
+   ..
+  154  //    A long-standing tradition in things like malloc implementations
+  155  //    is to store extra data before the beginning of the block returned
+  156: //    to the user. The stretchy buffer implementation here uses the
+  157  //    same trick; the current-count and current-allocation-size are
+  158  //    stored before the beginning of the array returned to the user.
+  ...
+  173  //   See end of file for license information.
+  174  
+  175: #ifndef STB_STRETCHY_BUFFER_H_INCLUDED
+  176: #define STB_STRETCHY_BUFFER_H_INCLUDED
+  177  
+  178: #ifndef NO_STRETCHY_BUFFER_SHORT_NAMES
+  179  #define sb_free stb_sb_free
+  180  #define sb_push stb_sb_push
+  ...
+  211          return p + 2;
+  212      } else {
+  213: #ifdef STRETCHY_BUFFER_OUT_OF_MEMORY
+  214:         STRETCHY_BUFFER_OUT_OF_MEMORY;
+  215  #endif
+  216          return (void*)(2 * sizeof(int)); // try to force a NULL pointer exception later
+  217      }
+  218  }
+  219: #endif // STB_STRETCHY_BUFFER_H_INCLUDED
+  220  
+  221  /*
+
+/Users/marcusmathiassen/Thi_Language/src/string.c:
+    1  #include "string.h"
+    2  
+    3: #include "stretchy_buffer.h" // sb_push, sb_count
+    4  #include "typedefs.h"
+    5  #include "utility.h" // xmalloc, xrealloc, xstrlen
+
+/Users/marcusmathiassen/Thi_Language/src/value.c:
+    2  #include "globals.h"         // current_output
+    3  #include "register.h"        // error, xmallox
+    4: #include "stretchy_buffer.h" // sb_push
+    5  #include "typedefs.h"
+    6  #include "utility.h" // error, xmallox
+
+24 matches across 8 files
+
+
+Searching 120 files for "stretchy"
+
+/Users/marcusmathiassen/Thi_Language/.vscode/settings.json:
+    1  {
+    2      "files.associations": {
+    3:         "stretchy_buffer.h": "c",
+    4          "globals.h": "c",
+    5          "stack.h": "c",
+
+/Users/marcusmathiassen/Thi_Language/src/ast.c:
+    2  #include "globals.h"
+    3  #include "lexer.h"           // token_kind_to_str,
+    4: #include "stretchy_buffer.h" // sb_push
+    5  #include "string.h"          // strf, append_string, string
+    6  #include "utility.h"         // info, success, error, warning
+
+/Users/marcusmathiassen/Thi_Language/src/codegen.c:
+    6  #include "list.h"
+    7  #include "register.h"
+    8: #include "stretchy_buffer.h" // sb_free
+    9  #include "string.h"          // string
+   10  #include "typedefs.h"
+
+/Users/marcusmathiassen/Thi_Language/src/parser.c:
+    2  
+    3  #include "lexer.h"           // Token, Token_Kind
+    4: #include "stretchy_buffer.h" // sb_push
+    5  #include "string.h"
+    6  #include "typedefs.h" // i32, i64, etc.
+
+/Users/marcusmathiassen/Thi_Language/src/stretchy_buffer.h:
+    1: // stretchy_buffer.h - v1.03 - public domain - nothings.org/stb
+    2  // a vector<>-like dynamic array for C
+    3  //
+    .
+   28  //    range checking, the object address isn't stable (see next section
+   29  //    for details), the set of methods available is small (although
+   30: //    the file stb.h has another implementation of stretchy buffers
+   31  //    called 'stb_arr' which provides more methods, e.g. for insertion
+   32  //    and deletion).
+   ..
+   38  //    much implementation is needed.
+   39  //
+   40: //    stretchy_buffer.h does not define any types, so you do not
+   41  //    need to #include it to before defining data types that are
+   42: //    stretchy buffers, only in files that *manipulate* stretchy
+   43  //    buffers.
+   44  //
+   45: //    If you want a stretchy buffer aka dynamic array containing
+   46  //    objects of TYPE, declare such an array as:
+   47  //
+   48  //       TYPE *myarray = NULL;
+   49  //
+   50: //    (There is no typesafe way to distinguish between stretchy
+   51  //    buffers and regular arrays/pointers; this is necessary to
+   52  //    make ordinary array indexing work on these objects.)
+   53  //
+   54: //    Unlike C++ vector<>, the stretchy_buffer has the same
+   55  //    semantics as an object that you manually malloc and realloc.
+   56  //    The pointer may relocate every time you add a new object
+   ..
+   71  //         (counting from 0) element of the array
+   72  //
+   73: //     #define STRETCHY_BUFFER_NO_SHORT_NAMES to only export
+   74  //     names of the form 'stb_sb_' if you have a name that would
+   75  //     otherwise collide.
+   ..
+   89  //     and optimize away some of the code, but it should only
+   90  //     be along the failure path. Nevertheless, for more security
+   91: //     in the face of such compilers, #define STRETCHY_BUFFER_OUT_OF_MEMORY
+   92  //     to a statement such as assert(0) or exit(1) or something
+   93  //     to force a failure when out-of-memory occurs.
+   ..
+  154  //    A long-standing tradition in things like malloc implementations
+  155  //    is to store extra data before the beginning of the block returned
+  156: //    to the user. The stretchy buffer implementation here uses the
+  157  //    same trick; the current-count and current-allocation-size are
+  158  //    stored before the beginning of the array returned to the user.
+  ...
+  173  //   See end of file for license information.
+  174  
+  175: #ifndef STB_STRETCHY_BUFFER_H_INCLUDED
+  176: #define STB_STRETCHY_BUFFER_H_INCLUDED
+  177  
+  178: #ifndef NO_STRETCHY_BUFFER_SHORT_NAMES
+  179  #define sb_free stb_sb_free
+  180  #define sb_push stb_sb_push
+  ...
+  211          return p + 2;
+  212      } else {
+  213: #ifdef STRETCHY_BUFFER_OUT_OF_MEMORY
+  214:         STRETCHY_BUFFER_OUT_OF_MEMORY;
+  215  #endif
+  216          return (void*)(2 * sizeof(int)); // try to force a NULL pointer exception later
+  217      }
+  218  }
+  219: #endif // STB_STRETCHY_BUFFER_H_INCLUDED
+  220  
+  221  /*
+
+/Users/marcusmathiassen/Thi_Language/src/string.c:
+    1  #include "string.h"
+    2  
+    3: #include "stretchy_buffer.h" // sb_push, sb_count
+    4  #include "typedefs.h"
+    5  #include "utility.h" // xmalloc, xrealloc, xstrlen
+
+/Users/marcusmathiassen/Thi_Language/src/value.c:
+    2  #include "globals.h"         // current_output
+    3  #include "register.h"        // error, xmallox
+    4: #include "stretchy_buffer.h" // sb_push
+    5  #include "typedefs.h"
+    6  #include "utility.h" // error, xmallox
+
+23 matches across 7 files
+
+
+Searching 120 files for "stretchy"
+
+/Users/marcusmathiassen/Thi_Language/.vscode/settings.json:
+    1  {
+    2      "files.associations": {
+    3:         "stretchy_buffer.h": "c",
+    4          "globals.h": "c",
+    5          "stack.h": "c",
+
+/Users/marcusmathiassen/Thi_Language/src/codegen.c:
+    6  #include "list.h"
+    7  #include "register.h"
+    8: #include "stretchy_buffer.h" // sb_free
+    9  #include "string.h"          // string
+   10  #include "typedefs.h"
+
+/Users/marcusmathiassen/Thi_Language/src/parser.c:
+    2  
+    3  #include "lexer.h"           // Token, Token_Kind
+    4: #include "stretchy_buffer.h" // sb_push
+    5  #include "string.h"
+    6  #include "typedefs.h" // i32, i64, etc.
+
+/Users/marcusmathiassen/Thi_Language/src/stretchy_buffer.h:
+    1: // stretchy_buffer.h - v1.03 - public domain - nothings.org/stb
+    2  // a vector<>-like dynamic array for C
+    3  //
+    .
+   28  //    range checking, the object address isn't stable (see next section
+   29  //    for details), the set of methods available is small (although
+   30: //    the file stb.h has another implementation of stretchy buffers
+   31  //    called 'stb_arr' which provides more methods, e.g. for insertion
+   32  //    and deletion).
+   ..
+   38  //    much implementation is needed.
+   39  //
+   40: //    stretchy_buffer.h does not define any types, so you do not
+   41  //    need to #include it to before defining data types that are
+   42: //    stretchy buffers, only in files that *manipulate* stretchy
+   43  //    buffers.
+   44  //
+   45: //    If you want a stretchy buffer aka dynamic array containing
+   46  //    objects of TYPE, declare such an array as:
+   47  //
+   48  //       TYPE *myarray = NULL;
+   49  //
+   50: //    (There is no typesafe way to distinguish between stretchy
+   51  //    buffers and regular arrays/pointers; this is necessary to
+   52  //    make ordinary array indexing work on these objects.)
+   53  //
+   54: //    Unlike C++ vector<>, the stretchy_buffer has the same
+   55  //    semantics as an object that you manually malloc and realloc.
+   56  //    The pointer may relocate every time you add a new object
+   ..
+   71  //         (counting from 0) element of the array
+   72  //
+   73: //     #define STRETCHY_BUFFER_NO_SHORT_NAMES to only export
+   74  //     names of the form 'stb_sb_' if you have a name that would
+   75  //     otherwise collide.
+   ..
+   89  //     and optimize away some of the code, but it should only
+   90  //     be along the failure path. Nevertheless, for more security
+   91: //     in the face of such compilers, #define STRETCHY_BUFFER_OUT_OF_MEMORY
+   92  //     to a statement such as assert(0) or exit(1) or something
+   93  //     to force a failure when out-of-memory occurs.
+   ..
+  154  //    A long-standing tradition in things like malloc implementations
+  155  //    is to store extra data before the beginning of the block returned
+  156: //    to the user. The stretchy buffer implementation here uses the
+  157  //    same trick; the current-count and current-allocation-size are
+  158  //    stored before the beginning of the array returned to the user.
+  ...
+  173  //   See end of file for license information.
+  174  
+  175: #ifndef STB_STRETCHY_BUFFER_H_INCLUDED
+  176: #define STB_STRETCHY_BUFFER_H_INCLUDED
+  177  
+  178: #ifndef NO_STRETCHY_BUFFER_SHORT_NAMES
+  179  #define sb_free stb_sb_free
+  180  #define sb_push stb_sb_push
+  ...
+  211          return p + 2;
+  212      } else {
+  213: #ifdef STRETCHY_BUFFER_OUT_OF_MEMORY
+  214:         STRETCHY_BUFFER_OUT_OF_MEMORY;
+  215  #endif
+  216          return (void*)(2 * sizeof(int)); // try to force a NULL pointer exception later
+  217      }
+  218  }
+  219: #endif // STB_STRETCHY_BUFFER_H_INCLUDED
+  220  
+  221  /*
+
+/Users/marcusmathiassen/Thi_Language/src/string.c:
+    1  #include "string.h"
+    2  
+    3: #include "stretchy_buffer.h" // sb_push, sb_count
+    4  #include "typedefs.h"
+    5  #include "utility.h" // xmalloc, xrealloc, xstrlen
+
+/Users/marcusmathiassen/Thi_Language/src/value.c:
+    2  #include "globals.h"         // current_output
+    3  #include "register.h"        // error, xmallox
+    4: #include "stretchy_buffer.h" // sb_push
+    5  #include "typedefs.h"
+    6  #include "utility.h" // error, xmallox
+
+22 matches across 6 files
+
+
+Searching 120 files for "stretchy"
+
+/Users/marcusmathiassen/Thi_Language/.vscode/settings.json:
+    1  {
+    2      "files.associations": {
+    3:         "stretchy_buffer.h": "c",
+    4          "globals.h": "c",
+    5          "stack.h": "c",
+
+/Users/marcusmathiassen/Thi_Language/src/parser.c:
+    2  
+    3  #include "lexer.h"           // Token, Token_Kind
+    4: #include "stretchy_buffer.h" // sb_push
+    5  #include "string.h"
+    6  #include "typedefs.h" // i32, i64, etc.
+
+/Users/marcusmathiassen/Thi_Language/src/stretchy_buffer.h:
+    1: // stretchy_buffer.h - v1.03 - public domain - nothings.org/stb
+    2  // a vector<>-like dynamic array for C
+    3  //
+    .
+   28  //    range checking, the object address isn't stable (see next section
+   29  //    for details), the set of methods available is small (although
+   30: //    the file stb.h has another implementation of stretchy buffers
+   31  //    called 'stb_arr' which provides more methods, e.g. for insertion
+   32  //    and deletion).
+   ..
+   38  //    much implementation is needed.
+   39  //
+   40: //    stretchy_buffer.h does not define any types, so you do not
+   41  //    need to #include it to before defining data types that are
+   42: //    stretchy buffers, only in files that *manipulate* stretchy
+   43  //    buffers.
+   44  //
+   45: //    If you want a stretchy buffer aka dynamic array containing
+   46  //    objects of TYPE, declare such an array as:
+   47  //
+   48  //       TYPE *myarray = NULL;
+   49  //
+   50: //    (There is no typesafe way to distinguish between stretchy
+   51  //    buffers and regular arrays/pointers; this is necessary to
+   52  //    make ordinary array indexing work on these objects.)
+   53  //
+   54: //    Unlike C++ vector<>, the stretchy_buffer has the same
+   55  //    semantics as an object that you manually malloc and realloc.
+   56  //    The pointer may relocate every time you add a new object
+   ..
+   71  //         (counting from 0) element of the array
+   72  //
+   73: //     #define STRETCHY_BUFFER_NO_SHORT_NAMES to only export
+   74  //     names of the form 'stb_sb_' if you have a name that would
+   75  //     otherwise collide.
+   ..
+   89  //     and optimize away some of the code, but it should only
+   90  //     be along the failure path. Nevertheless, for more security
+   91: //     in the face of such compilers, #define STRETCHY_BUFFER_OUT_OF_MEMORY
+   92  //     to a statement such as assert(0) or exit(1) or something
+   93  //     to force a failure when out-of-memory occurs.
+   ..
+  154  //    A long-standing tradition in things like malloc implementations
+  155  //    is to store extra data before the beginning of the block returned
+  156: //    to the user. The stretchy buffer implementation here uses the
+  157  //    same trick; the current-count and current-allocation-size are
+  158  //    stored before the beginning of the array returned to the user.
+  ...
+  173  //   See end of file for license information.
+  174  
+  175: #ifndef STB_STRETCHY_BUFFER_H_INCLUDED
+  176: #define STB_STRETCHY_BUFFER_H_INCLUDED
+  177  
+  178: #ifndef NO_STRETCHY_BUFFER_SHORT_NAMES
+  179  #define sb_free stb_sb_free
+  180  #define sb_push stb_sb_push
+  ...
+  211          return p + 2;
+  212      } else {
+  213: #ifdef STRETCHY_BUFFER_OUT_OF_MEMORY
+  214:         STRETCHY_BUFFER_OUT_OF_MEMORY;
+  215  #endif
+  216          return (void*)(2 * sizeof(int)); // try to force a NULL pointer exception later
+  217      }
+  218  }
+  219: #endif // STB_STRETCHY_BUFFER_H_INCLUDED
+  220  
+  221  /*
+
+/Users/marcusmathiassen/Thi_Language/src/string.c:
+    1  #include "string.h"
+    2  
+    3: #include "stretchy_buffer.h" // sb_push, sb_count
+    4  #include "typedefs.h"
+    5  #include "utility.h" // xmalloc, xrealloc, xstrlen
+
+/Users/marcusmathiassen/Thi_Language/src/value.c:
+    2  #include "globals.h"         // current_output
+    3  #include "register.h"        // error, xmallox
+    4: #include "stretchy_buffer.h" // sb_push
+    5  #include "typedefs.h"
+    6  #include "utility.h" // error, xmallox
+
+21 matches across 5 files
+
+
+Searching 120 files for "stretchy"
+
+/Users/marcusmathiassen/Thi_Language/.vscode/settings.json:
+    1  {
+    2      "files.associations": {
+    3:         "stretchy_buffer.h": "c",
+    4          "globals.h": "c",
+    5          "stack.h": "c",
+
+/Users/marcusmathiassen/Thi_Language/src/stretchy_buffer.h:
+    1: // stretchy_buffer.h - v1.03 - public domain - nothings.org/stb
+    2  // a vector<>-like dynamic array for C
+    3  //
+    .
+   28  //    range checking, the object address isn't stable (see next section
+   29  //    for details), the set of methods available is small (although
+   30: //    the file stb.h has another implementation of stretchy buffers
+   31  //    called 'stb_arr' which provides more methods, e.g. for insertion
+   32  //    and deletion).
+   ..
+   38  //    much implementation is needed.
+   39  //
+   40: //    stretchy_buffer.h does not define any types, so you do not
+   41  //    need to #include it to before defining data types that are
+   42: //    stretchy buffers, only in files that *manipulate* stretchy
+   43  //    buffers.
+   44  //
+   45: //    If you want a stretchy buffer aka dynamic array containing
+   46  //    objects of TYPE, declare such an array as:
+   47  //
+   48  //       TYPE *myarray = NULL;
+   49  //
+   50: //    (There is no typesafe way to distinguish between stretchy
+   51  //    buffers and regular arrays/pointers; this is necessary to
+   52  //    make ordinary array indexing work on these objects.)
+   53  //
+   54: //    Unlike C++ vector<>, the stretchy_buffer has the same
+   55  //    semantics as an object that you manually malloc and realloc.
+   56  //    The pointer may relocate every time you add a new object
+   ..
+   71  //         (counting from 0) element of the array
+   72  //
+   73: //     #define STRETCHY_BUFFER_NO_SHORT_NAMES to only export
+   74  //     names of the form 'stb_sb_' if you have a name that would
+   75  //     otherwise collide.
+   ..
+   89  //     and optimize away some of the code, but it should only
+   90  //     be along the failure path. Nevertheless, for more security
+   91: //     in the face of such compilers, #define STRETCHY_BUFFER_OUT_OF_MEMORY
+   92  //     to a statement such as assert(0) or exit(1) or something
+   93  //     to force a failure when out-of-memory occurs.
+   ..
+  154  //    A long-standing tradition in things like malloc implementations
+  155  //    is to store extra data before the beginning of the block returned
+  156: //    to the user. The stretchy buffer implementation here uses the
+  157  //    same trick; the current-count and current-allocation-size are
+  158  //    stored before the beginning of the array returned to the user.
+  ...
+  173  //   See end of file for license information.
+  174  
+  175: #ifndef STB_STRETCHY_BUFFER_H_INCLUDED
+  176: #define STB_STRETCHY_BUFFER_H_INCLUDED
+  177  
+  178: #ifndef NO_STRETCHY_BUFFER_SHORT_NAMES
+  179  #define sb_free stb_sb_free
+  180  #define sb_push stb_sb_push
+  ...
+  211          return p + 2;
+  212      } else {
+  213: #ifdef STRETCHY_BUFFER_OUT_OF_MEMORY
+  214:         STRETCHY_BUFFER_OUT_OF_MEMORY;
+  215  #endif
+  216          return (void*)(2 * sizeof(int)); // try to force a NULL pointer exception later
+  217      }
+  218  }
+  219: #endif // STB_STRETCHY_BUFFER_H_INCLUDED
+  220  
+  221  /*
+
+/Users/marcusmathiassen/Thi_Language/src/string.c:
+    1  #include "string.h"
+    2  
+    3: #include "stretchy_buffer.h" // sb_push, sb_count
+    4  #include "typedefs.h"
+    5  #include "utility.h" // xmalloc, xrealloc, xstrlen
+
+/Users/marcusmathiassen/Thi_Language/src/value.c:
+    2  #include "globals.h"         // current_output
+    3  #include "register.h"        // error, xmallox
+    4: #include "stretchy_buffer.h" // sb_push
+    5  #include "typedefs.h"
+    6  #include "utility.h" // error, xmallox
+
+20 matches across 4 files
+
+
+Searching 119 files for "malloc"
+
+/Users/marcusmathiassen/Thi_Language/src/ast.c:
+    6  #include <assert.h>          // assert
+    7  #include <stdio.h>           // sprintf,
+    8: #include <stdlib.h>          // malloc,
+    9  
+   10  //------------------------------------------------------------------------------
+   ..
+  135  Expr* make_expr(Expr_Kind kind)
+  136  {
+  137:     Expr* e = xmalloc(sizeof(Expr));
+  138      e->kind = kind;
+  139      return e;
+
+/Users/marcusmathiassen/Thi_Language/src/codegen.c:
+   14  #include <stdio.h>   //
+   15  #include <string.h>  // strncat,
+   16: #include <stdlib.h>  // free, malloc
+   17  
+   18  Typespec* integer_literal_type = NULL;
+   ..
+   29      i64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
+   30      va_end(args);
+   31:     char* str = xmalloc(str_len);
+   32  
+   33      va_start(args, fmt);
+   ..
+   45      i64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
+   46      va_end(args);
+   47:     char* str = xmalloc(str_len);
+   48  
+   49      va_start(args, fmt);
+
+/Users/marcusmathiassen/Thi_Language/src/context.c:
+    1  #include "context.h"
+    2  #include "string.h"  // strf
+    3: #include "utility.h" // xmalloc
+    4  #include <assert.h>  // assert
+    5  #include <string.h>  // strcmp
+
+/Users/marcusmathiassen/Thi_Language/src/globals.c:
+    5  #include "stack.h"   // Stack
+    6  #include "string.h"  // string
+    7: #include "utility.h" // warning, error, xmalloc
+    8  #include <assert.h>  // assert
+    9  
+   ..
+  155  {
+  156      assert(desc);
+  157:     Timer* tm = xmalloc(sizeof(Timer));
+  158      tm->ms = get_time();
+  159      tm->desc = desc;
+
+/Users/marcusmathiassen/Thi_Language/src/lexer.c:
+    7  #include <assert.h>  // assert
+    8  #include <ctype.h>   // isalnum, isdigit, isspace, isalpha
+    9: #include <stdlib.h>  // malloc
+   10  #include <string.h>  // strncmp
+   11  
+   ..
+   95      info("Generating Tokens from Source");
+   96  
+   97:     List* tokens = xmalloc(sizeof(List));
+   98      list_init(tokens);
+   99  
+  ...
+  113      // while (token.kind != TOKEN_EOF) {
+  114      //     get_token();
+  115:     //     Token* t = malloc(sizeof(Token));
+  116      //     t->kind = token.kind;
+  117      //     t->value = token.value;
+
+/Users/marcusmathiassen/Thi_Language/src/list.c:
+    1  #include "list.h"
+    2: #include "utility.h" // error, xmalloc
+    3  #include <assert.h>
+    4: #include <stdlib.h> // malloc
+    5  
+    6  void list_init(List* list)
+    .
+  111      assert(data);
+  112      ++list->count;
+  113:     List_Node* new_node = xmalloc(sizeof(List_Node));
+  114      new_node->data = data;
+  115      if (list->head == NULL) {
+  ...
+  128      assert(data);
+  129      ++list->count;
+  130:     List_Node* new_node = xmalloc(sizeof(List_Node));
+  131      new_node->data = data;
+  132      new_node->next = NULL;
+
+/Users/marcusmathiassen/Thi_Language/src/parser.c:
+   10  #include <ctype.h>    // atoll
+   11  #include <string.h>   // strcmp
+   12: #include <stdlib.h>   // malloc
+   13  
+   14  #include "globals.h" // add_symbol
+   ..
+  385      eat_kind(pctx, TOKEN_WHILE);
+  386  
+  387:     List* stmts = malloc(sizeof(List));
+  388      list_init(stmts);
+  389  
+  ...
+  413      eat_kind(pctx, TOKEN_FOR);
+  414  
+  415:     List* stmts = malloc(sizeof(List));
+  416      list_init(stmts);
+  417  
+  ...
+  466      eat_kind(pctx, TOKEN_IF);
+  467  
+  468:     List* stmts = malloc(sizeof(List));
+  469      list_init(stmts);
+  470  
+  ...
+  504      DEBUG_START;
+  505  
+  506:     List* stmts = malloc(sizeof(List));
+  507      list_init(stmts);
+  508  
+  ...
+  524      DEBUG_START;
+  525      eat_kind(pctx, TOKEN_RETURN);
+  526:     List* stmts = malloc(sizeof(List));
+  527      list_init(stmts);
+  528      list_append(stmts, parse_expression(pctx));
+  ...
+  536  
+  537      eat_kind(pctx, TOKEN_OPEN_PAREN);
+  538:     List* args = malloc(sizeof(List));
+  539      list_init(args);
+  540  
+  ...
+  842      eat_kind(pctx, TOKEN_OPEN_BRACE);
+  843  
+  844:     List* members = malloc(sizeof(List));
+  845      list_init(members);
+  846  
+  847      while (!tok_is(pctx, TOKEN_CLOSE_BRACE)) {
+  848:         Arg* member = malloc(sizeof(Arg));
+  849          member->name = pctx->curr_tok.value;
+  850          eat_kind(pctx, TOKEN_IDENTIFIER);
+  ...
+  864      eat_kind(pctx, TOKEN_OPEN_PAREN);
+  865  
+  866:     List* args = malloc(sizeof(List));
+  867      list_init(args);
+  868  
+  ...
+  871          if (has_multiple_arguments) eat_kind(pctx, TOKEN_COMMA);
+  872  
+  873:         Arg* arg = malloc(sizeof(Arg));
+  874          arg->name = pctx->curr_tok.value;
+  875          arg->type = NULL;
+
+/Users/marcusmathiassen/Thi_Language/src/stack.c:
+    1  #include "stack.h"
+    2: #include "utility.h" // xmalloc, warning
+    3  
+    4  #include <assert.h>
+    .
+   40      assert(stack);
+   41      assert(data);
+   42:     Stack_Node* tmp = xmalloc(sizeof(Stack));
+   43      tmp->data = data;
+   44      tmp->next = stack->head;
+
+/Users/marcusmathiassen/Thi_Language/src/string.c:
+    3  #include "typedefs.h"
+    4  #include "list.h"
+    5: #include "utility.h" // xmalloc, xrealloc, xstrlen
+    6  #include <assert.h>  // assert
+    7  #include <stdarg.h>  // va_list, va_start, va_end
+    .
+   15      string s;
+   16      i64 str_len = strlen(str);
+   17:     s.c_str = xmalloc(str_len + 1);
+   18      s.len = str_len;
+   19      memcpy(s.c_str, str, str_len);
+   ..
+   31  
+   32      string s;
+   33:     s.c_str = xmalloc(n);
+   34      s.len = n;
+   35  
+   ..
+   50      va_end(args);
+   51  
+   52:     char* temp = xmalloc(n);
+   53  
+   54      va_start(args, fmt);
+   ..
+   99          }
+  100      }
+  101:     char* str = xmalloc(len + 1);
+  102      interns_mem_alloc_size += len + 1;
+  103      memcpy(str, start, len);
+  104      str[len] = 0;
+  105  
+  106:     Intern_Str* intern = malloc(sizeof(Intern_Str));
+  107      intern->len = len;
+  108      intern->str = str;
+
+/Users/marcusmathiassen/Thi_Language/src/typespec.c:
+    4  #include "utility.h"         // error
+    5  #include <assert.h>          // assert
+    6: #include <stdlib.h>          // malloc
+    7  
+    8  //------------------------------------------------------------------------------
+    .
+  132  Typespec* make_typespec(Typespec_Kind kind)
+  133  {
+  134:     Typespec* t = xmalloc(sizeof(Typespec));
+  135      t->kind = kind;
+  136      return t;
+
+/Users/marcusmathiassen/Thi_Language/src/utility.c:
+    4  #include <stdarg.h> // va_list, va_start, va_end
+    5  #include <stdio.h>  // printf, vprintf
+    6: #include <stdlib.h> // malloc
+    7  #include <string.h> // memcpy
+    8  #include <time.h>   // timeval
+    .
+   75      memcpy(strbuf, dir, d_len);              // copy dir into strbuf
+   76      memcpy(strbuf + d_len, filename, f_len); // append filename
+   77:     char* str = xmalloc(len + 1);
+   78      memcpy(str, strbuf, len);
+   79      str[len] = 0;
+   ..
+   89          continue;
+   90      ++len; // skip the '.'
+   91:     char* str = xmalloc(i + 1);
+   92      memcpy(str, filename + len - i, i);
+   93      str[i] = 0;
+   ..
+  102          continue;
+  103      ++len; // we preserve the '/'
+  104:     char* str = xmalloc(len + 1);
+  105      memcpy(str, filename, len);
+  106      str[len] = 0;
+  ...
+  115          continue;
+  116      ++len; // skip the '/'
+  117:     char* str = xmalloc(i + 1);
+  118      memcpy(str, filename + len - i, i);
+  119      str[i] = 0;
+  ...
+  149  
+  150          // Allocate a string that can hold it all
+  151:         buffer = (char*)malloc(sizeof(char) * (string_size + 1));
+  152  
+  153          // Read it all in one operation
+  ...
+  176  //------------------------------------------------------------------------------
+  177  
+  178: void* xmalloc(i64 bytes)
+  179  {
+  180      assert(bytes != 0);
+  181:     void* alloc = malloc(bytes);
+  182      if (!alloc) error("alloc failed");
+  183      return alloc;
+  ...
+  216      va_end(args);
+  217  
+  218:     char* str = xmalloc(n);
+  219  
+  220      va_start(args, fmt);
+
+/Users/marcusmathiassen/Thi_Language/src/utility.h:
+   26  //                               General Purpose
+   27  //------------------------------------------------------------------------------
+   28: void* xmalloc(i64 bytes);
+   29  void* xcalloc(i64 size, i64 bytes);
+   30  void* xrealloc(void* ptr, i64 bytes);
+
+/Users/marcusmathiassen/Thi_Language/src/value.c:
+   39  Value* make_value(Value_Kind kind)
+   40  {
+   41:     Value* v = xmalloc(sizeof(Value));
+   42      v->kind = kind;
+   43      return v;
+   ..
+  138  Scope* make_scope(i64 pre_allocated_variable_count)
+  139  {
+  140:     Scope* s = xmalloc(sizeof(Scope));
+  141:     s->local_variables = xmalloc(sizeof(Value*) * pre_allocated_variable_count);
+  142      s->count = 0;
+  143      s->alloc_count = pre_allocated_variable_count;
+
+/Users/marcusmathiassen/Thi_Language/tests/test_array_2d.thi:
+    1: foreign malloc :: (u64) -> u8*
+    2  
+    3  main :: () -> i32 { 
+    .
+    5      a: i32***
+    6  
+    7:     a = malloc(8*3)
+    8:     a[2] = malloc(8*3)
+    9:     a[2][2] = malloc(4*3)
+   10      a[2][2][0] = 2
+   11      a[2][2][1] = 3
+
+53 matches across 14 files

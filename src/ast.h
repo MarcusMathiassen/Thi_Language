@@ -27,6 +27,7 @@ enum Expr_Kind
     EXPR_BINARY,
     EXPR_VARIABLE_DECL,
     EXPR_STRUCT,
+    EXPR_FUNCTION,
     EXPR_BLOCK,
     EXPR_GROUPING,
 };
@@ -53,12 +54,8 @@ typedef struct
 } AST_Grouping;
 typedef struct
 {
-    Expr** stmts;
+    List* stmts;
 } AST_Block;
-typedef struct
-{
-    Expr* expr;
-} AST_Ret;
 typedef struct
 {
     i64 val;
@@ -77,12 +74,17 @@ typedef struct
 } AST_Struct;
 typedef struct
 {
+    Typespec* type;
+    Expr* body;
+} AST_Function;
+typedef struct
+{
     char* name;
 } AST_Ident;
 typedef struct
 {
     char* callee;
-    Expr** args;
+    List* args;
 } AST_Call;
 typedef struct
 {
@@ -113,11 +115,11 @@ struct Expr
         AST_Note Note;
         AST_Grouping Grouping;
         AST_Block Block;
-        AST_Ret Ret;
         AST_Int Int;
         AST_Float Float;
         AST_String String;
         AST_Struct Struct;
+        AST_Function Function;
         AST_Ident Ident;
         AST_Call Call;
         AST_Unary Unary;
@@ -135,10 +137,11 @@ Expr* make_expr_float(f64 value);
 Expr* make_expr_string(char* value);
 Expr* make_expr_ident(char* ident);
 Expr* make_expr_struct(Typespec* struct_t);
-Expr* make_expr_call(char* callee, Expr** args);
+Expr* make_expr_function(Typespec* func_t, Expr* body);
+Expr* make_expr_call(char* callee, List* args);
 Expr* make_expr_unary(Token_Kind op, Expr* operand);
 Expr* make_expr_binary(Token_Kind op, Expr* lhs, Expr* rhs);
-Expr* make_expr_block(Expr** stmts);
+Expr* make_expr_block(List* stmts);
 Expr* make_expr_ret(Expr* expr);
 Expr* make_expr_grouping(Expr* expr);
 Expr* make_expr_variable_decl(char* name, Typespec* type, Expr* value);
@@ -147,7 +150,6 @@ Typespec* get_inferred_type_of_expr(Expr* expr);
 
 void print_ast(List* ast);
 char* expr_to_str(Expr* expr);
-char* expr_to_str_debug(Expr* expr);
 char* expr_kind_to_str(Expr_Kind kind);
 
 #endif

@@ -18,17 +18,6 @@ enum Value_Kind
     VALUE_STORE_INST,
 };
 
-typedef struct CodeBlock
-{
-    string desc;
-    string block;
-    char* color;
-} CodeBlock;
-
-void add_lines_to_codeblock(CodeBlock* cb, char* line);
-
-void start_codeblock(Value* function, char* desc);
-
 //------------------------------------------------------------------------------
 //                          Value Structures
 //------------------------------------------------------------------------------
@@ -43,16 +32,6 @@ typedef struct
 {
     char* name;
     i64 stack_allocated;
-    CodeBlock** codeblocks;
-
-    /* There is a maximum of 6 scratch registers available
-       for temporary use inside a function. These must be
-       pushed to the stack at the prolog and popped off before
-       the function returns.
-    */
-    u8 regs_used[6];
-    u8 regs_used_count;
-    u8 regs_used_total;
 } Value_Function;
 
 typedef struct
@@ -106,14 +85,6 @@ Value* make_value_function(Typespec* type);
 
 i64 get_size_of_value(Value* value);
 i64 get_stack_pos_of_variable(Value* variable);
-
-void function_print_debug(Value* function);
-void function_get_stack_used(Value* function);
-void function_push_reg(Value* function, i64 reg_n);
-i64 function_pop_reg(Value* function);
-
-// void emit_s(char* fmt, ...);
-// void emit(string* output, char* fmt, ...);
 
 //------------------------------------------------------------------------------
 //                               Scope

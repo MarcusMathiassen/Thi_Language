@@ -1,7 +1,6 @@
 #include "ast.h"
 #include "globals.h"
 #include "lexer.h"           // token_kind_to_str,
-#include "stretchy_buffer.h" // sb_push
 #include "string.h"          // strf, append_string, string
 #include "utility.h"         // info, success, error, warning
 #include <assert.h>          // assert
@@ -30,6 +29,7 @@ char* expr_kind_to_str(Expr_Kind kind)
     case EXPR_UNARY: return "EXPR_UNARY";
     case EXPR_BINARY: return "EXPR_BINARY";
     case EXPR_VARIABLE_DECL: return "EXPR_VARIABLE_DECL";
+    case EXPR_FUNCTION: return "EXPR_FUNCTION";
     case EXPR_STRUCT: return "EXPR_STRUCT";
     case EXPR_BLOCK: return "EXPR_BLOCK";
     case EXPR_GROUPING: return "EXPR_GROUPING";
@@ -60,7 +60,7 @@ char* expr_to_str(Expr* expr)
         result = strf("%s", expr->Ident.name);
     } break;
     case EXPR_UNARY: {
-        result = strf("%s%s", token_kind_to_str(expr->Unary.op), expr_to_str(expr->Unary.operand));
+        result = strf("%s(%s)", token_kind_to_str(expr->Unary.op), expr_to_str(expr->Unary.operand));
     } break;
     case EXPR_BINARY: {
         result = strf("%s %s %s", expr_to_str(expr->Binary.lhs), token_kind_to_str(expr->Binary.op),
@@ -73,14 +73,21 @@ char* expr_to_str(Expr* expr)
     } break;
     case EXPR_BLOCK: {
         string str = make_string("");
-        for (int i = 0; i < sb_count(expr->Block.stmts); ++i) {
-            append_string_f(&str, "\t%s\n", expr_to_str(expr->Block.stmts[i]));
+        LIST_FOREACH(expr->Block.stmts) {
+            Expr* stmt = (Expr*)it->data;
+            append_string_f(&str, "\t%s\n", expr_to_str(stmt));
         }
         result = str.c_str;
     } break;
     case EXPR_STRUCT: {
         result = strf("%s", typespec_to_str(expr->Struct.type));
     } break;
+    case EXPR_FUNCTION: {
+        string str =
+            make_string_f("%s  {\n%s}", typespec_to_str(expr->Function.type), expr_to_str(expr->Function.body));
+        result = str.c_str;
+    } break;
+
     case EXPR_GROUPING: result = strf("(%s)", expr_to_str(expr->Grouping.expr)); break;
     case EXPR_CALL: {
         string str = make_string_f("%s", expr->Call.callee);
@@ -105,9 +112,10 @@ Typespec* get_inferred_type_of_expr(Expr* expr)
     case EXPR_UNARY: return get_inferred_type_of_expr(expr->Unary.operand);
     case EXPR_BINARY: return get_inferred_type_of_expr(expr->Binary.rhs);
     case EXPR_VARIABLE_DECL: return expr->Variable_Decl.type;
+    case EXPR_FUNCTION: return expr->Function.type->Function.ret_type;
     case EXPR_STRUCT: return expr->Struct.type;
     case EXPR_GROUPING: return get_inferred_type_of_expr(expr->Grouping.expr);
-    default: error("%s has no type", expr_kind_to_str(expr->kind));
+    // default: error("%s has no type", expr_kind_to_str(expr->kind));
     }
     return NULL;
 }
@@ -115,7 +123,9 @@ Typespec* get_inferred_type_of_expr(Expr* expr)
 void print_ast(List* ast)
 {
     info("Printing AST..");
-    LIST_FOREACH(ast) { info("%s", expr_to_str((Expr*)it->data)); }
+    LIST_FOREACH(ast) {
+        info("%s", wrap_with_colored_parens(expr_to_str((Expr*)it->data)));
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -191,6 +201,17 @@ Expr* make_expr_struct(Typespec* struct_t)
     e->Struct.type = struct_t;
     return e;
 }
+Expr* make_expr_function(Typespec* func_t, Expr* body)
+{
+    assert(func_t);
+    assert(func_t->kind == TYPESPEC_FUNCTION);
+    assert(body);
+    assert(body->kind == EXPR_BLOCK);
+    Expr* e = make_expr(EXPR_FUNCTION);
+    e->Function.type = func_t;
+    e->Function.body = body;
+    return e;
+}
 
 Expr* make_expr_binary(Token_Kind op, Expr* lhs, Expr* rhs)
 {
@@ -214,14 +235,14 @@ Expr* make_expr_unary(Token_Kind op, Expr* operand)
     return e;
 }
 
-Expr* make_expr_block(Expr** stmts)
+Expr* make_expr_block(List* stmts)
 {
     Expr* e = make_expr(EXPR_BLOCK);
     e->Block.stmts = stmts;
     return e;
 }
 
-Expr* make_expr_call(char* callee, Expr** args)
+Expr* make_expr_call(char* callee, List* args)
 {
     assert(callee);
     assert(args);

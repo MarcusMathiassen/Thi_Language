@@ -1,6 +1,8 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+#include "list.h" // list
+
 //------------------------------------------------------------------------------
 //                              lexer.h
 //------------------------------------------------------------------------------
@@ -21,6 +23,7 @@ typedef enum
     TOKEN_FOREIGN,
     TOKEN_LOAD,
 
+    TOKEN_DEFER,
     TOKEN_IF,
     TOKEN_ELSE,
     TOKEN_FOR,
@@ -120,8 +123,8 @@ struct Token
     char* value;
 };
 
-Token* generate_tokens_from_source(char* source_file);
-void print_tokens(Token* tokens);
+List* generate_tokens_from_source(char* source_file);
+void print_tokens(List* tokens);
 void print_token(Token token);
 char* token_kind_to_str(Token_Kind kind);
 

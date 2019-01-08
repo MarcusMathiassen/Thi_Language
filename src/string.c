@@ -1,7 +1,7 @@
 #include "string.h"
 
-#include "stretchy_buffer.h" // sb_push, sb_count
 #include "typedefs.h"
+#include "list.h"
 #include "utility.h" // xmalloc, xrealloc, xstrlen
 #include <assert.h>  // assert
 #include <stdarg.h>  // va_list, va_start, va_end
@@ -87,21 +87,31 @@ typedef struct Intern_Str
     char* str;
 } Intern_Str;
 
-Intern_Str* interns;
+
+List* interns;
 i64 interns_mem_alloc_size = 0;
+void init_interns_list() { 
+    interns = malloc(sizeof(List));
+    list_init(interns); 
+}
 char* str_intern_range(char* start, char* end)
 {
     i64 len = end - start;
-    for (int i = 0; i < sb_count(interns); ++i) {
-        if (interns[i].len == len && strncmp(interns[i].str, start, len) == 0) {
-            return interns[i].str;
+    LIST_FOREACH(interns) {
+        Intern_Str* intern = (Intern_Str*)it->data;
+        if (intern->len == len && strncmp(intern->str, start, len) == 0) {
+            return intern->str;
         }
     }
     char* str = xmalloc(len + 1);
     interns_mem_alloc_size += len + 1;
     memcpy(str, start, len);
     str[len] = 0;
-    sb_push(interns, ((Intern_Str){len, str}));
+
+    Intern_Str* intern = malloc(sizeof(Intern_Str));
+    intern->len = len;
+    intern->str = str;
+    list_append(interns, intern);
     return str;
 }
 

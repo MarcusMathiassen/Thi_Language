@@ -5,7 +5,6 @@
 #include "lexer.h" // token_kind_to_str
 #include "list.h"
 #include "register.h"
-#include "stretchy_buffer.h" // sb_free
 #include "string.h"          // string
 #include "typedefs.h"
 #include "utility.h" // error warning info, etc
@@ -14,12 +13,12 @@
 #include <stdarg.h>  // va_list, va_start, va_end
 #include <stdio.h>   //
 #include <string.h>  // strncat,
+#include <stdlib.h>  // free, malloc
 
 Typespec* integer_literal_type = NULL;
 Context ctx;
 string output;
 Stack scope_stack;
-Value** functions = NULL;
 
 Value* codegen_expr(Expr* expr);
 
@@ -226,27 +225,6 @@ void remove_variable(Value* variable)
     }
 }
 
-void push_result_to_temporary_reg(Value* val)
-{
-    i64 size = get_size_of_value(val);
-    if (val->type->kind == TYPESPEC_ARRAY) {
-        size = get_size_of_typespec(val->type->Array.type);
-    }
-    i32 reg_n = get_rax_reg_of_byte_size(size);
-    i32 temp_reg_n = get_next_available_reg(&ctx, size);
-    emit("MOV %s, %s", get_reg(temp_reg_n), get_reg(reg_n));
-    function_push_reg(ctx.current_function, temp_reg_n);
-}
-
-int pop_result_from_temporary_reg() { return function_pop_reg(ctx.current_function); }
-
-int get_latest_used_temp_reg_in_function()
-{
-    u8* regs_used = ctx.current_function->Function.regs_used;
-    u8 regs_count = ctx.current_function->Function.regs_used_count;
-    return regs_used[regs_count];
-}
-
 int align(int n, int m) {
     return (m - (n % m)) % m;
 }
@@ -303,11 +281,11 @@ Value* codegen_int(Expr* expr)
 Value* codegen_block(Expr* expr)
 {
     push_scope();
-    Expr** stmts = expr->Block.stmts;
-    i64 stmts_count = sb_count(stmts);
+    List* stmts = expr->Block.stmts;
     Value* last = NULL;
-    for (i64 i = 0; i < stmts_count; ++i) {
-        last = codegen_expr(stmts[i]);
+    LIST_FOREACH(stmts) {
+        Expr* stmt = (Expr*)it->data;
+        last = codegen_expr(stmt);
     }
     pop_scope();
     return last;
@@ -389,12 +367,10 @@ Value* codegen_binary(Expr* expr)
         return lhs_v;
     }
     case TOKEN_MINUS: {
-        codegen_expr(rhs);
-        push(RAX);
-        Value* lhs_v = codegen_expr(lhs);
-        pop(RCX);
-        emit("SUB RAX, RCX");
-        return lhs_v;
+        rhs = make_expr_unary(TOKEN_MINUS, rhs);
+        expr = make_expr_binary(TOKEN_PLUS, lhs, rhs);
+        Value* variable = codegen_expr(expr);
+        return variable;
     }
     case TOKEN_ASTERISK: {
         Value* lhs_v = codegen_expr(lhs);
@@ -488,96 +464,45 @@ Value* codegen_binary(Expr* expr)
     }
 
     case TOKEN_BANG_EQ: {
-        Value* lhs_v = codegen_expr(lhs);
-        push(RAX);
-        codegen_expr(rhs);
-        pop(RCX);
-        emit("CMP RCX, RAX");
-        emit("SETNE AL");
-        return lhs_v;
+        rhs = make_expr_binary(TOKEN_EQ_EQ, lhs, rhs);
+        expr = make_expr_unary(TOKEN_BANG, rhs);
+        Value* variable = codegen_expr(expr);
+        return variable;
     }
 
     case TOKEN_PLUS_EQ: {
-        Value* lhs_v = codegen_expr(lhs);
-        if (lhs_v->kind != VALUE_VARIABLE) error("lhs of += must be a variable.");
-
-        Value* rhs_val = codegen_expr(rhs);
-        i64 rhs_size = get_size_of_value(rhs_val);
-        i64 reg_n = get_rax_reg_of_byte_size(rhs_size);
-        i64 stack_pos = get_stack_pos_of_variable(lhs_v);
-        emit("ADD [RBP-%d], %s", stack_pos, get_reg(reg_n));
-        return lhs_v;
-    }
-
-    case TOKEN_MINUS_EQ: {
-        Value* rhs_v = codegen_expr(rhs);
-        push_result_to_temporary_reg(rhs_v);
-
-        Value* lhs_v = codegen_expr(lhs);
-        if (lhs_v->kind != VALUE_VARIABLE) error("lhs of -= must be a variable.");
-        i32 rhs_r = pop_result_from_temporary_reg();
-        i32 lhs_r = get_rax_reg_of_byte_size(get_size_of_value(lhs_v));
-
-        emit("SUB %s, %s", get_reg(lhs_r), get_reg(rhs_r));
-        emit_store(lhs_v);
-        return lhs_v;
-    }
-
-    case TOKEN_ASTERISK_EQ: {
-        if (lhs->kind == EXPR_UNARY) lhs = lhs->Unary.operand;
-        rhs = make_expr_binary(TOKEN_ASTERISK, lhs, rhs);
-        codegen_expr(rhs);
-        push(RAX);
-        Value* variable = codegen_expr(lhs);
-        pop(RAX);
-        emit_store(variable);
+        rhs = make_expr_binary(TOKEN_PLUS, lhs, rhs);
+        expr = make_expr_binary(TOKEN_EQ, lhs, rhs);
+        Value* variable = codegen_expr(expr);
         return variable;
     }
+    case TOKEN_MINUS_EQ: {
+        rhs = make_expr_binary(TOKEN_MINUS, lhs, rhs);
+        expr = make_expr_binary(TOKEN_EQ, lhs, rhs);
+        Value* variable = codegen_expr(expr);
+        return variable;
+    }
+    case TOKEN_ASTERISK_EQ: {
+        rhs = make_expr_binary(TOKEN_ASTERISK, lhs, rhs);
+        expr = make_expr_binary(TOKEN_EQ, lhs, rhs);
+        Value* variable = codegen_expr(expr);
+        return variable;
+    }
+    case TOKEN_FWSLASH_EQ: {
+        rhs = make_expr_binary(TOKEN_FWSLASH, lhs, rhs);
+        expr = make_expr_binary(TOKEN_EQ, lhs, rhs);
+        Value* variable = codegen_expr(expr);
+        return variable;
+    }
+
     case TOKEN_PERCENT_EQ: error("percent_eq not implemented.");
     case TOKEN_PIPE_EQ: error("pipe_eq not implemented.");
     case TOKEN_HAT_EQ: error("hat_eq not implemented.");
     case TOKEN_BITWISE_LEFTSHIFT: error("bitwise_leftshift not implemented.");
     case TOKEN_BITWISE_RIGHTSHIFT: error("bitwise_rightshift not implemented.");
-    case TOKEN_FWSLASH_EQ: {
-        Value* rhs_v = codegen_expr(rhs);
-        push_result_to_temporary_reg(rhs_v);
-
-        Value* lhs_v = codegen_expr(lhs);
-        if (lhs_v->kind != VALUE_VARIABLE) error("lhs of /= must be a variable.");
-
-        i32 rhs_r = pop_result_from_temporary_reg();
-
-        emit("CDQ");
-        emit("IDIV %s", get_reg(rhs_r));
-        emit_store(lhs_v);
-        return lhs_v;
-    }
-
     case TOKEN_HAT: error("hat not implemented.");
     case TOKEN_PIPE:
         error("pipe not implemented.");
-
-        /* Ternary operator */
-        /*
-            // CODEGEN LHS
-            cmp     edi, dword ptr [rbp - 24]
-            jne     L01
-
-            // CODEGEN RHS
-            mov     eax, dword ptr [rbp - 8]
-            mov     dword ptr [rbp - 28], eax # 4-byte Spill
-
-            // JMP TO CONTINUE
-            jmp     CONTINUE
-    L01:
-            mov     eax, 1
-            mov     dword ptr [rbp - 28], eax # 4-byte Spill
-            jmp     CONTINUE
-    CONTINUE:
-            mov     eax, dword ptr [rbp - 28] # 4-byte Reload
-            mov     dword ptr [rbp - 20], eax
-            mov     eax, dword ptr [rbp -
-        */
 
     case TOKEN_QUESTION_MARK: {
         ctx_push_label(&ctx);
@@ -588,9 +513,6 @@ Value* codegen_binary(Expr* expr)
         emit("JMP %s", ctx.temp_label1);
         return rhs_val;
     }
-
-    // ex. cond ? expr : expr
-    // This comes before '?'
     case TOKEN_COLON: {
         codegen_expr(lhs); // '?' part
         emit("%s:", ctx.temp_label0);
@@ -629,18 +551,18 @@ Value* codegen_variable_decl(Expr* expr)
 Value* codegen_call(Expr* expr)
 {
     char* callee = expr->Call.callee;
-    Expr** args = expr->Call.args;
+    List* args = expr->Call.args;
 
     Typespec* func_t = get_symbol(callee);
 
     // push the arguments in reverse order onto the stack
     i32 func_arg_count = typespec_function_get_arg_count(func_t);
-    i32 arg_count = sb_count(args);
+    i32 arg_count = args->count;
 
     if (func_arg_count != arg_count) error("wrong amount of parameters for call to function '%s'", callee);
 
-    for (int i = 0; i < arg_count; ++i) {
-        Expr* arg = args[i];
+    LIST_FOREACH(args) {
+        Expr* arg = (Expr*)it->data;
         codegen_expr(arg);
         push(RAX);
     }
@@ -697,7 +619,7 @@ Value* codegen_note(Expr* expr)
     assert(int_expr->kind == EXPR_INT);
     i32 integer_value = int_expr->Int.val;
     if (integer_value < 1) error("note parameters start at 1.");
-    char* name = ctx.current_function->type->Function.args[integer_value - 1].name;
+    char* name = ((Arg*)list_at(ctx.current_function->type->Function.args, integer_value - 1))->name;
     Value* var = get_variable(name);
     emit_load(var);
     return var;
@@ -710,6 +632,83 @@ Value* codegen_struct(Expr* expr)
     return NULL;
 }
 
+i64 get_all_alloca_in_block(Expr* block)
+{
+    i64 sum = 0;
+    List* stmts = block->Block.stmts;
+    LIST_FOREACH(stmts) {
+        Expr* stmt = (Expr*)it->data;
+        switch (stmt->kind) {
+            case EXPR_VARIABLE_DECL: sum += get_size_of_typespec(stmt->Variable_Decl.type); break;
+            case EXPR_BLOCK: sum += get_all_alloca_in_block(stmt); break;
+        }
+    }
+    return sum;
+}
+
+Value* codegen_function(Expr* expr)
+{
+    assert(expr);
+    assert(expr->kind == EXPR_FUNCTION);
+
+    char* func_name = expr->Function.type->Function.name;
+    Typespec* func_type = expr->Function.type;
+    Expr* func_body = expr->Function.body;
+
+    Value* function = make_value_function(func_type);
+    ctx.current_function = function;
+
+    push_scope();
+
+    emit("_%s:", func_name);
+    push(RBP);
+    emit("MOV RBP, RSP");
+
+    // Sum the params
+    i64 sum = get_size_of_typespec(expr->Function.type);
+
+    sum += get_all_alloca_in_block(func_body);
+
+    i64 stack_allocated = sum;
+    int padding = (X64_ASM_OSX_STACK_PADDING - (stack_allocated % X64_ASM_OSX_STACK_PADDING)) % X64_ASM_OSX_STACK_PADDING;
+    if (stack_allocated + padding)
+        emit("SUB RSP, %d; %d alloc, %d padding", stack_allocated + padding, stack_allocated, padding);
+
+    emit(DEFAULT_FUNCTION_ENTRY_LABEL_NAME);
+
+    ctx.stack_index = 0;
+
+    List* args = func_type->Function.args;
+    i64 i = 0;
+    LIST_FOREACH(args) {
+        Arg* arg = (Arg*)it->data;
+
+        i64 size = get_size_of_typespec(arg->type);
+        i64 stack_pos = ctx.stack_index + size;
+        Value* var = make_value_variable(arg->name, arg->type, stack_pos);
+        add_variable(var);
+
+        char* param_reg = get_reg(get_parameter_reg(i, size));
+        emit("MOV [RBP-%lld], %s", stack_pos, param_reg);
+
+        i += 1;
+    }
+
+    codegen_expr(func_body);
+
+    emit(DEFAULT_FUNCTION_END_LABEL_NAME);
+    if (stack_allocated + padding)
+        emit("ADD RSP, %d; %d alloc, %d padding", stack_allocated + padding, stack_allocated, padding);
+
+    emit("LEAVE");
+    emit("RET");
+
+    pop_scope();
+
+    return function;
+}
+
+
 // @Hotpath
 Value* codegen_expr(Expr* expr)
 {
@@ -718,6 +717,7 @@ Value* codegen_expr(Expr* expr)
     case EXPR_ASM: emit("%s", expr->Asm.str); return NULL;
     case EXPR_MACRO: return codegen_macro(expr);
     case EXPR_STRUCT: return codegen_struct(expr);
+    case EXPR_FUNCTION: return codegen_function(expr);
     case EXPR_NOTE: return codegen_note(expr);
     case EXPR_INT: return codegen_int(expr);
     case EXPR_FLOAT: error("EXPR_FLOAT codegen not implemented");

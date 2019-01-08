@@ -37,6 +37,7 @@ int main(int argc, char** argv)
     ctx_tests();
 
     initilize_globals();
+    init_interns_list();
 
     push_timer("Total time");
 

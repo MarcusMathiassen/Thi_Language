@@ -25,6 +25,11 @@ extern bool detailed_print;
 extern List file_list;
 extern string* current_output;
 
+#define X64_ASM_OSX_STACK_PADDING 16
+
+#define DEFAULT_FUNCTION_ENTRY_LABEL_NAME ".BEGIN:"
+#define DEFAULT_FUNCTION_END_LABEL_NAME ".END:"
+
 #define DEFAULT_INTEGER_BYTE_SIZE 4
 #define DEFAULT_INTEGER_BIT_SIZE DEFAULT_INTEGER_BYTE_SIZE * 8
 
