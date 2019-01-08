@@ -1,4 +1,5 @@
 #include "ast.h"
+#include "globals.h"
 #include "lexer.h"           // token_kind_to_str,
 #include "stretchy_buffer.h" // sb_push
 #include "string.h"          // strf, append_string, string
@@ -18,9 +19,7 @@
 char* expr_kind_to_str(Expr_Kind kind)
 {
     switch (kind) {
-    case EXPR_SUBSCRIPT: return "EXPR_SUBSCRIPT";
-    case EXPR_CONTINUE: return "EXPR_CONTINUE";
-    case EXPR_BREAK: return "EXPR_BREAK";
+    case EXPR_ASM: return "EXPR_ASM";
     case EXPR_MACRO: return "EXPR_MACRO";
     case EXPR_NOTE: return "EXPR_NOTE";
     case EXPR_INT: return "EXPR_INT";
@@ -30,16 +29,11 @@ char* expr_kind_to_str(Expr_Kind kind)
     case EXPR_CALL: return "EXPR_CALL";
     case EXPR_UNARY: return "EXPR_UNARY";
     case EXPR_BINARY: return "EXPR_BINARY";
-    case EXPR_COMPOUND: return "EXPR_COMPOUND";
     case EXPR_RET: return "EXPR_RET";
     case EXPR_VARIABLE_DECL: return "EXPR_VARIABLE_DECL";
-    case EXPR_VARIABLE_DECL_TYPE_INF: return "EXPR_VARIABLE_DECL_TYPE_INF";
     case EXPR_FUNCTION: return "EXPR_FUNCTION";
     case EXPR_STRUCT: return "EXPR_STRUCT";
-    case EXPR_IF: return "EXPR_IF";
-    case EXPR_FOR: return "EXPR_FOR";
     case EXPR_BLOCK: return "EXPR_BLOCK";
-    case EXPR_WHILE: return "EXPR_WHILE";
     case EXPR_GROUPING: return "EXPR_GROUPING";
     }
     return "print not implemented";
@@ -49,14 +43,8 @@ char* expr_to_str(Expr* expr)
 {
     char* result = NULL;
     switch (expr->kind) {
-    case EXPR_SUBSCRIPT: {
-        result = strf("[%s]", expr_to_str(expr->Subscript.expr));
-    } break;
-    case EXPR_CONTINUE: {
-        result = "continue";
-    } break;
-    case EXPR_BREAK: {
-        result = "break";
+    case EXPR_ASM: {
+        result = strf("%s", expr->Asm.str);
     } break;
     case EXPR_MACRO: {
         result = strf("%s :: %s", expr->Macro.name, expr_to_str(expr->Macro.expr));
@@ -88,9 +76,6 @@ char* expr_to_str(Expr* expr)
                       typespec_to_str(expr->Variable_Decl.type),
                       expr->Variable_Decl.value ? expr_to_str(expr->Variable_Decl.value) : "");
     } break;
-    case EXPR_VARIABLE_DECL_TYPE_INF: {
-        result = strf("%s := %s", expr->Variable_Decl_Type_Inf.name, expr_to_str(expr->Variable_Decl_Type_Inf.value));
-    } break;
     case EXPR_BLOCK: {
         string str = make_string("");
         for (int i = 0; i < sb_count(expr->Block.stmts); ++i) {
@@ -108,19 +93,6 @@ char* expr_to_str(Expr* expr)
     } break;
 
     case EXPR_GROUPING: result = strf("(%s)", expr_to_str(expr->Grouping.expr)); break;
-    case EXPR_WHILE: {
-        result = strf("while %s {\n\t%s }", expr_to_str(expr->While.cond), expr_to_str(expr->While.body));
-    } break;
-    case EXPR_FOR: {
-        string str = make_string_f("for %s: %s..%s {\n\t%s }", expr->For.iterator_name, expr_to_str(expr->For.start),
-                                   expr_to_str(expr->For.end), expr_to_str(expr->For.body));
-        result = str.c_str;
-    } break;
-    case EXPR_IF: {
-        string str = make_string_f("if %s {\n\t%s }", expr_to_str(expr->If.cond), expr_to_str(expr->If.then_body));
-        if (expr->If.else_body) append_string_f(&str, "\t%s\n", expr_to_str(expr->If.else_body));
-        result = str.c_str;
-    } break;
     case EXPR_CALL: {
         string str = make_string_f("%s", expr->Call.callee);
         result = str.c_str;
@@ -134,14 +106,8 @@ char* expr_to_str_debug(Expr* expr)
 {
     char* result = NULL;
     switch (expr->kind) {
-    case EXPR_SUBSCRIPT: {
-        result = strf("[%s]", expr_to_str(expr->Subscript.expr));
-    } break;
-    case EXPR_CONTINUE: {
-        result = "continue";
-    } break;
-    case EXPR_BREAK: {
-        result = "break";
+    case EXPR_ASM: {
+        result = strf("%s", expr->Asm.str);
     } break;
     case EXPR_STRUCT: {
         result = strf("%s", typespec_to_str(expr->Struct.type));
@@ -176,10 +142,6 @@ char* expr_to_str_debug(Expr* expr)
                       typespec_to_str(expr->Variable_Decl.type),
                       expr->Variable_Decl.value ? expr_to_str(expr->Variable_Decl.value) : "");
     } break;
-    case EXPR_VARIABLE_DECL_TYPE_INF: {
-        result = strf("%s := %s", expr->Variable_Decl_Type_Inf.name, expr_to_str(expr->Variable_Decl_Type_Inf.value));
-    } break;
-
     case EXPR_BLOCK: {
         string str = make_string("");
         for (int i = 0; i < sb_count(expr->Block.stmts); ++i) {
@@ -195,19 +157,6 @@ char* expr_to_str_debug(Expr* expr)
     } break;
 
     case EXPR_GROUPING: result = strf("(%s)", expr_to_str(expr->Grouping.expr)); break;
-    case EXPR_WHILE: {
-        result = strf("while %s {\n\t%s }", expr_to_str(expr->While.cond), expr_to_str(expr->While.body));
-    } break;
-    case EXPR_FOR: {
-        string str = make_string_f("for %s: %s..%s {\n\t%s }", expr->For.iterator_name, expr_to_str(expr->For.start),
-                                   expr_to_str(expr->For.end), expr_to_str(expr->For.body));
-        result = str.c_str;
-    } break;
-    case EXPR_IF: {
-        string str = make_string_f("if %s {\n\t%s }", expr_to_str(expr->If.cond), expr_to_str(expr->If.then_body));
-        if (expr->If.else_body) append_string_f(&str, "\t%s\n", expr_to_str(expr->If.else_body));
-        result = str.c_str;
-    } break;
     case EXPR_CALL: {
         string str = make_string_f("%s", expr->Call.callee);
         result = str.c_str;
@@ -221,14 +170,8 @@ char* expr_to_json(Expr* expr)
 {
     char* result = NULL;
     switch (expr->kind) {
-    case EXPR_SUBSCRIPT: {
-        result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), expr_to_str(expr->Subscript.expr));
-    } break;
-    case EXPR_CONTINUE: {
-        result = strf("{\"%s\": {%s}}", expr_kind_to_str(expr->kind), "continue");
-    } break;
-    case EXPR_BREAK: {
-        result = strf("{\"%s\": {%s}}", expr_kind_to_str(expr->kind), "break");
+    case EXPR_ASM: {
+        result = strf("{\"%s\": {\"asm\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->Asm.str);
     } break;
     case EXPR_MACRO: {
         warning("MACRO: %s", expr->Macro.name);
@@ -267,10 +210,6 @@ char* expr_to_json(Expr* expr)
                       expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type),
                       expr->Variable_Decl.value ? expr_to_json(expr->Variable_Decl.value) : "");
     } break;
-    case EXPR_VARIABLE_DECL_TYPE_INF: {
-        result = strf("{\"%s\": {\"name\": \"%s\", \"value\": %s}}", expr_kind_to_str(expr->kind),
-                      expr->Variable_Decl_Type_Inf.name, expr_to_json(expr->Variable_Decl_Type_Inf.value));
-    } break;
     case EXPR_BLOCK: {
         i32 block_count = sb_count(expr->Block.stmts);
         string str = make_string("{\"EXPR_BLOCK\": [");
@@ -287,20 +226,6 @@ char* expr_to_json(Expr* expr)
     } break;
     case EXPR_GROUPING: {
         result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), expr_to_json(expr->Grouping.expr));
-    } break;
-    case EXPR_WHILE: {
-        result = strf("{\"%s\": {\"cond\": %s, \"body\": %s}}", expr_kind_to_str(expr->kind),
-                      expr_to_json(expr->While.cond), expr_to_json(expr->While.body));
-    } break;
-    case EXPR_FOR: {
-        result = strf("{\"%s\": {\"iterator_name\": %s, \"start\": %s, \"end\": %s, \"body\": %s }}",
-                      expr_kind_to_str(expr->kind), expr->For.iterator_name, expr_to_json(expr->For.start),
-                      expr_to_json(expr->For.end), expr_to_json(expr->For.body));
-    } break;
-    case EXPR_IF: {
-        result = strf("{\"%s\": {\"cond\": %s, \"cond\": %s, \"cond\": %s }}", expr_kind_to_str(expr->kind),
-                      expr_to_json(expr->If.cond), expr_to_json(expr->If.then_body),
-                      expr->If.else_body ? expr_to_json(expr->If.else_body) : "null");
     } break;
     case EXPR_CALL: {
         i32 arg_count = sb_count(expr->Call.args);
@@ -319,6 +244,28 @@ char* expr_to_json(Expr* expr)
     return result;
 }
 
+
+Typespec* get_inferred_type_of_expr(Expr* expr)
+{
+    switch(expr->kind)
+    {
+    case EXPR_MACRO: return get_inferred_type_of_expr(expr->Macro.expr);
+    case EXPR_NOTE: return get_inferred_type_of_expr(expr->Note.expr);
+    case EXPR_INT: return make_typespec_int(DEFAULT_INTEGER_BIT_SIZE, 0);
+    case EXPR_FLOAT: error("get_inferred_type_of_expr EXPR_FLOAT not implemented");
+    case EXPR_STRING: error("get_inferred_type_of_expr EXPR_STRING not implemented");
+    case EXPR_IDENT: return get_symbol(expr->Ident.name);
+    case EXPR_CALL: return get_symbol(expr->Call.callee);
+    case EXPR_UNARY: return get_inferred_type_of_expr(expr->Unary.operand);
+    case EXPR_BINARY: return get_inferred_type_of_expr(expr->Binary.rhs);
+    case EXPR_VARIABLE_DECL: return expr->Variable_Decl.type;
+    case EXPR_FUNCTION: return expr->Function.type->Function.ret_type;
+    case EXPR_STRUCT: return expr->Struct.type;
+    case EXPR_GROUPING: return get_inferred_type_of_expr(expr->Grouping.expr);
+    // default: error("%s has no type", expr_kind_to_str(expr->kind));
+    }
+    return NULL;
+}
 
 void print_ast(List* ast)
 {
@@ -349,23 +296,11 @@ Expr* make_expr(Expr_Kind kind)
     return e;
 }
 
-Expr* make_expr_subscript(Expr* expr)
+Expr* make_expr_asm(char* str)
 {
-    assert(expr);
-    Expr* e = make_expr(EXPR_SUBSCRIPT);
-    e->Subscript.expr = expr;
-    return e;
-}
-
-Expr* make_expr_continue(void)
-{
-    Expr* e = make_expr(EXPR_CONTINUE);
-    return e;
-}
-
-Expr* make_expr_break(void)
-{
-    Expr* e = make_expr(EXPR_BREAK);
+    assert(str);
+    Expr* e = make_expr(EXPR_ASM);
+    e->Asm.str = str;
     return e;
 }
 
@@ -464,41 +399,6 @@ Expr* make_expr_block(Expr** stmts)
     return e;
 }
 
-Expr* make_expr_while(Expr* cond, Expr* body)
-{
-    assert(cond);
-    assert(body);
-    Expr* e = make_expr(EXPR_WHILE);
-    e->While.cond = cond;
-    e->While.body = body;
-    return e;
-}
-
-Expr* make_expr_for(char* iterator_name, Expr* start, Expr* end, Expr* body)
-{
-    assert(iterator_name);
-    assert(start);
-    assert(end);
-    assert(body);
-    Expr* e = make_expr(EXPR_FOR);
-    e->For.iterator_name = iterator_name;
-    e->For.start = start;
-    e->For.end = end;
-    e->For.body = body;
-    return e;
-}
-
-Expr* make_expr_if(Expr* cond, Expr* then_body, Expr* else_body)
-{
-    assert(cond);
-    assert(then_body);
-    Expr* e = make_expr(EXPR_IF);
-    e->If.cond = cond;
-    e->If.then_body = then_body;
-    e->If.else_body = else_body;
-    return e;
-}
-
 Expr* make_expr_call(char* callee, Expr** args)
 {
     assert(callee);
@@ -534,15 +434,5 @@ Expr* make_expr_variable_decl(char* name, Typespec* type, Expr* value)
     e->Variable_Decl.name = name;
     e->Variable_Decl.type = type;
     e->Variable_Decl.value = value;
-    return e;
-}
-
-Expr* make_expr_variable_decl_type_inf(char* name, Expr* value)
-{
-    assert(name);
-    assert(value);
-    Expr* e = make_expr(EXPR_VARIABLE_DECL_TYPE_INF);
-    e->Variable_Decl_Type_Inf.name = name;
-    e->Variable_Decl_Type_Inf.value = value;
     return e;
 }

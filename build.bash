@@ -12,16 +12,21 @@ end=`date +%s`
 echo Compilation finished. Time taken: $((end-start)) seconds
 
 if [ $? == 0 ]; then
-    # ./test.bash
-    ./test.bash ./tests/test_array_2d.thi
+    ./test.bash
+    # ./test.bash ./tests/test_array.thi
+    # ./test.bash ./tests/test_array_2d.thi
     # ./test.bash ./tests/test_variable_assignment.thi
     # ./test.bash ./tests/test_variable_declaration.thi
+    # ./test.bash ./tests/test_variable_typedefered.thi
     # ./test.bash ./tests/test_variable.thi
     # ./test.bash ./tests/test_asterisk_equal.thi
     # ./test.bash ./tests/test_basic_setup.thi
     # ./test.bash ./tests/test_basic_array.thi
     # ./test.bash ./tests/test_for.thi
+    # ./test.bash ./tests/test_if.thi
+    # ./test.bash ./tests/test_while.thi
     # ./test.bash ./tests/test_break.thi
+    # ./test.bash ./tests/test_continue.thi
     # ./test.bash ./tests/test_hex.thi
     # ./test.bash ./tests/test_anonymous_scope.thi
     # ./test.bash ./tests/test_hex_2.thi

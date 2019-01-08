@@ -4,8 +4,8 @@ main :: () -> i32 {
 
     a: i32***
 
-    a = malloc(4*3)
-    a[2] = malloc(4*3)
+    a = malloc(8*3)
+    a[2] = malloc(8*3)
     a[2][2] = malloc(4*3)
     a[2][2][0] = 2
     a[2][2][1] = 3

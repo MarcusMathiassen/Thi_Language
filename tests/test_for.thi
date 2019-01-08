@@ -1,9 +1,7 @@
 main :: () -> i32 {
-    k:=1
+    k : i32 = 0
     for i: 0 .. 10 {
-        if i == 9 {
-            ret k
-        }
+        k += 1
     }
-    ret k
+    ret k - 9
 }

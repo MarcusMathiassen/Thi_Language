@@ -14,6 +14,8 @@ typedef enum Expr_Kind Expr_Kind;
 
 enum Expr_Kind
 {
+    EXPR_ASM,
+
     EXPR_MACRO,
     EXPR_NOTE,
     EXPR_INT,
@@ -23,18 +25,10 @@ enum Expr_Kind
     EXPR_CALL,
     EXPR_UNARY,
     EXPR_BINARY,
-    EXPR_COMPOUND,
     EXPR_RET,
     EXPR_VARIABLE_DECL,
-    EXPR_VARIABLE_DECL_TYPE_INF,
     EXPR_STRUCT,
     EXPR_FUNCTION,
-    EXPR_SUBSCRIPT,
-    EXPR_IF,
-    EXPR_FOR,
-    EXPR_WHILE,
-    EXPR_BREAK,
-    EXPR_CONTINUE,
     EXPR_BLOCK,
     EXPR_GROUPING,
 };
@@ -42,11 +36,10 @@ enum Expr_Kind
 //------------------------------------------------------------------------------
 //                          AST Expression Structures
 //------------------------------------------------------------------------------
-
 typedef struct
 {
-    Expr* expr;
-} AST_Subscript;
+    char* str;
+} AST_Asm;
 typedef struct
 {
     char* name;
@@ -96,24 +89,6 @@ typedef struct
 } AST_Ident;
 typedef struct
 {
-    Expr* cond;
-    Expr* then_body;
-    Expr* else_body;
-} AST_If;
-typedef struct
-{
-    char* iterator_name;
-    Expr* start;
-    Expr* end;
-    Expr* body;
-} AST_For;
-typedef struct
-{
-    Expr* cond;
-    Expr* body;
-} AST_While;
-typedef struct
-{
     char* callee;
     Expr** args;
 } AST_Call;
@@ -134,17 +109,14 @@ typedef struct
     Typespec* type;
     Expr* value;
 } AST_Variable_Decl;
-typedef struct
-{
-    char* name;
-    Expr* value;
-} AST_Variable_Decl_Type_Inf;
 
 struct Expr
 {
     Expr_Kind kind;
+    Typespec* type;
     union {
-        AST_Subscript Subscript;
+        AST_Asm Asm;
+
         AST_Macro Macro;
         AST_Note Note;
         AST_Grouping Grouping;
@@ -156,20 +128,15 @@ struct Expr
         AST_Function Function;
         AST_Struct Struct;
         AST_Ident Ident;
-        AST_If If;
-        AST_For For;
-        AST_While While;
         AST_Call Call;
         AST_Unary Unary;
         AST_Binary Binary;
         AST_Variable_Decl Variable_Decl;
-        AST_Variable_Decl_Type_Inf Variable_Decl_Type_Inf;
     };
 };
 
-Expr* make_expr_subscript(Expr* expr);
-Expr* make_expr_continue(void);
-Expr* make_expr_break(void);
+Expr* make_expr_asm(char* name);
+
 Expr* make_expr_macro(char* name, Expr* expr);
 Expr* make_expr_note(Expr* expr);
 Expr* make_expr_int(i64 value);
@@ -178,9 +145,6 @@ Expr* make_expr_string(char* value);
 Expr* make_expr_ident(char* ident);
 Expr* make_expr_struct(Typespec* struct_t);
 Expr* make_expr_call(char* callee, Expr** args);
-Expr* make_expr_if(Expr* cond, Expr* then_body, Expr* else_body);
-Expr* make_expr_for(char* iterator_name, Expr* start, Expr* end, Expr* body);
-Expr* make_expr_while(Expr* cond, Expr* body);
 Expr* make_expr_function(Typespec* func_t, Expr* body);
 Expr* make_expr_unary(Token_Kind op, Expr* operand);
 Expr* make_expr_binary(Token_Kind op, Expr* lhs, Expr* rhs);
@@ -188,7 +152,8 @@ Expr* make_expr_block(Expr** stmts);
 Expr* make_expr_ret(Expr* expr);
 Expr* make_expr_grouping(Expr* expr);
 Expr* make_expr_variable_decl(char* name, Typespec* type, Expr* value);
-Expr* make_expr_variable_decl_type_inf(char* name, Expr* value);
+
+Typespec* get_inferred_type_of_expr(Expr* expr);
 
 char* ast_to_json(List* ast);
 void print_ast(List* ast);

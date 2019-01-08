@@ -76,6 +76,10 @@ typedef struct
     i64 token_index;
     Token curr_tok;
     Token top_tok;
+    char* ocontinue;
+    char* lcontinue;
+    char* obreak;
+    char* lbreak;
 } Parse_Context;
 
 bool tok_is(Parse_Context* pctx, Token_Kind kind);
@@ -85,7 +89,6 @@ void eat(Parse_Context* pctx);
 void eat_kind(Parse_Context* pctx, Token_Kind kind);
 Expr* get_definition(Parse_Context* pctx, char* ident);
 Expr* get_variable_declaration(Parse_Context* pctx, char* ident);
-Expr* get_variable_typeinferred(Parse_Context* pctx, char* ident);
 Expr* get_function_call(Parse_Context* pctx, char* ident);
 
 Expr* parse_top_level(Parse_Context* pctx);
@@ -135,6 +138,28 @@ Typespec* get_type(Parse_Context* pctx);
 //                               Public Functions
 //------------------------------------------------------------------------------
 
+void give_type_to_all_nodes(Expr* expr)
+{
+    expr->type = get_inferred_type_of_expr(expr);
+    if (expr->type) warning("%s | %s", expr_to_str(expr), typespec_to_str(expr->type));
+    switch(expr->kind)
+    {
+    case EXPR_MACRO:  give_type_to_all_nodes(expr->Macro.expr); break;
+    case EXPR_NOTE:  give_type_to_all_nodes(expr->Note.expr); break;
+    case EXPR_UNARY:  give_type_to_all_nodes(expr->Unary.operand); break;
+    case EXPR_BINARY:  give_type_to_all_nodes(expr->Binary.lhs); give_type_to_all_nodes(expr->Binary.rhs); break;
+    case EXPR_GROUPING:  give_type_to_all_nodes(expr->Grouping.expr); break;
+    case EXPR_FUNCTION: {
+        give_type_to_all_nodes(expr->Function.body);
+    } break;
+    case EXPR_BLOCK: {
+        for (int i = 0; i < sb_count(expr->Block.stmts); ++i) {
+            give_type_to_all_nodes(expr->Block.stmts[i]);
+        }
+    } break;
+    }
+}
+
 void parse(List* ast, char* source_file)
 {
     char* last_file = get_source_file();
@@ -146,6 +171,12 @@ void parse(List* ast, char* source_file)
     Token* tokens = generate_tokens_from_source(source_file);
     generate_symbol_table_from_tokens(ast, tokens);
     generate_ast_from_tokens(ast, tokens);
+
+    // Give each node a type
+    LIST_FOREACH(ast) { 
+        Expr* expr = (Expr*)it->data; 
+        give_type_to_all_nodes(expr);
+    }
 
     pop_timer();
 
@@ -232,6 +263,12 @@ void generate_symbol_table_from_tokens(List* ast, Token* tokens)
 //                               Private Functions
 //------------------------------------------------------------------------------
 
+char* make_label()
+{
+    static int c = 0;
+    return strf(".L%d", c++);
+}
+
 Expr* parse_top_level(Parse_Context* pctx)
 {
     DEBUG_START;
@@ -298,72 +335,134 @@ Expr* parse_identifier(Parse_Context* pctx)
     eat_kind(pctx, TOKEN_IDENTIFIER);
     switch (pctx->curr_tok.kind) {
     case TOKEN_COLON_COLON: return get_definition(pctx, ident);
-    case TOKEN_COLON_EQ: return get_variable_typeinferred(pctx, ident);
-    case TOKEN_COLON: return get_variable_declaration(pctx, ident);
+    case TOKEN_COLON: // fallthrough
+    case TOKEN_COLON_EQ: return get_variable_declaration(pctx, ident);
     case TOKEN_OPEN_PAREN: return get_function_call(pctx, ident);
     }
 
     return make_expr_ident(ident);
 }
 
+#define SET_JUMP_LABELS(cont, brk)\
+    pctx->ocontinue = pctx->lcontinue;\
+    pctx->obreak = pctx->lbreak; \
+    pctx->lcontinue = cont;\
+    pctx->lbreak = brk;
+
+#define RESTORE_JUMP_LABELS \
+    pctx->lcontinue = pctx->ocontinue;\
+    pctx->lbreak = pctx->obreak;
+
 Expr* parse_continue(Parse_Context* pctx)
 {
     DEBUG_START;
     eat_kind(pctx, TOKEN_CONTINUE);
-    return make_expr_continue();
+    return make_expr_asm(strf("JMP %s", pctx->lcontinue));
 }
 
 Expr* parse_break(Parse_Context* pctx)
 {
     DEBUG_START;
     eat_kind(pctx, TOKEN_BREAK);
-    return make_expr_break();
+    return make_expr_asm(strf("JMP %s", pctx->lbreak));
 }
 Expr* parse_while(Parse_Context* pctx)
 {
     DEBUG_START;
 
     eat_kind(pctx, TOKEN_WHILE);
-    Expr* cond = parse_expression(pctx);
-    if (!cond) {
-        error("missing cond value in while loop");
-    }
-    Expr* body = parse_block(pctx);
 
-    return make_expr_while(cond, body);
+    Expr** stmts = NULL;
+
+    char* begin = make_label();
+    char* end = make_label();
+
+    Expr* cond = parse_expression(pctx);
+
+    SET_JUMP_LABELS(begin, end);
+    Expr* body = parse_block(pctx);
+    RESTORE_JUMP_LABELS;
+
+    sb_push(stmts, make_expr_asm(strf("%s:", begin)));
+    sb_push(stmts, cond);
+    sb_push(stmts, make_expr_asm(strf("JE %s", end)));
+    sb_push(stmts, body);
+    sb_push(stmts, make_expr_asm(strf("JMP %s", begin)));
+    sb_push(stmts, make_expr_asm(strf("%s:", end)));
+
+    return make_expr_block(stmts);
 }
+
 Expr* parse_for(Parse_Context* pctx)
 {
     DEBUG_START;
 
     eat_kind(pctx, TOKEN_FOR);
+
+    Expr** stmts = NULL;
+
+    char* begin = make_label();
+    char* mid = make_label();
+    char* end = make_label();
+
     char* iterator_name = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
     eat_kind(pctx, TOKEN_COLON);
-    Expr* start = parse_expression(pctx);
-    if (!start) {
-        error("missing start value in for loop");
-    }
+    Expr* start_expr = parse_expression(pctx);
     eat_kind(pctx, TOKEN_DOT_DOT);
-    Expr* end = parse_expression(pctx);
-    if (!end) error("missing end value in for loop");
-    Expr* body = parse_block(pctx);
+    Expr* end_expr = parse_expression(pctx);
 
-    return make_expr_for(iterator_name, start, end, body);
+    SET_JUMP_LABELS(mid, end);
+    Expr* body = parse_block(pctx);
+    RESTORE_JUMP_LABELS;
+
+    Typespec* type = get_inferred_type_of_expr(start_expr);
+    Expr* variable = make_expr_variable_decl(iterator_name, type, start_expr);
+    add_symbol(iterator_name, type);
+
+    Expr* cond = make_expr_binary(TOKEN_EQ_EQ,  make_expr_ident(iterator_name), end_expr);
+ 
+    sb_push(stmts, variable);
+    sb_push(stmts, make_expr_asm(strf("%s:", begin)));
+    sb_push(stmts, cond);
+    sb_push(stmts, make_expr_asm(strf("JE %s", end)));
+    sb_push(stmts, body);
+    sb_push(stmts, make_expr_asm(strf("%s:", mid)));
+    sb_push(stmts, make_expr_binary(TOKEN_PLUS_EQ, make_expr_ident(iterator_name), make_expr_int(1)));
+    sb_push(stmts, make_expr_asm(strf("JMP %s", begin)));
+    sb_push(stmts, make_expr_asm(strf("%s:", end)));
+
+    return make_expr_block(stmts);
 }
 
 Expr* parse_if(Parse_Context* pctx)
 {
     DEBUG_START;
+
     eat_kind(pctx, TOKEN_IF);
+
+    Expr** stmts = NULL;
+
+    char* else_l = make_label();
+    char* end_l = make_label();
+
     Expr* cond = parse_expression(pctx);
-    Expr* then_body = parse_block(pctx);
-    Expr* else_body = NULL;
+    Expr* body = parse_block(pctx);
+    Expr* else_b = NULL;
     if (tok_is(pctx, TOKEN_ELSE)) {
         eat_kind(pctx, TOKEN_ELSE);
-        else_body = parse_block(pctx);
+        else_b = parse_block(pctx);
     }
-    return make_expr_if(cond, then_body, else_body);
+
+    sb_push(stmts, cond);
+    sb_push(stmts, make_expr_asm(strf("JNE %s", else_b ? else_l : end_l)));
+    sb_push(stmts, body);
+    sb_push(stmts, make_expr_asm(strf("JMP %s", end_l)));
+    sb_push(stmts, make_expr_asm(strf("%s:", else_l)));
+    if (else_b) sb_push(stmts, else_b);
+    sb_push(stmts, make_expr_asm(strf("%s:", end_l)));
+
+    return make_expr_block(stmts);
 }
 
 Expr* parse_string(Parse_Context* pctx)
@@ -401,15 +500,6 @@ Expr* parse_ret(Parse_Context* pctx)
     return make_expr_ret(exp);
 }
 
-Expr* parse_subscript(Parse_Context* pctx)
-{
-    DEBUG_START;
-    eat_kind(pctx, TOKEN_OPEN_BRACKET);
-    Expr* expr = parse_expression(pctx);
-    eat_kind(pctx, TOKEN_CLOSE_BRACKET);
-    return make_expr_subscript(expr);
-}
-
 Expr* get_function_call(Parse_Context* pctx, char* ident)
 {
     DEBUG_START;
@@ -432,32 +522,36 @@ Expr* get_function_call(Parse_Context* pctx, char* ident)
     return make_expr_call(ident, args);
 }
 
-Expr* get_variable_typeinferred(Parse_Context* pctx, char* ident)
-{
-    DEBUG_START;
-
-    eat_kind(pctx, TOKEN_COLON_EQ);
-    Expr* assignment_expr = parse_expression(pctx);
-
-    // add_symbol(ident, make_typespec_int(32, 0));
-
-    return make_expr_variable_decl_type_inf(ident, assignment_expr);
-}
 Expr* get_variable_declaration(Parse_Context* pctx, char* ident)
 {
     DEBUG_START;
 
-    eat_kind(pctx, TOKEN_COLON);
-    Typespec* variable_type = get_type(pctx);
-    Expr* assignment_expr = NULL;
-    if (tok_is(pctx, TOKEN_EQ)) {
-        eat_kind(pctx, TOKEN_EQ);
-        assignment_expr = parse_expression(pctx);
+    char*       variable_name = ident;
+    Typespec*   variable_type = NULL;
+    Expr*       variable_value = NULL;
+
+    switch(pctx->curr_tok.kind) {
+    case TOKEN_COLON: 
+    {   
+        eat_kind(pctx, TOKEN_COLON);
+        variable_type = get_type(pctx);
+        if (tok_is(pctx, TOKEN_EQ)) {
+            eat_kind(pctx, TOKEN_EQ);
+            variable_value = parse_expression(pctx);
+        }
+    } break;
+    case TOKEN_COLON_EQ:
+    {
+        // We need to infer the type based on the assignment expr
+        eat_kind(pctx, TOKEN_COLON_EQ);
+        variable_value = parse_expression(pctx);
+        variable_type = get_inferred_type_of_expr(variable_value);
+    } break;
     }
 
     add_symbol(ident, variable_type);
 
-    return make_expr_variable_decl(ident, variable_type, assignment_expr);
+    return make_expr_variable_decl(variable_name, variable_type, variable_value);
 }
 
 Expr* parse_binary(Parse_Context* pctx, int expr_prec, Expr* lhs)
@@ -510,17 +604,12 @@ Expr* read_subscript_expr(Parse_Context* pctx, Expr* expr)
 {
     eat_kind(pctx, TOKEN_OPEN_BRACKET);
     Expr* sub = parse_expression(pctx);
-    // E1[E2] == *(E1+E12)
     if (!sub) error("subscription expected");
     eat_kind(pctx, TOKEN_CLOSE_BRACKET);
-    // assert(expr->kind == EXPR_IDENT);
-    // Typespec* type = get_symbol(expr->Ident.name);
-    // i64 size = get_size_of_underlying_typespec(type);
-    warning("WE HARDCODE THE SUBSCRIPT TYPE SIZE AS 4");
-    warning("WE HARDCODE THE SUBSCRIPT TYPE SIZE AS 4");
-    warning("WE HARDCODE THE SUBSCRIPT TYPE SIZE AS 4");
-    sub = make_expr_binary(TOKEN_ASTERISK, make_expr_int(4), sub);
+    i64 size = get_size_of_underlying_typespec(get_inferred_type_of_expr(expr));
+    sub = make_expr_binary(TOKEN_ASTERISK, make_expr_int(size), sub);
     Expr* t = make_expr_binary(TOKEN_PLUS, expr, sub);
+    t = make_expr_grouping(t);
     return make_expr_unary(THI_SYNTAX_POINTER, t);
 }
 

@@ -35,7 +35,7 @@ i64 get_size_of_underlying_typespec(Typespec* type)
     switch (type->kind) {
     case TYPESPEC_POINTER: return get_size_of_typespec(type->Pointer.pointee);
     case TYPESPEC_ARRAY: return get_size_of_typespec(type->Array.type);
-    default: error("get_size_of_typespec kind %s not implemented.", typespec_kind_to_str(type->kind));
+    default: return get_size_of_typespec(type);
     }
     return 0;
 }

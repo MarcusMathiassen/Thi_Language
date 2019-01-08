@@ -51,7 +51,19 @@ void emit(char* fmt, ...)
     vsnprintf(str, str_len, fmt, args);
     va_end(args);
 
-    append_string(&output, strf("\t%s", str));
+    bool is_label = false;
+
+    for (int i = 0; i < str_len; ++i) {
+        if (str[i] == ':')  {
+            is_label = true;
+            break;
+        }
+    }
+
+    if (is_label)
+        append_string(&output, strf("%s", str));
+    else 
+        append_string(&output, strf("\t%s", str));
     append_string(&output, "\n");
 }
 
@@ -67,7 +79,7 @@ void pop(int reg)
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
     emit("POP %s", get_reg(reg));
     ctx.stack_index -= 8;
-    assert(ctx.stack_index >= 0);
+    // assert(ctx.stack_index >= 0);
 }
 
 char* get_op_size(i8 bytes)
@@ -293,7 +305,7 @@ Value* codegen_function(Expr* expr)
 
     sb_push(functions, function);
 
-    emit_no_tab("_%s:", expr->Function.type->Function.name);
+    emit("_%s:", expr->Function.type->Function.name);
     push(RBP);
     emit("MOV RBP, RSP");
 
@@ -301,10 +313,10 @@ Value* codegen_function(Expr* expr)
     i64 stack_allocated = expr->Function.stack_allocated;
     int padding = align(stack_allocated, 16);
     ctx.current_function->Function.stack_allocated = stack_allocated + padding;
-    emit("SUB RSP, %d; %d alloc, %d padding", stack_allocated + padding, stack_allocated, padding);
+    if (stack_allocated + padding)
+        emit("SUB RSP, %d; %d alloc, %d padding", stack_allocated + padding, stack_allocated, padding);
 
     ctx.stack_index = 0;
-    warning("stack_index at %d", ctx.stack_index);
     i64 index = 0;
 
     Arg* args = expr->Function.type->Function.args;
@@ -633,9 +645,9 @@ Value* codegen_binary(Expr* expr)
     // This comes before '?'
     case TOKEN_COLON: {
         codegen_expr(lhs); // '?' part
-        emit_no_tab("%s:", ctx.temp_label0);
+        emit("%s:", ctx.temp_label0);
         Value* rhs_val = codegen_expr(rhs);
-        emit_no_tab("%s:", ctx.temp_label1);
+        emit("%s:", ctx.temp_label1);
         ctx_pop_label(&ctx);
         return rhs_val;
     }
@@ -643,28 +655,6 @@ Value* codegen_binary(Expr* expr)
 
     error("Codegen: Unhandled binary op %s", token_kind_to_str(op));
     return NULL;
-}
-
-Value* codegen_variable_decl_type_inf(Expr* expr)
-{
-    assert(expr);
-    assert(expr->kind == EXPR_VARIABLE_DECL_TYPE_INF);
-
-    char* name = expr->Variable_Decl_Type_Inf.name;
-    Expr* assignment_expr = expr->Variable_Decl_Type_Inf.value;
-
-    Value* assignment_expr_value = codegen_expr(assignment_expr); // Any value this creates is stored in RAX
-
-    Typespec* type = assignment_expr_value->type;
-    i64 size_of_assigned_type = get_size_of_typespec(type);
-    i64 variable_stack_pos = size_of_assigned_type + ctx.stack_index;
-    Value* variable = make_value_variable(name, type, variable_stack_pos);
-    add_variable(variable);
-
-    if (type->kind != TYPESPEC_ARRAY)
-        emit_store(variable);
-
-    return variable;
 }
 
 Value* codegen_variable_decl(Expr* expr)
@@ -739,146 +729,9 @@ Value* codegen_call(Expr* expr)
     return make_value_call(callee, func_t->Function.ret_type);
 }
 
-Value* codegen_while(Expr* expr)
-{
-    assert(expr->kind == EXPR_WHILE);
-    Expr* condition = expr->While.cond;
-    Expr* body = expr->While.body;
-
-    ctx_push_label(&ctx);
-
-    char* condition_label = ctx_get_unique_label(&ctx);
-    char* continue_label = ctx_get_unique_label(&ctx);
-
-    ctx_set_break_label(&ctx, continue_label);
-    ctx_set_continue_label(&ctx, condition_label);
-
-    // COND:
-    emit_no_tab("%s:", condition_label);
-
-    // Compare the iterator to the end value
-    codegen_expr(condition);
-    emit("JE %s", continue_label);
-
-    // BODY
-    codegen_expr(body);
-    emit("JMP %s", condition_label);
-
-    // CONT:
-    emit_no_tab("%s:", continue_label);
-    ctx_pop_label(&ctx);
-
-    return NULL;
-}
-Value* codegen_for(Expr* expr)
-{
-    assert(expr->kind == EXPR_FOR);
-
-    char* iterator_name = expr->For.iterator_name;
-    Expr* start = expr->For.start;
-    Expr* end = expr->For.end;
-    Expr* body = expr->For.body;
-
-    ctx_push_label(&ctx);
-    char* condition_label = ctx_get_unique_label(&ctx);
-    char* continue_label = ctx_get_unique_label(&ctx);
-    char* inc_label = ctx_get_unique_label(&ctx);
-
-    ctx_set_break_label(&ctx, continue_label);
-    ctx_set_continue_label(&ctx, inc_label);
-
-    // Setup the iterator variable with the start value.
-    Value* start_val = codegen_expr(start);
-    i32 type_size = get_size_of_value(start_val);
-    i32 stack_pos = type_size + ctx.stack_index;
-    Value* iterator_var = make_value_variable(iterator_name, start_val->type, stack_pos);
-    add_variable(iterator_var);
-    emit_store(iterator_var);
-    // ctx.stack_index += type_size;  
-
-    // COND:
-    emit_no_tab("%s:", condition_label);
-    i32 res_reg = get_rax_reg_of_byte_size(type_size);
-
-    // Compare the iterator to the end value
-    codegen_expr(end);
-    emit("CMP %s, [RBP-%d]", get_reg(res_reg), iterator_var->Variable.stack_pos);
-    emit("JE %s", continue_label);
-
-    // BODY
-    codegen_expr(body);
-
-    // INC:
-    emit_no_tab("%s:", inc_label);
-
-    emit_load(iterator_var);
-    emit("INC %s [RBP-%d]", get_op_size(type_size), iterator_var->Variable.stack_pos);
-    emit("JMP %s", condition_label);
-
-    // CONT:
-    emit_no_tab("%s:", continue_label);
-    ctx_pop_label(&ctx);
-
-    // remove_variable(iterator_var);
-
-    return NULL;
-}
-
-Value* codegen_if(Expr* expr)
-{
-    assert(expr->kind == EXPR_IF);
-
-    Expr* condition = expr->If.cond;
-    Expr* then_body = expr->If.then_body;
-    Expr* else_body = expr->If.else_body;
-
-    // COND:
-    ctx_push_label(&ctx);
-    char* continue_label = ctx_get_unique_label(&ctx);
-    char* else_label = else_body ? ctx_get_unique_label(&ctx) : NULL;
-
-    Value* condition_val = codegen_expr(condition);
-    i32 condition_size = get_size_of_value(condition_val);
-    i32 res_reg = get_rax_reg_of_byte_size(condition_size);
-
-    emit("CMP %s, 0", get_reg(res_reg));
-    emit("JE %s", else_body ? else_label : continue_label);
-
-    // THEN
-    codegen_expr(then_body);
-    emit("JMP %s", continue_label);
-
-    // ELSE:
-    if (else_body) {
-        emit_no_tab("%s:", else_label);
-        codegen_expr(else_body);
-    }
-
-    // CONT:
-    emit_no_tab("%s:", continue_label);
-
-    ctx_pop_label(&ctx);
-
-    return NULL;
-}
-
 Value* codegen_macro(Expr* expr)
 {
     assert(expr->kind == EXPR_MACRO);
-    return NULL;
-}
-
-Value* codegen_continue(Expr* expr)
-{
-    assert(expr->kind == EXPR_CONTINUE);
-    emit("JMP %s", ctx.label_continue_to);
-    return NULL;
-}
-
-Value* codegen_break(Expr* expr)
-{
-    assert(expr->kind == EXPR_BREAK);
-    emit("JMP %s", ctx.label_break_to);
     return NULL;
 }
 
@@ -892,30 +745,6 @@ Value* codegen_ident(Expr* expr)
     Value* var = get_variable(name);
     emit_load(var);
     return var;
-}
-/*
-    Subscript access
-    ex.
-        arr
-        load_instruction
-
-        [1]
-
-        arr := [1, 2, 3]
-        arr[1] = 5
-        # arr == [1, 5, 3]
-*/
-Value* codegen_subscript(Expr* expr)
-{
-    assert(expr->kind == EXPR_SUBSCRIPT);
-    Value* result = codegen_expr(expr->Subscript.expr);
-    assert(result->kind == VALUE_INT);
-    // Value* variable = get_variable(expr->Subscript.variable_name);
-
-    // push_result_to_temporary_reg(result);
-    // emit_load(variable);
-
-    return NULL;
 }
 
 Value* codegen_string(Expr* expr)
@@ -955,9 +784,7 @@ Value* codegen_expr(Expr* expr)
     if (expr->kind == EXPR_STRUCT) return codegen_struct(expr);
     start_codeblock(ctx.current_function, expr_to_str(expr));
     switch (expr->kind) {
-    case EXPR_SUBSCRIPT: return codegen_subscript(expr);
-    case EXPR_CONTINUE: return codegen_continue(expr);
-    case EXPR_BREAK: return codegen_break(expr);
+    case EXPR_ASM: emit("%s", expr->Asm.str); return NULL;
     case EXPR_MACRO: return codegen_macro(expr);
     case EXPR_NOTE: return codegen_note(expr);
     case EXPR_INT: return codegen_int(expr);
@@ -967,14 +794,9 @@ Value* codegen_expr(Expr* expr)
     case EXPR_CALL: return codegen_call(expr);
     case EXPR_UNARY: return codegen_unary(expr);
     case EXPR_BINARY: return codegen_binary(expr);
-    case EXPR_COMPOUND: error("EXPR_COMPOUND codegen not implemented");
     case EXPR_RET: return codegen_ret(expr);
     case EXPR_VARIABLE_DECL: return codegen_variable_decl(expr);
-    case EXPR_VARIABLE_DECL_TYPE_INF: return codegen_variable_decl_type_inf(expr);
-    case EXPR_IF: return codegen_if(expr);
-    case EXPR_FOR: return codegen_for(expr);
     case EXPR_BLOCK: return codegen_block(expr);
-    case EXPR_WHILE: return codegen_while(expr);
     case EXPR_GROUPING: return codegen_expr(expr->Grouping.expr);
     }
     return NULL;
@@ -1028,11 +850,9 @@ char* generate_code_from_ast(List* ast)
                 switch (b_expr->kind)
                 {
                     case EXPR_VARIABLE_DECL: sum += get_size_of_typespec(b_expr->Variable_Decl.type); break;
-                    // case EXPR_VARIABLE_DECL_TYPE_INF: sum += get_size_of_typespec(b_expr->Variable_Decl_Type_Inf.expr); break;
                 }
             }
             expr->Function.stack_allocated = sum;
-            warning("func %s allocated %d stack", expr->Function.type->Function.name, sum);
         }
     }
 
