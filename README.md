@@ -2,7 +2,7 @@
 
 # Basic example
         touch main.thi
-    
+
         # this is a comment
         main :: () -> i32 {
             ret 1
@@ -10,24 +10,6 @@
 
         $ thi main.thi
 # Syntax
-
-    ':' definition operator.
-    '::' constant definition operator.
-    '=' assignment operator.
-    ':=' type inferred assignment operator.
-
-    '+' plus
-    '-' minus
-    '/' division
-    '*' multiplication
-    '%' modulo
-    '!' not
-    '&' or
-    '&&' logical or
-    '!!' logical not
-    '|' AND
-    '||' logical and
-
     Constant variable def <=>        <ident> :: <expr>
     Constant variable def <=>        <ident> :: (<params>) -> <ret_type> { <body> }
     Variable decl <=>                <ident> : <type>
@@ -40,7 +22,6 @@
     while <=> while <expr> { <body> }
 
 # Not actually a readme but a todo scratchpad
-
 
 # Minumum features needed for self-hosting
 - [x] integer literals
