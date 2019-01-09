@@ -258,34 +258,30 @@ void emit_store(Value* variable)
 {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
-    i64 size = get_size_of_value(variable);
-    i32 reg_n = get_rax_reg_of_byte_size(size);
     i64 stack_pos = get_stack_pos_of_variable(variable);
-
     switch (variable->type->kind)
     {
-        case TYPESPEC_POINTER:
-        case TYPESPEC_STRING:
-        case TYPESPEC_ARRAY: emit("MOV [RAX], %s; store", get_reg(reg_n)); break;
-        default: emit("MOV [RBP-%d], %s; store", stack_pos, get_reg(reg_n)); break;
+        // case TYPESPEC_POINTER:
+        // case TYPESPEC_ARRAY: {
+        //     emit("MOV [RAX], RCX; store");
+        // } break;
+        default: emit("MOV [RBP-%lld], RAX; store", stack_pos); break;
     }
 }
-
 void emit_load(Value* variable)
 {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
-
-    i64 size = get_size_of_value(variable);
-    i32 reg_n = get_rax_reg_of_byte_size(size);
     i64 stack_pos = get_stack_pos_of_variable(variable);
-
     switch (variable->type->kind)
-    {
-        case TYPESPEC_POINTER: 
-        case TYPESPEC_STRING:
-        case TYPESPEC_ARRAY: emit("LEA %s, [RBP-%d]; load", get_reg(reg_n), stack_pos); break;
-        default: emit("MOV %s, [RBP-%d]; load", get_reg(reg_n), stack_pos); break;
+    { 
+    case TYPESPEC_POINTER:
+    case TYPESPEC_ARRAY:
+        emit("LEA RAX, [RBP-%lld]; load", stack_pos);
+        break;
+    default: 
+        emit("MOV RAX, [RBP-%lld]; load", stack_pos);
+        break;
     }
 }
 
@@ -320,8 +316,14 @@ Value* codegen_unary(Expr* expr)
     i32 reg_n = get_rax_reg_of_byte_size(get_size_of_value(operand_val));
     Value* result = operand_val;
 
+    char* reg = get_reg(reg_n);
+
     switch (op) {
-    case THI_SYNTAX_ADDRESS: error("Unary '&' not implemented"); break;
+    case THI_SYNTAX_ADDRESS: {
+        // Operand must be an identifier
+        i64 stack_pos = get_stack_pos_of_variable(operand_val);
+        emit("LEA RAX, [RSP-%lld]; addrsof", stack_pos);
+    } break;
     case THI_SYNTAX_POINTER: {
         assert(operand_val->kind == VALUE_VARIABLE);
         assert( operand_val->type->kind == TYPESPEC_ARRAY ||
@@ -336,7 +338,7 @@ Value* codegen_unary(Expr* expr)
         }
     } break;
     case TOKEN_BANG: {
-        emit("CMP %s, 0", get_reg(reg_n));
+        emit("CMP %s, 0", reg);
         emit("SETE AL");
     } break;
     case TOKEN_PLUS: { // no nothing
@@ -345,7 +347,7 @@ Value* codegen_unary(Expr* expr)
         emit("NOT AL");
     } break;
     case TOKEN_MINUS: {
-        emit("NEG %s", get_reg(reg_n));
+        emit("NEG %s", reg);
         break;
     }
     default: error("unhandled unary case: %c", token_kind_to_str(op)); break;
@@ -371,16 +373,15 @@ Value* codegen_binary(Expr* expr)
     }
     case THI_SYNTAX_ASSIGNMENT: {
         codegen_expr(rhs);
-        push(RAX);
         Value* variable;
+        push(RAX);
         if (lhs->kind == EXPR_UNARY) { 
             variable = codegen_expr(lhs->Unary.operand);
-            pop(RCX);
         } else {
             assert(lhs->kind == EXPR_IDENT);
             variable = get_variable(lhs->Ident.name);
-            pop(RAX);
         }
+        pop(RAX);
         emit_store(variable);
         return variable;
     }
@@ -617,17 +618,17 @@ Value* codegen_variable_decl(Expr* expr)
     Typespec* type = expr->Variable_Decl.type;
     Expr* assignment_expr = expr->Variable_Decl.value;
 
-    Value* assign_v = NULL;
-    if (assignment_expr) assign_v = codegen_expr(assignment_expr); // Any value this creates is stored in RAX
-
     i64 type_size = get_size_of_typespec(type);
     i64 stack_pos = type_size + ctx.stack_index;
 
     Value* variable = make_value_variable(name, type, stack_pos);
     add_variable(variable);
 
-    if (variable->type->kind != TYPESPEC_ARRAY)
-        emit_store(variable);
+    if (assignment_expr)
+    if (type->kind != TYPESPEC_ARRAY || 
+        type->kind != TYPESPEC_POINTER ||
+        type->kind != TYPESPEC_STRING)
+        codegen_expr(make_expr_binary(TOKEN_EQ, make_expr_ident(name), assignment_expr));
 
     return variable;
 }
@@ -691,11 +692,10 @@ Value* codegen_string(Expr* expr)
 {
     assert(expr->kind == EXPR_STRING);
     char* val = expr->String.val;
-    i64 len = xstrlen(val);
-    Typespec* t = make_typespec_string(len);
+    Typespec* t = make_typespec_pointer(make_typespec_int(8,1));
     char* slabel = make_label();
-    emit_data("%s db `%s`, 0", slabel, val);
-    emit("MOV RAX, %s", slabel);
+    emit_data("%s db `%s`, 0 ", slabel, val);
+    emit("MOV RAX, %s; string_ref", slabel);
     return make_value_string(val, t);
 }
 
@@ -760,7 +760,7 @@ Value* codegen_function(Expr* expr)
     i64 stack_allocated = sum;
     int padding = (X64_ASM_OSX_STACK_PADDING - (stack_allocated % X64_ASM_OSX_STACK_PADDING)) % X64_ASM_OSX_STACK_PADDING;
     if (stack_allocated + padding)
-        emit("SUB RSP, %d; %d alloc, %d padding", stack_allocated + padding, stack_allocated, padding);
+        emit("SUB RSP, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);
 
     emit(DEFAULT_FUNCTION_ENTRY_LABEL_NAME);
 
@@ -793,7 +793,7 @@ Value* codegen_function(Expr* expr)
     }
 
     if (stack_allocated + padding)
-        emit("ADD RSP, %d; %d alloc, %d padding", stack_allocated + padding, stack_allocated, padding);
+        emit("ADD RSP, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);
 
     emit("LEAVE");
     emit("RET");
@@ -850,7 +850,7 @@ char* generate_code_from_ast(List* ast)
     append_string(&section_data, "section .data\n");
     emit_no_tab("\nsection .text\n");
 
-    // Finaly, codegen the whole thing.
+    // codegen the whole thing.
     LIST_FOREACH(ast) { codegen_expr((Expr*)it->data); }
 
     char* output = strf("%s\nglobal _main\n%s", section_data.c_str, section_text.c_str);

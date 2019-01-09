@@ -1,11 +1,15 @@
-
 foreign puts :: (char*) -> i32
 foreign putchar :: (i32) -> i32
 foreign malloc :: (i64) -> u8*
+foreign atoi:: (char*) -> i32
+foreign exit::(i32) -> u8*
+foreign system :: (char*) -> i32
 
 main :: () -> i32 {
 
-    name := "Marcus Mathiassen"
-    puts(name)
-    ret 1
+    a : i32 = 3
+    b : i32* = &a
+
+    b[0] = 1
+    ret a
 }

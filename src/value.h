@@ -10,6 +10,7 @@ typedef enum Value_Kind Value_Kind;
 enum Value_Kind
 {
     VALUE_INT,
+    VALUE_POINTER,
     VALUE_STRING,
     VALUE_VARIABLE,
     VALUE_CALL,
@@ -41,6 +42,11 @@ typedef struct
 } Value_Int;
 typedef struct
 {
+    u8 bytes;
+    i64 value;
+} Value_Pointer;
+typedef struct
+{
     char* value;
     i64 len;
 } Value_String;
@@ -65,6 +71,7 @@ struct Value
     Typespec* type;
     union {
         Value_Int Int;
+        Value_Pointer Pointer;
         Value_String String;
         Value_Variable Variable;
         Value_Call Call;
@@ -78,6 +85,7 @@ Value* make_value_load_inst(Value* variable, i64 offset);
 Value* make_value_store_inst(Value* variable, i64 offset);
 
 Value* make_value_int(u8 bytes, Typespec* type, i64 value);
+Value* make_value_pointer(i64 stack_pos, Value* pointee);
 Value* make_value_string(char* value, Typespec* type);
 Value* make_value_variable(char* name, Typespec* type, i64 stack_pos);
 Value* make_value_call(char* callee, Typespec* type);
