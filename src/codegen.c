@@ -17,10 +17,20 @@
 
 Typespec* integer_literal_type = NULL;
 Context ctx;
-string output;
+string section_text, section_data;
 Stack scope_stack;
 
 Value* codegen_expr(Expr* expr);
+
+static int label_counter = 0;
+static void reset_label_counter()
+{
+    label_counter = 0;
+}
+static char* make_label()
+{
+    return strf("D%d", label_counter++);
+}
 
 void emit_no_tab(char* fmt, ...)
 {
@@ -34,10 +44,25 @@ void emit_no_tab(char* fmt, ...)
     vsnprintf(str, str_len, fmt, args);
     va_end(args);
 
-    append_string(&output, str);
-    append_string(&output, "\n");
+    append_string(&section_text, str);
+    append_string(&section_text, "\n");
 }
 
+void emit_data(char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    i64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
+    va_end(args);
+    char* str = xmalloc(str_len);
+
+    va_start(args, fmt);
+    vsnprintf(str, str_len, fmt, args);
+    va_end(args);
+
+    append_string(&section_data, strf("\t%s", str));
+    append_string(&section_data, "\n");
+}
 void emit(char* fmt, ...)
 {
     va_list args;
@@ -60,10 +85,10 @@ void emit(char* fmt, ...)
     }
 
     if (is_label)
-        append_string(&output, strf("%s", str));
+        append_string(&section_text, strf("%s", str));
     else 
-        append_string(&output, strf("\t%s", str));
-    append_string(&output, "\n");
+        append_string(&section_text, strf("\t%s", str));
+    append_string(&section_text, "\n");
 }
 
 void push(int reg)
@@ -233,19 +258,16 @@ void emit_store(Value* variable)
 {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
+    i64 size = get_size_of_value(variable);
+    i32 reg_n = get_rax_reg_of_byte_size(size);
+    i64 stack_pos = get_stack_pos_of_variable(variable);
 
-    switch (variable->type->kind) {
-    case TYPESPEC_POINTER: // fallthrough
-    case TYPESPEC_ARRAY: { 
-        emit("MOV [RAX], RCX; store1");
-    } break;
-
-    default: {
-        i64 size = get_size_of_value(variable);
-        i32 reg_n = get_rax_reg_of_byte_size(size);
-        i64 stack_pos = get_stack_pos_of_variable(variable);
-        emit("MOV [RBP-%d], %s; store", stack_pos, get_reg(reg_n));
-    } break;
+    switch (variable->type->kind)
+    {
+        case TYPESPEC_POINTER:
+        case TYPESPEC_STRING:
+        case TYPESPEC_ARRAY: emit("MOV [RAX], %s; store", get_reg(reg_n)); break;
+        default: emit("MOV [RBP-%d], %s; store", stack_pos, get_reg(reg_n)); break;
     }
 }
 
@@ -258,14 +280,12 @@ void emit_load(Value* variable)
     i32 reg_n = get_rax_reg_of_byte_size(size);
     i64 stack_pos = get_stack_pos_of_variable(variable);
 
-    switch (variable->type->kind) {
-    case TYPESPEC_POINTER:
-    case TYPESPEC_ARRAY: {
-        emit("LEA RAX, [RBP-%d]; load", stack_pos);
-    } break;
-    default: {
-        emit("MOV %s, [RBP-%d]; load", get_reg(reg_n), stack_pos);
-    } break;
+    switch (variable->type->kind)
+    {
+        case TYPESPEC_POINTER: 
+        case TYPESPEC_STRING:
+        case TYPESPEC_ARRAY: emit("LEA %s, [RBP-%d]; load", get_reg(reg_n), stack_pos); break;
+        default: emit("MOV %s, [RBP-%d]; load", get_reg(reg_n), stack_pos); break;
     }
 }
 
@@ -307,11 +327,12 @@ Value* codegen_unary(Expr* expr)
         assert( operand_val->type->kind == TYPESPEC_ARRAY ||
                 operand_val->type->kind == TYPESPEC_POINTER);
         Typespec* t = operand_val->type->Array.type;
-        if (t->kind == TYPESPEC_ARRAY)
+        switch (t->kind)
         {
-            emit("LEA RAX, [RAX]; deref");
-        } else {
-            emit("MOV RAX, [RAX]; deref");
+            case TYPESPEC_ARRAY:
+            case TYPESPEC_POINTER:
+            case TYPESPEC_STRING: emit("LEA RAX, [RAX]; deref"); break;
+            default: emit("MOV RAX, [RAX]; deref"); break;
         }
     } break;
     case TOKEN_BANG: {
@@ -354,11 +375,12 @@ Value* codegen_binary(Expr* expr)
         Value* variable;
         if (lhs->kind == EXPR_UNARY) { 
             variable = codegen_expr(lhs->Unary.operand);
+            pop(RCX);
         } else {
             assert(lhs->kind == EXPR_IDENT);
             variable = get_variable(lhs->Ident.name);
+            pop(RAX);
         }
-        pop(RCX);
         emit_store(variable);
         return variable;
     }
@@ -595,14 +617,16 @@ Value* codegen_variable_decl(Expr* expr)
     Typespec* type = expr->Variable_Decl.type;
     Expr* assignment_expr = expr->Variable_Decl.value;
 
-    if (assignment_expr) codegen_expr(assignment_expr); // Any value this creates is stored in RAX
+    Value* assign_v = NULL;
+    if (assignment_expr) assign_v = codegen_expr(assignment_expr); // Any value this creates is stored in RAX
 
     i64 type_size = get_size_of_typespec(type);
     i64 stack_pos = type_size + ctx.stack_index;
+
     Value* variable = make_value_variable(name, type, stack_pos);
     add_variable(variable);
 
-    if (assignment_expr && type->kind != TYPESPEC_ARRAY)
+    if (variable->type->kind != TYPESPEC_ARRAY)
         emit_store(variable);
 
     return variable;
@@ -667,8 +691,11 @@ Value* codegen_string(Expr* expr)
 {
     assert(expr->kind == EXPR_STRING);
     char* val = expr->String.val;
-    emit("MOV RAX, %s", val);
-    Typespec* t = make_typespec_string(xstrlen(val));
+    i64 len = xstrlen(val);
+    Typespec* t = make_typespec_string(len);
+    char* slabel = make_label();
+    emit_data("%s db `%s`, 0", slabel, val);
+    emit("MOV RAX, %s", slabel);
     return make_value_string(val, t);
 }
 
@@ -809,35 +836,30 @@ char* generate_code_from_ast(List* ast)
 
     ctx_init(&ctx);
     stack_init(&scope_stack);
-    output = make_string("");
+
+    section_text = make_string("");
+    section_data = make_string("");
 
     List* foreign_function_list = get_foreign_function_list();
     LIST_FOREACH(foreign_function_list)
     {
         char* func_name = ((Typespec*)it->data)->Function.name;
-        emit_no_tab(strf("extern _%s", func_name));
+        append_string(&section_data, strf("extern _%s\n", func_name));
     }
 
-    emit_no_tab("section .data");
-    List* constant_string_list = get_constant_string_list();
-    LIST_FOREACH(constant_string_list)
-    {
-        char* val = (char*)it->data;
-        i64 len = xstrlen(val);
-        emit_no_tab(strf("%s: db \"%s\", %lld", val, val, len));
-    }
-
-    emit_no_tab("global _main");
-    emit_no_tab("section .text\n");
+    append_string(&section_data, "section .data\n");
+    emit_no_tab("\nsection .text\n");
 
     // Finaly, codegen the whole thing.
     LIST_FOREACH(ast) { codegen_expr((Expr*)it->data); }
 
+    char* output = strf("%s\nglobal _main\n%s", section_data.c_str, section_text.c_str);
+
     debug_info_color = RGB_WHITE;
-    info("%s", output.c_str);
+    info("%s", output);
     debug_info_color = RGB_GRAY;
 
     ctx_free(&ctx);
 
-    return output.c_str;
+    return output;
 }

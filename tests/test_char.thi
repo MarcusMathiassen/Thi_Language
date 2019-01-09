@@ -1,16 +1,11 @@
 
+foreign puts :: (char*) -> i32
 foreign putchar :: (i32) -> i32
+foreign malloc :: (i64) -> u8*
+
 main :: () -> i32 {
-    putchar('H')
-    putchar('e')
-    putchar('l')
-    putchar('l')
-    putchar('o')
-    putchar(' ')
-    putchar('W')
-    putchar('o')
-    putchar('r')
-    putchar('l')
-    putchar('d')
+
+    name := "Marcus Mathiassen"
+    puts(name)
     ret 1
 }

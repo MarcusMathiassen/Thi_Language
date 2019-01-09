@@ -1,7 +1,11 @@
 foreign putchar::(i32)->i32
 main :: () -> i32 {
     i := 0
-    defer { putchar(66) }
+    defer { 
+        i = 1 
+        putchar(66) 
+    }
+    
     defer { putchar(67) }
     i = 2
     putchar(65)

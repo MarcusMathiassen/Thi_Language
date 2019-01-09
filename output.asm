@@ -1,5 +1,7 @@
 section .data
+
 global _main
+
 section .text
 
 _main:
@@ -16,6 +18,11 @@ _main:
 	POP RCX
 	CMP RCX, RAX
 	SETL AL
+	PUSH RAX
+	MOV EAX, 0
+	POP RCX
+	CMP RCX, RAX
+	SETE AL
 	JE .L1
 	MOV EAX, [RBP-4]; load
 	PUSH RAX
@@ -23,7 +30,7 @@ _main:
 	POP RCX
 	ADD RAX, RCX
 	PUSH RAX
-	POP RCX
+	POP RAX
 	MOV [RBP-4], EAX; store
 	JMP .L0
 .L1:

@@ -137,7 +137,7 @@ i64 get_integer(Parse_Context* pctx);
 f64 get_float(Parse_Context* pctx);
 Typespec* get_type(Parse_Context* pctx);
 
-#define DEBUG_START info("%s: %s", __func__, pctx->curr_tok.value);
+#define DEBUG_START //info("%s: %s", __func__, pctx->curr_tok.value);
 
 #define DEBUG_STATEMENT_START                                                                                          \
     info("%s: %s", __func__, pctx->curr_tok.value);                                                                    \
@@ -403,6 +403,7 @@ Expr* parse_while(Parse_Context* pctx)
     Expr* body = parse_block(pctx);
     RESTORE_JUMP_LABELS;
 
+    cond = make_expr_binary(TOKEN_EQ_EQ, cond, make_expr_int(0));
     list_append(stmts, make_expr_asm(strf("%s:", begin)));
     list_append(stmts, cond);
     list_append(stmts, make_expr_asm(strf("JE %s", end)));
@@ -503,7 +504,6 @@ Expr* parse_string(Parse_Context* pctx)
     DEBUG_START;
     char* value = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_STRING);
-    add_constant_string(value);
     return make_expr_string(value);
 }
 
@@ -746,7 +746,22 @@ i64 get_integer(Parse_Context* pctx)
 
     i64 value = 0;
     switch (pctx->curr_tok.kind) {
-    case TOKEN_CHAR: value = (int)pctx->curr_tok.value[0]; break;
+    case TOKEN_CHAR: {
+        char c = pctx->curr_tok.value[0];
+        if (c == '\\')
+        {
+            char c = pctx->curr_tok.value[1];
+            switch (c)
+            {
+                case 'a':  value = 7; break;
+                case 'n':  value = 10; break;
+                case 't':  value = 9; break;
+                case '\\': value = 92; break;
+                case '\'': value =  27; break;
+                case '"':  value = 22; break;
+            }
+        } else value = c; break;
+    }
     case TOKEN_INTEGER: value = atoll(pctx->curr_tok.value); break;
     case TOKEN_HEX: value = strtoll(pctx->curr_tok.value, NULL, 0); break;
     default: error("not an integer.");

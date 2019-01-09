@@ -382,6 +382,7 @@ scan:
         token.kind = TOKEN_CHAR;
         ++c;
         token.value = c;
+        if (*token.value == '\\') ++c;
         ++c;
         token.value = str_intern_range(token.value, c++);
         return token;
@@ -390,8 +391,9 @@ scan:
         token.kind = TOKEN_STRING;
         c++;
         token.value = c;
-        while (*c != '"')
+        while (*c != '"') {
             ++c;
+        }
         token.value = str_intern_range(token.value, c++);
         return token;
     } break;

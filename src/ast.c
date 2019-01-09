@@ -106,7 +106,8 @@ Typespec* get_inferred_type_of_expr(Expr* expr)
     case EXPR_NOTE: return get_inferred_type_of_expr(expr->Note.expr);
     case EXPR_INT: return make_typespec_int(DEFAULT_INTEGER_BIT_SIZE, 0);
     case EXPR_FLOAT: error("get_inferred_type_of_expr EXPR_FLOAT not implemented");
-    case EXPR_STRING: error("get_inferred_type_of_expr EXPR_STRING not implemented");
+    case EXPR_STRING: return make_typespec_pointer(make_typespec_int(8, 1));
+    // case EXPR_STRING: return make_typespec_array(make_typespec_int(8,1), xstrlen(expr->String.val)+1);
     case EXPR_IDENT: return get_symbol(expr->Ident.name);
     case EXPR_CALL: return get_symbol(expr->Call.callee);
     case EXPR_UNARY: return get_inferred_type_of_expr(expr->Unary.operand);
