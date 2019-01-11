@@ -194,7 +194,7 @@ void parse(List* ast, char* source_file)
     char* last_file = get_source_file();
     char* last_dir = get_current_dir();
 
-    list_append(&file_list, source_file);
+    list_append(file_list, source_file);
 
     push_timer(source_file);
     List* tokens = generate_tokens_from_source(source_file);
