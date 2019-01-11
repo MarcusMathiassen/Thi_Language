@@ -2,36 +2,39 @@
 
 #include "lexer.h"           // Token, Token_Kind
 #include "string.h"
-#include "typedefs.h" // i32, i64, etc.
+#include "typedefs.h" // s32, s64, etc.
 #include "typespec.h" // Typespec
 #include "register.h" // get_reg, get_parameter_reg
 #include "utility.h"  // info, error, warning, success
 #include <assert.h>   // assert
 #include <ctype.h>    // atoll
 #include <string.h>   // strcmp
-#include <stdlib.h>   // malloc
+#include <stdlib.h>   // xmalloc
 
 #include "globals.h" // add_symbol
 
-#define BIN_OP_COUNT 47
+#define BIN_OP_COUNT 51
 struct
 {
     Token_Kind kind;
-    i32 p;
+    s32 p;
 } binop_precedence[BIN_OP_COUNT] = {
+
+    {TOKEN_PLUS_PLUS, 100},   // ++
+    {TOKEN_MINUS_MINUS, 100}, // --
+    {TOKEN_OPEN_BRACKET, 100}, // []
     {TOKEN_DOT, 100},          // .
     {TOKEN_OPEN_PAREN, 100},   // ()
-    {TOKEN_OPEN_BRACKET, 100}, // \[]
-
-    {TOKEN_PLUS_PLUS, 90},   // ++
-    {TOKEN_MINUS_MINUS, 90}, // --
+    {TOKEN_RIGHT_ARROW, 100},   // ->
 
     {TOKEN_BANG, 85},     // !
     {TOKEN_TILDE, 85},     // ~
+    {THI_SYNTAX_POINTER, 85}, // @
+    {THI_SYNTAX_ADDRESS, 85}, // &
 
     {TOKEN_ASTERISK, 80}, // *
     {TOKEN_FWSLASH, 80},  // /
-    {TOKEN_PERCENT, 80},  // /
+    {TOKEN_PERCENT, 80},  // %
 
     {TOKEN_MINUS, 70}, // -
     {TOKEN_PLUS, 70},  // +
@@ -80,7 +83,7 @@ typedef struct
 {
     List* g_tokens;
     List* ast_list_ptr;
-    i64 token_index;
+    s64 token_index;
     Token curr_tok;
     Token top_tok;
 
@@ -107,7 +110,7 @@ Expr* parse_primary(Parse_Context* pctx);
 Expr* parse_identifier(Parse_Context* pctx);
 Expr* parse_subscript(Parse_Context* pctx);
 Expr* parse_block(Parse_Context* pctx);
-Expr* parse_ret(Parse_Context* pctx);
+Expr* parse_return(Parse_Context* pctx);
 Expr* parse_note(Parse_Context* pctx);
 Expr* parse_expression(Parse_Context* pctx);
 Expr* parse_unary(Parse_Context* pctx);
@@ -133,11 +136,11 @@ void skip_function_signature(Parse_Context* pctx);
 
 void skip_type(Parse_Context* pctx);
 
-i64 get_integer(Parse_Context* pctx);
+s64 get_integer(Parse_Context* pctx);
 f64 get_float(Parse_Context* pctx);
 Typespec* get_type(Parse_Context* pctx);
 
-#define DEBUG_START //info("%s: %s", __func__, pctx->curr_tok.value);
+#define DEBUG_START info("%s: %s", __func__, pctx->curr_tok.value);
 
 #define DEBUG_STATEMENT_START                                                                                          \
     info("%s: %s", __func__, pctx->curr_tok.value);                                                                    \
@@ -165,8 +168,6 @@ Typespec* get_type(Parse_Context* pctx);
 
 void give_type_to_all_nodes(Expr* expr)
 {
-    expr->type = get_inferred_type_of_expr(expr);
-    if (expr->type) warning("%s | %s", expr_to_str(expr), typespec_to_str(expr->type));
     switch(expr->kind)
     {
     case EXPR_MACRO:  give_type_to_all_nodes(expr->Macro.expr); break;
@@ -182,6 +183,10 @@ void give_type_to_all_nodes(Expr* expr)
         }
     } break;
     }
+
+    expr->type = get_inferred_type_of_expr(expr);
+    if (expr->type) 
+        warning("%s | %s", expr_to_str(expr), typespec_to_str(expr->type));
 }
 
 void parse(List* ast, char* source_file)
@@ -197,15 +202,16 @@ void parse(List* ast, char* source_file)
     generate_ast_from_tokens(ast, tokens);
 
     // Give each node a type
-    // LIST_FOREACH(ast) { 
-    //     Expr* expr = (Expr*)it->data; 
-    //     give_type_to_all_nodes(expr);
-    // 
+    LIST_FOREACH(ast) { 
+        Expr* expr = (Expr*)it->data; 
+        give_type_to_all_nodes(expr);
+    }
+    
 
     pop_timer();
 
     // print_tokens(tokens);
-    // print_ast(ast);
+    print_ast(ast);
 
     set_source_file(last_file);
     set_current_dir(last_dir);
@@ -323,7 +329,7 @@ Expr* parse_statement(Parse_Context* pctx)
     Expr* statement = NULL;
     switch (pctx->curr_tok.kind) {
     case TOKEN_IDENTIFIER: statement = parse_expression(pctx); break;
-    case TOKEN_RETURN: statement = parse_ret(pctx); break;
+    case TOKEN_RETURN: statement = parse_return(pctx); break;
     case TOKEN_OPEN_PAREN: statement = parse_parens(pctx); break;
     case TOKEN_OPEN_BRACE: statement = parse_block(pctx); break;
     case TOKEN_BREAK: statement = parse_break(pctx); break;
@@ -391,8 +397,7 @@ Expr* parse_while(Parse_Context* pctx)
 
     eat_kind(pctx, TOKEN_WHILE);
 
-    List* stmts = malloc(sizeof(List));
-    list_init(stmts);
+    List* stmts = make_list();
 
     char* begin = make_label();
     char* end = make_label();
@@ -403,7 +408,6 @@ Expr* parse_while(Parse_Context* pctx)
     Expr* body = parse_block(pctx);
     RESTORE_JUMP_LABELS;
 
-    cond = make_expr_binary(TOKEN_EQ_EQ, cond, make_expr_int(0));
     list_append(stmts, make_expr_asm(strf("%s:", begin)));
     list_append(stmts, cond);
     list_append(stmts, make_expr_asm(strf("JE %s", end)));
@@ -419,9 +423,6 @@ Expr* parse_for(Parse_Context* pctx)
     DEBUG_START;
 
     eat_kind(pctx, TOKEN_FOR);
-
-    List* stmts = malloc(sizeof(List));
-    list_init(stmts);
 
     char* begin = make_label();
     char* mid = make_label();
@@ -443,15 +444,19 @@ Expr* parse_for(Parse_Context* pctx)
     Expr* body = parse_block(pctx);
     RESTORE_JUMP_LABELS;
 
-    Expr* cond = make_expr_binary(TOKEN_EQ_EQ,  make_expr_ident(iterator_name), end_expr);
- 
+    Expr* iterator = make_expr_ident(iterator_name);
+    Expr* cond = make_expr_binary(TOKEN_LT_EQ,  iterator, end_expr);
+    Expr* step = make_expr_binary(TOKEN_PLUS_EQ, iterator, make_expr_int(1));
+
+    List* stmts = make_list();
     list_append(stmts, variable);
     list_append(stmts, make_expr_asm(strf("%s:", begin)));
     list_append(stmts, cond);
-    list_append(stmts, make_expr_asm(strf("JE %s", end)));
+    list_append(stmts, iterator);
+    list_append(stmts, make_expr_asm(strf("JGE %s", end)));
     list_append(stmts, body);
     list_append(stmts, make_expr_asm(strf("%s:", mid)));
-    list_append(stmts, make_expr_binary(TOKEN_PLUS_EQ, make_expr_ident(iterator_name), make_expr_int(1)));
+    list_append(stmts, step);
     list_append(stmts, make_expr_asm(strf("JMP %s", begin)));
     list_append(stmts, make_expr_asm(strf("%s:", end)));
 
@@ -462,7 +467,6 @@ Expr* parse_defer(Parse_Context* pctx)
 {
     eat_kind(pctx, TOKEN_DEFER);
     Expr* block = parse_block(pctx);
-    warning("%s", expr_to_str(block));
     List* defers = GET_ACTIVE_FUNC->Function.defers;
     list_append(defers, block);
     return NULL;
@@ -474,8 +478,7 @@ Expr* parse_if(Parse_Context* pctx)
 
     eat_kind(pctx, TOKEN_IF);
 
-    List* stmts = malloc(sizeof(List));
-    list_init(stmts);
+    List* stmts = make_list();
 
     char* else_l = make_label();
     char* end_l = make_label();
@@ -511,8 +514,7 @@ Expr* parse_block(Parse_Context* pctx)
 {
     DEBUG_START;
 
-    List* stmts = malloc(sizeof(List));
-    list_init(stmts);
+    List* stmts = make_list();
 
     eat_kind(pctx, TOKEN_OPEN_BRACE);
     while (!tok_is(pctx, TOKEN_CLOSE_BRACE)) {
@@ -526,14 +528,12 @@ Expr* parse_block(Parse_Context* pctx)
     return make_expr_block(stmts);
 }
 
-Expr* parse_ret(Parse_Context* pctx)
+Expr* parse_return(Parse_Context* pctx)
 {
     DEBUG_START;
     eat_kind(pctx, TOKEN_RETURN);
 
-    List* stmts = malloc(sizeof(List));
-    list_init(stmts);
-
+    List* stmts = make_list();
     list_append(stmts, parse_expression(pctx));
     list_append(stmts, make_expr_asm("JMP .END"));
 
@@ -546,8 +546,7 @@ Expr* get_function_call(Parse_Context* pctx, char* ident)
 
     eat_kind(pctx, TOKEN_OPEN_PAREN);
 
-    List* args = malloc(sizeof(List));
-    list_init(args);
+    List* args = make_list();
 
     bool has_multiple_arguments = false;
     while (!tok_is(pctx, TOKEN_CLOSE_PAREN)) {
@@ -604,7 +603,7 @@ Expr* parse_binary(Parse_Context* pctx, int expr_prec, Expr* lhs)
 
     // If this is a binop, find its precedence.
     while (1) {
-        i32 tok_prec = get_tok_precedence(pctx);
+        s32 tok_prec = get_tok_precedence(pctx);
 
         // If this is a binop that binds at least as tightly as the current
         // binop, consume it, otherwise we are done.
@@ -625,7 +624,7 @@ Expr* parse_binary(Parse_Context* pctx, int expr_prec, Expr* lhs)
         }
         // If BinOp binds less tightly with rhs than the operator after rhs, let
         // the pending operator take rhs as its lhs.
-        i32 next_prec = get_tok_precedence(pctx);
+        s32 next_prec = get_tok_precedence(pctx);
         if (tok_prec < next_prec) {
             rhs = parse_binary(pctx, tok_prec + 1, rhs);
 
@@ -648,7 +647,7 @@ Expr* read_subscript_expr(Parse_Context* pctx, Expr* expr)
     Expr* sub = parse_expression(pctx);
     if (!sub) error("subscription expected");
     eat_kind(pctx, TOKEN_CLOSE_BRACKET);
-    i64 size = get_size_of_underlying_typespec(get_inferred_type_of_expr(expr));
+    s64 size = get_size_of_underlying_typespec(get_inferred_type_of_expr(expr));
     sub = make_expr_binary(TOKEN_ASTERISK, make_expr_int(size), sub);
     Expr* t = make_expr_binary(TOKEN_PLUS, expr, sub);
     return make_expr_unary(THI_SYNTAX_POINTER, t);
@@ -740,11 +739,11 @@ Expr* parse_parens(Parse_Context* pctx)
 //                               Type Utilty Functions
 //------------------------------------------------------------------------------
 
-i64 get_integer(Parse_Context* pctx)
+s64 get_integer(Parse_Context* pctx)
 {
     DEBUG_START;
 
-    i64 value = 0;
+    s64 value = 0;
     switch (pctx->curr_tok.kind) {
     case TOKEN_CHAR: {
         char c = pctx->curr_tok.value[0];
@@ -829,7 +828,7 @@ Typespec* get_type(Parse_Context* pctx)
     } break;
     case TOKEN_OPEN_BRACKET: {
         eat_kind(pctx, TOKEN_OPEN_BRACKET);
-        i64 size = 0;
+        s64 size = 0;
         if (tok_is(pctx, TOKEN_INTEGER) || tok_is(pctx, TOKEN_HEX)) {
             size = get_integer(pctx);
         }
@@ -869,11 +868,10 @@ Typespec* parse_struct_signature(Parse_Context* pctx, char* struct_name)
     eat_kind(pctx, TOKEN_STRUCT);
     eat_kind(pctx, TOKEN_OPEN_BRACE);
 
-    List* members = malloc(sizeof(List));
-    list_init(members);
+    List* members = make_list();
 
     while (!tok_is(pctx, TOKEN_CLOSE_BRACE)) {
-        Arg* member = malloc(sizeof(Arg));
+        Arg* member = xmalloc(sizeof(Arg));
         member->name = pctx->curr_tok.value;
         eat_kind(pctx, TOKEN_IDENTIFIER);
         eat_kind(pctx, TOKEN_COLON);
@@ -891,14 +889,13 @@ Typespec* parse_function_signature(Parse_Context* pctx, char* func_name)
 
     eat_kind(pctx, TOKEN_OPEN_PAREN);
 
-    List* args = malloc(sizeof(List));
-    list_init(args);
+    List* args = make_list();
 
     bool has_multiple_arguments = false;
     while (!tok_is(pctx, TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(pctx, TOKEN_COMMA);
 
-        Arg* arg = malloc(sizeof(Arg));
+        Arg* arg = xmalloc(sizeof(Arg));
         arg->name = pctx->curr_tok.value;
         arg->type = NULL;
 
@@ -1007,7 +1004,7 @@ void skip_block(Parse_Context* pctx)
 {
     DEBUG_START;
     eat_kind(pctx, TOKEN_OPEN_BRACE);
-    i64 counter = 1;
+    s64 counter = 1;
     while (true) {
         eat(pctx);
         if (tok_is(pctx, TOKEN_OPEN_BRACE)) ++counter;

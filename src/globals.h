@@ -22,7 +22,7 @@ extern char* debug_warning_color;
 extern char* debug_error_color;
 
 extern bool detailed_print;
-extern List file_list;
+extern List* file_list;
 extern string* current_output;
 
 #define X64_ASM_OSX_STACK_PADDING 16

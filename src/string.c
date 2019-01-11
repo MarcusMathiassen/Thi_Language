@@ -2,7 +2,7 @@
 
 #include "typedefs.h"
 #include "list.h"
-#include "utility.h" // xmalloc, xrealloc, xstrlen
+#include "utility.h" // xmalloc, xrealloc
 #include <assert.h>  // assert
 #include <stdarg.h>  // va_list, va_start, va_end
 #include <stdio.h>   // printf, vprintf
@@ -13,7 +13,7 @@ string make_string(char* str)
 {
     assert(str);
     string s;
-    i64 str_len = strlen(str);
+    s64 str_len = strlen(str);
     s.c_str = xmalloc(str_len + 1);
     s.len = str_len;
     memcpy(s.c_str, str, str_len);
@@ -26,7 +26,7 @@ string make_string_f(char* fmt, ...)
     assert(fmt);
     va_list args;
     va_start(args, fmt);
-    i64 n = 1 + vsnprintf(0, 0, fmt, args);
+    s64 n = 1 + vsnprintf(0, 0, fmt, args);
     va_end(args);
 
     string s;
@@ -46,7 +46,7 @@ void append_string_f(string* s, char* fmt, ...)
     assert(fmt);
     va_list args;
     va_start(args, fmt);
-    i64 n = 1 + vsnprintf(0, 0, fmt, args);
+    s64 n = 1 + vsnprintf(0, 0, fmt, args);
     va_end(args);
 
     char* temp = xmalloc(n);
@@ -67,7 +67,7 @@ void append_string(string* s, char* str)
 {
     assert(s);
     assert(str);
-    i64 str_len = xstrlen(str);
+    s64 str_len = strlen(str);
     assert(str_len != 0);
     s->c_str = xrealloc(s->c_str, s->len + str_len + 1);
     memcpy(s->c_str + s->len, str, str_len);
@@ -83,20 +83,19 @@ void free_string(string* s) { free(s->c_str); }
 
 typedef struct Intern_Str
 {
-    i64 len;
+    s64 len;
     char* str;
 } Intern_Str;
 
 
 List* interns;
-i64 interns_mem_alloc_size = 0;
+s64 interns_mem_alloc_size = 0;
 void init_interns_list() { 
-    interns = malloc(sizeof(List));
-    list_init(interns); 
+    interns = make_list();
 }
 char* str_intern_range(char* start, char* end)
 {
-    i64 len = end - start;
+    s64 len = end - start;
     LIST_FOREACH(interns) {
         Intern_Str* intern = (Intern_Str*)it->data;
         if (intern->len == len && strncmp(intern->str, start, len) == 0) {
@@ -108,7 +107,7 @@ char* str_intern_range(char* start, char* end)
     memcpy(str, start, len);
     str[len] = 0;
 
-    Intern_Str* intern = malloc(sizeof(Intern_Str));
+    Intern_Str* intern = xmalloc(sizeof(Intern_Str));
     intern->len = len;
     intern->str = str;
     list_append(interns, intern);

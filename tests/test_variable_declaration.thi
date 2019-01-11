@@ -1,6 +1,6 @@
-main :: () -> i64 {
-    a: i32 = 1
-    b: i64
-    c: i32 = 3
-    ret a
+main :: () -> s64 {
+    a: s32 = 1
+    b: s64
+    c: s32 = 3
+    return a
 }

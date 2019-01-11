@@ -1,10 +1,10 @@
 GLFWvidmode :: struct {
-    width:        i32
-    height:       i32
-    red_bits:     i32
-    green_bits:   i32
-    blue_bits:    i32
-    refresh_rate: i32
+    width:        s32
+    height:       s32
+    red_bits:     s32
+    green_bits:   s32
+    blue_bits:    s32
+    refresh_rate: s32
 }
 
 GLFWgammaramp :: struct {
@@ -15,21 +15,21 @@ GLFWgammaramp :: struct {
 }
 
 GLFWimage :: struct {
-    width:  i32
-    height: i32
+    width:  s32
+    height: s32
     pixels: u8*
 }
 
-foreign glfwCreateWindow :: (i32, i32, i8*, void*, void*) -> void*
+foreign glfwCreateWindow :: (s32, s32, s8*, void*, void*) -> void*
 foreign glfwInit :: () -> bool
 foreign glfwTerminate :: ()
 
-foreign glfwGetVersion :: (i32*, i32*, i32*)
+foreign glfwGetVersion :: (s32*, s32*, s32*)
 
 foreign glfwGetPrimaryMonitor      :: () -> void
-foreign glfwGetMonitors            :: (i32*) -> void*
-foreign glfwGetMonitorPos          :: (void, i32*, i32*)
-foreign glfwGetMonitorPhysicalSize :: (void, i32*, i32*)
+foreign glfwGetMonitors            :: (s32*) -> void*
+foreign glfwGetMonitorPos          :: (void, s32*, s32*)
+foreign glfwGetMonitorPhysicalSize :: (void, s32*, s32*)
 
 foreign glfwGetVideoMode       :: (void) -> GLFWvidmode*
 
@@ -39,32 +39,32 @@ foreign glfwSetGammaRamp       :: (void, GLFWgammaramp*)
 
 foreign glfwDestroyWindow      :: (void*)
 
-foreign glfwWindowHint         :: (i32, i32)
+foreign glfwWindowHint         :: (s32, s32)
 foreign glfwDefaultWindowHints :: ()
 
 foreign glfwWindowShouldClose  :: (void*) -> bool
-foreign glfwSetWindowShouldClose ::  (void*, i32)
+foreign glfwSetWindowShouldClose ::  (void*, s32)
 
-foreign glfwSwapInterval       :: (i32)
+foreign glfwSwapInterval       :: (s32)
 foreign glfwSwapBuffers        :: (void*)
 
 foreign glfwMakeContextCurrent :: (void*)
 foreign glfwGetCurrentContext  :: () -> void*
-foreign glfwGetProcAddress     :: (i8*) -> void*
-foreign glfwExtensionSupported :: (i8*) -> i32
+foreign glfwGetProcAddress     :: (s8*) -> void*
+foreign glfwExtensionSupported :: (s8*) -> s32
 
-foreign glfwGetKey :: (void*, i32) -> i32
+foreign glfwGetKey :: (void*, s32) -> s32
 
-foreign glfwSetWindowTitle       :: (void*, i8*)
-foreign glfwSetWindowIcon        :: (void*, i32, GLFWimage*)
-foreign glfwSetWindowPos         :: (void*, i32, i32)
-foreign glfwSetWindowSizeLimits  :: (void*, i32, i32, i32, i32)
-foreign glfwSetWindowAspectRatio :: (void*, i32, i32)
-foreign glfwSetWindowSize        :: (void*, i32, i32)
-foreign glfwGetWindowPos         :: (void*, i32*, i32*)
-foreign glfwGetWindowSize        :: (void*, i32*, i32*)
-foreign glfwGetFramebufferSize   :: (void*, i32*, i32*)
-foreign glfwGetWindowFrameSize   :: (void*, i32*, i32*, i32*, i32*)
+foreign glfwSetWindowTitle       :: (void*, s8*)
+foreign glfwSetWindowIcon        :: (void*, s32, GLFWimage*)
+foreign glfwSetWindowPos         :: (void*, s32, s32)
+foreign glfwSetWindowSizeLimits  :: (void*, s32, s32, s32, s32)
+foreign glfwSetWindowAspectRatio :: (void*, s32, s32)
+foreign glfwSetWindowSize        :: (void*, s32, s32)
+foreign glfwGetWindowPos         :: (void*, s32*, s32*)
+foreign glfwGetWindowSize        :: (void*, s32*, s32*)
+foreign glfwGetFramebufferSize   :: (void*, s32*, s32*)
+foreign glfwGetWindowFrameSize   :: (void*, s32*, s32*, s32*, s32*)
 
 foreign glfwIconifyWindow  :: (void*)
 foreign glfwRestoreWindow  :: (void*)
@@ -74,8 +74,8 @@ foreign glfwHideWindow     :: (void*)
 foreign glfwFocusWindow    :: (void*)
 
 foreign glfwGetWindowMonitor     :: (void*)
-foreign glfwSetWindowMonitor     :: (void*, void, i32, i32, i32, i32, i32)
-foreign glfwGetWindowAttrib      :: (void*, i32) -> i32
+foreign glfwSetWindowMonitor     :: (void*, void, s32, s32, s32, s32, s32)
+foreign glfwGetWindowAttrib      :: (void*, s32) -> s32
 foreign glfwSetWindowUserPointer :: (void*, void*)
 foreign glfwGetWindowUserPointer :: (void*) -> void*
 
@@ -84,29 +84,29 @@ foreign glfwWaitEvents        :: ()
 foreign glfwWaitEventsTimeout :: (f64)
 foreign glfwPostEmptyEvent    :: ()
 
-foreign glfwGetInputMode :: (void*, i32) -> i32
-foreign glfwSetInputMode :: (void*, i32, i32)
+foreign glfwGetInputMode :: (void*, s32) -> s32
+foreign glfwSetInputMode :: (void*, s32, s32)
 
-foreign glfwGetMouseButton     :: (void*, i32) -> i32
+foreign glfwGetMouseButton     :: (void*, s32) -> s32
 foreign glfwGetCursorPos       :: (void*, f64*, f64*)
 foreign glfwSetCursorPos       :: (void*, f64, f64)
 
-foreign glfwCreateCursor         :: (GLFWimage*, i32, i32) -> void
+foreign glfwCreateCursor         :: (GLFWimage*, s32, s32) -> void
 foreign glfwDestroyCursor        :: (void)
 foreign glfwSetCursor            :: (void*, void)
-foreign glfwCreateStandardCursor :: (i32) -> void
+foreign glfwCreateStandardCursor :: (s32) -> void
 
-foreign glfwGetJoystickAxes    :: (i32, i32*) -> f32*
-foreign glfwGetJoystickButtons :: (i32, i32*) -> u8*
+foreign glfwGetJoystickAxes    :: (s32, s32*) -> f32*
+foreign glfwGetJoystickButtons :: (s32, s32*) -> u8*
 
-foreign glfwSetClipboardString :: (void*, i8*)
+foreign glfwSetClipboardString :: (void*, s8*)
 
 foreign glfwGetTime           :: () -> f64
 foreign glfwSetTime           :: (f64)
-foreign glfwGetTimerValue     :: () -> i64
-foreign glfwGetTimerFrequency :: () -> i64
+foreign glfwGetTimerValue     :: () -> s64
+foreign glfwGetTimerFrequency :: () -> s64
 
-foreign glfwGetRequiredInstanceExtensions ::  (u32*) -> i8*
+foreign glfwGetRequiredInstanceExtensions ::  (u32*) -> s8*
 
 
 #foreign glfwSetWindowIconifyCallback   :: (void*, Window_Iconify_Proc) -> Window_Iconify_Proc

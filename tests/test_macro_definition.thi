@@ -1,4 +1,4 @@
 NUMBER :: -2 + 3
-main :: () -> i32 {
-    ret NUMBER
+main :: () -> s32 {
+    return NUMBER
 }

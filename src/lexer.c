@@ -6,7 +6,7 @@
 #include "utility.h" // info, success, error, warning
 #include <assert.h>  // assert
 #include <ctype.h>   // isalnum, isdigit, isspace, isalpha
-#include <stdlib.h>  // malloc
+#include <stdlib.h>  // xmalloc
 #include <string.h>  // strncmp
 
 //------------------------------------------------------------------------------
@@ -19,7 +19,7 @@
 
 char* c = NULL;
 Token token;
-i64 line_count = 1;
+s64 line_count = 1;
 char* start_of_line = NULL;
 //------------------------------------------------------------------------------
 
@@ -40,8 +40,6 @@ typedef enum
     KEY_DEFER,
     KEY_FOREIGN,
     KEY_LOAD,
-    KEY_TRUE,
-    KEY_FALSE,
     KEY_CAST,
     KEY_SIZEOF,
     KEY_IF,
@@ -55,20 +53,18 @@ typedef enum
     KEY_CONTINUE,
 } Keyword_Kind;
 
-#define KEYWORD_COUNT 16
+#define KEYWORD_COUNT 14
 char* keywords_str[KEYWORD_COUNT] = {
     "defer", 
     "foreign", 
     "load", 
-    "true",   
-    "false", 
     "cast",   
     "sizeof",   
     "if",
     "else",    
     "for", 
     "while", 
-    "ret", 
+    "return", 
     "struct", 
     "enum",  
     "break",  
@@ -94,8 +90,7 @@ List* generate_tokens_from_source(char* source_file)
 {
     info("Generating Tokens from Source");
 
-    List* tokens = malloc(sizeof(List));
-    list_init(tokens);
+    List* tokens = make_list();
 
     char* source = get_file_content(source_file);
     char* dir = get_file_directory(source_file);
@@ -113,7 +108,7 @@ List* generate_tokens_from_source(char* source_file)
     while (token.kind != TOKEN_EOF) {
         get_token();
         print_token(token);
-        Token* t = malloc(sizeof(Token));
+        Token* t = xmalloc(sizeof(Token));
         t->kind = token.kind;
         t->value = token.value;
         list_append(tokens, t);
@@ -128,7 +123,7 @@ List* generate_tokens_from_source(char* source_file)
 //                               Private
 //------------------------------------------------------------------------------
 
-i64 get_line_pos() { return c - start_of_line + 1; }
+s64 get_line_pos() { return c - start_of_line + 1; }
 
 const char EOF = '\0';
 
@@ -186,13 +181,10 @@ int get_keyword_index(char* identifier)
 }
 Token_Kind get_identifier_kind(char* identifier)
 {
-
     switch (get_keyword_index(identifier)) {
     case KEY_DEFER: return TOKEN_DEFER;
     case KEY_FOREIGN: return TOKEN_FOREIGN;
     case KEY_LOAD: return TOKEN_LOAD;
-    case KEY_TRUE: return TOKEN_TRUE;
-    case KEY_FALSE: return TOKEN_FALSE;
     case KEY_CAST: return TOKEN_CAST;
     case KEY_SIZEOF: return TOKEN_SIZEOF;
     case KEY_IF: return TOKEN_IF;
@@ -490,10 +482,7 @@ char* token_kind_to_str(Token_Kind kind)
     case TOKEN_SIZEOF: return "sizeof";
     case TOKEN_LOAD: return "load";
     case TOKEN_FOREIGN: return "foreign";
-    case TOKEN_RETURN: return "ret";
-    case TOKEN_TRUE: return "true";
-    case TOKEN_FALSE: return "false";
-    case TOKEN_DEFER: return "defer";
+    case TOKEN_RETURN: return "return";
     case TOKEN_IF: return "if";
     case TOKEN_ELSE: return "else";
     case TOKEN_FOR: return "for";

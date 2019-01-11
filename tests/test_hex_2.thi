@@ -1,6 +1,6 @@
-main :: () -> i32 {
+main :: () -> s32 {
 
     i := 0x1
 
-    ret i
+    return i
 }

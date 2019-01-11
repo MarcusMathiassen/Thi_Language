@@ -1,6 +1,6 @@
-foreign putchar :: (i32) -> i32
+foreign putchar :: (s32) -> s32
 
-main :: () -> i32 {
+main :: () -> s32 {
 
     putchar(72)
     putchar(101)
@@ -17,5 +17,5 @@ main :: () -> i32 {
     putchar(33)
     putchar(10)
 
-    ret 1
+    return 1
 }

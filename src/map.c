@@ -9,7 +9,7 @@ u32 hash_it(char* str);
 
 typedef struct
 {
-    i32 id;
+    s32 id;
     float val;
 } Test_Type;
 
@@ -32,6 +32,7 @@ void map_tests(void)
     assert(((Test_Type*)map_get(&map, "t2"))->val == 6.41f);
 }
 
+
 void map_init(Map* map)
 {
     map->table_size = INITIAL_SIZE;
@@ -40,14 +41,21 @@ void map_init(Map* map)
     map->data = xcalloc(INITIAL_SIZE, sizeof(Map_Element));
 }
 
+Map* make_map()
+{
+    Map* m = xmalloc(sizeof(Map));
+    map_init(m);
+    return m;
+}
+
 // Add a pointer to the hashmap with some key
 int map_set(Map* map, char* key, void* value)
 {
     assert(map);
     assert(key);
 
-    i64 hash_val = hash_it(key);
-    for (i64 i = 0; i < map->size; ++i) {
+    s64 hash_val = hash_it(key);
+    for (s64 i = 0; i < map->size; ++i) {
         if (map->data[i].key == hash_val) {
             return MAP_EXISTS;
         }
@@ -69,8 +77,8 @@ void* map_get(Map* map, char* key)
 {
     assert(map);
     assert(key);
-    i64 hash_val = hash_it(key);
-    for (i64 i = 0; i < map->size; ++i) {
+    s64 hash_val = hash_it(key);
+    for (s64 i = 0; i < map->size; ++i) {
         if (map->data[i].key == hash_val) {
             return map->data[i].data;
         }
@@ -86,7 +94,7 @@ u32 hash_it(char* str)
 {
     assert(str);
     u32 hash = 5381;
-    i32 c;
+    s32 c;
     while ((c = *str++))
         hash = ((hash << 5) + hash) + c;
     return hash;

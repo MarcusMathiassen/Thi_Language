@@ -1,14 +1,14 @@
-main :: () -> i32 {
+main :: () -> s32 {
     if 0 > 1 {
         for k: 0 .. 10 {
             if k == 4 {
                 break
             }
         }
-        ret 1
+        return 1
     }
     if 2 == 1 {
-        ret 2
+        return 2
     }
-    ret 1
+    return 1
 }

@@ -3,7 +3,7 @@
 #include <assert.h> // assert
 #include <stdarg.h> // va_list, va_start, va_end
 #include <stdio.h>  // printf, vprintf
-#include <stdlib.h> // malloc
+#include <stdlib.h> // xmalloc
 #include <string.h> // memcpy
 #include <time.h>   // timeval
 #include <unistd.h>
@@ -68,9 +68,9 @@ char* get_file_path_from_directory(char* dir, char* filename)
     assert(dir);
     assert(filename);
     char strbuf[1000];
-    i64 d_len = strlen(dir);
-    i64 f_len = strlen(filename);
-    i64 len = d_len + f_len;
+    s64 d_len = strlen(dir);
+    s64 f_len = strlen(filename);
+    s64 len = d_len + f_len;
     assert(len < 1000);
     memcpy(strbuf, dir, d_len);              // copy dir into strbuf
     memcpy(strbuf + d_len, filename, f_len); // append filename
@@ -83,8 +83,8 @@ char* get_file_path_from_directory(char* dir, char* filename)
 char* get_file_extension(char* filename)
 {
     assert(filename);
-    i64 len = strlen(filename);
-    i64 i = 0;
+    s64 len = strlen(filename);
+    s64 i = 0;
     while (filename[len - (++i)] != '.')
         continue;
     ++len; // skip the '.'
@@ -97,7 +97,7 @@ char* get_file_extension(char* filename)
 char* get_file_directory(char* filename)
 {
     assert(filename);
-    i64 len = strlen(filename);
+    s64 len = strlen(filename);
     while (filename[--len] != '/')
         continue;
     ++len; // we preserve the '/'
@@ -109,8 +109,8 @@ char* get_file_directory(char* filename)
 char* get_file_name(char* filename)
 {
     assert(filename);
-    i64 len = strlen(filename);
-    i64 i = 0;
+    s64 len = strlen(filename);
+    s64 i = 0;
     while (filename[len - (++i)] != '/')
         continue;
     ++len; // skip the '/'
@@ -136,7 +136,7 @@ char* get_file_content(char* filename)
 {
     assert(filename);
     char* buffer = NULL;
-    i64 string_size, read_size;
+    s64 string_size, read_size;
     FILE* handler = fopen(filename, "r");
 
     if (handler) {
@@ -148,7 +148,7 @@ char* get_file_content(char* filename)
         rewind(handler);
 
         // Allocate a string that can hold it all
-        buffer = (char*)malloc(sizeof(char) * (string_size + 1));
+        buffer = (char*)xmalloc(sizeof(char) * (string_size + 1));
 
         // Read it all in one operation
         read_size = fread(buffer, sizeof(char), string_size, handler);
@@ -175,36 +175,30 @@ char* get_file_content(char* filename)
 //                               General Purpose
 //------------------------------------------------------------------------------
 
-void* xmalloc(i64 bytes)
+void* _malloc(s64 bytes, char* file, int line)
 {
     assert(bytes != 0);
     void* alloc = malloc(bytes);
-    if (!alloc) error("alloc failed");
+    if (!alloc) error("xmalloc(%lld) failed.\nfile: %s\nline:%s", bytes, file, line);
     return alloc;
 }
 
-void* xcalloc(i64 size, i64 bytes)
+void* _calloc(s64 size, s64 bytes, char* file, int line)
 {
     assert(size != 0);
     assert(bytes != 0);
     void* alloc = calloc(size, bytes);
-    if (!alloc) error("calloc failed");
+    if (!alloc) error("calloc(%lld, %lld) failed.\nfile: %s\nline:%s", size, bytes, file, line);
     return alloc;
 }
 
-void* xrealloc(void* ptr, i64 bytes)
+void* _realloc(void* ptr, s64 bytes, char* file, int line)
 {
     assert(ptr);
     assert(bytes != 0);
     void* alloc = realloc(ptr, bytes);
-    if (!alloc) error("realloc failed");
+    if (!alloc) error("xrealloc(%llu, %lld) failed.\nfile: %s\nline:%s", ptr, bytes, file, line);
     return alloc;
-}
-
-i64 xstrlen(char* str)
-{
-    assert(str);
-    return str ? strlen(str) : 0;
 }
 
 char* strf(char* fmt, ...)
@@ -212,7 +206,7 @@ char* strf(char* fmt, ...)
     assert(fmt);
     va_list args;
     va_start(args, fmt);
-    i64 n = 1 + vsnprintf(0, 0, fmt, args);
+    s64 n = 1 + vsnprintf(0, 0, fmt, args);
     va_end(args);
 
     char* str = xmalloc(n);

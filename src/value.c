@@ -16,7 +16,7 @@
 //                               Public
 //------------------------------------------------------------------------------
 
-i64 get_size_of_value(Value* value)
+s64 get_size_of_value(Value* value)
 {
     assert(value);
     switch (value->kind) {
@@ -43,7 +43,7 @@ Value* make_value(Value_Kind kind)
     return v;
 }
 
-Value* make_value_load_inst(Value* variable, i64 offset)
+Value* make_value_load_inst(Value* variable, s64 offset)
 {
     assert(variable);
     Value* v = make_value(VALUE_LOAD_INST);
@@ -53,7 +53,7 @@ Value* make_value_load_inst(Value* variable, i64 offset)
     return v;
 }
 
-Value* make_value_store_inst(Value* variable, i64 offset)
+Value* make_value_store_inst(Value* variable, s64 offset)
 {
     assert(variable);
     Value* v = make_value(VALUE_STORE_INST);
@@ -63,7 +63,7 @@ Value* make_value_store_inst(Value* variable, i64 offset)
     return v;
 }
 
-Value* make_value_int(u8 bytes, Typespec* type, i64 value)
+Value* make_value_int(u8 bytes, Typespec* type, s64 value)
 {
     assert(bytes > 0 && bytes < 9);
     assert(type);
@@ -85,7 +85,7 @@ Value* make_value_string(char* value, Typespec* type)
     return v;
 }
 
-Value* make_value_variable(char* name, Typespec* type, i64 stack_pos)
+Value* make_value_variable(char* name, Typespec* type, s64 stack_pos)
 {
     assert(name);
     assert(type);
@@ -122,7 +122,7 @@ Value* make_value_function(Typespec* type)
 //                               Value Helper Functions
 //------------------------------------------------------------------------------
 
-i64 get_stack_pos_of_variable(Value* variable)
+s64 get_stack_pos_of_variable(Value* variable)
 {
     switch (variable->kind) {
     case VALUE_LOAD_INST: return get_stack_pos_of_variable(variable->LoadInst.variable);
@@ -135,11 +135,9 @@ i64 get_stack_pos_of_variable(Value* variable)
 //                               Scope
 //------------------------------------------------------------------------------
 
-Scope* make_scope(i64 pre_allocated_variable_count)
+Scope* make_scope()
 {
     Scope* s = xmalloc(sizeof(Scope));
-    s->local_variables = xmalloc(sizeof(Value*) * pre_allocated_variable_count);
-    s->count = 0;
-    s->alloc_count = pre_allocated_variable_count;
+    s->local_variables = make_list();
     return s;
 }

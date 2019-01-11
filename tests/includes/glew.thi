@@ -1,9 +1,9 @@
-foreign glewInit :: () -> i32
-foreign glewIsSupported :: (i8*) -> bool
+foreign glewInit :: () -> s32
+foreign glewIsSupported :: (s8*) -> bool
 
-foreign glewGetExtension :: (i8*) -> bool
-foreign glewGetErrorString :: (i32) -> u8*
-foreign glewGetString :: (i32) -> u8*
+foreign glewGetExtension :: (s8*) -> bool
+foreign glewGetErrorString :: (s32) -> u8*
+foreign glewGetString :: (s32) -> u8*
 
 GLEW_OK :: 0
 GLEW_NO_ERROR :: 0

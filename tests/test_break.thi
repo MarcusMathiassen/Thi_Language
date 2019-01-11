@@ -1,4 +1,4 @@
-main :: () -> i32 {
+main :: () -> s32 {
 
     k := 0
     while 1 {
@@ -6,5 +6,5 @@ main :: () -> i32 {
         k += 1
     }
 
-    ret k - 2
+    return k - 2
 }

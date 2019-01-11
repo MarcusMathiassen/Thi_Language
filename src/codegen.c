@@ -5,7 +5,7 @@
 #include "lexer.h" // token_kind_to_str
 #include "list.h"
 #include "register.h"
-#include "string.h"          // string
+#include "string.h" // string
 #include "typedefs.h"
 #include "utility.h" // error warning info, etc
 #include "value.h"   // Value, Scope
@@ -13,15 +13,16 @@
 #include <stdarg.h>  // va_list, va_start, va_end
 #include <stdio.h>   //
 #include <string.h>  // strncat,
-#include <stdlib.h>  // free, malloc
+#include <stdlib.h>  // free, xmalloc
 
 Typespec* integer_literal_type = NULL;
 Context ctx;
 string section_text, section_data;
 Stack scope_stack;
 
-Value* codegen_expr(Expr* expr);
+#define DEBUG_START(expr) info("%s: %s", __func__, wrap_with_colored_parens(expr_to_str(expr)));
 
+Value* codegen_expr(Expr* expr);
 static int label_counter = 0;
 static void reset_label_counter()
 {
@@ -36,7 +37,7 @@ void emit_no_tab(char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    i64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
+    s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
     va_end(args);
     char* str = xmalloc(str_len);
 
@@ -52,7 +53,7 @@ void emit_data(char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    i64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
+    s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
     va_end(args);
     char* str = xmalloc(str_len);
 
@@ -67,7 +68,7 @@ void emit(char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    i64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
+    s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
     va_end(args);
     char* str = xmalloc(str_len);
 
@@ -103,10 +104,10 @@ void pop(int reg)
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
     emit("POP %s", get_reg(reg));
     ctx.stack_index -= 8;
-    // assert(ctx.stack_index >= 0);
+    assert(ctx.stack_index >= 0);
 }
 
-char* get_op_size(i8 bytes)
+char* get_op_size(s8 bytes)
 {
     switch (bytes) {
     case 1: return "BYTE";
@@ -117,58 +118,45 @@ char* get_op_size(i8 bytes)
     }
     return NULL;
 }
-
-void push_scope()
-{
-    Scope* new_scope = make_scope(10);
-    stack_push(&scope_stack, new_scope);
-}
-
 void alloc_variable(Value* variable)
 {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
-    i64 size = get_size_of_value(variable);
+    s64 size = get_size_of_value(variable);
     info("Allocating variable '%s' of size %lld", variable->Variable.name, size);
     ctx.stack_index += size;
 }
-
 void dealloc_variable(Value* variable)
 {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
-    i64 size = get_size_of_value(variable);
+    s64 size = get_size_of_value(variable);
     info("Deallocating variable '%s' of size %lld", variable->Variable.name, size);
     ctx.stack_index -= size;
     assert(ctx.stack_index >= 0);
 }
-
+void push_scope() 
+{
+    Scope* new_scope = make_scope();
+    stack_push(&scope_stack, new_scope);
+}
 void pop_scope()
 {
-    // stack_pop(&scope_stack);
     Scope* scope = (Scope*)stack_pop(&scope_stack);
-    for (i64 i = 0; i < scope->count; ++i) {
-        dealloc_variable(scope->local_variables[i]);
+    LIST_FOREACH(scope->local_variables) {
+        Value* v = (Value*)it->data;
+        dealloc_variable(v);
     }
-}
-
-void append_variable_to_scope(Scope* s, Value* value)
-{
-    assert(s);
-    assert(value);
-    if (s->alloc_count < s->count + 1) {
-        s->alloc_count += 1;
-        s->local_variables = xrealloc(s->local_variables, sizeof(Value*) * s->alloc_count);
-    }
-    s->local_variables[s->count++] = value;
 }
 
 void print_scope(Scope* scope)
 {
-    info("Scope count %d", scope->count);
-    info("Scope alloc_count %d", scope->alloc_count);
-    for (i64 i = 0; i < scope->count; ++i) {
-        info("Scope index: %lld variable: %s", i, scope->local_variables[i]->Variable.name);
+    info("Scope count %d", scope->local_variables->count);
+    int index = 0;
+    LIST_FOREACH(scope->local_variables) {
+        Value* v = (Value*)it->data;
+        info("Scope index: %lld variable: %s", index, v->Variable.name);
+        index += 1;
     }
 }
 
@@ -177,49 +165,16 @@ Value* get_variable_in_scope(Scope* scope, char* name)
 {
     assert(scope);
     assert(name);
-    i64 variable_count = scope->count;
-    for (i64 i = 0; i < variable_count; ++i) {
-        Value* v = scope->local_variables[i];
-        warning("v... %s", v->Variable.name);
+    LIST_FOREACH(scope->local_variables) {
+        Value* v = (Value*)it->data;
         if (v->Variable.name == name) return v;
     }
     return NULL;
 }
 
-void add_variable_to_scope(Scope* scope, Value* variable)
-{
-    assert(variable);
-    assert(variable->kind == VALUE_VARIABLE);
-
-    char* name = variable->Variable.name;
-
-    // Check for redeclaration
-    Value* res = get_variable_in_scope(scope, name);
-    if (res) error("variable %s already exists in current scope.", name);
-
-    // info("Added variable %s", name);
-    append_variable_to_scope(scope, variable);
-    // print_scope(scope);
-}
-
-void remove_variable_in_scope(Scope* scope, char* name)
-{
-    Value* v = get_variable_in_scope(scope, name);
-    if (v) {
-        info("removing value: %s", name);
-        // Swap this element with the last element;
-        Value* temp = scope->local_variables[scope->count];
-        scope->local_variables[scope->count] = v;
-        v = temp;
-        free(v);
-        --scope->count;
-        return;
-    }
-    error("Trying to remove unknown variable: %s", name);
-}
-
 Value* get_variable(char* name)
 {
+    assert(name);
     STACK_FOREACH(scope_stack)
     {
         Scope* scope = (Scope*)it->data;
@@ -237,17 +192,7 @@ void add_variable(Value* variable)
     alloc_variable(variable);
     info("Adding variable: '%s' to scope", variable->Variable.name);
     Scope* top = (Scope*)stack_peek(&scope_stack);
-    add_variable_to_scope(top, variable);
-}
-
-void remove_variable(Value* variable)
-{
-    STACK_FOREACH(scope_stack)
-    {
-        Scope* scope = (Scope*)it->data;
-        remove_variable_in_scope(scope, variable->Variable.name);
-        return;
-    }
+    list_append(top->local_variables, variable);
 }
 
 int align(int n, int m) {
@@ -258,21 +203,14 @@ void emit_store(Value* variable)
 {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
-    i64 stack_pos = get_stack_pos_of_variable(variable);
-    switch (variable->type->kind)
-    {
-        // case TYPESPEC_POINTER:
-        // case TYPESPEC_ARRAY: {
-        //     emit("MOV [RAX], RCX; store");
-        // } break;
-        default: emit("MOV [RBP-%lld], RAX; store", stack_pos); break;
-    }
+    s64 stack_pos = get_stack_pos_of_variable(variable);
+    emit("MOV [RBP-%lld], RAX; store", stack_pos);
 }
 void emit_load(Value* variable)
 {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
-    i64 stack_pos = get_stack_pos_of_variable(variable);
+    s64 stack_pos = get_stack_pos_of_variable(variable);
     switch (variable->type->kind)
     { 
     case TYPESPEC_POINTER:
@@ -287,15 +225,17 @@ void emit_load(Value* variable)
 
 Value* codegen_int(Expr* expr)
 {
+    DEBUG_START(expr);
     assert(expr->kind == EXPR_INT);
     Value* val = make_value_int(DEFAULT_INTEGER_BYTE_SIZE, integer_literal_type, expr->Int.val);
-    i32 reg_n = get_rax_reg_of_byte_size(get_size_of_value(val));
+    s32 reg_n = get_rax_reg_of_byte_size(get_size_of_value(val));
     emit("MOV %s, %d", get_reg(reg_n), val->Int.value);
     return val;
 }
 
 Value* codegen_block(Expr* expr)
 {
+    DEBUG_START(expr);
     push_scope();
     List* stmts = expr->Block.stmts;
     Value* last = NULL;
@@ -309,11 +249,12 @@ Value* codegen_block(Expr* expr)
 
 Value* codegen_unary(Expr* expr)
 {
+    DEBUG_START(expr);
     Token_Kind op = expr->Unary.op;
     Expr* operand = expr->Unary.operand;
 
     Value* operand_val = codegen_expr(operand);
-    i32 reg_n = get_rax_reg_of_byte_size(get_size_of_value(operand_val));
+    s32 reg_n = get_rax_reg_of_byte_size(get_size_of_value(operand_val));
     Value* result = operand_val;
 
     char* reg = get_reg(reg_n);
@@ -321,7 +262,7 @@ Value* codegen_unary(Expr* expr)
     switch (op) {
     case THI_SYNTAX_ADDRESS: {
         // Operand must be an identifier
-        i64 stack_pos = get_stack_pos_of_variable(operand_val);
+        s64 stack_pos = get_stack_pos_of_variable(operand_val);
         emit("LEA RAX, [RSP-%lld]; addrsof", stack_pos);
     } break;
     case THI_SYNTAX_POINTER: {
@@ -357,6 +298,7 @@ Value* codegen_unary(Expr* expr)
 
 Value* codegen_binary(Expr* expr)
 {
+    DEBUG_START(expr);
     Token_Kind op = expr->Binary.op;
     Expr* lhs = expr->Binary.lhs;
     Expr* rhs = expr->Binary.rhs;
@@ -374,14 +316,14 @@ Value* codegen_binary(Expr* expr)
     case THI_SYNTAX_ASSIGNMENT: {
         codegen_expr(rhs);
         Value* variable;
-        push(RAX);
+        // push(RAX);
         if (lhs->kind == EXPR_UNARY) { 
             variable = codegen_expr(lhs->Unary.operand);
         } else {
             assert(lhs->kind == EXPR_IDENT);
             variable = get_variable(lhs->Ident.name);
         }
-        pop(RAX);
+        // pop(RAX); 
         emit_store(variable);
         return variable;
     }
@@ -478,55 +420,29 @@ Value* codegen_binary(Expr* expr)
         return v;
     }
 
-    case TOKEN_LT: {
+    case TOKEN_LT: // FALLTHROUGH
+    case TOKEN_GT: // FALLTHROUGH
+    case TOKEN_LT_EQ: // FALLTHROUGH
+    case TOKEN_GT_EQ: // FALLTHROUGH
+    case TOKEN_EQ_EQ: // FALLTHROUGH
+    case TOKEN_BANG_EQ:
+    {
         Value* lhs_v = codegen_expr(lhs);
         push(RAX);
         codegen_expr(rhs);
         pop(RCX);
         emit("CMP RCX, RAX");
-        emit("SETL AL");
+        switch (op) {
+            case TOKEN_LT: emit("SETL AL"); break;
+            case TOKEN_GT: emit("SETG AL"); break;
+            case TOKEN_LT_EQ: emit("SETLE AL"); break;
+            case TOKEN_GT_EQ: emit("SETGE AL"); break;
+            case TOKEN_EQ_EQ: emit("SETE AL"); break;
+            case TOKEN_BANG_EQ: emit("SETNE AL"); break;
+        }
         return lhs_v;
-    }
+    } break;
 
-    case TOKEN_GT: {
-        Value* lhs_v = codegen_expr(lhs);
-        push(RAX);
-        codegen_expr(rhs);
-        pop(RCX);
-        emit("CMP RCX, RAX");
-        emit("SETG AL");
-        return lhs_v;
-    }
-
-    case TOKEN_LT_EQ: {
-        Value* lhs_v = codegen_expr(lhs);
-        push(RAX);
-        codegen_expr(rhs);
-        pop(RCX);
-        emit("CMP RCX, RAX");
-        emit("SETLE AL");
-        return lhs_v;
-    }
-
-    case TOKEN_GT_EQ: {
-        Value* lhs_v = codegen_expr(lhs);
-        push(RAX);
-        codegen_expr(rhs);
-        pop(RCX);
-        emit("CMP RCX, RAX");
-        emit("SETGE AL");
-        return lhs_v;
-    }
-
-    case TOKEN_EQ_EQ: {
-        Value* lhs_v = codegen_expr(lhs);
-        push(RAX);
-        codegen_expr(rhs);
-        pop(RCX);
-        emit("CMP RCX, RAX");
-        emit("SETE AL");
-        return lhs_v;
-    }
     case TOKEN_LT_LT_EQ: {
         rhs = make_expr_binary(TOKEN_LT_LT, lhs, rhs);
         expr = make_expr_unary(TOKEN_EQ, rhs);
@@ -536,12 +452,6 @@ Value* codegen_binary(Expr* expr)
     case TOKEN_GT_GT_EQ: {
         rhs = make_expr_binary(TOKEN_GT_GT, lhs, rhs);
         expr = make_expr_unary(TOKEN_EQ, rhs);
-        Value* variable = codegen_expr(expr);
-        return variable;
-    }
-    case TOKEN_BANG_EQ: {
-        rhs = make_expr_binary(TOKEN_EQ_EQ, lhs, rhs);
-        expr = make_expr_unary(TOKEN_BANG, rhs);
         Value* variable = codegen_expr(expr);
         return variable;
     }
@@ -612,14 +522,15 @@ Value* codegen_binary(Expr* expr)
 
 Value* codegen_variable_decl(Expr* expr)
 {
+    DEBUG_START(expr);
     assert(expr);
     assert(expr->kind == EXPR_VARIABLE_DECL);
     char* name = expr->Variable_Decl.name;
     Typespec* type = expr->Variable_Decl.type;
     Expr* assignment_expr = expr->Variable_Decl.value;
 
-    i64 type_size = get_size_of_typespec(type);
-    i64 stack_pos = type_size + ctx.stack_index;
+    s64 type_size = get_size_of_typespec(type);
+    s64 stack_pos = type_size + ctx.stack_index;
 
     Value* variable = make_value_variable(name, type, stack_pos);
     add_variable(variable);
@@ -635,14 +546,15 @@ Value* codegen_variable_decl(Expr* expr)
 
 Value* codegen_call(Expr* expr)
 {
+    DEBUG_START(expr);
     char* callee = expr->Call.callee;
     List* args = expr->Call.args;
 
     Typespec* func_t = get_symbol(callee);
 
     // push the arguments in reverse order onto the stack
-    i32 func_arg_count = typespec_function_get_arg_count(func_t);
-    i32 arg_count = args->count;
+    s32 func_arg_count = typespec_function_get_arg_count(func_t);
+    s32 arg_count = args->count;
 
     if (func_arg_count != arg_count) error("wrong amount of parameters for call to function '%s'", callee);
 
@@ -672,12 +584,14 @@ Value* codegen_call(Expr* expr)
 
 Value* codegen_macro(Expr* expr)
 {
+    DEBUG_START(expr);
     assert(expr->kind == EXPR_MACRO);
     return NULL;
 }
 
 Value* codegen_ident(Expr* expr)
 {
+    DEBUG_START(expr);
     char* name = expr->Ident.name;
     Expr* macro_expr = get_macro_def(name);
     if (macro_expr) {
@@ -690,6 +604,7 @@ Value* codegen_ident(Expr* expr)
 
 Value* codegen_string(Expr* expr)
 {
+    DEBUG_START(expr);
     assert(expr->kind == EXPR_STRING);
     char* val = expr->String.val;
     Typespec* t = make_typespec_pointer(make_typespec_int(8,1));
@@ -701,10 +616,11 @@ Value* codegen_string(Expr* expr)
 
 Value* codegen_note(Expr* expr)
 {
+    DEBUG_START(expr);
     assert(expr->kind == EXPR_NOTE);
     Expr* int_expr = expr->Note.expr;
     assert(int_expr->kind == EXPR_INT);
-    i32 integer_value = int_expr->Int.val;
+    s32 integer_value = int_expr->Int.val;
     if (integer_value < 1) error("note parameters start at 1.");
     char* name = ((Arg*)list_at(ctx.current_function->type->Function.args, integer_value - 1))->name;
     Value* var = get_variable(name);
@@ -714,14 +630,15 @@ Value* codegen_note(Expr* expr)
 
 Value* codegen_struct(Expr* expr)
 {
+    DEBUG_START(expr);
     assert(expr->kind == EXPR_STRUCT);
     warning("struct incomplete?");
     return NULL;
 }
 
-i64 get_all_alloca_in_block(Expr* block)
+s64 get_all_alloca_in_block(Expr* block)
 {
-    i64 sum = 0;
+    s64 sum = 0;
     List* stmts = block->Block.stmts;
     LIST_FOREACH(stmts) {
         Expr* stmt = (Expr*)it->data;
@@ -736,6 +653,7 @@ i64 get_all_alloca_in_block(Expr* block)
 
 Value* codegen_function(Expr* expr)
 {
+    DEBUG_START(expr);
     assert(expr);
     assert(expr->kind == EXPR_FUNCTION);
 
@@ -752,12 +670,13 @@ Value* codegen_function(Expr* expr)
     push(RBP);
     emit("MOV RBP, RSP");
 
+
     // Sum the params
-    i64 sum = get_size_of_typespec(expr->Function.type);
+    s64 sum = get_size_of_typespec(expr->Function.type);
 
     sum += get_all_alloca_in_block(func_body);
 
-    i64 stack_allocated = sum;
+    s64 stack_allocated = sum;
     int padding = (X64_ASM_OSX_STACK_PADDING - (stack_allocated % X64_ASM_OSX_STACK_PADDING)) % X64_ASM_OSX_STACK_PADDING;
     if (stack_allocated + padding)
         emit("SUB RSP, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);
@@ -767,12 +686,12 @@ Value* codegen_function(Expr* expr)
     ctx.stack_index = 0;
 
     List* args = func_type->Function.args;
-    i64 i = 0;
+    s64 i = 0;
     LIST_FOREACH(args) {
         Arg* arg = (Arg*)it->data;
 
-        i64 size = get_size_of_typespec(arg->type);
-        i64 stack_pos = ctx.stack_index + size;
+        s64 size = get_size_of_typespec(arg->type);
+        s64 stack_pos = ctx.stack_index + size;
         Value* var = make_value_variable(arg->name, arg->type, stack_pos);
         add_variable(var);
 
@@ -807,7 +726,7 @@ Value* codegen_function(Expr* expr)
 // @Hotpath
 Value* codegen_expr(Expr* expr)
 {
-    info("Generating code for: %s", wrap_with_colored_parens(expr_to_str(expr)));
+    // DEBUG_START(expr);
     switch (expr->kind) {
     case EXPR_ASM: emit("%s", expr->Asm.str); return NULL;
     case EXPR_MACRO: return codegen_macro(expr);

@@ -58,7 +58,7 @@ typedef struct
 } AST_Block;
 typedef struct
 {
-    i64 val;
+    s64 val;
 } AST_Int;
 typedef struct
 {
@@ -133,7 +133,7 @@ Expr* make_expr_asm(char* name);
 
 Expr* make_expr_macro(char* name, Expr* expr);
 Expr* make_expr_note(Expr* expr);
-Expr* make_expr_int(i64 value);
+Expr* make_expr_int(s64 value);
 Expr* make_expr_float(f64 value);
 Expr* make_expr_string(char* value);
 Expr* make_expr_ident(char* ident);

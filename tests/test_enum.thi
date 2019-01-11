@@ -3,6 +3,6 @@ DeviceType :: enum {
     CPU
 }
 
-main :: () -> i32 {
-    ret 1
+main :: () -> s32 {
+    return 1
 }

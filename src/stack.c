@@ -4,6 +4,13 @@
 #include <assert.h>
 #include <stdlib.h> // free
 
+Stack* make_stack()
+{
+    Stack* s = xmalloc(sizeof(Stack));
+    stack_init(s);
+    return s;
+}
+
 void stack_init(Stack* stack) { stack->head = NULL; }
 void stack_free(Stack* stack)
 {
@@ -12,7 +19,7 @@ void stack_free(Stack* stack)
 }
 typedef struct
 {
-    i32 id;
+    s32 id;
     float val;
 } Test_Type;
 
@@ -29,7 +36,10 @@ void stack_tests(void)
     t2.val = 6.41f;
 
     stack_push(&test_stack, &t1);
+    assert(((Test_Type*)stack_peek(&test_stack))->id == 0);
     stack_push(&test_stack, &t2);
+    assert(((Test_Type*)stack_peek(&test_stack))->id == 1);
+
     assert(((Test_Type*)stack_pop(&test_stack))->val == 6.41f);
     assert(((Test_Type*)stack_pop(&test_stack))->val == 3.43f);
     assert((Test_Type*)stack_pop(&test_stack) == NULL);

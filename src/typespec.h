@@ -12,21 +12,21 @@ typedef struct Typespec Typespec;
 typedef struct Arg Arg;
 typedef enum Typespec_Kind Typespec_Kind;
 
-i64 get_size_of_underlying_typespec(Typespec* type);
-i64 get_size_of_typespec(Typespec* Typespec);
+s64 get_size_of_underlying_typespec(Typespec* type);
+s64 get_size_of_typespec(Typespec* Typespec);
 char* typespec_to_str(Typespec* type);
 
-Typespec* make_typespec_int(i8 bits, bool is_unsigned);
-Typespec* make_typespec_float(i8 bits);
-Typespec* make_typespec_string(i64 len);
+Typespec* make_typespec_int(s8 bits, bool is_unsigned);
+Typespec* make_typespec_float(s8 bits);
+Typespec* make_typespec_string(s64 len);
 Typespec* make_typespec_pointer(Typespec* pointee);
-Typespec* make_typespec_array(Typespec* type, i32 size);
+Typespec* make_typespec_array(Typespec* type, s32 size);
 Typespec* make_typespec_struct(char* name, List* members);
 Typespec* make_typespec_enum(char* name, List* members);
 Typespec* make_typespec_function(char* name, List* args, Typespec* ret_type);
 
-i64 typespec_function_get_arg_count(Typespec* type);
-i64 typespec_array_get_count(Typespec* type);
+s64 typespec_function_get_arg_count(Typespec* type);
+s64 typespec_array_get_count(Typespec* type);
 
 enum Typespec_Kind
 {
@@ -53,16 +53,16 @@ struct Typespec
     union {
         struct
         {
-            i8 bits;
-            i8 is_unsigned;
+            s8 bits;
+            s8 is_unsigned;
         } Int;
         struct
         {
-            i8 bits;
+            s8 bits;
         } Float;
         struct
         {
-            i64 len;
+            s64 len;
         } String;
         struct
         {
@@ -71,7 +71,7 @@ struct Typespec
         struct
         {
             Typespec* type;
-            i32 size;
+            s32 size;
         } Array;
         struct
         {

@@ -1,6 +1,6 @@
-main :: () -> i32 {
-    a: i32
-    b: i64
-    c: i32
-    ret 1
+main :: () -> s32 {
+    a: s32
+    b: s64
+    c: s32
+    return 1
 }

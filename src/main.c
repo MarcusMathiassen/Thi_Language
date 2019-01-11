@@ -55,17 +55,10 @@ int main(int argc, char** argv)
     // Setup types
     add_builtin_type("void", make_typespec_int(8, true));
 
-    add_builtin_type("bool", make_typespec_int(8, true));
-
-    add_builtin_type("char", make_typespec_int(8, true));
-    add_builtin_type("int", make_typespec_int(32, false));
-    add_builtin_type("float", make_typespec_float(32));
-    add_builtin_type("double", make_typespec_float(64));
-
-    add_builtin_type("i8", make_typespec_int(8, false));
-    add_builtin_type("i16", make_typespec_int(16, false));
-    add_builtin_type("i32", make_typespec_int(32, false));
-    add_builtin_type("i64", make_typespec_int(64, false));
+    add_builtin_type("s8", make_typespec_int(8, false));
+    add_builtin_type("s16", make_typespec_int(16, false));
+    add_builtin_type("s32", make_typespec_int(32, false));
+    add_builtin_type("s64", make_typespec_int(64, false));
 
     add_builtin_type("u8", make_typespec_int(8, true));
     add_builtin_type("u16", make_typespec_int(16, true));

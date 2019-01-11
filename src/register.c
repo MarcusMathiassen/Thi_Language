@@ -19,8 +19,8 @@ int get_num_registers() { return REG_COUNT; }
 char* get_reg(int reg_n) { return reg[reg_n]; }
 char* get_reg_fitting_value(Value* value)
 {
-    i64 size = get_size_of_value(value);
-    i64 reg_n = get_rax_reg_of_byte_size(size);
+    s64 size = get_size_of_value(value);
+    s64 reg_n = get_rax_reg_of_byte_size(size);
     return reg[reg_n];
 }
 
@@ -36,7 +36,7 @@ int get_rax_reg_of_byte_size(u8 bytes)
     return RAX;
 }
 
-int get_parameter_reg(i8 i, i8 size)
+int get_parameter_reg(s8 i, s8 size)
 {
     switch (i) {
     case 0:
@@ -86,9 +86,9 @@ int get_parameter_reg(i8 i, i8 size)
     return -1; // to silence warning
 };
 
-int get_next_available_reg(Context* ctx, i8 size)
+int get_next_available_reg(Context* ctx, s8 size)
 {
-    i32 res = -1;
+    s32 res = -1;
     switch (ctx->next_available_reg_index) {
     case 0:
         switch (size) {
@@ -149,7 +149,7 @@ int get_next_available_reg(Context* ctx, i8 size)
     return res;
 };
 
-int get_reg_as_another_size(int reg, i8 size)
+int get_reg_as_another_size(int reg, s8 size)
 {
     switch (reg) {
     case R10:

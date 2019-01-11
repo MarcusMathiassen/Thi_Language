@@ -14,9 +14,6 @@ typedef enum
 
     TOKEN_IDENTIFIER,
 
-    TOKEN_TRUE,
-    TOKEN_FALSE,
-
     TOKEN_CAST,
     TOKEN_SIZEOF,
 

@@ -1,7 +1,14 @@
 #include "list.h"
 #include "utility.h" // error, xmalloc
 #include <assert.h>
-#include <stdlib.h> // malloc
+#include <stdlib.h> // xmalloc
+
+List* make_list()
+{
+    List* l = xmalloc(sizeof(List));
+    list_init(l);
+    return l;
+}
 
 void list_init(List* list)
 {
@@ -63,7 +70,7 @@ void list_append_content_of(List* list, List* other_list)
     LIST_FOREACH(other_list) { list_append(list, it->data); }
 }
 
-void* list_remove(List* list, i64 index)
+void* list_remove(List* list, s64 index)
 {
     assert(list);
     assert(index >= 0);
@@ -73,7 +80,7 @@ void* list_remove(List* list, i64 index)
         // free(list->head);
         return list->head->data;
     }
-    i64 iterator = 0;
+    s64 iterator = 0;
     List_Node* current = list->head;
     List_Node* prev = current;
     while (current->next != NULL && iterator != index) {
@@ -89,11 +96,11 @@ void* list_remove(List* list, i64 index)
     return current->data;
 }
 
-void* list_at(List* list, i64 index)
+void* list_at(List* list, s64 index)
 {
     assert(list);
     assert(index >= 0);
-    i64 iterator = 0;
+    s64 iterator = 0;
     List_Node* current = list->head;
     while (current->next != NULL && iterator != index) {
         ++iterator;

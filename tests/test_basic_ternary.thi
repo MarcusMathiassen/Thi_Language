@@ -1,5 +1,5 @@
-main :: () -> i32 {
-    i: i32
+main :: () -> s32 {
+    i: s32
     i = (4 == 5) ? 0 : 1
-    ret i
+    return i
 }

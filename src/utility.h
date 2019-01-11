@@ -25,10 +25,13 @@ void write_to_file(char* filename, char* buffer);
 //------------------------------------------------------------------------------
 //                               General Purpose
 //------------------------------------------------------------------------------
-void* xmalloc(i64 bytes);
-void* xcalloc(i64 size, i64 bytes);
-void* xrealloc(void* ptr, i64 bytes);
-i64 xstrlen(char* str);
+void* _malloc(s64 bytes, char* file, int line);
+void* _calloc(s64 size, s64 bytes, char* file, int line);
+void* _realloc(void* ptr, s64 bytes, char* file, int line);
+
+#define xmalloc(bytes) _malloc(bytes, __FILE__, __LINE__)
+#define xrealloc(ptr, bytes) _realloc(ptr, bytes, __FILE__, __LINE__)
+#define xcalloc(size, bytes) _calloc(size, bytes, __FILE__, __LINE__)
 
 char* strf(char* fmt, ...);
 

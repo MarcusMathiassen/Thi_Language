@@ -2,6 +2,7 @@
 #define VALUES_H
 
 #include "string.h"   // string
+#include "list.h"   // list
 #include "typespec.h" // Typespec
 
 typedef struct Value Value;
@@ -26,29 +27,29 @@ enum Value_Kind
 typedef struct
 {
     char* name;
-    i64 stack_pos;
+    s64 stack_pos;
 } Value_Variable;
 
 typedef struct
 {
     char* name;
-    i64 stack_allocated;
+    s64 stack_allocated;
 } Value_Function;
 
 typedef struct
 {
     u8 bytes;
-    i64 value;
+    s64 value;
 } Value_Int;
 typedef struct
 {
     u8 bytes;
-    i64 value;
+    s64 value;
 } Value_Pointer;
 typedef struct
 {
     char* value;
-    i64 len;
+    s64 len;
 } Value_String;
 typedef struct
 {
@@ -57,12 +58,12 @@ typedef struct
 typedef struct
 {
     Value* variable;
-    i64 offset;
+    s64 offset;
 } Value_LoadInst;
 typedef struct
 {
     Value* variable;
-    i64 offset;
+    s64 offset;
 } Value_StoreInst;
 
 struct Value
@@ -81,29 +82,23 @@ struct Value
     };
 };
 
-Value* make_value_load_inst(Value* variable, i64 offset);
-Value* make_value_store_inst(Value* variable, i64 offset);
+Value* make_value_load_inst(Value* variable, s64 offset);
+Value* make_value_store_inst(Value* variable, s64 offset);
 
-Value* make_value_int(u8 bytes, Typespec* type, i64 value);
-Value* make_value_pointer(i64 stack_pos, Value* pointee);
+Value* make_value_int(u8 bytes, Typespec* type, s64 value);
+Value* make_value_pointer(s64 stack_pos, Value* pointee);
 Value* make_value_string(char* value, Typespec* type);
-Value* make_value_variable(char* name, Typespec* type, i64 stack_pos);
+Value* make_value_variable(char* name, Typespec* type, s64 stack_pos);
 Value* make_value_call(char* callee, Typespec* type);
 Value* make_value_function(Typespec* type);
 
-i64 get_size_of_value(Value* value);
-i64 get_stack_pos_of_variable(Value* variable);
+s64 get_size_of_value(Value* value);
+s64 get_stack_pos_of_variable(Value* variable);
 
 //------------------------------------------------------------------------------
 //                               Scope
 //------------------------------------------------------------------------------
-typedef struct
-{
-    Value** local_variables;
-    i64 count;
-    i64 alloc_count;
-} Scope;
-
-Scope* make_scope(i64 pre_allocated_variable_count);
+typedef struct { List* local_variables; } Scope;
+Scope* make_scope();
 
 #endif

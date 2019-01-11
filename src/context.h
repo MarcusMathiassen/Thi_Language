@@ -16,11 +16,11 @@ struct Context
 
     Stack stack;
 
-    i64 stack_index;
+    s64 stack_index;
 
     // Label information
-    i64 total_label_counter;
-    i64 current_label_counter;
+    s64 total_label_counter;
+    s64 current_label_counter;
 
     char* temp_label0;
     char* temp_label1;
@@ -28,7 +28,7 @@ struct Context
     char* label_continue_to;
     char* label_break_to;
 
-    i32 next_available_reg_index;
+    s32 next_available_reg_index;
 };
 
 void ctx_tests(void);
