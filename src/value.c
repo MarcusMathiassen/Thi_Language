@@ -1,6 +1,6 @@
 #include "value.h"
-#include "globals.h"         // current_output
-#include "register.h"        // error, xmallox
+#include "globals.h"  // current_output
+#include "register.h" // error, xmallox
 #include "typedefs.h"
 #include "utility.h" // error, xmallox
 #include <assert.h>  // assert

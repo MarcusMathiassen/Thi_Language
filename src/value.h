@@ -1,8 +1,8 @@
 #ifndef VALUES_H
 #define VALUES_H
 
+#include "list.h"     // list
 #include "string.h"   // string
-#include "list.h"   // list
 #include "typespec.h" // Typespec
 
 typedef struct Value Value;
@@ -98,7 +98,10 @@ s64 get_stack_pos_of_variable(Value* variable);
 //------------------------------------------------------------------------------
 //                               Scope
 //------------------------------------------------------------------------------
-typedef struct { List* local_variables; } Scope;
+typedef struct
+{
+    List* local_variables;
+} Scope;
 Scope* make_scope();
 
 #endif

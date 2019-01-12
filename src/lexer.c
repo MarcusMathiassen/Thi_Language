@@ -1,7 +1,7 @@
 #include "lexer.h"
 
-#include "globals.h"         // get_source_file
-#include "string.h"          // str_intern_range
+#include "globals.h" // get_source_file
+#include "string.h"  // str_intern_range
 #include "typedefs.h"
 #include "utility.h" // info, success, error, warning
 #include <assert.h>  // assert
@@ -55,20 +55,8 @@ typedef enum
 
 #define KEYWORD_COUNT 14
 char* keywords_str[KEYWORD_COUNT] = {
-    "defer", 
-    "foreign", 
-    "load", 
-    "cast",   
-    "sizeof",   
-    "if",
-    "else",    
-    "for", 
-    "while", 
-    "return", 
-    "struct", 
-    "enum",  
-    "break",  
-    "continue", 
+    "defer", "foreign", "load",   "cast",   "sizeof", "if",    "else",
+    "for",   "while",   "return", "struct", "enum",   "break", "continue",
 };
 
 //------------------------------------------------------------------------------
@@ -80,7 +68,8 @@ void print_token(Token token) { info("%s %s", token_kind_to_str(token.kind), tok
 void print_tokens(List* tokens)
 {
     info("Printing tokens..");
-    LIST_FOREACH(tokens) {
+    LIST_FOREACH(tokens)
+    {
         Token* t = (Token*)it->data;
         print_token(*t);
     }
@@ -101,7 +90,7 @@ List* generate_tokens_from_source(char* source_file)
     // 'c' represents the current character in the stream.
     // char* gets set to the start of the stream
     c = source;
-    start_of_line = c; 
+    start_of_line = c;
     token.kind = TOKEN_UNKNOWN;
 
     // Fill the tokens

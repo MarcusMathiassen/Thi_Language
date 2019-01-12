@@ -1,15 +1,15 @@
 #include "parser.h"
 
-#include "lexer.h"           // Token, Token_Kind
+#include "lexer.h"    // Token, Token_Kind
+#include "register.h" // get_reg, get_parameter_reg
 #include "string.h"
 #include "typedefs.h" // s32, s64, etc.
 #include "typespec.h" // Typespec
-#include "register.h" // get_reg, get_parameter_reg
 #include "utility.h"  // info, error, warning, success
 #include <assert.h>   // assert
 #include <ctype.h>    // atoll
-#include <string.h>   // strcmp
 #include <stdlib.h>   // xmalloc
+#include <string.h>   // strcmp
 
 #include "globals.h" // add_symbol
 
@@ -20,15 +20,15 @@ struct
     s32 p;
 } binop_precedence[BIN_OP_COUNT] = {
 
-    {TOKEN_PLUS_PLUS, 100},   // ++
-    {TOKEN_MINUS_MINUS, 100}, // --
+    {TOKEN_PLUS_PLUS, 100},    // ++
+    {TOKEN_MINUS_MINUS, 100},  // --
     {TOKEN_OPEN_BRACKET, 100}, // []
     {TOKEN_DOT, 100},          // .
     {TOKEN_OPEN_PAREN, 100},   // ()
-    {TOKEN_RIGHT_ARROW, 100},   // ->
+    {TOKEN_RIGHT_ARROW, 100},  // ->
 
-    {TOKEN_BANG, 85},     // !
-    {TOKEN_TILDE, 85},     // ~
+    {TOKEN_BANG, 85},         // !
+    {TOKEN_TILDE, 85},        // ~
     {THI_SYNTAX_POINTER, 85}, // @
     {THI_SYNTAX_ADDRESS, 85}, // &
 
@@ -39,8 +39,8 @@ struct
     {TOKEN_MINUS, 70}, // -
     {TOKEN_PLUS, 70},  // +
 
-    {TOKEN_LT_LT, 65},    // <<
-    {TOKEN_GT_GT, 65},    // >>
+    {TOKEN_LT_LT, 65}, // <<
+    {TOKEN_GT_GT, 65}, // >>
 
     {TOKEN_LT, 60},    // <
     {TOKEN_GT, 60},    // >
@@ -71,7 +71,7 @@ struct
     {TOKEN_HAT_EQ, 10},      // ^=
     {TOKEN_PIPE_EQ, 10},     // |=
 
-    {TOKEN_LT_LT_EQ, 10},  // <<=
+    {TOKEN_LT_LT_EQ, 10}, // <<=
     {TOKEN_GT_GT_EQ, 10}, // >>=
 };
 
@@ -151,16 +151,15 @@ Typespec* get_type(Parse_Context* pctx);
 #define SET_ACTIVE_FUNC(func) pctx->active_func = func
 #define GET_ACTIVE_FUNC pctx->active_func
 
-#define SET_JUMP_LABELS(cont, brk)\
-    pctx->ocontinue = pctx->lcontinue;\
-    pctx->obreak = pctx->lbreak; \
-    pctx->lcontinue = cont;\
+#define SET_JUMP_LABELS(cont, brk)                                                                                     \
+    pctx->ocontinue = pctx->lcontinue;                                                                                 \
+    pctx->obreak = pctx->lbreak;                                                                                       \
+    pctx->lcontinue = cont;                                                                                            \
     pctx->lbreak = brk;
 
-#define RESTORE_JUMP_LABELS \
-    pctx->lcontinue = pctx->ocontinue;\
+#define RESTORE_JUMP_LABELS                                                                                            \
+    pctx->lcontinue = pctx->ocontinue;                                                                                 \
     pctx->lbreak = pctx->obreak;
-
 
 //------------------------------------------------------------------------------
 //                               Public Functions
@@ -168,16 +167,19 @@ Typespec* get_type(Parse_Context* pctx);
 
 void give_type_to_all_nodes(Expr* expr)
 {
-    switch(expr->kind)
-    {
-    case EXPR_MACRO:  give_type_to_all_nodes(expr->Macro.expr); break;
-    case EXPR_NOTE:  give_type_to_all_nodes(expr->Note.expr); break;
-    case EXPR_UNARY:  give_type_to_all_nodes(expr->Unary.operand); break;
-    case EXPR_BINARY:  give_type_to_all_nodes(expr->Binary.lhs); give_type_to_all_nodes(expr->Binary.rhs); break;
-    case EXPR_GROUPING:  give_type_to_all_nodes(expr->Grouping.expr); break;
+    switch (expr->kind) {
+    case EXPR_MACRO: give_type_to_all_nodes(expr->Macro.expr); break;
+    case EXPR_NOTE: give_type_to_all_nodes(expr->Note.expr); break;
+    case EXPR_UNARY: give_type_to_all_nodes(expr->Unary.operand); break;
+    case EXPR_BINARY:
+        give_type_to_all_nodes(expr->Binary.lhs);
+        give_type_to_all_nodes(expr->Binary.rhs);
+        break;
+    case EXPR_GROUPING: give_type_to_all_nodes(expr->Grouping.expr); break;
     case EXPR_BLOCK: {
         List* stmts = expr->Block.stmts;
-        LIST_FOREACH(stmts) {
+        LIST_FOREACH(stmts)
+        {
             Expr* stmt = (Expr*)it->data;
             give_type_to_all_nodes(stmt);
         }
@@ -185,8 +187,7 @@ void give_type_to_all_nodes(Expr* expr)
     }
 
     expr->type = get_inferred_type_of_expr(expr);
-    if (expr->type) 
-        warning("%s | %s", expr_to_str(expr), typespec_to_str(expr->type));
+    if (expr->type) warning("%s | %s", expr_to_str(expr), typespec_to_str(expr->type));
 }
 
 void parse(List* ast, char* source_file)
@@ -202,11 +203,11 @@ void parse(List* ast, char* source_file)
     generate_ast_from_tokens(ast, tokens);
 
     // Give each node a type
-    LIST_FOREACH(ast) { 
-        Expr* expr = (Expr*)it->data; 
+    LIST_FOREACH(ast)
+    {
+        Expr* expr = (Expr*)it->data;
         give_type_to_all_nodes(expr);
     }
-    
 
     pop_timer();
 
@@ -293,14 +294,8 @@ void generate_symbol_table_from_tokens(List* ast, List* tokens)
 //------------------------------------------------------------------------------
 
 static int label_counter = 0;
-void reset_label_counter()
-{
-    label_counter = 0;
-}
-char* make_label()
-{
-    return strf(".L%d", label_counter++);
-}
+void reset_label_counter() { label_counter = 0; }
+char* make_label() { return strf(".L%d", label_counter++); }
 
 Expr* parse_top_level(Parse_Context* pctx)
 {
@@ -353,7 +348,7 @@ Expr* parse_primary(Parse_Context* pctx)
     case TOKEN_IDENTIFIER: return parse_identifier(pctx);
     case TOKEN_DOLLAR_SIGN: return parse_note(pctx);
     case TOKEN_CHAR: // fallthrough
-    case TOKEN_HEX: // fallthrough
+    case TOKEN_HEX:  // fallthrough
     case TOKEN_INTEGER: return parse_integer(pctx);
     case TOKEN_STRING: return parse_string(pctx);
     case TOKEN_OPEN_PAREN: return parse_parens(pctx);
@@ -436,7 +431,7 @@ Expr* parse_for(Parse_Context* pctx)
     Typespec* type = get_inferred_type_of_expr(start_expr);
     Expr* variable = make_expr_variable_decl(iterator_name, type, start_expr);
     add_symbol(iterator_name, type);
-    
+
     eat_kind(pctx, TOKEN_DOT_DOT);
     Expr* end_expr = parse_expression(pctx);
 
@@ -445,7 +440,7 @@ Expr* parse_for(Parse_Context* pctx)
     RESTORE_JUMP_LABELS;
 
     Expr* iterator = make_expr_ident(iterator_name);
-    Expr* cond = make_expr_binary(TOKEN_LT_EQ,  iterator, end_expr);
+    Expr* cond = make_expr_binary(TOKEN_LT_EQ, iterator, end_expr);
     Expr* step = make_expr_binary(TOKEN_PLUS_EQ, iterator, make_expr_int(1));
 
     List* stmts = make_list();
@@ -519,8 +514,8 @@ Expr* parse_block(Parse_Context* pctx)
     eat_kind(pctx, TOKEN_OPEN_BRACE);
     while (!tok_is(pctx, TOKEN_CLOSE_BRACE)) {
         Expr* stmt = parse_statement(pctx);
-        if (stmt) { 
-            list_append(stmts, stmt); 
+        if (stmt) {
+            list_append(stmts, stmt);
         }
     }
 
@@ -567,13 +562,12 @@ Expr* get_variable_declaration(Parse_Context* pctx, char* ident)
 {
     DEBUG_START;
 
-    char*       variable_name = ident;
-    Typespec*   variable_type = NULL;
-    Expr*       variable_value = NULL;
+    char* variable_name = ident;
+    Typespec* variable_type = NULL;
+    Expr* variable_value = NULL;
 
-    switch(pctx->curr_tok.kind) {
-    case TOKEN_COLON: 
-    {   
+    switch (pctx->curr_tok.kind) {
+    case TOKEN_COLON: {
         eat_kind(pctx, TOKEN_COLON);
         variable_type = get_type(pctx);
         if (tok_is(pctx, TOKEN_EQ)) {
@@ -581,8 +575,7 @@ Expr* get_variable_declaration(Parse_Context* pctx, char* ident)
             variable_value = parse_expression(pctx);
         }
     } break;
-    case TOKEN_COLON_EQ:
-    {
+    case TOKEN_COLON_EQ: {
         // We need to infer the type based on the assignment expr
         eat_kind(pctx, TOKEN_COLON_EQ);
         variable_value = parse_expression(pctx);
@@ -747,19 +740,19 @@ s64 get_integer(Parse_Context* pctx)
     switch (pctx->curr_tok.kind) {
     case TOKEN_CHAR: {
         char c = pctx->curr_tok.value[0];
-        if (c == '\\')
-        {
+        if (c == '\\') {
             char c = pctx->curr_tok.value[1];
-            switch (c)
-            {
-                case 'a':  value = 7; break;
-                case 'n':  value = 10; break;
-                case 't':  value = 9; break;
-                case '\\': value = 92; break;
-                case '\'': value =  27; break;
-                case '"':  value = 22; break;
+            switch (c) {
+            case 'a': value = 7; break;
+            case 'n': value = 10; break;
+            case 't': value = 9; break;
+            case '\\': value = 92; break;
+            case '\'': value = 27; break;
+            case '"': value = 22; break;
             }
-        } else value = c; break;
+        } else
+            value = c;
+        break;
     }
     case TOKEN_INTEGER: value = atoll(pctx->curr_tok.value); break;
     case TOKEN_HEX: value = strtoll(pctx->curr_tok.value, NULL, 0); break;
@@ -794,9 +787,7 @@ void skip_type(Parse_Context* pctx)
     } break;
     case TOKEN_OPEN_BRACKET: {
         eat_kind(pctx, TOKEN_OPEN_BRACKET);
-        if (tok_is(pctx, TOKEN_INTEGER) || 
-            tok_is(pctx, TOKEN_HEX) ||
-            tok_is(pctx, TOKEN_CHAR)) {
+        if (tok_is(pctx, TOKEN_INTEGER) || tok_is(pctx, TOKEN_HEX) || tok_is(pctx, TOKEN_CHAR)) {
             get_integer(pctx);
         }
         eat_kind(pctx, TOKEN_CLOSE_BRACKET);

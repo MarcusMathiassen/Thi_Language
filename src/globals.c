@@ -8,6 +8,8 @@
 #include <assert.h>  // assert
 
 bool detailed_print = true;
+bool should_constant_fold_binary_expressions = false;
+
 string* current_output;
 
 List* foreign_function_list;
@@ -95,14 +97,14 @@ void add_foreign_function(char* name, Typespec* type)
     list_append(foreign_function_list, type);
     info("added foreign function: '%s' of type '%s'", name, typespec_to_str(type));
 }
-List* get_foreign_function_list(void) { return  foreign_function_list; }
+List* get_foreign_function_list(void) { return foreign_function_list; }
 
 void add_constant_string(char* name)
 {
     assert(name);
     list_append(constant_string_list, name);
 }
-List* get_constant_string_list(void) { return  constant_string_list; }
+List* get_constant_string_list(void) { return constant_string_list; }
 
 void add_symbol(char* name, Typespec* type)
 {

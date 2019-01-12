@@ -1,9 +1,9 @@
 #include "typespec.h"
 
-#include "string.h"          // strf, append_string, string
-#include "utility.h"         // error
-#include <assert.h>          // assert
-#include <stdlib.h>          // xmalloc
+#include "string.h"  // strf, append_string, string
+#include "utility.h" // error
+#include <assert.h>  // assert
+#include <stdlib.h>  // xmalloc
 
 //------------------------------------------------------------------------------
 //                               typespec.c
@@ -41,14 +41,15 @@ s64 get_size_of_underlying_typespec(Typespec* type)
 s64 get_size_of_typespec(Typespec* type)
 {
     switch (type->kind) {
-    case TYPESPEC_INT: return type->Int.bits / 8;
-    case TYPESPEC_FLOAT: return type->Float.bits / 8;
+    case TYPESPEC_INT: return type->Int.bytes;
+    case TYPESPEC_FLOAT: return type->Float.bytes;
     case TYPESPEC_STRING: return type->String.len;
     case TYPESPEC_POINTER: return 8;
     case TYPESPEC_ARRAY: return get_size_of_typespec(type->Array.type) * type->Array.size;
     case TYPESPEC_STRUCT: {
         s64 accum_size = 0;
-        LIST_FOREACH(type->Struct.members) {
+        LIST_FOREACH(type->Struct.members)
+        {
             Arg* mem = (Arg*)it->data;
             accum_size += get_size_of_typespec(mem->type);
         }
@@ -56,7 +57,8 @@ s64 get_size_of_typespec(Typespec* type)
     }
     case TYPESPEC_FUNCTION: {
         s64 accum_size = 0;
-        LIST_FOREACH(type->Function.args) {
+        LIST_FOREACH(type->Function.args)
+        {
             Arg* arg = (Arg*)it->data;
             accum_size += get_size_of_typespec(arg->type);
         }
@@ -85,13 +87,14 @@ char* typespec_to_str(Typespec* type)
 {
     switch (type->kind) {
     case TYPESPEC_ARRAY: return strf("%s[%d]", typespec_to_str(type->Array.type), type->Array.size);
-    case TYPESPEC_INT: return strf(type->Int.is_unsigned ? "u%d" : "s%d", type->Int.bits);
+    case TYPESPEC_INT: return strf(type->Int.is_unsigned ? "u%d" : "s%d", type->Int.bytes * 8);
     case TYPESPEC_POINTER: return strf("%s*", typespec_to_str(type->Pointer.pointee));
-    case TYPESPEC_FLOAT: return strf("f%d", type->Float.bits);
+    case TYPESPEC_FLOAT: return strf("f%d", type->Float.bytes * 8);
     case TYPESPEC_STRING: return strf("\"\", %d", type->String.len);
     case TYPESPEC_STRUCT: {
         string str = make_string(strf("%s :: {\n", type->Struct.name));
-        LIST_FOREACH(type->Struct.members) {
+        LIST_FOREACH(type->Struct.members)
+        {
             Arg* mem = (Arg*)it->data;
             append_string(&str, strf("%s: %s", mem->name, typespec_to_str(mem->type)));
         }
@@ -100,7 +103,8 @@ char* typespec_to_str(Typespec* type)
     };
     case TYPESPEC_ENUM: {
         string str = make_string(strf("%s :: enum {", type->Enum.name));
-        LIST_FOREACH(type->Enum.members) {
+        LIST_FOREACH(type->Enum.members)
+        {
             char* mem = (char*)it->data;
             append_string(&str, strf("%s", mem));
         }
@@ -113,7 +117,8 @@ char* typespec_to_str(Typespec* type)
 
         s64 arg_count = type->Function.args->count;
         s64 arg_index = 0;
-        LIST_FOREACH(type->Function.args) {
+        LIST_FOREACH(type->Function.args)
+        {
             Arg* arg = (Arg*)it->data;
             if (arg->name)
                 append_string(&str, strf("%s: %s", arg->name, typespec_to_str(arg->type)));
@@ -154,21 +159,22 @@ Typespec* make_typespec_array(Typespec* type, s32 size)
     return t;
 }
 
-Typespec* make_typespec_int(s8 bits, bool is_unsigned)
+Typespec* make_typespec_int(s8 bytes, bool is_unsigned)
 {
-    assert(bits > 7 && bits < 65);
+    warning("%d", bytes);
+    assert(bytes > 0 && bytes < 9);
     assert(is_unsigned == 1 || is_unsigned == 0);
     Typespec* t = make_typespec(TYPESPEC_INT);
-    t->Int.bits = bits;
+    t->Int.bytes = bytes;
     t->Int.is_unsigned = is_unsigned;
     return t;
 }
 
-Typespec* make_typespec_float(s8 bits)
+Typespec* make_typespec_float(s8 bytes)
 {
-    assert(bits > 7 && bits < 65);
+    assert(bytes > 0 && bytes < 9);
     Typespec* t = make_typespec(TYPESPEC_FLOAT);
-    t->Float.bits = bits;
+    t->Float.bytes = bytes;
     return t;
 }
 

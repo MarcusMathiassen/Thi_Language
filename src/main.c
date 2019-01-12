@@ -53,19 +53,36 @@ int main(int argc, char** argv)
     info("Compiling %s", source_file);
 
     // Setup types
-    add_builtin_type("void", make_typespec_int(8, true));
+    Typespec* u8_t = make_typespec_int(1, true);
+    Typespec* u16_t = make_typespec_int(2, true);
+    Typespec* u32_t = make_typespec_int(4, true);
+    Typespec* u64_t = make_typespec_int(8, true);
 
-    add_builtin_type("s8", make_typespec_int(8, false));
-    add_builtin_type("s16", make_typespec_int(16, false));
-    add_builtin_type("s32", make_typespec_int(32, false));
-    add_builtin_type("s64", make_typespec_int(64, false));
+    Typespec* s8_t = make_typespec_int(1, false);
+    Typespec* s16_t = make_typespec_int(2, false);
+    Typespec* s32_t = make_typespec_int(4, false);
+    Typespec* s64_t = make_typespec_int(8, false);
 
-    add_builtin_type("u8", make_typespec_int(8, true));
-    add_builtin_type("u16", make_typespec_int(16, true));
-    add_builtin_type("u32", make_typespec_int(32, true));
-    add_builtin_type("u64", make_typespec_int(64, true));
-    add_builtin_type("f32", make_typespec_float(32));
-    add_builtin_type("f64", make_typespec_float(64));
+    Typespec* f32_t = make_typespec_float(4);
+    Typespec* f64_t = make_typespec_float(8);
+
+    add_builtin_type("void", u8_t);
+    
+    add_builtin_type("int", s32_t);
+    add_builtin_type("float", f32_t);
+    add_builtin_type("double", f32_t);
+    
+    add_builtin_type("s8", s8_t);
+    add_builtin_type("s16", s16_t);
+    add_builtin_type("s32", s32_t);
+    add_builtin_type("s64", s64_t);
+
+    add_builtin_type("u8", u8_t);
+    add_builtin_type("u16", u16_t);
+    add_builtin_type("u32", u32_t);
+    add_builtin_type("u64", u64_t);
+    add_builtin_type("f32", f32_t);
+    add_builtin_type("f64", f64_t);
 
     char* ext = get_file_extension(source_file);
     char* dir = get_file_directory(source_file);

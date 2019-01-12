@@ -1,7 +1,7 @@
 #include "string.h"
 
-#include "typedefs.h"
 #include "list.h"
+#include "typedefs.h"
 #include "utility.h" // xmalloc, xrealloc
 #include <assert.h>  // assert
 #include <stdarg.h>  // va_list, va_start, va_end
@@ -87,16 +87,14 @@ typedef struct Intern_Str
     char* str;
 } Intern_Str;
 
-
 List* interns;
 s64 interns_mem_alloc_size = 0;
-void init_interns_list() { 
-    interns = make_list();
-}
+void init_interns_list() { interns = make_list(); }
 char* str_intern_range(char* start, char* end)
 {
     s64 len = end - start;
-    LIST_FOREACH(interns) {
+    LIST_FOREACH(interns)
+    {
         Intern_Str* intern = (Intern_Str*)it->data;
         if (intern->len == len && strncmp(intern->str, start, len) == 0) {
             return intern->str;

@@ -21,17 +21,19 @@ extern char* debug_info_color;
 extern char* debug_warning_color;
 extern char* debug_error_color;
 
+extern bool should_constant_fold_binary_expressions;
 extern bool detailed_print;
 extern List* file_list;
 extern string* current_output;
 
 #define X64_ASM_OSX_STACK_PADDING 16
 
+
 #define DEFAULT_FUNCTION_ENTRY_LABEL_NAME ".BEGIN:"
 #define DEFAULT_FUNCTION_END_LABEL_NAME ".END:"
 
-#define DEFAULT_INTEGER_BYTE_SIZE 4
-#define DEFAULT_INTEGER_BIT_SIZE DEFAULT_INTEGER_BYTE_SIZE * 8
+#define DEFAULT_INT_BYTE_SIZE 8
+#define DEFAULT_FLOAT_BYTE_SIZE 4
 
 void set_source_file(char* file_name);
 char* get_previous_source_file(void);

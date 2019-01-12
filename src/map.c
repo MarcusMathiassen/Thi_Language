@@ -27,10 +27,10 @@ void map_tests(void)
 
     map_set(map, "t1", &t1);
     map_set(map, "t2", &t2);
+
     assert(((Test_Type*)map_get(map, "t1"))->val == 3.43f);
     assert(((Test_Type*)map_get(map, "t2"))->val == 6.41f);
 }
-
 
 void map_init(Map* map)
 {

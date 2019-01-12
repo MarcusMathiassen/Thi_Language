@@ -12,8 +12,8 @@
 #include <assert.h>  // assert
 #include <stdarg.h>  // va_list, va_start, va_end
 #include <stdio.h>   //
-#include <string.h>  // strncat,
 #include <stdlib.h>  // free, xmalloc
+#include <string.h>  // strncat,
 
 Typespec* integer_literal_type = NULL;
 Context ctx;
@@ -24,14 +24,8 @@ Stack scope_stack;
 
 Value* codegen_expr(Expr* expr);
 static int label_counter = 0;
-static void reset_label_counter()
-{
-    label_counter = 0;
-}
-static char* make_label()
-{
-    return strf("D%d", label_counter++);
-}
+static void reset_label_counter() { label_counter = 0; }
+static char* make_label() { return strf("D%d", label_counter++); }
 
 void emit_no_tab(char* fmt, ...)
 {
@@ -79,7 +73,7 @@ void emit(char* fmt, ...)
     bool is_label = false;
 
     for (int i = 0; i < str_len; ++i) {
-        if (str[i] == ':')  {
+        if (str[i] == ':') {
             is_label = true;
             break;
         }
@@ -87,7 +81,7 @@ void emit(char* fmt, ...)
 
     if (is_label)
         append_string(&section_text, strf("%s", str));
-    else 
+    else
         append_string(&section_text, strf("\t%s", str));
     append_string(&section_text, "\n");
 }
@@ -118,24 +112,27 @@ char* get_op_size(s8 bytes)
     }
     return NULL;
 }
+
 void alloc_variable(Value* variable)
 {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     s64 size = get_size_of_value(variable);
-    info("Allocating variable '%s' of size %lld", variable->Variable.name, size);
+    info("Allocating variable '%s', type '%s', size '%lld' ", variable->Variable.name, typespec_to_str(variable->type), size);
     ctx.stack_index += size;
 }
+
 void dealloc_variable(Value* variable)
 {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     s64 size = get_size_of_value(variable);
-    info("Deallocating variable '%s' of size %lld", variable->Variable.name, size);
+    info("Deallocating variable '%s', type '%s', size '%lld' ", variable->Variable.name, typespec_to_str(variable->type), size);
     ctx.stack_index -= size;
     assert(ctx.stack_index >= 0);
 }
-void push_scope() 
+
+void push_scope()
 {
     Scope* new_scope = make_scope();
     stack_push(&scope_stack, new_scope);
@@ -143,17 +140,18 @@ void push_scope()
 void pop_scope()
 {
     Scope* scope = (Scope*)stack_pop(&scope_stack);
-    LIST_FOREACH(scope->local_variables) {
+    LIST_FOREACH(scope->local_variables)
+    {
         Value* v = (Value*)it->data;
         dealloc_variable(v);
     }
 }
-
 void print_scope(Scope* scope)
 {
     info("Scope count %d", scope->local_variables->count);
     int index = 0;
-    LIST_FOREACH(scope->local_variables) {
+    LIST_FOREACH(scope->local_variables)
+    {
         Value* v = (Value*)it->data;
         info("Scope index: %lld variable: %s", index, v->Variable.name);
         index += 1;
@@ -165,7 +163,8 @@ Value* get_variable_in_scope(Scope* scope, char* name)
 {
     assert(scope);
     assert(name);
-    LIST_FOREACH(scope->local_variables) {
+    LIST_FOREACH(scope->local_variables)
+    {
         Value* v = (Value*)it->data;
         if (v->Variable.name == name) return v;
     }
@@ -195,9 +194,7 @@ void add_variable(Value* variable)
     list_append(top->local_variables, variable);
 }
 
-int align(int n, int m) {
-    return (m - (n % m)) % m;
-}
+int align(int n, int m) { return (m - (n % m)) % m; }
 
 void emit_store(Value* variable)
 {
@@ -206,20 +203,19 @@ void emit_store(Value* variable)
     s64 stack_pos = get_stack_pos_of_variable(variable);
     emit("MOV [RBP-%lld], RAX; store", stack_pos);
 }
+
 void emit_load(Value* variable)
 {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     s64 stack_pos = get_stack_pos_of_variable(variable);
-    switch (variable->type->kind)
-    { 
+    s64 size = get_size_of_value(variable);
+    char* reg = get_reg(get_rax_reg_of_byte_size(size));
+    char* mov_size = get_op_size(size);
+    switch (variable->type->kind) {
     case TYPESPEC_POINTER:
-    case TYPESPEC_ARRAY:
-        emit("LEA RAX, [RBP-%lld]; load", stack_pos);
-        break;
-    default: 
-        emit("MOV RAX, [RBP-%lld]; load", stack_pos);
-        break;
+    case TYPESPEC_ARRAY: emit("LEA RAX, [RBP-%lld]; load", stack_pos); break;
+    default: emit("MOV %s, %s [RBP-%lld]; load", reg, mov_size, stack_pos); break;
     }
 }
 
@@ -227,8 +223,8 @@ Value* codegen_int(Expr* expr)
 {
     DEBUG_START(expr);
     assert(expr->kind == EXPR_INT);
-    Value* val = make_value_int(DEFAULT_INTEGER_BYTE_SIZE, integer_literal_type, expr->Int.val);
-    s32 reg_n = get_rax_reg_of_byte_size(get_size_of_value(val));
+    Value* val = make_value_int(DEFAULT_INT_BYTE_SIZE, integer_literal_type, expr->Int.val);
+    s32 reg_n = get_rax_reg_of_byte_size(DEFAULT_INT_BYTE_SIZE);
     emit("MOV %s, %d", get_reg(reg_n), val->Int.value);
     return val;
 }
@@ -239,7 +235,8 @@ Value* codegen_block(Expr* expr)
     push_scope();
     List* stmts = expr->Block.stmts;
     Value* last = NULL;
-    LIST_FOREACH(stmts) {
+    LIST_FOREACH(stmts)
+    {
         Expr* stmt = (Expr*)it->data;
         last = codegen_expr(stmt);
     }
@@ -267,15 +264,13 @@ Value* codegen_unary(Expr* expr)
     } break;
     case THI_SYNTAX_POINTER: {
         assert(operand_val->kind == VALUE_VARIABLE);
-        assert( operand_val->type->kind == TYPESPEC_ARRAY ||
-                operand_val->type->kind == TYPESPEC_POINTER);
+        assert(operand_val->type->kind == TYPESPEC_ARRAY || operand_val->type->kind == TYPESPEC_POINTER);
         Typespec* t = operand_val->type->Array.type;
-        switch (t->kind)
-        {
-            case TYPESPEC_ARRAY:
-            case TYPESPEC_POINTER:
-            case TYPESPEC_STRING: emit("LEA RAX, [RAX]; deref"); break;
-            default: emit("MOV RAX, [RAX]; deref"); break;
+        switch (t->kind) {
+        case TYPESPEC_ARRAY:
+        case TYPESPEC_POINTER:
+        case TYPESPEC_STRING: emit("LEA RAX, [RAX]; deref"); break;
+        default: emit("MOV RAX, [RAX]; deref"); break;
         }
     } break;
     case TOKEN_BANG: {
@@ -299,6 +294,12 @@ Value* codegen_unary(Expr* expr)
 Value* codegen_binary(Expr* expr)
 {
     DEBUG_START(expr);
+
+    // // Constant folding
+    // expr = constant_fold_expr(expr);
+    // if (expr->kind == EXPR_INT) return codegen_expr(expr);
+
+
     Token_Kind op = expr->Binary.op;
     Expr* lhs = expr->Binary.lhs;
     Expr* rhs = expr->Binary.rhs;
@@ -317,13 +318,13 @@ Value* codegen_binary(Expr* expr)
         codegen_expr(rhs);
         Value* variable;
         // push(RAX);
-        if (lhs->kind == EXPR_UNARY) { 
+        if (lhs->kind == EXPR_UNARY) {
             variable = codegen_expr(lhs->Unary.operand);
         } else {
             assert(lhs->kind == EXPR_IDENT);
             variable = get_variable(lhs->Ident.name);
         }
-        // pop(RAX); 
+        // pop(RAX);
         emit_store(variable);
         return variable;
     }
@@ -420,25 +421,24 @@ Value* codegen_binary(Expr* expr)
         return v;
     }
 
-    case TOKEN_LT: // FALLTHROUGH
-    case TOKEN_GT: // FALLTHROUGH
+    case TOKEN_LT:    // FALLTHROUGH
+    case TOKEN_GT:    // FALLTHROUGH
     case TOKEN_LT_EQ: // FALLTHROUGH
     case TOKEN_GT_EQ: // FALLTHROUGH
     case TOKEN_EQ_EQ: // FALLTHROUGH
-    case TOKEN_BANG_EQ:
-    {
+    case TOKEN_BANG_EQ: {
         Value* lhs_v = codegen_expr(lhs);
         push(RAX);
         codegen_expr(rhs);
         pop(RCX);
         emit("CMP RCX, RAX");
         switch (op) {
-            case TOKEN_LT: emit("SETL AL"); break;
-            case TOKEN_GT: emit("SETG AL"); break;
-            case TOKEN_LT_EQ: emit("SETLE AL"); break;
-            case TOKEN_GT_EQ: emit("SETGE AL"); break;
-            case TOKEN_EQ_EQ: emit("SETE AL"); break;
-            case TOKEN_BANG_EQ: emit("SETNE AL"); break;
+        case TOKEN_LT: emit("SETL AL"); break;
+        case TOKEN_GT: emit("SETG AL"); break;
+        case TOKEN_LT_EQ: emit("SETLE AL"); break;
+        case TOKEN_GT_EQ: emit("SETGE AL"); break;
+        case TOKEN_EQ_EQ: emit("SETE AL"); break;
+        case TOKEN_BANG_EQ: emit("SETNE AL"); break;
         }
         return lhs_v;
     } break;
@@ -536,10 +536,8 @@ Value* codegen_variable_decl(Expr* expr)
     add_variable(variable);
 
     if (assignment_expr)
-    if (type->kind != TYPESPEC_ARRAY || 
-        type->kind != TYPESPEC_POINTER ||
-        type->kind != TYPESPEC_STRING)
-        codegen_expr(make_expr_binary(TOKEN_EQ, make_expr_ident(name), assignment_expr));
+        if (type->kind != TYPESPEC_ARRAY || type->kind != TYPESPEC_POINTER || type->kind != TYPESPEC_STRING)
+            codegen_expr(make_expr_binary(TOKEN_EQ, make_expr_ident(name), assignment_expr));
 
     return variable;
 }
@@ -558,22 +556,22 @@ Value* codegen_call(Expr* expr)
 
     if (func_arg_count != arg_count) error("wrong amount of parameters for call to function '%s'", callee);
 
-    LIST_FOREACH(args) {
+    LIST_FOREACH(args)
+    {
         Expr* arg = (Expr*)it->data;
         codegen_expr(arg);
         push(RAX);
     }
 
     // %rdi, %rsi, %rdx, %rcx, %r8 and %r9 is used.
-    for (int i = arg_count-1; i >= 0; --i) {
-        switch(i)
-        {
-            case 0: pop(RDI); break;
-            case 1: pop(RSI); break;
-            case 2: pop(RDX); break; 
-            case 3: pop(RCX); break;
-            case 4: pop(R8);  break;
-            case 5: pop(R9);  break;
+    for (int i = arg_count - 1; i >= 0; --i) {
+        switch (i) {
+        case 0: pop(RDI); break;
+        case 1: pop(RSI); break;
+        case 2: pop(RDX); break;
+        case 3: pop(RCX); break;
+        case 4: pop(R8); break;
+        case 5: pop(R9); break;
         }
     }
 
@@ -607,7 +605,7 @@ Value* codegen_string(Expr* expr)
     DEBUG_START(expr);
     assert(expr->kind == EXPR_STRING);
     char* val = expr->String.val;
-    Typespec* t = make_typespec_pointer(make_typespec_int(8,1));
+    Typespec* t = make_typespec_pointer(make_typespec_int(8, 1));
     char* slabel = make_label();
     emit_data("%s db `%s`, 0 ", slabel, val);
     emit("MOV RAX, %s; string_ref", slabel);
@@ -640,12 +638,12 @@ s64 get_all_alloca_in_block(Expr* block)
 {
     s64 sum = 0;
     List* stmts = block->Block.stmts;
-    LIST_FOREACH(stmts) {
+    LIST_FOREACH(stmts)
+    {
         Expr* stmt = (Expr*)it->data;
-        switch (stmt->kind)
-        {
-            case EXPR_VARIABLE_DECL: sum += get_size_of_typespec(stmt->Variable_Decl.type); break;
-            case EXPR_BLOCK: sum += get_all_alloca_in_block(stmt); break;
+        switch (stmt->kind) {
+        case EXPR_VARIABLE_DECL: sum += get_size_of_typespec(stmt->Variable_Decl.type); break;
+        case EXPR_BLOCK: sum += get_all_alloca_in_block(stmt); break;
         }
     }
     return sum;
@@ -670,14 +668,14 @@ Value* codegen_function(Expr* expr)
     push(RBP);
     emit("MOV RBP, RSP");
 
-
     // Sum the params
     s64 sum = get_size_of_typespec(expr->Function.type);
 
     sum += get_all_alloca_in_block(func_body);
 
     s64 stack_allocated = sum;
-    int padding = (X64_ASM_OSX_STACK_PADDING - (stack_allocated % X64_ASM_OSX_STACK_PADDING)) % X64_ASM_OSX_STACK_PADDING;
+    int padding =
+        (X64_ASM_OSX_STACK_PADDING - (stack_allocated % X64_ASM_OSX_STACK_PADDING)) % X64_ASM_OSX_STACK_PADDING;
     if (stack_allocated + padding)
         emit("SUB RSP, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);
 
@@ -687,7 +685,8 @@ Value* codegen_function(Expr* expr)
 
     List* args = func_type->Function.args;
     s64 i = 0;
-    LIST_FOREACH(args) {
+    LIST_FOREACH(args)
+    {
         Arg* arg = (Arg*)it->data;
 
         s64 size = get_size_of_typespec(arg->type);
@@ -706,7 +705,8 @@ Value* codegen_function(Expr* expr)
     emit(DEFAULT_FUNCTION_END_LABEL_NAME);
 
     List* defers = expr->Function.defers;
-    LIST_FOREACH(defers) {
+    LIST_FOREACH(defers)
+    {
         Expr* expr = (Expr*)it->data;
         codegen_expr(expr);
     }
@@ -721,7 +721,6 @@ Value* codegen_function(Expr* expr)
 
     return function;
 }
-
 
 // @Hotpath
 Value* codegen_expr(Expr* expr)
@@ -747,11 +746,11 @@ Value* codegen_expr(Expr* expr)
     return NULL;
 }
 
-char* generate_code_from_ast(List* ast)
+char* generate_code_from_ast(List* ast) 
 {
     info("Generating X64 Assembly from AST");
 
-    integer_literal_type = make_typespec_int(DEFAULT_INTEGER_BIT_SIZE, false);
+    integer_literal_type = make_typespec_int(DEFAULT_INT_BYTE_SIZE, false);
 
     ctx_init(&ctx);
     stack_init(&scope_stack);
