@@ -1,4 +1,5 @@
 #include "list.h"
+#include "stack.h"
 #include "utility.h" // error, xmalloc
 #include <assert.h>
 #include <stdlib.h> // xmalloc
@@ -26,8 +27,7 @@ typedef struct
 
 void list_tests(void)
 {
-    List list;
-    list_init(&list);
+    List* list = make_list();
 
     Test_Type t1;
     t1.name = "t1";
@@ -38,21 +38,21 @@ void list_tests(void)
     t2.val = 6.41f;
 
     // Append
-    list_append(&list, &t1);
-    list_append(&list, &t2);
+    list_append(list, &t1);
+    list_append(list, &t2);
 
     // At
-    assert(((Test_Type*)list_at(&list, 0))->val == 3.43f);
-    assert(((Test_Type*)list_last(&list))->val == 6.41f);
+    assert(((Test_Type*)list_at(list, 0))->val == 3.43f);
+    assert(((Test_Type*)list_last(list))->val == 6.41f);
 
     // // Prepend
-    list_prepend(&list, &t2);
-    assert(((Test_Type*)list_at(&list, 0))->val == 6.41f);
+    list_prepend(list, &t2);
+    assert(((Test_Type*)list_at(list, 0))->val == 6.41f);
 
     // Remove
-    list_remove(&list, 0);
-    assert(((Test_Type*)list_at(&list, 0))->val == 3.43f);
-    assert(((Test_Type*)list_at(&list, 1))->val == 6.41f);
+    list_remove(list, 0);
+    assert(((Test_Type*)list_at(list, 0))->val == 3.43f);
+    assert(((Test_Type*)list_at(list, 1))->val == 6.41f);
 
     // Uncomment to print the list
     // info("List count: %d", list.count);
@@ -64,9 +64,19 @@ void list_tests(void)
 }
 
 bool list_empty(List* list) { return list->count; }
+void list_append_content_of_in_reverse(List* list, List* other_list)
+{
+    assert(list);
+    assert(other_list);
+    Stack* s = make_stack();
+    LIST_FOREACH(other_list) { stack_push(s, it->data); }   
+    LIST_FOREACH(other_list) { list_append(list, stack_pop(s)); } 
+    stack_free(s);
+}
 void list_append_content_of(List* list, List* other_list)
 {
     assert(list);
+    assert(other_list);
     LIST_FOREACH(other_list) { list_append(list, it->data); }
 }
 

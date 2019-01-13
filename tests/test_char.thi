@@ -15,5 +15,5 @@ main :: () -> s32 {
     puts("Helloo")
 
 
-    return (2 << 4)
+    return 0
 }

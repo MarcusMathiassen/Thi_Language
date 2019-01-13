@@ -476,6 +476,7 @@ char* token_kind_to_str(Token_Kind kind)
     case TOKEN_ELSE: return "else";
     case TOKEN_FOR: return "for";
     case TOKEN_WHILE: return "while";
+    case TOKEN_DEFER: return "defer";
     case TOKEN_IDENTIFIER: return "identifier";
     case TOKEN_BREAK: return "break";
     case TOKEN_STRUCT: return "struct";

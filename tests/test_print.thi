@@ -1,4 +1,0 @@
-main :: ( ) -> s32 {
-    print 3
-    return 1
-}

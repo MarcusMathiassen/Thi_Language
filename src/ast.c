@@ -138,6 +138,9 @@ Expr* constant_fold_expr(Expr* expr)
     switch (expr->kind) {
     case EXPR_ASM: return expr;
     case EXPR_INT: return expr;
+    case EXPR_STRING: return expr;
+    case EXPR_FLOAT: return expr;
+    case EXPR_NOTE: return expr;
     case EXPR_MACRO: {
         expr->Macro.expr = constant_fold_expr(expr->Macro.expr);
     } break;

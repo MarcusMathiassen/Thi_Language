@@ -1,13 +1,8 @@
-foreign putchar::(s32)->s32
+foreign puts::(char*)->s32
 main :: () -> s32 {
-    i := 0
-    defer { 
-        i = 1 
-        putchar(66) 
-    }
-    
-    defer { putchar(67) }
-    i = 2
-    putchar(65)
-    return i
+    defer {puts("3rd")}
+    defer {puts("2nd")}
+    defer {puts("1st")}
+
+    return 1
 }

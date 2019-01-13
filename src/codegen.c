@@ -702,15 +702,6 @@ Value* codegen_function(Expr* expr)
 
     codegen_expr(func_body);
 
-    emit(DEFAULT_FUNCTION_END_LABEL_NAME);
-
-    List* defers = expr->Function.defers;
-    LIST_FOREACH(defers)
-    {
-        Expr* expr = (Expr*)it->data;
-        codegen_expr(expr);
-    }
-
     if (stack_allocated + padding)
         emit("ADD RSP, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);
 

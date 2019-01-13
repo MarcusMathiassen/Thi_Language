@@ -71,6 +71,7 @@ int main(int argc, char** argv)
 
     add_builtin_type("void", u8_t);
 
+    add_builtin_type("char", u8_t);
     add_builtin_type("int", s32_t);
     add_builtin_type("float", f32_t);
     add_builtin_type("double", f32_t);

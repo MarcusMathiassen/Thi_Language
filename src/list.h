@@ -27,6 +27,7 @@ void* list_last(List* list);
 void* list_first(List* list);
 void* list_at(List* list, s64 index);
 void list_append_content_of(List* list, List* other_list);
+void list_append_content_of_in_reverse(List* list, List* other_list);
 void* list_remove(List* list, s64 index);
 bool list_empty(List* list);
 

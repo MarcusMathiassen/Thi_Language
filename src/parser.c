@@ -936,6 +936,8 @@ Expr* get_definition(Parse_Context* pctx, char* ident)
         SET_ACTIVE_FUNC(func);
         Expr* body = parse_block(pctx);
         func->Function.body = body;
+        list_append(body->Block.stmts, make_expr_asm(DEFAULT_FUNCTION_END_LABEL_NAME));
+        list_append_content_of_in_reverse(body->Block.stmts, func->Function.defers); 
         reset_label_counter();
         return func;
     }
