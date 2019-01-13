@@ -8,7 +8,7 @@
 #include <assert.h>  // assert
 
 bool detailed_print = true;
-bool enable_constant_folding = true;
+bool enable_constant_folding = false;
 
 string* current_output;
 

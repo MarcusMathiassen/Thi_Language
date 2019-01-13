@@ -360,7 +360,7 @@ Value* codegen_binary(Expr* expr)
         return rhs_v;
     }
     case TOKEN_PERCENT: {
-        expr = make_expr_binary(TOKEN_FWSLASH, rhs, lhs);
+        expr = make_expr_binary(TOKEN_FWSLASH, lhs, rhs);
         Value* variable = codegen_expr(expr);
         emit("MOV RAX, RDX");
         return variable;
