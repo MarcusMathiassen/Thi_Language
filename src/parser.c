@@ -503,7 +503,9 @@ Expr* parse_sizeof(Parse_Context* pctx)
 {
     DEBUG_START;
     eat_kind(pctx, TOKEN_SIZEOF);
+    eat_kind(pctx, TOKEN_OPEN_PAREN);
     Typespec* t = get_type(pctx);
+    eat_kind(pctx, TOKEN_CLOSE_PAREN);
     s64 size = get_size_of_typespec(t);
     return make_expr_int(size);
 }

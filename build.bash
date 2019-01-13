@@ -13,7 +13,7 @@ echo Compilation finished. Time taken: $((end-start)) seconds
 
 if [ $? == 0 ]; then
     # ./test.bash
-    ./test.bash ./tests/test_sizeof.thi
+    # ./test.bash ./tests/test_sizeof.thi
     # ./test.bash ./tests/test_basic_array.thi
     # ./test.bash ./tests/test_array.thi
     # ./test.bash ./tests/test_tilde.thi
@@ -40,7 +40,7 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_using_unnamed_parameter.thi
     # ./test.bash ./tests/test_function_call.thi
     # ./test.bash ./tests/test_array.thi
-    # ./test.bash ./tests/test_array_2d.thi
+    ./test.bash ./tests/test_array_2d.thi
     # ./test.bash ./tests/test_variable_assignment.thi
     # ./test.bash ./tests/test_variable_declaration.thi
     # ./test.bash ./tests/test_variable_typedefered.thi

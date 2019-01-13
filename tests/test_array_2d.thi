@@ -1,8 +1,9 @@
 foreign malloc :: (u64) -> u8*
 
-main :: () -> s32 { 
-    a: s32** = malloc(8*3)
-    a[2] = malloc(8*3)
-    a[2][2] = 1
-    return a[2][2]
+main :: () -> int { 
+    alloc_size : int = sizeof(int*) * 3
+    a: int** = malloc(alloc_size)
+    a[0] = malloc(alloc_size)
+    a[0][0] = 1
+    return a[0][0]
 }
