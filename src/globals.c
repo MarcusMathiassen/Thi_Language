@@ -7,8 +7,10 @@
 #include "utility.h" // warning, error, xmalloc
 #include <assert.h>  // assert
 
-bool detailed_print = true;
-bool enable_constant_folding = false;
+bool detailed_print = false;
+bool debug_mode = false;
+bool enable_constant_folding = true;
+bool optimize = true;
 
 string* current_output;
 
@@ -25,10 +27,20 @@ char* debug_info_color = RGB_GRAY;
 char* debug_warning_color = YELLOW;
 char* debug_error_color = RED;
 
+string output_name;
 string source_file;
 char* previous_file;
 string current_directory;
 List* file_list;
+
+char* get_output_name(void)
+{
+    return output_name.c_str;
+}
+void set_output_name(char* name)
+{
+    output_name = make_string(name);
+}
 
 void set_source_file(char* file_name)
 {

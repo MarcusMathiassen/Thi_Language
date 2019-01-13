@@ -187,7 +187,7 @@ void give_type_to_all_nodes(Expr* expr)
     }
 
     expr->type = get_inferred_type_of_expr(expr);
-    if (expr->type) warning("%s | %s", expr_to_str(expr), typespec_to_str(expr->type));
+    if (expr->type) info("%s | %s", expr_to_str(expr), typespec_to_str(expr->type));
 }
 
 void parse(List* ast, char* source_file)
@@ -210,7 +210,7 @@ void parse(List* ast, char* source_file)
 
     pop_timer();
 
-    // print_tokens(tokens);
+    print_tokens(tokens);
     print_ast(ast);
 
     set_source_file(last_file);

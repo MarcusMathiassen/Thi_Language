@@ -170,7 +170,7 @@ Expr* constant_fold_expr(Expr* expr)
                 case TOKEN_MINUS: value = -oper_v; break;
                 default: error("constant_fold_expr unary %s not implemented", token_kind_to_str(op));
             }
-            warning("folded %s into %lld", expr_to_str(expr), value);
+            info("folded %s into %lld", expr_to_str(expr), value);
             expr = make_expr_int(value);
         }
     } break;
@@ -214,7 +214,7 @@ Expr* constant_fold_expr(Expr* expr)
             } break;
                 default: error("constant_fold_expr binary %s not implemented", token_kind_to_str(op));
             }
-            warning("folded %s into %lld", expr_to_str(expr), value);
+            info("folded %s into %lld", expr_to_str(expr), value);
             expr = make_expr_int(value);
         }
     } break;

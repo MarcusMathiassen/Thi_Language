@@ -32,6 +32,12 @@ void linking_stage(char* exec_name);
 
 int main(int argc, char** argv)
 {
+
+    // Argument validation
+    if (argc < 2)
+        error("too few arguments.");
+
+
     utility_tests();
     string_tests();
     map_tests();
@@ -42,17 +48,47 @@ int main(int argc, char** argv)
     initilize_globals();
     init_interns_list();
 
+
+      
+    // put ':' in the starting of the 
+    // string so that program can  
+    //distinguish between '?' and ':'  
+    int opt; 
+    while((opt = getopt(argc, argv, "f:dvo:")) != -1)  
+    {  
+        switch(opt)  
+        {  
+            case 'v': detailed_print = true; break;
+            case 'd': debug_mode = true; break;
+            case 'f':  
+                set_source_file(optarg);
+                info("filename: %s\n", optarg);  
+                break;  
+            case 'o':  
+                set_output_name(optarg);
+                info("exec_name: %s\n", optarg);  
+                break;  
+            case ':':  
+                info("option needs a value\n");  
+                break;  
+            case '?':  
+                info("unknown option: %c\n", optopt); 
+                break;  
+        }
+    }
+
+    if (debug_mode) {
+        detailed_print = true;
+        optimize = false;
+        enable_constant_folding = false;
+    }
+
+
     push_timer("Total time");
 
-    // Argument validation
-    if (argc < 2)
-        error("too few arguments.");
-    else if (argc > 3)
-        error("too many arguments.");
-
     // Grab the source file
-    char* source_file = argv[1];
-    char* exec_name = argv[2];
+    char* source_file = get_source_file();
+    char* exec_name = get_output_name();
     info("Compiling %s", source_file);
 
     // Setup types

@@ -161,7 +161,6 @@ Typespec* make_typespec_array(Typespec* type, s32 size)
 
 Typespec* make_typespec_int(s8 bytes, bool is_unsigned)
 {
-    warning("%d", bytes);
     assert(bytes > 0 && bytes < 9);
     assert(is_unsigned == 1 || is_unsigned == 0);
     Typespec* t = make_typespec(TYPESPEC_INT);

@@ -21,6 +21,8 @@ extern char* debug_info_color;
 extern char* debug_warning_color;
 extern char* debug_error_color;
 
+extern bool debug_mode;
+extern bool optimize;
 extern bool enable_constant_folding;
 
 extern bool detailed_print;
@@ -39,6 +41,9 @@ extern string* current_output;
 void set_source_file(char* file_name);
 char* get_previous_source_file(void);
 char* get_source_file(void);
+
+char* get_output_name(void);
+void set_output_name(char* name);
 
 List* get_file_list(void);
 
