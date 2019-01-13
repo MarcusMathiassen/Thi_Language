@@ -21,7 +21,8 @@ extern char* debug_info_color;
 extern char* debug_warning_color;
 extern char* debug_error_color;
 
-extern bool should_constant_fold_binary_expressions;
+extern bool enable_constant_folding;
+
 extern bool detailed_print;
 extern List* file_list;
 extern string* current_output;

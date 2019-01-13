@@ -148,6 +148,7 @@ Expr* make_expr_grouping(Expr* expr);
 Expr* make_expr_variable_decl(char* name, Typespec* type, Expr* value);
 
 Typespec* get_inferred_type_of_expr(Expr* expr);
+Expr* constant_fold_expr(Expr* expr);
 
 void print_ast(List* ast);
 char* expr_to_str(Expr* expr);

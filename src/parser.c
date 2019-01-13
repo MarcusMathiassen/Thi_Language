@@ -203,8 +203,7 @@ void parse(List* ast, char* source_file)
     generate_ast_from_tokens(ast, tokens);
 
     // Give each node a type
-    LIST_FOREACH(ast)
-    {
+    LIST_FOREACH(ast) {
         Expr* expr = (Expr*)it->data;
         give_type_to_all_nodes(expr);
     }
@@ -487,7 +486,8 @@ Expr* parse_if(Parse_Context* pctx)
     }
 
     list_append(stmts, cond);
-    list_append(stmts, make_expr_asm(strf("JNE %s", else_b ? else_l : end_l)));
+    list_append(stmts, make_expr_asm(strf("CMP AL, 0")));
+    list_append(stmts, make_expr_asm(strf("JE %s", else_b ? else_l : end_l)));
     list_append(stmts, body);
     list_append(stmts, make_expr_asm(strf("JMP %s", end_l)));
     list_append(stmts, make_expr_asm(strf("%s:", else_l)));

@@ -72,8 +72,7 @@ char* expr_to_str(Expr* expr)
     }
     case EXPR_BLOCK: {
         string str = make_string("");
-        LIST_FOREACH(expr->Block.stmts)
-        {
+        LIST_FOREACH(expr->Block.stmts) {
             Expr* stmt = (Expr*)it->data;
             append_string_f(&str, "%s\n", expr_to_str(stmt));
         }
@@ -127,6 +126,117 @@ Typespec* get_inferred_type_of_expr(Expr* expr)
     }
     return NULL;
 }
+
+
+bool last_was_true = false;
+Expr* constant_fold_expr(Expr* expr)
+{
+    assert(expr);
+
+    info("constant_fold_expr %s: %s", expr_kind_to_str(expr->kind), expr_to_str(expr));
+
+    switch (expr->kind) {
+    case EXPR_ASM: return expr;
+    case EXPR_INT: return expr;
+    case EXPR_MACRO: {
+        expr->Macro.expr = constant_fold_expr(expr->Macro.expr);
+    } break;
+    case EXPR_IDENT: {
+        Expr* macro_expr = get_macro_def(expr->Ident.name);
+        if (macro_expr) {
+            expr = constant_fold_expr(macro_expr);
+        }
+    } break;
+    case EXPR_CALL: {
+        LIST_FOREACH(expr->Call.args) {
+            Expr* arg = (Expr*)it->data;
+            it->data = constant_fold_expr(arg);
+        }
+    } break;
+    case EXPR_UNARY: {
+        Expr* oper = expr->Unary.operand;
+        oper = constant_fold_expr(oper);
+        if (oper->kind == EXPR_INT) {
+            Token_Kind op = expr->Unary.op;
+            s64 oper_v = oper->Int.val;
+            s64 value = 0;
+            switch(op) {
+                case TOKEN_BANG: value = !oper_v; break;
+                case TOKEN_PLUS: value = oper_v; break;
+                case TOKEN_TILDE: value = ~oper_v; break;
+                case TOKEN_MINUS: value = -oper_v; break;
+                default: error("constant_fold_expr unary %s not implemented", token_kind_to_str(op));
+            }
+            warning("folded %s into %lld", expr_to_str(expr), value);
+            expr = make_expr_int(value);
+        }
+    } break;
+    case EXPR_BINARY: {
+        Token_Kind op = expr->Binary.op;
+        Expr* lhs = expr->Binary.lhs;
+        Expr* rhs = expr->Binary.rhs;
+        lhs = constant_fold_expr(lhs);
+        rhs = constant_fold_expr(rhs);
+        if (op == TOKEN_EQ) expr = make_expr_binary(TOKEN_EQ, lhs, rhs);
+        if (lhs->kind == EXPR_INT && rhs->kind == EXPR_INT) {
+            s64 lhs_v = lhs->Int.val;
+            s64 rhs_v = rhs->Int.val;
+            s64 value = 0;
+            switch(op) { 
+                case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
+                case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
+                case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
+                case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
+                case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
+                case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
+                case TOKEN_AND: value = (lhs_v & rhs_v); break;
+                case TOKEN_PIPE: value = (lhs_v | rhs_v); break;
+                case TOKEN_LT: value = (lhs_v < rhs_v); break;
+                case TOKEN_GT: value = (lhs_v > rhs_v); break;
+                case TOKEN_GT_GT: value = (lhs_v >> rhs_v); break;
+                case TOKEN_LT_LT: value = (lhs_v << rhs_v); break;
+                case TOKEN_PERCENT: value = (lhs_v % rhs_v); break;
+                case TOKEN_HAT: value = (lhs_v ^ rhs_v); break;
+                case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
+                case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
+                case TOKEN_COLON: { 
+                    value = last_was_true ? lhs_v : rhs_v; 
+                    last_was_true = false; 
+                } break;
+                case TOKEN_QUESTION_MARK: { 
+                    if (lhs_v)  { 
+                        last_was_true = true; 
+                        value = rhs_v;
+                    }
+            } break;
+                default: error("constant_fold_expr binary %s not implemented", token_kind_to_str(op));
+            }
+            warning("folded %s into %lld", expr_to_str(expr), value);
+            expr = make_expr_int(value);
+        }
+    } break;
+    case EXPR_VARIABLE_DECL: {
+        if (expr->Variable_Decl.value)
+            expr->Variable_Decl.value = constant_fold_expr(expr->Variable_Decl.value); 
+    } break;
+    case EXPR_FUNCTION: {
+        return constant_fold_expr(expr->Function.body);
+    } break;
+    case EXPR_BLOCK: {
+        LIST_FOREACH(expr->Block.stmts) {
+            Expr* stmt = (Expr*)it->data;
+            it->data = constant_fold_expr(stmt);
+        }
+    } break;
+    case EXPR_GROUPING: { 
+        expr = constant_fold_expr(expr->Grouping.expr); 
+    } break;
+    default: error("constant_fold_expr %s not implemented", expr_kind_to_str(expr->kind));
+    }
+    return expr;
+}
+
+
 void print_ast(List* ast)
 {
     info("Printing AST..");
@@ -217,55 +327,6 @@ Expr* make_expr_function(Typespec* func_t, Expr* body)
     return e;
 }
 
-Expr* constant_fold_expr(Expr* expr)
-{
-    Expr* lhs = expr->Binary.lhs;
-    Expr* rhs = expr->Binary.rhs;
-
-    switch (lhs->kind) {
-        // case EXPR_GROUPING: lhs = constant_fold_expr(lhs->Grouping.expr); break;
-        case EXPR_BINARY: lhs = constant_fold_expr(lhs); break;
-    }
-
-    switch (rhs->kind) {
-        // case EXPR_GROUPING: rhs = constant_fold_expr(rhs->Grouping.expr); break;
-        case EXPR_BINARY: rhs = constant_fold_expr(rhs); break;
-    }
-
-    if (lhs->kind == EXPR_INT && rhs->kind == EXPR_INT) {
-
-        Token_Kind op = expr->Binary.op;
-        s64 lhs_v = lhs->Int.val;
-        s64 rhs_v = rhs->Int.val;
-
-        s64 value = 0;
-
-        switch(op) {
-            case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
-            case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
-            case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
-            case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
-            case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
-            case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
-            case TOKEN_AND: value = (lhs_v & rhs_v); break;
-            case TOKEN_PIPE: value = (lhs_v | rhs_v); break;
-            case TOKEN_LT: value = (lhs_v < rhs_v); break;
-            case TOKEN_GT: value = (lhs_v > rhs_v); break;
-            case TOKEN_GT_GT: value = (lhs_v >> rhs_v); break;
-            case TOKEN_LT_LT: value = (lhs_v << rhs_v); break;
-            case TOKEN_PERCENT: value = (lhs_v % rhs_v); break;
-            case TOKEN_HAT: value = (lhs_v ^ rhs_v); break;
-            case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
-            case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
-            default: error("Unhandled constant_fold_expr case: %s", token_kind_to_str(op));
-        }
-        info("folded %s into %lld", expr_to_str(expr), value);
-        return make_expr_int(value);
-    }
-
-    return expr;
-}
-
 Expr* make_expr_binary(Token_Kind op, Expr* lhs, Expr* rhs)
 {
     assert(op != TOKEN_UNKNOWN);
@@ -275,10 +336,6 @@ Expr* make_expr_binary(Token_Kind op, Expr* lhs, Expr* rhs)
     e->Binary.op = op;
     e->Binary.lhs = lhs;
     e->Binary.rhs = rhs;
-
-    if (should_constant_fold_binary_expressions)
-        e = constant_fold_expr(e);
-
     return e;
 }
 

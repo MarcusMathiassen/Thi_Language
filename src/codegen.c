@@ -370,7 +370,7 @@ Value* codegen_binary(Expr* expr)
         push(RAX);
         codegen_expr(rhs);
         pop(RCX);
-        emit("OR CL, AL");
+        emit("OR AL, CL");
         return lhs_v;
     }
     case TOKEN_AND: {
@@ -378,7 +378,7 @@ Value* codegen_binary(Expr* expr)
         push(RAX);
         codegen_expr(rhs);
         pop(RCX);
-        emit("AND CL, AL");
+        emit("AND AL, CL");
         return lhs_v;
     }
     case TOKEN_HAT: {
@@ -386,7 +386,7 @@ Value* codegen_binary(Expr* expr)
         push(RAX);
         codegen_expr(rhs);
         pop(RCX);
-        emit("XOR CL, AL");
+        emit("XOR AL, CL");
         return lhs_v;
     }
     case TOKEN_LT_LT: {
@@ -410,7 +410,7 @@ Value* codegen_binary(Expr* expr)
         emit("SETNE AL");
         emit("CMP RCX, 0");
         emit("SETNE CL");
-        emit("AND CL, AL");
+        emit("AND AL, CL");
         return lhs_v;
     }
 

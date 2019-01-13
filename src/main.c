@@ -17,11 +17,14 @@
 #include <stdlib.h>   // free
 #include <string.h>   // strcmp
 
+#include <sys/ioctl.h> 
+#include <unistd.h>
+
 //------------------------------------------------------------------------------
 //                               Main Driver
 //------------------------------------------------------------------------------
 void assemble(char* asm_file, char* exec_name);
-void link(char* exec_name);
+void linking_stage(char* exec_name);
 
 /*
     Figure out all the files that are loaded by the source.
@@ -67,7 +70,7 @@ int main(int argc, char** argv)
     Typespec* f64_t = make_typespec_float(8);
 
     add_builtin_type("void", u8_t);
-    
+
     add_builtin_type("int", s32_t);
     add_builtin_type("float", f32_t);
     add_builtin_type("double", f32_t);
@@ -103,13 +106,23 @@ int main(int argc, char** argv)
     }
 
     // Parse
-    List ast;
-    list_init(&ast);
-    parse(&ast, source_file);
+    List* ast = make_list();
+    parse(ast, source_file);
+
+    // Constant folding
+    if (enable_constant_folding) {
+        push_timer("Constant folding");
+        LIST_FOREACH(ast) {
+            Expr* expr = (Expr*)it->data;
+            expr = constant_fold_expr(expr);
+        }
+        pop_timer();
+        print_ast(ast);
+    }
 
     // Codegen
     push_timer("Codegen");
-    char* output = generate_code_from_ast(&ast);
+    char* output = generate_code_from_ast(ast);
     pop_timer();
 
     // Write to file
@@ -117,7 +130,7 @@ int main(int argc, char** argv)
         char* output_filename = "output.asm";
         write_to_file(output_filename, output);
         assemble(output_filename, exec_name);
-        link(exec_name);
+        linking_stage(exec_name);
     } else {
         error("generating code from ast failed.");
     }
@@ -129,14 +142,21 @@ int main(int argc, char** argv)
     info("size of Value: %lu bytes", sizeof(Value));
 
     pop_timer();
-    info("==------------ Thi ------------==");
+
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+
     List* timers = get_timers();
-    LIST_FOREACH(timers)
-    {
+    info("--- Compiler timings ---");
+    LIST_FOREACH(timers) {
         Timer* tm = (Timer*)it->data;
-        info("%s: %f seconds", tm->desc, tm->ms / 1e3);
+        s64 len = strlen(tm->desc);
+        char* ms = strf("%f seconds", tm->ms / 1e3);
+        s64 ms_l = strlen(ms);
+        s64 padding = w.ws_col - len - ms_l - 1; // -1 is the ':'
+        info("%s:%*s%s", tm->desc, padding, "", ms);
     }
-    info("==------------ === ------------==");
+    info("---------------------------");
 
     return 0;
 }
@@ -157,7 +177,7 @@ void assemble(char* asm_file, char* exec_name)
     // free_string(&rm_asm_file);
 }
 
-void link(char* exec_name)
+void linking_stage(char* exec_name)
 {
     string link_call =
         make_string_f("ld -macosx_version_min 10.14 -lSystem -o %s %s.o -e _main -lc", exec_name, exec_name);
