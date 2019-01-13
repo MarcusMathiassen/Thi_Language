@@ -32,11 +32,9 @@ void linking_stage(char* exec_name);
 
 int main(int argc, char** argv)
 {
-
     // Argument validation
     if (argc < 2)
         error("too few arguments.");
-
 
     utility_tests();
     string_tests();
@@ -48,8 +46,6 @@ int main(int argc, char** argv)
     initilize_globals();
     init_interns_list();
 
-
-      
     // put ':' in the starting of the 
     // string so that program can  
     //distinguish between '?' and ':'  

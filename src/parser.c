@@ -124,6 +124,7 @@ Expr* parse_while(Parse_Context* pctx);
 Expr* parse_break(Parse_Context* pctx);
 Expr* parse_continue(Parse_Context* pctx);
 Expr* parse_string(Parse_Context* pctx);
+Expr* parse_sizeof(Parse_Context* pctx);
 
 Typespec* parse_struct_signature(Parse_Context* pctx, char* struct_name);
 Typespec* parse_function_signature(Parse_Context* pctx, char* func_name);
@@ -344,6 +345,7 @@ Expr* parse_primary(Parse_Context* pctx)
 {
     DEBUG_START;
     switch (pctx->curr_tok.kind) {
+    case TOKEN_SIZEOF: return parse_sizeof(pctx);
     case TOKEN_IDENTIFIER: return parse_identifier(pctx);
     case TOKEN_DOLLAR_SIGN: return parse_note(pctx);
     case TOKEN_CHAR: // fallthrough
@@ -495,6 +497,15 @@ Expr* parse_if(Parse_Context* pctx)
     list_append(stmts, make_expr_asm(strf("%s:", end_l)));
 
     return make_expr_block(stmts);
+}
+
+Expr* parse_sizeof(Parse_Context* pctx)
+{
+    DEBUG_START;
+    eat_kind(pctx, TOKEN_SIZEOF);
+    Typespec* t = get_type(pctx);
+    s64 size = get_size_of_typespec(t);
+    return make_expr_int(size);
 }
 
 Expr* parse_string(Parse_Context* pctx)

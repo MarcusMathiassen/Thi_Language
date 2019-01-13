@@ -108,9 +108,9 @@ char* get_op_size(s8 bytes)
     case 2: return "WORD";
     case 4: return "DWORD";
     case 8: return "QWORD";
-    default: error("get_op_size unknown byte size: %d", bytes);
+    // default: error("get_op_size unknown byte size: %d", bytes);
     }
-    return NULL;
+    return "QWORD";;
 }
 
 void alloc_variable(Value* variable)
@@ -201,7 +201,12 @@ void emit_store(Value* variable)
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     s64 stack_pos = get_stack_pos_of_variable(variable);
-    emit("MOV [RBP-%lld], RAX; store", stack_pos);
+    switch (variable->type->kind) {
+    case TYPESPEC_POINTER:
+    case TYPESPEC_ARRAY: emit("MOV [RAX], RCX; store", stack_pos); break;
+    default: emit("MOV [RBP-%lld], RAX; store", stack_pos); break;
+    }
+
 }
 
 void emit_load(Value* variable)
@@ -295,11 +300,6 @@ Value* codegen_binary(Expr* expr)
 {
     DEBUG_START(expr);
 
-    // // Constant folding
-    // expr = constant_fold_expr(expr);
-    // if (expr->kind == EXPR_INT) return codegen_expr(expr);
-
-
     Token_Kind op = expr->Binary.op;
     Expr* lhs = expr->Binary.lhs;
     Expr* rhs = expr->Binary.rhs;
@@ -317,14 +317,14 @@ Value* codegen_binary(Expr* expr)
     case THI_SYNTAX_ASSIGNMENT: {
         codegen_expr(rhs);
         Value* variable;
-        // push(RAX);
+        push(RAX);
         if (lhs->kind == EXPR_UNARY) {
             variable = codegen_expr(lhs->Unary.operand);
         } else {
             assert(lhs->kind == EXPR_IDENT);
             variable = get_variable(lhs->Ident.name);
         }
-        // pop(RAX);
+        pop(RCX);
         emit_store(variable);
         return variable;
     }
