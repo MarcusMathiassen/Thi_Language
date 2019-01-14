@@ -21,6 +21,10 @@ char* c = NULL;
 Token token;
 s64 line_count = 1;
 char* start_of_line = NULL;
+char* pos_of_newline = NULL;
+u64 prev_ident = 0;
+u64 curr_ident = 0;
+
 //------------------------------------------------------------------------------
 
 //                               Lexer Functions
@@ -37,6 +41,7 @@ Token_Kind get_identifier_kind(char* identifier);
 //------------------------------------------------------------------------------
 typedef enum
 {
+    KEY_DO,
     KEY_DEFER,
     KEY_FOREIGN,
     KEY_LOAD,
@@ -53,9 +58,9 @@ typedef enum
     KEY_CONTINUE,
 } Keyword_Kind;
 
-#define KEYWORD_COUNT 14
+#define KEYWORD_COUNT 15
 char* keywords_str[KEYWORD_COUNT] = {
-    "defer", "foreign", "load",   "cast",   "sizeof", "if",    "else",
+    "do", "defer", "foreign", "load",   "cast",   "sizeof", "if",    "else",
     "for",   "while",   "return", "struct", "enum",   "break", "continue",
 };
 
@@ -96,15 +101,29 @@ List* generate_tokens_from_source(char* source_file)
     // Fill the tokens
     while (token.kind != TOKEN_EOF) {
         get_token();
-        print_token(token);
         Token* t = xmalloc(sizeof(Token));
         t->kind = token.kind;
         t->value = token.value;
+
+        if (curr_ident > prev_ident) {
+            Token* tb = xmalloc(sizeof(Token));
+            tb->kind = TOKEN_BLOCK_START;
+            tb->value = "";
+            prev_ident = curr_ident;
+            list_append(tokens, tb);
+        } 
+        if (curr_ident < prev_ident) {
+            Token* ta = xmalloc(sizeof(Token));
+            ta->kind = TOKEN_BLOCK_END;
+            ta->value = "";
+            prev_ident = curr_ident;
+            list_append(tokens, ta);
+        } 
         list_append(tokens, t);
     }
 
-    // // Print some result info
-    // // info("Lines: %d | Tokens: %d", line_count, sb_count(tokens));
+    // Print some result info
+    info("Lines: %d | Tokens: %d", line_count, tokens->count);
     return tokens;
 }
 
@@ -118,10 +137,17 @@ const char EOF = '\0';
 
 void skip_whitespace()
 {
-    while (*c == ' ' || *c == '\t' || *c == '\n' || *c == '\r') {
-        if (*c == '\n') ++line_count;
+    bool has_newline = false;
+    while (*c == ' ' || *c == '\n' || *c == '\r') {
+        if (*c == '\n') {
+            has_newline = true;
+            ++line_count;
+            pos_of_newline = c;
+        }
         ++c;
     }
+    if (has_newline)
+        curr_ident = c - pos_of_newline;
 }
 
 void skip_line()
@@ -171,6 +197,7 @@ int get_keyword_index(char* identifier)
 Token_Kind get_identifier_kind(char* identifier)
 {
     switch (get_keyword_index(identifier)) {
+    case KEY_DO: return TOKEN_DO;
     case KEY_DEFER: return TOKEN_DEFER;
     case KEY_FOREIGN: return TOKEN_FOREIGN;
     case KEY_LOAD: return TOKEN_LOAD;
@@ -196,6 +223,7 @@ inline bool is_valid_digit() { return isdigit(*c) || *c == '.' || *c == '_' || *
 #define CASE_SINGLE_TOKEN(c1, t_kind)                                                                                  \
     case c1: token.kind = t_kind; ++c;
 
+
 Token get_token()
 {
 scan:
@@ -206,9 +234,9 @@ scan:
     token.value = c;
 
     switch (*c) {
-    case ' ':
+    case ' ':  
     case '\n':
-    case '\r':
+    case '\r': 
     case '\t':
         goto scan;
 
@@ -466,12 +494,18 @@ char* token_kind_to_str(Token_Kind kind)
 {
     switch (kind) {
     case TOKEN_EOF: return "eof";
+    case TOKEN_BLOCK_START: return "TOKEN_BLOCK_START";
+    case TOKEN_BLOCK_END: return "TOKEN_BLOCK_END";
     case TOKEN_UNKNOWN: return "unknown";
+    case TOKEN_TAB: return "tab";
+    case TOKEN_WHITESPACE: return "whitespace";
+    case TOKEN_NEWLINE: return "newline";
     case TOKEN_CAST: return "cast";
     case TOKEN_SIZEOF: return "sizeof";
     case TOKEN_LOAD: return "load";
     case TOKEN_FOREIGN: return "foreign";
     case TOKEN_RETURN: return "return";
+    case TOKEN_DO: return "do";
     case TOKEN_IF: return "if";
     case TOKEN_ELSE: return "else";
     case TOKEN_FOR: return "for";
@@ -482,7 +516,6 @@ char* token_kind_to_str(Token_Kind kind)
     case TOKEN_STRUCT: return "struct";
     case TOKEN_ENUM: return "enum";
     case TOKEN_CONTINUE: return "continue";
-    case TOKEN_WHITESPACE: return "whitespace";
     case TOKEN_PIPE_PIPE: return "||";
     case TOKEN_AND_AND: return "&&";
     case TOKEN_PLUS_EQ: return "+=";

@@ -1,7 +1,7 @@
-main :: () -> s32 {
+main :: () -> s32 
     return get_integer(255/2 + 255/2 + 3)
-}
 
-get_integer :: (i: s32) -> s32 {
+
+get_integer :: (i: s32) -> s32 
     return i
-}
+

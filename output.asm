@@ -5,36 +5,44 @@ section .text
 _main:
 	PUSH RBP
 	MOV RBP, RSP
-	SUB RSP, 16; 16 alloc, 0 padding
+	SUB RSP, 16; 8 alloc, 8 padding
 .BEGIN:
-	MOV RAX, 65
-	PUSH RAX
-	PUSH RAX
 	MOV RAX, 0
+	PUSH RAX
 	PUSH RAX
 	MOV RAX, QWORD [RBP-8]; load
-	LEA RAX, [RSP-8]; addrsof
 	POP RCX
-	ADD RAX, RCX
-	POP RCX
-	MOV [RAX], RCX; store
+	MOV [RBP-8], RCX; store
 	POP RAX
-	MOV RAX, 0
+.L0:
+	MOV RAX, QWORD [RBP-8]; load
 	PUSH RAX
-	PUSH RAX
-	MOV RAX, QWORD [RBP-16]; load
+	MOV RAX, 4
 	POP RCX
-	MOV [RBP-16], RCX; store
-	POP RAX
-	MOV RAX, 0
+	CMP RCX, RAX
+	SETL AL
+	JE .L1
+	MOV RAX, 1
 	PUSH RAX
 	MOV RAX, QWORD [RBP-8]; load
-	LEA RAX, [RSP-8]; addrsof
 	POP RCX
 	ADD RAX, RCX
-	MOV RAX, [RAX]; deref
+	PUSH RAX
+	PUSH RAX
+	MOV RAX, QWORD [RBP-8]; load
+	POP RCX
+	MOV [RBP-8], RCX; store
+	POP RAX
+	JMP .L0
+.L1:
+	MOV RAX, 3
+	NEG RAX
+	PUSH RAX
+	MOV RAX, QWORD [RBP-8]; load
+	POP RCX
+	ADD RAX, RCX
 	JMP .END
 .END:
-	ADD RSP, 16; 16 alloc, 0 padding
+	ADD RSP, 16; 8 alloc, 8 padding
 	LEAVE
 	RET

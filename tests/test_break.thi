@@ -1,10 +1,6 @@
-main :: () -> s32 {
-
+main :: () -> s32
     k := 0
-    while 1 {
-        if k == 3 { break }
+    while 1 
+        if k == 3 do break
         k += 1
-    }
-
     return k - 2
-}

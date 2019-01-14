@@ -12,6 +12,14 @@ typedef enum
     TOKEN_UNKNOWN,
     TOKEN_EOF,
 
+    TOKEN_TAB,
+
+    TOKEN_BLOCK_START,
+    TOKEN_BLOCK_END,
+
+    TOKEN_WHITESPACE,
+    TOKEN_NEWLINE,
+
     TOKEN_IDENTIFIER,
 
     TOKEN_CAST,
@@ -20,6 +28,8 @@ typedef enum
     TOKEN_FOREIGN,
     TOKEN_LOAD,
 
+    TOKEN_DO,
+    
     TOKEN_DEFER,
     TOKEN_IF,
     TOKEN_ELSE,
@@ -101,8 +111,6 @@ typedef enum
     TOKEN_HASH,
     TOKEN_EQ,
     TOKEN_COMMENT,
-    TOKEN_WHITESPACE,
-
 } Token_Kind;
 
 #define THI_SYNTAX_POINTER TOKEN_ASTERISK

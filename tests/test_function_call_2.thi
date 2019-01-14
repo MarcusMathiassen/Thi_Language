@@ -1,15 +1,15 @@
-main :: () -> s32 {
+main :: () -> s32 
     return cat(-bar(8, 3) + foo(3) + cat(2)) + 3 + 4 + 1 - 8
-}
 
-foo :: (a: s32) -> s32 {
+
+foo :: (a: s32) -> s32 
     return a * 3 
-}
 
-cat :: (a: s32) -> s32 {
+
+cat :: (a: s32) -> s32 
     return a / 3
-}
 
-bar :: (a: s32, b:s32) -> s32 {
+
+bar :: (a: s32, b:s32) -> s32 
     return a - b
-}
+

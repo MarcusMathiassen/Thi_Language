@@ -1,4 +1,4 @@
-main :: () -> s32 {
+main :: () -> s32 
 
     i := 0
 
@@ -11,10 +11,10 @@ main :: () -> s32 {
     # We need to do like LLVM and return an abstraction
     # of the call. Like CallInst, ValueInst
 
-    for k: 0 .. 9 {
+    for k: 0 .. 9 
         continue
         i += 1
-    }
+    
 
     return i + 1
-}
+

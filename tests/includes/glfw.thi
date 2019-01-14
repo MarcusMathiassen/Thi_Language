@@ -1,24 +1,24 @@
-GLFWvidmode :: struct {
+GLFWvidmode :: struct 
     width:        s32
     height:       s32
     red_bits:     s32
     green_bits:   s32
     blue_bits:    s32
     refresh_rate: s32
-}
 
-GLFWgammaramp :: struct {
+
+GLFWgammaramp :: struct 
     red:    u16*
     green:  u16*
     blue:   u16*
     size:   u32
-}
 
-GLFWimage :: struct {
+
+GLFWimage :: struct 
     width:  s32
     height: s32
     pixels: u8*
-}
+
 
 foreign glfwCreateWindow :: (s32, s32, s8*, void*, void*) -> void*
 foreign glfwInit :: () -> bool
