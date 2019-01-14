@@ -3,9 +3,7 @@ main :: () -> s32
         for k: 0 .. 10
             if k == 4
                 break
-            continue # THE LEXER DOESNT KNOW ABOUT DOUBLE DEDENTS.
-                     # so the 'continue' is to cheat it.
-        return 1
+            return 1
     if 2 == 1 
         return 2
     return 1

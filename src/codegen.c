@@ -691,7 +691,7 @@ Value* codegen_function(Expr* expr)
     if (stack_allocated + padding)
         emit("SUB RSP, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);
 
-    emit(DEFAULT_FUNCTION_ENTRY_LABEL_NAME);
+    emit("%s:", DEFAULT_FUNCTION_ENTRY_LABEL_NAME);
 
     ctx.stack_index = 0;
 
@@ -712,6 +712,8 @@ Value* codegen_function(Expr* expr)
     }
 
     codegen_expr(func_body);
+
+    emit("%s:", DEFAULT_FUNCTION_END_LABEL_NAME);
 
     if (stack_allocated + padding)
         emit("ADD RSP, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);

@@ -105,6 +105,7 @@ List* generate_tokens_from_source(char* source_file)
         t->kind = token.kind;
         t->value = token.value;
 
+        // Scope up!
         if (curr_ident > prev_ident) {
             Token* tb = xmalloc(sizeof(Token));
             tb->kind = TOKEN_BLOCK_START;
@@ -112,13 +113,18 @@ List* generate_tokens_from_source(char* source_file)
             prev_ident = curr_ident;
             list_append(tokens, tb);
         } 
-        if (curr_ident < prev_ident) {
+
+        // Scope down!
+        // We sometimes drop more than just one scope down.
+        while (curr_ident < prev_ident) {
             Token* ta = xmalloc(sizeof(Token));
             ta->kind = TOKEN_BLOCK_END;
             ta->value = "";
-            prev_ident = curr_ident;
+            prev_ident -= 4;
             list_append(tokens, ta);
-        } 
+        }
+
+        // Add original token
         list_append(tokens, t);
     }
 

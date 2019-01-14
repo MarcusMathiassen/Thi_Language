@@ -1,8 +1,29 @@
 foreign puts::(char*)->s32
-main :: () -> s32 
-    defer puts("3rd")
-    defer puts("2nd")
-    defer puts("1st")
 
-    return 1
 
+vec2 :: struct
+    x: f32
+    y: f32
+
+
+main :: () -> s32
+    
+
+    i := 0
+
+    defer 
+        puts("3rd")
+        i = 3
+
+    defer
+        puts("2nd")
+        i = 2
+
+    defer 
+        puts("1st")
+        i = 1
+
+    if 1 == 1
+        return 7
+
+    return i

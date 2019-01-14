@@ -366,7 +366,6 @@ Expr* parse_identifier(Parse_Context* pctx)
     case TOKEN_COLON_EQ: return get_variable_declaration(pctx, ident);
     case TOKEN_OPEN_PAREN: return get_function_call(pctx, ident);
     }
-
     return make_expr_ident(ident);
 }
 
@@ -544,10 +543,18 @@ Expr* parse_return(Parse_Context* pctx)
 {
     DEBUG_START;
     eat_kind(pctx, TOKEN_RETURN);
-
+    Expr* expr = parse_expression(pctx);
     List* stmts = make_list();
-    list_append(stmts, parse_expression(pctx));
-    list_append(stmts, make_expr_asm("JMP .END"));
+    char* label = make_label();
+    char* label2 = make_label();
+
+    list_append(stmts, make_expr_asm(strf("%s:", label2)));
+    list_append_content_of_in_reverse(stmts, pctx->active_func->Function.defers);
+    list_append(stmts, make_expr_asm(strf("JMP %s", label)));
+
+    list_append(stmts, make_expr_asm(strf("%s:", label)));
+    list_append(stmts, expr);
+    list_append(stmts, make_expr_asm(strf("JMP %s", DEFAULT_FUNCTION_END_LABEL_NAME)));
 
     return make_expr_block(stmts);
 }
@@ -977,8 +984,6 @@ Expr* get_definition(Parse_Context* pctx, char* ident)
         SET_ACTIVE_FUNC(func);
         Expr* body = parse_block(pctx);
         func->Function.body = body;
-        list_append(body->Block.stmts, make_expr_asm(DEFAULT_FUNCTION_END_LABEL_NAME));
-        list_append_content_of_in_reverse(body->Block.stmts, func->Function.defers); 
         reset_label_counter();
         return func;
     }
