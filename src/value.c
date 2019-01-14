@@ -24,6 +24,7 @@ s64 get_size_of_value(Value* value)
     case VALUE_STRING: return value->String.len;
     case VALUE_VARIABLE: return get_size_of_typespec(value->type);
     case VALUE_FUNCTION: error("Asking for the size of a function? Why?");
+    case VALUE_STRUCT: return get_size_of_typespec(value->type);
     case VALUE_CALL: return get_size_of_typespec(value->type);
     case VALUE_LOAD_INST: return get_size_of_typespec(value->LoadInst.variable->type);
     case VALUE_STORE_INST: return get_size_of_typespec(value->StoreInst.variable->type);
@@ -115,6 +116,15 @@ Value* make_value_function(Typespec* type)
     v->type = type;
     v->Function.name = type->Function.name;
     v->Function.stack_allocated = 0;
+    return v;
+}
+
+Value* make_value_struct(Typespec* type)
+{
+    assert(type);
+    assert(type->kind == TYPESPEC_STRUCT);
+    Value* v = make_value(VALUE_STRUCT);
+    v->type = type;
     return v;
 }
 

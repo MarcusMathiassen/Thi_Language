@@ -4,6 +4,7 @@
 #include "utility.h" // error
 #include <assert.h>  // assert
 #include <stdlib.h>  // xmalloc
+#include <string.h>  // strcmp
 
 //------------------------------------------------------------------------------
 //                               typespec.c
@@ -67,6 +68,23 @@ s64 get_size_of_typespec(Typespec* type)
     default: error("get_size_of_typespec kind %s not implemented.", typespec_kind_to_str(type->kind));
     }
     return 0;
+}
+
+s64 get_offset_in_struct_to_field(Typespec* type, char* name)
+{
+    assert(type);
+    assert(type->kind == TYPESPEC_STRUCT);
+    s64 accum_size = 0;
+    LIST_FOREACH(type->Struct.members)
+    {
+        Arg* mem = (Arg*)it->data;
+        if (strcmp(name, mem->name) == 0) {
+            return accum_size;
+        }
+        accum_size += get_size_of_typespec(mem->type);
+    }
+    error("cant find field: %s", name);
+    return -1;
 }
 
 s64 typespec_function_get_arg_count(Typespec* type)

@@ -1,9 +1,10 @@
 person :: struct {
-    age: s32
+    age: s64
 }
 
 main :: () -> s32 {
     p: person
-    p.age = 24
-    return p.age - 23
+    p.age = 65
+    i := 0
+    return p.age
 }

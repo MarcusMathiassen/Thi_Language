@@ -202,9 +202,10 @@ void emit_store(Value* variable)
     assert(variable->kind == VALUE_VARIABLE);
     s64 stack_pos = get_stack_pos_of_variable(variable);
     switch (variable->type->kind) {
+    case TYPESPEC_STRUCT:
     case TYPESPEC_POINTER:
-    case TYPESPEC_ARRAY: emit("MOV [RAX], RCX; store", stack_pos); break;
-    default: emit("MOV [RBP-%lld], RAX; store", stack_pos); break;
+    case TYPESPEC_ARRAY: emit("MOV [RAX], RCX; store"); break;
+    default: emit("MOV [RBP-%lld], RCX; store", stack_pos); break;
     }
 
 }
@@ -269,12 +270,13 @@ Value* codegen_unary(Expr* expr)
     } break;
     case THI_SYNTAX_POINTER: {
         assert(operand_val->kind == VALUE_VARIABLE);
-        assert(operand_val->type->kind == TYPESPEC_ARRAY || operand_val->type->kind == TYPESPEC_POINTER);
+        assert(operand_val->type->kind == TYPESPEC_ARRAY || 
+               operand_val->type->kind == TYPESPEC_POINTER ||
+               operand_val->type->kind == TYPESPEC_STRUCT);
         Typespec* t = operand_val->type->Array.type;
         switch (t->kind) {
         case TYPESPEC_ARRAY:
-        case TYPESPEC_POINTER:
-        case TYPESPEC_STRING: emit("LEA RAX, [RAX]; deref"); break;
+        case TYPESPEC_POINTER: emit("LEA RAX, [RAX]; deref"); break;
         default: emit("MOV RAX, [RAX]; deref"); break;
         }
     } break;
@@ -308,30 +310,40 @@ Value* codegen_binary(Expr* expr)
 
     // Field access
     case TOKEN_DOT: {
-        Value* variable = codegen_expr(lhs);
+
+        Value* variable = get_variable(lhs->Ident.name);
+
         assert(variable->kind == VALUE_VARIABLE);
         assert(variable->type->kind == TYPESPEC_STRUCT);
-        emit_load(variable);
-        return variable;
+
+        s64 offset = get_offset_in_struct_to_field(variable->type, rhs->Ident.name);
+        // // if (offset == 0) { emit_load(variable); return variable; }
+
+        lhs = make_expr_unary(THI_SYNTAX_ADDRESS, lhs);
+        lhs = make_expr_binary(TOKEN_PLUS, lhs, make_expr_int(offset));
+        lhs = make_expr_unary(THI_SYNTAX_POINTER, lhs);
+
+        return codegen_expr(lhs);
     }
     case THI_SYNTAX_ASSIGNMENT: {
         codegen_expr(rhs);
+        push(RAX);
         Value* variable;
         push(RAX);
         if (lhs->kind == EXPR_UNARY) {
             variable = codegen_expr(lhs->Unary.operand);
         } else {
-            assert(lhs->kind == EXPR_IDENT);
-            variable = get_variable(lhs->Ident.name);
+            variable = codegen_expr(lhs);
         }
         pop(RCX);
         emit_store(variable);
+        pop(RAX);
         return variable;
     }
     case TOKEN_PLUS: {
-        Value* lhs_v = codegen_expr(lhs);
-        push(RAX);
         codegen_expr(rhs);
+        push(RAX);
+        Value* lhs_v = codegen_expr(lhs);
         pop(RCX);
         emit("ADD RAX, RCX");
         return lhs_v;
@@ -631,7 +643,7 @@ Value* codegen_struct(Expr* expr)
     DEBUG_START(expr);
     assert(expr->kind == EXPR_STRUCT);
     warning("struct incomplete?");
-    return NULL;
+    return make_value_struct(expr->Struct.type);
 }
 
 s64 get_all_alloca_in_block(Expr* block)
@@ -693,7 +705,6 @@ Value* codegen_function(Expr* expr)
         s64 stack_pos = ctx.stack_index + size;
         Value* var = make_value_variable(arg->name, arg->type, stack_pos);
         add_variable(var);
-
         char* param_reg = get_reg(get_parameter_reg(i, size));
         emit("MOV [RBP-%lld], %s", stack_pos, param_reg);
 
@@ -757,7 +768,7 @@ char* generate_code_from_ast(List* ast)
     }
 
     append_string(&section_data, "section .data\n");
-    emit_no_tab("\nsection .text\n");
+    emit_no_tab("section .text");
 
     // codegen the whole thing.
     LIST_FOREACH(ast) { codegen_expr((Expr*)it->data); }

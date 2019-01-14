@@ -12,6 +12,7 @@ typedef struct Typespec Typespec;
 typedef struct Arg Arg;
 typedef enum Typespec_Kind Typespec_Kind;
 
+s64 get_offset_in_struct_to_field(Typespec* type, char* name);
 s64 get_size_of_underlying_typespec(Typespec* type);
 s64 get_size_of_typespec(Typespec* Typespec);
 char* typespec_to_str(Typespec* type);

@@ -5,8 +5,6 @@ int2 :: struct {
 }
 
 main :: () -> s32 {
-
     my_vec: int2
-
     return 1
 }

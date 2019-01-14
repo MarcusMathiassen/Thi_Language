@@ -647,6 +647,26 @@ Expr* parse_binary(Parse_Context* pctx, int expr_prec, Expr* lhs)
     return expr;
 }
 
+
+
+Typespec* active_type = NULL;
+Expr* read_field_access_expr(Parse_Context* pctx, Expr* expr)
+{
+    warning("expr: %s", expr_to_str(expr));
+
+    eat_kind(pctx, TOKEN_DOT);
+    char* field_name = pctx->curr_tok.value;
+    eat_kind(pctx, TOKEN_IDENTIFIER);
+
+    Typespec* type = get_inferred_type_of_expr(expr);
+    active_type = type;
+    s64 offset = get_offset_in_struct_to_field(type, field_name);
+
+    expr = make_expr_unary(THI_SYNTAX_ADDRESS, expr);
+    expr = make_expr_binary(TOKEN_PLUS, expr, make_expr_int(offset));
+
+    return make_expr_unary(THI_SYNTAX_POINTER, expr);
+}
 Expr* read_subscript_expr(Parse_Context* pctx, Expr* expr)
 {
     eat_kind(pctx, TOKEN_OPEN_BRACKET);
@@ -664,6 +684,10 @@ Expr* parse_postfix_tail(Parse_Context* pctx, Expr* primary_expr)
     DEBUG_START;
     if (!primary_expr) return NULL;
     while (1) {
+        if (tok_is(pctx, TOKEN_DOT)) {
+            primary_expr = read_field_access_expr(pctx, primary_expr);
+            continue;
+        }
         if (tok_is(pctx, TOKEN_OPEN_BRACKET)) {
             primary_expr = read_subscript_expr(pctx, primary_expr);
             continue;

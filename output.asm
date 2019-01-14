@@ -1,89 +1,40 @@
-extern _malloc
 section .data
 
 global _main
-
 section .text
-
 _main:
 	PUSH RBP
 	MOV RBP, RSP
-	SUB RSP, 16; 12 alloc, 4 padding
+	SUB RSP, 16; 16 alloc, 0 padding
 .BEGIN:
-	MOV RAX, 8
+	MOV RAX, 65
 	PUSH RAX
-	MOV RAX, 3
-	POP RCX
-	IMUL RAX, RCX
-	PUSH RAX
-	POP RCX
-	MOV [RBP-4], RAX; store
-	MOV EAX, DWORD [RBP-4]; load
-	PUSH RAX
-	POP RDI
-	CALL _malloc
-	PUSH RAX
-	POP RCX
-	MOV [RAX], RCX; store
-	MOV EAX, DWORD [RBP-4]; load
-	PUSH RAX
-	POP RDI
-	CALL _malloc
-	PUSH RAX
-	LEA RAX, [RBP-12]; load
-	PUSH RAX
-	MOV RAX, 8
 	PUSH RAX
 	MOV RAX, 0
-	POP RCX
-	IMUL RAX, RCX
+	PUSH RAX
+	MOV RAX, QWORD [RBP-8]; load
+	LEA RAX, [RSP-8]; addrsof
 	POP RCX
 	ADD RAX, RCX
 	POP RCX
 	MOV [RAX], RCX; store
-	MOV RAX, 1
-	PUSH RAX
-	LEA RAX, [RBP-12]; load
-	PUSH RAX
-	MOV RAX, 8
-	PUSH RAX
+	POP RAX
 	MOV RAX, 0
+	PUSH RAX
+	PUSH RAX
+	MOV RAX, QWORD [RBP-16]; load
 	POP RCX
-	IMUL RAX, RCX
+	MOV [RBP-16], RCX; store
+	POP RAX
+	MOV RAX, 0
+	PUSH RAX
+	MOV RAX, QWORD [RBP-8]; load
+	LEA RAX, [RSP-8]; addrsof
 	POP RCX
 	ADD RAX, RCX
-	LEA RAX, [RAX]; deref
-	PUSH RAX
-	MOV RAX, 8
-	PUSH RAX
-	MOV RAX, 0
-	POP RCX
-	IMUL RAX, RCX
-	POP RCX
-	ADD RAX, RCX
-	POP RCX
-	MOV [RAX], RCX; store
-	LEA RAX, [RBP-12]; load
-	PUSH RAX
-	MOV RAX, 8
-	PUSH RAX
-	MOV RAX, 0
-	POP RCX
-	IMUL RAX, RCX
-	POP RCX
-	ADD RAX, RCX
-	LEA RAX, [RAX]; deref
-	PUSH RAX
-	MOV RAX, 8
-	PUSH RAX
-	MOV RAX, 0
-	POP RCX
-	IMUL RAX, RCX
-	POP RCX
-	ADD RAX, RCX
-	LEA RAX, [RAX]; deref
+	MOV RAX, [RAX]; deref
 	JMP .END
 .END:
-	ADD RSP, 16; 12 alloc, 4 padding
+	ADD RSP, 16; 16 alloc, 0 padding
 	LEAVE
 	RET

@@ -16,6 +16,7 @@ enum Value_Kind
     VALUE_VARIABLE,
     VALUE_CALL,
     VALUE_FUNCTION,
+    VALUE_STRUCT,
     VALUE_LOAD_INST,
     VALUE_STORE_INST,
 };
@@ -35,6 +36,10 @@ typedef struct
     char* name;
     s64 stack_allocated;
 } Value_Function;
+
+typedef struct
+{
+} Value_Struct;
 
 typedef struct
 {
@@ -76,6 +81,7 @@ struct Value
         Value_String String;
         Value_Variable Variable;
         Value_Call Call;
+        Value_Struct Struct;
         Value_Function Function;
         Value_LoadInst LoadInst;
         Value_StoreInst StoreInst;
@@ -91,6 +97,7 @@ Value* make_value_string(char* value, Typespec* type);
 Value* make_value_variable(char* name, Typespec* type, s64 stack_pos);
 Value* make_value_call(char* callee, Typespec* type);
 Value* make_value_function(Typespec* type);
+Value* make_value_struct(Typespec* type);
 
 s64 get_size_of_value(Value* value);
 s64 get_stack_pos_of_variable(Value* variable);
