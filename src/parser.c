@@ -548,6 +548,11 @@ Expr* parse_return(Parse_Context* pctx)
     char* label = make_label();
     char* label2 = make_label();
 
+    // @SLOW: we're reverseing a list using a stack
+    //        every time we return. We should just have the 
+    //        defers be a stack in the first place.
+    //        Basically, DONT REVERSE THE LIST ON EVERY RETURN.
+
     list_append(stmts, make_expr_asm(strf("%s:", label2)));
     list_append_content_of_in_reverse(stmts, pctx->active_func->Function.defers);
     list_append(stmts, make_expr_asm(strf("JMP %s", label)));
