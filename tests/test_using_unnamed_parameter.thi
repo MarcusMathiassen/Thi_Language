@@ -1,5 +1,4 @@
-min :: (a: s32, b: s32) -> s32 do return $1 < $2 ? $1 : $2
-
-max :: (a: s32, b: s32) -> s32 do return $1 > $2 ? $1 : $2
-
-main :: () -> s32 do return min(1, max(2, 3))
+def min(a s32, b s32) s32
+    ret $1 < $2 ? $1 : $2
+def main(argc int, argv char*) s32
+    ret min(1, min(2, 3))

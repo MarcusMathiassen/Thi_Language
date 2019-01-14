@@ -1,4 +1,4 @@
-main :: () -> int 
-    i: int = 0
-    return 1
+def main () int 
+    i int = 0
+    ret 1
 

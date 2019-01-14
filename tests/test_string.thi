@@ -1,6 +1,6 @@
-main :: () -> s32 
+def main () s32 
 
     name := "Marcus"
 
-    return 1
+    ret 1
 

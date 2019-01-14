@@ -1,5 +1,4 @@
-main :: () -> s32 
-    i: s32
+def main () s32 
+    i s32
     i = (4 == 5) ? 0 : 1
-    return i
-
+    ret i

@@ -1,4 +1,4 @@
-main :: () -> s32 
+def main () s32 
     i := 5
-    return i %= 4
+    ret i %= 4
 

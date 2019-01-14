@@ -1,8 +1,8 @@
-fib :: (n: s32) -> s32 
+def fib (n s32) s32 
     if n == 0 || n == 1
-        return n
+        ret n
     else
-        return fib(n - 1) + fib(n - 2)
+        ret fib(n - 1) + fib(n - 2)
     
-main :: () -> s32
-    return fib(10) - 54
+def main () s32
+    ret fib(10) - 54

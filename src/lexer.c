@@ -41,9 +41,13 @@ Token_Kind get_identifier_kind(char* identifier);
 //------------------------------------------------------------------------------
 typedef enum
 {
+    KEY_TYPE,
+    KEY_TRUE,
+    KEY_FALSE,
+    KEY_DEF,
     KEY_DO,
     KEY_DEFER,
-    KEY_FOREIGN,
+    KEY_EXTERN,
     KEY_LOAD,
     KEY_CAST,
     KEY_SIZEOF,
@@ -58,10 +62,10 @@ typedef enum
     KEY_CONTINUE,
 } Keyword_Kind;
 
-#define KEYWORD_COUNT 15
+#define KEYWORD_COUNT 19
 char* keywords_str[KEYWORD_COUNT] = {
-    "do", "defer", "foreign", "load",   "cast",   "sizeof", "if",    "else",
-    "for",   "while",   "return", "struct", "enum",   "break", "continue",
+    "type", "true", "false", "def", "do", "defer", "extern", "load",   "cast",   "sizeof", "if",    "else",
+    "for",   "while",   "ret", "struct", "enum",   "break", "continue",
 };
 
 //------------------------------------------------------------------------------
@@ -203,9 +207,13 @@ int get_keyword_index(char* identifier)
 Token_Kind get_identifier_kind(char* identifier)
 {
     switch (get_keyword_index(identifier)) {
+    case KEY_TYPE: return TOKEN_TYPE;
+    case KEY_TRUE: return TOKEN_TRUE;
+    case KEY_FALSE: return TOKEN_FALSE;
+    case KEY_DEF: return TOKEN_DEF;
     case KEY_DO: return TOKEN_DO;
     case KEY_DEFER: return TOKEN_DEFER;
-    case KEY_FOREIGN: return TOKEN_FOREIGN;
+    case KEY_EXTERN: return TOKEN_EXTERN;
     case KEY_LOAD: return TOKEN_LOAD;
     case KEY_CAST: return TOKEN_CAST;
     case KEY_SIZEOF: return TOKEN_SIZEOF;
@@ -213,7 +221,7 @@ Token_Kind get_identifier_kind(char* identifier)
     case KEY_ELSE: return TOKEN_ELSE;
     case KEY_FOR: return TOKEN_FOR;
     case KEY_WHILE: return TOKEN_WHILE;
-    case KEY_RET: return TOKEN_RETURN;
+    case KEY_RET: return TOKEN_RET;
     case KEY_STRUCT: return TOKEN_STRUCT;
     case KEY_ENUM: return TOKEN_ENUM;
     case KEY_BREAK: return TOKEN_BREAK;
@@ -509,9 +517,13 @@ char* token_kind_to_str(Token_Kind kind)
     case TOKEN_CAST: return "cast";
     case TOKEN_SIZEOF: return "sizeof";
     case TOKEN_LOAD: return "load";
-    case TOKEN_FOREIGN: return "foreign";
-    case TOKEN_RETURN: return "return";
+    case TOKEN_EXTERN: return "extern";
+    case TOKEN_TYPE: return "type";
+    case TOKEN_TRUE: return "true";
+    case TOKEN_FALSE: return "false";
+    case TOKEN_RET: return "ret";
     case TOKEN_DO: return "do";
+    case TOKEN_DEF: return "def";
     case TOKEN_IF: return "if";
     case TOKEN_ELSE: return "else";
     case TOKEN_FOR: return "for";

@@ -1,9 +1,9 @@
-person :: struct 
-    age: s64
+type person
+    age s64
 
 
-main :: () -> s32 
-    p: person
+def main () s32 
+    p person
     p.age = 65
     i := 0
-    return p.age
+    ret p.age

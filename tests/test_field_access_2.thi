@@ -6,8 +6,8 @@ Parent :: struct
     b: Child
 
 
-main :: () -> s32 
+def main () s32 
     a: Parent
     a.b.c = 1
-    return a.b.c
+    ret a.b.c
 

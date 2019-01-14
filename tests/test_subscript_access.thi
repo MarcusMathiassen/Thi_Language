@@ -1,5 +1,5 @@
-main :: () -> s32 
+def main () s32 
     a: s32[5]
     a[2] = 1
-    return a[2]
+    ret a[2]
 

@@ -1,19 +1,12 @@
-foreign puts::(char*)->s32
+extern puts (char*) s32
 
-
-vec2 :: struct
-    x: f32
-    y: f32
-
-
-main :: () -> s32
-    
+def main () s32
 
     i := 0
 
     defer 
         puts("3rd")
-        i = 3
+        i = 1
 
     defer
         puts("2nd")
@@ -21,8 +14,8 @@ main :: () -> s32
 
     defer 
         puts("1st") 
-        i = 1
+        i = 3
 
     defer do puts("Hello. And welcome.")
 
-    return i
+    ret i

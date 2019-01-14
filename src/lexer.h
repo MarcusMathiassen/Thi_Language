@@ -25,17 +25,22 @@ typedef enum
     TOKEN_CAST,
     TOKEN_SIZEOF,
 
-    TOKEN_FOREIGN,
+    TOKEN_EXTERN,
     TOKEN_LOAD,
 
     TOKEN_DO,
+
+    TOKEN_TRUE,
+    TOKEN_FALSE,
     
+    TOKEN_TYPE,
     TOKEN_DEFER,
     TOKEN_IF,
+    TOKEN_DEF,
     TOKEN_ELSE,
     TOKEN_FOR,
     TOKEN_WHILE,
-    TOKEN_RETURN,
+    TOKEN_RET,
 
     TOKEN_STRUCT,
     TOKEN_ENUM,

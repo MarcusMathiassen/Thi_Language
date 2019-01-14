@@ -3,33 +3,40 @@ load "includes/glew.thi"
 load "includes/glfw.thi"
 load "includes/math.thi"
 
-vec2 :: struct  x: f32 y: f32 
-vec4 :: struct  x: f32 y: f32 z: f32 w: f32 
+type vec2
+    x f32
+    y f32 
 
-Triangle :: struct  
-    pos:    vec2 
-    color:  vec4 
+type vec4
+    x f32
+    y f32
+    z f32
+    w f32 
+
+type Triangle
+    pos    vec2 
+    color  vec4 
 
 
-vec2 :: (x: f32, y: f32) -> vec2  
-    v: vec2
+def vec2 (x f32, y f32) vec2  
+    v vec2
     v.x = x
     v.y = y
-    return v
+    ret v
 
 
-vec4 :: (x: f32, y: f32, z: f32, w: f32) -> vec4 
-    v: vec4
+def vec4 (x f32, y f32, z f32, w f32)  vec4 
+    v vec4
     v.x = x
     v.y = y 
     v.z = z
     v.w = w
-    return v
+    ret v
 
 
-make_triangle :: (pos: vec2, color: vec4) -> Triangle 
+def make_triangle (pos vec2, color vec4)  Triangle 
 
-    t: Triangle
+    t Triangle
     t.pos.x = pos.x
     t.pos.y = pos.y
 
@@ -38,11 +45,11 @@ make_triangle :: (pos: vec2, color: vec4) -> Triangle
     t.color.z = color.z
     t.color.w = color.w
 
-    return t
+    ret t
 
 
 
-draw_triangle :: (t: Triangle) 
+def draw_triangle (t Triangle) 
     glBegin(GL_TRIANGLES)
     glColor3f(t.color.x * 1.0, t.color.y * 0.0, t.color.z * 0.0) 
     glVertex2f(t.pos.x+ (-0.5), t.pos.y + ( -0.5))
@@ -53,7 +60,7 @@ draw_triangle :: (t: Triangle)
     glEnd()
 
 
-main :: () -> s32 
+def main () s32 
 
     window_title := "Triangle"
 
@@ -106,15 +113,15 @@ main :: () -> s32
             running = false
         
 
-        width: s32
-        height: s32
+        width s32
+        height s32
         glfwGetFramebufferSize(window, &width, &height)
         glViewport(0, 0, width, height)
 
-        if glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS   my_triangle.pos.x += -0.001 
-        if glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS  my_triangle.pos.x +=  0.001 
-        if glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS   my_triangle.pos.y += -0.001 
-        if glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS     my_triangle.pos.y +=  0.001 
+        if glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS  do my_triangle.pos.x += -0.001 
+        if glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS do my_triangle.pos.x +=  0.001 
+        if glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS  do my_triangle.pos.y += -0.001 
+        if glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS    do my_triangle.pos.y +=  0.001 
 
         glfwPollEvents()
 
@@ -127,5 +134,5 @@ main :: () -> s32
 
     glfwTerminate()
 
-    return 1
+    ret 1
 

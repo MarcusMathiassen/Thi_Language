@@ -1,7 +1,5 @@
-foo :: (a: s32) -> s32 
-    return a
+def foo (a s32) s32 
+    ret a
 
-
-main :: () -> s32 
-    return foo(1)
-
+def main () s32 
+    ret foo(1)

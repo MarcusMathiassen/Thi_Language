@@ -97,10 +97,10 @@ typedef struct
 
 bool tok_is(Parse_Context* pctx, Token_Kind kind);
 int get_tok_precedence(Parse_Context* pctx);
-void add_new_symbol(Parse_Context* pctx);
+void add_definition(Parse_Context* pctx);
 void eat(Parse_Context* pctx);
 void eat_kind(Parse_Context* pctx, Token_Kind kind);
-Expr* get_definition(Parse_Context* pctx, char* ident);
+Expr* get_definition(Parse_Context* pctx);
 Expr* get_variable_declaration(Parse_Context* pctx, char* ident);
 Expr* get_function_call(Parse_Context* pctx, char* ident);
 
@@ -126,12 +126,12 @@ Expr* parse_continue(Parse_Context* pctx);
 Expr* parse_string(Parse_Context* pctx);
 Expr* parse_sizeof(Parse_Context* pctx);
 
-Typespec* parse_struct_signature(Parse_Context* pctx, char* struct_name);
+Typespec* parse_type_signature(Parse_Context* pctx, char* struct_name);
 Typespec* parse_function_signature(Parse_Context* pctx, char* func_name);
 
 void skip_block(Parse_Context* pctx);
 void skip_enum_signature(Parse_Context* pctx);
-void skip_struct_signature(Parse_Context* pctx);
+void skip_type_signature(Parse_Context* pctx);
 void skip_function_signature(Parse_Context* pctx);
 
 void skip_type(Parse_Context* pctx);
@@ -254,10 +254,9 @@ void generate_symbol_table_from_tokens(List* ast, List* tokens)
         pctx.top_tok = pctx.curr_tok;
 
         switch (pctx.curr_tok.kind) {
-        case TOKEN_IDENTIFIER: {
-            add_new_symbol(&pctx);
-        } break;
-
+        case TOKEN_IDENTIFIER: // FALLTHROUGH
+        case TOKEN_TYPE: // FALLTHROUGH
+        case TOKEN_DEF: add_definition(&pctx); break;
         case TOKEN_LOAD: {
             eat_kind(&pctx, TOKEN_LOAD);
             string file = make_string(strf("%s%s", get_current_dir(), pctx.curr_tok.value));
@@ -273,11 +272,10 @@ void generate_symbol_table_from_tokens(List* ast, List* tokens)
             eat_kind(&pctx, TOKEN_STRING);
         } break;
 
-        case TOKEN_FOREIGN: {
-            eat_kind(&pctx, TOKEN_FOREIGN);
+        case TOKEN_EXTERN: {
+            eat_kind(&pctx, TOKEN_EXTERN);
             char* func_name = pctx.curr_tok.value;
             eat_kind(&pctx, TOKEN_IDENTIFIER);
-            eat_kind(&pctx, TOKEN_COLON_COLON);
             Typespec* func_t = parse_function_signature(&pctx, func_name);
             add_foreign_function(func_name, func_t);
             add_symbol(func_name, func_t);
@@ -299,19 +297,18 @@ char* make_label() { return strf(".L%d", label_counter++); }
 Expr* parse_top_level(Parse_Context* pctx)
 {
     DEBUG_START;
-    Expr* expr = NULL;
     pctx->top_tok = pctx->curr_tok;
     switch (pctx->curr_tok.kind) {
-    case TOKEN_FOREIGN: {
-        eat_kind(pctx, TOKEN_FOREIGN);
+    case TOKEN_TYPE: // fallthrough
+    case TOKEN_DEF: return get_definition(pctx);
+    case TOKEN_EXTERN: {
+        eat_kind(pctx, TOKEN_EXTERN);
         eat_kind(pctx, TOKEN_IDENTIFIER);
-        eat_kind(pctx, TOKEN_COLON_COLON);
         skip_function_signature(pctx);
     } break;
-    case TOKEN_IDENTIFIER: expr = parse_statement(pctx); break;
-    default: warning("unknown toplevel token '%s'", pctx->curr_tok.value); eat(pctx);
+    default: eat(pctx);
     }
-    return expr;
+    return NULL;
 }
 
 Expr* parse_statement(Parse_Context* pctx)
@@ -319,19 +316,16 @@ Expr* parse_statement(Parse_Context* pctx)
     DEBUG_STATEMENT_START;
     Expr* statement = NULL;
     switch (pctx->curr_tok.kind) {
+    case TOKEN_DEF: statement = get_definition(pctx); break;
     case TOKEN_IDENTIFIER: statement = parse_expression(pctx); break;
-    case TOKEN_RETURN: statement = parse_return(pctx); break;
-    case TOKEN_OPEN_PAREN: statement = parse_parens(pctx); break;
-    case TOKEN_BLOCK_START: statement = parse_block(pctx); break;
+    case TOKEN_RET: statement = parse_return(pctx); break;
     case TOKEN_BREAK: statement = parse_break(pctx); break;
     case TOKEN_CONTINUE: statement = parse_continue(pctx); break;
     case TOKEN_IF: statement = parse_if(pctx); break;
     case TOKEN_DEFER: statement = parse_defer(pctx); break;
     case TOKEN_FOR: statement = parse_for(pctx); break;
     case TOKEN_WHILE: statement = parse_while(pctx); break;
-    default:
-        statement =
-            parse_expression(pctx); // error("Unhandled token '%s' was not a valid statement", pctx->curr_tok.value);
+    default: error("Unhandled token '%s' was not a valid statement", pctx->curr_tok.value);
     }
     DEBUG_STATEMENT_END;
     return statement;
@@ -341,6 +335,8 @@ Expr* parse_primary(Parse_Context* pctx)
 {
     DEBUG_START;
     switch (pctx->curr_tok.kind) {
+    case TOKEN_TRUE: return make_expr_int(1);
+    case TOKEN_FALSE: return make_expr_int(0);
     case TOKEN_SIZEOF: return parse_sizeof(pctx);
     case TOKEN_IDENTIFIER: return parse_identifier(pctx);
     case TOKEN_DOLLAR_SIGN: return parse_note(pctx);
@@ -349,7 +345,6 @@ Expr* parse_primary(Parse_Context* pctx)
     case TOKEN_INTEGER: return parse_integer(pctx);
     case TOKEN_STRING: return parse_string(pctx);
     case TOKEN_OPEN_PAREN: return parse_parens(pctx);
-    case TOKEN_BLOCK_START: return parse_block(pctx);
     default: error("unhandled primary '%s'", pctx->curr_tok.value);
     }
     return NULL;
@@ -361,9 +356,8 @@ Expr* parse_identifier(Parse_Context* pctx)
     char* ident = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
     switch (pctx->curr_tok.kind) {
-    case TOKEN_COLON_COLON: return get_definition(pctx, ident);
-    case TOKEN_COLON: // fallthrough
-    case TOKEN_COLON_EQ: return get_variable_declaration(pctx, ident);
+    case TOKEN_COLON_EQ: // FALLTHROUGH
+    case TOKEN_IDENTIFIER: return get_variable_declaration(pctx, ident);
     case TOKEN_OPEN_PAREN: return get_function_call(pctx, ident);
     }
     return make_expr_ident(ident);
@@ -458,7 +452,7 @@ Expr* parse_defer(Parse_Context* pctx)
 {
     eat_kind(pctx, TOKEN_DEFER);
     Expr* block = parse_block(pctx);
-    List* defers = GET_ACTIVE_FUNC->Function.defers;
+    List* defers = pctx->active_func->Function.defers;
     list_append(defers, block);
     return NULL;
 }
@@ -517,8 +511,6 @@ Expr* parse_block(Parse_Context* pctx)
 {
     DEBUG_START;
 
-    List* stmts = make_list();
-
     // Is it a single statement?
     if (tok_is(pctx, TOKEN_DO)) {
         eat_kind(pctx, TOKEN_DO);
@@ -526,13 +518,11 @@ Expr* parse_block(Parse_Context* pctx)
     }
 
     // else it's a block
-
     eat_kind(pctx, TOKEN_BLOCK_START);
+    List* stmts = make_list();
     while (!tok_is(pctx, TOKEN_BLOCK_END)) {
         Expr* stmt = parse_statement(pctx);
-        if (stmt) {
-            list_append(stmts, stmt);
-        }
+        list_append(stmts, stmt);
     }
 
     eat_kind(pctx, TOKEN_BLOCK_END);
@@ -542,7 +532,7 @@ Expr* parse_block(Parse_Context* pctx)
 Expr* parse_return(Parse_Context* pctx)
 {
     DEBUG_START;
-    eat_kind(pctx, TOKEN_RETURN);
+    eat_kind(pctx, TOKEN_RET);
     Expr* expr = parse_expression(pctx);
     List* stmts = make_list();
     char* label = make_label();
@@ -596,8 +586,7 @@ Expr* get_variable_declaration(Parse_Context* pctx, char* ident)
     Expr* variable_value = NULL;
 
     switch (pctx->curr_tok.kind) {
-    case TOKEN_COLON: {
-        eat_kind(pctx, TOKEN_COLON);
+    case TOKEN_IDENTIFIER: {
         variable_type = get_type(pctx);
         if (tok_is(pctx, TOKEN_EQ)) {
             eat_kind(pctx, TOKEN_EQ);
@@ -905,11 +894,10 @@ Typespec* parse_enum_signature(Parse_Context* pctx, char* name)
     return make_typespec_enum(name, NULL);
 }
 
-Typespec* parse_struct_signature(Parse_Context* pctx, char* struct_name)
+Typespec* parse_type_signature(Parse_Context* pctx, char* struct_name)
 {
     DEBUG_START;
 
-    eat_kind(pctx, TOKEN_STRUCT);
     eat_kind(pctx, TOKEN_BLOCK_START);
 
     List* members = make_list();
@@ -918,7 +906,6 @@ Typespec* parse_struct_signature(Parse_Context* pctx, char* struct_name)
         Arg* member = xmalloc(sizeof(Arg));
         member->name = pctx->curr_tok.value;
         eat_kind(pctx, TOKEN_IDENTIFIER);
-        eat_kind(pctx, TOKEN_COLON);
         member->type = get_type(pctx);
         list_append(members, member);
     }
@@ -944,12 +931,11 @@ Typespec* parse_function_signature(Parse_Context* pctx, char* func_name)
         arg->type = NULL;
 
         // foreign's dont have named parameters
-        if (pctx->top_tok.kind == TOKEN_FOREIGN) {
+        if (pctx->top_tok.kind == TOKEN_EXTERN) {
             arg->name = NULL;
             arg->type = get_type(pctx);
         } else {
             eat_kind(pctx, TOKEN_IDENTIFIER);
-            eat_kind(pctx, TOKEN_COLON);
             arg->type = get_type(pctx);
         }
 
@@ -959,48 +945,40 @@ Typespec* parse_function_signature(Parse_Context* pctx, char* func_name)
     eat_kind(pctx, TOKEN_CLOSE_PAREN);
 
     Typespec* ret_type = NULL;
-    if (tok_is(pctx, TOKEN_RIGHT_ARROW)) {
-        eat_kind(pctx, TOKEN_RIGHT_ARROW);
+    if (tok_is(pctx, TOKEN_IDENTIFIER)) {
         ret_type = get_type(pctx);
     }
+    // if (tok_is(pctx, TOKEN_RIGHT_ARROW)) {
+    //     eat_kind(pctx, TOKEN_RIGHT_ARROW);
+    //     ret_type = get_type(pctx);
+    // }
 
     return make_typespec_function(func_name, args, ret_type);
 }
 
-Expr* get_definition(Parse_Context* pctx, char* ident)
+Expr* get_definition(Parse_Context* pctx)
 {
-    DEBUG_START;
+    Token_Kind kind = pctx->curr_tok.kind;
+    eat(pctx);
 
-    eat_kind(pctx, TOKEN_COLON_COLON);
-    switch (pctx->curr_tok.kind) {
-    case TOKEN_ENUM: {
-        skip_enum_signature(pctx);
-        // return make_expr_enum(get_symbol(ident));
-        // return NULL;
-        break;
+    char* identifier = pctx->curr_tok.value;
+    eat_kind(pctx, TOKEN_IDENTIFIER);
+    
+    switch(kind) {
+        case TOKEN_DEF: {
+            skip_function_signature(pctx);
+            Expr* func = make_expr_function(get_symbol(identifier), NULL);
+            SET_ACTIVE_FUNC(func);
+            Expr* body = parse_block(pctx);
+            func->Function.body = body;
+            reset_label_counter();
+            return func;
+        } break;
+        case TOKEN_TYPE: {
+            skip_type_signature(pctx);
+            return make_expr_struct(get_symbol(identifier));
+        } break;
     }
-    case TOKEN_STRUCT: {
-        skip_struct_signature(pctx);
-        return make_expr_struct(get_symbol(ident));
-    }
-    case TOKEN_OPEN_PAREN: {
-        skip_function_signature(pctx);
-        Expr* func = make_expr_function(get_symbol(ident), NULL);
-        SET_ACTIVE_FUNC(func);
-        Expr* body = parse_block(pctx);
-        func->Function.body = body;
-        reset_label_counter();
-        return func;
-    }
-    default: {
-        // Macro def
-        parse_expression(pctx);
-        // return NULL;
-        // return make_expr_macro(ident, parse_expression(pctx));
-        break;
-    }
-    }
-
     return NULL;
 }
 
@@ -1043,11 +1021,11 @@ void skip_block(Parse_Context* pctx)
         eat(pctx);
         parse_statement(pctx);
         return;
-    }
+    }   
+
     eat_kind(pctx, TOKEN_BLOCK_START);
     s64 counter = 1;
     while (true) {
-        warning("%s", pctx->curr_tok.value);
         eat(pctx);
         if (tok_is(pctx, TOKEN_BLOCK_START)) ++counter;
         if (tok_is(pctx, TOKEN_BLOCK_END)) --counter;
@@ -1066,14 +1044,12 @@ void skip_enum_signature(Parse_Context* pctx)
     eat_kind(pctx, TOKEN_BLOCK_END);
 }
 
-void skip_struct_signature(Parse_Context* pctx)
+void skip_type_signature(Parse_Context* pctx)
 {
     DEBUG_START;
-    eat_kind(pctx, TOKEN_STRUCT);
     eat_kind(pctx, TOKEN_BLOCK_START);
     while (!tok_is(pctx, TOKEN_BLOCK_END)) {
         eat_kind(pctx, TOKEN_IDENTIFIER);
-        eat_kind(pctx, TOKEN_COLON);
         skip_type(pctx);
     }
     eat_kind(pctx, TOKEN_BLOCK_END);
@@ -1086,19 +1062,16 @@ void skip_function_signature(Parse_Context* pctx)
     bool has_multiple_arguments = false;
     while (!tok_is(pctx, TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(pctx, TOKEN_COMMA);
-        if (pctx->top_tok.kind == TOKEN_FOREIGN) {
+        if (pctx->top_tok.kind == TOKEN_EXTERN) {
             skip_type(pctx);
         } else {
             eat_kind(pctx, TOKEN_IDENTIFIER);
-            eat_kind(pctx, TOKEN_COLON);
             skip_type(pctx);
         }
         has_multiple_arguments = true;
     }
     eat_kind(pctx, TOKEN_CLOSE_PAREN);
-
-    if (tok_is(pctx, TOKEN_RIGHT_ARROW)) {
-        eat_kind(pctx, TOKEN_RIGHT_ARROW);
+    if (tok_is(pctx, TOKEN_IDENTIFIER)) {
         skip_type(pctx);
     }
 }
@@ -1107,41 +1080,33 @@ void skip_function_signature(Parse_Context* pctx)
 //                               Order-independence Functions
 //------------------------------------------------------------------------------
 
-void add_new_symbol(Parse_Context* pctx)
+void add_definition(Parse_Context* pctx)
 {
     DEBUG_START;
-    /*
-        Can this please also look for symbols inside toplevel functions??
-        Kinda want to define macros and structs inside other constructs
-        you know.
-    */
-
-    char* ident = pctx->curr_tok.value;
-    eat_kind(pctx, TOKEN_IDENTIFIER);
-    if (tok_is(pctx, TOKEN_COLON_COLON)) {
-        eat_kind(pctx, TOKEN_COLON_COLON);
-        switch (pctx->curr_tok.kind) {
-        case TOKEN_ENUM: {
-            Typespec* type = parse_enum_signature(pctx, ident);
-            add_symbol(ident, type);
-            break;
-        }
-        case TOKEN_STRUCT: {
-            Typespec* type = parse_struct_signature(pctx, ident);
-            add_symbol(ident, type);
-            break;
-        }
-        case TOKEN_OPEN_PAREN: {
-            Typespec* type = parse_function_signature(pctx, ident);
+    Token_Kind kind = pctx->curr_tok.kind;
+    
+    switch(kind) {
+        case TOKEN_DEF: {
+            eat_kind(pctx, TOKEN_DEF);
+            char* identifier = pctx->curr_tok.value;
+            eat_kind(pctx, TOKEN_IDENTIFIER);
+            Typespec* type = parse_function_signature(pctx, identifier);
             skip_block(pctx);
-            add_symbol(ident, type);
-            break;
-        }
+            add_symbol(identifier, type);
+        } break;
+        case TOKEN_TYPE: {
+            eat_kind(pctx, TOKEN_TYPE);
+            char* identifier = pctx->curr_tok.value;
+            eat_kind(pctx, TOKEN_IDENTIFIER);
+            Typespec* type = parse_type_signature(pctx, identifier);
+            add_symbol(identifier, type);
+        } break;
         default: {
+            char* identifier = pctx->curr_tok.value;
+            eat_kind(pctx, TOKEN_IDENTIFIER);
+            eat_kind(pctx, TOKEN_COLON_COLON);
             Expr* expr = parse_expression(pctx);
-            add_macro_def(ident, expr);
-            break;
-        }
-        }
+            add_macro_def(identifier, expr);
+        } break;
     }
 }

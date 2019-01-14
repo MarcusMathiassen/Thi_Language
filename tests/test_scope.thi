@@ -1,5 +1,5 @@
 
-main :: () -> s32 
+def main () s32 
 
     x: s32 = 2
 
@@ -7,5 +7,5 @@ main :: () -> s32
         x = 1
     
 
-    return x
+    ret x
 

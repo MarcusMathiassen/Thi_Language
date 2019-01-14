@@ -1,9 +1,9 @@
-main :: () -> s32 
+def main () s32 
     if 0 > 1
         for k: 0 .. 10
             if k == 4
                 break
-            return 1
+            ret 1
     if 2 == 1 
-        return 2
-    return 1
+        ret 2
+    ret 1

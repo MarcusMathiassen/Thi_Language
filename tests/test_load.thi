@@ -1,4 +1,4 @@
 load "includes/foo.thi"
-main :: () -> s32 
-    return foo(1)
+def main () s32 
+    ret foo(1)
 
