@@ -13,6 +13,13 @@
 
 #include "globals.h" // add_symbol
 
+
+/*
+    If identifier is unknown
+        save the identifier with the node
+        
+*/
+
 #define BIN_OP_COUNT 51
 struct
 {
@@ -95,6 +102,9 @@ typedef struct
     char* l_end;
 } Parse_Context;
 
+void generate_ast_from_tokens(List* ast, List* tokens);
+void generate_symbol_table_from_tokens(List* ast, List* tokens);
+
 bool tok_is(Parse_Context* pctx, Token_Kind kind);
 int get_tok_precedence(Parse_Context* pctx);
 void add_definition(Parse_Context* pctx);
@@ -141,12 +151,6 @@ f64 get_float(Parse_Context* pctx);
 Typespec* get_type(Parse_Context* pctx);
 
 #define DEBUG_START info("%s: %s", __func__, pctx->curr_tok.value);
-
-#define DEBUG_STATEMENT_START                                                                                          \
-    info("%s: %s", __func__, pctx->curr_tok.value);                                                                    \
-    debug_info_color = get_next_color();
-
-#define DEBUG_STATEMENT_END debug_info_color = get_previous_color();
 
 #define SET_ACTIVE_FUNC(func) pctx->active_func = func
 #define GET_ACTIVE_FUNC pctx->active_func
@@ -200,8 +204,10 @@ void parse(List* ast, char* source_file)
     push_timer(source_file);
     List* tokens = generate_tokens_from_source(source_file);
     print_tokens(tokens);
-    generate_symbol_table_from_tokens(ast, tokens);
+    // generate_symbol_table_from_tokens(ast, tokens);
     generate_ast_from_tokens(ast, tokens);
+
+
 
     // Give each node a type
     LIST_FOREACH(ast) {
@@ -221,6 +227,7 @@ void parse(List* ast, char* source_file)
 
 void generate_ast_from_tokens(List* ast, List* tokens)
 {
+    info("Generating ast from tokens..");
     Parse_Context pctx;
     pctx.g_tokens = tokens;
     pctx.token_index = 0;
@@ -313,22 +320,20 @@ Expr* parse_top_level(Parse_Context* pctx)
 
 Expr* parse_statement(Parse_Context* pctx)
 {
-    DEBUG_STATEMENT_START;
-    Expr* statement = NULL;
+    DEBUG_START;
     switch (pctx->curr_tok.kind) {
-    case TOKEN_DEF: statement = get_definition(pctx); break;
-    case TOKEN_IDENTIFIER: statement = parse_expression(pctx); break;
-    case TOKEN_RET: statement = parse_return(pctx); break;
-    case TOKEN_BREAK: statement = parse_break(pctx); break;
-    case TOKEN_CONTINUE: statement = parse_continue(pctx); break;
-    case TOKEN_IF: statement = parse_if(pctx); break;
-    case TOKEN_DEFER: statement = parse_defer(pctx); break;
-    case TOKEN_FOR: statement = parse_for(pctx); break;
-    case TOKEN_WHILE: statement = parse_while(pctx); break;
+    case TOKEN_DEF: return get_definition(pctx);
+    case TOKEN_IDENTIFIER: return parse_expression(pctx);
+    case TOKEN_RET: return parse_return(pctx);
+    case TOKEN_BREAK: return parse_break(pctx);
+    case TOKEN_CONTINUE: return parse_continue(pctx);
+    case TOKEN_IF: return parse_if(pctx);
+    case TOKEN_DEFER: return parse_defer(pctx);
+    case TOKEN_FOR: return parse_for(pctx);
+    case TOKEN_WHILE: return parse_while(pctx);
     default: error("Unhandled token '%s' was not a valid statement", pctx->curr_tok.value);
     }
-    DEBUG_STATEMENT_END;
-    return statement;
+    return NULL;
 }
 
 Expr* parse_primary(Parse_Context* pctx)
@@ -395,6 +400,7 @@ Expr* parse_while(Parse_Context* pctx)
 
     list_append(stmts, make_expr_asm(strf("%s:", begin)));
     list_append(stmts, cond);
+    list_append(stmts, make_expr_asm("CMP AL, 0"));
     list_append(stmts, make_expr_asm(strf("JE %s", end)));
     list_append(stmts, body);
     list_append(stmts, make_expr_asm(strf("JMP %s", begin)));
@@ -413,35 +419,25 @@ Expr* parse_for(Parse_Context* pctx)
     char* mid = make_label();
     char* end = make_label();
 
-    char* iterator_name = pctx->curr_tok.value;
-    eat_kind(pctx, TOKEN_IDENTIFIER);
-    eat_kind(pctx, TOKEN_COLON);
-    Expr* start_expr = parse_expression(pctx);
-
-    Typespec* type = get_inferred_type_of_expr(start_expr);
-    Expr* variable = make_expr_variable_decl(iterator_name, type, start_expr);
-    add_symbol(iterator_name, type);
-
-    eat_kind(pctx, TOKEN_DOT_DOT);
-    Expr* end_expr = parse_expression(pctx);
+    Expr* init = parse_statement(pctx);
+    eat_kind(pctx, TOKEN_COMMA);
+    Expr* cond = parse_expression(pctx);
+    eat_kind(pctx, TOKEN_COMMA);
+    Expr* inc = parse_expression(pctx);
 
     SET_JUMP_LABELS(mid, end);
     Expr* body = parse_block(pctx);
     RESTORE_JUMP_LABELS;
 
-    Expr* iterator = make_expr_ident(iterator_name);
-    Expr* cond = make_expr_binary(TOKEN_LT_EQ, iterator, end_expr);
-    Expr* step = make_expr_binary(TOKEN_PLUS_EQ, iterator, make_expr_int(1));
-
     List* stmts = make_list();
-    list_append(stmts, variable);
+    list_append(stmts, init);
     list_append(stmts, make_expr_asm(strf("%s:", begin)));
     list_append(stmts, cond);
-    list_append(stmts, iterator);
-    list_append(stmts, make_expr_asm(strf("JGE %s", end)));
+    list_append(stmts, make_expr_asm("CMP AL, 0"));
+    list_append(stmts, make_expr_asm(strf("JE %s", end)));
     list_append(stmts, body);
     list_append(stmts, make_expr_asm(strf("%s:", mid)));
-    list_append(stmts, step);
+    list_append(stmts, inc);
     list_append(stmts, make_expr_asm(strf("JMP %s", begin)));
     list_append(stmts, make_expr_asm(strf("%s:", end)));
 
@@ -522,7 +518,9 @@ Expr* parse_block(Parse_Context* pctx)
     List* stmts = make_list();
     while (!tok_is(pctx, TOKEN_BLOCK_END)) {
         Expr* stmt = parse_statement(pctx);
-        list_append(stmts, stmt);
+        if (stmt) {
+            list_append(stmts, stmt);
+        }
     }
 
     eat_kind(pctx, TOKEN_BLOCK_END);

@@ -1,9 +1,9 @@
-Foo :: struct 
-    i: s32[5]
+type Foo 
+    i s32[5]
 
 
 def main () s32 
-    array: Foo[5]
+    array Foo[5]
     array[4].i[5] = 1
     ret array[4].i[5]
 

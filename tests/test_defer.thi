@@ -12,10 +12,11 @@ def main () s32
         puts("2nd")
         i = 2
 
-    defer 
+    defer
         puts("1st") 
         i = 3
-
-    defer do puts("Hello. And welcome.")
+        
+    defer 
+        puts("Hello. And welcome.")
 
     ret i

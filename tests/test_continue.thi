@@ -11,7 +11,7 @@ def main () s32
     # We need to do like LLVM and ret an abstraction
     # of the call. Like CallInst, ValueInst
 
-    for k: 0 .. 9 
+    for k := 0, k < 9, k += 1
         continue
         i += 1
     

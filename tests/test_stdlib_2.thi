@@ -1,4 +1,4 @@
-foreign system :: (char*)  s32
+extern system (char*) s32
 
 def main () s32 
     system("echo hello")

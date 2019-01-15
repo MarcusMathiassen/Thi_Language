@@ -1,8 +1,8 @@
-foreign malloc :: (u64)  u8*
+extern malloc (u64) u8*
 
-main :: ()  int  
-    alloc_size : int = sizeof(int*) * 3
-    a: int** = malloc(alloc_size)
+def main() int  
+    alloc_size int = sizeof(int*) * 3
+    a int** = malloc(alloc_size)
     a[0] = malloc(alloc_size)
     a[0][0] = 1
     ret a[0][0]

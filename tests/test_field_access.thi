@@ -1,9 +1,9 @@
-type person
+type Person
     age s64
 
 
 def main () s32 
-    p person
+    p Person
     p.age = 65
     i := 0
     ret p.age
