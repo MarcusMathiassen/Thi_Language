@@ -250,10 +250,7 @@ Expr* parse_top_level(Parse_Context* pctx)
     case TOKEN_EXTERN: return parse_extern(pctx);
     case TOKEN_LOAD: return parse_load(pctx);
     case TOKEN_LINK: return parse_link(pctx);
-    default: 
-        warning("Unhandled token '%s' was not a valid top level statement", pctx->curr_tok.value);
-        eat(pctx); 
-        break;
+    default: eat(pctx); break;
     }
     return NULL;
 }

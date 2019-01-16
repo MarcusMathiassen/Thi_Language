@@ -79,7 +79,7 @@ void add_link(char* library_name)
         }
     }
     list_append(link_list, library_name);
-    success("added link: '%s'", library_name);
+    info("added link: '%s'", library_name);
 }
 
 List* get_link_list(void)
@@ -91,9 +91,9 @@ List* get_link_list(void)
 void print_symbol_map(void)
 {
     s64 count = symbol_map->size;
-    success("symbol_map count: %d", count);
+    info("symbol_map count: %d", count);
     for (s64 i = 0; i < count; ++i) {
-        success("%s", typespec_to_str(symbol_map->data[i].data));
+        info("%s", typespec_to_str(symbol_map->data[i].data));
     }
 }
 
@@ -111,7 +111,7 @@ void add_builtin_type(char* name, Typespec* type)
     if (!map_set(builtin_type_map, name, type)) {
         warning("type redecl: '%s'", name);
     }
-    success("added builtin type: %s of type '%s'", name, typespec_to_str(type));
+    info("added builtin type: %s of type '%s'", name, typespec_to_str(type));
 }
 
 Typespec* get_builtin_type(char* name)
@@ -128,7 +128,7 @@ void add_foreign_function(char* name, Typespec* type)
 {
     assert(type);
     list_append(foreign_function_list, type);
-    success("added extern function: '%s' of type '%s'", name, typespec_to_str(type));
+    info("added extern function: '%s' of type '%s'", name, typespec_to_str(type));
 }
 List* get_foreign_function_list(void) { return foreign_function_list; }
 
@@ -147,7 +147,7 @@ Typespec* add_symbol(char* name, Typespec* type)
     if (!t) {
         error("symbol redecl: '%s'", name);
     }
-    success("added symbol: '%s' of type '%s'", name, typespec_to_str(type));
+    info("added symbol: '%s' of type '%s'", name, typespec_to_str(type));
     return t;
 }
 
@@ -156,7 +156,7 @@ Typespec* set_symbol(char* name, Typespec* type)
     assert(name);
     assert(type);
     Typespec* t = map_set_overwrite(symbol_map, name, type);
-    success("set symbol: '%s' to '%s'", name, typespec_to_str(type));
+    info("set symbol: '%s' to '%s'", name, typespec_to_str(type));
     return t;
 }
 
@@ -177,7 +177,7 @@ void add_macro_def(char* name, Expr* expr)
     if (!map_set(macro_map, name, expr)) {
         warning("macro redecl: '%s'", name);
     }
-    success("added macro: '%s' with expr '%s'", name, expr_to_str(expr));
+    info("added macro: '%s' with expr '%s'", name, expr_to_str(expr));
 }
 
 Expr* get_macro_def(char* name)

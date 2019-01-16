@@ -3,6 +3,7 @@ load "includes/glew.thi"
 load "includes/glfw.thi"
 
 link "c"
+
 extern puts(char*) -> s32
 
 def main () -> s32
