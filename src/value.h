@@ -48,11 +48,6 @@ typedef struct
 } Value_Int;
 typedef struct
 {
-    u8 bytes;
-    s64 value;
-} Value_Pointer;
-typedef struct
-{
     char* value;
     s64 len;
 } Value_String;
@@ -77,7 +72,6 @@ struct Value
     Typespec* type;
     union {
         Value_Int Int;
-        Value_Pointer Pointer;
         Value_String String;
         Value_Variable Variable;
         Value_Call Call;
@@ -92,7 +86,6 @@ Value* make_value_load_inst(Value* variable, s64 offset);
 Value* make_value_store_inst(Value* variable, s64 offset);
 
 Value* make_value_int(u8 bytes, Typespec* type, s64 value);
-Value* make_value_pointer(s64 stack_pos, Value* pointee);
 Value* make_value_string(char* value, Typespec* type);
 Value* make_value_variable(char* name, Typespec* type, s64 stack_pos);
 Value* make_value_call(char* callee, Typespec* type);

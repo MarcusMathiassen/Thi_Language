@@ -46,7 +46,6 @@ int main(int argc, char** argv)
     initilize_globals();
     init_interns_list();
 
-
     add_link("System");
 
     // put ':' in the starting of the 

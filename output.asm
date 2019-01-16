@@ -1,4 +1,11 @@
+extern _puts
+extern _putchar
+extern _malloc
+extern _atoi
+extern _exit
+extern _system
 section .data
+	D0 db `Hello`, 0 
 
 global _main
 section .text
@@ -7,44 +14,87 @@ _main:
 	MOV RBP, RSP
 	SUB RSP, 16; 8 alloc, 8 padding
 .BEGIN:
-	MOV RAX, 0
+	MOV RAX, D0; string_ref
+	MOV RAX, [RAX]; deref
 	PUSH RAX
 	PUSH RAX
-	MOV RAX, QWORD [RBP-8]; load
+	LEA RAX, [RBP-8]; load_ref
 	POP RCX
-	MOV [RBP-8], RCX; store
+	MOV [RAX], RCX; store
 	POP RAX
-.L0:
-	MOV RAX, QWORD [RBP-8]; load
+	MOV RAX, 1
+	PUSH RAX
+	MOV RAX, 0
+	POP RCX
+	IMUL RAX, RCX
+	PUSH RAX
+	LEA RAX, [RBP-8]; load_ref
+	POP RCX
+	ADD RAX, RCX
+	MOV RAX, [RAX]; deref
+	PUSH RAX
+	POP RDI
+	CALL _putchar
+	MOV RAX, 1
+	PUSH RAX
+	MOV RAX, 1
+	POP RCX
+	IMUL RAX, RCX
+	PUSH RAX
+	LEA RAX, [RBP-8]; load_ref
+	POP RCX
+	ADD RAX, RCX
+	MOV RAX, [RAX]; deref
+	PUSH RAX
+	POP RDI
+	CALL _putchar
+	MOV RAX, 1
+	PUSH RAX
+	MOV RAX, 2
+	POP RCX
+	IMUL RAX, RCX
+	PUSH RAX
+	LEA RAX, [RBP-8]; load_ref
+	POP RCX
+	ADD RAX, RCX
+	MOV RAX, [RAX]; deref
+	PUSH RAX
+	POP RDI
+	CALL _putchar
+	MOV RAX, 1
+	PUSH RAX
+	MOV RAX, 3
+	POP RCX
+	IMUL RAX, RCX
+	PUSH RAX
+	LEA RAX, [RBP-8]; load_ref
+	POP RCX
+	ADD RAX, RCX
+	MOV RAX, [RAX]; deref
+	PUSH RAX
+	POP RDI
+	CALL _putchar
+	MOV RAX, 1
 	PUSH RAX
 	MOV RAX, 4
 	POP RCX
-	CMP RCX, RAX
-	SETL AL
-	CMP AL, 0
-	JE .L1
-	MOV RAX, 1
+	IMUL RAX, RCX
 	PUSH RAX
-	MOV RAX, QWORD [RBP-8]; load
+	LEA RAX, [RBP-8]; load_ref
 	POP RCX
 	ADD RAX, RCX
+	MOV RAX, [RAX]; deref
 	PUSH RAX
+	POP RDI
+	CALL _putchar
+	LEA RAX, [RBP-8]; load_ref
 	PUSH RAX
-	MOV RAX, QWORD [RBP-8]; load
-	POP RCX
-	MOV [RBP-8], RCX; store
-	POP RAX
-	JMP .L0
+	POP RDI
+	CALL _puts
 .L1:
-.L3:
-	JMP .L2
-.L2:
-	MOV RAX, 3
-	NEG RAX
-	PUSH RAX
-	MOV RAX, QWORD [RBP-8]; load
-	POP RCX
-	ADD RAX, RCX
+	JMP .L0
+.L0:
+	MOV RAX, 1
 	JMP .END
 .END:
 	ADD RSP, 16; 8 alloc, 8 padding

@@ -187,16 +187,31 @@ void give_type_to_all_nodes(Expr* expr)
     if (expr->type) info("%s | %s", expr_to_str(expr), typespec_to_str(expr->type));
 }
 
+void parser_tests(void)
+{
+    char* test_source = "def main() -> s32\n    ret 1";
+    List* tokens = generate_tokens_from_source(test_source);
+    List* ast = make_list();
+    generate_ast_from_tokens(ast, tokens);
+    print_tokens(tokens);
+    print_ast(ast);
+}
+
 void parse(List* ast, char* source_file)
 {
+    // We need to set some state
     char* last_file = get_source_file();
     char* last_dir = get_current_dir();
+    set_source_file(source_file);
+    char* dir = get_file_directory(source_file);
+    set_current_dir(dir);
 
     list_append(file_list, source_file);
 
     push_timer(source_file);
 
-    List* tokens = generate_tokens_from_source(source_file);
+    char* source = get_file_content(source_file);
+    List* tokens = generate_tokens_from_source(source);
     // print_tokens(tokens);
 
     generate_ast_from_tokens(ast, tokens);
@@ -517,7 +532,9 @@ Expr* parse_string(Parse_Context* pctx)
     DEBUG_START;
     char* value = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_STRING);
-    return make_expr_string(value);
+    Expr* expr = make_expr_string(value);
+    expr = make_expr_unary(THI_SYNTAX_POINTER, expr);
+    return expr;
 }
 
 Expr* parse_block(Parse_Context* pctx)

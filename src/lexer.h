@@ -7,7 +7,15 @@
 //                              lexer.h
 //------------------------------------------------------------------------------
 
-typedef enum
+typedef struct Token Token;
+typedef enum Token_Kind Token_Kind;
+
+List* generate_tokens_from_source(char* source);
+void print_tokens(List* tokens);
+void print_token(Token token);
+char* token_kind_to_str(Token_Kind kind);
+
+enum Token_Kind
 {
     TOKEN_UNKNOWN,
     TOKEN_EOF,
@@ -117,7 +125,13 @@ typedef enum
     TOKEN_HASH,
     TOKEN_EQ,
     TOKEN_COMMENT,
-} Token_Kind;
+};
+
+struct Token
+{
+    Token_Kind kind;
+    char* value;
+};
 
 #define THI_SYNTAX_POINTER TOKEN_ASTERISK
 #define THI_SYNTAX_ADDRESS TOKEN_AND
@@ -130,18 +144,5 @@ typedef enum
 #define THI_SYNTAX_VARIABLE_DECL_TYPE_INF TOKEN_CLOSE_BRACE
 
 #define THI_SYNTAX_ASSIGNMENT TOKEN_EQ
-
-typedef struct Token Token;
-
-struct Token
-{
-    Token_Kind kind;
-    char* value;
-};
-
-List* generate_tokens_from_source(char* source_file);
-void print_tokens(List* tokens);
-void print_token(Token token);
-char* token_kind_to_str(Token_Kind kind);
 
 #endif

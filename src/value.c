@@ -118,7 +118,6 @@ Value* make_value_function(Typespec* type)
     v->Function.stack_allocated = 0;
     return v;
 }
-
 Value* make_value_struct(Typespec* type)
 {
     assert(type);

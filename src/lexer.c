@@ -85,20 +85,12 @@ void print_tokens(List* tokens)
     }
 }
 
-List* generate_tokens_from_source(char* source_file)
+List* generate_tokens_from_source(char* source)
 {
     info("Generating Tokens from Source");
 
     List* tokens = make_list();
 
-    char* source = get_file_content(source_file);
-    char* dir = get_file_directory(source_file);
-
-    set_source_file(source_file);
-    set_current_dir(dir);
-
-    // 'c' represents the current character in the stream.
-    // char* gets set to the start of the stream
     c = source;
     start_of_line = c;
     token.kind = TOKEN_UNKNOWN;

@@ -20,7 +20,7 @@ Context ctx;
 string section_text, section_data;
 Stack scope_stack;
 
-#define DEBUG_START(expr) info("%s: %s", __func__, wrap_with_colored_parens(expr_to_str(expr)));
+#define DEBUG_START info("%s: %s", __func__, wrap_with_colored_parens(expr_to_str(expr)));
 
 Value* codegen_expr(Expr* expr);
 static int label_counter = 0;
@@ -103,6 +103,7 @@ void pop(int reg)
 
 char* get_op_size(s8 bytes)
 {
+    assert(bytes >= 0);
     switch (bytes) {
     case 1: return "BYTE";
     case 2: return "WORD";
@@ -148,6 +149,7 @@ void pop_scope()
 }
 void print_scope(Scope* scope)
 {
+    assert(scope);
     info("Scope count %d", scope->local_variables->count);
     int index = 0;
     LIST_FOREACH(scope->local_variables)
@@ -220,14 +222,14 @@ void emit_load(Value* variable)
     char* mov_size = get_op_size(size);
     switch (variable->type->kind) {
     case TYPESPEC_POINTER:
-    case TYPESPEC_ARRAY: emit("LEA RAX, [RBP-%lld]; load", stack_pos); break;
+    case TYPESPEC_ARRAY: emit("LEA RAX, [RBP-%lld]; load_ref", stack_pos); break;
     default: emit("MOV %s, %s [RBP-%lld]; load", reg, mov_size, stack_pos); break;
     }
 }
 
 Value* codegen_int(Expr* expr)
 {
-    DEBUG_START(expr);
+    DEBUG_START;
     assert(expr->kind == EXPR_INT);
     Value* val = make_value_int(DEFAULT_INT_BYTE_SIZE, integer_literal_type, expr->Int.val);
     s32 reg_n = get_rax_reg_of_byte_size(DEFAULT_INT_BYTE_SIZE);
@@ -237,7 +239,7 @@ Value* codegen_int(Expr* expr)
 
 Value* codegen_block(Expr* expr)
 {
-    DEBUG_START(expr);
+    DEBUG_START;
     push_scope();
     List* stmts = expr->Block.stmts;
     Value* last = NULL;
@@ -252,7 +254,7 @@ Value* codegen_block(Expr* expr)
 
 Value* codegen_unary(Expr* expr)
 {
-    DEBUG_START(expr);
+    DEBUG_START;
     Token_Kind op = expr->Unary.op;
     Expr* operand = expr->Unary.operand;
 
@@ -269,7 +271,7 @@ Value* codegen_unary(Expr* expr)
         emit("LEA RAX, [RSP-%lld]; addrsof", stack_pos);
     } break;
     case THI_SYNTAX_POINTER: {
-        assert(operand_val->kind == VALUE_VARIABLE);
+        // assert(operand_val->kind == VALUE_VARIABLE);
         assert(operand_val->type->kind == TYPESPEC_ARRAY || 
                operand_val->type->kind == TYPESPEC_POINTER ||
                operand_val->type->kind == TYPESPEC_STRUCT);
@@ -300,7 +302,7 @@ Value* codegen_unary(Expr* expr)
 
 Value* codegen_binary(Expr* expr)
 {
-    DEBUG_START(expr);
+    DEBUG_START;
 
     Token_Kind op = expr->Binary.op;
     Expr* lhs = expr->Binary.lhs;
@@ -328,13 +330,16 @@ Value* codegen_binary(Expr* expr)
     case THI_SYNTAX_ASSIGNMENT: {
         codegen_expr(rhs);
         push(RAX);
-        Value* variable;
+        Value* variable = NULL;
         push(RAX);
+
+        // @HACK: i dont like specific cases like this.
         if (lhs->kind == EXPR_UNARY) {
             variable = codegen_expr(lhs->Unary.operand);
         } else {
             variable = codegen_expr(lhs);
         }
+
         pop(RCX);
         emit_store(variable);
         pop(RAX);
@@ -534,7 +539,7 @@ Value* codegen_binary(Expr* expr)
 
 Value* codegen_variable_decl(Expr* expr)
 {
-    DEBUG_START(expr);
+    DEBUG_START;
     assert(expr);
     assert(expr->kind == EXPR_VARIABLE_DECL);
     char* name = expr->Variable_Decl.name;
@@ -556,7 +561,7 @@ Value* codegen_variable_decl(Expr* expr)
 
 Value* codegen_call(Expr* expr)
 {
-    DEBUG_START(expr);
+    DEBUG_START;
     char* callee = expr->Call.callee;
     List* args = expr->Call.args;
 
@@ -599,14 +604,15 @@ Value* codegen_call(Expr* expr)
 
 Value* codegen_macro(Expr* expr)
 {
-    DEBUG_START(expr);
+    DEBUG_START;
     assert(expr->kind == EXPR_MACRO);
     return NULL;
 }
 
 Value* codegen_ident(Expr* expr)
 {
-    DEBUG_START(expr);
+    assert(expr->kind == EXPR_IDENT);
+    DEBUG_START;
     char* name = expr->Ident.name;
     Expr* macro_expr = get_macro_def(name);
     if (macro_expr) {
@@ -619,7 +625,7 @@ Value* codegen_ident(Expr* expr)
 
 Value* codegen_string(Expr* expr)
 {
-    DEBUG_START(expr);
+    DEBUG_START;
     assert(expr->kind == EXPR_STRING);
     char* val = expr->String.val;
     Typespec* t = make_typespec_pointer(make_typespec_int(8, 1));
@@ -631,7 +637,7 @@ Value* codegen_string(Expr* expr)
 
 Value* codegen_note(Expr* expr)
 {
-    DEBUG_START(expr);
+    DEBUG_START;
     assert(expr->kind == EXPR_NOTE);
     Expr* int_expr = expr->Note.expr;
     assert(int_expr->kind == EXPR_INT);
@@ -645,7 +651,7 @@ Value* codegen_note(Expr* expr)
 
 Value* codegen_struct(Expr* expr)
 {
-    DEBUG_START(expr);
+    DEBUG_START;
     assert(expr->kind == EXPR_STRUCT);
     warning("struct incomplete?");
     return make_value_struct(expr->Struct.type);
@@ -668,7 +674,7 @@ s64 get_all_alloca_in_block(Expr* block)
 
 Value* codegen_function(Expr* expr)
 {
-    DEBUG_START(expr);
+    DEBUG_START;
     assert(expr);
     assert(expr->kind == EXPR_FUNCTION);
 
@@ -712,7 +718,6 @@ Value* codegen_function(Expr* expr)
         add_variable(var);
         char* param_reg = get_reg(get_parameter_reg(i, size));
         emit("MOV [RBP-%lld], %s", stack_pos, param_reg);
-
         i += 1;
     }
 
@@ -734,7 +739,6 @@ Value* codegen_function(Expr* expr)
 // @Hotpath
 Value* codegen_expr(Expr* expr)
 {
-    // DEBUG_START(expr);
     switch (expr->kind) {
     case EXPR_ASM: emit("%s", expr->Asm.str); return NULL;
     case EXPR_MACRO: return codegen_macro(expr);

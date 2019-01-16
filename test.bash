@@ -30,7 +30,7 @@ do
     ((test_counter++))
 
     # Compile the file
-    $thi_executable -f $tf -o $name
+    $thi_executable -f $tf -o $name -d -v
 
     if [ -f $name ]; then
         # Run it

@@ -7,12 +7,14 @@ extern system (u8*) -> s32
 
 def main () -> s32 
 
-    a: u8* = "Hello"
-
-    # THIS DOESNT WORK YET. see?
+    a : char* = "Hello"
+    putchar(a[0])
+    putchar(a[1])
+    putchar(a[2])
+    putchar(a[3])
+    putchar(a[4])
     puts(a)
-    puts(*a)
-    puts("Helloo")
-    
-    ret 0
 
+    # puts(a)
+    # puts("This is the baseline. This must work.")
+    ret 1
