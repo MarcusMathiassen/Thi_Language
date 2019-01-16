@@ -8,10 +8,6 @@
 //                               Map
 //------------------------------------------------------------------------------
 
-#define MAP_EXISTS 1
-#define MAP_SUCCESS 0
-#define MAP_FAILED -1
-
 typedef struct Map_Element
 {
     s64 key;
@@ -28,6 +24,6 @@ typedef struct Map
 Map* make_map();
 void map_tests(void);
 void* map_get(Map* map, char* key);
-int map_set(Map* map, char* key, void* value);
-
+void* map_set(Map* map, char* key, void* value);
+void* map_set_overwrite(Map* map, char* key, void* value);
 #endif

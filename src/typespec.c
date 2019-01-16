@@ -49,10 +49,12 @@ s64 get_size_of_typespec(Typespec* type)
     case TYPESPEC_ARRAY: return get_size_of_typespec(type->Array.type) * type->Array.size;
     case TYPESPEC_STRUCT: {
         s64 accum_size = 0;
-        LIST_FOREACH(type->Struct.members)
-        {
-            Arg* mem = (Arg*)it->data;
-            accum_size += get_size_of_typespec(mem->type);
+        if (type->Struct.members) {
+            LIST_FOREACH(type->Struct.members)
+            {
+                Arg* mem = (Arg*)it->data;
+                accum_size += get_size_of_typespec(mem->type);
+            }
         }
         return accum_size;
     }
@@ -110,13 +112,21 @@ char* typespec_to_str(Typespec* type)
     case TYPESPEC_FLOAT: return strf("f%d", type->Float.bytes * 8);
     case TYPESPEC_STRING: return strf("\"\", %d", type->String.len);
     case TYPESPEC_STRUCT: {
-        string str = make_string(strf("%s :: {\n", type->Struct.name));
-        LIST_FOREACH(type->Struct.members)
-        {
-            Arg* mem = (Arg*)it->data;
-            append_string(&str, strf("%s: %s", mem->name, typespec_to_str(mem->type)));
+        string str = make_string(strf("type %s {", type->Struct.name));
+        if (type->Struct.members) {
+            s64 count = type->Struct.members->count;
+            s64 index = 0;
+            LIST_FOREACH(type->Struct.members)
+            {
+                Arg* mem = (Arg*)it->data;
+                append_string(&str, strf("%s: %s", mem->name, typespec_to_str(mem->type)));
+                if (index != count-1) {
+                   append_string(&str, ", ");
+                }
+                index += 1;
+            }
         }
-        append_string(&str, "}\n");
+        append_string(&str, "}");
         return str.c_str;
     };
     case TYPESPEC_ENUM: {
@@ -130,7 +140,7 @@ char* typespec_to_str(Typespec* type)
     };
 
     case TYPESPEC_FUNCTION: {
-        string str = make_string(strf("%s :: (", type->Function.name));
+        string str = make_string(strf("def %s (", type->Function.name));
         strf("func. name: %d", type->Function.name);
 
         s64 arg_count = type->Function.args->count;
@@ -148,7 +158,7 @@ char* typespec_to_str(Typespec* type)
             }
             arg_index += 1;
         }
-        if (type->Function.ret_type) append_string(&str, strf(") -> %s", typespec_to_str(type->Function.ret_type)));
+        if (type->Function.ret_type) append_string(&str, strf(") %s", typespec_to_str(type->Function.ret_type)));
         return str.c_str;
     }
     default: warning("typespec_to_str not implemented kind %d", typespec_kind_to_str(type->kind));

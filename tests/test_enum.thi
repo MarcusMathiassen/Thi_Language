@@ -1,4 +1,4 @@
-DeviceType :: enum 
+enum DeviceType
     GPU
     CPU
 

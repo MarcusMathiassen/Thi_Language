@@ -1,9 +1,26 @@
-extern puts (char*) s32
+extern puts(char*)s32
 
-def main (argc int, argv char*) s32
+def main () s32
+    
+    type ii
+        i s32
+        k s32
+        v vec2
+
+    v ii
 
     puts("Hello world!")
+    i int = 1
+    ret N + add(1,2) + N + mul(2, 3) - M
 
-    i int = 1 
+N :: 6
 
-    ret i
+type vec2
+    x f32
+    y f32
+
+def add(a s32, b s32) s32
+    M :: 2
+    def mul(a s32, b s32) s32
+        ret a * b
+    ret a + b

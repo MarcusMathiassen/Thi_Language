@@ -47,16 +47,15 @@ Map* make_map()
     return m;
 }
 
-// Add a pointer to the hashmap with some key
-int map_set(Map* map, char* key, void* value)
+void* map_set_overwrite(Map* map, char* key, void* value)
 {
     assert(map);
     assert(key);
-
+    
     s64 hash_val = hash_it(key);
     for (s64 i = 0; i < map->size; ++i) {
         if (map->data[i].key == hash_val) {
-            return MAP_EXISTS;
+            return map->data[i].data = value;
         }
     }
 
@@ -68,7 +67,30 @@ int map_set(Map* map, char* key, void* value)
     map->data[map->size].key = hash_val;
     map->data[map->size++].data = value;
 
-    return MAP_SUCCESS;
+    return map->data[map->size-1].data;
+}
+// Add a pointer to the hashmap with some key
+void* map_set(Map* map, char* key, void* value)
+{
+    assert(map);
+    assert(key);
+
+    s64 hash_val = hash_it(key);
+    for (s64 i = 0; i < map->size; ++i) {
+        if (map->data[i].key == hash_val) {
+            return NULL;
+        }
+    }
+
+    // Make sure there is space for it
+    if (map->size >= map->table_size) {
+        map->data = xrealloc(map->data, (map->table_size + INITIAL_SIZE) * sizeof(Map_Element));
+    }
+
+    map->data[map->size].key = hash_val;
+    map->data[map->size++].data = value;
+
+    return map->data[map->size-1].data;
 }
 
 // Get your pointer out of the hashmap with a key

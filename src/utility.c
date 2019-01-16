@@ -48,7 +48,6 @@ void success(char* fmt, ...)
 
 void error(char* fmt, ...)
 {
-    if (!detailed_print) exit(1);
     assert(fmt);
     va_list args;
     va_start(args, fmt);

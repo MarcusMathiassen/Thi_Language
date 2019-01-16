@@ -55,7 +55,8 @@ bool is_builtin_type(char* name);
 void add_builtin_type(char* name, Typespec* type);
 Typespec* get_builtin_type(char* name);
 
-void add_symbol(char* name, Typespec* type);
+Typespec* add_symbol(char* name, Typespec* type);
+Typespec* set_symbol(char* name, Typespec* type);
 Typespec* get_symbol(char* name);
 
 void add_macro_def(char* name, Expr* expr);

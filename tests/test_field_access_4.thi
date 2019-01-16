@@ -1,16 +1,16 @@
-Child :: struct 
-    k: s32
-    a: s32[5]
+type Child
+    k s32
+    a s32[5]
 
 
-Parent :: struct 
-    a: s32
-    b: Child
-    f: f32
+type Parent
+    a s32
+    b Child
+    f f32
 
 
 def main () s32 
-    a: Parent
+    a Parent
     a.b.a[4] = 1
     a.a = 1
     ret a.b.a[4]

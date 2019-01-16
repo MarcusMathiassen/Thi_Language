@@ -1,13 +1,12 @@
-Child :: struct 
-    c: s32
+type Child
+    c s32
 
 
-Parent :: struct 
-    b: Child
+type Parent
+    b Child
 
 
 def main () s32 
-    a: Parent
+    a Parent
     a.b.c = 1
     ret a.b.c
-
