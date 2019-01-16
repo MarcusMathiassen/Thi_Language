@@ -668,6 +668,7 @@ Expr* parse_binary(Parse_Context* pctx, int expr_prec, Expr* lhs)
             expr = lhs;
             break;
         }
+        
 
         // Okay, we know this is a binop.
         Token_Kind binary_op_token = pctx->curr_tok.kind;
