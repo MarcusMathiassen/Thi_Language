@@ -6,6 +6,7 @@
 #include "string.h"  // string
 #include "utility.h" // warning, error, xmalloc
 #include <assert.h>  // assert
+#include <string.h>  // strcmp
 
 bool detailed_print = false;
 bool debug_mode = false;
@@ -16,6 +17,7 @@ string* current_output;
 
 List* foreign_function_list;
 List* constant_string_list;
+List* link_list;
 Map* symbol_map;
 Map* macro_map;
 Map* builtin_type_map;
@@ -59,12 +61,32 @@ void initilize_globals(void)
     timer_stack = make_stack();
     foreign_function_list = make_list();
     constant_string_list = make_list();
+    link_list = make_list();
     timers = make_list();
     file_list = make_list();
     symbol_map = make_map();
     macro_map = make_map();
     builtin_type_map = make_map();
 }
+
+void add_link(char* library_name)
+{
+    assert(library_name);
+    LIST_FOREACH(link_list) {
+        char* l = (char*)it->data;
+        if (strcmp(l, library_name) == 0) {
+            return;
+        }
+    }
+    list_append(link_list, library_name);
+    success("added link: '%s'", library_name);
+}
+
+List* get_link_list(void)
+{
+    return link_list;
+}
+
 
 void print_symbol_map(void)
 {

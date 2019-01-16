@@ -30,7 +30,7 @@ do
     ((test_counter++))
 
     # Compile the file
-    $thi_executable -f $tf -o $name
+    $thi_executable -f $tf -o $name -d
 
     if [ -f $name ]; then
         # Run it
@@ -68,5 +68,3 @@ if [ ${#failed_test_files[@]} -ne 0 ]; then
 else
     echo -e "${RGB_GRAY}[TEST] ${NC}${GREEN}ALL TESTS PASSED${NC}"
 fi
-
-

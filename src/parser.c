@@ -124,6 +124,7 @@ Expr* parse_parens(Parse_Context* pctx);
 Expr* parse_defer(Parse_Context* pctx);
 Expr* parse_load(Parse_Context* pctx);
 Expr* parse_extern(Parse_Context* pctx);
+Expr* parse_link(Parse_Context* pctx);
 Expr* parse_if(Parse_Context* pctx);
 Expr* parse_for(Parse_Context* pctx);
 Expr* parse_while(Parse_Context* pctx);
@@ -199,7 +200,7 @@ void parse(List* ast, char* source_file)
     // print_tokens(tokens);
 
     generate_ast_from_tokens(ast, tokens);
-    print_symbol_map();
+    // print_symbol_map();
     // print_ast(ast);
 
     pop_timer();
@@ -248,6 +249,7 @@ Expr* parse_top_level(Parse_Context* pctx)
     case TOKEN_DEF: return parse_def(pctx);
     case TOKEN_EXTERN: return parse_extern(pctx);
     case TOKEN_LOAD: return parse_load(pctx);
+    case TOKEN_LINK: return parse_link(pctx);
     default: 
         warning("Unhandled token '%s' was not a valid top level statement", pctx->curr_tok.value);
         eat(pctx); 
@@ -272,6 +274,7 @@ Expr* parse_statement(Parse_Context* pctx)
     case TOKEN_WHILE: return parse_while(pctx);
     case TOKEN_EXTERN: return parse_extern(pctx);
     case TOKEN_LOAD: return parse_load(pctx);
+    case TOKEN_LINK: return parse_link(pctx);
     default:
         warning("Unhandled token '%s' was not a valid statement", pctx->curr_tok.value); 
         eat(pctx); 
@@ -326,6 +329,15 @@ Expr* parse_load(Parse_Context* pctx)
     }
     if (!file_already_parsed) parse(pctx->ast_list_ptr, file.c_str);
     eat_kind(pctx, TOKEN_STRING);
+    return NULL;
+}
+
+Expr* parse_link(Parse_Context* pctx)
+{
+    eat_kind(pctx, TOKEN_LINK);
+    char* lib_name = pctx->curr_tok.value;
+    eat_kind(pctx, TOKEN_STRING);
+    add_link(lib_name);
     return NULL;
 }
 
@@ -499,8 +511,7 @@ Expr* parse_type(Parse_Context* pctx)
     char* identifier = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
     Typespec* type = parse_type_signature(pctx, identifier);
-    Typespec* t = add_symbol(identifier, type);
-    assert(get_symbol(identifier) == t);
+    add_symbol(identifier, type);
     return NULL;
 }
 

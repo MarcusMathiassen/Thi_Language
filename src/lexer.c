@@ -41,6 +41,7 @@ Token_Kind get_identifier_kind(char* identifier);
 //------------------------------------------------------------------------------
 typedef enum
 {
+    KEY_LINK,
     KEY_TYPE,
     KEY_TRUE,
     KEY_FALSE,
@@ -62,9 +63,9 @@ typedef enum
     KEY_CONTINUE,
 } Keyword_Kind;
 
-#define KEYWORD_COUNT 19
+#define KEYWORD_COUNT 20
 char* keywords_str[KEYWORD_COUNT] = {
-    "type", "true", "false", "def", "do", "defer", "extern", "load",   "cast",   "sizeof", "if",    "else",
+    "link", "type", "true", "false", "def", "do", "defer", "extern", "load",   "cast",   "sizeof", "if",    "else",
     "for",   "while",   "ret", "struct", "enum",   "break", "continue",
 };
 
@@ -207,6 +208,7 @@ int get_keyword_index(char* identifier)
 Token_Kind get_identifier_kind(char* identifier)
 {
     switch (get_keyword_index(identifier)) {
+    case KEY_LINK: return TOKEN_LINK;
     case KEY_TYPE: return TOKEN_TYPE;
     case KEY_TRUE: return TOKEN_TRUE;
     case KEY_FALSE: return TOKEN_FALSE;
@@ -518,6 +520,7 @@ char* token_kind_to_str(Token_Kind kind)
     case TOKEN_SIZEOF: return "sizeof";
     case TOKEN_LOAD: return "load";
     case TOKEN_EXTERN: return "extern";
+    case TOKEN_LINK: return "link";
     case TOKEN_TYPE: return "type";
     case TOKEN_TRUE: return "true";
     case TOKEN_FALSE: return "false";
@@ -576,6 +579,7 @@ char* token_kind_to_str(Token_Kind kind)
     case TOKEN_COMMA: return ",";
     case TOKEN_DOT: return ".";
     case TOKEN_DOT_DOT: return "..";
+    case TOKEN_DOT_DOT_DOT: return "...";
     case TOKEN_COLON: return ":";
     case TOKEN_SEMICOLON: return ";";
     case TOKEN_ASTERISK: return "*";
@@ -595,7 +599,6 @@ char* token_kind_to_str(Token_Kind kind)
     case TOKEN_HEX: return "hex";
     case TOKEN_FLOAT: return "float";
     case TOKEN_MINUS_MINUS_MINUS: return "---";
-    case TOKEN_DOT_DOT_DOT: return "...";
     }
     error("Unhandled token kind.");
     return "TOKEN_UNKNOWN";

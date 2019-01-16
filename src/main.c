@@ -212,15 +212,17 @@ void assemble(char* asm_file, char* exec_name)
 
 void linking_stage(char* exec_name)
 {
-    string link_call =
-        make_string_f("ld -macosx_version_min 10.14 -lSystem -o %s %s.o -e _main -lc", exec_name, exec_name);
+    char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _main", exec_name, exec_name);
+    List* links = get_link_list();
+    LIST_FOREACH(links) {
+        char* l = (char*)it->data;
+        link_call = strf("%s -l%s", link_call, l);
+    }
+    info("Linking with options '%s'", link_call);
     push_timer("Linker");
-    system(link_call.c_str);
-    free_string(&link_call);
+    system(link_call);
     pop_timer();
 
     // Cleanup
-    string rm_call = make_string_f("rm %s.o", exec_name);
-    system(rm_call.c_str);
-    free_string(&rm_call);
+    system(strf("rm %s.o", exec_name));
 }

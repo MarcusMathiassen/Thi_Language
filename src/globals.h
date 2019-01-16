@@ -46,6 +46,8 @@ char* get_output_name(void);
 void set_output_name(char* name);
 
 List* get_file_list(void);
+List* get_link_list(void);
+void add_link(char* library_name);
 
 void set_current_dir(char* dir_name);
 char* get_current_dir();

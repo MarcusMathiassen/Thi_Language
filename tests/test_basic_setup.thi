@@ -1,4 +1,4 @@
-extern puts(char*)s32
+load "includes/cstdio.thi"
 
 def main () s32
     
@@ -7,8 +7,11 @@ def main () s32
         k s32
         v vec2
 
-    v ii
+    f := fopen("x64.asm", "w")
+    fputs("Hello this is a test", *f)
+    fclose(*f)
 
+    v ii
     puts("Hello world!")
     i int = 1
     ret N + add(1,2) + N + mul(2, 3) - M

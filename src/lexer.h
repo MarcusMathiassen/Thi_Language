@@ -25,6 +25,7 @@ typedef enum
     TOKEN_CAST,
     TOKEN_SIZEOF,
 
+    TOKEN_LINK,
     TOKEN_EXTERN,
     TOKEN_LOAD,
 
