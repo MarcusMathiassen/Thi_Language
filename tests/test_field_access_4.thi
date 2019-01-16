@@ -1,16 +1,16 @@
 type Child
-    k s32
-    a s32[5]
+    k: s32
+    a: s32[5]
 
 
 type Parent
-    a s32
-    b Child
-    f f32
+    a: s32
+    b: Child
+    f: f32
 
 
-def main () s32 
-    a Parent
+def main () -> s32 
+    a: Parent
     a.b.a[4] = 1
     a.a = 1
     ret a.b.a[4]

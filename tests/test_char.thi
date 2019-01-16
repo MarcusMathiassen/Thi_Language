@@ -1,13 +1,13 @@
-extern puts (u8*) s32
-extern putchar (s32) s32
-extern malloc (s64) u8*
-extern atoi (u8*) s32
-extern exit (s32) u8*
-extern system (u8*) s32
+extern puts (u8*) -> s32
+extern putchar (s32) -> s32
+extern malloc (s64) -> u8*
+extern atoi (u8*) -> s32
+extern exit (s32) -> u8*
+extern system (u8*) -> s32
 
-def main () s32 
+def main () -> s32 
 
-    a u8* = "Hello"
+    a: u8* = "Hello"
 
     # THIS DOESNT WORK YET. see?
     puts(a)

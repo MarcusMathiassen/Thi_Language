@@ -1,6 +1,6 @@
 NUMBER1 :: 3
 NUMBER2 :: -2
 
-def main () s32 
+def main () -> s32 
     ret NUMBER1 + NUMBER2
 

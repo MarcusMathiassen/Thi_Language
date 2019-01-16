@@ -1,16 +1,16 @@
 type bar
-    a s32
-    b s64
-    c f32
+    a: s32
+    b: s64
+    c: f32
 
 
 type foo
-    a bar
-    b bar
+    a: bar
+    b: bar
 
 
-def main () s32 
-    b bar
-    a foo
+def main () -> s32 
+    b: bar
+    a: foo
     ret 1
 

@@ -1,6 +1,6 @@
-extern puts (char*) s32
+extern puts (char*) -> s32
 
-def main () s32
+def main () -> s32
 
     i := 0
 
@@ -15,7 +15,7 @@ def main () s32
     defer
         puts("1st") 
         i = 3
-        
+
     defer 
         puts("Hello. And welcome.")
 

@@ -589,7 +589,12 @@ Value* codegen_call(Expr* expr)
 
     emit("CALL _%s", callee);
 
-    return make_value_call(callee, func_t->Function.ret_type);
+    Typespec* ret_type = func_t->Function.ret_type;
+    if (!ret_type)
+        ret_type = make_typespec_int(1, true);
+
+
+    return make_value_call(callee, ret_type);
 }
 
 Value* codegen_macro(Expr* expr)

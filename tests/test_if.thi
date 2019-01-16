@@ -1,4 +1,4 @@
-def main () s32 
+def main () -> s32 
     i := 0
     if 1 < 0
         i = add(2,2)
@@ -6,5 +6,5 @@ def main () s32
         i = 1
     ret i
 
-def add (a s32, b s32) s32
+def add (a: s32, b: s32) -> s32
     ret a + b

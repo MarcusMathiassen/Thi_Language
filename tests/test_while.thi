@@ -1,4 +1,4 @@
-def main () s32 
+def main () -> s32 
     i := 0
     while i < 4 do i += 1 
     ret i - 3

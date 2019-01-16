@@ -19,12 +19,11 @@ extern glColor3f      (f32, f32, f32)
 extern glColor4f      (f32, f32, f32, f32)
 extern glVertex2f     (f32, f32)
 extern glVertex3f     (f32, f32, f32)
-extern glGetError     ()  s32
-extern glGetString    (s32)  s8*
+extern glGetError     () -> s32
+extern glGetString    (s32) -> s8*
 extern glGetIntegerv  (s32, s32*)
 extern glTexCoord2f   (f32, f32)
 extern glTexImage2D   (s32, s32, s32, s32, s32, s32, s32, s32, void*)
-
 extern glGenBuffers               (s32, u32*)
 extern glGenVertexArrays          (s32, u32*)
 extern glGenSamplers              (s32, u32*)
@@ -35,20 +34,19 @@ extern glDeleteVertexArrays       (s32, u32*)
 extern glBindSampler              (s32, u32)
 extern glBufferData               (s32, s32, void*, s32)
 extern glBufferSubData            (s32, s32, s32, void*)
-
 extern glDrawArrays               (s32, s32, u32)
 extern glDrawElements             (s32, u32, s32, void*)
 
-extern glMapBuffer                (s32, s32)  void*
+extern glMapBuffer                (s32, s32) -> void*
 extern glUnmapBuffer              (s32)
 
 extern VertexAttribPointer        (u32, s32, s32, s32, u32, void*)
 extern EnableVertexAttribArray    (u32)
 
-extern glCreateShader             (s32)  u32
+extern glCreateShader             (s32) -> u32
 extern glShaderSource             (u32, u32, s8*, s32*)
 extern glCompileShader            (u32)
-extern glCreateProgram            ()  u32
+extern glCreateProgram            () -> u32
 extern glAttachShader             (u32, u32)
 extern glDetachShader             (u32, u32)
 extern glDeleteShader             (u32)
@@ -81,7 +79,7 @@ extern glUniform3f            (s32, f32, f32, f32)
 extern glUniform4f            (s32, f32, f32, f32, f32)
 extern glUniformMatrix4fv     (s32, u32, s32, f32*)
 
-extern glGetUniformLocation   (u32, s8*)  s32
+extern glGetUniformLocation   (u32, s8*) -> s32
 
 GL_FALSE                          :: 0
 GL_TRUE                           :: 1

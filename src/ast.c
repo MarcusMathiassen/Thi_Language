@@ -33,8 +33,9 @@ char* expr_kind_to_str(Expr_Kind kind)
     case EXPR_STRUCT: return "EXPR_STRUCT";
     case EXPR_BLOCK: return "EXPR_BLOCK";
     case EXPR_GROUPING: return "EXPR_GROUPING";
+    default: error("expr_kind_to_str unhandled case '%d'", kind);
     }
-    return "print not implemented";
+    return NULL;
 }
 
 char* expr_to_str(Expr* expr)
@@ -51,6 +52,9 @@ char* expr_to_str(Expr* expr)
     }
     case EXPR_INT: {
         return strf("%lld", expr->Int.val);
+    }
+    case EXPR_FLOAT: {
+        return strf("%f", expr->Float.val);
     }
     case EXPR_STRING: {
         return strf("\"%s\"", expr->String.val);
@@ -100,9 +104,8 @@ char* expr_to_str(Expr* expr)
         append_string(&str, ")");
         return str.c_str;
     }
+    default: error("%s: unhandled case %s", __func__, expr_kind_to_str(expr->kind));
     }
-
-    error("%s: unhandled case %s", __func__, expr_kind_to_str(expr->kind));
     return NULL;
 }
 

@@ -1,9 +1,12 @@
-extern glewInit ()  s32
-extern glewIsSupported (s8*)  bool
 
-extern glewGetExtension (s8*)  bool
-extern glewGetErrorString (s32)  u8*
-extern glewGetString (s32)  u8*
+link "glew"
+
+extern glewInit () -> s32
+extern glewIsSupported (s8*) -> bool
+
+extern glewGetExtension (s8*) -> bool
+extern glewGetErrorString (s32) -> u8*
+extern glewGetString (s32) -> u8*
 
 GLEW_OK :: 0
 GLEW_NO_ERROR :: 0

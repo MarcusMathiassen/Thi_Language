@@ -3,6 +3,6 @@ enum DeviceType
     CPU
 
 
-def main () s32 
+def main () -> s32 
     ret 1
 

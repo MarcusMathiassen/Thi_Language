@@ -1,4 +1,4 @@
-def main () s32 
+def main () -> s32 
     a := -1
     a += 2
     ret a

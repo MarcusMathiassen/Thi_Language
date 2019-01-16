@@ -1,5 +1,5 @@
-def foo (a s32) s32 
+def foo (a: s32) -> s32 
     ret a
 
-def main () s32 
+def main () -> s32 
     ret foo(1)

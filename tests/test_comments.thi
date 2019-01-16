@@ -1,5 +1,5 @@
 # Hello
-def main () s32 
+def main () -> s32 
     ret 1
     # This is a multiline comment
     # This is a multiline comment

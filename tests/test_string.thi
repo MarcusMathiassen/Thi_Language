@@ -1,4 +1,4 @@
-def main () s32 
+def main () -> s32 
 
     name := "Marcus"
 

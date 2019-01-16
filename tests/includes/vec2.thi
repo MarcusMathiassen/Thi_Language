@@ -1,4 +1,4 @@
 load "foo.thi"
-bar :: (a: s32)  s32 
+def bar (a: s32) -> s32 
     ret foo(1)
 

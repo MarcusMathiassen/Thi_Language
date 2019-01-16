@@ -15,7 +15,6 @@ typedef enum Expr_Kind Expr_Kind;
 enum Expr_Kind
 {
     EXPR_ASM,
-
     EXPR_MACRO,
     EXPR_NOTE,
     EXPR_INT,

@@ -17,44 +17,44 @@ FOPEN_MAX :: 1000
 TMP_MAX :: 10000
 L_tmpnam :: 20
 
-extern fopen( char*,  char*) void*
-extern freopen( char*,  char*, void *) void*
-extern fclose(void *) s32
-extern remove( char*) s32
-extern rename( char*,  char*) s32
-extern feof(void *) s32
-extern ferror(void *) s32
-extern fflush(void *) s32
-extern clearerr(void *) void
-extern fseek(void *, s32, s32) s32
-extern ftell(void *) s32
-extern rewind(void *) void
-extern fgetpos(void *, fpos_t *) s32
-extern fsetpos(void *,  fpos_t *) s32
-extern fread(void *, u32, u32, void *) u32
-extern fwrite(void *, u32, u32, void *) u32
-extern fgetc(void*) s32
-extern getc(void *) s32
-extern getchar(void) s32
-extern ungetc(s32, void *) s32
-extern fputc(s32, void *) s32
-extern putc(s32, void *) s32
-extern putchar(s32) s32
-extern fgets(char*, s32, void *) char*
-extern fputs( char*, void *) s32
-extern puts( char*) s32
-# extern printf( char*, ...) s32
-# extern fprintf(void *,  char*, ...) s32
-# extern sprintf(char*,  char*, ...) s32
-# extern snprintf(char*, u32,  char*, ...) s32
-extern vprintf( char*, __isoc_va_list) s32
-extern vfprintf(void *,  char*, __isoc_va_list) s32
-extern vsprintf(char*,  char*, __isoc_va_list) s32
-extern vsnprintf(char*, u32,  char*, __isoc_va_list) s32
-# extern scanf( char*, ...) s32
-# extern fscanf(void *,  char*, ...) s32
-# extern sscanf( char*,  char*, ...) s32
-extern vscanf( char*, __isoc_va_list) s32
-extern vfscanf(void *,  char*, __isoc_va_list) s32
-extern vsscanf( char*,  char*, __isoc_va_list) s32
-extern perror( char*) void
+extern fopen(char*, char*) -> void*
+extern freopen(char*,  char *, void*) -> void*
+extern fclose(void*) -> s32
+extern remove(char*) -> s32
+extern rename(char*, char*) -> s32
+extern feof(void*) -> s32
+extern ferror(void*) -> s32
+extern fflush(void*) -> s32
+extern clearerr(void*)
+extern fseek(void*, s32, s32) -> s32
+extern ftell(void*) -> s32
+extern rewind(void*)
+# extern fgetpos(void*, fpos_t *) -> s32
+# extern fsetpos(void*,  fpos_t *) -> s32
+extern fread(void*, u32, u32, void*) -> u32
+extern fwrite(void*, u32, u32, void*) -> u32
+extern fgetc(void*) -> s32
+#extern getc(void*) -> s32
+extern getchar(void) -> s32
+extern ungetc(s32, void*) -> s32
+extern fputc(s32, void*) -> s32
+extern putc(s32, void*) -> s32
+extern putchar(s32) -> s32
+extern fgets(char*, s32, void*) -> char*
+extern fputs(char*, void*) -> s32
+extern puts(char*) -> s32
+# extern printf(char*, ...) -> s32
+# extern fprintf(void*, char*, ...) -> s32
+# extern sprintf(char*, char*, ...) -> s32
+# extern snprintf(char*, u32, char*, ...) -> s32
+# extern vprintf(char*, __isoc_va_list) -> s32
+# extern vfprintf(void*, char*, __isoc_va_list) -> s32
+# extern vsprintf(char*, char*, __isoc_va_list) -> s32
+# extern vsnprintf(char*, u32, char*, __isoc_va_list) -> s32
+# extern scanf(char*, ...) -> s32
+# extern fscanf(void*, char*, ...) -> s32
+# extern sscanf(char*, char*, ...) -> s32
+# extern vscanf(char*, __isoc_va_list) -> s32
+# extern vfscanf(void*, char*, __isoc_va_list) -> s32
+# extern vsscanf(char*, char*, __isoc_va_list) -> s32
+extern perror(char*)

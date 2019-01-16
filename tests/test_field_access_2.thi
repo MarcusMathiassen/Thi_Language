@@ -1,12 +1,12 @@
 type Child
-    c s32
+    c: s32
 
 
 type Parent
-    b Child
+    b: Child
 
 
-def main () s32 
-    a Parent
+def main () -> s32 
+    a: Parent
     a.b.c = 1
     ret a.b.c

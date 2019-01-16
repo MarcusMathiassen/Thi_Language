@@ -1,5 +1,5 @@
-extern putchar (s32)  s32
-def main () s32 
+extern putchar (s32) -> s32
+def main () -> s32 
     putchar(65)
     ret 1
 

@@ -306,8 +306,8 @@ Expr* parse_identifier(Parse_Context* pctx)
 {
     DEBUG_START;
     switch (next_tok_kind(pctx)) {
-    case TOKEN_COLON_EQ:    // FALLTHROUGH
-    case TOKEN_IDENTIFIER: return parse_variable_decl(pctx);
+    case TOKEN_COLON:  // FALLTHROUGH
+    case TOKEN_COLON_EQ: return parse_variable_decl(pctx);
     case TOKEN_OPEN_PAREN: return parse_function_call(pctx);
     case TOKEN_COLON_COLON: return parse_macro(pctx);
     }
@@ -551,7 +551,14 @@ Expr* parse_return(Parse_Context* pctx)
 {
     DEBUG_START;
     eat_kind(pctx, TOKEN_RET);
-    Expr* expr = parse_expression(pctx);
+
+    bool returns_something = false;
+
+    // If the current function does not return anything
+    if (GET_ACTIVE_FUNC->Function.type->Function.ret_type) {
+        returns_something = true;
+    }
+
     List* stmts = make_list();
     char* label = make_label();
     char* label2 = make_label();
@@ -566,7 +573,7 @@ Expr* parse_return(Parse_Context* pctx)
     list_append(stmts, make_expr_asm(strf("JMP %s", label)));
 
     list_append(stmts, make_expr_asm(strf("%s:", label)));
-    list_append(stmts, expr);
+    if (returns_something) list_append(stmts, parse_expression(pctx));
     list_append(stmts, make_expr_asm(strf("JMP %s", DEFAULT_FUNCTION_END_LABEL_NAME)));
 
     return make_expr_block(stmts);
@@ -609,7 +616,8 @@ Expr* parse_variable_decl(Parse_Context* pctx)
     eat_kind(pctx, TOKEN_IDENTIFIER);
 
     switch (pctx->curr_tok.kind) {
-    case TOKEN_IDENTIFIER: {
+    case TOKEN_COLON: {
+        eat_kind(pctx, TOKEN_COLON);
         variable_type = get_type(pctx);
         if (tok_is(pctx, TOKEN_EQ)) {
             eat_kind(pctx, TOKEN_EQ);
@@ -624,7 +632,7 @@ Expr* parse_variable_decl(Parse_Context* pctx)
     } break;
     }
 
-    // add_symbol(variable_name, variable_type);
+    add_symbol(variable_name, variable_type);
 
     return make_expr_variable_decl(variable_name, variable_type, variable_value);
 }
@@ -932,6 +940,7 @@ Typespec* parse_type_signature(Parse_Context* pctx, char* struct_name)
         Arg* member = xmalloc(sizeof(Arg));
         member->name = pctx->curr_tok.value;
         eat_kind(pctx, TOKEN_IDENTIFIER);
+        eat_kind(pctx, TOKEN_COLON);
         member->type = get_type(pctx);
         list_append(members, member);
     }
@@ -962,6 +971,7 @@ Typespec* parse_function_signature(Parse_Context* pctx, char* func_name)
             arg->type = get_type(pctx);
         } else {
             eat_kind(pctx, TOKEN_IDENTIFIER);
+            eat_kind(pctx, TOKEN_COLON);
             arg->type = get_type(pctx);
         }
 
@@ -971,7 +981,8 @@ Typespec* parse_function_signature(Parse_Context* pctx, char* func_name)
     eat_kind(pctx, TOKEN_CLOSE_PAREN);
 
     Typespec* ret_type = NULL;
-    if (tok_is(pctx, TOKEN_IDENTIFIER)) {
+    if (tok_is(pctx, TOKEN_RIGHT_ARROW)) {
+        eat_kind(pctx, TOKEN_RIGHT_ARROW);
         ret_type = get_type(pctx);
     }
 

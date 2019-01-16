@@ -46,6 +46,9 @@ int main(int argc, char** argv)
     initilize_globals();
     init_interns_list();
 
+
+    add_link("System");
+
     // put ':' in the starting of the 
     // string so that program can  
     //distinguish between '?' and ':'  
@@ -102,6 +105,7 @@ int main(int argc, char** argv)
     Typespec* f64_t = make_typespec_float(8);
 
     add_builtin_type("void", u8_t);
+    add_builtin_type("bool", u8_t);
 
     add_builtin_type("char", u8_t);
     add_builtin_type("int", s32_t);
