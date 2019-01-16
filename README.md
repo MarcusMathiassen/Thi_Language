@@ -4,26 +4,23 @@
         touch main.thi
 
         # this is a comment
-        main :: () -> i32 {
+        def main () -> s32
             ret 1
-        }
 
         $ thi main.thi
 # Syntax
     Constant variable def <=>        <ident> :: <expr>
-    Constant variable def <=>        <ident> :: (<params>) -> <ret_type> { <body> }
+    Function def <=> def <ident> (<variable_decl>..) -> <ret_type>
     Variable decl <=>                <ident> : <type>
     Variable decl with assignmen <=> <ident> : <type> = <expr>
     Variable decl type inf <=>       <ident> := <expr>
 
     Control flow
-    if <=> if <expr> { <body> }
-    for <=> for <ident>: <range> { <body> }
-    while <=> while <expr> { <body> }
+    if <=> if <cond>
+    for <=> for <init>, <cond>, <inc>
+    while <=> while <cond>
 
 # Not actually a readme but a todo scratchpad
-
-# Minumum features needed for self-hosting
 - [x] integer literals
 - [ ] string literals
 - [x] functions
@@ -34,8 +31,8 @@
 - [x] variables
 - [ ] global variables
 
-- [x] i32
-- [ ] char
+- [x] s32
+- [x] char
 - [x] pointer
 
 - [x] subscript access
@@ -47,6 +44,8 @@
 
 - [x] if
 - [x] for
+- [x] do
+- [x] defer
 - [x] while
 - [x] break
 - [x] return
