@@ -209,7 +209,6 @@ void emit_store(Value* variable)
     case TYPESPEC_ARRAY: emit("MOV [RAX], RCX; store"); break;
     default: emit("MOV [RBP-%lld], RCX; store", stack_pos); break;
     }
-
 }
 
 void emit_load(Value* variable)
@@ -225,31 +224,6 @@ void emit_load(Value* variable)
     case TYPESPEC_ARRAY: emit("LEA RAX, [RBP-%lld]; load_ref", stack_pos); break;
     default: emit("MOV %s, %s [RBP-%lld]; load", reg, mov_size, stack_pos); break;
     }
-}
-
-Value* codegen_int(Expr* expr)
-{
-    DEBUG_START;
-    assert(expr->kind == EXPR_INT);
-    Value* val = make_value_int(DEFAULT_INT_BYTE_SIZE, integer_literal_type, expr->Int.val);
-    s32 reg_n = get_rax_reg_of_byte_size(DEFAULT_INT_BYTE_SIZE);
-    emit("MOV %s, %d", get_reg(reg_n), val->Int.value);
-    return val;
-}
-
-Value* codegen_block(Expr* expr)
-{
-    DEBUG_START;
-    push_scope();
-    List* stmts = expr->Block.stmts;
-    Value* last = NULL;
-    LIST_FOREACH(stmts)
-    {
-        Expr* stmt = (Expr*)it->data;
-        last = codegen_expr(stmt);
-    }
-    pop_scope();
-    return last;
 }
 
 Value* codegen_unary(Expr* expr)
@@ -271,10 +245,6 @@ Value* codegen_unary(Expr* expr)
         emit("LEA RAX, [RSP-%lld]; addrsof", stack_pos);
     } break;
     case THI_SYNTAX_POINTER: {
-        // assert(operand_val->kind == VALUE_VARIABLE);
-        assert(operand_val->type->kind == TYPESPEC_ARRAY || 
-               operand_val->type->kind == TYPESPEC_POINTER ||
-               operand_val->type->kind == TYPESPEC_STRUCT);
         Typespec* t = operand_val->type->Array.type;
         switch (t->kind) {
         case TYPESPEC_ARRAY:
@@ -601,6 +571,32 @@ Value* codegen_call(Expr* expr)
 
     return make_value_call(callee, ret_type);
 }
+
+Value* codegen_int(Expr* expr)
+{
+    DEBUG_START;
+    assert(expr->kind == EXPR_INT);
+    Value* val = make_value_int(DEFAULT_INT_BYTE_SIZE, integer_literal_type, expr->Int.val);
+    s32 reg_n = get_rax_reg_of_byte_size(DEFAULT_INT_BYTE_SIZE);
+    emit("MOV %s, %d", get_reg(reg_n), val->Int.value);
+    return val;
+}
+
+Value* codegen_block(Expr* expr)
+{
+    DEBUG_START;
+    push_scope();
+    List* stmts = expr->Block.stmts;
+    Value* last = NULL;
+    LIST_FOREACH(stmts)
+    {
+        Expr* stmt = (Expr*)it->data;
+        last = codegen_expr(stmt);
+    }
+    pop_scope();
+    return last;
+}
+
 
 Value* codegen_macro(Expr* expr)
 {

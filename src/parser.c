@@ -276,6 +276,7 @@ Expr* parse_statement(Parse_Context* pctx)
     switch (pctx->curr_tok.kind) {
     case TOKEN_DEF: return parse_def(pctx);
     case TOKEN_TYPE: return parse_type(pctx);
+    case THI_SYNTAX_POINTER: return parse_unary(pctx);
     case TOKEN_IDENTIFIER: return parse_expression(pctx);
     case TOKEN_RET: return parse_return(pctx);
     case TOKEN_BREAK: return parse_break(pctx);
@@ -717,6 +718,7 @@ Expr* read_field_access_expr(Parse_Context* pctx, Expr* expr)
 
     return make_expr_unary(THI_SYNTAX_POINTER, expr);
 }
+
 Expr* read_subscript_expr(Parse_Context* pctx, Expr* expr)
 {
     eat_kind(pctx, TOKEN_OPEN_BRACKET);
@@ -726,6 +728,8 @@ Expr* read_subscript_expr(Parse_Context* pctx, Expr* expr)
     s64 size = get_size_of_underlying_typespec(get_inferred_type_of_expr(expr));
     sub = make_expr_binary(TOKEN_ASTERISK, make_expr_int(size), sub);
     Expr* t = make_expr_binary(TOKEN_PLUS, expr, sub);
+
+    // return make_expr_subscript(expr)
     return make_expr_unary(THI_SYNTAX_POINTER, t);
 }
 

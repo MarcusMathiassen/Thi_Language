@@ -1,20 +1,34 @@
-extern puts (u8*) -> s32
 extern putchar (s32) -> s32
 extern malloc (s64) -> u8*
 extern atoi (u8*) -> s32
 extern exit (s32) -> u8*
 extern system (u8*) -> s32
 
+
+EOF :: -1
+
+def puts(c: char*) -> s32
+    i := 0
+    while *(c+sizeof(char)*i)
+        if putchar(*(c+sizeof(char)*i)) == EOF
+            ret EOF
+        i += 1
+    if putchar('\n') == EOF
+        ret EOF
+    ret 1
+
 def main () -> s32 
 
-    a : char* = "Hello"
-    putchar(a[0])
-    putchar(a[1])
-    putchar(a[2])
-    putchar(a[3])
-    putchar(a[4])
-    puts(a)
+    a: char* = "65"
+    # putchar(a[0])
+    # putchar('\n')
+    puts("Hello")
+    puts("Titthei")
+    puts("Tit thei")
+    puts(*a)
+    putchar(atoi(a))
+    putchar('\n')
+    putchar(atoi(a) + 32)
+    putchar('\n')
 
-    # puts(a)
-    # puts("This is the baseline. This must work.")
     ret 1
