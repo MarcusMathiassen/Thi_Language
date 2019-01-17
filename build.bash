@@ -17,7 +17,7 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_window.thi
     # ./test.bash ./tests/test_macro_definition.thi
     # ./test.bash ./tests/test_order_independance.thi
-    # ./test.bash ./tests/test_defer.thi
+    ./test.bash ./tests/test_defer.thi
     # ./test.bash ./tests/test_continue.thi
     # ./test.bash ./tests/test_if.thi
     # ./test.bash ./tests/test_comments.thi
@@ -30,7 +30,7 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_tilde.thi
     # ./test.bash ./tests/test_ternary.thi
     # ./test.bash ./tests/test_for.thi
-    ./test.bash ./tests/test_pointer.thi
+    # ./test.bash ./tests/test_pointer.thi
     # ./test.bash ./tests/test_basic_ternary.thi
     # ./test.bash ./tests/test_plus_equal.thi
     # ./test.bash ./tests/test_math.thi

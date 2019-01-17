@@ -1,14 +1,14 @@
 load "includes/cstdio.thi"
 
 def main () -> s32
-    
     type ii
         i: s32
         k: s32
         v: vec2
 
     v: ii
-    puts("Hello world!")
+    a := "Hello world!"
+    puts(a)
     ret N + add(1,2) + N + mul(2, 3) - M - 13
 
 N :: 6

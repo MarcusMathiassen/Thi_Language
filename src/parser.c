@@ -81,9 +81,9 @@ struct
 
 typedef struct
 {
-    List* g_tokens;
-    List* ast_list_ptr;
-    s64 token_index;
+    Token_List token_list;
+    List* ast;
+    u64 token_index;
     Token curr_tok;
     Token top_tok;
 
@@ -95,7 +95,7 @@ typedef struct
     char* l_end;
 } Parse_Context;
 
-void generate_ast_from_tokens(List* ast, List* tokens);
+void generate_ast_from_tokens(List* ast, Token_List token_list);
 
 bool tok_is(Parse_Context* pctx, Token_Kind kind);
 int get_tok_precedence(Parse_Context* pctx);
@@ -187,16 +187,6 @@ void give_type_to_all_nodes(Expr* expr)
     if (expr->type) info("%s | %s", expr_to_str(expr), typespec_to_str(expr->type));
 }
 
-void parser_tests(void)
-{
-    char* test_source = "def main() -> s32\n    ret 1";
-    List* tokens = generate_tokens_from_source(test_source);
-    List* ast = make_list();
-    generate_ast_from_tokens(ast, tokens);
-    print_tokens(tokens);
-    print_ast(ast);
-}
-
 void parse(List* ast, char* source_file)
 {
     // We need to set some state
@@ -211,12 +201,12 @@ void parse(List* ast, char* source_file)
     push_timer(source_file);
 
     char* source = get_file_content(source_file);
-    List* tokens = generate_tokens_from_source(source);
-    // print_tokens(tokens);
+    Lex lex = lexify(source);
+    print_tokens(lex.token_list);
 
-    generate_ast_from_tokens(ast, tokens);
-    // print_symbol_map();
-    // print_ast(ast);
+    generate_ast_from_tokens(ast, lex.token_list);
+    print_symbol_map();
+    print_ast(ast);
 
     pop_timer();
 
@@ -226,15 +216,15 @@ void parse(List* ast, char* source_file)
     debug_info_color = RGB_GRAY;
 }
 
-void generate_ast_from_tokens(List* ast, List* tokens)
+void generate_ast_from_tokens(List* ast, Token_List token_list)
 {
     info("Generating ast from tokens..");
     Parse_Context pctx;
-    pctx.g_tokens = tokens;
+    pctx.token_list = token_list;
     pctx.token_index = 0;
     pctx.top_tok.kind = TOKEN_UNKNOWN;
     pctx.curr_tok.kind = TOKEN_UNKNOWN;
-    pctx.ast_list_ptr = ast;
+    pctx.ast = ast;
 
     eat(&pctx);
 
@@ -340,7 +330,7 @@ Expr* parse_load(Parse_Context* pctx)
             file_already_parsed = true;
         }
     }
-    if (!file_already_parsed) parse(pctx->ast_list_ptr, file.c_str);
+    if (!file_already_parsed) parse(pctx->ast, file.c_str);
     eat_kind(pctx, TOKEN_STRING);
     return NULL;
 }
@@ -514,7 +504,7 @@ Expr* parse_def(Parse_Context* pctx)
     Expr* body = parse_block(pctx);
     func->Function.body = body;
     reset_label_counter();
-    list_append(pctx->ast_list_ptr, func);
+    list_append(pctx->ast, func);
     return NULL;
 }
 
@@ -668,7 +658,6 @@ Expr* parse_binary(Parse_Context* pctx, int expr_prec, Expr* lhs)
             expr = lhs;
             break;
         }
-        
 
         // Okay, we know this is a binop.
         Token_Kind binary_op_token = pctx->curr_tok.kind;
@@ -1018,10 +1007,10 @@ int get_tok_precedence(Parse_Context* pctx)
 
 Token_Kind next_tok_kind(Parse_Context* pctx)
 {
-    if (pctx->g_tokens->count < pctx->token_index+1) {
+    if (pctx->token_list.count < pctx->token_index+1) {
         error("No next token. We're all out.");
     }
-    Token_Kind kind = ((Token*)list_at(pctx->g_tokens, pctx->token_index))->kind;
+    Token_Kind kind = pctx->token_list.data[pctx->token_index].kind;
     return kind;
 }
 
@@ -1034,7 +1023,7 @@ bool tok_is(Parse_Context* pctx, Token_Kind kind)
 }
 
 void eat(Parse_Context* pctx) { 
-    pctx->curr_tok = *(Token*)list_at(pctx->g_tokens, pctx->token_index++);
+    pctx->curr_tok = pctx->token_list.data[pctx->token_index++];
 }
 
 void eat_kind(Parse_Context* pctx, Token_Kind kind)

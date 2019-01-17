@@ -76,7 +76,8 @@ char* expr_to_str(Expr* expr)
     }
     case EXPR_BLOCK: {
         string str = make_string("");
-        LIST_FOREACH(expr->Block.stmts) {
+        LIST_FOREACH(expr->Block.stmts)
+        {
             Expr* stmt = (Expr*)it->data;
             append_string_f(&str, "%s\n", expr_to_str(stmt));
         }
@@ -130,7 +131,6 @@ Typespec* get_inferred_type_of_expr(Expr* expr)
     return NULL;
 }
 
-
 bool last_was_true = false;
 Expr* constant_fold_expr(Expr* expr)
 {
@@ -154,7 +154,8 @@ Expr* constant_fold_expr(Expr* expr)
         }
     } break;
     case EXPR_CALL: {
-        LIST_FOREACH(expr->Call.args) {
+        LIST_FOREACH(expr->Call.args)
+        {
             Expr* arg = (Expr*)it->data;
             it->data = constant_fold_expr(arg);
         }
@@ -166,12 +167,12 @@ Expr* constant_fold_expr(Expr* expr)
             Token_Kind op = expr->Unary.op;
             s64 oper_v = oper->Int.val;
             s64 value = 0;
-            switch(op) {
-                case TOKEN_BANG: value = !oper_v; break;
-                case TOKEN_PLUS: value = oper_v; break;
-                case TOKEN_TILDE: value = ~oper_v; break;
-                case TOKEN_MINUS: value = -oper_v; break;
-                default: error("constant_fold_expr unary %s not implemented", token_kind_to_str(op));
+            switch (op) {
+            case TOKEN_BANG: value = !oper_v; break;
+            case TOKEN_PLUS: value = oper_v; break;
+            case TOKEN_TILDE: value = ~oper_v; break;
+            case TOKEN_MINUS: value = -oper_v; break;
+            default: error("constant_fold_expr unary %s not implemented", token_kind_to_str(op));
             }
             info("folded %s into %lld", expr_to_str(expr), value);
             expr = make_expr_int(value);
@@ -188,60 +189,59 @@ Expr* constant_fold_expr(Expr* expr)
             s64 lhs_v = lhs->Int.val;
             s64 rhs_v = rhs->Int.val;
             s64 value = 0;
-            switch(op) { 
-                case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
-                case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
-                case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
-                case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
-                case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
-                case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
-                case TOKEN_AND: value = (lhs_v & rhs_v); break;
-                case TOKEN_PIPE: value = (lhs_v | rhs_v); break;
-                case TOKEN_LT: value = (lhs_v < rhs_v); break;
-                case TOKEN_GT: value = (lhs_v > rhs_v); break;
-                case TOKEN_GT_GT: value = (lhs_v >> rhs_v); break;
-                case TOKEN_LT_LT: value = (lhs_v << rhs_v); break;
-                case TOKEN_PERCENT: value = (lhs_v % rhs_v); break;
-                case TOKEN_HAT: value = (lhs_v ^ rhs_v); break;
-                case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
-                case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
-                case TOKEN_COLON: { 
-                    value = last_was_true ? lhs_v : rhs_v; 
-                    last_was_true = false; 
-                } break;
-                case TOKEN_QUESTION_MARK: { 
-                    if (lhs_v)  { 
-                        last_was_true = true; 
-                        value = rhs_v;
-                    }
+            switch (op) {
+            case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
+            case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
+            case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
+            case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
+            case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
+            case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
+            case TOKEN_AND: value = (lhs_v & rhs_v); break;
+            case TOKEN_PIPE: value = (lhs_v | rhs_v); break;
+            case TOKEN_LT: value = (lhs_v < rhs_v); break;
+            case TOKEN_GT: value = (lhs_v > rhs_v); break;
+            case TOKEN_GT_GT: value = (lhs_v >> rhs_v); break;
+            case TOKEN_LT_LT: value = (lhs_v << rhs_v); break;
+            case TOKEN_PERCENT: value = (lhs_v % rhs_v); break;
+            case TOKEN_HAT: value = (lhs_v ^ rhs_v); break;
+            case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
+            case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
+            case TOKEN_COLON: {
+                value = last_was_true ? lhs_v : rhs_v;
+                last_was_true = false;
             } break;
-                default: error("constant_fold_expr binary %s not implemented", token_kind_to_str(op));
+            case TOKEN_QUESTION_MARK: {
+                if (lhs_v) {
+                    last_was_true = true;
+                    value = rhs_v;
+                }
+            } break;
+            default: error("constant_fold_expr binary %s not implemented", token_kind_to_str(op));
             }
             info("folded %s into %lld", expr_to_str(expr), value);
             expr = make_expr_int(value);
         }
     } break;
     case EXPR_VARIABLE_DECL: {
-        if (expr->Variable_Decl.value)
-            expr->Variable_Decl.value = constant_fold_expr(expr->Variable_Decl.value); 
+        if (expr->Variable_Decl.value) expr->Variable_Decl.value = constant_fold_expr(expr->Variable_Decl.value);
     } break;
     case EXPR_FUNCTION: {
         return constant_fold_expr(expr->Function.body);
     } break;
     case EXPR_BLOCK: {
-        LIST_FOREACH(expr->Block.stmts) {
+        LIST_FOREACH(expr->Block.stmts)
+        {
             Expr* stmt = (Expr*)it->data;
             it->data = constant_fold_expr(stmt);
         }
     } break;
-    case EXPR_GROUPING: { 
-        expr = constant_fold_expr(expr->Grouping.expr); 
+    case EXPR_GROUPING: {
+        expr = constant_fold_expr(expr->Grouping.expr);
     } break;
     default: error("constant_fold_expr %s not implemented", expr_kind_to_str(expr->kind));
     }
     return expr;
 }
-
 
 void print_ast(List* ast)
 {

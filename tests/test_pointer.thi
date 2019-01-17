@@ -1,9 +1,9 @@
-extern malloc(u64) -> void@
+extern malloc(u64) -> void*
 
-def change(c: int@)
-    @c = 1
+def change(c: int*)
+    *c = 1
 
 def main () -> int 
-    c: int@ = malloc(sizeof(int))
-    @c = 4
-    ret @c
+    c: int* = malloc(sizeof(int))
+    *c = 4
+    ret *c

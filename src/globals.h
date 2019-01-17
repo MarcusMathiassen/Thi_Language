@@ -38,6 +38,8 @@ extern string* current_output;
 #define DEFAULT_INT_BYTE_SIZE 8
 #define DEFAULT_FLOAT_BYTE_SIZE 4
 
+#define TOKEN_LIST_STARTING_ALLOC 1000
+
 void set_source_file(char* file_name);
 char* get_previous_source_file(void);
 char* get_source_file(void);

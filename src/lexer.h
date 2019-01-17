@@ -7,20 +7,17 @@
 //                              lexer.h
 //------------------------------------------------------------------------------
 
+typedef struct Lex Lex;
 typedef struct Token Token;
+typedef struct Token_List Token_List;
 typedef enum Token_Kind Token_Kind;
-
-List* generate_tokens_from_source(char* source);
-void print_tokens(List* tokens);
-void print_token(Token token);
-char* token_kind_to_str(Token_Kind kind);
 
 enum Token_Kind
 {
     TOKEN_UNKNOWN,
     TOKEN_EOF,
 
-    TOKEN_TAB,
+    TOKEN_COMMENT,
 
     TOKEN_BLOCK_START,
     TOKEN_BLOCK_END,
@@ -124,16 +121,36 @@ enum Token_Kind
     TOKEN_BWSLASH,
     TOKEN_HASH,
     TOKEN_EQ,
-    TOKEN_COMMENT,
 };
 
-struct Token
-{
+struct Token {
     Token_Kind kind;
     char* value;
 };
 
-#define THI_SYNTAX_POINTER TOKEN_AT
+struct Token_List {
+    Token* data;
+    u64 count;
+    u64 allocated;
+};
+
+struct Lex {
+    Token_List token_list;
+    u64 line_count;
+    u64 comment_count;
+};
+
+Token_List make_token_list();
+void token_list_append(Token_List* tl, Token token);
+
+Lex lexify(char* source);
+
+void print_tokens(Token_List token_list);
+void print_token(Token token);
+char* token_kind_to_str(Token_Kind kind);
+
+
+#define THI_SYNTAX_POINTER TOKEN_ASTERISK
 #define THI_SYNTAX_ADDRESS TOKEN_AND
 
 #define THI_SYNTAX_SCOPE_BEGIN TOKEN_OPEN_BRACE
