@@ -23,6 +23,7 @@ Stack scope_stack;
 #define DEBUG_START info("%s: %s", __func__, wrap_with_colored_parens(expr_to_str(expr)));
 
 Value* codegen_expr(Expr* expr);
+
 static int label_counter = 0;
 static void reset_label_counter() { label_counter = 0; }
 static char* make_label() { return strf("D%d", label_counter++); }
@@ -557,12 +558,12 @@ Value* codegen_call(Expr* expr)
     // %rdi, %rsi, %rdx, %rcx, %r8 and %r9 is used.
     for (int i = arg_count - 1; i >= 0; --i) {
         switch (i) {
-        case 0: pop(RDI); break;
-        case 1: pop(RSI); break;
-        case 2: pop(RDX); break;
-        case 3: pop(RCX); break;
-        case 4: pop(R8); break;
-        case 5: pop(R9); break;
+            case 0: pop(RDI); break;
+            case 1: pop(RSI); break;
+            case 2: pop(RDX); break;
+            case 3: pop(RCX); break;
+            case 4: pop(R8);  break;
+            case 5: pop(R9);  break;
         }
     }
 
@@ -737,21 +738,21 @@ Value* codegen_function(Expr* expr)
 Value* codegen_expr(Expr* expr)
 {
     switch (expr->kind) {
-    case EXPR_ASM: emit("%s", expr->Asm.str); return NULL;
-    case EXPR_MACRO: return codegen_macro(expr);
-    case EXPR_STRUCT: return codegen_struct(expr);
-    case EXPR_FUNCTION: return codegen_function(expr);
-    case EXPR_NOTE: return codegen_note(expr);
-    case EXPR_INT: return codegen_int(expr);
-    case EXPR_FLOAT: error("EXPR_FLOAT codegen not implemented");
-    case EXPR_STRING: return codegen_string(expr);
-    case EXPR_IDENT: return codegen_ident(expr);
-    case EXPR_CALL: return codegen_call(expr);
-    case EXPR_UNARY: return codegen_unary(expr);
-    case EXPR_BINARY: return codegen_binary(expr);
-    case EXPR_VARIABLE_DECL: return codegen_variable_decl(expr);
-    case EXPR_BLOCK: return codegen_block(expr);
-    case EXPR_GROUPING: return codegen_expr(expr->Grouping.expr);
+        case EXPR_ASM:           emit("%s", expr->Asm.str); return NULL;
+        case EXPR_MACRO:         return codegen_macro(expr);
+        case EXPR_STRUCT:        return codegen_struct(expr);
+        case EXPR_FUNCTION:      return codegen_function(expr);
+        case EXPR_NOTE:          return codegen_note(expr);
+        case EXPR_INT:           return codegen_int(expr);
+        case EXPR_FLOAT:         error("EXPR_FLOAT codegen not implemented");
+        case EXPR_STRING:        return codegen_string(expr);
+        case EXPR_IDENT:         return codegen_ident(expr);
+        case EXPR_CALL:          return codegen_call(expr);
+        case EXPR_UNARY:         return codegen_unary(expr);
+        case EXPR_BINARY:        return codegen_binary(expr);
+        case EXPR_VARIABLE_DECL: return codegen_variable_decl(expr);
+        case EXPR_BLOCK:         return codegen_block(expr);
+        case EXPR_GROUPING:      return codegen_expr(expr->Grouping.expr);
     }
     return NULL;
 }

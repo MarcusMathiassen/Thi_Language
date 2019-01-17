@@ -20,15 +20,15 @@ s64 get_size_of_value(Value* value)
 {
     assert(value);
     switch (value->kind) {
-    case VALUE_INT: return value->Int.bytes;
-    case VALUE_STRING: return value->String.len;
-    case VALUE_VARIABLE: return get_size_of_typespec(value->type);
-    case VALUE_FUNCTION: error("Asking for the size of a function? Why?");
-    case VALUE_STRUCT: return get_size_of_typespec(value->type);
-    case VALUE_CALL: return get_size_of_typespec(value->type);
-    case VALUE_LOAD_INST: return get_size_of_typespec(value->LoadInst.variable->type);
-    case VALUE_STORE_INST: return get_size_of_typespec(value->StoreInst.variable->type);
-    default: error("get_size_of_value: unhandled case %d", value->kind);
+        case VALUE_INT:        return value->Int.bytes;
+        case VALUE_STRING:     return value->String.len;
+        case VALUE_VARIABLE:   return get_size_of_typespec(value->type);
+        case VALUE_FUNCTION:   error("Asking for the size of a function? Why?");
+        case VALUE_STRUCT:     return get_size_of_typespec(value->type);
+        case VALUE_CALL:       return get_size_of_typespec(value->type);
+        case VALUE_LOAD_INST:  return get_size_of_typespec(value->LoadInst.variable->type);
+        case VALUE_STORE_INST: return get_size_of_typespec(value->StoreInst.variable->type);
+        default:               error("get_size_of_value: unhandled case %d", value->kind);
     }
     return get_size_of_typespec(value->type);
 }
@@ -134,8 +134,8 @@ Value* make_value_struct(Typespec* type)
 s64 get_stack_pos_of_variable(Value* variable)
 {
     switch (variable->kind) {
-    case VALUE_LOAD_INST: return get_stack_pos_of_variable(variable->LoadInst.variable);
-    case VALUE_VARIABLE: return variable->Variable.stack_pos;
+        case VALUE_LOAD_INST: return get_stack_pos_of_variable(variable->LoadInst.variable);
+        case VALUE_VARIABLE:  return variable->Variable.stack_pos;
     }
     return 0;
 }

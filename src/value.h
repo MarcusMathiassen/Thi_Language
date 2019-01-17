@@ -5,8 +5,8 @@
 #include "string.h"   // string
 #include "typespec.h" // Typespec
 
-typedef struct Value Value;
-typedef enum Value_Kind Value_Kind;
+typedef struct  Value       Value;
+typedef enum    Value_Kind  Value_Kind;
 
 enum Value_Kind
 {
@@ -82,18 +82,17 @@ struct Value
     };
 };
 
-Value* make_value_load_inst(Value* variable, s64 offset);
-Value* make_value_store_inst(Value* variable, s64 offset);
+Value*  make_value_load_inst        (Value* variable, s64 offset);
+Value*  make_value_store_inst       (Value* variable, s64 offset);
+Value*  make_value_int              (u8 bytes, Typespec* type, s64 value);
+Value*  make_value_string           (char* value, Typespec* type);
+Value*  make_value_variable         (char* name, Typespec* type, s64 stack_pos);
+Value*  make_value_call             (char* callee, Typespec* type);
+Value*  make_value_function         (Typespec* type);
+Value*  make_value_struct           (Typespec* type);
 
-Value* make_value_int(u8 bytes, Typespec* type, s64 value);
-Value* make_value_string(char* value, Typespec* type);
-Value* make_value_variable(char* name, Typespec* type, s64 stack_pos);
-Value* make_value_call(char* callee, Typespec* type);
-Value* make_value_function(Typespec* type);
-Value* make_value_struct(Typespec* type);
-
-s64 get_size_of_value(Value* value);
-s64 get_stack_pos_of_variable(Value* variable);
+s64     get_size_of_value           (Value* value);
+s64     get_stack_pos_of_variable   (Value* variable);
 
 //------------------------------------------------------------------------------
 //                               Scope

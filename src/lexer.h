@@ -7,13 +7,12 @@
 //                              lexer.h
 //------------------------------------------------------------------------------
 
-typedef struct Lex Lex;
-typedef struct Token Token;
-typedef struct Token_List Token_List;
-typedef enum Token_Kind Token_Kind;
+typedef struct  Lex         Lex;
+typedef struct  Token       Token;
+typedef struct  Token_List  Token_List;
+typedef enum    Token_Kind  Token_Kind;
 
-enum Token_Kind
-{
+enum Token_Kind {
     TOKEN_UNKNOWN,
     TOKEN_EOF,
     TOKEN_COMMENT,
@@ -111,8 +110,7 @@ enum Token_Kind
     TOKEN_EQ,
 };
 
-struct Token
-{
+struct Token {
     Token_Kind kind;
     char* value;
     u64 line_pos;
@@ -120,39 +118,32 @@ struct Token
     char* line_start;
 };
 
-struct Token_List
-{
+struct Token_List {
     Token* data;
     u64 count;
     u64 allocated;
 };
 
-struct Lex
-{
+struct Lex {
     Token_List token_list;
     u64 line_count;
     u64 comment_count;
 };
 
-Token_List make_token_list();
-void token_list_append(Token_List* tl, Token token);
+Token_List  make_token_list     ();
+void        token_list_append   (Token_List* tl, Token token);
+Lex         lexify              (char* source);
+void        print_tokens        (Token_List token_list);
+void        print_token         (Token token);
+char*       token_kind_to_str   (Token_Kind kind);
 
-Lex lexify(char* source);
-
-void print_tokens(Token_List token_list);
-void print_token(Token token);
-char* token_kind_to_str(Token_Kind kind);
-
-#define THI_SYNTAX_POINTER TOKEN_ASTERISK
-#define THI_SYNTAX_ADDRESS TOKEN_AND
-
-#define THI_SYNTAX_SCOPE_BEGIN TOKEN_OPEN_BRACE
-#define THI_SYNTAX_SCOPE_END TOKEN_CLOSE_BRACE
-
-#define THI_SYNTAX_DEF TOKEN_COLON
-#define THI_SYNTAX_CONSTANT_DEF TOKEN_COLON_COLON
-#define THI_SYNTAX_VARIABLE_DECL_TYPE_INF TOKEN_CLOSE_BRACE
-
-#define THI_SYNTAX_ASSIGNMENT TOKEN_EQ
+#define THI_SYNTAX_POINTER                   TOKEN_ASTERISK
+#define THI_SYNTAX_ADDRESS                   TOKEN_AND
+#define THI_SYNTAX_SCOPE_BEGIN               TOKEN_OPEN_BRACE
+#define THI_SYNTAX_SCOPE_END                 TOKEN_CLOSE_BRACE
+#define THI_SYNTAX_DEF                       TOKEN_COLON
+#define THI_SYNTAX_CONSTANT_DEF              TOKEN_COLON_COLON
+#define THI_SYNTAX_VARIABLE_DECL_TYPE_INF    TOKEN_CLOSE_BRACE
+#define THI_SYNTAX_ASSIGNMENT                TOKEN_EQ
 
 #endif

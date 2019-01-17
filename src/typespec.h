@@ -8,26 +8,27 @@
 //                               typespec.h
 //------------------------------------------------------------------------------
 
-typedef struct Typespec Typespec;
-typedef struct Arg Arg;
-typedef enum Typespec_Kind Typespec_Kind;
+typedef struct Typespec         Typespec;
+typedef struct Arg              Arg;
+typedef enum   Typespec_Kind    Typespec_Kind;
 
-s64 get_offset_in_struct_to_field(Typespec* type, char* name);
-s64 get_size_of_underlying_typespec(Typespec* type);
-s64 get_size_of_typespec(Typespec* Typespec);
-char* typespec_to_str(Typespec* type);
+s64         get_offset_in_struct_to_field   (Typespec* type, char* name);
+s64         get_size_of_underlying_typespec (Typespec* type);
+s64         get_size_of_typespec            (Typespec* Typespec);
 
-Typespec* make_typespec_int(s8 bytes, bool is_unsigned);
-Typespec* make_typespec_float(s8 bytes);
-Typespec* make_typespec_string(s64 len);
-Typespec* make_typespec_pointer(Typespec* pointee);
-Typespec* make_typespec_array(Typespec* type, s32 size);
-Typespec* make_typespec_struct(char* name, List* members);
-Typespec* make_typespec_enum(char* name, List* members);
-Typespec* make_typespec_function(char* name, List* args, Typespec* ret_type);
+char*       typespec_to_str                 (Typespec* type);
 
-s64 typespec_function_get_arg_count(Typespec* type);
-s64 typespec_array_get_count(Typespec* type);
+Typespec*   make_typespec_int               (s8 bytes, bool is_unsigned);
+Typespec*   make_typespec_float             (s8 bytes);
+Typespec*   make_typespec_string            (s64 len);
+Typespec*   make_typespec_pointer           (Typespec* pointee);
+Typespec*   make_typespec_array             (Typespec* type, s32 size);
+Typespec*   make_typespec_struct            (char* name, List* members);
+Typespec*   make_typespec_enum              (char* name, List* members);
+Typespec*   make_typespec_function          (char* name, List* args, Typespec* ret_type);
+
+s64         typespec_function_get_arg_count (Typespec* type);
+s64         typespec_array_get_count        (Typespec* type);
 
 enum Typespec_Kind
 {

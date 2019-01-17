@@ -18,22 +18,22 @@
 char* expr_kind_to_str(Expr_Kind kind)
 {
     switch (kind) {
-    case EXPR_ASM: return "EXPR_ASM";
-    case EXPR_MACRO: return "EXPR_MACRO";
-    case EXPR_NOTE: return "EXPR_NOTE";
-    case EXPR_INT: return "EXPR_INT";
-    case EXPR_FLOAT: return "EXPR_FLOAT";
-    case EXPR_STRING: return "EXPR_STRING";
-    case EXPR_IDENT: return "EXPR_IDENT";
-    case EXPR_CALL: return "EXPR_CALL";
-    case EXPR_UNARY: return "EXPR_UNARY";
-    case EXPR_BINARY: return "EXPR_BINARY";
-    case EXPR_VARIABLE_DECL: return "EXPR_VARIABLE_DECL";
-    case EXPR_FUNCTION: return "EXPR_FUNCTION";
-    case EXPR_STRUCT: return "EXPR_STRUCT";
-    case EXPR_BLOCK: return "EXPR_BLOCK";
-    case EXPR_GROUPING: return "EXPR_GROUPING";
-    default: error("expr_kind_to_str unhandled case '%d'", kind);
+        case EXPR_ASM:              return "EXPR_ASM";
+        case EXPR_MACRO:            return "EXPR_MACRO";
+        case EXPR_NOTE:             return "EXPR_NOTE";
+        case EXPR_INT:              return "EXPR_INT";
+        case EXPR_FLOAT:            return "EXPR_FLOAT";
+        case EXPR_STRING:           return "EXPR_STRING";
+        case EXPR_IDENT:            return "EXPR_IDENT";
+        case EXPR_CALL:             return "EXPR_CALL";
+        case EXPR_UNARY:            return "EXPR_UNARY";
+        case EXPR_BINARY:           return "EXPR_BINARY";
+        case EXPR_VARIABLE_DECL:    return "EXPR_VARIABLE_DECL";
+        case EXPR_FUNCTION:         return "EXPR_FUNCTION";
+        case EXPR_STRUCT:           return "EXPR_STRUCT";
+        case EXPR_BLOCK:            return "EXPR_BLOCK";
+        case EXPR_GROUPING:         return "EXPR_GROUPING";
+        default: error("expr_kind_to_str unhandled case '%d'", kind);
     }
     return NULL;
 }
@@ -113,19 +113,19 @@ char* expr_to_str(Expr* expr)
 Typespec* get_inferred_type_of_expr(Expr* expr)
 {
     switch (expr->kind) {
-    case EXPR_MACRO: return get_inferred_type_of_expr(expr->Macro.expr);
-    case EXPR_NOTE: return get_inferred_type_of_expr(expr->Note.expr);
-    case EXPR_INT: return make_typespec_int(DEFAULT_INT_BYTE_SIZE, 0);
-    case EXPR_FLOAT: error("get_inferred_type_of_expr EXPR_FLOAT not implemented");
-    case EXPR_STRING: return make_typespec_pointer(make_typespec_int(8, 1));
-    case EXPR_IDENT: return get_symbol(expr->Ident.name);
-    case EXPR_CALL: return get_symbol(expr->Call.callee)->Function.ret_type;
-    case EXPR_UNARY: return get_inferred_type_of_expr(expr->Unary.operand);
-    case EXPR_BINARY: return get_inferred_type_of_expr(expr->Binary.rhs);
-    case EXPR_VARIABLE_DECL: return expr->Variable_Decl.type;
-    case EXPR_FUNCTION: return expr->Function.type->Function.ret_type;
-    case EXPR_STRUCT: return expr->Struct.type;
-    case EXPR_GROUPING: return get_inferred_type_of_expr(expr->Grouping.expr);
+        case EXPR_MACRO:            return get_inferred_type_of_expr(expr->Macro.expr);
+        case EXPR_NOTE:             return get_inferred_type_of_expr(expr->Note.expr);
+        case EXPR_INT:              return make_typespec_int(DEFAULT_INT_BYTE_SIZE, 0);
+        case EXPR_FLOAT:            error("get_inferred_type_of_expr EXPR_FLOAT not implemented");
+        case EXPR_STRING:           return make_typespec_pointer(make_typespec_int(8, 1));
+        case EXPR_IDENT:            return get_symbol(expr->Ident.name);
+        case EXPR_CALL:             return get_symbol(expr->Call.callee)->Function.ret_type;
+        case EXPR_UNARY:            return get_inferred_type_of_expr(expr->Unary.operand);
+        case EXPR_BINARY:           return get_inferred_type_of_expr(expr->Binary.rhs);
+        case EXPR_VARIABLE_DECL:    return expr->Variable_Decl.type;
+        case EXPR_FUNCTION:         return expr->Function.type->Function.ret_type;
+        case EXPR_STRUCT:           return expr->Struct.type;
+        case EXPR_GROUPING:         return get_inferred_type_of_expr(expr->Grouping.expr);
     default: error("%s has no type", expr_kind_to_str(expr->kind));
     }
     return NULL;
@@ -139,106 +139,106 @@ Expr* constant_fold_expr(Expr* expr)
     info("constant_fold_expr %s: %s", expr_kind_to_str(expr->kind), expr_to_str(expr));
 
     switch (expr->kind) {
-    case EXPR_ASM: return expr;
-    case EXPR_INT: return expr;
-    case EXPR_STRING: return expr;
-    case EXPR_FLOAT: return expr;
-    case EXPR_NOTE: return expr;
-    case EXPR_MACRO: {
-        expr->Macro.expr = constant_fold_expr(expr->Macro.expr);
-    } break;
-    case EXPR_IDENT: {
-        Expr* macro_expr = get_macro_def(expr->Ident.name);
-        if (macro_expr) {
-            expr = constant_fold_expr(macro_expr);
-        }
-    } break;
-    case EXPR_CALL: {
-        LIST_FOREACH(expr->Call.args)
-        {
-            Expr* arg = (Expr*)it->data;
-            it->data = constant_fold_expr(arg);
-        }
-    } break;
-    case EXPR_UNARY: {
-        Expr* oper = expr->Unary.operand;
-        oper = constant_fold_expr(oper);
-        if (oper->kind == EXPR_INT) {
-            Token_Kind op = expr->Unary.op;
-            s64 oper_v = oper->Int.val;
-            s64 value = 0;
-            switch (op) {
-            case TOKEN_BANG: value = !oper_v; break;
-            case TOKEN_PLUS: value = oper_v; break;
-            case TOKEN_TILDE: value = ~oper_v; break;
-            case TOKEN_MINUS: value = -oper_v; break;
-            default: error("constant_fold_expr unary %s not implemented", token_kind_to_str(op));
+        case EXPR_ASM:      return expr;
+        case EXPR_INT:      return expr;
+        case EXPR_STRING:   return expr;
+        case EXPR_FLOAT:    return expr;
+        case EXPR_NOTE:     return expr;
+        case EXPR_MACRO: {
+            expr->Macro.expr = constant_fold_expr(expr->Macro.expr);
+        } break;
+        case EXPR_IDENT: {
+            Expr* macro_expr = get_macro_def(expr->Ident.name);
+            if (macro_expr) {
+                expr = constant_fold_expr(macro_expr);
             }
-            info("folded %s into %lld", expr_to_str(expr), value);
-            expr = make_expr_int(value);
-        }
-    } break;
-    case EXPR_BINARY: {
-        Token_Kind op = expr->Binary.op;
-        Expr* lhs = expr->Binary.lhs;
-        Expr* rhs = expr->Binary.rhs;
-        lhs = constant_fold_expr(lhs);
-        rhs = constant_fold_expr(rhs);
-        if (op == TOKEN_EQ) expr = make_expr_binary(TOKEN_EQ, lhs, rhs);
-        if (lhs->kind == EXPR_INT && rhs->kind == EXPR_INT) {
-            s64 lhs_v = lhs->Int.val;
-            s64 rhs_v = rhs->Int.val;
-            s64 value = 0;
-            switch (op) {
-            case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
-            case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
-            case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
-            case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
-            case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
-            case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
-            case TOKEN_AND: value = (lhs_v & rhs_v); break;
-            case TOKEN_PIPE: value = (lhs_v | rhs_v); break;
-            case TOKEN_LT: value = (lhs_v < rhs_v); break;
-            case TOKEN_GT: value = (lhs_v > rhs_v); break;
-            case TOKEN_GT_GT: value = (lhs_v >> rhs_v); break;
-            case TOKEN_LT_LT: value = (lhs_v << rhs_v); break;
-            case TOKEN_PERCENT: value = (lhs_v % rhs_v); break;
-            case TOKEN_HAT: value = (lhs_v ^ rhs_v); break;
-            case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
-            case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
-            case TOKEN_COLON: {
-                value = last_was_true ? lhs_v : rhs_v;
-                last_was_true = false;
-            } break;
-            case TOKEN_QUESTION_MARK: {
-                if (lhs_v) {
-                    last_was_true = true;
-                    value = rhs_v;
+        } break;
+        case EXPR_CALL: {
+            LIST_FOREACH(expr->Call.args)
+            {
+                Expr* arg = (Expr*)it->data;
+                it->data = constant_fold_expr(arg);
+            }
+        } break;
+        case EXPR_UNARY: {
+            Expr* oper = expr->Unary.operand;
+            oper = constant_fold_expr(oper);
+            if (oper->kind == EXPR_INT) {
+                Token_Kind op = expr->Unary.op;
+                s64 oper_v = oper->Int.val;
+                s64 value = 0;
+                switch (op) {
+                    case TOKEN_BANG:    value = !oper_v;   break;
+                    case TOKEN_PLUS:    value = oper_v;    break;
+                    case TOKEN_TILDE:   value = ~oper_v;   break;
+                    case TOKEN_MINUS:   value = -oper_v;   break;
+                    default: error("constant_fold_expr unary %s not implemented", token_kind_to_str(op));
                 }
-            } break;
-            default: error("constant_fold_expr binary %s not implemented", token_kind_to_str(op));
+                info("folded %s into %lld", expr_to_str(expr), value);
+                expr = make_expr_int(value);
             }
-            info("folded %s into %lld", expr_to_str(expr), value);
-            expr = make_expr_int(value);
-        }
-    } break;
-    case EXPR_VARIABLE_DECL: {
-        if (expr->Variable_Decl.value) expr->Variable_Decl.value = constant_fold_expr(expr->Variable_Decl.value);
-    } break;
-    case EXPR_FUNCTION: {
-        return constant_fold_expr(expr->Function.body);
-    } break;
-    case EXPR_BLOCK: {
-        LIST_FOREACH(expr->Block.stmts)
-        {
-            Expr* stmt = (Expr*)it->data;
-            it->data = constant_fold_expr(stmt);
-        }
-    } break;
-    case EXPR_GROUPING: {
-        expr = constant_fold_expr(expr->Grouping.expr);
-    } break;
-    default: error("constant_fold_expr %s not implemented", expr_kind_to_str(expr->kind));
+        } break;
+        case EXPR_BINARY: {
+            Token_Kind op = expr->Binary.op;
+            Expr* lhs = expr->Binary.lhs;
+            Expr* rhs = expr->Binary.rhs;
+            lhs = constant_fold_expr(lhs);
+            rhs = constant_fold_expr(rhs);
+            if (op == TOKEN_EQ) expr = make_expr_binary(TOKEN_EQ, lhs, rhs);
+            if (lhs->kind == EXPR_INT && rhs->kind == EXPR_INT) {
+                s64 lhs_v = lhs->Int.val;
+                s64 rhs_v = rhs->Int.val;
+                s64 value = 0;
+                switch (op) {
+                    case TOKEN_EQ_EQ:       value = (lhs_v == rhs_v);   break;
+                    case TOKEN_BANG_EQ:     value = (lhs_v != rhs_v);   break;
+                    case TOKEN_PLUS:        value = (lhs_v + rhs_v);    break;
+                    case TOKEN_MINUS:       value = (lhs_v - rhs_v);    break;
+                    case TOKEN_ASTERISK:    value = (lhs_v * rhs_v);    break;
+                    case TOKEN_FWSLASH:     value = (lhs_v / rhs_v);    break;
+                    case TOKEN_AND:         value = (lhs_v & rhs_v);    break;
+                    case TOKEN_PIPE:        value = (lhs_v | rhs_v);    break;
+                    case TOKEN_LT:          value = (lhs_v < rhs_v);    break;
+                    case TOKEN_GT:          value = (lhs_v > rhs_v);    break;
+                    case TOKEN_GT_GT:       value = (lhs_v >> rhs_v);   break;
+                    case TOKEN_LT_LT:       value = (lhs_v << rhs_v);   break;
+                    case TOKEN_PERCENT:     value = (lhs_v % rhs_v);    break;
+                    case TOKEN_HAT:         value = (lhs_v ^ rhs_v);    break;
+                    case TOKEN_AND_AND:     value = (lhs_v && rhs_v);   break;
+                    case TOKEN_PIPE_PIPE:   value = (lhs_v || rhs_v);   break;
+                    case TOKEN_COLON: {
+                        value = last_was_true ? lhs_v : rhs_v;
+                        last_was_true = false;
+                    } break;
+                    case TOKEN_QUESTION_MARK: {
+                        if (lhs_v) {
+                            last_was_true = true;
+                            value = rhs_v;
+                        }
+                    } break;
+                    default: error("constant_fold_expr binary %s not implemented", token_kind_to_str(op));
+                }
+                info("folded %s into %lld", expr_to_str(expr), value);
+                expr = make_expr_int(value);
+            }
+        } break;
+        case EXPR_VARIABLE_DECL: {
+            if (expr->Variable_Decl.value) expr->Variable_Decl.value = constant_fold_expr(expr->Variable_Decl.value);
+        } break;
+        case EXPR_FUNCTION: {
+            return constant_fold_expr(expr->Function.body);
+        } break;
+        case EXPR_BLOCK: {
+            LIST_FOREACH(expr->Block.stmts)
+            {
+                Expr* stmt = (Expr*)it->data;
+                it->data = constant_fold_expr(stmt);
+            }
+        } break;
+        case EXPR_GROUPING: {
+            expr = constant_fold_expr(expr->Grouping.expr);
+        } break;
+        default: error("constant_fold_expr %s not implemented", expr_kind_to_str(expr->kind));
     }
     return expr;
 }

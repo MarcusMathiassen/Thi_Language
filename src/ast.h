@@ -8,9 +8,9 @@
 //------------------------------------------------------------------------------
 //                               ast.h
 //------------------------------------------------------------------------------
-typedef struct Expr Expr;
-typedef struct Expr AST;
-typedef enum Expr_Kind Expr_Kind;
+typedef struct Expr         Expr;
+typedef struct Expr         AST;
+typedef enum   Expr_Kind    Expr_Kind;
 
 enum Expr_Kind
 {
@@ -110,7 +110,6 @@ struct Expr
     Typespec* type;
     union {
         AST_Asm Asm;
-
         AST_Macro Macro;
         AST_Note Note;
         AST_Grouping Grouping;
@@ -128,29 +127,27 @@ struct Expr
     };
 };
 
-Expr* make_expr_asm(char* name);
+Expr*   make_expr_asm               (char* name);
+Expr*   make_expr_macro             (char* name, Expr* expr);
+Expr*   make_expr_note              (Expr* expr);
+Expr*   make_expr_int               (s64 value);
+Expr*   make_expr_float             (f64 value);
+Expr*   make_expr_string            (char* value);
+Expr*   make_expr_ident             (char* ident);
+Expr*   make_expr_struct            (Typespec* struct_t);
+Expr*   make_expr_function          (Typespec* func_t, Expr* body);
+Expr*   make_expr_call              (char* callee, List* args);
+Expr*   make_expr_unary             (Token_Kind op, Expr* operand);
+Expr*   make_expr_binary            (Token_Kind op, Expr* lhs, Expr* rhs);
+Expr*   make_expr_block             (List* stmts);
+Expr*   make_expr_ret               (Expr* expr);
+Expr*   make_expr_grouping          (Expr* expr);
+Expr*   make_expr_variable_decl     (char* name, Typespec* type, Expr* value);
 
-Expr* make_expr_macro(char* name, Expr* expr);
-Expr* make_expr_note(Expr* expr);
-Expr* make_expr_int(s64 value);
-Expr* make_expr_float(f64 value);
-Expr* make_expr_string(char* value);
-Expr* make_expr_ident(char* ident);
-Expr* make_expr_struct(Typespec* struct_t);
-Expr* make_expr_function(Typespec* func_t, Expr* body);
-Expr* make_expr_call(char* callee, List* args);
-Expr* make_expr_unary(Token_Kind op, Expr* operand);
-Expr* make_expr_binary(Token_Kind op, Expr* lhs, Expr* rhs);
-Expr* make_expr_block(List* stmts);
-Expr* make_expr_ret(Expr* expr);
-Expr* make_expr_grouping(Expr* expr);
-Expr* make_expr_variable_decl(char* name, Typespec* type, Expr* value);
-
-Typespec* get_inferred_type_of_expr(Expr* expr);
-Expr* constant_fold_expr(Expr* expr);
-
-void print_ast(List* ast);
-char* expr_to_str(Expr* expr);
-char* expr_kind_to_str(Expr_Kind kind);
+Typespec*   get_inferred_type_of_expr   (Expr* expr);
+Expr*       constant_fold_expr          (Expr* expr);
+void        print_ast                   (List* ast);
+char*       expr_to_str                 (Expr* expr);
+char*       expr_kind_to_str            (Expr_Kind kind);
 
 #endif
