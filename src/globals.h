@@ -31,7 +31,6 @@ extern string* current_output;
 
 #define X64_ASM_OSX_STACK_PADDING 16
 
-
 #define DEFAULT_FUNCTION_ENTRY_LABEL_NAME ".BEGIN"
 #define DEFAULT_FUNCTION_END_LABEL_NAME ".END"
 
@@ -39,6 +38,7 @@ extern string* current_output;
 #define DEFAULT_FLOAT_BYTE_SIZE 4
 
 #define TOKEN_LIST_STARTING_ALLOC 1000
+#define LINES_ABOVE_AND_BELOW_TO_SHOW_ON_ERROR 2
 
 void set_source_file(char* file_name);
 char* get_previous_source_file(void);

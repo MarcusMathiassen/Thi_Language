@@ -69,8 +69,8 @@ void list_append_content_of_in_reverse(List* list, List* other_list)
     assert(list);
     assert(other_list);
     Stack* s = make_stack();
-    LIST_FOREACH(other_list) { stack_push(s, it->data); }   
-    LIST_FOREACH(other_list) { list_append(list, stack_pop(s)); } 
+    LIST_FOREACH(other_list) { stack_push(s, it->data); }
+    LIST_FOREACH(other_list) { list_append(list, stack_pop(s)); }
     stack_free(s);
 }
 void list_append_content_of(List* list, List* other_list)

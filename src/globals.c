@@ -35,14 +35,8 @@ char* previous_file;
 string current_directory;
 List* file_list;
 
-char* get_output_name(void)
-{
-    return output_name.c_str;
-}
-void set_output_name(char* name)
-{
-    output_name = make_string(name);
-}
+char* get_output_name(void) { return output_name.c_str; }
+void set_output_name(char* name) { output_name = make_string(name); }
 
 void set_source_file(char* file_name)
 {
@@ -72,7 +66,8 @@ void initilize_globals(void)
 void add_link(char* library_name)
 {
     assert(library_name);
-    LIST_FOREACH(link_list) {
+    LIST_FOREACH(link_list)
+    {
         char* l = (char*)it->data;
         if (strcmp(l, library_name) == 0) {
             return;
@@ -82,11 +77,7 @@ void add_link(char* library_name)
     info("added link: '%s'", library_name);
 }
 
-List* get_link_list(void)
-{
-    return link_list;
-}
-
+List* get_link_list(void) { return link_list; }
 
 void print_symbol_map(void)
 {

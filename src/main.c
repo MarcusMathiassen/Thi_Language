@@ -17,7 +17,7 @@
 #include <stdlib.h>   // free
 #include <string.h>   // strcmp
 
-#include <sys/ioctl.h> 
+#include <sys/ioctl.h>
 #include <unistd.h>
 
 //------------------------------------------------------------------------------
@@ -33,8 +33,7 @@ void linking_stage(char* exec_name);
 int main(int argc, char** argv)
 {
     // Argument validation
-    if (argc < 2)
-        error("too few arguments.");
+    if (argc < 2) error("too few arguments.");
 
     utility_tests();
     string_tests();
@@ -48,30 +47,24 @@ int main(int argc, char** argv)
 
     add_link("System");
 
-    // put ':' in the starting of the 
-    // string so that program can  
-    //distinguish between '?' and ':'  
-    int opt; 
-    while((opt = getopt(argc, argv, "f:dvo:")) != -1)  
-    {  
-        switch(opt)  
-        {  
-            case 'v': detailed_print = true; break;
-            case 'd': debug_mode = true; break;
-            case 'f':  
-                set_source_file(optarg);
-                info("filename: %s\n", optarg);  
-                break;  
-            case 'o':  
-                set_output_name(optarg);
-                info("exec_name: %s\n", optarg);  
-                break;  
-            case ':':  
-                info("option needs a value\n");  
-                break;  
-            case '?':  
-                info("unknown option: %c\n", optopt); 
-                break;  
+    // put ':' in the starting of the
+    // string so that program can
+    // distinguish between '?' and ':'
+    int opt;
+    while ((opt = getopt(argc, argv, "f:dvo:")) != -1) {
+        switch (opt) {
+        case 'v': detailed_print = true; break;
+        case 'd': debug_mode = true; break;
+        case 'f':
+            set_source_file(optarg);
+            info("filename: %s\n", optarg);
+            break;
+        case 'o':
+            set_output_name(optarg);
+            info("exec_name: %s\n", optarg);
+            break;
+        case ':': info("option needs a value\n"); break;
+        case '?': info("unknown option: %c\n", optopt); break;
         }
     }
 
@@ -80,7 +73,6 @@ int main(int argc, char** argv)
         optimize = false;
         enable_constant_folding = false;
     }
-
 
     push_timer("Total time");
 
@@ -110,7 +102,7 @@ int main(int argc, char** argv)
     add_builtin_type("int", s32_t);
     add_builtin_type("float", f32_t);
     add_builtin_type("double", f32_t);
-    
+
     add_builtin_type("s8", s8_t);
     add_builtin_type("s16", s16_t);
     add_builtin_type("s32", s32_t);
@@ -120,6 +112,7 @@ int main(int argc, char** argv)
     add_builtin_type("u16", u16_t);
     add_builtin_type("u32", u32_t);
     add_builtin_type("u64", u64_t);
+
     add_builtin_type("f32", f32_t);
     add_builtin_type("f64", f64_t);
 
@@ -148,7 +141,8 @@ int main(int argc, char** argv)
     // Constant folding
     if (enable_constant_folding) {
         push_timer("Constant folding");
-        LIST_FOREACH(ast) {
+        LIST_FOREACH(ast)
+        {
             Expr* expr = (Expr*)it->data;
             expr = constant_fold_expr(expr);
         }
@@ -184,7 +178,8 @@ int main(int argc, char** argv)
 
     List* timers = get_timers();
     info("--- Compiler timings ---");
-    LIST_FOREACH(timers) {
+    LIST_FOREACH(timers)
+    {
         Timer* tm = (Timer*)it->data;
         s64 len = strlen(tm->desc);
         char* ms = strf("%f seconds", tm->ms / 1e3);
@@ -217,7 +212,8 @@ void linking_stage(char* exec_name)
 {
     char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _main", exec_name, exec_name);
     List* links = get_link_list();
-    LIST_FOREACH(links) {
+    LIST_FOREACH(links)
+    {
         char* l = (char*)it->data;
         link_call = strf("%s -l%s", link_call, l);
     }

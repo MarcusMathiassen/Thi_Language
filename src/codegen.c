@@ -108,10 +108,12 @@ char* get_op_size(s8 bytes)
     case 1: return "BYTE";
     case 2: return "WORD";
     case 4: return "DWORD";
-    case 8: return "QWORD";
-    // default: error("get_op_size unknown byte size: %d", bytes);
+    case 8:
+        return "QWORD";
+        // default: error("get_op_size unknown byte size: %d", bytes);
     }
-    return "QWORD";;
+    return "QWORD";
+    ;
 }
 
 void alloc_variable(Value* variable)
@@ -119,7 +121,8 @@ void alloc_variable(Value* variable)
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     s64 size = get_size_of_value(variable);
-    info("Allocating variable '%s', type '%s', size '%lld' ", variable->Variable.name, typespec_to_str(variable->type), size);
+    info("Allocating variable '%s', type '%s', size '%lld' ", variable->Variable.name, typespec_to_str(variable->type),
+         size);
     ctx.stack_index += size;
 }
 
@@ -128,7 +131,8 @@ void dealloc_variable(Value* variable)
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     s64 size = get_size_of_value(variable);
-    info("Deallocating variable '%s', type '%s', size '%lld' ", variable->Variable.name, typespec_to_str(variable->type), size);
+    info("Deallocating variable '%s', type '%s', size '%lld' ", variable->Variable.name,
+         typespec_to_str(variable->type), size);
     ctx.stack_index -= size;
     assert(ctx.stack_index >= 0);
 }
@@ -565,9 +569,7 @@ Value* codegen_call(Expr* expr)
     emit("CALL _%s", callee);
 
     Typespec* ret_type = func_t->Function.ret_type;
-    if (!ret_type)
-        ret_type = make_typespec_int(1, true);
-
+    if (!ret_type) ret_type = make_typespec_int(1, true);
 
     return make_value_call(callee, ret_type);
 }
@@ -596,7 +598,6 @@ Value* codegen_block(Expr* expr)
     pop_scope();
     return last;
 }
-
 
 Value* codegen_macro(Expr* expr)
 {
@@ -755,7 +756,7 @@ Value* codegen_expr(Expr* expr)
     return NULL;
 }
 
-char* generate_code_from_ast(List* ast) 
+char* generate_code_from_ast(List* ast)
 {
     info("Generating X64 Assembly from AST");
 

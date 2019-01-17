@@ -120,8 +120,8 @@ char* typespec_to_str(Typespec* type)
             {
                 Arg* mem = (Arg*)it->data;
                 append_string(&str, strf("%s: %s", mem->name, typespec_to_str(mem->type)));
-                if (index != count-1) {
-                   append_string(&str, ", ");
+                if (index != count - 1) {
+                    append_string(&str, ", ");
                 }
                 index += 1;
             }

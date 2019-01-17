@@ -16,29 +16,20 @@ enum Token_Kind
 {
     TOKEN_UNKNOWN,
     TOKEN_EOF,
-
     TOKEN_COMMENT,
-
     TOKEN_BLOCK_START,
     TOKEN_BLOCK_END,
-
     TOKEN_WHITESPACE,
     TOKEN_NEWLINE,
-
     TOKEN_IDENTIFIER,
-
     TOKEN_CAST,
     TOKEN_SIZEOF,
-
     TOKEN_LINK,
     TOKEN_EXTERN,
     TOKEN_LOAD,
-
     TOKEN_DO,
-
     TOKEN_TRUE,
     TOKEN_FALSE,
-    
     TOKEN_TYPE,
     TOKEN_DEFER,
     TOKEN_IF,
@@ -47,19 +38,16 @@ enum Token_Kind
     TOKEN_FOR,
     TOKEN_WHILE,
     TOKEN_RET,
-
     TOKEN_STRUCT,
     TOKEN_ENUM,
     TOKEN_BREAK,
     TOKEN_CONTINUE,
 
     TOKEN_NUMBER,
-
     TOKEN_CHAR,
     TOKEN_INTEGER,
     TOKEN_FLOAT,
     TOKEN_HEX,
-
     TOKEN_STRING,
 
     TOKEN_PIPE_PIPE,
@@ -123,20 +111,24 @@ enum Token_Kind
     TOKEN_EQ,
 };
 
-struct Token {
+struct Token
+{
     Token_Kind kind;
     char* value;
     u64 line_pos;
     u64 col_pos;
+    char* line_start;
 };
 
-struct Token_List {
+struct Token_List
+{
     Token* data;
     u64 count;
     u64 allocated;
 };
 
-struct Lex {
+struct Lex
+{
     Token_List token_list;
     u64 line_count;
     u64 comment_count;
@@ -150,7 +142,6 @@ Lex lexify(char* source);
 void print_tokens(Token_List token_list);
 void print_token(Token token);
 char* token_kind_to_str(Token_Kind kind);
-
 
 #define THI_SYNTAX_POINTER TOKEN_ASTERISK
 #define THI_SYNTAX_ADDRESS TOKEN_AND

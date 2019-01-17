@@ -4,7 +4,6 @@ extern atoi (u8*) -> s32
 extern exit (s32) -> u8*
 extern system (u8*) -> s32
 
-
 EOF :: -1
 
 def puts(c: char*) -> s32

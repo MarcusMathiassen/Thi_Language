@@ -51,7 +51,7 @@ void* map_set_overwrite(Map* map, char* key, void* value)
 {
     assert(map);
     assert(key);
-    
+
     s64 hash_val = hash_it(key);
     for (s64 i = 0; i < map->size; ++i) {
         if (map->data[i].key == hash_val) {
@@ -67,7 +67,7 @@ void* map_set_overwrite(Map* map, char* key, void* value)
     map->data[map->size].key = hash_val;
     map->data[map->size++].data = value;
 
-    return map->data[map->size-1].data;
+    return map->data[map->size - 1].data;
 }
 // Add a pointer to the hashmap with some key
 void* map_set(Map* map, char* key, void* value)
@@ -90,7 +90,7 @@ void* map_set(Map* map, char* key, void* value)
     map->data[map->size].key = hash_val;
     map->data[map->size++].data = value;
 
-    return map->data[map->size-1].data;
+    return map->data[map->size - 1].data;
 }
 
 // Get your pointer out of the hashmap with a key

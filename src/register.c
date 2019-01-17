@@ -30,8 +30,9 @@ int get_rax_reg_of_byte_size(u8 bytes)
     case 1: return AL;
     case 2: return AX;
     case 4: return EAX;
-    case 8: return RAX;
-    // default: warning("get_rax_reg_of_byte_size unhandled case: %d. Defaulted to RAX.", bytes);
+    case 8:
+        return RAX;
+        // default: warning("get_rax_reg_of_byte_size unhandled case: %d. Defaulted to RAX.", bytes);
     }
     return RAX;
 }

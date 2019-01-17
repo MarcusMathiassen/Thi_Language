@@ -34,7 +34,7 @@ do
 
     if [ -f $name ]; then
         # Run it
-        ./${name}
+        ./${name} "Hello" "Hei"
         res=$?
         ((num_tests_compiled_successfully++))
         passing_test_files+=" $tf"

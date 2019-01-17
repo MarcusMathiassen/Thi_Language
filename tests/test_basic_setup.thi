@@ -1,10 +1,11 @@
 load "includes/cstdio.thi"
 
-def main () -> s32
+def main ()
     type ii
         i: s32
         k: s32
         v: vec2
+    opt: int
 
     v: ii
     a := "Hello world!"

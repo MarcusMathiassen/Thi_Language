@@ -87,6 +87,7 @@ typedef struct
     Token curr_tok;
     Token top_tok;
     char* source_file;
+    char* source;
 
     Expr* active_func;
     char* ocontinue;
@@ -105,7 +106,6 @@ void eat_kind(Parse_Context* pctx, Token_Kind kind);
 Token_Kind next_tok_kind(Parse_Context* pctx);
 Expr* get_variable_declaration(Parse_Context* pctx, char* ident);
 Expr* get_function_call(Parse_Context* pctx, char* ident);
-
 
 Expr* parse_top_level(Parse_Context* pctx);
 Expr* parse_statement(Parse_Context* pctx);
@@ -205,7 +205,6 @@ void parse(List* ast, char* source_file)
     Lex lex = lexify(source);
     print_tokens(lex.token_list);
 
-
     Parse_Context pctx;
     pctx.token_list = lex.token_list;
     pctx.token_index = 0;
@@ -213,6 +212,7 @@ void parse(List* ast, char* source_file)
     pctx.curr_tok.kind = TOKEN_UNKNOWN;
     pctx.ast = ast;
     pctx.source_file = source_file;
+    pctx.source = source;
 
     recursively_fill_ast(ast, &pctx);
 
@@ -234,7 +234,7 @@ void recursively_fill_ast(List* ast, Parse_Context* pctx)
     while (!tok_is(pctx, TOKEN_EOF)) {
         Expr* stmt = parse_top_level(pctx);
         if (stmt) {
-            list_append(ast, stmt); 
+            list_append(ast, stmt);
         }
     }
 }
@@ -282,8 +282,8 @@ Expr* parse_statement(Parse_Context* pctx)
     case TOKEN_LOAD: return parse_load(pctx);
     case TOKEN_LINK: return parse_link(pctx);
     default:
-        warning("Unhandled token '%s' was not a valid statement", pctx->curr_tok.value); 
-        eat(pctx); 
+        warning("Unhandled token '%s' was not a valid statement", pctx->curr_tok.value);
+        eat(pctx);
         break;
     }
     return NULL;
@@ -312,7 +312,7 @@ Expr* parse_identifier(Parse_Context* pctx)
 {
     DEBUG_START;
     switch (next_tok_kind(pctx)) {
-    case TOKEN_COLON:  // FALLTHROUGH
+    case TOKEN_COLON: // FALLTHROUGH
     case TOKEN_COLON_EQ: return parse_variable_decl(pctx);
     case TOKEN_OPEN_PAREN: return parse_function_call(pctx);
     case TOKEN_COLON_COLON: return parse_macro(pctx);
@@ -327,7 +327,8 @@ Expr* parse_load(Parse_Context* pctx)
     eat_kind(pctx, TOKEN_LOAD);
     string file = make_string(strf("%s%s", get_current_dir(), pctx->curr_tok.value));
     bool file_already_parsed = false;
-    LIST_FOREACH(get_file_list()) {
+    LIST_FOREACH(get_file_list())
+    {
         char* f = (char*)it->data;
         if (strcmp(f, file.c_str) == 0) {
             file_already_parsed = true;
@@ -572,7 +573,7 @@ Expr* parse_return(Parse_Context* pctx)
     char* label2 = make_label();
 
     // @SLOW: we're reverseing a list using a stack
-    //        every time we return. We should just have the 
+    //        every time we return. We should just have the
     //        defers be a stack in the first place.
     //        Basically, DONT REVERSE THE LIST ON EVERY RETURN.
 
@@ -690,8 +691,6 @@ Expr* parse_binary(Parse_Context* pctx, int expr_prec, Expr* lhs)
 
     return expr;
 }
-
-
 
 Typespec* active_type = NULL;
 Expr* read_field_access_expr(Parse_Context* pctx, Expr* expr)
@@ -1010,7 +1009,7 @@ int get_tok_precedence(Parse_Context* pctx)
 
 Token_Kind next_tok_kind(Parse_Context* pctx)
 {
-    if (pctx->token_list.count < pctx->token_index+1) {
+    if (pctx->token_list.count < pctx->token_index + 1) {
         error("No next token. We're all out.");
     }
     Token_Kind kind = pctx->token_list.data[pctx->token_index].kind;
@@ -1025,15 +1024,36 @@ bool tok_is(Parse_Context* pctx, Token_Kind kind)
     return false;
 }
 
-void eat(Parse_Context* pctx) { 
-    pctx->curr_tok = pctx->token_list.data[pctx->token_index++];
-}
+void eat(Parse_Context* pctx) { pctx->curr_tok = pctx->token_list.data[pctx->token_index++]; }
 
 void eat_kind(Parse_Context* pctx, Token_Kind kind)
 {
     Token t = pctx->curr_tok;
     if (t.kind != kind) {
-        error("Syntax Error\n%s %llu:%llu\nExpected '%s' got '%s'",  pctx->source_file, t.line_pos, t.col_pos, token_kind_to_str(kind), token_kind_to_str(t.kind));
+
+        char* start = t.line_start;
+        char* end = start;
+        
+        // u8 lines_up = 0;
+        // while (lines_up != LINES_ABOVE_AND_BELOW_TO_SHOW_ON_ERROR && *start != '\0') {
+        //     if (*start == '\n') ++lines_up;
+        //     --start;
+        // }
+
+        // u8 lines_down = 0;
+        // while (lines_down != LINES_ABOVE_AND_BELOW_TO_SHOW_ON_ERROR && *end != '\0') {
+        //     if (*end == '\n') ++lines_down;
+        //     ++end;
+        // }
+
+        while (*end != '\n') ++end;
+        s64 len = end - start;
+        char* str = xmalloc(len+1);
+        memcpy(str, start, len);
+        str[len] = 0;
+
+        error("%s:%llu,%llu: Syntax Error: expected '%s' got '%s'\n%s", pctx->source_file, t.line_pos, t.col_pos,
+              token_kind_to_str(kind), token_kind_to_str(t.kind), str);
     }
     eat(pctx);
 }
