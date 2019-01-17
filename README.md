@@ -22,14 +22,16 @@
 
 # Not actually a readme but a todo scratchpad
 - [x] integer literals
-- [ ] string literals
+- [x] string literals
+- [x] char literals
 - [x] functions
 - [x] function calls
 - [x] multiple compilation files using 'load'
 - [x] C stdlib interop
 
+- [x] 'link' for adding linking options for the linker
+
 - [x] variables
-- [ ] global variables
 
 - [x] s32
 - [x] char
@@ -37,14 +39,14 @@
 
 - [x] subscript access
 
-- [ ] structs
+- [x] structs
 - [ ] field access
 
 - [ ] enums
 
 - [x] if
 - [x] for
-- [x] do
+- [x] 'do' lets you do single line statements 
 - [x] defer
 - [x] while
 - [x] break
