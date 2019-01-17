@@ -1,10 +1,9 @@
 #include    "parser.h"
 
-#include    "lexer.h"       // Token, Token_Kind
-#include    "register.h"    // get_reg, get_parameter_reg
 #include    "typedefs.h"    // s32, s64, etc.
-#include    "typespec.h"    // Typespec
-#include    "utility.h"     // info, error, warning, success
+#include    "lexer.h"       // Token, Token_Kind, Lexify, Lex
+#include    "typespec.h"    // Typespec, make_typspec_*, 
+#include    "utility.h"     // info, error, warning, success, strf, get_file_content
 #include    <assert.h>      // assert
 #include    <ctype.h>       // atoll
 #include    <stdlib.h>      // xmalloc
@@ -12,8 +11,7 @@
 #include    "globals.h"     // add_symbol
 
 #define BIN_OP_COUNT 51
-struct
-{
+struct {
     Token_Kind kind;
     s32 p;
 } binop_precedence[BIN_OP_COUNT] = {
@@ -86,15 +84,12 @@ typedef struct
     char* l_end;
 } Parse_Context;
 
+//------------------------------------------------------------------------------
+//              Each construct of the language gets its own function
+//------------------------------------------------------------------------------
+
 void                recursively_fill_ast           (List* ast, Parse_Context* pctx);
 
-bool                tok_is                         (Parse_Context* pctx, Token_Kind kind);
-int                 get_tok_precedence             (Parse_Context* pctx);
-void                eat                            (Parse_Context* pctx);
-void                eat_kind                       (Parse_Context* pctx, Token_Kind kind);
-Token_Kind          next_tok_kind                  (Parse_Context* pctx);
-Expr*               get_variable_declaration       (Parse_Context* pctx, char* ident);
-Expr*               get_function_call              (Parse_Context* pctx, char* ident);
 Expr*               parse_top_level                (Parse_Context* pctx);
 Expr*               parse_statement                (Parse_Context* pctx);
 Expr*               parse_primary                  (Parse_Context* pctx);
@@ -124,12 +119,23 @@ Expr*               parse_sizeof                   (Parse_Context* pctx);
 Expr*               parse_def                      (Parse_Context* pctx);
 Expr*               parse_macro                    (Parse_Context* pctx);
 Expr*               parse_type                     (Parse_Context* pctx);
+
+//------------------------------------------------------------------------------
+//                               Helpers
+//------------------------------------------------------------------------------
+
 Typespec*           parse_type_signature           (Parse_Context* pctx, char* struct_name);
 Typespec*           parse_function_signature       (Parse_Context* pctx, char* func_name);
 
 s64                 get_integer                    (Parse_Context* pctx);
 f64                 get_float                      (Parse_Context* pctx);
 Typespec*           get_type                       (Parse_Context* pctx);
+
+bool                tok_is                         (Parse_Context* pctx, Token_Kind kind);
+int                 get_tok_precedence             (Parse_Context* pctx);
+void                eat                            (Parse_Context* pctx);
+void                eat_kind                       (Parse_Context* pctx, Token_Kind kind);
+Token_Kind          next_tok_kind                  (Parse_Context* pctx);
 
 void                reset_label_counter            (Parse_Context* pctx);
 char*               make_label                     (Parse_Context* pctx);
@@ -151,7 +157,7 @@ char*               make_label                     (Parse_Context* pctx);
     pctx->lbreak = pctx->obreak;
 
 //------------------------------------------------------------------------------
-//                               Public Functions
+//                               Public 
 //------------------------------------------------------------------------------
 
 void give_type_to_all_nodes(Expr* expr)
@@ -220,6 +226,10 @@ void parse(List* ast, char* source_file)
     debug_info_color = RGB_GRAY;
 }
 
+//------------------------------------------------------------------------------
+//                               Private
+//------------------------------------------------------------------------------
+
 void recursively_fill_ast(List* ast, Parse_Context* pctx)
 {
     info("Generating ast from tokens..");
@@ -231,10 +241,6 @@ void recursively_fill_ast(List* ast, Parse_Context* pctx)
         }
     }
 }
-
-//------------------------------------------------------------------------------
-//                               Private Functions
-//------------------------------------------------------------------------------
 
 Expr* parse_top_level(Parse_Context* pctx)
 {
