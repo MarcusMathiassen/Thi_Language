@@ -1,5 +1,5 @@
 #include "value.h"
-#include "globals.h"  // current_output
+#include "globals.h"
 #include "register.h" // error, xmallox
 #include "typedefs.h"
 #include "utility.h" // error, xmallox

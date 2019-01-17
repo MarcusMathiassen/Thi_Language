@@ -1,25 +1,5 @@
 load "includes/cstdio.thi"
 
-def main ()
-    type ii
-        i: s32
-        k: s32
-        v: vec2
-    opt: int
-
-    v: ii
-    a := "Hello world!"
-    puts(a)
-    ret N + add(1,2) + N + mul(2, 3) - M - 13
-
-N :: 6
-M :: N + 1
-
-type vec2
-    x: f32
-    y: f32
-
-def add(a: s32, b: s32) -> s32
-    def mul(a: s32, b: s32) -> s32
-        ret a * b
-    ret a + b
+def main () -> s32
+    c := "Jello"
+    ret 1

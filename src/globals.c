@@ -13,8 +13,6 @@ bool debug_mode = false;
 bool enable_constant_folding = true;
 bool optimize = true;
 
-string* current_output;
-
 List* foreign_function_list;
 List* constant_string_list;
 List* link_list;
@@ -23,11 +21,6 @@ Map* macro_map;
 Map* builtin_type_map;
 Stack* timer_stack;
 List* timers;
-
-char* debug_success_color = GREEN;
-char* debug_info_color = RGB_GRAY;
-char* debug_warning_color = YELLOW;
-char* debug_error_color = RED;
 
 string output_name;
 string source_file;

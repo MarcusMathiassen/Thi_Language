@@ -144,6 +144,7 @@ Expr*   make_expr_ret               (Expr* expr);
 Expr*   make_expr_grouping          (Expr* expr);
 Expr*   make_expr_variable_decl     (char* name, Typespec* type, Expr* value);
 
+Expr*       get_arg_from_func           (Typespec* func_t, s64 arg_index);
 Typespec*   get_inferred_type_of_expr   (Expr* expr);
 Expr*       constant_fold_expr          (Expr* expr);
 void        print_ast                   (List* ast);

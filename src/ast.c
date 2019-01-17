@@ -70,9 +70,19 @@ char* expr_to_str(Expr* expr)
                     expr_to_str(expr->Binary.rhs));
     }
     case EXPR_VARIABLE_DECL: {
-        return strf(expr->Variable_Decl.value ? "%s: %s = %s" : "%s: %s", expr->Variable_Decl.name,
-                    typespec_to_str(expr->Variable_Decl.type),
-                    expr->Variable_Decl.value ? expr_to_str(expr->Variable_Decl.value) : "");
+        if (expr->Variable_Decl.value) {
+            if (expr->Variable_Decl.name) {
+                return strf("%s: %s = %s", expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type), expr_to_str(expr->Variable_Decl.value));
+            } else {
+                return strf("%s", typespec_to_str(expr->Variable_Decl.type)); 
+            }
+        } else {
+            if (expr->Variable_Decl.name) {
+                return strf("%s: %s", expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type));
+            } else {
+                return strf("%s", typespec_to_str(expr->Variable_Decl.type)); 
+            }
+        }
     }
     case EXPR_BLOCK: {
         string str = make_string("");
@@ -126,11 +136,22 @@ Typespec* get_inferred_type_of_expr(Expr* expr)
         case EXPR_FUNCTION:         return expr->Function.type->Function.ret_type;
         case EXPR_STRUCT:           return expr->Struct.type;
         case EXPR_GROUPING:         return get_inferred_type_of_expr(expr->Grouping.expr);
-    default: error("%s has no type", expr_kind_to_str(expr->kind));
+        default:                    error("%s has no type", expr_kind_to_str(expr->kind));
     }
     return NULL;
 }
 
+Expr* get_arg_from_func(Typespec* func_t, s64 arg_index)
+{
+    assert(func_t);
+    assert(func_t->kind == TYPESPEC_FUNCTION);
+    assert(arg_index >= 0 && arg_index <= typespec_function_get_arg_count(func_t));
+    Expr* expr = (Expr*)list_at(func_t->Function.args, arg_index);
+    assert(expr);
+    return expr;
+}
+
+// @HACK
 bool last_was_true = false;
 Expr* constant_fold_expr(Expr* expr)
 {
@@ -382,9 +403,8 @@ Expr* make_expr_grouping(Expr* expr)
 
 Expr* make_expr_variable_decl(char* name, Typespec* type, Expr* value)
 {
-    assert(name);
+    // 'value' and 'name' can be NULL
     assert(type);
-    // Value can be NULL if the decl doesnt have an initial value.
     Expr* e = make_expr(EXPR_VARIABLE_DECL);
     e->Variable_Decl.name = name;
     e->Variable_Decl.type = type;

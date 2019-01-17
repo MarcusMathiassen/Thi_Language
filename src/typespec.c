@@ -1,5 +1,6 @@
 #include "typespec.h"
 
+#include "ast.h"  // Expr
 #include "string.h"  // strf, append_string, string
 #include "utility.h" // error
 #include <assert.h>  // assert
@@ -50,10 +51,10 @@ s64 get_size_of_typespec(Typespec* type)
         case TYPESPEC_STRUCT: {
             s64 accum_size = 0;
             if (type->Struct.members) {
-                LIST_FOREACH(type->Struct.members)
-                {
-                    Arg* mem = (Arg*)it->data;
-                    accum_size += get_size_of_typespec(mem->type);
+                LIST_FOREACH(type->Struct.members) {
+                    Expr* mem = (Expr*)it->data;
+                    if (mem->kind != EXPR_FUNCTION)
+                        accum_size += get_size_of_typespec(mem->Variable_Decl.type);
                 }
             }
             return accum_size;
@@ -62,8 +63,8 @@ s64 get_size_of_typespec(Typespec* type)
             s64 accum_size = 0;
             LIST_FOREACH(type->Function.args)
             {
-                Arg* arg = (Arg*)it->data;
-                accum_size += get_size_of_typespec(arg->type);
+                Expr* arg = (Expr*)it->data;
+                accum_size += get_size_of_typespec(arg->Variable_Decl.type);
             }
             return accum_size;
         }
@@ -79,11 +80,11 @@ s64 get_offset_in_struct_to_field(Typespec* type, char* name)
     s64 accum_size = 0;
     LIST_FOREACH(type->Struct.members)
     {
-        Arg* mem = (Arg*)it->data;
-        if (strcmp(name, mem->name) == 0) {
+        Expr* mem = (Expr*)it->data;
+        if (strcmp(name, mem->Variable_Decl.name) == 0) {
             return accum_size;
         }
-        accum_size += get_size_of_typespec(mem->type);
+        accum_size += get_size_of_typespec(mem->Variable_Decl.type);
     }
     error("cant find field: %s", name);
     return -1;
@@ -118,10 +119,10 @@ char* typespec_to_str(Typespec* type)
                 s64 index = 0;
                 LIST_FOREACH(type->Struct.members)
                 {
-                    Arg* mem = (Arg*)it->data;
-                    append_string(&str, strf("%s: %s", mem->name, typespec_to_str(mem->type)));
+                    Expr* mem = (Expr*)it->data;
+                    append_string(&str, strf("%s", expr_to_str(mem)));
                     if (index != count - 1) {
-                        append_string(&str, ", ");
+                        append_string(&str, " ");
                     }
                     index += 1;
                 }
@@ -147,12 +148,8 @@ char* typespec_to_str(Typespec* type)
             s64 arg_index = 0;
             LIST_FOREACH(type->Function.args)
             {
-                Arg* arg = (Arg*)it->data;
-                if (arg->name)
-                    append_string(&str, strf("%s: %s", arg->name, typespec_to_str(arg->type)));
-                else
-                    append_string(&str, strf("%s", typespec_to_str(arg->type)));
-
+                Expr* arg = (Expr*)it->data;
+                append_string(&str, expr_to_str(arg));
                 if (arg_index != arg_count - 1) {
                     append_string(&str, ", ");
                 }

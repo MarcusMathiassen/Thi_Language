@@ -4,6 +4,8 @@
 #include    "lexer.h"       // Token, Token_Kind, Lexify, Lex
 #include    "typespec.h"    // Typespec, make_typspec_*, 
 #include    "utility.h"     // info, error, warning, success, strf, get_file_content
+#include    <stdarg.h>      // va_list, va_start, va_end
+#include    <stdio.h>       // printf, vprintf
 #include    <assert.h>      // assert
 #include    <ctype.h>       // atoll
 #include    <stdlib.h>      // xmalloc
@@ -140,6 +142,7 @@ Token_Kind          next_tok_kind                  (Parse_Context* pctx);
 void                reset_label_counter            (Parse_Context* pctx);
 char*               make_label                     (Parse_Context* pctx);
 
+void                syntax_error                   (Parse_Context* pctx, char* fmt, ...);
 
 #define DEBUG_START info("%s: %s", __func__, pctx->curr_tok.value);
 
@@ -222,8 +225,6 @@ void parse(List* ast, char* source_file)
 
     set_source_file(last_file);
     set_current_dir(last_dir);
-
-    debug_info_color = RGB_GRAY;
 }
 
 //------------------------------------------------------------------------------
@@ -261,6 +262,7 @@ Expr* parse_top_level(Parse_Context* pctx)
 Expr* parse_statement(Parse_Context* pctx)
 {
     DEBUG_START;
+
     switch (pctx->curr_tok.kind) {
         case TOKEN_DEF:                    return parse_def(pctx);
         case TOKEN_TYPE:                   return parse_type(pctx);
@@ -629,8 +631,6 @@ Expr* parse_variable_decl(Parse_Context* pctx)
         } break;
     }
 
-    add_symbol(variable_name, variable_type);
-
     return make_expr_variable_decl(variable_name, variable_type, variable_value);
 }
 
@@ -708,8 +708,6 @@ Expr* read_subscript_expr(Parse_Context* pctx, Expr* expr)
     s64 size = get_size_of_underlying_typespec(get_inferred_type_of_expr(expr));
     sub = make_expr_binary(TOKEN_ASTERISK, make_expr_int(size), sub);
     Expr* t = make_expr_binary(TOKEN_PLUS, expr, sub);
-
-    // return make_expr_subscript(expr)
     return make_expr_unary(THI_SYNTAX_POINTER, t);
 }
 
@@ -783,9 +781,7 @@ Expr* parse_expression(Parse_Context* pctx)
 Expr* parse_integer(Parse_Context* pctx)
 {
     DEBUG_START;
-
     Expr* res = make_expr_int(get_integer(pctx));
-
     return res;
 }
 
@@ -828,12 +824,14 @@ Typespec* parse_type_signature(Parse_Context* pctx, char* struct_name)
     List* members = make_list();
 
     while (!tok_is(pctx, TOKEN_BLOCK_END)) {
-        Arg* member = xmalloc(sizeof(Arg));
-        member->name = pctx->curr_tok.value;
-        eat_kind(pctx, TOKEN_IDENTIFIER);
-        eat_kind(pctx, TOKEN_COLON);
-        member->type = get_type(pctx);
-        list_append(members, member);
+        Expr* expr = NULL;
+        switch(pctx->curr_tok.kind) {
+            case TOKEN_DEF: expr = parse_def(pctx); break;
+            case TOKEN_IDENTIFIER: expr = parse_variable_decl(pctx); break;
+            default: syntax_error(pctx, "Only variable declaration and function definition are valid statements inside a type.");
+        }
+        if (expr)
+            list_append(members, expr);
     }
     eat_kind(pctx, TOKEN_BLOCK_END);
 
@@ -850,24 +848,23 @@ Typespec* parse_function_signature(Parse_Context* pctx, char* func_name)
 
     bool has_multiple_arguments = false;
     while (!tok_is(pctx, TOKEN_CLOSE_PAREN)) {
-        if (has_multiple_arguments) eat_kind(pctx, TOKEN_COMMA);
+        
+        if (has_multiple_arguments) { 
+            eat_kind(pctx, TOKEN_COMMA); 
+        }
 
-        Arg* arg = xmalloc(sizeof(Arg));
-        arg->name = pctx->curr_tok.value;
-        arg->type = NULL;
+        Expr* expr = NULL;
 
         // foreign's dont have named parameters
         if (pctx->top_tok.kind == TOKEN_EXTERN) {
-            arg->name = NULL;
-            arg->type = get_type(pctx);
+            expr = make_expr_variable_decl(NULL, get_type(pctx), NULL);
         } else {
-            eat_kind(pctx, TOKEN_IDENTIFIER);
-            eat_kind(pctx, TOKEN_COLON);
-            arg->type = get_type(pctx);
+            if (tok_is(pctx, TOKEN_IDENTIFIER)) {
+                expr =  parse_variable_decl(pctx);
+            } else syntax_error(pctx, "Only variable declaration valid inside a functions parameters.");
         }
-
         has_multiple_arguments = true;
-        list_append(args, arg);
+        list_append(args, expr);
     }
     eat_kind(pctx, TOKEN_CLOSE_PAREN);
 
@@ -988,36 +985,11 @@ bool tok_is(Parse_Context* pctx, Token_Kind kind)
 }
 
 void eat(Parse_Context* pctx) { pctx->curr_tok = pctx->token_list.data[pctx->token_index++]; }
-
 void eat_kind(Parse_Context* pctx, Token_Kind kind)
 {
-    Token t = pctx->curr_tok;
-    if (t.kind != kind) {
-
-        char* start = t.line_start;
-        char* end = start;
-
-        // u8 lines_up = 0;
-        // while (lines_up != LINES_ABOVE_AND_BELOW_TO_SHOW_ON_ERROR && *start != '\0') {
-        //     if (*start == '\n') ++lines_up;
-        //     --start;
-        // }
-
-        // u8 lines_down = 0;
-        // while (lines_down != LINES_ABOVE_AND_BELOW_TO_SHOW_ON_ERROR && *end != '\0') {
-        //     if (*end == '\n') ++lines_down;
-        //     ++end;
-        // }
-
-        while (*end != '\n')
-            ++end;
-        s64 len = end - start;
-        char* str = xmalloc(len + 1);
-        memcpy(str, start, len);
-        str[len] = 0;
-
-        error("%s:%llu,%llu: Syntax Error: expected '%s' got '%s'\n%s", pctx->source_file, t.line_pos, t.col_pos,
-              token_kind_to_str(kind), token_kind_to_str(t.kind), str);
+    Token_Kind tk = pctx->curr_tok.kind;
+    if (tk != kind) {
+        syntax_error(pctx, "Expected '%s' got '%s'", token_kind_to_str(kind), token_kind_to_str(tk));
     }
     eat(pctx);
 }
@@ -1030,4 +1002,16 @@ char* make_label(Parse_Context* pctx) {
     char* c = strf(".L%d", pctx->label_counter);
     pctx->label_counter += 1;
     return c;
+}
+
+void syntax_error(Parse_Context* pctx, char* fmt, ...)
+{
+    assert(fmt);
+    va_list args;
+    va_start(args, fmt);
+    printf("%s%s %llu:%llu Syntax Error: ", RED, pctx->source_file, pctx->curr_tok.line_pos, pctx->curr_tok.col_pos);
+    vprintf(fmt, args);
+    puts(RESET);
+    va_end(args);
+    exit(1);
 }

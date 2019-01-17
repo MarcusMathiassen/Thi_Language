@@ -16,18 +16,12 @@
 #define RGB_GRAY "\033[38;2;110;110;110;m"
 #define RGB_WHITE "\033[38;2;255;255;255;m"
 
-extern char* debug_success_color;
-extern char* debug_info_color;
-extern char* debug_warning_color;
-extern char* debug_error_color;
-
 extern bool debug_mode;
 extern bool optimize;
 extern bool enable_constant_folding;
 
 extern bool detailed_print;
 extern List* file_list;
-extern string* current_output;
 
 #define X64_ASM_OSX_STACK_PADDING 16
 

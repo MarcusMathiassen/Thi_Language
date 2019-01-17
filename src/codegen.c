@@ -203,6 +203,19 @@ void add_variable(Value* variable)
 
 int align(int n, int m) { return (m - (n % m)) % m; }
 
+void emit_store_r(Value* variable, s64 reg) {
+    assert(variable);
+    assert(variable->kind == VALUE_VARIABLE);
+    assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
+    s64 stack_pos = get_stack_pos_of_variable(variable);
+    char* reg_c = get_reg(reg);
+    switch (variable->type->kind) {
+    case TYPESPEC_STRUCT:
+    case TYPESPEC_POINTER:
+    case TYPESPEC_ARRAY: emit("MOV [RAX], %s; store", reg_c); break;
+    default: emit("MOV [RBP-%lld], %s; store", stack_pos, reg_c); break;
+    }
+}
 void emit_store(Value* variable)
 {
     assert(variable);
@@ -294,7 +307,7 @@ Value* codegen_binary(Expr* expr)
         assert(variable->type->kind == TYPESPEC_STRUCT);
 
         s64 offset = get_offset_in_struct_to_field(variable->type, rhs->Ident.name);
-        // // if (offset == 0) { emit_load(variable); return variable; }
+        // if (offset == 0) { emit_load(variable); return variable; }
 
         lhs = make_expr_unary(THI_SYNTAX_ADDRESS, lhs);
         lhs = make_expr_binary(TOKEN_PLUS, lhs, make_expr_int(offset));
@@ -547,7 +560,9 @@ Value* codegen_call(Expr* expr)
     s32 arg_count = args->count;
 
     if (func_arg_count != arg_count) error("wrong amount of parameters for call to function '%s'", callee);
-
+    
+    // Check if we really need all arguments.
+    // If the callee function has any default argument we can skip them
     LIST_FOREACH(args)
     {
         Expr* arg = (Expr*)it->data;
@@ -641,7 +656,9 @@ Value* codegen_note(Expr* expr)
     assert(int_expr->kind == EXPR_INT);
     s32 integer_value = int_expr->Int.val;
     if (integer_value < 1) error("note parameters start at 1.");
-    char* name = ((Arg*)list_at(ctx.current_function->type->Function.args, integer_value - 1))->name;
+
+    Expr* arg = get_arg_from_func(ctx.current_function->type, integer_value - 1);
+    char* name = arg->Variable_Decl.name;
     Value* var = get_variable(name);
     emit_load(var);
     return var;
@@ -706,16 +723,12 @@ Value* codegen_function(Expr* expr)
 
     List* args = func_type->Function.args;
     s64 i = 0;
-    LIST_FOREACH(args)
-    {
-        Arg* arg = (Arg*)it->data;
-
-        s64 size = get_size_of_typespec(arg->type);
-        s64 stack_pos = ctx.stack_index + size;
-        Value* var = make_value_variable(arg->name, arg->type, stack_pos);
-        add_variable(var);
-        char* param_reg = get_reg(get_parameter_reg(i, size));
-        emit("MOV [RBP-%lld], %s", stack_pos, param_reg);
+    LIST_FOREACH(args) {
+        Expr* arg = (Expr*)it->data;
+        Value* v = codegen_expr(arg);
+        s64 size = get_size_of_value(v);
+        s64 param_reg = get_parameter_reg(i, size);
+        emit_store_r(v, param_reg);
         i += 1;
     }
 
@@ -782,11 +795,9 @@ char* generate_code_from_ast(List* ast)
     // codegen the whole thing.
     LIST_FOREACH(ast) { codegen_expr((Expr*)it->data); }
 
-    char* output = strf("%s\nglobal _main\n%s", section_data.c_str, section_text.c_str);
+    char* output = strf("%sglobal _main\n%s", section_data.c_str, section_text.c_str);
 
-    debug_info_color = RGB_WHITE;
     info("%s", output);
-    debug_info_color = RGB_GRAY;
 
     ctx_free(&ctx);
 

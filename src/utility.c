@@ -18,7 +18,7 @@ void info(char* fmt, ...)
     assert(fmt);
     va_list args;
     va_start(args, fmt);
-    printf("%s", debug_info_color);
+    printf("%s", RGB_GRAY);
     vprintf(fmt, args);
     puts(RESET);
     va_end(args);
@@ -29,7 +29,7 @@ void warning(char* fmt, ...)
     assert(fmt);
     va_list args;
     va_start(args, fmt);
-    printf("%s", debug_warning_color);
+    printf("%s", YELLOW);
     vprintf(fmt, args);
     puts(RESET);
     va_end(args);
@@ -40,7 +40,7 @@ void success(char* fmt, ...)
     assert(fmt);
     va_list args;
     va_start(args, fmt);
-    printf("%s", debug_success_color);
+    printf("%s", GREEN);
     vprintf(fmt, args);
     puts(RESET);
     va_end(args);
@@ -51,7 +51,7 @@ void error(char* fmt, ...)
     assert(fmt);
     va_list args;
     va_start(args, fmt);
-    printf("%s", debug_error_color);
+    printf("%s", RED);
     vprintf(fmt, args);
     puts(RESET);
     va_end(args);
