@@ -126,6 +126,8 @@ enum Token_Kind
 struct Token {
     Token_Kind kind;
     char* value;
+    u64 line_pos;
+    u64 col_pos;
 };
 
 struct Token_List {

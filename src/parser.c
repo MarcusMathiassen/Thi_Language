@@ -86,6 +86,7 @@ typedef struct
     u64 token_index;
     Token curr_tok;
     Token top_tok;
+    char* source_file;
 
     Expr* active_func;
     char* ocontinue;
@@ -95,7 +96,7 @@ typedef struct
     char* l_end;
 } Parse_Context;
 
-void generate_ast_from_tokens(List* ast, Token_List token_list);
+void recursively_fill_ast(List* ast, Parse_Context* pctx);
 
 bool tok_is(Parse_Context* pctx, Token_Kind kind);
 int get_tok_precedence(Parse_Context* pctx);
@@ -204,7 +205,17 @@ void parse(List* ast, char* source_file)
     Lex lex = lexify(source);
     print_tokens(lex.token_list);
 
-    generate_ast_from_tokens(ast, lex.token_list);
+
+    Parse_Context pctx;
+    pctx.token_list = lex.token_list;
+    pctx.token_index = 0;
+    pctx.top_tok.kind = TOKEN_UNKNOWN;
+    pctx.curr_tok.kind = TOKEN_UNKNOWN;
+    pctx.ast = ast;
+    pctx.source_file = source_file;
+
+    recursively_fill_ast(ast, &pctx);
+
     print_symbol_map();
     print_ast(ast);
 
@@ -216,20 +227,12 @@ void parse(List* ast, char* source_file)
     debug_info_color = RGB_GRAY;
 }
 
-void generate_ast_from_tokens(List* ast, Token_List token_list)
+void recursively_fill_ast(List* ast, Parse_Context* pctx)
 {
     info("Generating ast from tokens..");
-    Parse_Context pctx;
-    pctx.token_list = token_list;
-    pctx.token_index = 0;
-    pctx.top_tok.kind = TOKEN_UNKNOWN;
-    pctx.curr_tok.kind = TOKEN_UNKNOWN;
-    pctx.ast = ast;
-
-    eat(&pctx);
-
-    while (!tok_is(&pctx, TOKEN_EOF)) {
-        Expr* stmt = parse_top_level(&pctx);
+    eat(pctx);
+    while (!tok_is(pctx, TOKEN_EOF)) {
+        Expr* stmt = parse_top_level(pctx);
         if (stmt) {
             list_append(ast, stmt); 
         }
@@ -1028,8 +1031,9 @@ void eat(Parse_Context* pctx) {
 
 void eat_kind(Parse_Context* pctx, Token_Kind kind)
 {
-    if (pctx->curr_tok.kind != kind) {
-        error("expected '%s' got '%s'", token_kind_to_str(kind), token_kind_to_str(pctx->curr_tok.kind));
+    Token t = pctx->curr_tok;
+    if (t.kind != kind) {
+        error("Syntax Error\n%s %llu:%llu\nExpected '%s' got '%s'",  pctx->source_file, t.line_pos, t.col_pos, token_kind_to_str(kind), token_kind_to_str(t.kind));
     }
     eat(pctx);
 }

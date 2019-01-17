@@ -192,7 +192,7 @@ bool is_valid_identifier(char c) { return isalnum(c) || c == '_'; }
 bool is_valid_digit(char c) { return isdigit(c) || c == '.' || c == '_' || c == 'e' || c == 'x'; }
 
 u64 get_line_pos(LexerContext* lctx) {
-    return lctx->current_char_in_stream - lctx->start_of_line;
+    return lctx->current_char_in_stream - lctx->position_of_newline;
 }
 
 #define CASE_SINGLE_TOKEN(c1, t_kind)                                                                                  \
@@ -205,6 +205,8 @@ Token get_next_token(LexerContext* lctx)
     Token token;
     token.kind = TOKEN_UNKNOWN;
     token.value = c;
+    token.line_pos = lctx->line_count;
+    token.col_pos = get_line_pos(lctx);
 
     switch (*c) {
     case '#': {
