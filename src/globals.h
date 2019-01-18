@@ -31,8 +31,9 @@ extern List* file_list;
 #define DEFAULT_INT_BYTE_SIZE 8
 #define DEFAULT_FLOAT_BYTE_SIZE 4
 
-#define EXPR_LIST_STARTING_ALLOC 1
 #define TOKEN_LIST_STARTING_ALLOC 1000
+#define TYPE_LIST_STARTING_ALLOC 100
+
 #define LINES_ABOVE_AND_BELOW_TO_SHOW_ON_ERROR 2
 
 void set_source_file(char* file_name);

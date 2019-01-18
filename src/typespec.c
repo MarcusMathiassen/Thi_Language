@@ -3,6 +3,7 @@
 #include "ast.h"  // Expr
 #include "string.h"  // strf, append_string, string
 #include "utility.h" // error
+#include "globals.h" // TYPE_LIST_STARTING_ALLOC
 #include <assert.h>  // assert
 #include <stdlib.h>  // xmalloc
 #include <string.h>  // strcmp
@@ -239,9 +240,36 @@ Typespec* make_typespec_struct(char* name, List* members)
 Typespec* make_typespec_function(char* name, List* args, Typespec* ret_type)
 {
     assert(name);
+    // Typespec* t = get_if_typespec_already_exists(name);
+    // if (t) return t;
     Typespec* t = make_typespec(TYPESPEC_FUNCTION);
     t->Function.name = name;
     t->Function.args = args;
     t->Function.ret_type = ret_type;
+    // type_list_append(tl, t)
     return t;
+}
+
+//------------------------------------------------------------------------------
+//                               Type_List
+//------------------------------------------------------------------------------
+
+Type_List* make_type_list() {
+    Type_List* l = xmalloc(sizeof(Type_List));
+    l->ids = NULL;
+    l->count = 0;
+    l->allocated = TYPE_LIST_STARTING_ALLOC;
+    l->data = xmalloc(sizeof(Typespec) * l->allocated);
+    return l;
+}
+
+Typespec* type_list_append(Type_List* l, Typespec data)
+{
+    if (l->count >= l->allocated) {
+        l->allocated *= 2;
+        l->data = xrealloc(l->data, l->allocated);
+    }
+    l->data[l->count] = data;
+    l->count += 1;
+    return &l->data[l->count - 1];
 }

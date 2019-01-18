@@ -3,7 +3,7 @@
 
 #include "globals.h" // get_source_file
 #include "string.h"  // str_intern_range
-#include "utility.h" // info, success, error, warning
+#include "utility.h" // info, success, error, warning, xmalloc, xrealloc
 #include <assert.h>  // assert
 #include <ctype.h>   // isalnum, isdigit, isspace, isalpha
 #include <stdlib.h>  // xmalloc
@@ -531,7 +531,7 @@ Token_List make_token_list()
     Token_List tl;
     tl.count = 0;
     tl.allocated = TOKEN_LIST_STARTING_ALLOC;
-    tl.data = malloc(sizeof(Token) * tl.allocated);
+    tl.data = xmalloc(sizeof(Token) * tl.allocated);
     return tl;
 }
 
