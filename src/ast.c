@@ -251,10 +251,7 @@ Expr* constant_fold_expr(Expr* expr)
             LIST_FOREACH(expr->Block.stmts)
             {
                 Expr* stmt = (Expr*)it->data;
-
-                if (stmt->kind == EXPR_CALL) {
-                    list_append_before(expr->Block.stmts, it, make_expr_asm("; HELLO THERE"));
-                } else it->data = constant_fold_expr(stmt);
+                it->data = constant_fold_expr(stmt);
             }
         } break;
         case EXPR_GROUPING: {

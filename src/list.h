@@ -23,18 +23,20 @@ struct List
 #define LIST_FOREACH_REVERSE(list) for (List_Node* it = (list->tail); (it); (it) = (it)->prev)
 #define LIST_FOREACH(list) for (List_Node* it = (list->head); (it); (it) = (it)->next)
 
-List*   make_list                           ();
+List*   make_list                           (void);
+void    list_free                           (List* l);
 void    list_tests                          (void);
-void    list_init                           (List* list);
 void*   list_append                         (List* list, void* data);
 void*   list_prepend                        (List* list, void* data);
 void*   list_last                           (List* list);
 void*   list_first                          (List* list);
 void*   list_at                             (List* list, s64 index);
-void    list_append_after                   (List* list, List_Node* prev_node, void* data);
-void    list_append_before                  (List* list, List_Node* next_node, void* data);
+void    list_insert_after                   (List* list, List_Node* prev_node, void* data);
+void    list_insert_before                  (List* list, List_Node* next_node, void* data);
 void    list_append_content_of              (List* list, List* other_list);
 void    list_append_content_of_in_reverse   (List* list, List* other_list);
+void    list_prepend_content_of             (List* list, List* other_list);
+void    list_prepend_content_of_in_reverse  (List* list, List* other_list);
 void*   list_remove_at                      (List* list, s64 index);
 void*   list_remove                         (List* list, List_Node* node);
 bool    list_empty                          (List* list);

@@ -61,9 +61,9 @@ done
 echo -e "${RGB_GRAY}[TEST] ${NC}${RGB_GRAY} C/P/T:   ${num_tests_compiled_successfully}/${num_tests_passed}/${test_counter} ${NC}"
 if [ ${#failed_test_files[@]} -ne 0 ]; then
     # echo -e "${RGB_GRAY}[TEST] ${NC}${GREEN}PASSED: ${passing_test_files} ${NC}"
-    echo -e "${RGB_GRAY}[TEST] ${NC}${RED}FAILED: ${failed_test_files} ${NC}"
+    echo -e "${RGB_GRAY}[TEST] ${NC}${RED} FAILED: ${failed_test_files} ${NC}"
     if [ ${#compiled_but_failed_test_files[@]} -ne 0 ]; then
-        echo -e "${RGB_GRAY}[TEST] ${NC}${YELLOW}COMPILED BUT FAILED: ${compiled_but_failed_test_files} ${NC}"
+        echo -e "${RGB_GRAY}[TEST] ${NC}${YELLOW} COMPILED BUT FAILED: ${compiled_but_failed_test_files} ${NC}"
     fi
 else
     echo -e "${RGB_GRAY}[TEST] ${NC}${GREEN} ALL TESTS PASSED${NC}"

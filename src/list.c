@@ -4,19 +4,20 @@
 #include <assert.h>
 #include <stdlib.h> // xmalloc
 
-List* make_list()
+List* make_list(void)
 {
     List* l = xmalloc(sizeof(List));
-    list_init(l);
+    l->head = NULL;
+    l->tail = NULL;
+    l->count = 0;
     return l;
 }
 
-void list_init(List* list)
+void list_free(List* l)
 {
-    assert(list);
-    list->head = NULL;
-    list->tail = NULL;
-    list->count = 0;
+    LIST_FOREACH(l) {
+        free(it);
+    }
 }
 
 typedef struct
@@ -46,24 +47,26 @@ void list_tests(void)
     assert(((Test_Type*)list_at(list, 0))->val == 3.43f);
     assert(((Test_Type*)list_last(list))->val == 6.41f);
 
-    // // Prepend
-    list_prepend(list, &t2);
-    assert(((Test_Type*)list_at(list, 0))->val == 6.41f);
+    // Prepend
+    // list_prepend(list, &t2);
+    // assert(((Test_Type*)list_at(list, 0))->val == 6.41f);
 
-    // Remove
-    list_remove_at(list, 0);
-    assert(((Test_Type*)list_at(list, 0))->val == 3.43f);
-    assert(((Test_Type*)list_at(list, 1))->val == 6.41f);
+    // // Remove
+    // list_remove_at(list, 0);
+    // assert(((Test_Type*)list_at(list, 0))->val == 3.43f);
+    // assert(((Test_Type*)list_at(list, 1))->val == 6.41f);
 
     Test_Type t3;
     t3.name = "t3";
     t3.val = 7.43f;
 
-    list_append_after(list, list->head, &t3);
+    list_insert_after(list, list->head, &t3);
     assert(((Test_Type*)list_at(list, 1))->val == 7.43f);
 
-    list_append_before(list, list->tail, &t3);
+    list_insert_before(list, list->tail, &t3);
     assert(((Test_Type*)list_at(list, list->count-1))->val == 7.43f);
+
+    list_free(list);
 
     // Uncomment to print the list
     // info("List count: %d", list->count);
@@ -75,14 +78,25 @@ void list_tests(void)
 }
 
 bool list_empty(List* list) { return list->count; }
+
+void list_prepend_content_of_in_reverse(List* list, List* other_list)
+{
+    assert(list);
+    assert(other_list);
+    LIST_FOREACH_REVERSE(other_list) { list_prepend(list, it->data); }
+}
+void list_prepend_content_of(List* list, List* other_list)
+{
+    assert(list);
+    assert(other_list);
+    LIST_FOREACH(other_list) { list_prepend(list, it->data); }
+}
+
 void list_append_content_of_in_reverse(List* list, List* other_list)
 {
     assert(list);
     assert(other_list);
-    Stack* s = make_stack();
-    LIST_FOREACH(other_list) { stack_push(s, it->data); }
-    LIST_FOREACH(other_list) { list_append(list, stack_pop(s)); }
-    stack_free(s);
+    LIST_FOREACH_REVERSE(other_list) { list_append(list, it->data); }
 }
 void list_append_content_of(List* list, List* other_list)
 {
@@ -94,36 +108,43 @@ void list_append_content_of(List* list, List* other_list)
 void* list_remove_at(List* list, s64 index)
 {
     assert(list);
-    assert(index >= 0);
-    --list->count;
-    if (index == 0) {
-        if (list->head->next) list->head = list->head->next;
-        // free(list->head);
-        return list->head->data;
-    }
+    assert(index >= 0 && index <= list->count);
+
+    bool start_from_tail = (list->count - index) < index ? true : false;
+
+    List_Node* removed_node = NULL;
     s64 iterator = 0;
-    List_Node* current = list->head;
-    List_Node* prev = current;
-    while (current->next != NULL && iterator != index) {
-        ++iterator;
-        prev = current;
-        current = current->next;
+
+    if (start_from_tail) {
+        iterator = list->count;
+        LIST_FOREACH_REVERSE(list) {
+            if (iterator == index) {
+                removed_node = list_remove(list, it);
+                break;
+            }
+            iterator -= 1;
+        }
+    } else {
+        LIST_FOREACH(list) {
+            if (iterator == index) {
+                removed_node = list_remove(list, it);
+                break;
+            }
+            iterator += 1;
+        }
     }
-    if (current->next == NULL) {
-        error("No data in list with index %d", index);
-    }
-    prev->next = current->next;
-    // free(current);
-    return current->data;
+
+    return removed_node->data;
 }
 
 void* list_remove(List* list, List_Node* node)
 {
     assert(list);
     assert(node);
-    assert(list->count > 0);
     assert(list->head);
     assert(list->tail);
+
+    if (!list->head) return NULL;
 
     if (node->next) {
         node->next->prev = node->prev;
@@ -143,17 +164,31 @@ void* list_remove(List* list, List_Node* node)
 void* list_at(List* list, s64 index)
 {
     assert(list);
-    assert(index >= 0);
-    s64 iterator = 0;
-    List_Node* current = list->head;
-    while (current->next != NULL && iterator != index) {
-        ++iterator;
-        current = current->next;
+    assert(index >= 0 && index <= list->count);
+
+    bool start_from_tail = (list->count - index) < index ? true : false;
+    void* data = NULL;
+
+    if (start_from_tail) {
+        s64 iterator = list->count;
+        LIST_FOREACH_REVERSE(list) {
+            if (iterator == index) {
+                data = it->data;
+                break;
+            }
+            iterator -= 1;
+        }
+    } else {
+        s64 iterator = 0;
+        LIST_FOREACH(list) {
+            if (iterator == index) {
+                data = it->data;
+                break;
+            }
+            iterator += 1;
+        }
     }
-    if (iterator != index) {
-        error("No data in list with index %d", index);
-    }
-    return current->data;
+    return data;
 }
 
 void* list_prepend(List* list, void* data)
@@ -206,7 +241,7 @@ void* list_last(List* list)
     return list->tail->data;
 }
 
-void list_append_after(List* list, List_Node* prev_node, void* data) 
+void list_insert_after(List* list, List_Node* prev_node, void* data) 
 { 
     assert(prev_node);
     List_Node* new_node = xmalloc(sizeof(List_Node));
@@ -221,7 +256,7 @@ void list_append_after(List* list, List_Node* prev_node, void* data)
     }
 } 
 
-void list_append_before(List* list, List_Node* next_node, void* data) 
+void list_insert_before(List* list, List_Node* next_node, void* data) 
 { 
     assert(next_node);
     List_Node* new_node = xmalloc(sizeof(List_Node));
