@@ -87,7 +87,7 @@ int get_parameter_reg(s8 i, s8 size)
 
 int get_next_available_reg(Context* ctx, s8 size)
 {
-    s32 res = -1;
+    s32  res = -1;
     switch (ctx->next_available_reg_index) {
         case 0:
             switch (size) {

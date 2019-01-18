@@ -6,4 +6,4 @@ def change(c: int*)
 def main () -> int 
     c: int* = malloc(sizeof(int))
     *c = 4
-    ret *c
+    return *c

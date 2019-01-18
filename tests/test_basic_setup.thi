@@ -2,4 +2,4 @@ load "includes/cstdio.thi"
 
 def main () -> s32
     c := "Jello"
-    ret 1
+    return 1

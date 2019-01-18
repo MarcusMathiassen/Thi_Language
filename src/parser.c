@@ -1,6 +1,6 @@
 #include    "parser.h"
 
-#include    "typedefs.h"    // s32, s64, etc.
+#include    "typedefs.h"    // s32 , s64, etc.
 #include    "lexer.h"       // Token, Token_Kind, Lexify, Lex
 #include    "typespec.h"    // Typespec, make_typspec_*, 
 #include    "utility.h"     // info, error, warning, success, strf, get_file_content
@@ -15,7 +15,7 @@
 #define BIN_OP_COUNT 51
 struct {
     Token_Kind kind;
-    s32 p;
+    s32  p;
 } binop_precedence[BIN_OP_COUNT] = {
 
     {TOKEN_PLUS_PLUS,           100},   // ++
@@ -104,7 +104,7 @@ Expr*               parse_return                   (Parse_Context* pctx);
 Expr*               parse_note                     (Parse_Context* pctx);
 Expr*               parse_expression               (Parse_Context* pctx);
 Expr*               parse_unary                    (Parse_Context* pctx);
-Expr*               parse_binary                   (Parse_Context* pctx, int expr_prec, Expr* lhs);
+Expr*               parse_binary                   (Parse_Context* pctx,s32 expr_prec, Expr* lhs);
 Expr*               parse_integer                  (Parse_Context* pctx);
 Expr*               parse_parens                   (Parse_Context* pctx);
 Expr*               parse_defer                    (Parse_Context* pctx);
@@ -268,7 +268,7 @@ Expr* parse_statement(Parse_Context* pctx)
         case TOKEN_TYPE:                   return parse_type(pctx);
         case THI_SYNTAX_POINTER:           return parse_unary(pctx);
         case TOKEN_IDENTIFIER:             return parse_expression(pctx);
-        case TOKEN_RET:                    return parse_return(pctx);
+        case TOKEN_RETURN:                    return parse_return(pctx);
         case TOKEN_BREAK:                  return parse_break(pctx);
         case TOKEN_CONTINUE:               return parse_continue(pctx);
         case TOKEN_IF:                     return parse_if(pctx);
@@ -295,7 +295,7 @@ Expr* parse_primary(Parse_Context* pctx)
         case TOKEN_SIZEOF:                     return parse_sizeof(pctx);
         case TOKEN_IDENTIFIER:                 return parse_identifier(pctx);
         case TOKEN_DOLLAR_SIGN:                return parse_note(pctx);
-        case TOKEN_CHAR: // FALLTHROUGH
+        case TOKEN_u8: // FALLTHROUGH
         case TOKEN_HEX:  // FALLTHROUGH
         case TOKEN_INTEGER:                    return parse_integer(pctx);
         case TOKEN_STRING:                     return parse_string(pctx);
@@ -549,7 +549,7 @@ Expr* parse_block(Parse_Context* pctx)
 Expr* parse_return(Parse_Context* pctx)
 {
     DEBUG_START;
-    eat_kind(pctx, TOKEN_RET);
+    eat_kind(pctx, TOKEN_RETURN);
 
     bool returns_something = false;
 
@@ -634,7 +634,7 @@ Expr* parse_variable_decl(Parse_Context* pctx)
     return make_expr_variable_decl(variable_name, variable_type, variable_value);
 }
 
-Expr* parse_binary(Parse_Context* pctx, int expr_prec, Expr* lhs)
+Expr* parse_binary(Parse_Context* pctx,s32 expr_prec, Expr* lhs)
 {
     DEBUG_START;
 
@@ -642,7 +642,7 @@ Expr* parse_binary(Parse_Context* pctx, int expr_prec, Expr* lhs)
 
     // If this is a binop, find its precedence.
     while (1) {
-        s32 tok_prec = get_tok_precedence(pctx);
+        s32  tok_prec = get_tok_precedence(pctx);
 
         // If this is a binop that binds at least as tightly as the current
         // binop, consume it, otherwise we are done.
@@ -663,7 +663,7 @@ Expr* parse_binary(Parse_Context* pctx, int expr_prec, Expr* lhs)
         }
         // If BinOp binds less tightly with rhs than the operator after rhs, let
         // the pending operator take rhs as its lhs.
-        s32 next_prec = get_tok_precedence(pctx);
+        s32  next_prec = get_tok_precedence(pctx);
         if (tok_prec < next_prec) {
             rhs = parse_binary(pctx, tok_prec + 1, rhs);
 
@@ -924,10 +924,10 @@ s64 get_integer(Parse_Context* pctx)
 
     s64 value = 0;
     switch (pctx->curr_tok.kind) {
-    case TOKEN_CHAR: {
-        char c = pctx->curr_tok.value[0];
+    case TOKEN_u8: {
+        u8 c = pctx->curr_tok.value[0];
         if (c == '\\') {
-            char c = pctx->curr_tok.value[1];
+            u8 c = pctx->curr_tok.value[1];
             switch (c) {
                 case 'a':   value = 7;  break;
                 case 'n':   value = 10; break;

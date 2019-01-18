@@ -1,4 +1,4 @@
 load "includes/foo.thi"
 def main () -> s32 
-    ret foo(1)
+    return foo(1)
 

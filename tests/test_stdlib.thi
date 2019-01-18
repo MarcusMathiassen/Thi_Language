@@ -17,5 +17,5 @@ def main () -> s32
     putchar(33)
     putchar(10)
 
-    ret 1
+    return 1
 

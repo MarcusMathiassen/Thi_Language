@@ -1,4 +1,4 @@
-extern puts (char*) -> s32
+extern puts (u8*) -> s32
 
 def main () -> s32
 
@@ -21,4 +21,4 @@ def main () -> s32
         # implicit string literals crash it.
         # we dont handle pointers correctly
 
-    ret i
+    return i

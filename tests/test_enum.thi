@@ -4,5 +4,5 @@ enum DeviceType
 
 
 def main () -> s32 
-    ret 1
+    return 1
 

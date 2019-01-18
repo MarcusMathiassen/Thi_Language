@@ -4,7 +4,7 @@ def main () -> s32
         i = add(2,2)
     else 
         i = 1
-    ret i
+    return i
 
 def add (a: s32, b: s32) -> s32
-    ret a + b
+    return a + b

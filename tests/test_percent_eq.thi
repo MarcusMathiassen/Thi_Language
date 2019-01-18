@@ -1,4 +1,4 @@
 def main () -> s32 
     i := 5
-    ret i %= 4
+    return i %= 4
 

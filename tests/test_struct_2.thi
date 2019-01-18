@@ -12,5 +12,5 @@ type foo
 def main () -> s32 
     b: bar
     a: foo
-    ret 1
+    return 1
 

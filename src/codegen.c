@@ -24,7 +24,7 @@ Stack scope_stack;
 
 Value* codegen_expr(Expr* expr);
 
-static int label_counter = 0;
+static s32 label_counter = 0;
 static void reset_label_counter() { label_counter = 0; }
 static char* make_label() { return strf("D%d", label_counter++); }
 
@@ -156,7 +156,7 @@ void print_scope(Scope* scope)
 {
     assert(scope);
     info("Scope count %d", scope->local_variables->count);
-    int index = 0;
+   s32 index = 0;
     LIST_FOREACH(scope->local_variables)
     {
         Value* v = (Value*)it->data;
@@ -201,7 +201,7 @@ void add_variable(Value* variable)
     list_append(top->local_variables, variable);
 }
 
-int align(int n, int m) { return (m - (n % m)) % m; }
+int align(int n,s32 m) { return (m - (n % m)) % m; }
 
 void emit_store_r(Value* variable, s64 reg) {
     assert(variable);
@@ -251,7 +251,7 @@ Value* codegen_unary(Expr* expr)
     Expr* operand = expr->Unary.operand;
 
     Value* operand_val = codegen_expr(operand);
-    s32 reg_n = get_rax_reg_of_byte_size(get_size_of_value(operand_val));
+    s32  reg_n = get_rax_reg_of_byte_size(get_size_of_value(operand_val));
     Value* result = operand_val;
 
     char* reg = get_reg(reg_n);
@@ -556,8 +556,8 @@ Value* codegen_call(Expr* expr)
     Typespec* func_t = get_symbol(callee);
 
     // push the arguments in reverse order onto the stack
-    s32 func_arg_count = typespec_function_get_arg_count(func_t);
-    s32 arg_count = args->count;
+    s32  func_arg_count = typespec_function_get_arg_count(func_t);
+    s32  arg_count = args->count;
 
     if (func_arg_count != arg_count) error("wrong amount of parameters for call to function '%s'", callee);
     
@@ -595,7 +595,7 @@ Value* codegen_int(Expr* expr)
     DEBUG_START;
     assert(expr->kind == EXPR_INT);
     Value* val = make_value_int(DEFAULT_INT_BYTE_SIZE, integer_literal_type, expr->Int.val);
-    s32 reg_n = get_rax_reg_of_byte_size(DEFAULT_INT_BYTE_SIZE);
+    s32  reg_n = get_rax_reg_of_byte_size(DEFAULT_INT_BYTE_SIZE);
     emit("MOV %s, %d", get_reg(reg_n), val->Int.value);
     return val;
 }
@@ -654,7 +654,7 @@ Value* codegen_note(Expr* expr)
     assert(expr->kind == EXPR_NOTE);
     Expr* int_expr = expr->Note.expr;
     assert(int_expr->kind == EXPR_INT);
-    s32 integer_value = int_expr->Int.val;
+    s32  integer_value = int_expr->Int.val;
     if (integer_value < 1) error("note parameters start at 1.");
 
     Expr* arg = get_arg_from_func(ctx.current_function->type, integer_value - 1);
@@ -712,7 +712,7 @@ Value* codegen_function(Expr* expr)
     sum += get_all_alloca_in_block(func_body);
 
     s64 stack_allocated = sum;
-    int padding =
+   s32 padding =
         (X64_ASM_OSX_STACK_PADDING - (stack_allocated % X64_ASM_OSX_STACK_PADDING)) % X64_ASM_OSX_STACK_PADDING;
     if (stack_allocated + padding)
         emit("SUB RSP, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);

@@ -1,6 +1,6 @@
-extern system (char*) -> s32
+extern system (u8*) -> s32
 
 def main () -> s32 
     system("echo hello")
-    ret 1
+    return 1
 

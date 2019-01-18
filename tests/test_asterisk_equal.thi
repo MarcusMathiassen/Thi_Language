@@ -2,5 +2,5 @@ def main () -> s32
     a := 4
     a *= 2
     a = 8
-    ret a - 7
+    return a - 7
 

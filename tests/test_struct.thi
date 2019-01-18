@@ -4,4 +4,4 @@ type int2
 
 def main () -> s32 
     my_vec: int2
-    ret 1
+    return 1

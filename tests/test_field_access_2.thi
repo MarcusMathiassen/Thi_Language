@@ -9,4 +9,4 @@ type Parent
 def main () -> s32 
     a: Parent
     a.b.c = 1
-    ret a.b.c
+    return a.b.c

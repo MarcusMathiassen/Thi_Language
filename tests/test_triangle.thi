@@ -22,7 +22,7 @@ def vec2 (x: f32, y: f32) -> vec2
     v: vec2
     v.x = x
     v.y = y
-    ret v
+    return v
 
 
 def vec4 (x: f32, y: f32, z: f32, w: f32) -> vec4 
@@ -31,7 +31,7 @@ def vec4 (x: f32, y: f32, z: f32, w: f32) -> vec4
     v.y = y 
     v.z = z
     v.w = w
-    ret v
+    return v
 
 
 def make_triangle (pos: vec2, color: vec4) -> Triangle 
@@ -45,7 +45,7 @@ def make_triangle (pos: vec2, color: vec4) -> Triangle
     t.color.z = color.z
     t.color.w = color.w
 
-    ret t
+    return t
 
 
 
@@ -134,5 +134,5 @@ def main () -> s32
 
     glfwTerminate()
 
-    ret 1
+    return 1
 

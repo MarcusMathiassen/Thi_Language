@@ -1,5 +1,5 @@
 def main () -> s32 
     a := -1
     a += 2
-    ret a
+    return a
 

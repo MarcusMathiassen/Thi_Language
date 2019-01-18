@@ -2,5 +2,5 @@ def main () -> s32
 
     name := "Marcus"
 
-    ret 1
+    return 1
 

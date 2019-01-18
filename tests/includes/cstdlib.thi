@@ -1,15 +1,15 @@
 link "c"
-extern atoi (char*) s32
-extern atol (char*) s32
-extern atoll (char*) s64
-extern atof (char*) f64
-extern strtof (char*, char**) f32
-extern strtod (char*, char**) f64
-extern strtold (char*, char**) f64
-extern strtol (char*, char**, s32) s32
-extern strtoul (char*, char**, s32) u32
-extern strtoll (char*, char**, s32) s32
-extern strtoull (char*, char**, s32) u64
+extern atoi (u8*) s32
+extern atol (u8*) s32
+extern atoll (u8*) s64
+extern atof (u8*) f64
+extern strtof (u8*, u8**) f32
+extern strtod (u8*, u8**) f64
+extern strtold (u8*, u8**) f64
+extern strtol (u8*, u8**, s32) s32
+extern strtoul (u8*, u8**, s32) u32
+extern strtoll (u8*, u8**, s32) s32
+extern strtoull (u8*, u8**, s32) u64
 extern rand (void) s32
 extern srand (u32) void
 extern malloc (u32) void*
@@ -21,8 +21,8 @@ extern abort (void) void
 extern exit (s32) void
 extern _Exit (s32) void
 extern quick_exit (s32) void
-extern getenv (char*) char*
-extern system (char*) s32
+extern getenv (u8*) u8*
+extern system (u8*) s32
 extern abs (s32) s32
 extern labs (s32) s32
 extern llabs (s64) s64

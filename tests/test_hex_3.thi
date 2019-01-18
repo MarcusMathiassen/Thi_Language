@@ -2,5 +2,5 @@ def main () -> s32
 
     i := 0x0001
 
-    ret i
+    return i
 

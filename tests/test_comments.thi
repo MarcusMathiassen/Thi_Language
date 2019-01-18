@@ -1,6 +1,6 @@
 # Hello
 def main () -> s32 
-    ret 1
+    return 1
     # This is a multiline comment
     # This is a multiline comment
 

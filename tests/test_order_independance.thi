@@ -1,5 +1,5 @@
 def main () -> s32
-    ret get_integer(1)
+    return get_integer(1)
 
 def get_integer(i: s32) -> s32
-    ret i
+    return i

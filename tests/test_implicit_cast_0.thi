@@ -4,5 +4,5 @@ def main () -> s32
     b: s64 = 2
     c: f32 = cast(f64)(3.0)
     d: f64 = 4.0
-    ret 1
+    return 1
 

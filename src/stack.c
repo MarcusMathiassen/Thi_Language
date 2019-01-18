@@ -19,7 +19,7 @@ void stack_free(Stack* stack)
 }
 typedef struct
 {
-    s32 id;
+    s32  id;
     float val;
 } Test_Type;
 

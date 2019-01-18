@@ -9,7 +9,7 @@ u32 hash_it(char* str);
 
 typedef struct
 {
-    s32 id;
+    s32  id;
     float val;
 } Test_Type;
 
@@ -115,7 +115,7 @@ u32 hash_it(char* str)
 {
     assert(str);
     u32 hash = 5381;
-    s32 c;
+    s32  c;
     while ((c = *str++))
         hash = ((hash << 5) + hash) + c;
     return hash;

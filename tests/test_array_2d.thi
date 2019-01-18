@@ -5,5 +5,5 @@ def main() -> int
     a: int** = malloc(alloc_size)
     a[0] = malloc(alloc_size)
     a[0][0] = 1
-    ret a[0][0]
+    return a[0][0]
 

@@ -66,7 +66,7 @@ char* get_file_path_from_directory(char* dir, char* filename)
 {
     assert(dir);
     assert(filename);
-    char strbuf[1000];
+    u8 strbuf[1000];
     s64 d_len = strlen(dir);
     s64 f_len = strlen(filename);
     s64 len = d_len + f_len;
@@ -147,10 +147,10 @@ char* get_file_content(char* filename)
         rewind(handler);
 
         // Allocate a string that can hold it all
-        buffer = (char*)xmalloc(sizeof(char) * (string_size + 1));
+        buffer = (char*)xmalloc(sizeof(u8) * (string_size + 1));
 
         // Read it all in one operation
-        read_size = fread(buffer, sizeof(char), string_size, handler);
+        read_size = fread(buffer, sizeof(u8), string_size, handler);
 
         // fread doesn't set it so put a \0 in the last position
         // and buffer is now officially a string
@@ -174,7 +174,7 @@ char* get_file_content(char* filename)
 //                               General Purpose
 //------------------------------------------------------------------------------
 
-void* _malloc(s64 bytes, char* file, int line)
+void* _malloc(s64 bytes, char* file,s32 line)
 {
     assert(bytes != 0);
     void* alloc = malloc(bytes);
@@ -182,7 +182,7 @@ void* _malloc(s64 bytes, char* file, int line)
     return alloc;
 }
 
-void* _calloc(s64 size, s64 bytes, char* file, int line)
+void* _calloc(s64 size, s64 bytes, char* file,s32 line)
 {
     assert(size != 0);
     assert(bytes != 0);
@@ -191,7 +191,7 @@ void* _calloc(s64 size, s64 bytes, char* file, int line)
     return alloc;
 }
 
-void* _realloc(void* ptr, s64 bytes, char* file, int line)
+void* _realloc(void* ptr, s64 bytes, char* file,s32 line)
 {
     assert(ptr);
     assert(bytes != 0);

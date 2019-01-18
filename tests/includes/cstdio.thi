@@ -17,11 +17,11 @@ FOPEN_MAX :: 1000
 TMP_MAX :: 10000
 L_tmpnam :: 20
 
-extern fopen(char*, char*) -> void*
-extern freopen(char*,  char *, void*) -> void*
+extern fopen(u8*, u8*) -> void*
+extern freopen(u8*,  char *, void*) -> void*
 extern fclose(void*) -> s32
-extern remove(char*) -> s32
-extern rename(char*, char*) -> s32
+extern remove(u8*) -> s32
+extern rename(u8*, u8*) -> s32
 extern feof(void*) -> s32
 extern ferror(void*) -> s32
 extern fflush(void*) -> s32
@@ -40,21 +40,21 @@ extern ungetc(s32, void*) -> s32
 extern fputc(s32, void*) -> s32
 extern putc(s32, void*) -> s32
 extern putchar(s32) -> s32
-extern fgets(char*, s32, void*) -> char*
-extern fputs(char*, void*) -> s32
-extern puts(char*) -> s32
-# extern printf(char*, ...) -> s32
-# extern fprintf(void*, char*, ...) -> s32
-# extern sprintf(char*, char*, ...) -> s32
-# extern snprintf(char*, u32, char*, ...) -> s32
-# extern vprintf(char*, __isoc_va_list) -> s32
-# extern vfprintf(void*, char*, __isoc_va_list) -> s32
-# extern vsprintf(char*, char*, __isoc_va_list) -> s32
-# extern vsnprintf(char*, u32, char*, __isoc_va_list) -> s32
-# extern scanf(char*, ...) -> s32
-# extern fscanf(void*, char*, ...) -> s32
-# extern sscanf(char*, char*, ...) -> s32
-# extern vscanf(char*, __isoc_va_list) -> s32
-# extern vfscanf(void*, char*, __isoc_va_list) -> s32
-# extern vsscanf(char*, char*, __isoc_va_list) -> s32
-extern perror(char*)
+extern fgets(u8*, s32, void*) -> u8*
+extern fputs(u8*, void*) -> s32
+extern puts(u8*) -> s32
+# extern printf(u8*, ...) -> s32
+# extern fprintf(void*, u8*, ...) -> s32
+# extern sprintf(u8*, u8*, ...) -> s32
+# extern snprintf(u8*, u32, u8*, ...) -> s32
+# extern vprintf(u8*, __isoc_va_list) -> s32
+# extern vfprintf(void*, u8*, __isoc_va_list) -> s32
+# extern vsprintf(u8*, u8*, __isoc_va_list) -> s32
+# extern vsnprintf(u8*, u32, u8*, __isoc_va_list) -> s32
+# extern scanf(u8*, ...) -> s32
+# extern fscanf(void*, u8*, ...) -> s32
+# extern sscanf(u8*, u8*, ...) -> s32
+# extern vscanf(u8*, __isoc_va_list) -> s32
+# extern vfscanf(void*, u8*, __isoc_va_list) -> s32
+# extern vsscanf(u8*, u8*, __isoc_va_list) -> s32
+extern perror(u8*)

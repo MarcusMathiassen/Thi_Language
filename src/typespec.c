@@ -174,7 +174,7 @@ Typespec* make_typespec(Typespec_Kind kind)
     return t;
 }
 
-Typespec* make_typespec_array(Typespec* type, s32 size)
+Typespec* make_typespec_array(Typespec* type, s32  size)
 {
     assert(type);
     assert(size > 0);

@@ -2,5 +2,5 @@ def main () -> s32
     a: s32
     b: s64
     c: s32
-    ret 1
+    return 1
 

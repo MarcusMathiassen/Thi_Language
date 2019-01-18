@@ -1,8 +1,8 @@
 def fib (n: s32) -> s32 
     if n == 0 || n == 1
-        ret n
+        return n
     else
-        ret fib(n - 1) + fib(n - 2)
+        return fib(n - 1) + fib(n - 2)
     
 def main () -> s32
-    ret fib(10) - 54
+    return fib(10) - 54

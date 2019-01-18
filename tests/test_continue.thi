@@ -8,7 +8,7 @@ def main () -> s32
     # jump to a contiue label. That label hasnt been
     # set up yet by the for loop.
     #
-    # We need to do like LLVM and ret an abstraction
+    # We need to do like LLVM and return an abstraction
     # of the call. Like CallInst, ValueInst
 
     for k := 0, k < 9, k += 1
@@ -16,5 +16,5 @@ def main () -> s32
         i += 1
     
 
-    ret i + 1
+    return i + 1
 

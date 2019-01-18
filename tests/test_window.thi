@@ -4,7 +4,7 @@ load "includes/glfw.thi"
 
 link "c"
 
-extern puts(char*) -> s32
+extern puts(u8*) -> s32
 
 def main () -> s32
 
@@ -39,4 +39,4 @@ def main () -> s32
         glClear(GL_COLOR_BUFFER_BIT)
         glfwSwapBuffers(window)
 
-    ret 1
+    return 1

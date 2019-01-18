@@ -50,7 +50,7 @@ int main(int argc, char** argv)
     // put ':' in the starting of the
     // string so that program can
     // distinguish between '?' and ':'
-    int opt;
+   s32 opt;
     while ((opt = getopt(argc, argv, "f:dvo:")) != -1) {
         switch (opt) {
         case 'v': detailed_print = true; break;
@@ -96,12 +96,6 @@ int main(int argc, char** argv)
     Typespec* f64_t = make_typespec_float(8);
 
     add_builtin_type("void", u8_t);
-    add_builtin_type("bool", u8_t);
-
-    add_builtin_type("char", u8_t);
-    add_builtin_type("int", s32_t);
-    add_builtin_type("float", f32_t);
-    add_builtin_type("double", f32_t);
 
     add_builtin_type("s8", s8_t);
     add_builtin_type("s16", s16_t);
@@ -225,3 +219,4 @@ void linking_stage(char* exec_name)
     // Cleanup
     system(strf("rm %s.o", exec_name));
 }
+ 
