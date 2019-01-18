@@ -43,7 +43,7 @@ enum Token_Kind {
     TOKEN_CONTINUE,
 
     TOKEN_NUMBER,
-    TOKEN_u8,
+    TOKEN_CHAR,
     TOKEN_INTEGER,
     TOKEN_FLOAT,
     TOKEN_HEX,

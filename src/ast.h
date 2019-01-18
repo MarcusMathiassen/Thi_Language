@@ -140,7 +140,6 @@ Expr*   make_expr_call              (char* callee, List* args);
 Expr*   make_expr_unary             (Token_Kind op, Expr* operand);
 Expr*   make_expr_binary            (Token_Kind op, Expr* lhs, Expr* rhs);
 Expr*   make_expr_block             (List* stmts);
-Expr*   make_expr_ret               (Expr* expr);
 Expr*   make_expr_grouping          (Expr* expr);
 Expr*   make_expr_variable_decl     (char* name, Typespec* type, Expr* value);
 

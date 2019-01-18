@@ -144,7 +144,7 @@ char*               make_label                     (Parse_Context* pctx);
 
 void                syntax_error                   (Parse_Context* pctx, char* fmt, ...);
 
-#define DEBUG_START info("%s: %s", __func__, pctx->curr_tok.value);
+#define DEBUG_START ;//info("%s: %s", __func__, pctx->curr_tok.value);
 
 #define SET_ACTIVE_FUNC(func) pctx->active_func = func
 #define GET_ACTIVE_FUNC pctx->active_func
@@ -204,7 +204,7 @@ void parse(List* ast, char* source_file)
     char*  source =  get_file_content(source_file);
     Lex    lex    =  lexify(source);
 
-    print_tokens(lex.token_list);
+    // print_tokens(lex.token_list);
 
     Parse_Context pctx;
     pctx.token_list = lex.token_list;
@@ -219,7 +219,7 @@ void parse(List* ast, char* source_file)
     recursively_fill_ast(ast, &pctx);
 
     print_symbol_map();
-    print_ast(ast);
+    // print_ast(ast);
 
     pop_timer();
 
@@ -295,7 +295,7 @@ Expr* parse_primary(Parse_Context* pctx)
         case TOKEN_SIZEOF:                     return parse_sizeof(pctx);
         case TOKEN_IDENTIFIER:                 return parse_identifier(pctx);
         case TOKEN_DOLLAR_SIGN:                return parse_note(pctx);
-        case TOKEN_u8: // FALLTHROUGH
+        case TOKEN_CHAR: // FALLTHROUGH
         case TOKEN_HEX:  // FALLTHROUGH
         case TOKEN_INTEGER:                    return parse_integer(pctx);
         case TOKEN_STRING:                     return parse_string(pctx);
@@ -593,10 +593,7 @@ Expr* parse_function_call(Parse_Context* pctx)
     while (!tok_is(pctx, TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(pctx, TOKEN_COMMA);
         Expr* arg = parse_expression(pctx);
-        if (arg)
-            list_append(args, arg);
-        else
-            error("Invalid expression in function call %s", ident);
+        list_append(args, arg);
         has_multiple_arguments = true;
     }
     eat_kind(pctx, TOKEN_CLOSE_PAREN);
@@ -683,8 +680,6 @@ Expr* parse_binary(Parse_Context* pctx,s32 expr_prec, Expr* lhs)
 Typespec* active_type = NULL;
 Expr* read_field_access_expr(Parse_Context* pctx, Expr* expr)
 {
-    warning("expr: %s", expr_to_str(expr));
-
     eat_kind(pctx, TOKEN_DOT);
     char* field_name = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
@@ -924,7 +919,7 @@ s64 get_integer(Parse_Context* pctx)
 
     s64 value = 0;
     switch (pctx->curr_tok.kind) {
-    case TOKEN_u8: {
+    case TOKEN_CHAR: {
         u8 c = pctx->curr_tok.value[0];
         if (c == '\\') {
             u8 c = pctx->curr_tok.value[1];

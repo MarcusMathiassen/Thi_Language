@@ -193,13 +193,6 @@ void assemble(char* asm_file, char* exec_name)
     system(comp_call.c_str);
     free_string(&comp_call);
     pop_timer();
-
-    // system("cat output.asm");
-
-    // Cleanup
-    // string rm_asm_file = make_string_f("rm %s", asm_file);
-    // system(rm_asm_file.c_str);
-    // free_string(&rm_asm_file);
 }
 
 void linking_stage(char* exec_name)
@@ -216,7 +209,7 @@ void linking_stage(char* exec_name)
     system(link_call);
     pop_timer();
 
-    // Cleanup
+    // Cleanup object files
     system(strf("rm %s.o", exec_name));
 }
  

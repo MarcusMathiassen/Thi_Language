@@ -78,6 +78,7 @@ Lex lexify(char* source)
 
     LexerContext lctx;
     lctx.line_count = 1;
+    lctx.comment_count = 0;
     lctx.position_of_newline = NULL;
     lctx.previous_indentation_level = 0;
     lctx.current_indentation_level = 0;
@@ -168,155 +169,103 @@ Token get_next_token(LexerContext* lctx)
             lctx->current_indentation_level = c - lctx->position_of_newline;
         }
     } break;
-        CASE_SINGLE_TOKEN(EOF, TOKEN_EOF);
-        break;
-        CASE_SINGLE_TOKEN('(', TOKEN_OPEN_PAREN);
-        break;
-        CASE_SINGLE_TOKEN(')', TOKEN_CLOSE_PAREN);
-        break;
-        CASE_SINGLE_TOKEN('[', TOKEN_OPEN_BRACKET);
-        break;
-        CASE_SINGLE_TOKEN(']', TOKEN_CLOSE_BRACKET);
-        break;
-        CASE_SINGLE_TOKEN('{', TOKEN_OPEN_BRACE);
-        break;
-        CASE_SINGLE_TOKEN('}', TOKEN_CLOSE_BRACE);
-        break;
-        CASE_SINGLE_TOKEN(',', TOKEN_COMMA);
-        break;
-        CASE_SINGLE_TOKEN('~', TOKEN_TILDE);
-        break;
-        CASE_SINGLE_TOKEN('$', TOKEN_DOLLAR_SIGN);
-        break;
-        CASE_SINGLE_TOKEN('@', TOKEN_AT);
-        break;
-        CASE_SINGLE_TOKEN('^', TOKEN_HAT);
-        break;
-        CASE_SINGLE_TOKEN(';', TOKEN_SEMICOLON);
-        break;
-        CASE_SINGLE_TOKEN('?', TOKEN_QUESTION_MARK);
-        break;
-        CASE_SINGLE_TOKEN('\\', TOKEN_BWSLASH);
-        break;
+        CASE_SINGLE_TOKEN(EOF, TOKEN_EOF); break;
+        CASE_SINGLE_TOKEN('(', TOKEN_OPEN_PAREN); break;
+        CASE_SINGLE_TOKEN(')', TOKEN_CLOSE_PAREN); break;
+        CASE_SINGLE_TOKEN('[', TOKEN_OPEN_BRACKET); break;
+        CASE_SINGLE_TOKEN(']', TOKEN_CLOSE_BRACKET); break;
+        CASE_SINGLE_TOKEN('{', TOKEN_OPEN_BRACE); break;
+        CASE_SINGLE_TOKEN('}', TOKEN_CLOSE_BRACE); break;
+        CASE_SINGLE_TOKEN(',', TOKEN_COMMA); break;
+        CASE_SINGLE_TOKEN('~', TOKEN_TILDE); break;
+        CASE_SINGLE_TOKEN('$', TOKEN_DOLLAR_SIGN); break;
+        CASE_SINGLE_TOKEN('@', TOKEN_AT); break;
+        CASE_SINGLE_TOKEN('^', TOKEN_HAT); break;
+        CASE_SINGLE_TOKEN(';', TOKEN_SEMICOLON); break;
+        CASE_SINGLE_TOKEN('?', TOKEN_QUESTION_MARK); break;
+        CASE_SINGLE_TOKEN('\\', TOKEN_BWSLASH); break;
 
         CASE_SINGLE_TOKEN('/', TOKEN_FWSLASH);
         switch (*c) {
-            CASE_SINGLE_TOKEN('=', TOKEN_FWSLASH_EQ);
-            break;
-        }
-        break;
+            CASE_SINGLE_TOKEN('=', TOKEN_FWSLASH_EQ); break;
+        } break;
 
         CASE_SINGLE_TOKEN('!', TOKEN_BANG);
         switch (*c) {
-            CASE_SINGLE_TOKEN('=', TOKEN_BANG_EQ);
-            break;
-        }
-        break;
+            CASE_SINGLE_TOKEN('=', TOKEN_BANG_EQ); break;
+        } break;
 
         CASE_SINGLE_TOKEN('*', TOKEN_ASTERISK);
         switch (*c) {
-            CASE_SINGLE_TOKEN('=', TOKEN_ASTERISK_EQ);
-            break;
-        }
-        break;
+            CASE_SINGLE_TOKEN('=', TOKEN_ASTERISK_EQ); break;
+        } break;
 
         CASE_SINGLE_TOKEN('|', TOKEN_PIPE);
         switch (*c) {
-            CASE_SINGLE_TOKEN('|', TOKEN_PIPE_PIPE);
-            break;
-            CASE_SINGLE_TOKEN('=', TOKEN_PIPE_EQ);
-            break;
-        }
-        break;
+            CASE_SINGLE_TOKEN('|', TOKEN_PIPE_PIPE); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_PIPE_EQ); break;
+        } break;
 
         CASE_SINGLE_TOKEN('<', TOKEN_LT);
         switch (*c) {
-            CASE_SINGLE_TOKEN('<', TOKEN_LT_LT);
-            break;
-            CASE_SINGLE_TOKEN('=', TOKEN_LT_EQ);
-            break;
-        }
-        break;
+            CASE_SINGLE_TOKEN('<', TOKEN_LT_LT); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_LT_EQ); break;
+        } break;
         CASE_SINGLE_TOKEN('>', TOKEN_GT);
         switch (*c) {
-            CASE_SINGLE_TOKEN('>', TOKEN_GT_GT);
-            break;
-            CASE_SINGLE_TOKEN('=', TOKEN_GT_EQ);
-            break;
-        }
-        break;
+            CASE_SINGLE_TOKEN('>', TOKEN_GT_GT); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_GT_EQ); break;
+        } break;
 
         CASE_SINGLE_TOKEN('.', TOKEN_DOT);
         switch (*c) {
             CASE_SINGLE_TOKEN('.', TOKEN_DOT_DOT);
             switch (*c) {
-                CASE_SINGLE_TOKEN('.', TOKEN_DOT_DOT_DOT);
-                break;
-            }
-            break;
-        }
-        break;
+                CASE_SINGLE_TOKEN('.', TOKEN_DOT_DOT_DOT); break;
+            } break;
+        } break;
 
         CASE_SINGLE_TOKEN(':', TOKEN_COLON);
         switch (*c) {
-            CASE_SINGLE_TOKEN(':', TOKEN_COLON_COLON);
-            break;
-            CASE_SINGLE_TOKEN('=', TOKEN_COLON_EQ);
-            break;
-        }
-        break;
+            CASE_SINGLE_TOKEN(':', TOKEN_COLON_COLON); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_COLON_EQ); break;
+        } break;
 
         CASE_SINGLE_TOKEN('-', TOKEN_MINUS);
         switch (*c) {
             CASE_SINGLE_TOKEN('-', TOKEN_MINUS_MINUS);
             switch (*c) {
-                CASE_SINGLE_TOKEN('-', TOKEN_MINUS_MINUS_MINUS);
-                break;
-            }
-            break;
-            CASE_SINGLE_TOKEN('>', TOKEN_RIGHT_ARROW);
-            break;
-            CASE_SINGLE_TOKEN('=', TOKEN_MINUS_EQ);
-            break;
-        }
-        break;
+                CASE_SINGLE_TOKEN('-', TOKEN_MINUS_MINUS_MINUS); break;
+            } break;
+            CASE_SINGLE_TOKEN('>', TOKEN_RIGHT_ARROW); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_MINUS_EQ); break;
+        } break;
 
         CASE_SINGLE_TOKEN('+', TOKEN_PLUS);
         switch (*c) {
-            CASE_SINGLE_TOKEN('+', TOKEN_PLUS_PLUS);
-            break;
-            CASE_SINGLE_TOKEN('=', TOKEN_PLUS_EQ);
-            break;
-        }
-        break;
+            CASE_SINGLE_TOKEN('+', TOKEN_PLUS_PLUS); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_PLUS_EQ); break;
+        } break;
 
         CASE_SINGLE_TOKEN('%', TOKEN_PERCENT);
         switch (*c) {
-            CASE_SINGLE_TOKEN('=', TOKEN_PERCENT_EQ);
-            break;
-        }
-        break;
+            CASE_SINGLE_TOKEN('=', TOKEN_PERCENT_EQ); break;
+        } break;
 
         CASE_SINGLE_TOKEN('&', TOKEN_AND);
         switch (*c) {
-            CASE_SINGLE_TOKEN('&', TOKEN_AND_AND);
-            break;
-            CASE_SINGLE_TOKEN('=', TOKEN_AND_EQ);
-            break;
-        }
-        break;
+            CASE_SINGLE_TOKEN('&', TOKEN_AND_AND); break;
+            CASE_SINGLE_TOKEN('=', TOKEN_AND_EQ); break;
+        } break;
 
         CASE_SINGLE_TOKEN('=', TOKEN_EQ);
         switch (*c) {
-            CASE_SINGLE_TOKEN('=', TOKEN_EQ_EQ);
-            break;
-            CASE_SINGLE_TOKEN('>', TOKEN_EQ_GT);
-            break;
-        }
-        break;
+            CASE_SINGLE_TOKEN('=', TOKEN_EQ_EQ); break;
+            CASE_SINGLE_TOKEN('>', TOKEN_EQ_GT); break;
+        } break;
 
     case '\'': {
-        token.kind = TOKEN_u8;
+        token.kind = TOKEN_CHAR;
         ++c;
         token.value = c;
         if (*token.value == '\\') ++c;
@@ -417,7 +366,7 @@ Token get_next_token(LexerContext* lctx)
     } break;
 
     default:
-        error("Unhandled token u8acter '%c' in file %s line %d col %d", *c, get_source_file(), lctx->line_count,
+        error("Unhandled token character '%c' in file %s line %d col %d", *c, get_source_file(), lctx->line_count,
               get_line_pos(lctx));
     }
 
@@ -464,7 +413,7 @@ char* token_kind_to_str(Token_Kind kind)
     case TOKEN_BREAK:             return "break";
     case TOKEN_CONTINUE:          return "continue";
     case TOKEN_STRING:            return "string";
-    case TOKEN_u8:              return "u8";
+    case TOKEN_CHAR:              return "char";
     case TOKEN_INTEGER:           return "integer";
     case TOKEN_NUMBER:            return "number";
     case TOKEN_HEX:               return "hex";

@@ -1,20 +1,18 @@
 #!/usr/bin/env bash
 output=./thi
-olvl=
+olvl=-O3
 compiler=clang
 src=./src/*.c
 flags=-Wall\ -Wextra\ -Wno-switch\ -Wno-unused-function
 std=c99
 
-start=`date +%s`
 $compiler $src -std=$std $olvl $flags -o $output
-end=`date +%s`
-echo Compilation finished. Time taken: $((end-start)) seconds
 
 if [ $? == 0 ]; then
-    ./test.bash
-    # ./test.bash ./tests/test_char.thi
-    # ./test.bash ./tests/test_window.thi
+    # ./test.bash
+    # ./test.bash ./tests/test_asterisk_equal.thi ./tests/test_basic_setup.thi ./tests/test_basic_ternary.thi ./tests/test_bitwise_leftshift.thi ./tests/test_bitwise_rightshift.thi ./tests/test_break.thi ./tests/test_comments.thi ./tests/test_continue.thi ./tests/test_equal_to.thi ./tests/test_fib.thi ./tests/test_for.thi ./tests/test_foreign.thi ./tests/test_function_call.thi ./tests/test_function_call_2.thi ./tests/test_fwslash_equal.thi ./tests/test_greater.thi ./tests/test_hex.thi ./tests/test_hex_2.thi ./tests/test_hex_3.thi ./tests/test_if.thi ./tests/test_label_maker.thi ./tests/test_less.thi ./tests/test_load.thi ./tests/test_load_2.thi ./tests/test_logical_and.thi ./tests/test_logical_or.thi ./tests/test_macro_definition.thi ./tests/test_macro_definition_2.thi ./tests/test_macro_definition_3.thi ./tests/test_math.thi ./tests/test_math_div.thi ./tests/test_math_minus.thi ./tests/test_math_mul.thi ./tests/test_math_plus.thi ./tests/test_minus_equal.thi ./tests/test_neg.thi ./tests/test_not.thi ./tests/test_not_equal_to.thi ./tests/test_or.thi ./tests/test_order_independance.thi ./tests/test_percent.thi ./tests/test_percent_eq.thi ./tests/test_plus_equal.thi ./tests/test_scope.thi ./tests/test_sizeof.thi ./tests/test_stdlib.thi ./tests/test_stdlib_2.thi ./tests/test_string.thi ./tests/test_struct.thi ./tests/test_struct_2.thi ./tests/test_ternary.thi ./tests/test_tilde.thi ./tests/test_unary.thi ./tests/test_variable.thi ./tests/test_variable_assignment.thi ./tests/test_variable_declaration.thi ./tests/test_variable_typedefered.thi ./tests/test_while.thi
+
+    ./test.bash ./tests/test_window.thi
     # ./test.bash ./tests/test_macro_definition.thi
     # ./test.bash ./tests/test_order_independance.thi
     # ./test.bash ./tests/test_defer.thi

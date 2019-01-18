@@ -4,6 +4,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 GRAY='\033[1;30m'
 RGB_GRAY='\033[38;2;110;110;110;m'
+RGB_WHITE='\033[38;2;190;190;190;m'
 YELLOW='\033[1;31m'
 NC='\033[0m' # No Color
 
@@ -40,7 +41,7 @@ do
         passing_test_files+=" $tf"
     else
         failed_test_files+=" $tf"
-        echo -e "${RGB_GRAY}[TEST] ${NC}${RED}DID NOT COMPILE. ${NC}"
+        echo -e "${RGB_GRAY}[TEST] ${NC}${RED} $tf DID NOT COMPILE. ${NC}"
         continue
     fi
 
@@ -50,21 +51,20 @@ do
     else
         compiled_but_failed_test_files+=" $tf"
         failed_test_files+=" $tf"
-        echo -e "${RGB_GRAY}[TEST] ${NC}${RED} FAILED ${NC} ${RGB_GRAY} $tf ${NC} "
-        echo -e "${RGB_GRAY}[TEST] returned $res ${NC}"
+        echo -e "${RGB_GRAY}[TEST] ${NC}${RED} FAILED ${NC} ${RGB_GRAY} $tf returned ${NC}${RGB_WHITE}$res ${NC}"
     fi
 
     rm $name
 done
 
-echo -e "${RGB_GRAY}[TEST] ${NC}${RGB_GRAY}PASSED/COMPILED/TOTAL: ${num_tests_passed}/${num_tests_compiled_successfully}/${test_counter} ${NC}"
 
+echo -e "${RGB_GRAY}[TEST] ${NC}${RGB_GRAY} C/P/T:   ${num_tests_compiled_successfully}/${num_tests_passed}/${test_counter} ${NC}"
 if [ ${#failed_test_files[@]} -ne 0 ]; then
-    echo -e "${RGB_GRAY}[TEST] ${NC}${GREEN}PASSED TESTS: ${passing_test_files} ${NC}"
-    echo -e "${RGB_GRAY}[TEST] ${NC}${RED}FAILED TESTS: ${failed_test_files} ${NC}"
+    # echo -e "${RGB_GRAY}[TEST] ${NC}${GREEN}PASSED: ${passing_test_files} ${NC}"
+    echo -e "${RGB_GRAY}[TEST] ${NC}${RED}FAILED: ${failed_test_files} ${NC}"
     if [ ${#compiled_but_failed_test_files[@]} -ne 0 ]; then
-        echo -e "${RGB_GRAY}[TEST] ${NC}${RED}COMPILED BUT FAILED TESTS: ${compiled_but_failed_test_files} ${NC}"
+        echo -e "${RGB_GRAY}[TEST] ${NC}${YELLOW}COMPILED BUT FAILED: ${compiled_but_failed_test_files} ${NC}"
     fi
 else
-    echo -e "${RGB_GRAY}[TEST] ${NC}${GREEN}ALL TESTS PASSED${NC}"
+    echo -e "${RGB_GRAY}[TEST] ${NC}${GREEN} ALL TESTS PASSED${NC}"
 fi

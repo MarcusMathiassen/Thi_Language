@@ -18,7 +18,7 @@ TMP_MAX :: 10000
 L_tmpnam :: 20
 
 extern fopen(u8*, u8*) -> void*
-extern freopen(u8*,  char *, void*) -> void*
+extern freopen(u8*,  u8*, void*) -> void*
 extern fclose(void*) -> s32
 extern remove(u8*) -> s32
 extern rename(u8*, u8*) -> s32

@@ -161,7 +161,7 @@ void add_macro_def(char* name, Expr* expr)
     if (!map_set(macro_map, name, expr)) {
         warning("macro redecl: '%s'", name);
     }
-    info("added macro: '%s' with expr '%s'", name, expr_to_str(expr));
+    info("added macro: %s :: %s", name, expr_to_str(expr));
 }
 
 Expr* get_macro_def(char* name)
