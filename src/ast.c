@@ -2,10 +2,8 @@
 #include "globals.h"
 #include "lexer.h"   // token_kind_to_str,
 #include "string.h"  // strf, append_string, string
-#include "utility.h" // info, success, error, warning
+#include "utility.h" // info, success, error, warning, xmalloc, xrealloc
 #include <assert.h>  // assert
-#include <stdio.h>   // sprintf,
-#include <stdlib.h>  // xmalloc,
 
 //------------------------------------------------------------------------------
 //                               ast.c
@@ -253,7 +251,10 @@ Expr* constant_fold_expr(Expr* expr)
             LIST_FOREACH(expr->Block.stmts)
             {
                 Expr* stmt = (Expr*)it->data;
-                it->data = constant_fold_expr(stmt);
+
+                if (stmt->kind == EXPR_CALL) {
+                    list_append_before(expr->Block.stmts, it, make_expr_asm("; HELLO THERE"));
+                } else it->data = constant_fold_expr(stmt);
             }
         } break;
         case EXPR_GROUPING: {

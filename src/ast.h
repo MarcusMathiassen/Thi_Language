@@ -2,14 +2,13 @@
 #define AST_H
 
 #include "lexer.h"    // Token_Kind
-#include "list.h"     // list
+#include "list.h"    // List
 #include "typespec.h" // Typespec
 
 //------------------------------------------------------------------------------
 //                               ast.h
 //------------------------------------------------------------------------------
 typedef struct Expr         Expr;
-typedef struct Expr         AST;
 typedef enum   Expr_Kind    Expr_Kind;
 
 enum Expr_Kind

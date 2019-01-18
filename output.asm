@@ -1,51 +1,34 @@
 section .data
 global _main
 section .text
+_foo:
+	PUSH RBP
+	MOV RBP, RSP
+	SUB RSP, 16; 4 alloc, 12 padding
+.BEGIN:
+	MOV [RBP-4], EDI; store
+.L1:
+	JMP .L0
+.L0:
+	MOV EAX, DWORD [RBP-4]; load
+	JMP .END
+.END:
+	ADD RSP, 16; 4 alloc, 12 padding
+	LEAVE
+	RET
 _main:
 	PUSH RBP
 	MOV RBP, RSP
-	SUB RSP, 16; 8 alloc, 8 padding
 .BEGIN:
-	MOV RAX, 0
-	PUSH RAX
-	PUSH RAX
-	MOV RAX, QWORD [RBP-8]; load
-	POP RCX
-	MOV [RBP-8], RCX; store
-	POP RAX
+.L1:
+	JMP .L0
 .L0:
-	MOV RAX, QWORD [RBP-8]; load
-	PUSH RAX
-	MOV RAX, 4
-	POP RCX
-	CMP RCX, RAX
-	SETL AL
-	CMP AL, 0
-	JE .L1
+	; HELLO THERE
 	MOV RAX, 1
 	PUSH RAX
-	MOV RAX, QWORD [RBP-8]; load
-	POP RCX
-	ADD RAX, RCX
-	PUSH RAX
-	PUSH RAX
-	MOV RAX, QWORD [RBP-8]; load
-	POP RCX
-	MOV [RBP-8], RCX; store
-	POP RAX
-	JMP .L0
-.L1:
-.L3:
-	JMP .L2
-.L2:
-	MOV RAX, 3
-	NEG RAX
-	PUSH RAX
-	MOV RAX, QWORD [RBP-8]; load
-	POP RCX
-	ADD RAX, RCX
+	POP RDI
+	CALL _foo
 	JMP .END
 .END:
-	ADD RSP, 16; 8 alloc, 8 padding
 	LEAVE
 	RET

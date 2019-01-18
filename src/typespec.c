@@ -156,7 +156,7 @@ char* typespec_to_str(Typespec* type)
                 arg_index += 1;
             }
             append_string(&str, ")");
-            if (type->Function.ret_type) append_string(&str, strf("%s", typespec_to_str(type->Function.ret_type)));
+            if (type->Function.ret_type) append_string(&str, strf(" -> %s", typespec_to_str(type->Function.ret_type)));
             return str.c_str;
         }
         default: error("typespec_to_str not implemented kind %d", typespec_kind_to_str(type->kind));
