@@ -29,6 +29,10 @@ void* _malloc   (s64 bytes, char* file, int line);
 void* _calloc   (s64 size, s64 bytes, char* file, int line);
 void* _realloc  (void* ptr, s64 bytes, char* file, int line);
 
+#define xmalloc(n)     _malloc(n, __FILE__, __LINE__)
+#define xrealloc(n, m) _realloc(n, m, __FILE__, __LINE__)
+#define xcalloc(n, m)  _calloc(n, m, __FILE__, __LINE__)
+
 char* strf(char* fmt, ...);
 
 char* get_previous_color        (void);

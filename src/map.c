@@ -37,12 +37,12 @@ void map_init(Map* map)
     map->table_size = INITIAL_SIZE;
     map->size = 0;
     map->data = NULL;
-    map->data = calloc(INITIAL_SIZE, sizeof(Map_Element));
+    map->data = xcalloc(INITIAL_SIZE, sizeof(Map_Element));
 }
 
 Map* make_map()
 {
-    Map* m = malloc(sizeof(Map));
+    Map* m = xmalloc(sizeof(Map));
     map_init(m);
     return m;
 }
@@ -61,7 +61,7 @@ void* map_set_overwrite(Map* map, char* key, void* value)
 
     // Make sure there is space for it
     if (map->size >= map->table_size) {
-        map->data = realloc(map->data, (map->table_size + INITIAL_SIZE) * sizeof(Map_Element));
+        map->data = xrealloc(map->data, (map->table_size + INITIAL_SIZE) * sizeof(Map_Element));
     }
 
     map->data[map->size].key = hash_val;
@@ -84,7 +84,7 @@ void* map_set(Map* map, char* key, void* value)
 
     // Make sure there is space for it
     if (map->size >= map->table_size) {
-        map->data = realloc(map->data, (map->table_size + INITIAL_SIZE) * sizeof(Map_Element));
+        map->data = xrealloc(map->data, (map->table_size + INITIAL_SIZE) * sizeof(Map_Element));
     }
 
     map->data[map->size].key = hash_val;

@@ -105,7 +105,6 @@ Lex lexify(char* source)
             token_list_append(&token_list, t);
         }
         if (token.kind != TOKEN_UNKNOWN && token.kind != TOKEN_COMMENT) token_list_append(&token_list, token);
-
         if (token.kind == TOKEN_EOF) {
             break;
         }
@@ -116,7 +115,7 @@ Lex lexify(char* source)
     lex.line_count = lctx.line_count;
     lex.comment_count = lctx.comment_count;
 
-    info("lexed %llu lines, %llu comments", lex.line_count, lex.comment_count);
+    info("lexed %lld lines, %lld comments", lex.line_count, lex.comment_count);
 
     return lex;
 }
@@ -483,7 +482,7 @@ void print_token(Token token) { info("%s %s", token_kind_to_str(token.kind), tok
 void print_tokens(Token_List token_list)
 {
     info("Printing token_list..");
-    for (u64 i = 0; i < token_list.count; i += 1) {
+    for (s64 i = 0; i < token_list.count; i += 1) {
         print_token(token_list.data[i]);
     }
 }
@@ -531,8 +530,8 @@ Token_List make_token_list()
     Token_List tl;
     tl.count = 0;
     tl.allocated = TOKEN_LIST_STARTING_ALLOC;
-    tl.data = malloc(sizeof(Token) * tl.allocated);
-    tl.meta = malloc(sizeof(Token_Meta) * tl.allocated);
+    tl.data = xmalloc(sizeof(Token) * tl.allocated);
+    tl.meta = xmalloc(sizeof(Token_Meta) * tl.allocated);
     return tl;
 }
 
@@ -540,7 +539,7 @@ void token_list_append(Token_List* tl, Token token)
 {
     if (tl->count >= tl->allocated) {
         tl->allocated *= 2;
-        tl->data = realloc(tl->data, tl->allocated);
+        tl->data = xrealloc(tl->data, tl->allocated);
     }
     tl->data[tl->count] = token;
     tl->count += 1;

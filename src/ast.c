@@ -281,7 +281,7 @@ void print_ast(List* ast)
 
 Expr* make_expr(Expr_Kind kind)
 {
-    Expr* e = malloc(sizeof(Expr));
+    Expr* e = xmalloc(sizeof(Expr));
     e->kind = kind;
     return e;
 }

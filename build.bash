@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 output=./thi
-olvl=-O3
+olvl=
 compiler=clang
 src=./src/*.c
 flags=-Wall\ -Wextra\ -Wno-switch\ -Wno-unused-function
 std=c99
 
-$compiler $src -std=$std $olvl $flags -o $output
+$compiler $src -std=$std $olvl $flags -o $output -g -fsanitize=address -fno-omit-frame-pointer
 
 if [ $? == 0 ]; then
     # ./test.bash
-    # ./test.bash ./tests/test_window.thi
+    ./test.bash ./tests/test_window.thi
     # ./test.bash ./tests/test_macro_definition.thi
     # ./test.bash ./tests/test_order_independance.thi
     # ./test.bash ./tests/test_defer.thi
@@ -26,7 +26,7 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_tilde.thi
     # ./test.bash ./tests/test_ternary.thi
     # ./test.bash ./tests/test_for.thi
-    ./test.bash ./tests/test_pointer.thi
+    # ./test.bash ./tests/test_pointer.thi
     # ./test.bash ./tests/test_basic_ternary.thi
     # ./test.bash ./tests/test_plus_equal.thi
     # ./test.bash ./tests/test_math.thi

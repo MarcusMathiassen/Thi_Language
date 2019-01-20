@@ -112,31 +112,31 @@ enum Token_Kind {
 };
 
 struct Token {
-    u64 tid;
+    s64 tid;
     Token_Kind kind;
     char* value;
-    u64 line_pos;
-    u64 col_pos;
+    s64 line_pos;
+    s64 col_pos;
     char* line_start;
 };
 
 struct Token_Meta {
-    u64   line_pos;
-    u64   col_pos;
+    s64   line_pos;
+    s64   col_pos;
     char* line_start;
 };
 
 struct Token_List {
     Token_Meta*         meta;
     Token*              data;
-    u64                 count;
-    u64                 allocated;
+    s64                 count;
+    s64                 allocated;
 };
 
 struct Lex {
     Token_List token_list;
-    u64 line_count;
-    u64 comment_count;
+    s64 line_count;
+    s64 comment_count;
 };
 
 Token_List  make_token_list     ();

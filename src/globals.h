@@ -25,8 +25,6 @@ extern List* file_list;
 
 #define X64_ASM_OSX_STACK_PADDING 16
 
-#define THI_MEM_DEBUG
-
 #define DEFAULT_FUNCTION_ENTRY_LABEL_NAME ".BEGIN"
 #define DEFAULT_FUNCTION_END_LABEL_NAME ".END"
 

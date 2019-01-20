@@ -39,6 +39,7 @@ int main(int argc, char** argv)
     string_tests();
     map_tests();
     list_tests();
+    warning("fwefw");
     stack_tests();
     ctx_tests();
 

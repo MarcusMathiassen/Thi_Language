@@ -70,13 +70,13 @@ typedef struct
 {
     Token_List token_list;
     List* ast;
-    u64 token_index;
+    s64 token_index;
     Token curr_tok;
     Token top_tok;
     char* source_file;
     char* source;
 
-    u64 label_counter;
+    s64 label_counter;
 
     Expr* active_func;
     char* ocontinue;
@@ -998,7 +998,7 @@ void syntax_error(Parse_Context* pctx, char* fmt, ...)
     assert(fmt);
     va_list args;
     va_start(args, fmt);
-    printf("%s%s %llu:%llu Syntax Error: ", RED, pctx->source_file, pctx->curr_tok.line_pos, pctx->curr_tok.col_pos);
+    printf("%s%s %lld:%lld Syntax Error: ", RED, pctx->source_file, pctx->curr_tok.line_pos, pctx->curr_tok.col_pos);
     vprintf(fmt, args);
     puts(RESET);
     va_end(args);

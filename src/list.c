@@ -6,7 +6,7 @@
 
 List* make_list(void)
 {
-    List* l = malloc(sizeof(List));
+    List* l = xmalloc(sizeof(List));
     l->head = NULL;
     l->tail = NULL;
     l->count = 0;
@@ -16,7 +16,7 @@ List* make_list(void)
 void list_free(List* l)
 {
     LIST_FOREACH(l) {
-        free(it);
+        free(it->prev);
     }
 }
 
@@ -60,6 +60,7 @@ void list_tests(void)
     t3.name = "t3";
     t3.val = 7.43f;
 
+
     list_insert_after(list, list->head, &t3);
     assert(((Test_Type*)list_at(list, 1))->val == 7.43f);
 
@@ -67,11 +68,11 @@ void list_tests(void)
     assert(((Test_Type*)list_at(list, list->count-1))->val == 7.43f);
 
     list_free(list);
-
-    // Uncomment to print the list
 }
 
-bool list_empty(List* list) { return list->count; }
+bool list_empty(List* list) { 
+    return (list->head == NULL && list->tail == NULL);
+}
 
 void list_prepend_content_of_in_reverse(List* list, List* other_list)
 {
@@ -168,10 +169,11 @@ void* list_remove(List* list, List_Node* node)
     assert(list);
     assert(node);
 
+    warning("re");
+
     if (list_empty(list)) {
         return NULL;
     }
-
     if (list->head == list->tail) {
         list->head = NULL;
         list->tail = NULL;
@@ -233,7 +235,7 @@ void* list_prepend(List* list, void* data)
     assert(list);
     assert(data);
     ++list->count;
-    List_Node* new_node = malloc(sizeof(List_Node));
+    List_Node* new_node = xmalloc(sizeof(List_Node));
     new_node->data = data;
     new_node->prev = NULL;
     if (list->head == NULL) {
@@ -252,7 +254,7 @@ void* list_append(List* list, void* data)
     assert(list);
     assert(data);
     ++list->count;
-    List_Node* new_node = malloc(sizeof(List_Node));
+    List_Node* new_node = xmalloc(sizeof(List_Node));
     new_node->data = data;
     new_node->next = NULL;
     new_node->prev = list->tail;
@@ -281,7 +283,7 @@ void* list_last(List* list)
 void list_insert_after(List* list, List_Node* prev_node, void* data) 
 { 
     assert(prev_node);
-    List_Node* new_node = malloc(sizeof(List_Node));
+    List_Node* new_node = xmalloc(sizeof(List_Node));
     new_node->data = data;
     new_node->next = prev_node->next;
     new_node->prev = prev_node; 
@@ -296,7 +298,7 @@ void list_insert_after(List* list, List_Node* prev_node, void* data)
 void list_insert_before(List* list, List_Node* next_node, void* data) 
 { 
     assert(next_node);
-    List_Node* new_node = malloc(sizeof(List_Node));
+    List_Node* new_node = xmalloc(sizeof(List_Node));
     new_node->data = data;
     new_node->next = next_node;
     new_node->prev = next_node->prev; 

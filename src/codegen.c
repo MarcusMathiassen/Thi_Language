@@ -34,7 +34,7 @@ void emit_no_tab(char* fmt, ...)
     va_start(args, fmt);
     s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
     va_end(args);
-    char* str = malloc(str_len);
+    char* str = xmalloc(str_len);
 
     va_start(args, fmt);
     vsnprintf(str, str_len, fmt, args);
@@ -50,7 +50,7 @@ void emit_data(char* fmt, ...)
     va_start(args, fmt);
     s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
     va_end(args);
-    char* str = malloc(str_len);
+    char* str = xmalloc(str_len);
 
     va_start(args, fmt);
     vsnprintf(str, str_len, fmt, args);
@@ -65,7 +65,7 @@ void emit(char* fmt, ...)
     va_start(args, fmt);
     s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
     va_end(args);
-    char* str = malloc(str_len);
+    char* str = xmalloc(str_len);
 
     va_start(args, fmt);
     vsnprintf(str, str_len, fmt, args);

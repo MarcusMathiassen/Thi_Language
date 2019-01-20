@@ -39,7 +39,7 @@ s64 get_size_of_value(Value* value)
 
 Value* make_value(Value_Kind kind)
 {
-    Value* v = malloc(sizeof(Value));
+    Value* v = xmalloc(sizeof(Value));
     v->kind = kind;
     return v;
 }
@@ -146,7 +146,7 @@ s64 get_stack_pos_of_variable(Value* variable)
 
 Scope* make_scope()
 {
-    Scope* s = malloc(sizeof(Scope));
+    Scope* s = xmalloc(sizeof(Scope));
     s->local_variables = make_list();
     return s;
 }

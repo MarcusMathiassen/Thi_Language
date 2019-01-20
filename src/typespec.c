@@ -171,7 +171,7 @@ char* typespec_to_str(Typespec* type)
 
 Typespec* make_typespec(Typespec_Kind kind)
 {
-    Typespec* t = malloc(sizeof(Typespec));
+    Typespec* t = xmalloc(sizeof(Typespec));
     t->kind = kind;
     return t;
 }
@@ -255,11 +255,11 @@ Typespec* make_typespec_function(char* name, List* args, Typespec* ret_type)
 //------------------------------------------------------------------------------
 
 Type_List* make_type_list() {
-    Type_List* l = malloc(sizeof(Type_List));
+    Type_List* l = xmalloc(sizeof(Type_List));
     l->ids = NULL;
     l->count = 0;
     l->allocated = TYPE_LIST_STARTING_ALLOC;
-    l->data = malloc(sizeof(Typespec) * l->allocated);
+    l->data = xmalloc(sizeof(Typespec) * l->allocated);
     return l;
 }
 
@@ -267,7 +267,7 @@ Typespec* type_list_append(Type_List* l, Typespec data)
 {
     if (l->count >= l->allocated) {
         l->allocated *= 2;
-        l->data = realloc(l->data, l->allocated);
+        l->data = xrealloc(l->data, l->allocated);
     }
     l->data[l->count] = data;
     l->count += 1;

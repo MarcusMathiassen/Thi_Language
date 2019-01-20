@@ -3,7 +3,7 @@
 #include <assert.h> // assert
 #include <stdarg.h> // va_list, va_start, va_end
 #include <stdio.h>  // printf, vprintf
-#include <stdlib.h> // xmalloc
+#include <stdlib.h> // malloc, realloc, calloc
 #include <string.h> // memcpy
 #include <time.h>   // timeval
 #include <unistd.h>
@@ -73,7 +73,7 @@ char* get_file_path_from_directory(char* dir, char* filename)
     assert(len < 1000);
     memcpy(strbuf, dir, d_len);              // copy dir into strbuf
     memcpy(strbuf + d_len, filename, f_len); // append filename
-    char* str = malloc(len + 1);
+    char* str = xmalloc(len + 1);
     memcpy(str, strbuf, len);
     str[len] = 0;
     return str;
@@ -87,7 +87,7 @@ char* get_file_extension(char* filename)
     while (filename[len - (++i)] != '.')
         continue;
     ++len; // skip the '.'
-    char* str = malloc(i + 1);
+    char* str = xmalloc(i + 1);
     memcpy(str, filename + len - i, i);
     str[i] = 0;
     return str;
@@ -100,7 +100,7 @@ char* get_file_directory(char* filename)
     while (filename[--len] != '/')
         continue;
     ++len; // we preserve the '/'
-    char* str = malloc(len + 1);
+    char* str = xmalloc(len + 1);
     memcpy(str, filename, len);
     str[len] = 0;
     return str;
@@ -113,7 +113,7 @@ char* get_file_name(char* filename)
     while (filename[len - (++i)] != '/')
         continue;
     ++len; // skip the '/'
-    char* str = malloc(i + 1);
+    char* str = xmalloc(i + 1);
     memcpy(str, filename + len - i, i);
     str[i] = 0;
     return str;
@@ -147,7 +147,7 @@ char* get_file_content(char* filename)
         rewind(handler);
 
         // Allocate a string that can hold it all
-        buffer = (char*)malloc(sizeof(u8) * (string_size + 1));
+        buffer = (char*)xmalloc(sizeof(u8) * (string_size + 1));
 
         // Read it all in one operation
         read_size = fread(buffer, sizeof(u8), string_size, handler);
@@ -174,11 +174,12 @@ char* get_file_content(char* filename)
 //                               General Purpose
 //------------------------------------------------------------------------------
 
-void* _malloc(s64 bytes, char* file,s32 line)
+void* _malloc(s64 bytes, char* file, s32 line)
 {
     assert(bytes != 0);
+    // info("malloc(%lld) called. file: %s line: %s", bytes, file, line);
     void* alloc = malloc(bytes);
-    if (!alloc) error("malloc(%lld) failed.\nfile: %s\nline:%s", bytes, file, line);
+    if (!alloc) error("malloc(%lld) failed. file: %s line: %s", bytes, file, line);
     return alloc;
 }
 
@@ -186,17 +187,19 @@ void* _calloc(s64 size, s64 bytes, char* file,s32 line)
 {
     assert(size != 0);
     assert(bytes != 0);
+    // info("calloc(%lld, %lld) called. file: %s line: %s", size, bytes, file, line);
     void* alloc = calloc(size, bytes);
-    if (!alloc) error("calloc(%lld, %lld) failed.\nfile: %s\nline:%s", size, bytes, file, line);
+    if (!alloc) error("calloc(%lld, %lld) failed. file: %s line: %s", size, bytes, file, line);
     return alloc;
 }
 
-void* _realloc(void* ptr, s64 bytes, char* file,s32 line)
+void* _realloc(void* ptr, s64 bytes, char* file, s32 line)
 {
     assert(ptr);
     assert(bytes != 0);
+    // info("realloc(%lld, %lld) called. file: %s line: %s", (int)ptr, bytes, file, line);
     void* alloc = realloc(ptr, bytes);
-    if (!alloc) error("realloc(%llu, %lld) failed.\nfile: %s\nline:%s", ptr, bytes, file, line);
+    if (!alloc) error("realloc(%lld, %lld) failed. file: %s line: %s", ptr, bytes, file, line);
     return alloc;
 }
 
@@ -208,7 +211,7 @@ char* strf(char* fmt, ...)
     s64 n = 1 + vsnprintf(0, 0, fmt, args);
     va_end(args);
 
-    char* str = malloc(n);
+    char* str = xmalloc(n);
 
     va_start(args, fmt);
     vsnprintf(str, n, fmt, args);

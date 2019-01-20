@@ -6,7 +6,7 @@
 
 Stack* make_stack()
 {
-    Stack* s = malloc(sizeof(Stack));
+    Stack* s = xmalloc(sizeof(Stack));
     stack_init(s);
     return s;
 }
@@ -49,7 +49,7 @@ void* stack_push(Stack* stack, void* data)
 {
     assert(stack);
     assert(data);
-    Stack_Node* tmp = malloc(sizeof(Stack));
+    Stack_Node* tmp = xmalloc(sizeof(Stack_Node));
     tmp->data = data;
     tmp->next = stack->head;
     stack->head = tmp;
