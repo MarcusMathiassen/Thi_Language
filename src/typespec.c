@@ -27,7 +27,7 @@ char* typespec_kind_to_str(Typespec_Kind kind)
         case TYPESPEC_ENUM:         return "TYPESPEC_ENUM";
         case TYPESPEC_STRUCT:       return "TYPESPEC_STRUCT";
         case TYPESPEC_FUNCTION:     return "TYPESPEC_FUNCTION";
-        default: error("not implemented typespec_kind_to_str kind %d", kind);
+        default: warning("not implemented typespec_kind_to_str kind %d", kind);
     }
     return "";
 }
@@ -69,7 +69,7 @@ s64 get_size_of_typespec(Typespec* type)
             }
             return accum_size;
         }
-        default: error("get_size_of_typespec kind %s not implemented.", typespec_kind_to_str(type->kind));
+        default: warning("get_size_of_typespec kind %s not implemented.", typespec_kind_to_str(type->kind));
     }
     return 0;
 }
@@ -160,7 +160,7 @@ char* typespec_to_str(Typespec* type)
             if (type->Function.ret_type) append_string(&str, strf(" -> %s", typespec_to_str(type->Function.ret_type)));
             return str.c_str;
         }
-        default: error("typespec_to_str not implemented kind %d", typespec_kind_to_str(type->kind));
+        default: warning("typespec_to_str not implemented kind %d", typespec_kind_to_str(type->kind));
     }
     return NULL;
 }
@@ -240,36 +240,9 @@ Typespec* make_typespec_struct(char* name, List* members)
 Typespec* make_typespec_function(char* name, List* args, Typespec* ret_type)
 {
     assert(name);
-    // Typespec* t = get_if_typespec_already_exists(name);
-    // if (t) return t;
     Typespec* t = make_typespec(TYPESPEC_FUNCTION);
     t->Function.name = name;
     t->Function.args = args;
     t->Function.ret_type = ret_type;
-    // type_list_append(tl, t)
     return t;
-}
-
-//------------------------------------------------------------------------------
-//                               Type_List
-//------------------------------------------------------------------------------
-
-Type_List* make_type_list() {
-    Type_List* l = xmalloc(sizeof(Type_List));
-    l->ids = NULL;
-    l->count = 0;
-    l->allocated = TYPE_LIST_STARTING_ALLOC;
-    l->data = xmalloc(sizeof(Typespec) * l->allocated);
-    return l;
-}
-
-Typespec* type_list_append(Type_List* l, Typespec data)
-{
-    if (l->count >= l->allocated) {
-        l->allocated *= 2;
-        l->data = xrealloc(l->data, l->allocated);
-    }
-    l->data[l->count] = data;
-    l->count += 1;
-    return &l->data[l->count - 1];
 }

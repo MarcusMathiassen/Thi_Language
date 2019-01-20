@@ -30,6 +30,119 @@ void linking_stage(char* exec_name);
     Figure out all the files that are loaded by the source.
 */
 
+typedef struct
+{
+    s64     len;
+    char*   str;
+} Intern;
+
+typedef struct {
+    Intern* data;
+    s64 count;
+    s64 allocated;
+} Intern_Array;
+
+Intern_Array* make_intern_array()
+{
+    Intern_Array* l = xmalloc(sizeof(Intern_Array));
+    l->count = 0;
+    l->allocated = INTERN_ARRAY_STARTING_ALLOC;
+    l->data = xmalloc(sizeof(Intern) * l->allocated);
+    return l;
+}
+
+void intern_array_append(Intern_Array* l, Intern intern)
+{
+    if (l->count >= l->allocated) {
+        l->allocated *= 2;
+        l->data = xrealloc(l->data, l->allocated);
+    }
+    l->data[l->count] = intern;
+    l->count += 1;
+}
+
+char* intern_range(Intern_Array* intern_array, char* start, char* end)
+{
+    s64 len = end - start;
+
+    for (s64 i = 0; i < intern_array->count; ++i) {
+        Intern intern = (Intern)intern_array->data[i];
+        if (intern.len == len && strncmp(intern.str, start, len) == 0) {
+            return intern.str;
+        }
+    }
+    char* str = xmalloc(len + 1);
+    memcpy(str, start, len);
+    str[len] = 0;
+
+    Intern intern;
+    intern.len = len;
+    intern.str = str;
+    intern_array_append(intern_array, intern);
+
+    return str;
+}
+
+typedef struct 
+{
+    bool detailed_print;
+    bool debug_mode;
+    bool enable_constant_folding;
+    bool optimize;
+
+    List* foreign_function_list;
+    List* constant_string_list;
+    List* link_list;
+    Map* symbol_map;
+    Map* macro_map;
+    Map* builtin_type_map;
+    Stack* timer_stack;
+    List* timer_list;
+
+    string output_name;
+    string source_file;
+    char* previous_file;
+    string current_directory;
+    List* file_list;
+    Intern_Array* intern_array;
+
+} Thi_Context;
+
+Thi_Context make_thi_context()
+{
+    Thi_Context t;
+
+    t.detailed_print = false;
+    t.debug_mode = false;
+    t.enable_constant_folding = true;
+    t.optimize = true;
+    t.foreign_function_list = make_list();
+    t.constant_string_list = make_list();
+    t.link_list = make_list();
+    t.file_list = make_list();
+    t.timer_list = make_list();
+    t.symbol_map = make_map();
+    t.macro_map = make_map();
+    t.builtin_type_map = make_map();
+    t.timer_stack = make_stack();
+    t.output_name = make_string("");
+    t.previous_file = NULL;
+    t.source_file = make_string("");
+    t.current_directory = make_string("");
+    t.intern_array = make_intern_array();
+
+    return t;
+}
+
+
+
+
+
+
+
+
+
+
 int main(int argc, char** argv)
 {
     // Argument validation
@@ -39,19 +152,17 @@ int main(int argc, char** argv)
     string_tests();
     map_tests();
     list_tests();
-    warning("fwefw");
     stack_tests();
     ctx_tests();
 
     initilize_globals();
     init_interns_list();
 
+    // Thi_Context thi_ctx = make_thi_context();
+
     add_link("System");
 
-    // put ':' in the starting of the
-    // string so that program can
-    // distinguish between '?' and ':'
-   s32 opt;
+    s32 opt;
     while ((opt = getopt(argc, argv, "f:dvo:")) != -1) {
         switch (opt) {
         case 'v': detailed_print = true; break;

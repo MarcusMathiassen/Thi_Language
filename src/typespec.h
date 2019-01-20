@@ -11,7 +11,6 @@
 typedef struct Typespec         Typespec;
 typedef struct Arg              Arg;
 typedef enum   Typespec_Kind    Typespec_Kind;
-typedef struct Type_List        Type_List;
 
 s64         get_offset_in_struct_to_field   (Typespec* type, char* name);
 s64         get_size_of_underlying_typespec (Typespec* type);
@@ -30,17 +29,6 @@ Typespec*   make_typespec_function          (char* name, List* args, Typespec* r
 
 s64         typespec_function_get_arg_count (Typespec* type);
 s64         typespec_array_get_count        (Typespec* type);
-
-Type_List*   make_type_list();
-Typespec*    type_list_append(Type_List* l, Typespec data);
-
-
-struct Type_List {
-    char* ids;
-    Typespec* data;
-    s64 count;
-    s64 allocated;
-};
 
 enum Typespec_Kind
 {

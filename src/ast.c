@@ -32,7 +32,7 @@ char* expr_kind_to_str(Expr_Kind kind)
         case EXPR_BLOCK:            return "EXPR_BLOCK";
         case EXPR_GROUPING:         return "EXPR_GROUPING";
         case EXPR_SUBSCRIPT:        return "EXPR_SUBSCRIPT";
-        default: error("expr_kind_to_str unhandled case '%d'", kind);
+        default: warning("expr_kind_to_str unhandled case '%d'", kind);
     }
     return NULL;
 }
@@ -115,7 +115,7 @@ char* expr_to_str(Expr* expr)
         append_string(&str, ")");
         return str.c_str;
     }
-    default: error("%s: unhandled case %s", __func__, expr_kind_to_str(expr->kind));
+    default: warning("%s: unhandled case %s", __func__, expr_kind_to_str(expr->kind));
     }
     return NULL;
 }

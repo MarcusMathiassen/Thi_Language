@@ -111,7 +111,6 @@ char* str_intern_range(char* start, char* end)
     list_append(interns, intern);
     return str;
 }
-
 char* str_intern(char* str) { return str_intern_range(str, str + strlen(str)); }
 
 //------------------------------------------------------------------------------

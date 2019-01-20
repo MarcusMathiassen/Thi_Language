@@ -169,8 +169,6 @@ void* list_remove(List* list, List_Node* node)
     assert(list);
     assert(node);
 
-    warning("re");
-
     if (list_empty(list)) {
         return NULL;
     }

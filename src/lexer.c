@@ -69,6 +69,8 @@ char* keywords_str[KEYWORD_COUNT] = {
     "sizeof", "if",   "else", "for",   "while", "return", "struct", "enum",   "break", "continue",
 };
 
+ char** keywords = NULL;
+
 //------------------------------------------------------------------------------
 //                               Public
 //------------------------------------------------------------------------------
@@ -85,7 +87,31 @@ Lex lexify(char* source)
     lctx.current_char_in_stream = source; // u8 in stream
     lctx.start_of_line = source;
 
-    Token_List token_list = make_token_list();
+    Token_Array* token_array = make_token_array();
+
+    if (!keywords) {
+        keywords = xmalloc(sizeof(char*) * KEYWORD_COUNT);
+        keywords[0] = str_intern("link");
+        keywords[1] = str_intern("type");
+        keywords[2] = str_intern("true");
+        keywords[3] = str_intern("false");
+        keywords[4] = str_intern("def");
+        keywords[5] = str_intern("do");
+        keywords[6] = str_intern("defer");
+        keywords[7] = str_intern("extern");
+        keywords[8] = str_intern("load");
+        keywords[9] = str_intern("cast");
+        keywords[10] = str_intern("sizeof");
+        keywords[11] = str_intern("if");
+        keywords[12] = str_intern("else");
+        keywords[13] = str_intern("for");
+        keywords[14] = str_intern("while");
+        keywords[15] = str_intern("return");
+        keywords[16] = str_intern("struct");
+        keywords[17] = str_intern("enum");
+        keywords[18] = str_intern("break");
+        keywords[19] = str_intern("continue");
+    }
 
     // LEX
     for (;;) {
@@ -95,23 +121,23 @@ Lex lexify(char* source)
             t.kind = TOKEN_BLOCK_START;
             t.value = "TOKEN_BLOCK_START";
             lctx.previous_indentation_level = lctx.current_indentation_level;
-            token_list_append(&token_list, t);
+            token_array_append(token_array, t);
         }
         while (lctx.current_indentation_level < lctx.previous_indentation_level) {
             Token t;
             t.kind = TOKEN_BLOCK_END;
             t.value = "TOKEN_BLOCK_END";
             lctx.previous_indentation_level -= 4;
-            token_list_append(&token_list, t);
+            token_array_append(token_array, t);
         }
-        if (token.kind != TOKEN_UNKNOWN && token.kind != TOKEN_COMMENT) token_list_append(&token_list, token);
+        if (token.kind != TOKEN_UNKNOWN && token.kind != TOKEN_COMMENT) token_array_append(token_array, token);
         if (token.kind == TOKEN_EOF) {
             break;
         }
     }
 
     Lex lex;
-    lex.token_list = token_list;
+    lex.token_array = token_array;
     lex.line_count = lctx.line_count;
     lex.comment_count = lctx.comment_count;
 
@@ -479,11 +505,11 @@ char* token_kind_to_str(Token_Kind kind)
 }
 
 void print_token(Token token) { info("%s %s", token_kind_to_str(token.kind), token.value); }
-void print_tokens(Token_List token_list)
+void print_tokens(Token_Array* token_array)
 {
-    info("Printing token_list..");
-    for (s64 i = 0; i < token_list.count; i += 1) {
-        print_token(token_list.data[i]);
+    info("Printing tokens..");
+    for (s64 i = 0; i < token_array->count; i += 1) {
+        print_token(token_array->data[i]);
     }
 }
 
@@ -492,8 +518,11 @@ bool is_valid_digit(u8 c) { return isdigit(c) || c == '.' || c == '_' || c == 'e
 u64 get_line_pos(LexerContext* lctx) { return lctx->current_char_in_stream - lctx->position_of_newline; }
 int get_keyword_index(char* identifier)
 {
-    for (int i = 0; i < KEYWORD_COUNT; ++i)
-        if (strcmp(identifier, keywords_str[i]) == 0) return i;
+    for (s64 i = 0; i < KEYWORD_COUNT; ++i) {
+        if (identifier == keywords[i]) {
+            return i;
+        }
+    }
     return -1;
 }
 
@@ -521,26 +550,25 @@ Token_Kind get_identifier_kind(char* identifier)
         case KEY_BREAK:    return TOKEN_BREAK;
         case KEY_CONTINUE: return TOKEN_CONTINUE;
     }
-
     return TOKEN_IDENTIFIER;
 }
 
-Token_List make_token_list()
+Token_Array* make_token_array()
 {
-    Token_List tl;
-    tl.count = 0;
-    tl.allocated = TOKEN_LIST_STARTING_ALLOC;
-    tl.data = xmalloc(sizeof(Token) * tl.allocated);
-    tl.meta = xmalloc(sizeof(Token_Meta) * tl.allocated);
-    return tl;
+    Token_Array* l = xmalloc(sizeof(Token_Array));
+    l->count = 0;
+    l->allocated = TOKEN_ARRAY_STARTING_ALLOC;
+    l->data = xmalloc(sizeof(Token) * l->allocated);
+    l->meta = xmalloc(sizeof(Token_Meta) * l->allocated);
+    return l;
 }
 
-void token_list_append(Token_List* tl, Token token)
+void token_array_append(Token_Array* l, Token token)
 {
-    if (tl->count >= tl->allocated) {
-        tl->allocated *= 2;
-        tl->data = xrealloc(tl->data, tl->allocated);
+    if (l->count >= l->allocated) {
+        l->allocated *= 2;
+        l->data = xrealloc(l->data, l->allocated);
     }
-    tl->data[tl->count] = token;
-    tl->count += 1;
+    l->data[l->count] = token;
+    l->count += 1;
 }

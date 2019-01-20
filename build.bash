@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 output=./thi
-olvl=
+olvl=-O3
 compiler=clang
 src=./src/*.c
 flags=-Wall\ -Wextra\ -Wno-switch\ -Wno-unused-function
 std=c99
 
-$compiler $src -std=$std $olvl $flags -o $output -g -fsanitize=address -fno-omit-frame-pointer
+$compiler $src -std=$std $olvl $flags -o $output # -g -fsanitize=address -fno-omit-frame-pointer
 
 if [ $? == 0 ]; then
     # ./test.bash
-    ./test.bash ./tests/test_window.thi
+    # ./test.bash ./tests/test_window.thi
     # ./test.bash ./tests/test_macro_definition.thi
     # ./test.bash ./tests/test_order_independance.thi
-    # ./test.bash ./tests/test_defer.thi
+    ./test.bash ./tests/test_defer.thi
     # ./test.bash ./tests/test_continue.thi
     # ./test.bash ./tests/test_if.thi
     # ./test.bash ./tests/test_comments.thi

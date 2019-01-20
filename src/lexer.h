@@ -9,7 +9,7 @@
 
 typedef struct  Lex         Lex;
 typedef struct  Token       Token;
-typedef struct  Token_List  Token_List;
+typedef struct  Token_Array Token_Array;
 typedef struct  Token_Meta  Token_Meta;
 typedef enum    Token_Kind  Token_Kind;
 
@@ -126,25 +126,25 @@ struct Token_Meta {
     char* line_start;
 };
 
-struct Token_List {
-    Token_Meta*         meta;
+struct Token_Array {
     Token*              data;
+    Token_Meta*         meta;
     s64                 count;
     s64                 allocated;
 };
 
 struct Lex {
-    Token_List token_list;
+    Token_Array* token_array;
     s64 line_count;
     s64 comment_count;
 };
 
-Token_List  make_token_list     ();
-void        token_list_append   (Token_List* tl, Token token);
-Lex         lexify              (char* source);
-void        print_tokens        (Token_List token_list);
-void        print_token         (Token token);
-char*       token_kind_to_str   (Token_Kind kind);
+Token_Array*  make_token_array    ();
+void          token_array_append  (Token_Array* l, Token token);
+void          print_tokens        (Token_Array* token_array);
+void          print_token         (Token token);
+char*         token_kind_to_str   (Token_Kind kind);
+Lex           lexify              (char* source);
 
 #define THI_SYNTAX_POINTER                   TOKEN_ASTERISK
 #define THI_SYNTAX_ADDRESS                   TOKEN_AND

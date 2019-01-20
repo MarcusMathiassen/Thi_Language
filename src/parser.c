@@ -68,7 +68,7 @@ struct {
 
 typedef struct
 {
-    Token_List token_list;
+    Token_Array* token_array;
     List* ast;
     s64 token_index;
     Token curr_tok;
@@ -203,10 +203,10 @@ void parse(List* ast, char* source_file)
     char*  source =  get_file_content(source_file);
     Lex    lex    =  lexify(source);
 
-    // print_tokens(lex.token_list);
+    print_tokens(lex.token_array);
 
     Parse_Context pctx;
-    pctx.token_list = lex.token_list;
+    pctx.token_array = lex.token_array;
     pctx.token_index = 0;
     pctx.top_tok.kind = TOKEN_UNKNOWN;
     pctx.curr_tok.kind = TOKEN_UNKNOWN;
@@ -958,10 +958,10 @@ int get_tok_precedence(Parse_Context* pctx)
 
 Token_Kind next_tok_kind(Parse_Context* pctx)
 {
-    if (pctx->token_list.count < pctx->token_index + 1) {
+    if (pctx->token_array->count < pctx->token_index + 1) {
         error("No next token. We're all out.");
     }
-    Token_Kind kind = pctx->token_list.data[pctx->token_index].kind;
+    Token_Kind kind = pctx->token_array->data[pctx->token_index].kind;
     return kind;
 }
 
@@ -973,7 +973,10 @@ bool tok_is(Parse_Context* pctx, Token_Kind kind)
     return false;
 }
 
-void eat(Parse_Context* pctx) { pctx->curr_tok = pctx->token_list.data[pctx->token_index++]; }
+void eat(Parse_Context* pctx) { 
+    pctx->curr_tok = pctx->token_array->data[pctx->token_index]; 
+    pctx->token_index += 1;
+}
 void eat_kind(Parse_Context* pctx, Token_Kind kind)
 {
     Token_Kind tk = pctx->curr_tok.kind;
