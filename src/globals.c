@@ -185,7 +185,7 @@ void set_current_timers_time(f64 new_time)
 void push_timer(char* desc)
 {
     assert(desc);
-    Timer* tm = xmalloc(sizeof(Timer));
+    Timer* tm = malloc(sizeof(Timer));
     tm->ms = get_time();
     tm->desc = desc;
     stack_push(timer_stack, tm);

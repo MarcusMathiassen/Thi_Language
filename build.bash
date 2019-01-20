@@ -26,7 +26,7 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_tilde.thi
     # ./test.bash ./tests/test_ternary.thi
     # ./test.bash ./tests/test_for.thi
-    # ./test.bash ./tests/test_pointer.thi
+    ./test.bash ./tests/test_pointer.thi
     # ./test.bash ./tests/test_basic_ternary.thi
     # ./test.bash ./tests/test_plus_equal.thi
     # ./test.bash ./tests/test_math.thi
@@ -46,7 +46,7 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_not_equal_to.thi
     # ./test.bash ./tests/test_not_equal_to.thi
     # ./test.bash ./tests/test_using_unnamed_parameter.thi
-    ./test.bash ./tests/test_function_call.thi
+    # ./test.bash ./tests/test_function_call.thi
     # ./test.bash ./tests/test_array.thi
     # ./test.bash ./tests/test_array_2d.thi
     # ./test.bash ./tests/test_variable_assignment.thi

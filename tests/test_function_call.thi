@@ -1,20 +1,4 @@
-def foo (a: s32) -> s32 
-    return a
-
-load "includes/cstdio.thi"
-
+def add (a: s32, b: s32) -> s32 
+    return a + b
 def main () -> s32
-    a := "Hello"
-    a1 := "Hello1"
-    a2 := "Hello2"
-    a3 := "Hello3"
-    defer 
-        puts(a)
-    defer 
-        puts(a1)
-    defer 
-        puts(a2)
-    defer 
-        puts(a3)
-
-    return foo(3)
+    return add(2, -1)

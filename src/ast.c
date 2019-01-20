@@ -31,6 +31,7 @@ char* expr_kind_to_str(Expr_Kind kind)
         case EXPR_STRUCT:           return "EXPR_STRUCT";
         case EXPR_BLOCK:            return "EXPR_BLOCK";
         case EXPR_GROUPING:         return "EXPR_GROUPING";
+        case EXPR_SUBSCRIPT:        return "EXPR_SUBSCRIPT";
         default: error("expr_kind_to_str unhandled case '%d'", kind);
     }
     return NULL;
@@ -98,7 +99,8 @@ char* expr_to_str(Expr* expr)
         string str = make_string_f("%s {\n%s}", typespec_to_str(expr->Function.type), expr_to_str(expr->Function.body));
         return str.c_str;
     }
-    case EXPR_GROUPING: return strf("(%s)", expr_to_str(expr->Grouping.expr));
+    case EXPR_GROUPING:  return strf("(%s)", expr_to_str(expr->Grouping.expr));
+    case EXPR_SUBSCRIPT: return strf("%s[%s]", expr_to_str(expr->Subscript.load), expr_to_str(expr->Subscript.sub));
     case EXPR_CALL: {
         string str = make_string(expr->Call.callee);
         s64 count = expr->Call.args->count;
@@ -134,6 +136,7 @@ Typespec* get_inferred_type_of_expr(Expr* expr)
         case EXPR_FUNCTION:         return expr->Function.type->Function.ret_type;
         case EXPR_STRUCT:           return expr->Struct.type;
         case EXPR_GROUPING:         return get_inferred_type_of_expr(expr->Grouping.expr);
+        case EXPR_SUBSCRIPT:        return get_inferred_type_of_expr(expr->Subscript.load);
         default:                    error("%s has no type", expr_kind_to_str(expr->kind));
     }
     return NULL;
@@ -257,6 +260,10 @@ Expr* constant_fold_expr(Expr* expr)
         case EXPR_GROUPING: {
             expr = constant_fold_expr(expr->Grouping.expr);
         } break;
+        case EXPR_SUBSCRIPT: {
+            expr->Subscript.load = constant_fold_expr(expr->Subscript.load);
+            expr->Subscript.sub = constant_fold_expr(expr->Subscript.sub);
+        } break;
         default: error("constant_fold_expr %s not implemented", expr_kind_to_str(expr->kind));
     }
     return expr;
@@ -274,7 +281,7 @@ void print_ast(List* ast)
 
 Expr* make_expr(Expr_Kind kind)
 {
-    Expr* e = xmalloc(sizeof(Expr));
+    Expr* e = malloc(sizeof(Expr));
     e->kind = kind;
     return e;
 }
@@ -407,5 +414,15 @@ Expr* make_expr_variable_decl(char* name, Typespec* type, Expr* value)
     e->Variable_Decl.name = name;
     e->Variable_Decl.type = type;
     e->Variable_Decl.value = value;
+    return e;
+}
+
+Expr* make_expr_subscript(Expr* load, Expr* sub)
+{
+    assert(load);
+    assert(sub);
+    Expr* e = make_expr(EXPR_SUBSCRIPT);
+    e->Subscript.load = load;
+    e->Subscript.sub = sub;
     return e;
 }

@@ -10,6 +10,7 @@
 typedef struct  Lex         Lex;
 typedef struct  Token       Token;
 typedef struct  Token_List  Token_List;
+typedef struct  Token_Meta  Token_Meta;
 typedef enum    Token_Kind  Token_Kind;
 
 enum Token_Kind {
@@ -111,6 +112,7 @@ enum Token_Kind {
 };
 
 struct Token {
+    u64 tid;
     Token_Kind kind;
     char* value;
     u64 line_pos;
@@ -118,10 +120,17 @@ struct Token {
     char* line_start;
 };
 
+struct Token_Meta {
+    u64   line_pos;
+    u64   col_pos;
+    char* line_start;
+};
+
 struct Token_List {
-    Token* data;
-    u64 count;
-    u64 allocated;
+    Token_Meta*         meta;
+    Token*              data;
+    u64                 count;
+    u64                 allocated;
 };
 
 struct Lex {

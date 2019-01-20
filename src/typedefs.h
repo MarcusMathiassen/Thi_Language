@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 typedef     int8_t    s8;
 typedef     int16_t   s16;
@@ -21,5 +22,13 @@ typedef     s8        bool;
 
 #define     true      1
 #define     false     0
+
+#define THI_MEM_DEBUG
+#ifdef THI_MEM_DEBUG
+#define malloc(n) _malloc(n, __FILE__, __LINE__)
+#define realloc(n, m) _realloc(n, m, __FILE__, __LINE__)
+#define calloc(n, m) _calloc(n, m, __FILE__, __LINE__)
+#endif
+
 
 #endif

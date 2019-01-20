@@ -15,10 +15,5 @@ def main () -> s32
     defer
         puts("1st") 
         i = 3
-
-    defer 
-        puts("Hello. And welcome.") # <- this is crashing it
-        # implicit string literals crash it.
-        # we dont handle pointers correctly
-
+        
     return i

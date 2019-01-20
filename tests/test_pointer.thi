@@ -1,9 +1,6 @@
 extern malloc(u64) -> void*
 
-def change(c: s32*)
-    *c = 1
-
 def main () -> s32 
-    c: s32* = malloc(sizeof(s32))
-    *c = 4
-    return *c
+    c: s64* = malloc(sizeof(s64))
+    c[0] = 1
+    return c[0]

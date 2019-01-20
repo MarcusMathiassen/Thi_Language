@@ -98,7 +98,6 @@ Expr*               parse_primary                  (Parse_Context* pctx);
 Expr*               parse_identifier               (Parse_Context* pctx);
 Expr*               parse_variable_decl            (Parse_Context* pctx);
 Expr*               parse_function_call            (Parse_Context* pctx);
-Expr*               parse_subscript                (Parse_Context* pctx);
 Expr*               parse_block                    (Parse_Context* pctx);
 Expr*               parse_return                   (Parse_Context* pctx);
 Expr*               parse_note                     (Parse_Context* pctx);
@@ -144,7 +143,7 @@ char*               make_label                     (Parse_Context* pctx);
 
 void                syntax_error                   (Parse_Context* pctx, char* fmt, ...);
 
-#define DEBUG_START ;//info("%s: %s", __func__, pctx->curr_tok.value);
+#define DEBUG_START info("%s: %s", __func__, pctx->curr_tok.value);
 
 #define SET_ACTIVE_FUNC(func) pctx->active_func = func
 #define GET_ACTIVE_FUNC pctx->active_func
@@ -517,9 +516,7 @@ Expr* parse_string(Parse_Context* pctx)
     DEBUG_START;
     char* value = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_STRING);
-    Expr* expr = make_expr_string(value);
-    expr = make_expr_unary(THI_SYNTAX_POINTER, expr);
-    return expr;
+    return make_expr_string(value);
 }
 
 Expr* parse_block(Parse_Context* pctx)
@@ -698,12 +695,9 @@ Expr* read_subscript_expr(Parse_Context* pctx, Expr* expr)
 {
     eat_kind(pctx, TOKEN_OPEN_BRACKET);
     Expr* sub = parse_expression(pctx);
-    if (!sub) error("subscription expected");
+    if (!sub) syntax_error(pctx, "empty subscript");
     eat_kind(pctx, TOKEN_CLOSE_BRACKET);
-    s64 size = get_size_of_underlying_typespec(get_inferred_type_of_expr(expr));
-    sub = make_expr_binary(TOKEN_ASTERISK, make_expr_int(size), sub);
-    Expr* t = make_expr_binary(TOKEN_PLUS, expr, sub);
-    return make_expr_unary(THI_SYNTAX_POINTER, t);
+    return make_expr_subscript(expr, sub);
 }
 
 Expr* parse_postfix_tail(Parse_Context* pctx, Expr* primary_expr)

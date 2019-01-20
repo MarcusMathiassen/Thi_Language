@@ -1,9 +1,9 @@
 #ifndef AST_H
 #define AST_H
 
-#include "lexer.h"    // Token_Kind
-#include "list.h"    // List
-#include "typespec.h" // Typespec
+#include "lexer.h"      // Token_Kind
+#include "list.h"       // List
+#include "typespec.h"   // Typespec
 
 //------------------------------------------------------------------------------
 //                               ast.h
@@ -28,6 +28,7 @@ enum Expr_Kind
     EXPR_FUNCTION,
     EXPR_BLOCK,
     EXPR_GROUPING,
+    EXPR_SUBSCRIPT,
 };
 
 //------------------------------------------------------------------------------
@@ -102,7 +103,11 @@ typedef struct
     Typespec* type;
     Expr* value;
 } AST_Variable_Decl;
-
+typedef struct
+{
+    Expr* load;
+    Expr* sub;
+} AST_Subscript;
 struct Expr
 {
     Expr_Kind kind;
@@ -123,6 +128,7 @@ struct Expr
         AST_Unary Unary;
         AST_Binary Binary;
         AST_Variable_Decl Variable_Decl;
+        AST_Subscript Subscript;
     };
 };
 
@@ -141,6 +147,7 @@ Expr*   make_expr_binary            (Token_Kind op, Expr* lhs, Expr* rhs);
 Expr*   make_expr_block             (List* stmts);
 Expr*   make_expr_grouping          (Expr* expr);
 Expr*   make_expr_variable_decl     (char* name, Typespec* type, Expr* value);
+Expr*   make_expr_subscript         (Expr* load, Expr* sub);
 
 Expr*       get_arg_from_func           (Typespec* func_t, s64 arg_index);
 Typespec*   get_inferred_type_of_expr   (Expr* expr);

@@ -531,7 +531,8 @@ Token_List make_token_list()
     Token_List tl;
     tl.count = 0;
     tl.allocated = TOKEN_LIST_STARTING_ALLOC;
-    tl.data = xmalloc(sizeof(Token) * tl.allocated);
+    tl.data = malloc(sizeof(Token) * tl.allocated);
+    tl.meta = malloc(sizeof(Token_Meta) * tl.allocated);
     return tl;
 }
 
@@ -539,7 +540,7 @@ void token_list_append(Token_List* tl, Token token)
 {
     if (tl->count >= tl->allocated) {
         tl->allocated *= 2;
-        tl->data = xrealloc(tl->data, tl->allocated);
+        tl->data = realloc(tl->data, tl->allocated);
     }
     tl->data[tl->count] = token;
     tl->count += 1;

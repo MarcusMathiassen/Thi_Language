@@ -34,7 +34,7 @@ void emit_no_tab(char* fmt, ...)
     va_start(args, fmt);
     s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
     va_end(args);
-    char* str = xmalloc(str_len);
+    char* str = malloc(str_len);
 
     va_start(args, fmt);
     vsnprintf(str, str_len, fmt, args);
@@ -50,7 +50,7 @@ void emit_data(char* fmt, ...)
     va_start(args, fmt);
     s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
     va_end(args);
-    char* str = xmalloc(str_len);
+    char* str = malloc(str_len);
 
     va_start(args, fmt);
     vsnprintf(str, str_len, fmt, args);
@@ -65,7 +65,7 @@ void emit(char* fmt, ...)
     va_start(args, fmt);
     s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
     va_end(args);
-    char* str = xmalloc(str_len);
+    char* str = malloc(str_len);
 
     va_start(args, fmt);
     vsnprintf(str, str_len, fmt, args);
@@ -322,11 +322,11 @@ Value* codegen_binary(Expr* expr)
         push(RAX);
 
         // @HACK: i dont like specific cases like this.
-        if (lhs->kind == EXPR_UNARY) {
-            variable = codegen_expr(lhs->Unary.operand);
-        } else {
+        // if (lhs->kind == EXPR_UNARY) {
+            // variable = codegen_expr(lhs->Unary.operand);
+        // } else {
             variable = codegen_expr(lhs);
-        }
+        // }
 
         pop(RCX);
         emit_store(variable);
@@ -636,6 +636,22 @@ Value* codegen_ident(Expr* expr)
     return var;
 }
 
+Value* codegen_subscript(Expr* expr)
+{
+    DEBUG_START;
+    assert(expr->kind == EXPR_SUBSCRIPT);
+    Expr* load = expr->Subscript.load;
+    Expr* sub = expr->Subscript.sub;
+
+    Value* variable = codegen_expr(load); // ADDRESS OF 'C' is in 'RAX'
+    s64 size = get_size_of_value(variable);
+
+    sub = make_expr_binary(TOKEN_ASTERISK, make_expr_int(size), sub);
+    Expr* t = make_expr_binary(TOKEN_PLUS, load, sub);
+    t = make_expr_unary(THI_SYNTAX_POINTER, t);
+    return codegen_expr(t);
+}
+
 Value* codegen_string(Expr* expr)
 {
     DEBUG_START;
@@ -766,6 +782,7 @@ Value* codegen_expr(Expr* expr)
         case EXPR_VARIABLE_DECL: return codegen_variable_decl(expr);
         case EXPR_BLOCK:         return codegen_block(expr);
         case EXPR_GROUPING:      return codegen_expr(expr->Grouping.expr);
+        case EXPR_SUBSCRIPT:     return codegen_subscript(expr);
     }
     return NULL;
 }

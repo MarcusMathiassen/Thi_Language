@@ -14,7 +14,7 @@ string make_string(char* str)
     assert(str);
     string s;
     s64 str_len = strlen(str);
-    s.c_str = xmalloc(str_len + 1);
+    s.c_str = malloc(str_len + 1);
     s.len = str_len;
     memcpy(s.c_str, str, str_len);
     s.c_str[s.len] = 0;
@@ -30,7 +30,7 @@ string make_string_f(char* fmt, ...)
     va_end(args);
 
     string s;
-    s.c_str = xmalloc(n);
+    s.c_str = malloc(n);
     s.len = n;
 
     va_start(args, fmt);
@@ -49,14 +49,14 @@ void append_string_f(string* s, char* fmt, ...)
     s64 n = 1 + vsnprintf(0, 0, fmt, args);
     va_end(args);
 
-    char* temp = xmalloc(n);
+    char* temp = malloc(n);
 
     va_start(args, fmt);
     vsnprintf(temp, n, fmt, args);
     va_end(args);
 
     assert(n != 0);
-    s->c_str = xrealloc(s->c_str, s->len + n + 1);
+    s->c_str = realloc(s->c_str, s->len + n + 1);
     memcpy(s->c_str + s->len, temp, n);
     s->len += n;
     s->c_str[s->len] = 0;
@@ -69,7 +69,7 @@ void append_string(string* s, char* str)
     assert(str);
     s64 str_len = strlen(str);
     assert(str_len != 0);
-    s->c_str = xrealloc(s->c_str, s->len + str_len + 1);
+    s->c_str = realloc(s->c_str, s->len + str_len + 1);
     memcpy(s->c_str + s->len, str, str_len);
     s->len += str_len;
     s->c_str[s->len] = 0;
@@ -100,12 +100,12 @@ char* str_intern_range(char* start, char* end)
             return intern->str;
         }
     }
-    char* str = xmalloc(len + 1);
+    char* str = malloc(len + 1);
     interns_mem_alloc_size += len + 1;
     memcpy(str, start, len);
     str[len] = 0;
 
-    Intern_Str* intern = xmalloc(sizeof(Intern_Str));
+    Intern_Str* intern = malloc(sizeof(Intern_Str));
     intern->len = len;
     intern->str = str;
     list_append(interns, intern);
