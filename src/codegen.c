@@ -223,9 +223,9 @@ void emit_store(Value* variable)
     assert(variable->kind == VALUE_VARIABLE);
     s64 stack_pos = get_stack_pos_of_variable(variable);
     switch (variable->type->kind) {
-    case TYPESPEC_STRUCT:
-    case TYPESPEC_POINTER:
-    case TYPESPEC_ARRAY: emit("MOV [RAX], RCX; store"); break;
+    // case TYPESPEC_STRUCT:
+    // case TYPESPEC_POINTER:
+    // case TYPESPEC_ARRAY: emit("MOV [RAX], RCX; store"); break;
     default: emit("MOV [RBP-%lld], RCX; store", stack_pos); break;
     }
 }
@@ -239,8 +239,8 @@ void emit_load(Value* variable)
     char* reg       = get_reg(get_rax_reg_of_byte_size(size));
     char* mov_size  = get_op_size(size);
     switch (variable->type->kind) {
-    case TYPESPEC_POINTER:
-    case TYPESPEC_ARRAY: emit("LEA RAX, [RBP-%lld]; load_ref", stack_pos); break;
+    // case TYPESPEC_POINTER:
+    // case TYPESPEC_ARRAY: emit("LEA RAX, [RBP-%lld]; load_ref", stack_pos); break;
     default: emit("MOV %s, %s [RBP-%lld]; load", reg, mov_size, stack_pos); break;
     }
 }
@@ -301,7 +301,7 @@ Value* codegen_binary(Expr* expr)
 
     // Field access
     case TOKEN_DOT: {
-
+        error("FIELD ACCESS NOT IMPLEMENTED");
         Value* variable = get_variable(lhs->Ident.name);
 
         assert(variable->kind == VALUE_VARIABLE);

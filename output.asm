@@ -71,6 +71,11 @@ extern _glUniform3f
 extern _glUniform4f
 extern _glUniformMatrix4fv
 extern _glGetUniformLocation
+extern _glewInit
+extern _glewIsSupported
+extern _glewGetExtension
+extern _glewGetErrorString
+extern _glewGetString
 extern _glfwCreateWindow
 extern _glfwInit
 extern _glfwTerminate
@@ -137,96 +142,21 @@ extern _glfwSetTime
 extern _glfwGetTimerValue
 extern _glfwGetTimerFrequency
 extern _glfwGetRequiredInstanceExtensions
-extern _glewInit
-extern _glewIsSupported
-extern _glewGetExtension
-extern _glewGetErrorString
-extern _glewGetString
-extern _puts
 section .data
-	D0 db `error initilizing GLFW`, 0 
-	D1 db `Triangle`, 0 
-	D2 db `error initilizing GLEW`, 0 
+	D0 db `Hello`, 0 
 global _main
 section .text
 _main:
 	PUSH RBP
 	MOV RBP, RSP
-	SUB RSP, 16; 16 alloc, 0 padding
+	SUB RSP, 16; 8 alloc, 8 padding
 .BEGIN:
 	CALL _glfwInit
-	CMP RAX, 0
-	SETE AL
-	CMP AL, 0
-	JE .L1
+	MOV RAX, 512
+	PUSH RAX
+	MOV RAX, 512
+	PUSH RAX
 	MOV RAX, D0; string_ref
-	PUSH RAX
-	POP RDI
-	CALL _puts
-	JMP .L1
-.L0:
-.L1:
-	MOV RAX, 139266
-	PUSH RAX
-	MOV RAX, 2
-	PUSH RAX
-	POP RSI
-	POP RDI
-	CALL _glfwWindowHint
-	MOV RAX, 139267
-	PUSH RAX
-	MOV RAX, 1
-	PUSH RAX
-	POP RSI
-	POP RDI
-	CALL _glfwWindowHint
-	MOV RAX, 131077
-	PUSH RAX
-	MOV RAX, 1
-	PUSH RAX
-	POP RSI
-	POP RDI
-	CALL _glfwWindowHint
-	MOV RAX, 135181
-	PUSH RAX
-	MOV RAX, 4
-	PUSH RAX
-	POP RSI
-	POP RDI
-	CALL _glfwWindowHint
-	MOV RAX, 135169
-	PUSH RAX
-	MOV RAX, 8
-	PUSH RAX
-	POP RSI
-	POP RDI
-	CALL _glfwWindowHint
-	MOV RAX, 135170
-	PUSH RAX
-	MOV RAX, 8
-	PUSH RAX
-	POP RSI
-	POP RDI
-	CALL _glfwWindowHint
-	MOV RAX, 135171
-	PUSH RAX
-	MOV RAX, 8
-	PUSH RAX
-	POP RSI
-	POP RDI
-	CALL _glfwWindowHint
-	MOV RAX, 135172
-	PUSH RAX
-	MOV RAX, 8
-	PUSH RAX
-	POP RSI
-	POP RDI
-	CALL _glfwWindowHint
-	MOV RAX, 512
-	PUSH RAX
-	MOV RAX, 512
-	PUSH RAX
-	MOV RAX, D1; string_ref
 	PUSH RAX
 	MOV RAX, 0
 	PUSH RAX
@@ -240,86 +170,41 @@ _main:
 	CALL _glfwCreateWindow
 	PUSH RAX
 	PUSH RAX
-	LEA RAX, [RBP-8]; load_ref
+	MOV RAX, QWORD [RBP-8]; load
 	POP RCX
-	MOV [RAX], RCX; store
+	MOV [RBP-8], RCX; store
 	POP RAX
-	LEA RAX, [RBP-8]; load_ref
+	MOV RAX, QWORD [RBP-8]; load
 	PUSH RAX
 	POP RDI
 	CALL _glfwMakeContextCurrent
 	CALL _glewInit
-	PUSH RAX
-	MOV RAX, 0
-	POP RCX
-	CMP RCX, RAX
-	SETNE AL
-	CMP AL, 0
-	JE .L3
-	MOV RAX, D2; string_ref
-	PUSH RAX
-	POP RDI
-	CALL _puts
-	JMP .L3
-.L2:
-.L3:
-	MOV RAX, 1
-	PUSH RAX
-	PUSH RAX
-	MOV RAX, QWORD [RBP-16]; load
-	POP RCX
-	MOV [RBP-16], RCX; store
-	POP RAX
-.L4:
-	LEA RAX, [RBP-8]; load_ref
+.L0:
+	MOV RAX, QWORD [RBP-8]; load
 	PUSH RAX
 	POP RDI
 	CALL _glfwWindowShouldClose
 	CMP RAX, 0
 	SETE AL
 	CMP AL, 0
-	JE .L5
+	JE .L1
 	CALL _glfwPollEvents
 	MOV RAX, 16384
 	PUSH RAX
 	POP RDI
 	CALL _glClear
-	LEA RAX, [RBP-8]; load_ref
-	PUSH RAX
-	MOV RAX, 256
-	PUSH RAX
-	POP RSI
-	POP RDI
-	CALL _glfwGetKey
-	PUSH RAX
-	MOV RAX, 1
-	POP RCX
-	CMP RCX, RAX
-	SETE AL
-	CMP AL, 0
-	JE .L7
-	MOV RAX, 0
-	PUSH RAX
-	PUSH RAX
-	MOV RAX, QWORD [RBP-16]; load
-	POP RCX
-	MOV [RBP-16], RCX; store
-	POP RAX
-	JMP .L7
-.L6:
-.L7:
-	LEA RAX, [RBP-8]; load_ref
+	MOV RAX, QWORD [RBP-8]; load
 	PUSH RAX
 	POP RDI
 	CALL _glfwSwapBuffers
-	JMP .L4
-.L5:
-.L9:
-	JMP .L8
-.L8:
+	JMP .L0
+.L1:
+.L3:
+	JMP .L2
+.L2:
 	MOV RAX, 1
 	JMP .END
 .END:
-	ADD RSP, 16; 16 alloc, 0 padding
+	ADD RSP, 16; 8 alloc, 8 padding
 	LEAVE
 	RET

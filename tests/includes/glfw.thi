@@ -1,5 +1,5 @@
 
-link "glfw3"
+link "glfw"
 
 type GLFWvidmode
     width:        s32

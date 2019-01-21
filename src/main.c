@@ -301,7 +301,7 @@ void assemble(char* asm_file, char* exec_name)
 
 void linking_stage(char* exec_name)
 {
-    char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _main ", exec_name, exec_name);
+    char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _main -framework OpenGL -framework CoreVideo ", exec_name, exec_name);
     List* links     = get_link_list();
     LIST_FOREACH(links)
     {
