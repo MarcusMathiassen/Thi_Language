@@ -1,6 +1,6 @@
 load "includes/opengl.thi"
-load "includes/glew.thi"
 load "includes/glfw.thi"
+load "includes/glew.thi"
 
 link "c"
 
@@ -22,21 +22,22 @@ def main () -> s32
     glfwWindowHint(GLFW_ALPHA_BITS, 8)
 
     window := glfwCreateWindow(512, 512, "Triangle", 0, 0)
-    glfwMakeContextCurrent(window)
-    
+    glfwMakeContextCurrent(window);
+
     if glewInit() != GLEW_OK 
         puts("error initilizing GLEW")
 
     running := true
 
-    while running
-        if glfwWindowShouldClose(window) 
-            running = false
+    while !glfwWindowShouldClose(window)
+
+        glfwPollEvents()
+    
+        glClear(GL_COLOR_BUFFER_BIT)
+
         if glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS 
             running = false
 
-        glfwPollEvents()
-        glClear(GL_COLOR_BUFFER_BIT)
         glfwSwapBuffers(window)
 
     return 1

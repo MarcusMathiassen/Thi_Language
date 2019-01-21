@@ -13,9 +13,9 @@ string make_string(char* str)
 {
     assert(str);
     string s;
-    s64 str_len = strlen(str);
-    s.c_str = xmalloc(str_len + 1);
-    s.len = str_len;
+    s64    str_len = strlen(str);
+    s.c_str        = xmalloc(str_len + 1);
+    s.len          = str_len;
     memcpy(s.c_str, str, str_len);
     s.c_str[s.len] = 0;
     return s;
@@ -31,7 +31,7 @@ string make_string_f(char* fmt, ...)
 
     string s;
     s.c_str = xmalloc(n);
-    s.len = n;
+    s.len   = n;
 
     va_start(args, fmt);
     vsnprintf(s.c_str, n, fmt, args);
@@ -83,13 +83,12 @@ void free_string(string* s) { free(s->c_str); }
 
 typedef struct Intern_Str
 {
-    s64 len;
+    s64   len;
     char* str;
 } Intern_Str;
 
 List* interns;
-s64 interns_mem_alloc_size = 0;
-void init_interns_list() { interns = make_list(); }
+void  init_interns_list() { interns = make_list(); }
 char* str_intern_range(char* start, char* end)
 {
     s64 len = end - start;
@@ -101,13 +100,12 @@ char* str_intern_range(char* start, char* end)
         }
     }
     char* str = xmalloc(len + 1);
-    interns_mem_alloc_size += len + 1;
     memcpy(str, start, len);
     str[len] = 0;
 
     Intern_Str* intern = xmalloc(sizeof(Intern_Str));
-    intern->len = len;
-    intern->str = str;
+    intern->len        = len;
+    intern->str        = str;
     list_append(interns, intern);
     return str;
 }

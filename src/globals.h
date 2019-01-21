@@ -20,7 +20,7 @@ extern bool debug_mode;
 extern bool optimize;
 extern bool enable_constant_folding;
 
-extern bool detailed_print;
+extern bool  detailed_print;
 extern List* file_list;
 
 #define X64_ASM_OSX_STACK_PADDING 16
@@ -31,55 +31,55 @@ extern List* file_list;
 #define DEFAULT_INT_BYTE_SIZE 8
 #define DEFAULT_FLOAT_BYTE_SIZE 4
 
-#define INTERN_ARRAY_STARTING_ALLOC  1
-#define TOKEN_ARRAY_STARTING_ALLOC   100
+#define INTERN_ARRAY_STARTING_ALLOC 1
+#define TOKEN_ARRAY_STARTING_ALLOC 100
 
 #define LINES_ABOVE_AND_BELOW_TO_SHOW_ON_ERROR 2
 
-void set_source_file(char* file_name);
+void  set_source_file(char* file_name);
 char* get_previous_source_file(void);
 char* get_source_file(void);
 
 char* get_output_name(void);
-void set_output_name(char* name);
+void  set_output_name(char* name);
 
 List* get_file_list(void);
 List* get_link_list(void);
-void add_link(char* library_name);
+void  add_link(char* library_name);
 
-void set_current_dir(char* dir_name);
+void  set_current_dir(char* dir_name);
 char* get_current_dir();
 
-void initilize_globals(void);
-bool is_builtin_type(char* name);
-void add_builtin_type(char* name, Typespec* type);
+void      initilize_globals(void);
+bool      is_builtin_type(char* name);
+void      add_builtin_type(char* name, Typespec* type);
 Typespec* get_builtin_type(char* name);
 
 Typespec* add_symbol(char* name, Typespec* type);
 Typespec* set_symbol(char* name, Typespec* type);
 Typespec* get_symbol(char* name);
 
-void add_macro_def(char* name, Expr* expr);
+void  add_macro_def(char* name, Expr* expr);
 Expr* get_macro_def(char* name);
 
 void print_symbol_map(void);
 
-void add_foreign_function(char* name, Typespec* type);
+void  add_foreign_function(char* name, Typespec* type);
 List* get_foreign_function_list(void);
 
-void add_constant_string(char* name);
+void  add_constant_string(char* name);
 List* get_constant_string_list(void);
 
 typedef struct
 {
-    f64 ms;
+    f64   ms;
     char* desc;
 } Timer;
 
-void push_timer(char* desc);
-void pop_timer(void);
+void   push_timer(char* desc);
+void   pop_timer(void);
 Timer* peek_timer(void);
-void set_current_timers_time(f64 new_time);
-List* get_timers(void);
+void   set_current_timers_time(f64 new_time);
+List*  get_timers(void);
 
 #endif

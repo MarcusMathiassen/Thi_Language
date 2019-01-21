@@ -5,8 +5,8 @@
 #include "string.h"   // string
 #include "typespec.h" // Typespec
 
-typedef struct  Value       Value;
-typedef enum    Value_Kind  Value_Kind;
+typedef struct Value    Value;
+typedef enum Value_Kind Value_Kind;
 
 enum Value_Kind
 {
@@ -28,13 +28,13 @@ enum Value_Kind
 typedef struct
 {
     char* name;
-    s64 stack_pos;
+    s64   stack_pos;
 } Value_Variable;
 
 typedef struct
 {
     char* name;
-    s64 stack_allocated;
+    s64   stack_allocated;
 } Value_Function;
 
 typedef struct
@@ -43,13 +43,13 @@ typedef struct
 
 typedef struct
 {
-    u8 bytes;
+    u8  bytes;
     s64 value;
 } Value_Int;
 typedef struct
 {
     char* value;
-    s64 len;
+    s64   len;
 } Value_String;
 typedef struct
 {
@@ -58,41 +58,41 @@ typedef struct
 typedef struct
 {
     Value* variable;
-    s64 offset;
+    s64    offset;
 } Value_LoadInst;
 typedef struct
 {
     Value* variable;
-    s64 offset;
+    s64    offset;
 } Value_StoreInst;
 
 struct Value
 {
     Value_Kind kind;
-    Typespec* type;
+    Typespec*  type;
     union {
-        Value_Int Int;
-        Value_String String;
-        Value_Variable Variable;
-        Value_Call Call;
-        Value_Struct Struct;
-        Value_Function Function;
-        Value_LoadInst LoadInst;
+        Value_Int       Int;
+        Value_String    String;
+        Value_Variable  Variable;
+        Value_Call      Call;
+        Value_Struct    Struct;
+        Value_Function  Function;
+        Value_LoadInst  LoadInst;
         Value_StoreInst StoreInst;
     };
 };
 
-Value*  make_value_load_inst        (Value* variable, s64 offset);
-Value*  make_value_store_inst       (Value* variable, s64 offset);
-Value*  make_value_int              (u8 bytes, Typespec* type, s64 value);
-Value*  make_value_string           (char* value, Typespec* type);
-Value*  make_value_variable         (char* name, Typespec* type, s64 stack_pos);
-Value*  make_value_call             (char* callee, Typespec* type);
-Value*  make_value_function         (Typespec* type);
-Value*  make_value_struct           (Typespec* type);
+Value* make_value_load_inst(Value* variable, s64 offset);
+Value* make_value_store_inst(Value* variable, s64 offset);
+Value* make_value_int(u8 bytes, Typespec* type, s64 value);
+Value* make_value_string(char* value, Typespec* type);
+Value* make_value_variable(char* name, Typespec* type, s64 stack_pos);
+Value* make_value_call(char* callee, Typespec* type);
+Value* make_value_function(Typespec* type);
+Value* make_value_struct(Typespec* type);
 
-s64     get_size_of_value           (Value* value);
-s64     get_stack_pos_of_variable   (Value* variable);
+s64 get_size_of_value(Value* value);
+s64 get_stack_pos_of_variable(Value* variable);
 
 //------------------------------------------------------------------------------
 //                               Scope

@@ -5,23 +5,23 @@
 typedef struct
 {
     char* c_str;
-    s64 len;
+    s64   len;
 } string;
 
-string  make_string             (char* str);
-string  make_string_f           (char* fmt, ...);
-void    append_string           (string* s, char* str);
-void    append_string_f         (string* s, char* fmt, ...);
-void    free_string             (string* s);
+string make_string(char* str);
+string make_string_f(char* fmt, ...);
+void   append_string(string* s, char* str);
+void   append_string_f(string* s, char* fmt, ...);
+void   free_string(string* s);
 
-void    init_interns_list       ();
-char*   str_intern_range        (char* start, char* end);
-char*   str_intern              (char* str);
+void  init_interns_list();
+char* str_intern_range(char* start, char* end);
+char* str_intern(char* str);
 
 //------------------------------------------------------------------------------
 //                               Tests
 //------------------------------------------------------------------------------
 
-void    string_tests    (void);
+void string_tests(void);
 
 #endif

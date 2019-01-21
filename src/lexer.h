@@ -7,13 +7,14 @@
 //                              lexer.h
 //------------------------------------------------------------------------------
 
-typedef struct  Lex         Lex;
-typedef struct  Token       Token;
-typedef struct  Token_Array Token_Array;
-typedef struct  Token_Meta  Token_Meta;
-typedef enum    Token_Kind  Token_Kind;
+typedef struct Lex         Lex;
+typedef struct Token       Token;
+typedef struct Token_Array Token_Array;
+typedef struct Token_Meta  Token_Meta;
+typedef enum Token_Kind    Token_Kind;
 
-enum Token_Kind {
+enum Token_Kind
+{
     TOKEN_UNKNOWN,
     TOKEN_EOF,
     TOKEN_COMMENT,
@@ -111,48 +112,52 @@ enum Token_Kind {
     TOKEN_EQ,
 };
 
-struct Token {
-    s64 tid;
+struct Token
+{
+    s64        tid;
     Token_Kind kind;
-    char* value;
-    s64 line_pos;
-    s64 col_pos;
-    char* line_start;
+    char*      value;
+    s64        line_pos;
+    s64        col_pos;
+    char*      line_start;
 };
 
-struct Token_Meta {
+struct Token_Meta
+{
     s64   line_pos;
     s64   col_pos;
     char* line_start;
 };
 
-struct Token_Array {
-    Token*              data;
-    Token_Meta*         meta;
-    s64                 count;
-    s64                 allocated;
+struct Token_Array
+{
+    Token*      data;
+    Token_Meta* meta;
+    s64         count;
+    s64         allocated;
 };
 
-struct Lex {
+struct Lex
+{
     Token_Array* token_array;
-    s64 line_count;
-    s64 comment_count;
+    s64          line_count;
+    s64          comment_count;
 };
 
-Token_Array*  make_token_array    ();
-void          token_array_append  (Token_Array* l, Token token);
-void          print_tokens        (Token_Array* token_array);
-void          print_token         (Token token);
-char*         token_kind_to_str   (Token_Kind kind);
-Lex           lexify              (char* source);
+Token_Array* make_token_array();
+void         token_array_append(Token_Array* l, Token token);
+void         print_tokens(Token_Array* token_array);
+void         print_token(Token token);
+char*        token_kind_to_str(Token_Kind kind);
+Lex          lexify(char* source);
 
-#define THI_SYNTAX_POINTER                   TOKEN_ASTERISK
-#define THI_SYNTAX_ADDRESS                   TOKEN_AND
-#define THI_SYNTAX_SCOPE_BEGIN               TOKEN_OPEN_BRACE
-#define THI_SYNTAX_SCOPE_END                 TOKEN_CLOSE_BRACE
-#define THI_SYNTAX_DEF                       TOKEN_COLON
-#define THI_SYNTAX_CONSTANT_DEF              TOKEN_COLON_COLON
-#define THI_SYNTAX_VARIABLE_DECL_TYPE_INF    TOKEN_CLOSE_BRACE
-#define THI_SYNTAX_ASSIGNMENT                TOKEN_EQ
+#define THI_SYNTAX_POINTER TOKEN_ASTERISK
+#define THI_SYNTAX_ADDRESS TOKEN_AND
+#define THI_SYNTAX_SCOPE_BEGIN TOKEN_OPEN_BRACE
+#define THI_SYNTAX_SCOPE_END TOKEN_CLOSE_BRACE
+#define THI_SYNTAX_DEF TOKEN_COLON
+#define THI_SYNTAX_CONSTANT_DEF TOKEN_COLON_COLON
+#define THI_SYNTAX_VARIABLE_DECL_TYPE_INF TOKEN_CLOSE_BRACE
+#define THI_SYNTAX_ASSIGNMENT TOKEN_EQ
 
 #endif

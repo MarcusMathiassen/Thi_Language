@@ -19,7 +19,7 @@ void stack_free(Stack* stack)
 }
 typedef struct
 {
-    s32  id;
+    s32   id;
     float val;
 } Test_Type;
 
@@ -28,11 +28,11 @@ void stack_tests(void)
     Stack test_stack;
     stack_init(&test_stack);
     Test_Type t1;
-    t1.id = 0;
+    t1.id  = 0;
     t1.val = 3.43f;
 
     Test_Type t2;
-    t2.id = 1;
+    t2.id  = 1;
     t2.val = 6.41f;
 
     stack_push(&test_stack, &t1);
@@ -50,9 +50,9 @@ void* stack_push(Stack* stack, void* data)
     assert(stack);
     assert(data);
     Stack_Node* tmp = xmalloc(sizeof(Stack_Node));
-    tmp->data = data;
-    tmp->next = stack->head;
-    stack->head = tmp;
+    tmp->data       = data;
+    tmp->next       = stack->head;
+    stack->head     = tmp;
     return data;
 }
 
@@ -60,9 +60,9 @@ void* stack_pop(Stack* stack)
 {
     assert(stack);
     if (!stack->head) return NULL;
-    Stack_Node* tmp = stack->head;
-    void* popped = tmp->data;
-    stack->head = stack->head->next;
+    Stack_Node* tmp    = stack->head;
+    void*       popped = tmp->data;
+    stack->head        = stack->head->next;
     free(tmp);
     return popped;
 }

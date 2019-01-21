@@ -2,12 +2,12 @@
 #define STACK_H
 
 #include "typedefs.h"
-typedef struct Stack        Stack;
-typedef struct Stack_Node   Stack_Node;
+typedef struct Stack      Stack;
+typedef struct Stack_Node Stack_Node;
 
 struct Stack_Node
 {
-    void* data;
+    void*       data;
     Stack_Node* next;
 };
 
@@ -18,11 +18,11 @@ struct Stack
 
 #define STACK_FOREACH(stack) for (Stack_Node* it = (stack.head); (it); (it) = (it)->next)
 
-Stack*  make_stack      ();
-void    stack_init      (Stack* stack);
-void    stack_free      (Stack* stack);
-void*   stack_push      (Stack* stack, void* data);
-void*   stack_pop       (Stack* stack);
-void*   stack_peek      (Stack* stack);
-void    stack_tests     (void);
+Stack* make_stack();
+void   stack_init(Stack* stack);
+void   stack_free(Stack* stack);
+void*  stack_push(Stack* stack, void* data);
+void*  stack_pop(Stack* stack);
+void*  stack_peek(Stack* stack);
+void   stack_tests(void);
 #endif

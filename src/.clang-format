@@ -8,6 +8,9 @@ ColumnLimit: 120
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortIfStatementsOnASingleLine: true
 
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterEnum: true
