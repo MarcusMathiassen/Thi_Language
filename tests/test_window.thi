@@ -1,44 +1,20 @@
+load "includes/cstdio.thi"
 load "includes/opengl.thi"
 load "includes/glew.thi"
 load "includes/glfw.thi"
-load "includes/cstdio.thi"
 
 def main () -> s32
 
     glfwInit()
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2)
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1)
-
-    glfwWindowHint(GLFW_SAMPLES, 4)
-    glfwWindowHint(GLFW_RED_BITS, 8)
-    glfwWindowHint(GLFW_GREEN_BITS, 8)
-    glfwWindowHint(GLFW_BLUE_BITS, 8)
-    glfwWindowHint(GLFW_ALPHA_BITS, 8)
-
     context := glfwCreateWindow(512, 512, "Hello Triangle", 0, 0)
     glfwMakeContextCurrent(context)
-
     glewInit()
 
-    glClearColor(1.0, 1.0, 0.02, 1.0)
-
+    glClearColor(1.0, 1.0, 0.0, 1.0)
     while !glfwWindowShouldClose(context)
 
         glClear(GL_COLOR_BUFFER_BIT)
         glfwPollEvents()
-
-        # glBegin(GL_TRIANGLES)
-        # glColor4f(1.0, 0.0, 0.0, 1.0)
-        # glVertex2f(-0.5, -0.5)
-        # glColor4f(0.0, 1.0, 0.0, 1.0)
-        # glVertex2f(0.0, 0.5)
-        # glColor4f(0.0, 0.0, 1.0, 1.0)
-        # glVertex2f(0.5, -0.5)
-        # glEnd()
-
         glfwSwapBuffers(context)
-
-    glfwTerminate()
 
     return 1

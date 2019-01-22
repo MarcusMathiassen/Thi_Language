@@ -63,6 +63,7 @@ void   push_scope(Codegen_Context* ctx);
 void   pop_scope(Codegen_Context* ctx);
 char*  get_result_reg(Typespec* type);
 char*  get_op_size(s8 bytes);
+char*  get_db_op(Typespec* type);
 char*  get_move_op(Typespec* type);
 void   alloc_variable(Codegen_Context* ctx, Value* variable);
 void   dealloc_variable(Codegen_Context* ctx, Value* variable);
@@ -212,7 +213,7 @@ void emit(Codegen_Context* ctx, char* fmt, ...) {
 void push_type(Codegen_Context* ctx, Typespec* type) {
     assert(type);
     switch (type->kind) {
-    case TYPESPEC_ARRAY: // fallthrough
+    case TYPESPEC_ARRAY:   // fallthrough
     case TYPESPEC_POINTER: // fallthrough
     case TYPESPEC_INT: push(ctx, RAX); break;
     case TYPESPEC_FLOAT: push(ctx, XMM0); break;
@@ -223,7 +224,7 @@ void push_type(Codegen_Context* ctx, Typespec* type) {
 void pop_type(Codegen_Context* ctx, Typespec* type) {
     assert(type);
     switch (type->kind) {
-    case TYPESPEC_ARRAY: // fallthrough
+    case TYPESPEC_ARRAY:   // fallthrough
     case TYPESPEC_POINTER: // fallthrough
     case TYPESPEC_INT: pop(ctx, RAX); break;
     case TYPESPEC_FLOAT: pop(ctx, XMM0); break;
@@ -247,7 +248,7 @@ void pop(Codegen_Context* ctx, int reg) {
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
     char* r = get_reg(reg);
     if (reg >= XMM0 && reg <= XMM7) {
-        emit(ctx, "MOVSD %s, [RSP]", r);
+        emit(ctx, "MOVSD %s, QWORD [RSP]", r);
         emit(ctx, "ADD RSP, 8");
     } else {
         emit(ctx, "POP %s", r);
@@ -288,6 +289,17 @@ char* get_result_reg(Typespec* type) {
     return NULL;
 }
 
+char* get_db_op(Typespec* type) {
+    assert(type);
+    s64 bytes = get_size_of_typespec(type);
+    switch (bytes) {
+    case 1: return "DB";
+    case 2: return "DD";
+    case 4: return "DW";
+    case 8: return "DQ";
+    }
+    return NULL;
+}
 char* get_move_op(Typespec* type) {
     assert(type);
     s64 bytes = get_size_of_typespec(type);
@@ -735,7 +747,6 @@ Value* codegen_variable_decl(Codegen_Context* ctx, Expr* expr) {
     return variable;
 }
 
-
 Value* codegen_call(Codegen_Context* ctx, Expr* expr) {
     DEBUG_START;
     char* callee = expr->Call.callee;
@@ -752,50 +763,49 @@ Value* codegen_call(Codegen_Context* ctx, Expr* expr) {
     // Check if we really need all arguments.
     // If the callee function has any default argument we can skip them
 
-    List* arg_values = make_list();
-    s8 int_arg_counter = 0;
-    s8 float_arg_counter = 0;
+    List* arg_values        = make_list();
+    s8    int_arg_counter   = 0;
+    s8    float_arg_counter = 0;
 
     LIST_FOREACH_REVERSE(args) {
         Expr*  arg = (Expr*)it->data;
-        Value* v = codegen_expr(ctx, arg);
+        Value* v   = codegen_expr(ctx, arg);
         push_type(ctx, v->type);
         list_append(arg_values, v);
     }
 
     LIST_FOREACH(arg_values) {
         Value* v = (Value*)it->data;
-        switch (v->type->kind ) {
-            case TYPESPEC_ARRAY: // fallthrough
-            case TYPESPEC_POINTER: // fallthrough
-            case TYPESPEC_INT: {
-                switch (int_arg_counter) {
-                    case 0: pop(ctx, RDI); break;
-                    case 1: pop(ctx, RSI); break;
-                    case 2: pop(ctx, RDX); break;
-                    case 3: pop(ctx, RCX); break;
-                    case 4: pop(ctx, R8); break;
-                    case 5: pop(ctx, R9); break;
-                }
-                int_arg_counter += 1; 
-            } break;
-            case TYPESPEC_FLOAT: {
-                switch (float_arg_counter) {
-                    case 0: pop(ctx, XMM0); break;
-                    case 1: pop(ctx, XMM1); break;
-                    case 2: pop(ctx, XMM2); break;
-                    case 3: pop(ctx, XMM3); break;
-                    case 4: pop(ctx, XMM4); break;
-                    case 5: pop(ctx, XMM5); break;
-                    case 6: pop(ctx, XMM6); break;
-                    case 7: pop(ctx, XMM7); break;
-                }
-                float_arg_counter += 1; 
-            } break;
-            case TYPESPEC_STRUCT: error("undhandled");
+        switch (v->type->kind) {
+        case TYPESPEC_ARRAY:   // fallthrough
+        case TYPESPEC_POINTER: // fallthrough
+        case TYPESPEC_INT: {
+            switch (int_arg_counter) {
+            case 0: pop(ctx, RDI); break;
+            case 1: pop(ctx, RSI); break;
+            case 2: pop(ctx, RDX); break;
+            case 3: pop(ctx, RCX); break;
+            case 4: pop(ctx, R8); break;
+            case 5: pop(ctx, R9); break;
+            }
+            int_arg_counter += 1;
+        } break;
+        case TYPESPEC_FLOAT: {
+            switch (float_arg_counter) {
+            case 0: pop(ctx, XMM0); break;
+            case 1: pop(ctx, XMM1); break;
+            case 2: pop(ctx, XMM2); break;
+            case 3: pop(ctx, XMM3); break;
+            case 4: pop(ctx, XMM4); break;
+            case 5: pop(ctx, XMM5); break;
+            case 6: pop(ctx, XMM6); break;
+            case 7: pop(ctx, XMM7); break;
+            }
+            float_arg_counter += 1;
+        } break;
+        case TYPESPEC_STRUCT: error("undhandled");
         }
     }
-
     emit(ctx, "CALL _%s", callee);
 
     Typespec* ret_type = func_t->Function.ret_type;
@@ -809,9 +819,11 @@ Value* codegen_float(Codegen_Context* ctx, Expr* expr) {
     assert(expr->kind == EXPR_FLOAT);
     Value* val    = make_value_float(make_typespec_float(DEFAULT_FLOAT_BYTE_SIZE), expr->Float.val);
     char*  flabel = make_data_label(ctx);
-    emit_data(ctx, "%s db %f", flabel, expr->Float.val);
+    char*  db_op  = get_db_op(val->type);
+    emit_data(ctx, "%s %s %f", flabel, db_op, expr->Float.val);
     emit(ctx, "MOV RAX, %s; float_ref", flabel);
-    emit(ctx, "MOVSS XMM0, [RAX]; float_ref");
+    char* mov_op = get_move_op(val->type);
+    emit(ctx, "%s XMM0, [RAX]; float_ref", mov_op);
     return val;
 }
 
@@ -877,7 +889,8 @@ Value* codegen_string(Codegen_Context* ctx, Expr* expr) {
     char*     val    = expr->String.val;
     Typespec* t      = make_typespec_pointer(make_typespec_int(8, 1));
     char*     slabel = make_data_label(ctx);
-    emit_data(ctx, "%s db `%s`, 0 ", slabel, val);
+    char*     db_op  = get_db_op(t);
+    emit_data(ctx, "%s %s `%s`, 0 ", slabel, db_op, val);
     emit(ctx, "MOV RAX, %s; string_ref", slabel);
     return make_value_string(val, t);
 }

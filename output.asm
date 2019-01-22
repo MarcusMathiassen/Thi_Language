@@ -1,3 +1,27 @@
+extern _fopen
+extern _freopen
+extern _fclose
+extern _remove
+extern _rename
+extern _feof
+extern _ferror
+extern _fflush
+extern _clearerr
+extern _fseek
+extern _ftell
+extern _rewind
+extern _fread
+extern _fwrite
+extern _fgetc
+extern _getchar
+extern _ungetc
+extern _fputc
+extern _putc
+extern _putchar
+extern _fgets
+extern _fputs
+extern _puts
+extern _perror
 extern _glClear
 extern _glClearColor
 extern _glBegin
@@ -142,36 +166,12 @@ extern _glfwSetTime
 extern _glfwGetTimerValue
 extern _glfwGetTimerFrequency
 extern _glfwGetRequiredInstanceExtensions
-extern _fopen
-extern _freopen
-extern _fclose
-extern _remove
-extern _rename
-extern _feof
-extern _ferror
-extern _fflush
-extern _clearerr
-extern _fseek
-extern _ftell
-extern _rewind
-extern _fread
-extern _fwrite
-extern _fgetc
-extern _getchar
-extern _ungetc
-extern _fputc
-extern _putc
-extern _putchar
-extern _fgets
-extern _fputs
-extern _puts
-extern _perror
 section .data
-	D0 db `Hello Triangle`, 0 
-	D1 db 1.000000
-	D2 db 0.020000
-	D3 db 1.000000
-	D4 db 1.000000
+	D0 DQ `Hello Triangle`, 0 
+	D1 DW 1.000000
+	D2 DW 0.000000
+	D3 DW 1.000000
+	D4 DW 1.000000
 global _main
 section .text
 _main:
@@ -180,55 +180,6 @@ _main:
 	SUB RSP, 16; 8 alloc, 8 padding
 .BEGIN:
 	CALL _glfwInit
-	MOV EAX, 2
-	PUSH RAX
-	MOV EAX, 139266
-	PUSH RAX
-	POP RDI
-	POP RSI
-	CALL _glfwWindowHint
-	MOV EAX, 1
-	PUSH RAX
-	MOV EAX, 139267
-	PUSH RAX
-	POP RDI
-	POP RSI
-	CALL _glfwWindowHint
-	MOV EAX, 4
-	PUSH RAX
-	MOV EAX, 135181
-	PUSH RAX
-	POP RDI
-	POP RSI
-	CALL _glfwWindowHint
-	MOV EAX, 8
-	PUSH RAX
-	MOV EAX, 135169
-	PUSH RAX
-	POP RDI
-	POP RSI
-	CALL _glfwWindowHint
-	MOV EAX, 8
-	PUSH RAX
-	MOV EAX, 135170
-	PUSH RAX
-	POP RDI
-	POP RSI
-	CALL _glfwWindowHint
-	MOV EAX, 8
-	PUSH RAX
-	MOV EAX, 135171
-	PUSH RAX
-	POP RDI
-	POP RSI
-	CALL _glfwWindowHint
-	MOV EAX, 8
-	PUSH RAX
-	MOV EAX, 135172
-	PUSH RAX
-	POP RDI
-	POP RSI
-	CALL _glfwWindowHint
 	MOV EAX, 0
 	PUSH RAX
 	MOV EAX, 0
@@ -270,13 +221,13 @@ _main:
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSD [RSP], XMM0
-	MOVSD XMM0, [RSP]
+	MOVSD XMM0, QWORD [RSP]
 	ADD RSP, 8
-	MOVSD XMM1, [RSP]
+	MOVSD XMM1, QWORD [RSP]
 	ADD RSP, 8
-	MOVSD XMM2, [RSP]
+	MOVSD XMM2, QWORD [RSP]
 	ADD RSP, 8
-	MOVSD XMM3, [RSP]
+	MOVSD XMM3, QWORD [RSP]
 	ADD RSP, 8
 	CALL _glClearColor
 .L0:
@@ -299,7 +250,6 @@ _main:
 	CALL _glfwSwapBuffers
 	JMP .L0
 .L1:
-	CALL _glfwTerminate
 .L3:
 	JMP .L2
 .L2:
