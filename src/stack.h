@@ -5,14 +5,12 @@
 typedef struct Stack      Stack;
 typedef struct Stack_Node Stack_Node;
 
-struct Stack_Node
-{
+struct Stack_Node {
     void*       data;
     Stack_Node* next;
 };
 
-struct Stack
-{
+struct Stack {
     Stack_Node* head;
 };
 

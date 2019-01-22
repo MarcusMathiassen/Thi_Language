@@ -4,27 +4,23 @@
 #include <assert.h>
 #include <stdlib.h> // free
 
-Stack* make_stack()
-{
+Stack* make_stack() {
     Stack* s = xmalloc(sizeof(Stack));
     stack_init(s);
     return s;
 }
 
 void stack_init(Stack* stack) { stack->head = NULL; }
-void stack_free(Stack* stack)
-{
+void stack_free(Stack* stack) {
     while (stack_pop(stack) != NULL) {
     }
 }
-typedef struct
-{
+typedef struct {
     s32   id;
     float val;
 } Test_Type;
 
-void stack_tests(void)
-{
+void stack_tests(void) {
     Stack test_stack;
     stack_init(&test_stack);
     Test_Type t1;
@@ -45,8 +41,7 @@ void stack_tests(void)
     assert((Test_Type*)stack_pop(&test_stack) == NULL);
 }
 
-void* stack_push(Stack* stack, void* data)
-{
+void* stack_push(Stack* stack, void* data) {
     assert(stack);
     assert(data);
     Stack_Node* tmp = xmalloc(sizeof(Stack_Node));
@@ -56,8 +51,7 @@ void* stack_push(Stack* stack, void* data)
     return data;
 }
 
-void* stack_pop(Stack* stack)
-{
+void* stack_pop(Stack* stack) {
     assert(stack);
     if (!stack->head) return NULL;
     Stack_Node* tmp    = stack->head;

@@ -1,20 +1,13 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#include "list.h" // list
+#include "typedefs.h"
 
 //------------------------------------------------------------------------------
 //                              lexer.h
 //------------------------------------------------------------------------------
 
-typedef struct Lex         Lex;
-typedef struct Token       Token;
-typedef struct Token_Array Token_Array;
-typedef struct Token_Meta  Token_Meta;
-typedef enum Token_Kind    Token_Kind;
-
-enum Token_Kind
-{
+typedef enum {
     TOKEN_UNKNOWN,
     TOKEN_EOF,
     TOKEN_COMMENT,
@@ -110,46 +103,35 @@ enum Token_Kind
     TOKEN_BWSLASH,
     TOKEN_HASH,
     TOKEN_EQ,
-};
+} Token_Kind;
 
-struct Token
-{
-    s64        tid;
+typedef struct {
+    s64        id;
     Token_Kind kind;
     char*      value;
-    s64        line_pos;
-    s64        col_pos;
-    char*      line_start;
-};
+} Token;
 
-struct Token_Meta
-{
+typedef struct {
     s64   line_pos;
     s64   col_pos;
     char* line_start;
-};
+} Token_Info;
 
-struct Token_Array
-{
+typedef struct {
     Token*      data;
-    Token_Meta* meta;
+    Token_Info* info;
     s64         count;
     s64         allocated;
-};
+} Token_Array;
 
-struct Lex
-{
-    Token_Array* token_array;
-    s64          line_count;
-    s64          comment_count;
-};
+void        print_tokens(Token_Array token_array);
+void        print_token(Token token);
+char*       token_to_str(Token token);
+char*       token_kind_to_str(Token_Kind kind);
+Token_Array generate_tokens_from_source(char* source);
 
-Token_Array* make_token_array();
-void         token_array_append(Token_Array* l, Token token);
-void         print_tokens(Token_Array* token_array);
-void         print_token(Token token);
-char*        token_kind_to_str(Token_Kind kind);
-Lex          lexify(char* source);
+Token      token_array_at(Token_Array token_array, s64 token_index);
+Token_Info token_array_get_info_of(Token_Array token_array, s64 token_id);
 
 #define THI_SYNTAX_POINTER TOKEN_ASTERISK
 #define THI_SYNTAX_ADDRESS TOKEN_AND

@@ -1,6 +1,5 @@
 #include "ast.h"     // AST
 #include "codegen.h" // generate_code_from_ast
-#include "context.h" // ctx_tests
 #include "globals.h" // init_maps
 #include "lexer.h"   // generate_tokens_from_source, print_tokens
 #include "list.h"    // list_tests
@@ -30,21 +29,18 @@ void linking_stage(char* exec_name);
     Figure out all the files that are loaded by the source.
 */
 
-typedef struct
-{
+typedef struct {
     s64   len;
     char* str;
 } Intern;
 
-typedef struct
-{
+typedef struct {
     Intern* data;
     s64     count;
     s64     allocated;
 } Intern_Array;
 
-Intern_Array* make_intern_array()
-{
+Intern_Array* make_intern_array() {
     Intern_Array* l = xmalloc(sizeof(Intern_Array));
     l->count        = 0;
     l->allocated    = INTERN_ARRAY_STARTING_ALLOC;
@@ -52,8 +48,7 @@ Intern_Array* make_intern_array()
     return l;
 }
 
-void intern_array_append(Intern_Array* l, Intern intern)
-{
+void intern_array_append(Intern_Array* l, Intern intern) {
     if (l->count >= l->allocated) {
         l->allocated *= 2;
         l->data = xrealloc(l->data, l->allocated);
@@ -62,8 +57,7 @@ void intern_array_append(Intern_Array* l, Intern intern)
     l->count += 1;
 }
 
-char* intern_range(Intern_Array* intern_array, char* start, char* end)
-{
+char* intern_range(Intern_Array* intern_array, char* start, char* end) {
     s64 len = end - start;
 
     for (s64 i = 0; i < intern_array->count; ++i) {
@@ -84,8 +78,7 @@ char* intern_range(Intern_Array* intern_array, char* start, char* end)
     return str;
 }
 
-typedef struct
-{
+typedef struct {
     bool detailed_print;
     bool debug_mode;
     bool enable_constant_folding;
@@ -109,8 +102,7 @@ typedef struct
 
 } Thi_Context;
 
-Thi_Context make_thi_context()
-{
+Thi_Context make_thi_context() {
     Thi_Context t;
 
     t.detailed_print          = false;
@@ -135,8 +127,7 @@ Thi_Context make_thi_context()
     return t;
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     // Argument validation
     if (argc < 2) error("too few arguments.");
 
@@ -145,14 +136,13 @@ int main(int argc, char** argv)
     map_tests();
     list_tests();
     stack_tests();
-    ctx_tests();
 
     initilize_globals();
     init_interns_list();
 
     // Thi_Context thi_ctx = make_thi_context();
 
-    add_link("System");
+    add_link("-lSystem");
 
     s32 opt;
     while ((opt = getopt(argc, argv, "f:dvo:")) != -1) {
@@ -200,6 +190,7 @@ int main(int argc, char** argv)
     Typespec* f64_t = make_typespec_float(8);
 
     add_builtin_type("void", u8_t);
+    add_builtin_type("bool", u8_t);
 
     add_builtin_type("s8", s8_t);
     add_builtin_type("s16", s16_t);
@@ -239,8 +230,7 @@ int main(int argc, char** argv)
     // Constant folding
     if (enable_constant_folding) {
         push_timer("Constant folding");
-        LIST_FOREACH(ast)
-        {
+        LIST_FOREACH(ast) {
             Expr* expr = (Expr*)it->data;
             expr       = constant_fold_expr(expr);
         }
@@ -276,8 +266,7 @@ int main(int argc, char** argv)
 
     List* timers = get_timers();
     info("--- Compiler timings ---");
-    LIST_FOREACH(timers)
-    {
+    LIST_FOREACH(timers) {
         Timer* tm      = (Timer*)it->data;
         s64    len     = strlen(tm->desc);
         char*  ms      = strf("%f seconds", tm->ms / 1e3);
@@ -290,8 +279,7 @@ int main(int argc, char** argv)
     return 0;
 }
 
-void assemble(char* asm_file, char* exec_name)
-{
+void assemble(char* asm_file, char* exec_name) {
     string comp_call = make_string_f("nasm -f macho64 -g %s -o %s.o", asm_file, exec_name);
     push_timer("Assembler");
     system(comp_call.c_str);
@@ -299,14 +287,12 @@ void assemble(char* asm_file, char* exec_name)
     pop_timer();
 }
 
-void linking_stage(char* exec_name)
-{
-    char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _main -framework OpenGL -framework CoreVideo ", exec_name, exec_name);
+void linking_stage(char* exec_name) {
+    char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _main", exec_name, exec_name);
     List* links     = get_link_list();
-    LIST_FOREACH(links)
-    {
+    LIST_FOREACH(links) {
         char* l   = (char*)it->data;
-        link_call = strf("%s -l%s", link_call, l);
+        link_call = strf("%s %s", link_call, l);
     }
     info("Linking with options '%s'", link_call);
     push_timer("Linker");

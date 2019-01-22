@@ -6,15 +6,13 @@
 typedef struct List      List;
 typedef struct List_Node List_Node;
 
-struct List_Node
-{
+struct List_Node {
     void*      data;
     List_Node* next;
     List_Node* prev;
 };
 
-struct List
-{
+struct List {
     List_Node* head;
     List_Node* tail;
     s64        count;

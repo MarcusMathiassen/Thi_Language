@@ -31,8 +31,7 @@ List*  file_list;
 char* get_output_name(void) { return output_name.c_str; }
 void  set_output_name(char* name) { output_name = make_string(name); }
 
-void set_source_file(char* file_name)
-{
+void set_source_file(char* file_name) {
     previous_file = source_file.c_str;
     source_file   = make_string(file_name);
 }
@@ -43,8 +42,7 @@ char* get_current_dir() { return current_directory.c_str; }
 
 List* get_file_list() { return file_list; }
 
-void initilize_globals(void)
-{
+void initilize_globals(void) {
     timer_stack           = make_stack();
     foreign_function_list = make_list();
     constant_string_list  = make_list();
@@ -56,11 +54,9 @@ void initilize_globals(void)
     builtin_type_map      = make_map();
 }
 
-void add_link(char* library_name)
-{
+void add_link(char* library_name) {
     assert(library_name);
-    LIST_FOREACH(link_list)
-    {
+    LIST_FOREACH(link_list) {
         char* l = (char*)it->data;
         if (strcmp(l, library_name) == 0) {
             return;
@@ -72,8 +68,7 @@ void add_link(char* library_name)
 
 List* get_link_list(void) { return link_list; }
 
-void print_symbol_map(void)
-{
+void print_symbol_map(void) {
     s64 count = symbol_map->size;
     info("symbol_map count: %d", count);
     for (s64 i = 0; i < count; ++i) {
@@ -81,15 +76,13 @@ void print_symbol_map(void)
     }
 }
 
-bool is_builtin_type(char* name)
-{
+bool is_builtin_type(char* name) {
     assert(name);
     if (map_get(builtin_type_map, name)) return true;
     return false;
 }
 
-void add_builtin_type(char* name, Typespec* type)
-{
+void add_builtin_type(char* name, Typespec* type) {
     assert(name);
     assert(type);
     if (!map_set(builtin_type_map, name, type)) {
@@ -98,8 +91,7 @@ void add_builtin_type(char* name, Typespec* type)
     info("added builtin type: %s of type '%s'", name, typespec_to_str(type));
 }
 
-Typespec* get_builtin_type(char* name)
-{
+Typespec* get_builtin_type(char* name) {
     assert(name);
     Typespec* type = (Typespec*)map_get(builtin_type_map, name);
     if (!type) {
@@ -108,23 +100,20 @@ Typespec* get_builtin_type(char* name)
     return type;
 }
 
-void add_foreign_function(char* name, Typespec* type)
-{
+void add_foreign_function(char* name, Typespec* type) {
     assert(type);
     list_append(foreign_function_list, type);
     info("added extern function: '%s' of type '%s'", name, typespec_to_str(type));
 }
 List* get_foreign_function_list(void) { return foreign_function_list; }
 
-void add_constant_string(char* name)
-{
+void add_constant_string(char* name) {
     assert(name);
     list_append(constant_string_list, name);
 }
 List* get_constant_string_list(void) { return constant_string_list; }
 
-Typespec* add_symbol(char* name, Typespec* type)
-{
+Typespec* add_symbol(char* name, Typespec* type) {
     assert(name);
     assert(type);
     Typespec* t = map_set(symbol_map, name, type);
@@ -135,8 +124,7 @@ Typespec* add_symbol(char* name, Typespec* type)
     return t;
 }
 
-Typespec* set_symbol(char* name, Typespec* type)
-{
+Typespec* set_symbol(char* name, Typespec* type) {
     assert(name);
     assert(type);
     Typespec* t = map_set_overwrite(symbol_map, name, type);
@@ -144,8 +132,7 @@ Typespec* set_symbol(char* name, Typespec* type)
     return t;
 }
 
-Typespec* get_symbol(char* name)
-{
+Typespec* get_symbol(char* name) {
     assert(name);
     Typespec* t = (Typespec*)map_get(symbol_map, name);
     if (!t) {
@@ -154,8 +141,7 @@ Typespec* get_symbol(char* name)
     return t;
 }
 
-void add_macro_def(char* name, Expr* expr)
-{
+void add_macro_def(char* name, Expr* expr) {
     assert(name);
     assert(expr);
     if (!map_set(macro_map, name, expr)) {
@@ -164,8 +150,7 @@ void add_macro_def(char* name, Expr* expr)
     info("added macro: %s :: %s", name, expr_to_str(expr));
 }
 
-Expr* get_macro_def(char* name)
-{
+Expr* get_macro_def(char* name) {
     assert(name);
     Expr* expr = (Expr*)map_get(macro_map, name);
     // if (!expr) {
@@ -176,14 +161,12 @@ Expr* get_macro_def(char* name)
 
 List*  get_timers(void) { return timers; }
 Timer* peek_timer(void) { return (Timer*)stack_peek(timer_stack); }
-void   set_current_timers_time(f64 new_time)
-{
+void   set_current_timers_time(f64 new_time) {
     Timer* tm = (Timer*)stack_peek(timer_stack);
     tm->ms    = new_time;
 }
 
-void push_timer(char* desc)
-{
+void push_timer(char* desc) {
     assert(desc);
     Timer* tm = xmalloc(sizeof(Timer));
     tm->ms    = get_time();
@@ -191,8 +174,7 @@ void push_timer(char* desc)
     stack_push(timer_stack, tm);
 }
 
-void pop_timer(void)
-{
+void pop_timer(void) {
     Timer* tm = (Timer*)stack_pop(timer_stack);
     tm->ms    = get_time() - tm->ms;
     list_append(timers, tm);

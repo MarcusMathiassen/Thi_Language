@@ -31,8 +31,8 @@ extern List* file_list;
 #define DEFAULT_INT_BYTE_SIZE 8
 #define DEFAULT_FLOAT_BYTE_SIZE 4
 
-#define INTERN_ARRAY_STARTING_ALLOC 1
-#define TOKEN_ARRAY_STARTING_ALLOC 100
+#define INTERN_ARRAY_STARTING_ALLOC 1000
+#define TOKEN_ARRAY_STARTING_ALLOC 1000
 
 #define LINES_ABOVE_AND_BELOW_TO_SHOW_ON_ERROR 2
 
@@ -70,8 +70,7 @@ List* get_foreign_function_list(void);
 void  add_constant_string(char* name);
 List* get_constant_string_list(void);
 
-typedef struct
-{
+typedef struct {
     f64   ms;
     char* desc;
 } Timer;

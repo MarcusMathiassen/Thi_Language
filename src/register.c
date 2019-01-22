@@ -1,5 +1,4 @@
 #include "register.h"
-#include "context.h" // Context
 #include "utility.h" // error
 
 #define REG_COUNT 68
@@ -17,15 +16,13 @@ char* reg[REG_COUNT] = {
 
 int   get_num_registers() { return REG_COUNT; }
 char* get_reg(int reg_n) { return reg[reg_n]; }
-char* get_reg_fitting_value(Value* value)
-{
+char* get_reg_fitting_value(Value* value) {
     s64 size  = get_size_of_value(value);
     s64 reg_n = get_rax_reg_of_byte_size(size);
     return reg[reg_n];
 }
 
-int get_rax_reg_of_byte_size(u8 bytes)
-{
+int get_rax_reg_of_byte_size(u8 bytes) {
     switch (bytes) {
     case 1: return AL;
     case 2: return AX;
@@ -35,8 +32,7 @@ int get_rax_reg_of_byte_size(u8 bytes)
     return RAX;
 }
 
-int get_parameter_reg(s8 i, s8 size)
-{
+int get_parameter_reg(s8 i, s8 size) {
     switch (i) {
     case 0:
         switch (size) {
@@ -85,71 +81,7 @@ int get_parameter_reg(s8 i, s8 size)
     return -1; // to silence warning
 };
 
-int get_next_available_reg(Context* ctx, s8 size)
-{
-    s32 res = -1;
-    switch (ctx->next_available_reg_index) {
-    case 0:
-        switch (size) {
-        case 8: res = R10; break;
-        case 4: res = R10D; break;
-        case 2: res = R10W; break;
-        case 1: res = R10B; break;
-        }
-        break;
-    case 1:
-        switch (size) {
-        case 8: res = R11; break;
-        case 4: res = R11D; break;
-        case 2: res = R11W; break;
-        case 1: res = R11B; break;
-        }
-        break;
-    case 2:
-        switch (size) {
-        case 8: res = R12; break;
-        case 4: res = R12D; break;
-        case 2: res = R12W; break;
-        case 1: res = R12B; break;
-        }
-        break;
-    case 3:
-        switch (size) {
-        case 8: res = R13; break;
-        case 4: res = R13D; break;
-        case 2: res = R13W; break;
-        case 1: res = R13B; break;
-        }
-        break;
-    case 4:
-        switch (size) {
-        case 8: res = R14; break;
-        case 4: res = R14D; break;
-        case 2: res = R14W; break;
-        case 1: res = R14B; break;
-        }
-        break;
-    case 5:
-        switch (size) {
-        case 8: res = R15; break;
-        case 4: res = R15D; break;
-        case 2: res = R15W; break;
-        case 1: res = R15B; break;
-        }
-        break;
-    }
-
-    if (ctx->next_available_reg_index == 5) {
-        ctx->next_available_reg_index = 0;
-    }
-
-    ++ctx->next_available_reg_index;
-
-    return res;
-};
-
-int get_reg_as_another_size(int reg, s8 size)
-{
+int get_reg_as_another_size(int reg, s8 size) {
     switch (reg) {
     case R10:
     case R10D:
@@ -215,8 +147,7 @@ int get_reg_as_another_size(int reg, s8 size)
     return -1; // to silence warning
 }
 
-int get_push_or_popable_reg(int reg)
-{
+int get_push_or_popable_reg(int reg) {
     switch (reg) {
     case R10:
     case R10B:

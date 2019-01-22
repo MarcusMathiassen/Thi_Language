@@ -1,10 +1,7 @@
 def main () -> s32 
     i := 0
     if 1 < 0
-        i = add(2,2)
-    else 
+        i = 0
+    else
         i = 1
     return i
-
-def add (a: s32, b: s32) -> s32
-    return a + b

@@ -30,8 +30,7 @@ Typespec* make_typespec_function(char* name, List* args, Typespec* ret_type);
 s64 typespec_function_get_arg_count(Typespec* type);
 s64 typespec_array_get_count(Typespec* type);
 
-enum Typespec_Kind
-{
+enum Typespec_Kind {
     TYPESPEC_INT,
     TYPESPEC_FLOAT,
     TYPESPEC_STRING,
@@ -42,50 +41,40 @@ enum Typespec_Kind
     TYPESPEC_FUNCTION,
 };
 
-struct Arg
-{
+struct Arg {
     char*     name;
     Typespec* type;
 };
 
-struct Typespec
-{
+struct Typespec {
     Typespec_Kind kind;
     union {
-        struct
-        {
+        struct {
             s8 bytes;
             s8 is_unsigned;
         } Int;
-        struct
-        {
+        struct {
             s8 bytes;
         } Float;
-        struct
-        {
+        struct {
             s64 len;
         } String;
-        struct
-        {
+        struct {
             Typespec* pointee;
         } Pointer;
-        struct
-        {
+        struct {
             Typespec* type;
             s32       size;
         } Array;
-        struct
-        {
+        struct {
             char* name;
             List* members;
         } Enum;
-        struct
-        {
+        struct {
             char* name;
             List* members;
         } Struct;
-        struct
-        {
+        struct {
             char*     name;
             List*     args;
             Typespec* ret_type;

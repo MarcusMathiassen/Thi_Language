@@ -8,14 +8,12 @@
 //                               Map
 //------------------------------------------------------------------------------
 
-typedef struct Map_Element
-{
+typedef struct Map_Element {
     s64   key;
     void* data;
 } Map_Element;
 
-typedef struct Map
-{
+typedef struct Map {
     s64          table_size;
     s64          size;
     Map_Element* data;

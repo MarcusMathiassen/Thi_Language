@@ -1,7 +1,6 @@
 #ifndef REGISTER_H
 #define REGISTER_H
 
-#include "context.h"
 #include "typedefs.h"
 #include "value.h"
 
@@ -11,7 +10,6 @@ char* get_reg_fitting_value(Value* value);
 int   get_push_or_popable_reg(int reg);
 int   get_rax_reg_of_byte_size(u8 bytes);
 int   get_parameter_reg(s8 i, s8 size);
-int   get_next_available_reg(Context* ctx, s8 size);
 int   get_reg_as_another_size(int reg, s8 size);
 
 #define RAX 0

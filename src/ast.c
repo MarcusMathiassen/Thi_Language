@@ -13,8 +13,7 @@
 //                               Public
 //------------------------------------------------------------------------------
 
-char* expr_kind_to_str(Expr_Kind kind)
-{
+char* expr_kind_to_str(Expr_Kind kind) {
     switch (kind) {
     case EXPR_ASM: return "EXPR_ASM";
     case EXPR_MACRO: return "EXPR_MACRO";
@@ -32,19 +31,35 @@ char* expr_kind_to_str(Expr_Kind kind)
     case EXPR_BLOCK: return "EXPR_BLOCK";
     case EXPR_GROUPING: return "EXPR_GROUPING";
     case EXPR_SUBSCRIPT: return "EXPR_SUBSCRIPT";
+    case EXPR_IF: return "EXPR_IF";
+    case EXPR_FOR: return "EXPR_FOR";
+    case EXPR_WHILE: return "EXPR_WHILE";
+    case EXPR_RETURN: return "EXPR_RETURN";
+    case EXPR_DEFER: return "EXPR_DEFER";
+    case EXPR_BREAK: return "EXPR_BREAK";
+    case EXPR_CONTINUE: return "EXPR_CONTINUE";
     default: warning("expr_kind_to_str unhandled case '%d'", kind);
     }
     return NULL;
 }
 
-char* expr_to_str(Expr* expr)
-{
+char* expr_to_str(Expr* expr) {
     switch (expr->kind) {
+    case EXPR_DEFER: return strf("defer %s", expr_to_str(expr->Defer.expr));
+    case EXPR_BREAK: return "break";
+    case EXPR_CONTINUE: return "continue";
     case EXPR_ASM: {
         return strf("%s", expr->Asm.str);
     }
     case EXPR_MACRO: {
         return strf("%s :: %s", expr->Macro.name, expr_to_str(expr->Macro.expr));
+    }
+    case EXPR_RETURN: {
+        if (expr->Return.expr) {
+            return strf("return %s", expr_to_str(expr->Return.expr));
+        } else {
+            return strf("return");
+        }
     }
     case EXPR_NOTE: {
         return strf("$%s", expr_to_str(expr->Note.expr));
@@ -85,30 +100,44 @@ char* expr_to_str(Expr* expr)
         }
     }
     case EXPR_BLOCK: {
-        string str = make_string("");
-        LIST_FOREACH(expr->Block.stmts)
-        {
+        string str = make_string("{");
+        LIST_FOREACH(expr->Block.stmts) {
             Expr* stmt = (Expr*)it->data;
-            append_string_f(&str, "%s\n", expr_to_str(stmt));
+            append_string(&str, strf("%s\n", expr_to_str(stmt)));
         }
+        append_string(&str, "}");
         return str.c_str;
     }
     case EXPR_STRUCT: {
         return strf("%s", typespec_to_str(expr->Struct.type));
     }
     case EXPR_FUNCTION: {
-        string str = make_string_f("%s {\n%s}", typespec_to_str(expr->Function.type), expr_to_str(expr->Function.body));
+        string str = make_string_f("%s %s", typespec_to_str(expr->Function.type), expr_to_str(expr->Function.body));
         return str.c_str;
     }
     case EXPR_GROUPING: return strf("(%s)", expr_to_str(expr->Grouping.expr));
     case EXPR_SUBSCRIPT: return strf("%s[%s]", expr_to_str(expr->Subscript.load), expr_to_str(expr->Subscript.sub));
+    case EXPR_IF: {
+        if (expr->If.else_block) {
+            return strf("if %s %s else %s", expr_to_str(expr->If.cond), expr_to_str(expr->If.then_block),
+                        expr_to_str(expr->If.else_block));
+        } else {
+            return strf("if %s %s", expr_to_str(expr->If.cond), expr_to_str(expr->If.then_block));
+        }
+    }
+    case EXPR_FOR: {
+        return strf("for %s, %s, %s %s", expr_to_str(expr->For.init), expr_to_str(expr->For.cond),
+                    expr_to_str(expr->For.step), expr_to_str(expr->For.then_block));
+    }
+    case EXPR_WHILE: {
+        return strf("while %s %s", expr_to_str(expr->While.cond), expr_to_str(expr->While.then_block));
+    }
     case EXPR_CALL: {
         string str   = make_string(expr->Call.callee);
         s64    count = expr->Call.args->count;
         s64    index = 0;
         append_string(&str, "(");
-        LIST_FOREACH(expr->Call.args)
-        {
+        LIST_FOREACH(expr->Call.args) {
             Expr* arg = (Expr*)it->data;
             append_string(&str, expr_to_str(arg));
             if (index++ != count - 1) append_string(&str, ", ");
@@ -121,8 +150,7 @@ char* expr_to_str(Expr* expr)
     return NULL;
 }
 
-Typespec* get_inferred_type_of_expr(Expr* expr)
-{
+Typespec* get_inferred_type_of_expr(Expr* expr) {
     switch (expr->kind) {
     case EXPR_MACRO: return get_inferred_type_of_expr(expr->Macro.expr);
     case EXPR_NOTE: return get_inferred_type_of_expr(expr->Note.expr);
@@ -143,8 +171,7 @@ Typespec* get_inferred_type_of_expr(Expr* expr)
     return NULL;
 }
 
-Expr* get_arg_from_func(Typespec* func_t, s64 arg_index)
-{
+Expr* get_arg_from_func(Typespec* func_t, s64 arg_index) {
     assert(func_t);
     assert(func_t->kind == TYPESPEC_FUNCTION);
     assert(arg_index >= 0 && arg_index <= typespec_function_get_arg_count(func_t));
@@ -155,18 +182,27 @@ Expr* get_arg_from_func(Typespec* func_t, s64 arg_index)
 
 // @HACK
 bool  last_was_true = false;
-Expr* constant_fold_expr(Expr* expr)
-{
+Expr* constant_fold_expr(Expr* expr) {
     assert(expr);
 
     info("constant_fold_expr %s: %s", expr_kind_to_str(expr->kind), expr_to_str(expr));
 
     switch (expr->kind) {
+    case EXPR_CONTINUE: return expr;
+    case EXPR_BREAK: return expr;
     case EXPR_ASM: return expr;
     case EXPR_INT: return expr;
     case EXPR_STRING: return expr;
     case EXPR_FLOAT: return expr;
     case EXPR_NOTE: return expr;
+    case EXPR_DEFER: {
+        expr->Defer.expr = constant_fold_expr(expr->Defer.expr);
+    } break;
+    case EXPR_RETURN: {
+        if (expr->Return.expr) {
+            expr->Return.expr = constant_fold_expr(expr->Return.expr);
+        }
+    } break;
     case EXPR_MACRO: {
         expr->Macro.expr = constant_fold_expr(expr->Macro.expr);
     } break;
@@ -177,8 +213,7 @@ Expr* constant_fold_expr(Expr* expr)
         }
     } break;
     case EXPR_CALL: {
-        LIST_FOREACH(expr->Call.args)
-        {
+        LIST_FOREACH(expr->Call.args) {
             Expr* arg = (Expr*)it->data;
             it->data  = constant_fold_expr(arg);
         }
@@ -252,8 +287,7 @@ Expr* constant_fold_expr(Expr* expr)
         return constant_fold_expr(expr->Function.body);
     } break;
     case EXPR_BLOCK: {
-        LIST_FOREACH(expr->Block.stmts)
-        {
+        LIST_FOREACH(expr->Block.stmts) {
             Expr* stmt = (Expr*)it->data;
             it->data   = constant_fold_expr(stmt);
         }
@@ -265,13 +299,26 @@ Expr* constant_fold_expr(Expr* expr)
         expr->Subscript.load = constant_fold_expr(expr->Subscript.load);
         expr->Subscript.sub  = constant_fold_expr(expr->Subscript.sub);
     } break;
+    case EXPR_IF: {
+        expr->If.cond       = constant_fold_expr(expr->If.cond);
+        expr->If.then_block = constant_fold_expr(expr->If.then_block);
+    } break;
+    case EXPR_FOR: {
+        expr->For.init       = constant_fold_expr(expr->For.init);
+        expr->For.cond       = constant_fold_expr(expr->For.cond);
+        expr->For.step       = constant_fold_expr(expr->For.step);
+        expr->For.then_block = constant_fold_expr(expr->For.then_block);
+    } break;
+    case EXPR_WHILE: {
+        expr->While.cond       = constant_fold_expr(expr->While.cond);
+        expr->While.then_block = constant_fold_expr(expr->While.then_block);
+    } break;
     default: error("constant_fold_expr %s not implemented", expr_kind_to_str(expr->kind));
     }
     return expr;
 }
 
-void print_ast(List* ast)
-{
+void print_ast(List* ast) {
     info("Printing AST..");
     LIST_FOREACH(ast) { info("%s", wrap_with_colored_parens(expr_to_str((Expr*)it->data))); }
 }
@@ -280,23 +327,20 @@ void print_ast(List* ast)
 //                               Expr Maker Functions
 //------------------------------------------------------------------------------
 
-Expr* make_expr(Expr_Kind kind)
-{
+Expr* make_expr(Expr_Kind kind) {
     Expr* e = xmalloc(sizeof(Expr));
     e->kind = kind;
     return e;
 }
 
-Expr* make_expr_asm(char* str)
-{
+Expr* make_expr_asm(char* str) {
     assert(str);
     Expr* e    = make_expr(EXPR_ASM);
     e->Asm.str = str;
     return e;
 }
 
-Expr* make_expr_macro(char* name, Expr* expr)
-{
+Expr* make_expr_macro(char* name, Expr* expr) {
     assert(name);
     assert(expr);
     Expr* e       = make_expr(EXPR_MACRO);
@@ -305,52 +349,45 @@ Expr* make_expr_macro(char* name, Expr* expr)
     return e;
 }
 
-Expr* make_expr_note(Expr* expr)
-{
+Expr* make_expr_note(Expr* expr) {
     assert(expr);
     Expr* e      = make_expr(EXPR_NOTE);
     e->Note.expr = expr;
     return e;
 }
 
-Expr* make_expr_int(s64 value)
-{
+Expr* make_expr_int(s64 value) {
     Expr* e    = make_expr(EXPR_INT);
     e->Int.val = value;
     return e;
 }
 
-Expr* make_expr_float(f64 value)
-{
+Expr* make_expr_float(f64 value) {
     Expr* e      = make_expr(EXPR_FLOAT);
     e->Float.val = value;
     return e;
 }
 
-Expr* make_expr_string(char* value)
-{
+Expr* make_expr_string(char* value) {
     Expr* e       = make_expr(EXPR_STRING);
     e->String.val = value;
     return e;
 }
 
-Expr* make_expr_ident(char* ident)
-{
+Expr* make_expr_ident(char* ident) {
     assert(ident);
     Expr* e       = make_expr(EXPR_IDENT);
     e->Ident.name = ident;
     return e;
 }
 
-Expr* make_expr_struct(Typespec* struct_t)
-{
+Expr* make_expr_struct(Typespec* struct_t) {
     assert(struct_t);
     Expr* e        = make_expr(EXPR_STRUCT);
     e->Struct.type = struct_t;
     return e;
 }
-Expr* make_expr_function(Typespec* func_t, Expr* body)
-{
+Expr* make_expr_function(Typespec* func_t, Expr* body) {
     assert(func_t);
     assert(func_t->kind == TYPESPEC_FUNCTION);
     Expr* e            = make_expr(EXPR_FUNCTION);
@@ -360,8 +397,7 @@ Expr* make_expr_function(Typespec* func_t, Expr* body)
     return e;
 }
 
-Expr* make_expr_binary(Token_Kind op, Expr* lhs, Expr* rhs)
-{
+Expr* make_expr_binary(Token_Kind op, Expr* lhs, Expr* rhs) {
     assert(op != TOKEN_UNKNOWN);
     assert(lhs);
     assert(rhs);
@@ -372,8 +408,7 @@ Expr* make_expr_binary(Token_Kind op, Expr* lhs, Expr* rhs)
     return e;
 }
 
-Expr* make_expr_unary(Token_Kind op, Expr* operand)
-{
+Expr* make_expr_unary(Token_Kind op, Expr* operand) {
     assert(op != TOKEN_UNKNOWN);
     assert(operand);
     Expr* e          = make_expr(EXPR_UNARY);
@@ -382,15 +417,13 @@ Expr* make_expr_unary(Token_Kind op, Expr* operand)
     return e;
 }
 
-Expr* make_expr_block(List* stmts)
-{
+Expr* make_expr_block(List* stmts) {
     Expr* e        = make_expr(EXPR_BLOCK);
     e->Block.stmts = stmts;
     return e;
 }
 
-Expr* make_expr_call(char* callee, List* args)
-{
+Expr* make_expr_call(char* callee, List* args) {
     assert(callee);
     assert(args);
     Expr* e        = make_expr(EXPR_CALL);
@@ -399,16 +432,14 @@ Expr* make_expr_call(char* callee, List* args)
     return e;
 }
 
-Expr* make_expr_grouping(Expr* expr)
-{
+Expr* make_expr_grouping(Expr* expr) {
     assert(expr);
     Expr* e          = make_expr(EXPR_GROUPING);
     e->Grouping.expr = expr;
     return e;
 }
 
-Expr* make_expr_variable_decl(char* name, Typespec* type, Expr* value)
-{
+Expr* make_expr_variable_decl(char* name, Typespec* type, Expr* value) {
     // 'value' and 'name' can be NULL
     assert(type);
     Expr* e                = make_expr(EXPR_VARIABLE_DECL);
@@ -418,12 +449,64 @@ Expr* make_expr_variable_decl(char* name, Typespec* type, Expr* value)
     return e;
 }
 
-Expr* make_expr_subscript(Expr* load, Expr* sub)
-{
+Expr* make_expr_subscript(Expr* load, Expr* sub) {
     assert(load);
     assert(sub);
     Expr* e           = make_expr(EXPR_SUBSCRIPT);
     e->Subscript.load = load;
     e->Subscript.sub  = sub;
+    return e;
+}
+
+Expr* make_expr_if(Expr* cond, Expr* then_block, Expr* else_block) {
+    assert(cond);
+    assert(then_block);
+    Expr* e          = make_expr(EXPR_IF);
+    e->If.cond       = cond;
+    e->If.then_block = then_block;
+    e->If.else_block = else_block;
+    return e;
+}
+Expr* make_expr_for(Expr* init, Expr* cond, Expr* step, Expr* then_block) {
+    assert(init);
+    assert(cond);
+    assert(step);
+    assert(then_block);
+    Expr* e           = make_expr(EXPR_FOR);
+    e->For.init       = init;
+    e->For.cond       = cond;
+    e->For.step       = step;
+    e->For.then_block = then_block;
+    return e;
+}
+Expr* make_expr_while(Expr* cond, Expr* then_block) {
+    assert(cond);
+    assert(then_block);
+    Expr* e             = make_expr(EXPR_WHILE);
+    e->While.cond       = cond;
+    e->While.then_block = then_block;
+    return e;
+}
+
+Expr* make_expr_return(Expr* expr) {
+    assert(expr);
+    Expr* e        = make_expr(EXPR_RETURN);
+    e->Return.expr = expr;
+    return e;
+}
+
+Expr* make_expr_defer(Expr* expr) {
+    assert(expr);
+    Expr* e       = make_expr(EXPR_DEFER);
+    e->Defer.expr = expr;
+    return e;
+}
+Expr* make_expr_break() {
+    Expr* e = make_expr(EXPR_BREAK);
+    return e;
+}
+
+Expr* make_expr_continue() {
+    Expr* e = make_expr(EXPR_CONTINUE);
     return e;
 }

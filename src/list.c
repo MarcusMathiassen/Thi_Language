@@ -4,8 +4,7 @@
 #include <assert.h>
 #include <stdlib.h> // xmalloc
 
-List* make_list(void)
-{
+List* make_list(void) {
     List* l  = xmalloc(sizeof(List));
     l->head  = NULL;
     l->tail  = NULL;
@@ -13,19 +12,16 @@ List* make_list(void)
     return l;
 }
 
-void list_free(List* l)
-{
+void list_free(List* l) {
     LIST_FOREACH(l) { free(it->prev); }
 }
 
-typedef struct
-{
+typedef struct {
     char* name;
     float val;
 } Test_Type;
 
-void list_tests(void)
-{
+void list_tests(void) {
     List* list = make_list();
 
     Test_Type t1;
@@ -69,34 +65,29 @@ void list_tests(void)
 
 bool list_empty(List* list) { return (list->head == NULL && list->tail == NULL); }
 
-void list_prepend_content_of_in_reverse(List* list, List* other_list)
-{
+void list_prepend_content_of_in_reverse(List* list, List* other_list) {
     assert(list);
     assert(other_list);
     LIST_FOREACH_REVERSE(other_list) { list_prepend(list, it->data); }
 }
-void list_prepend_content_of(List* list, List* other_list)
-{
+void list_prepend_content_of(List* list, List* other_list) {
     assert(list);
     assert(other_list);
     LIST_FOREACH(other_list) { list_prepend(list, it->data); }
 }
 
-void list_append_content_of_in_reverse(List* list, List* other_list)
-{
+void list_append_content_of_in_reverse(List* list, List* other_list) {
     assert(list);
     assert(other_list);
     LIST_FOREACH_REVERSE(other_list) { list_append(list, it->data); }
 }
-void list_append_content_of(List* list, List* other_list)
-{
+void list_append_content_of(List* list, List* other_list) {
     assert(list);
     assert(other_list);
     LIST_FOREACH(other_list) { list_append(list, it->data); }
 }
 
-void* list_remove_at(List* list, s64 index)
-{
+void* list_remove_at(List* list, s64 index) {
     assert(list);
     assert(index >= 0 && index <= list->count);
 
@@ -107,8 +98,7 @@ void* list_remove_at(List* list, s64 index)
 
     if (start_from_tail) {
         iterator = list->count;
-        LIST_FOREACH_REVERSE(list)
-        {
+        LIST_FOREACH_REVERSE(list) {
             if (iterator == index) {
                 removed_node = list_remove(list, it);
                 break;
@@ -116,8 +106,7 @@ void* list_remove_at(List* list, s64 index)
             iterator -= 1;
         }
     } else {
-        LIST_FOREACH(list)
-        {
+        LIST_FOREACH(list) {
             if (iterator == index) {
                 removed_node = list_remove(list, it);
                 break;
@@ -129,8 +118,7 @@ void* list_remove_at(List* list, s64 index)
     return removed_node->data;
 }
 
-void* list_remove_at_end(List* list)
-{
+void* list_remove_at_end(List* list) {
     assert(list);
     if (list_empty(list)) {
         return NULL;
@@ -145,8 +133,7 @@ void* list_remove_at_end(List* list)
     return list->tail;
 }
 
-void* list_remove_at_start(List* list)
-{
+void* list_remove_at_start(List* list) {
     assert(list);
     if (list_empty(list)) {
         return NULL;
@@ -161,8 +148,7 @@ void* list_remove_at_start(List* list)
     return list->head;
 }
 
-void* list_remove(List* list, List_Node* node)
-{
+void* list_remove(List* list, List_Node* node) {
     assert(list);
     assert(node);
 
@@ -192,8 +178,7 @@ void* list_remove(List* list, List_Node* node)
     return node;
 }
 
-void* list_at(List* list, s64 index)
-{
+void* list_at(List* list, s64 index) {
     assert(list);
     assert(index >= 0 && index <= list->count);
 
@@ -202,8 +187,7 @@ void* list_at(List* list, s64 index)
 
     if (start_from_tail) {
         s64 iterator = list->count;
-        LIST_FOREACH_REVERSE(list)
-        {
+        LIST_FOREACH_REVERSE(list) {
             if (iterator == index) {
                 data = it->data;
                 break;
@@ -212,8 +196,7 @@ void* list_at(List* list, s64 index)
         }
     } else {
         s64 iterator = 0;
-        LIST_FOREACH(list)
-        {
+        LIST_FOREACH(list) {
             if (iterator == index) {
                 data = it->data;
                 break;
@@ -224,8 +207,7 @@ void* list_at(List* list, s64 index)
     return data;
 }
 
-void* list_prepend(List* list, void* data)
-{
+void* list_prepend(List* list, void* data) {
     assert(list);
     assert(data);
     ++list->count;
@@ -243,8 +225,7 @@ void* list_prepend(List* list, void* data)
     return data;
 }
 
-void* list_append(List* list, void* data)
-{
+void* list_append(List* list, void* data) {
     assert(list);
     assert(data);
     ++list->count;
@@ -262,20 +243,17 @@ void* list_append(List* list, void* data)
     return data;
 }
 
-void* list_first(List* list)
-{
+void* list_first(List* list) {
     assert(list);
     return list->head->data;
 }
 
-void* list_last(List* list)
-{
+void* list_last(List* list) {
     assert(list);
     return list->tail->data;
 }
 
-void list_insert_after(List* list, List_Node* prev_node, void* data)
-{
+void list_insert_after(List* list, List_Node* prev_node, void* data) {
     assert(prev_node);
     List_Node* new_node = xmalloc(sizeof(List_Node));
     new_node->data      = data;
@@ -289,8 +267,7 @@ void list_insert_after(List* list, List_Node* prev_node, void* data)
     }
 }
 
-void list_insert_before(List* list, List_Node* next_node, void* data)
-{
+void list_insert_before(List* list, List_Node* next_node, void* data) {
     assert(next_node);
     List_Node* new_node = xmalloc(sizeof(List_Node));
     new_node->data      = data;

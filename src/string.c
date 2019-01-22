@@ -9,8 +9,7 @@
 #include <stdlib.h>  // free
 #include <string.h>  // memcpy
 
-string make_string(char* str)
-{
+string make_string(char* str) {
     assert(str);
     string s;
     s64    str_len = strlen(str);
@@ -21,8 +20,7 @@ string make_string(char* str)
     return s;
 }
 
-string make_string_f(char* fmt, ...)
-{
+string make_string_f(char* fmt, ...) {
     assert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -40,31 +38,7 @@ string make_string_f(char* fmt, ...)
     return s;
 }
 
-void append_string_f(string* s, char* fmt, ...)
-{
-    assert(s);
-    assert(fmt);
-    va_list args;
-    va_start(args, fmt);
-    s64 n = 1 + vsnprintf(0, 0, fmt, args);
-    va_end(args);
-
-    char* temp = xmalloc(n);
-
-    va_start(args, fmt);
-    vsnprintf(temp, n, fmt, args);
-    va_end(args);
-
-    assert(n != 0);
-    s->c_str = xrealloc(s->c_str, s->len + n + 1);
-    memcpy(s->c_str + s->len, temp, n);
-    s->len += n;
-    s->c_str[s->len] = 0;
-
-    free(temp);
-}
-void append_string(string* s, char* str)
-{
+void append_string(string* s, char* str) {
     assert(s);
     assert(str);
     s64 str_len = strlen(str);
@@ -81,19 +55,16 @@ void free_string(string* s) { free(s->c_str); }
 //                              Intern String
 //------------------------------------------------------------------------------
 
-typedef struct Intern_Str
-{
+typedef struct Intern_Str {
     s64   len;
     char* str;
 } Intern_Str;
 
 List* interns;
 void  init_interns_list() { interns = make_list(); }
-char* str_intern_range(char* start, char* end)
-{
+char* str_intern_range(char* start, char* end) {
     s64 len = end - start;
-    LIST_FOREACH(interns)
-    {
+    LIST_FOREACH(interns) {
         Intern_Str* intern = (Intern_Str*)it->data;
         if (intern->len == len && strncmp(intern->str, start, len) == 0) {
             return intern->str;
@@ -115,8 +86,7 @@ char* str_intern(char* str) { return str_intern_range(str, str + strlen(str)); }
 //                               Tests
 //------------------------------------------------------------------------------
 
-void string_tests(void)
-{
+void string_tests(void) {
     // string test
     string s = make_string("Hello");
     assert(s.len == 5);

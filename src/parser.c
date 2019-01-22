@@ -1,7 +1,7 @@
 #include "parser.h"
 
 #include "globals.h"  // add_symbol
-#include "lexer.h"    // Token, Token_Kind, Lexify, Lex
+#include "lexer.h"    // Token, Token_Kind, generate_tokens_from_source, token_array_get_info_of
 #include "typedefs.h" // s32 , s64, etc.
 #include "typespec.h" // Typespec, make_typspec_*,
 #include "utility.h"  // info, error, warning, success, strf, get_file_content
@@ -13,21 +13,17 @@
 #include <string.h>   // strcmp
 
 #define BIN_OP_COUNT 51
-struct
-{
+struct {
     Token_Kind kind;
     s32        p;
 } binop_precedence[BIN_OP_COUNT] = {
-
-    {TOKEN_PLUS_PLUS, 100},    // ++
-    {TOKEN_MINUS_MINUS, 100},  // --
     {TOKEN_OPEN_BRACKET, 100}, // []
     {TOKEN_DOT, 100},          // .
     {TOKEN_OPEN_PAREN, 100},   // ()
     {TOKEN_RIGHT_ARROW, 100},  // ->
     {TOKEN_BANG, 85},          // !
     {TOKEN_TILDE, 85},         // ~
-    {THI_SYNTAX_POINTER, 85},  // @
+    {THI_SYNTAX_POINTER, 85},  // *
     {THI_SYNTAX_ADDRESS, 85},  // &
     {TOKEN_ASTERISK, 80},      // *
     {TOKEN_FWSLASH, 80},       // /
@@ -67,25 +63,29 @@ struct
 //                               Parser
 //------------------------------------------------------------------------------
 
-typedef struct
-{
-    Token_Array* token_array;
-    List*        ast;
-    s64          token_index;
-    Token        curr_tok;
-    Token        top_tok;
-    char*        source_file;
-    char*        source;
+typedef struct {
+    Token_Array token_array;
+    List*       ast;
+    s64         token_index;
+    Token       curr_tok;
+    Token_Kind  top_tok_kind;
+    char*       source_file;
+    char*       source;
 
-    s64 label_counter;
+    bool o_current_function_should_return_a_value;
+    bool l_current_function_should_return_a_value;
 
-    Expr* active_func;
-    char* ocontinue;
-    char* lcontinue;
-    char* obreak;
-    char* lbreak;
-    char* l_end;
 } Parse_Context;
+
+Parse_Context make_parse_context() {
+    Parse_Context pctx;
+    pctx.token_index                              = 0;
+    pctx.top_tok_kind                             = TOKEN_UNKNOWN;
+    pctx.curr_tok.kind                            = TOKEN_UNKNOWN;
+    pctx.o_current_function_should_return_a_value = false;
+    pctx.l_current_function_should_return_a_value = false;
+    return pctx;
+}
 
 //------------------------------------------------------------------------------
 //              Each construct of the language gets its own function
@@ -133,38 +133,25 @@ s64       get_integer(Parse_Context* pctx);
 f64       get_float(Parse_Context* pctx);
 Typespec* get_type(Parse_Context* pctx);
 
+bool pctx_get_function_should_return_a_value(Parse_Context* pctx);
+void pctx_set_function_should_return_a_value(Parse_Context* pctx, bool val);
+void pctx_reset_function_should_return_a_value(Parse_Context* pctx);
+
 bool       tok_is(Parse_Context* pctx, Token_Kind kind);
 int        get_tok_precedence(Parse_Context* pctx);
 void       eat(Parse_Context* pctx);
 void       eat_kind(Parse_Context* pctx, Token_Kind kind);
 Token_Kind next_tok_kind(Parse_Context* pctx);
 
-void  reset_label_counter(Parse_Context* pctx);
-char* make_label(Parse_Context* pctx);
-
 void syntax_error(Parse_Context* pctx, char* fmt, ...);
 
 #define DEBUG_START info("%s: %s", __func__, pctx->curr_tok.value);
-
-#define SET_ACTIVE_FUNC(func) pctx->active_func = func
-#define GET_ACTIVE_FUNC pctx->active_func
-
-#define SET_JUMP_LABELS(cont, brk)                                                                                     \
-    pctx->ocontinue = pctx->lcontinue;                                                                                 \
-    pctx->obreak    = pctx->lbreak;                                                                                    \
-    pctx->lcontinue = cont;                                                                                            \
-    pctx->lbreak    = brk;
-
-#define RESTORE_JUMP_LABELS                                                                                            \
-    pctx->lcontinue = pctx->ocontinue;                                                                                 \
-    pctx->lbreak    = pctx->obreak;
 
 //------------------------------------------------------------------------------
 //                               Public
 //------------------------------------------------------------------------------
 
-void give_type_to_all_nodes(Expr* expr)
-{
+void give_type_to_all_nodes(Expr* expr) {
     switch (expr->kind) {
     case EXPR_MACRO: give_type_to_all_nodes(expr->Macro.expr); break;
     case EXPR_NOTE: give_type_to_all_nodes(expr->Note.expr); break;
@@ -176,8 +163,7 @@ void give_type_to_all_nodes(Expr* expr)
     case EXPR_GROUPING: give_type_to_all_nodes(expr->Grouping.expr); break;
     case EXPR_BLOCK: {
         List* stmts = expr->Block.stmts;
-        LIST_FOREACH(stmts)
-        {
+        LIST_FOREACH(stmts) {
             Expr* stmt = (Expr*)it->data;
             give_type_to_all_nodes(stmt);
         }
@@ -188,8 +174,7 @@ void give_type_to_all_nodes(Expr* expr)
     if (expr->type) info("%s | %s", expr_to_str(expr), typespec_to_str(expr->type));
 }
 
-void parse(List* ast, char* source_file)
-{
+void parse(List* ast, char* source_file) {
     // We need to set some state
     char* last_file = get_source_file();
     char* last_dir  = get_current_dir();
@@ -202,25 +187,20 @@ void parse(List* ast, char* source_file)
 
     push_timer(source_file);
 
-    char* source = get_file_content(source_file);
-    Lex   lex    = lexify(source);
+    char*       source      = get_file_content(source_file);
+    Token_Array token_array = generate_tokens_from_source(source);
+    print_tokens(token_array);
 
-    print_tokens(lex.token_array);
-
-    Parse_Context pctx;
-    pctx.token_array   = lex.token_array;
-    pctx.token_index   = 0;
-    pctx.top_tok.kind  = TOKEN_UNKNOWN;
-    pctx.curr_tok.kind = TOKEN_UNKNOWN;
+    Parse_Context pctx = make_parse_context();
+    pctx.token_array   = token_array;
     pctx.ast           = ast;
     pctx.source_file   = source_file;
     pctx.source        = source;
-    pctx.label_counter = 0;
 
     recursively_fill_ast(ast, &pctx);
 
     print_symbol_map();
-    // print_ast(ast);
+    print_ast(ast);
 
     pop_timer();
 
@@ -232,8 +212,7 @@ void parse(List* ast, char* source_file)
 //                               Private
 //------------------------------------------------------------------------------
 
-void recursively_fill_ast(List* ast, Parse_Context* pctx)
-{
+void recursively_fill_ast(List* ast, Parse_Context* pctx) {
     info("Generating ast from tokens..");
     eat(pctx);
     while (!tok_is(pctx, TOKEN_EOF)) {
@@ -244,10 +223,9 @@ void recursively_fill_ast(List* ast, Parse_Context* pctx)
     }
 }
 
-Expr* parse_top_level(Parse_Context* pctx)
-{
+Expr* parse_top_level(Parse_Context* pctx) {
     DEBUG_START;
-    pctx->top_tok = pctx->curr_tok;
+    pctx->top_tok_kind = pctx->curr_tok.kind;
     switch (pctx->curr_tok.kind) {
     case TOKEN_IDENTIFIER: return parse_macro(pctx);
     case TOKEN_TYPE: return parse_type(pctx);
@@ -255,13 +233,15 @@ Expr* parse_top_level(Parse_Context* pctx)
     case TOKEN_EXTERN: return parse_extern(pctx);
     case TOKEN_LOAD: return parse_load(pctx);
     case TOKEN_LINK: return parse_link(pctx);
-    default: eat(pctx); break;
+    default:
+        warning("Invalid toplevel token '%s'. Skipping it.", token_to_str(pctx->curr_tok));
+        eat(pctx);
+        break;
     }
     return NULL;
 }
 
-Expr* parse_statement(Parse_Context* pctx)
-{
+Expr* parse_statement(Parse_Context* pctx) {
     DEBUG_START;
 
     switch (pctx->curr_tok.kind) {
@@ -280,15 +260,14 @@ Expr* parse_statement(Parse_Context* pctx)
     case TOKEN_LOAD: return parse_load(pctx);
     case TOKEN_LINK: return parse_link(pctx);
     default:
-        warning("Unhandled token '%s' was not a valid statement", pctx->curr_tok.value);
+        warning("Invalid statement token '%s'. Skipping it.", token_to_str(pctx->curr_tok));
         eat(pctx);
         break;
     }
     return NULL;
 }
 
-Expr* parse_primary(Parse_Context* pctx)
-{
+Expr* parse_primary(Parse_Context* pctx) {
     DEBUG_START;
     switch (pctx->curr_tok.kind) {
     case TOKEN_TRUE: eat(pctx); return make_expr_int(1);
@@ -301,13 +280,15 @@ Expr* parse_primary(Parse_Context* pctx)
     case TOKEN_INTEGER: return parse_integer(pctx);
     case TOKEN_STRING: return parse_string(pctx);
     case TOKEN_OPEN_PAREN: return parse_parens(pctx);
-    default: error("unhandled primary '%s'", pctx->curr_tok.value);
+    default:
+        warning("Invalid primary token '%s'. Skipping it.", token_to_str(pctx->curr_tok));
+        eat(pctx);
+        break;
     }
     return NULL;
 }
 
-Expr* parse_identifier(Parse_Context* pctx)
-{
+Expr* parse_identifier(Parse_Context* pctx) {
     DEBUG_START;
     switch (next_tok_kind(pctx)) {
     case TOKEN_COLON: // FALLTHROUGH
@@ -320,13 +301,11 @@ Expr* parse_identifier(Parse_Context* pctx)
     return make_expr_ident(ident);
 }
 
-Expr* parse_load(Parse_Context* pctx)
-{
+Expr* parse_load(Parse_Context* pctx) {
     eat_kind(pctx, TOKEN_LOAD);
     string file                = make_string(strf("%s%s", get_current_dir(), pctx->curr_tok.value));
     bool   file_already_parsed = false;
-    LIST_FOREACH(get_file_list())
-    {
+    LIST_FOREACH(get_file_list()) {
         char* f = (char*)it->data;
         if (strcmp(f, file.c_str) == 0) {
             file_already_parsed = true;
@@ -337,8 +316,7 @@ Expr* parse_load(Parse_Context* pctx)
     return NULL;
 }
 
-Expr* parse_link(Parse_Context* pctx)
-{
+Expr* parse_link(Parse_Context* pctx) {
     eat_kind(pctx, TOKEN_LINK);
     char* lib_name = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_STRING);
@@ -346,8 +324,7 @@ Expr* parse_link(Parse_Context* pctx)
     return NULL;
 }
 
-Expr* parse_extern(Parse_Context* pctx)
-{
+Expr* parse_extern(Parse_Context* pctx) {
     eat_kind(pctx, TOKEN_EXTERN);
     char* func_name = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
@@ -357,117 +334,58 @@ Expr* parse_extern(Parse_Context* pctx)
     return NULL;
 }
 
-Expr* parse_continue(Parse_Context* pctx)
-{
+Expr* parse_continue(Parse_Context* pctx) {
     DEBUG_START;
     eat_kind(pctx, TOKEN_CONTINUE);
-    return make_expr_asm(strf("JMP %s", pctx->lcontinue));
+    return make_expr_continue();
 }
 
-Expr* parse_break(Parse_Context* pctx)
-{
+Expr* parse_break(Parse_Context* pctx) {
     DEBUG_START;
     eat_kind(pctx, TOKEN_BREAK);
-    return make_expr_asm(strf("JMP %s", pctx->lbreak));
+    return make_expr_break();
 }
-Expr* parse_while(Parse_Context* pctx)
-{
+
+Expr* parse_while(Parse_Context* pctx) {
     DEBUG_START;
     eat_kind(pctx, TOKEN_WHILE);
-    List* stmts = make_list();
-    char* begin = make_label(pctx);
-    char* end   = make_label(pctx);
-    Expr* cond  = parse_expression(pctx);
-    SET_JUMP_LABELS(begin, end);
-    Expr* body = parse_block(pctx);
-    RESTORE_JUMP_LABELS;
-    list_append(stmts, make_expr_asm(strf("%s:", begin)));
-    list_append(stmts, cond);
-    list_append(stmts, make_expr_asm("CMP AL, 0"));
-    list_append(stmts, make_expr_asm(strf("JE %s", end)));
-    list_append(stmts, body);
-    list_append(stmts, make_expr_asm(strf("JMP %s", begin)));
-    list_append(stmts, make_expr_asm(strf("%s:", end)));
-    return make_expr_block(stmts);
+    Expr* cond       = parse_expression(pctx);
+    Expr* then_block = parse_block(pctx);
+    return make_expr_while(cond, then_block);
 }
 
-Expr* parse_for(Parse_Context* pctx)
-{
+Expr* parse_for(Parse_Context* pctx) {
     DEBUG_START;
-
     eat_kind(pctx, TOKEN_FOR);
-
-    char* begin = make_label(pctx);
-    char* mid   = make_label(pctx);
-    char* end   = make_label(pctx);
-
     Expr* init = parse_statement(pctx);
     eat_kind(pctx, TOKEN_COMMA);
     Expr* cond = parse_expression(pctx);
     eat_kind(pctx, TOKEN_COMMA);
-    Expr* inc = parse_expression(pctx);
-
-    SET_JUMP_LABELS(mid, end);
-    Expr* body = parse_block(pctx);
-    RESTORE_JUMP_LABELS;
-
-    List* stmts = make_list();
-    list_append(stmts, init);
-    list_append(stmts, make_expr_asm(strf("%s:", begin)));
-    list_append(stmts, cond);
-    list_append(stmts, make_expr_asm("CMP AL, 0"));
-    list_append(stmts, make_expr_asm(strf("JE %s", end)));
-    list_append(stmts, body);
-    list_append(stmts, make_expr_asm(strf("%s:", mid)));
-    list_append(stmts, inc);
-    list_append(stmts, make_expr_asm(strf("JMP %s", begin)));
-    list_append(stmts, make_expr_asm(strf("%s:", end)));
-
-    return make_expr_block(stmts);
+    Expr* step       = parse_expression(pctx);
+    Expr* then_block = parse_block(pctx);
+    return make_expr_for(init, cond, step, then_block);
 }
 
-Expr* parse_defer(Parse_Context* pctx)
-{
+Expr* parse_defer(Parse_Context* pctx) {
     eat_kind(pctx, TOKEN_DEFER);
-    Expr* block  = parse_block(pctx);
-    List* defers = pctx->active_func->Function.defers;
-    list_append(defers, block);
-    return NULL;
+    Expr* block = parse_block(pctx);
+    return make_expr_defer(block);
 }
 
-Expr* parse_if(Parse_Context* pctx)
-{
+Expr* parse_if(Parse_Context* pctx) {
     DEBUG_START;
-
     eat_kind(pctx, TOKEN_IF);
-
-    List* stmts = make_list();
-
-    char* else_l = make_label(pctx);
-    char* end_l  = make_label(pctx);
-
-    Expr* cond   = parse_expression(pctx);
-    Expr* body   = parse_block(pctx);
-    Expr* else_b = NULL;
+    Expr* cond       = parse_expression(pctx);
+    Expr* then_block = parse_block(pctx);
+    Expr* else_block = NULL;
     if (tok_is(pctx, TOKEN_ELSE)) {
         eat_kind(pctx, TOKEN_ELSE);
-        else_b = parse_block(pctx);
+        else_block = parse_block(pctx);
     }
-
-    list_append(stmts, cond);
-    list_append(stmts, make_expr_asm(strf("CMP AL, 0")));
-    list_append(stmts, make_expr_asm(strf("JE %s", else_b ? else_l : end_l)));
-    list_append(stmts, body);
-    list_append(stmts, make_expr_asm(strf("JMP %s", end_l)));
-    list_append(stmts, make_expr_asm(strf("%s:", else_l)));
-    if (else_b) list_append(stmts, else_b);
-    list_append(stmts, make_expr_asm(strf("%s:", end_l)));
-
-    return make_expr_block(stmts);
+    return make_expr_if(cond, then_block, else_block);
 }
 
-Expr* parse_sizeof(Parse_Context* pctx)
-{
+Expr* parse_sizeof(Parse_Context* pctx) {
     DEBUG_START;
     eat_kind(pctx, TOKEN_SIZEOF);
     eat_kind(pctx, TOKEN_OPEN_PAREN);
@@ -477,8 +395,7 @@ Expr* parse_sizeof(Parse_Context* pctx)
     return make_expr_int(size);
 }
 
-Expr* parse_macro(Parse_Context* pctx)
-{
+Expr* parse_macro(Parse_Context* pctx) {
     char* identifier = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
     eat_kind(pctx, TOKEN_COLON_COLON);
@@ -487,24 +404,20 @@ Expr* parse_macro(Parse_Context* pctx)
     return NULL;
 }
 
-Expr* parse_def(Parse_Context* pctx)
-{
+Expr* parse_def(Parse_Context* pctx) {
     eat_kind(pctx, TOKEN_DEF);
     char* identifier = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
     Typespec* type = parse_function_signature(pctx, identifier);
-    Expr*     func = make_expr_function(type, NULL);
+    Expr*     body = parse_block(pctx);
+    Expr*     func = make_expr_function(type, body);
     add_symbol(identifier, type);
-    SET_ACTIVE_FUNC(func);
-    Expr* body          = parse_block(pctx);
-    func->Function.body = body;
-    reset_label_counter(pctx);
     list_append(pctx->ast, func);
+    pctx_reset_function_should_return_a_value(pctx);
     return NULL;
 }
 
-Expr* parse_type(Parse_Context* pctx)
-{
+Expr* parse_type(Parse_Context* pctx) {
     eat_kind(pctx, TOKEN_TYPE);
     char* identifier = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
@@ -513,16 +426,14 @@ Expr* parse_type(Parse_Context* pctx)
     return NULL;
 }
 
-Expr* parse_string(Parse_Context* pctx)
-{
+Expr* parse_string(Parse_Context* pctx) {
     DEBUG_START;
     char* value = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_STRING);
     return make_expr_string(value);
 }
 
-Expr* parse_block(Parse_Context* pctx)
-{
+Expr* parse_block(Parse_Context* pctx) {
     DEBUG_START;
 
     // Is it a single statement?
@@ -545,40 +456,17 @@ Expr* parse_block(Parse_Context* pctx)
     return make_expr_block(stmts);
 }
 
-Expr* parse_return(Parse_Context* pctx)
-{
+Expr* parse_return(Parse_Context* pctx) {
     DEBUG_START;
     eat_kind(pctx, TOKEN_RETURN);
-
-    bool returns_something = false;
-
-    // If the current function does not return anything
-    if (GET_ACTIVE_FUNC->Function.type->Function.ret_type) {
-        returns_something = true;
+    Expr* expr = NULL;
+    if (pctx_get_function_should_return_a_value(pctx)) {
+        expr = parse_expression(pctx);
     }
-
-    List* stmts  = make_list();
-    char* label  = make_label(pctx);
-    char* label2 = make_label(pctx);
-
-    // @SLOW: we're reverseing a list using a stack
-    //        every time we return. We should just have the
-    //        defers be a stack in the first place.
-    //        Basically, DONT REVERSE THE LIST ON EVERY RETURN.
-
-    list_append(stmts, make_expr_asm(strf("%s:", label2)));
-    list_append_content_of_in_reverse(stmts, pctx->active_func->Function.defers);
-    list_append(stmts, make_expr_asm(strf("JMP %s", label)));
-
-    list_append(stmts, make_expr_asm(strf("%s:", label)));
-    if (returns_something) list_append(stmts, parse_expression(pctx));
-    list_append(stmts, make_expr_asm(strf("JMP %s", DEFAULT_FUNCTION_END_LABEL_NAME)));
-
-    return make_expr_block(stmts);
+    return make_expr_return(expr);
 }
 
-Expr* parse_function_call(Parse_Context* pctx)
-{
+Expr* parse_function_call(Parse_Context* pctx) {
     DEBUG_START;
 
     char* ident = pctx->curr_tok.value;
@@ -600,8 +488,7 @@ Expr* parse_function_call(Parse_Context* pctx)
     return make_expr_call(ident, args);
 }
 
-Expr* parse_variable_decl(Parse_Context* pctx)
-{
+Expr* parse_variable_decl(Parse_Context* pctx) {
     DEBUG_START;
 
     char*     variable_name  = pctx->curr_tok.value;
@@ -630,8 +517,7 @@ Expr* parse_variable_decl(Parse_Context* pctx)
     return make_expr_variable_decl(variable_name, variable_type, variable_value);
 }
 
-Expr* parse_binary(Parse_Context* pctx, s32 expr_prec, Expr* lhs)
-{
+Expr* parse_binary(Parse_Context* pctx, s32 expr_prec, Expr* lhs) {
     DEBUG_START;
 
     Expr* expr = NULL;
@@ -677,8 +563,7 @@ Expr* parse_binary(Parse_Context* pctx, s32 expr_prec, Expr* lhs)
 }
 
 Typespec* active_type = NULL;
-Expr*     read_field_access_expr(Parse_Context* pctx, Expr* expr)
-{
+Expr*     read_field_access_expr(Parse_Context* pctx, Expr* expr) {
     eat_kind(pctx, TOKEN_DOT);
     char* field_name = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
@@ -693,8 +578,7 @@ Expr*     read_field_access_expr(Parse_Context* pctx, Expr* expr)
     return make_expr_unary(THI_SYNTAX_POINTER, expr);
 }
 
-Expr* read_subscript_expr(Parse_Context* pctx, Expr* expr)
-{
+Expr* read_subscript_expr(Parse_Context* pctx, Expr* expr) {
     eat_kind(pctx, TOKEN_OPEN_BRACKET);
     Expr* sub = parse_expression(pctx);
     if (!sub) syntax_error(pctx, "empty subscript");
@@ -702,8 +586,7 @@ Expr* read_subscript_expr(Parse_Context* pctx, Expr* expr)
     return make_expr_subscript(expr, sub);
 }
 
-Expr* parse_postfix_tail(Parse_Context* pctx, Expr* primary_expr)
-{
+Expr* parse_postfix_tail(Parse_Context* pctx, Expr* primary_expr) {
     DEBUG_START;
     if (!primary_expr) return NULL;
     while (1) {
@@ -719,15 +602,13 @@ Expr* parse_postfix_tail(Parse_Context* pctx, Expr* primary_expr)
     }
 }
 
-Expr* parse_postfix(Parse_Context* pctx)
-{
+Expr* parse_postfix(Parse_Context* pctx) {
     DEBUG_START;
     Expr* primary_expr = parse_primary(pctx);
     return parse_postfix_tail(pctx, primary_expr);
 }
 
-Expr* parse_unary(Parse_Context* pctx)
-{
+Expr* parse_unary(Parse_Context* pctx) {
     DEBUG_START;
     Expr* unary_expr = NULL;
     if (tok_is(pctx, TOKEN_BANG) || tok_is(pctx, THI_SYNTAX_POINTER) || tok_is(pctx, TOKEN_MINUS) ||
@@ -745,8 +626,7 @@ Expr* parse_unary(Parse_Context* pctx)
     return unary_expr ? unary_expr : parse_postfix(pctx);
 }
 
-Expr* parse_note(Parse_Context* pctx)
-{
+Expr* parse_note(Parse_Context* pctx) {
     DEBUG_START;
     eat_kind(pctx, TOKEN_DOLLAR_SIGN);
     Expr* expr = NULL;
@@ -758,8 +638,7 @@ Expr* parse_note(Parse_Context* pctx)
     return make_expr_note(expr);
 }
 
-Expr* parse_expression(Parse_Context* pctx)
-{
+Expr* parse_expression(Parse_Context* pctx) {
     DEBUG_START;
     Expr* lhs  = parse_unary(pctx);
     Expr* expr = NULL;
@@ -769,15 +648,13 @@ Expr* parse_expression(Parse_Context* pctx)
     return expr;
 }
 
-Expr* parse_integer(Parse_Context* pctx)
-{
+Expr* parse_integer(Parse_Context* pctx) {
     DEBUG_START;
     Expr* res = make_expr_int(get_integer(pctx));
     return res;
 }
 
-Expr* parse_parens(Parse_Context* pctx)
-{
+Expr* parse_parens(Parse_Context* pctx) {
     DEBUG_START;
 
     eat_kind(pctx, TOKEN_OPEN_PAREN);
@@ -791,8 +668,7 @@ Expr* parse_parens(Parse_Context* pctx)
 //                               Helpers
 //------------------------------------------------------------------------------
 
-Typespec* parse_enum_signature(Parse_Context* pctx, char* name)
-{
+Typespec* parse_enum_signature(Parse_Context* pctx, char* name) {
     DEBUG_START;
 
     eat_kind(pctx, TOKEN_ENUM);
@@ -806,8 +682,7 @@ Typespec* parse_enum_signature(Parse_Context* pctx, char* name)
     return make_typespec_enum(name, NULL);
 }
 
-Typespec* parse_type_signature(Parse_Context* pctx, char* struct_name)
-{
+Typespec* parse_type_signature(Parse_Context* pctx, char* struct_name) {
     DEBUG_START;
 
     eat_kind(pctx, TOKEN_BLOCK_START);
@@ -829,8 +704,7 @@ Typespec* parse_type_signature(Parse_Context* pctx, char* struct_name)
     return make_typespec_struct(struct_name, members);
 }
 
-Typespec* parse_function_signature(Parse_Context* pctx, char* func_name)
-{
+Typespec* parse_function_signature(Parse_Context* pctx, char* func_name) {
     DEBUG_START;
 
     eat_kind(pctx, TOKEN_OPEN_PAREN);
@@ -847,7 +721,7 @@ Typespec* parse_function_signature(Parse_Context* pctx, char* func_name)
         Expr* expr = NULL;
 
         // foreign's dont have named parameters
-        if (pctx->top_tok.kind == TOKEN_EXTERN) {
+        if (pctx->top_tok_kind == TOKEN_EXTERN) {
             expr = make_expr_variable_decl(NULL, get_type(pctx), NULL);
         } else {
             if (tok_is(pctx, TOKEN_IDENTIFIER)) {
@@ -864,13 +738,14 @@ Typespec* parse_function_signature(Parse_Context* pctx, char* func_name)
     if (tok_is(pctx, TOKEN_RIGHT_ARROW)) {
         eat_kind(pctx, TOKEN_RIGHT_ARROW);
         ret_type = get_type(pctx);
+
+        pctx_set_function_should_return_a_value(pctx, true);
     }
 
     return make_typespec_function(func_name, args, ret_type);
 }
 
-Typespec* get_type(Parse_Context* pctx)
-{
+Typespec* get_type(Parse_Context* pctx) {
     DEBUG_START;
 
     char* type_name = pctx->curr_tok.value;
@@ -909,8 +784,7 @@ Typespec* get_type(Parse_Context* pctx)
     return type;
 }
 
-s64 get_integer(Parse_Context* pctx)
-{
+s64 get_integer(Parse_Context* pctx) {
     DEBUG_START;
 
     s64 value = 0;
@@ -940,8 +814,7 @@ s64 get_integer(Parse_Context* pctx)
     return value;
 }
 
-f64 get_float(Parse_Context* pctx)
-{
+f64 get_float(Parse_Context* pctx) {
     DEBUG_START;
 
     f64 value = atof(pctx->curr_tok.value);
@@ -950,38 +823,47 @@ f64 get_float(Parse_Context* pctx)
     return value;
 }
 
-int get_tok_precedence(Parse_Context* pctx)
-{
+int get_tok_precedence(Parse_Context* pctx) {
     DEBUG_START;
     for (int i = 0; i < BIN_OP_COUNT; ++i)
         if (binop_precedence[i].kind == pctx->curr_tok.kind) return binop_precedence[i].p;
     return -1;
 }
 
-Token_Kind next_tok_kind(Parse_Context* pctx)
-{
-    if (pctx->token_array->count < pctx->token_index + 1) {
+Token_Kind next_tok_kind(Parse_Context* pctx) {
+    if (pctx->token_array.count < pctx->token_index + 1) {
         error("No next token. We're all out.");
     }
-    Token_Kind kind = pctx->token_array->data[pctx->token_index].kind;
+    Token_Kind kind = pctx->token_array.data[pctx->token_index].kind;
     return kind;
 }
 
-bool tok_is(Parse_Context* pctx, Token_Kind kind)
-{
+bool pctx_get_function_should_return_a_value(Parse_Context* pctx) {
+    return pctx->l_current_function_should_return_a_value;
+}
+
+void pctx_set_function_should_return_a_value(Parse_Context* pctx, bool val) {
+    pctx->o_current_function_should_return_a_value = pctx->l_current_function_should_return_a_value;
+    pctx->l_current_function_should_return_a_value = val;
+}
+
+void pctx_reset_function_should_return_a_value(Parse_Context* pctx) {
+    pctx->l_current_function_should_return_a_value = pctx->o_current_function_should_return_a_value;
+}
+
+bool tok_is(Parse_Context* pctx, Token_Kind kind) {
     if (pctx->curr_tok.kind == kind) {
         return true;
     }
     return false;
 }
 
-void eat(Parse_Context* pctx)
-{
-    pctx->curr_tok = pctx->token_array->data[pctx->token_index];
+void eat(Parse_Context* pctx) {
+    pctx->curr_tok = token_array_at(pctx->token_array, pctx->token_index);
     pctx->token_index += 1;
 }
-void eat_kind(Parse_Context* pctx, Token_Kind kind)
-{
+
+void eat_kind(Parse_Context* pctx, Token_Kind kind) {
     Token_Kind tk = pctx->curr_tok.kind;
     if (tk != kind) {
         syntax_error(pctx, "Expected '%s' got '%s'", token_kind_to_str(kind), token_kind_to_str(tk));
@@ -989,21 +871,16 @@ void eat_kind(Parse_Context* pctx, Token_Kind kind)
     eat(pctx);
 }
 
-void reset_label_counter(Parse_Context* pctx) { pctx->label_counter = 0; }
-
-char* make_label(Parse_Context* pctx)
-{
-    char* c = strf(".L%d", pctx->label_counter);
-    pctx->label_counter += 1;
-    return c;
-}
-
-void syntax_error(Parse_Context* pctx, char* fmt, ...)
-{
+void syntax_error(Parse_Context* pctx, char* fmt, ...) {
     assert(fmt);
+
+    Token_Info token_info = token_array_get_info_of(pctx->token_array, pctx->curr_tok.id);
+    s64 line_pos = token_info.line_pos;
+    s64 col_pos = token_info.col_pos;
+
     va_list args;
     va_start(args, fmt);
-    printf("%s%s %lld:%lld Syntax Error: ", RED, pctx->source_file, pctx->curr_tok.line_pos, pctx->curr_tok.col_pos);
+    printf("%s%s %lld:%lld Syntax Error: ", RED, pctx->source_file, line_pos, col_pos);
     vprintf(fmt, args);
     puts(RESET);
     va_end(args);

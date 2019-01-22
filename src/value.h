@@ -8,8 +8,7 @@
 typedef struct Value    Value;
 typedef enum Value_Kind Value_Kind;
 
-enum Value_Kind
-{
+enum Value_Kind {
     VALUE_INT,
     VALUE_POINTER,
     VALUE_STRING,
@@ -25,49 +24,40 @@ enum Value_Kind
 //                          Value Structures
 //------------------------------------------------------------------------------
 
-typedef struct
-{
+typedef struct {
     char* name;
     s64   stack_pos;
 } Value_Variable;
 
-typedef struct
-{
+typedef struct {
     char* name;
     s64   stack_allocated;
 } Value_Function;
 
-typedef struct
-{
+typedef struct {
 } Value_Struct;
 
-typedef struct
-{
+typedef struct {
     u8  bytes;
     s64 value;
 } Value_Int;
-typedef struct
-{
+typedef struct {
     char* value;
     s64   len;
 } Value_String;
-typedef struct
-{
+typedef struct {
     char* callee;
 } Value_Call;
-typedef struct
-{
+typedef struct {
     Value* variable;
     s64    offset;
 } Value_LoadInst;
-typedef struct
-{
+typedef struct {
     Value* variable;
     s64    offset;
 } Value_StoreInst;
 
-struct Value
-{
+struct Value {
     Value_Kind kind;
     Typespec*  type;
     union {
@@ -97,8 +87,7 @@ s64 get_stack_pos_of_variable(Value* variable);
 //------------------------------------------------------------------------------
 //                               Scope
 //------------------------------------------------------------------------------
-typedef struct
-{
+typedef struct {
     List* local_variables;
 } Scope;
 Scope* make_scope();

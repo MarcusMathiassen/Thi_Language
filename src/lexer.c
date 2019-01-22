@@ -13,8 +13,7 @@
 //                              lexer.c
 //------------------------------------------------------------------------------
 
-typedef struct
-{
+typedef struct {
     char* current_char_in_stream;
     char* position_of_newline;
     char* start_of_line;
@@ -22,25 +21,32 @@ typedef struct
     u64   comment_count;
     u64   previous_indentation_level;
     u64   current_indentation_level;
-} LexerContext;
+} Lexer_Context;
+
+typedef struct {
+    Token_Kind kind;
+    char*      value;
+    s64        line_pos;
+    s64        col_pos;
+    char*      line_start;
+} Token_Fat;
 
 //------------------------------------------------------------------------------
 //                               Lexer Functions
 //------------------------------------------------------------------------------
 
-Token      get_token(void);
-Token      get_next_token(LexerContext* lctx);
-bool       is_valid_digit(u8 c);
-bool       is_valid_identifier(u8 c);
-int        get_keyword_index(char* identifier);
-Token_Kind get_identifier_kind(char* identifier);
-u64        get_line_pos(LexerContext* lctx);
-
+Token_Fat   get_next_token(Lexer_Context* lctx);
+bool        is_valid_digit(u8 c);
+bool        is_valid_identifier(u8 c);
+int         get_keyword_index(char* identifier);
+Token_Kind  get_identifier_kind(char* identifier);
+u64         get_line_pos(Lexer_Context* lctx);
+void        token_array_append(Token_Array* l, Token_Fat t);
+Token_Array make_token_array();
 //------------------------------------------------------------------------------
 //                               Keywords
 //------------------------------------------------------------------------------
-typedef enum
-{
+typedef enum {
     KEY_LINK,
     KEY_TYPE,
     KEY_TRUE,
@@ -75,10 +81,9 @@ char** keywords = NULL;
 //                               Public
 //------------------------------------------------------------------------------
 
-Lex lexify(char* source)
-{
+Token_Array generate_tokens_from_source(char* source) {
 
-    LexerContext lctx;
+    Lexer_Context lctx;
     lctx.line_count                 = 1;
     lctx.comment_count              = 0;
     lctx.position_of_newline        = NULL;
@@ -87,7 +92,7 @@ Lex lexify(char* source)
     lctx.current_char_in_stream     = source; // u8 in stream
     lctx.start_of_line              = source;
 
-    Token_Array* token_array = make_token_array();
+    Token_Array token_array = make_token_array();
 
     if (!keywords) {
         keywords     = xmalloc(sizeof(char*) * KEYWORD_COUNT);
@@ -115,35 +120,36 @@ Lex lexify(char* source)
 
     // LEX
     for (;;) {
-        Token token = get_next_token(&lctx);
+        Token_Fat token = get_next_token(&lctx);
         if (lctx.current_indentation_level > lctx.previous_indentation_level) {
-            Token t;
+            Token_Fat t;
             t.kind                          = TOKEN_BLOCK_START;
-            t.value                         = "TOKEN_BLOCK_START";
+            t.value                         = "";
+            t.line_pos                      = lctx.line_count;
+            t.col_pos                       = get_line_pos(&lctx);
+            t.line_start                    = lctx.start_of_line;
             lctx.previous_indentation_level = lctx.current_indentation_level;
-            token_array_append(token_array, t);
+            token_array_append(&token_array, t);
         }
         while (lctx.current_indentation_level < lctx.previous_indentation_level) {
-            Token t;
-            t.kind  = TOKEN_BLOCK_END;
-            t.value = "TOKEN_BLOCK_END";
+            Token_Fat t;
+            t.kind       = TOKEN_BLOCK_END;
+            t.value      = "";
+            t.line_pos   = lctx.line_count;
+            t.col_pos    = get_line_pos(&lctx);
+            t.line_start = lctx.start_of_line;
             lctx.previous_indentation_level -= 4;
-            token_array_append(token_array, t);
+            token_array_append(&token_array, t);
         }
-        if (token.kind != TOKEN_UNKNOWN && token.kind != TOKEN_COMMENT) token_array_append(token_array, token);
+        if (token.kind != TOKEN_UNKNOWN && token.kind != TOKEN_COMMENT) token_array_append(&token_array, token);
         if (token.kind == TOKEN_EOF) {
             break;
         }
     }
 
-    Lex lex;
-    lex.token_array   = token_array;
-    lex.line_count    = lctx.line_count;
-    lex.comment_count = lctx.comment_count;
+    info("lexed %lld lines, %lld comments", lctx.line_count, lctx.comment_count);
 
-    info("lexed %lld lines, %lld comments", lex.line_count, lex.comment_count);
-
-    return lex;
+    return token_array;
 }
 
 //------------------------------------------------------------------------------
@@ -155,11 +161,10 @@ const u8 EOF = '\0';
 #define CASE_SINGLE_TOKEN(c1, t_kind)                                                                                  \
     case c1: token.kind = t_kind; ++c;
 
-Token get_next_token(LexerContext* lctx)
-{
+Token_Fat get_next_token(Lexer_Context* lctx) {
     char* c = lctx->current_char_in_stream;
 
-    Token token;
+    Token_Fat token;
     token.kind       = TOKEN_UNKNOWN;
     token.value      = c;
     token.line_pos   = lctx->line_count;
@@ -458,8 +463,7 @@ Token get_next_token(LexerContext* lctx)
     return token;
 }
 
-char* token_kind_to_str(Token_Kind kind)
-{
+char* token_kind_to_str(Token_Kind kind) {
     switch (kind) {
     case TOKEN_UNKNOWN: return "unknown";
     case TOKEN_EOF: return "eof";
@@ -556,20 +560,20 @@ char* token_kind_to_str(Token_Kind kind)
     return "";
 }
 
+char* token_to_str(Token token) { return strf("%s :: %s", token.value, token_kind_to_str(token.kind)); }
+
 void print_token(Token token) { info("%s %s", token_kind_to_str(token.kind), token.value); }
-void print_tokens(Token_Array* token_array)
-{
+void print_tokens(Token_Array token_array) {
     info("Printing tokens..");
-    for (s64 i = 0; i < token_array->count; i += 1) {
-        print_token(token_array->data[i]);
+    for (s64 i = 0; i < token_array.count; i += 1) {
+        print_token(token_array.data[i]);
     }
 }
 
 bool is_valid_identifier(u8 c) { return isalnum(c) || c == '_'; }
 bool is_valid_digit(u8 c) { return isdigit(c) || c == '.' || c == '_' || c == 'e' || c == 'x'; }
-u64  get_line_pos(LexerContext* lctx) { return lctx->current_char_in_stream - lctx->position_of_newline; }
-int  get_keyword_index(char* identifier)
-{
+u64  get_line_pos(Lexer_Context* lctx) { return lctx->current_char_in_stream - lctx->position_of_newline; }
+int  get_keyword_index(char* identifier) {
     for (s64 i = 0; i < KEYWORD_COUNT; ++i) {
         if (identifier == keywords[i]) {
             return i;
@@ -578,8 +582,7 @@ int  get_keyword_index(char* identifier)
     return -1;
 }
 
-Token_Kind get_identifier_kind(char* identifier)
-{
+Token_Kind get_identifier_kind(char* identifier) {
     switch (get_keyword_index(identifier)) {
     case KEY_LINK: return TOKEN_LINK;
     case KEY_TYPE: return TOKEN_TYPE;
@@ -605,22 +608,37 @@ Token_Kind get_identifier_kind(char* identifier)
     return TOKEN_IDENTIFIER;
 }
 
-Token_Array* make_token_array()
-{
-    Token_Array* l = xmalloc(sizeof(Token_Array));
-    l->count       = 0;
-    l->allocated   = TOKEN_ARRAY_STARTING_ALLOC;
-    l->data        = xmalloc(sizeof(Token) * l->allocated);
-    l->meta        = xmalloc(sizeof(Token_Meta) * l->allocated);
+Token_Array make_token_array() {
+    Token_Array l;
+    l.count     = 0;
+    l.allocated = TOKEN_ARRAY_STARTING_ALLOC;
+    l.data      = xmalloc(l.allocated * sizeof(Token));
+    l.info      = xmalloc(l.allocated * sizeof(Token_Info));
     return l;
 }
 
-void token_array_append(Token_Array* l, Token token)
-{
+void token_array_append(Token_Array* l, Token_Fat t) {
     if (l->count >= l->allocated) {
         l->allocated *= 2;
-        l->data = xrealloc(l->data, sizeof(Token) * l->allocated);
+        l->data = xrealloc(l->data, l->allocated * sizeof(Token));
+        l->info = xrealloc(l->info, l->allocated * sizeof(Token_Info));
     }
+
+    Token token;
+    token.id    = l->count;
+    token.kind  = t.kind;
+    token.value = t.value;
+
+    Token_Info info;
+    info.line_pos   = t.line_pos;
+    info.col_pos    = t.col_pos;
+    info.line_start = t.line_start;
+
     l->data[l->count] = token;
+    l->info[l->count] = info;
+
     l->count += 1;
 }
+
+Token      token_array_at(Token_Array token_array, s64 token_index) { return token_array.data[token_index]; }
+Token_Info token_array_get_info_of(Token_Array token_array, s64 token_id) { return token_array.info[token_id]; }

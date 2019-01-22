@@ -16,8 +16,7 @@
 //                               Public
 //------------------------------------------------------------------------------
 
-char* typespec_kind_to_str(Typespec_Kind kind)
-{
+char* typespec_kind_to_str(Typespec_Kind kind) {
     switch (kind) {
     case TYPESPEC_INT: return "TYPESPEC_INT";
     case TYPESPEC_FLOAT: return "TYPESPEC_FLOAT";
@@ -32,8 +31,7 @@ char* typespec_kind_to_str(Typespec_Kind kind)
     return "";
 }
 
-s64 get_size_of_underlying_typespec(Typespec* type)
-{
+s64 get_size_of_underlying_typespec(Typespec* type) {
     switch (type->kind) {
     case TYPESPEC_POINTER: return get_size_of_typespec(type->Pointer.pointee);
     case TYPESPEC_ARRAY: return get_size_of_typespec(type->Array.type);
@@ -41,8 +39,7 @@ s64 get_size_of_underlying_typespec(Typespec* type)
     }
     return 0;
 }
-s64 get_size_of_typespec(Typespec* type)
-{
+s64 get_size_of_typespec(Typespec* type) {
     switch (type->kind) {
     case TYPESPEC_INT: return type->Int.bytes;
     case TYPESPEC_FLOAT: return type->Float.bytes;
@@ -52,8 +49,7 @@ s64 get_size_of_typespec(Typespec* type)
     case TYPESPEC_STRUCT: {
         s64 accum_size = 0;
         if (type->Struct.members) {
-            LIST_FOREACH(type->Struct.members)
-            {
+            LIST_FOREACH(type->Struct.members) {
                 Expr* mem = (Expr*)it->data;
                 if (mem->kind != EXPR_FUNCTION) accum_size += get_size_of_typespec(mem->Variable_Decl.type);
             }
@@ -62,8 +58,7 @@ s64 get_size_of_typespec(Typespec* type)
     }
     case TYPESPEC_FUNCTION: {
         s64 accum_size = 0;
-        LIST_FOREACH(type->Function.args)
-        {
+        LIST_FOREACH(type->Function.args) {
             Expr* arg = (Expr*)it->data;
             accum_size += get_size_of_typespec(arg->Variable_Decl.type);
         }
@@ -74,13 +69,11 @@ s64 get_size_of_typespec(Typespec* type)
     return 0;
 }
 
-s64 get_offset_in_struct_to_field(Typespec* type, char* name)
-{
+s64 get_offset_in_struct_to_field(Typespec* type, char* name) {
     assert(type);
     assert(type->kind == TYPESPEC_STRUCT);
     s64 accum_size = 0;
-    LIST_FOREACH(type->Struct.members)
-    {
+    LIST_FOREACH(type->Struct.members) {
         Expr* mem = (Expr*)it->data;
         if (strcmp(name, mem->Variable_Decl.name) == 0) {
             return accum_size;
@@ -91,22 +84,19 @@ s64 get_offset_in_struct_to_field(Typespec* type, char* name)
     return -1;
 }
 
-s64 typespec_function_get_arg_count(Typespec* type)
-{
+s64 typespec_function_get_arg_count(Typespec* type) {
     assert(type);
     assert(type->kind == TYPESPEC_FUNCTION);
     return type->Function.args->count;
 }
 
-s64 typespec_array_get_count(Typespec* type)
-{
+s64 typespec_array_get_count(Typespec* type) {
     assert(type);
     assert(type->kind == TYPESPEC_ARRAY);
     return type->Array.size;
 }
 
-char* typespec_to_str(Typespec* type)
-{
+char* typespec_to_str(Typespec* type) {
     switch (type->kind) {
     case TYPESPEC_ARRAY: return strf("%s[%d]", typespec_to_str(type->Array.type), type->Array.size);
     case TYPESPEC_INT: return strf(type->Int.is_unsigned ? "u%d" : "s%d", type->Int.bytes * 8);
@@ -118,8 +108,7 @@ char* typespec_to_str(Typespec* type)
         if (type->Struct.members) {
             s64 count = type->Struct.members->count;
             s64 index = 0;
-            LIST_FOREACH(type->Struct.members)
-            {
+            LIST_FOREACH(type->Struct.members) {
                 Expr* mem = (Expr*)it->data;
                 append_string(&str, strf("%s", expr_to_str(mem)));
                 if (index != count - 1) {
@@ -133,8 +122,7 @@ char* typespec_to_str(Typespec* type)
     };
     case TYPESPEC_ENUM: {
         string str = make_string(strf("%s :: enum {", type->Enum.name));
-        LIST_FOREACH(type->Enum.members)
-        {
+        LIST_FOREACH(type->Enum.members) {
             char* mem = (char*)it->data;
             append_string(&str, strf("%s", mem));
         }
@@ -147,8 +135,7 @@ char* typespec_to_str(Typespec* type)
 
         s64 arg_count = type->Function.args->count;
         s64 arg_index = 0;
-        LIST_FOREACH(type->Function.args)
-        {
+        LIST_FOREACH(type->Function.args) {
             Expr* arg = (Expr*)it->data;
             append_string(&str, expr_to_str(arg));
             if (arg_index != arg_count - 1) {
@@ -169,15 +156,13 @@ char* typespec_to_str(Typespec* type)
 //                               Type Maker Functions
 //------------------------------------------------------------------------------
 
-Typespec* make_typespec(Typespec_Kind kind)
-{
+Typespec* make_typespec(Typespec_Kind kind) {
     Typespec* t = xmalloc(sizeof(Typespec));
     t->kind     = kind;
     return t;
 }
 
-Typespec* make_typespec_array(Typespec* type, s32 size)
-{
+Typespec* make_typespec_array(Typespec* type, s32 size) {
     assert(type);
     assert(size > 0);
     Typespec* t   = make_typespec(TYPESPEC_ARRAY);
@@ -186,8 +171,7 @@ Typespec* make_typespec_array(Typespec* type, s32 size)
     return t;
 }
 
-Typespec* make_typespec_int(s8 bytes, bool is_unsigned)
-{
+Typespec* make_typespec_int(s8 bytes, bool is_unsigned) {
     assert(bytes > 0 && bytes < 9);
     assert(is_unsigned == 1 || is_unsigned == 0);
     Typespec* t        = make_typespec(TYPESPEC_INT);
@@ -196,31 +180,27 @@ Typespec* make_typespec_int(s8 bytes, bool is_unsigned)
     return t;
 }
 
-Typespec* make_typespec_float(s8 bytes)
-{
+Typespec* make_typespec_float(s8 bytes) {
     assert(bytes > 0 && bytes < 9);
     Typespec* t    = make_typespec(TYPESPEC_FLOAT);
     t->Float.bytes = bytes;
     return t;
 }
 
-Typespec* make_typespec_string(s64 len)
-{
+Typespec* make_typespec_string(s64 len) {
     assert(len);
     Typespec* t   = make_typespec(TYPESPEC_STRING);
     t->String.len = len;
     return t;
 }
 
-Typespec* make_typespec_pointer(Typespec* pointee)
-{
+Typespec* make_typespec_pointer(Typespec* pointee) {
     Typespec* t        = make_typespec(TYPESPEC_POINTER);
     t->Pointer.pointee = pointee;
     return t;
 }
 
-Typespec* make_typespec_enum(char* name, List* members)
-{
+Typespec* make_typespec_enum(char* name, List* members) {
     assert(name);
     Typespec* t     = make_typespec(TYPESPEC_ENUM);
     t->Enum.name    = name;
@@ -228,8 +208,7 @@ Typespec* make_typespec_enum(char* name, List* members)
     return t;
 }
 
-Typespec* make_typespec_struct(char* name, List* members)
-{
+Typespec* make_typespec_struct(char* name, List* members) {
     assert(name);
     Typespec* t       = make_typespec(TYPESPEC_STRUCT);
     t->Struct.name    = name;
@@ -237,8 +216,7 @@ Typespec* make_typespec_struct(char* name, List* members)
     return t;
 }
 
-Typespec* make_typespec_function(char* name, List* args, Typespec* ret_type)
-{
+Typespec* make_typespec_function(char* name, List* args, Typespec* ret_type) {
     assert(name);
     Typespec* t          = make_typespec(TYPESPEC_FUNCTION);
     t->Function.name     = name;

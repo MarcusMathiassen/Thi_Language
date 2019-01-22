@@ -10,10 +10,3 @@ AllowShortIfStatementsOnASingleLine: true
 
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
-
-BreakBeforeBraces: Custom
-BraceWrapping:
-  AfterEnum: true
-  AfterStruct: true
-  AfterFunction: true
-  SplitEmptyFunction: false
