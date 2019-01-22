@@ -168,10 +168,28 @@ extern _glfwGetTimerFrequency
 extern _glfwGetRequiredInstanceExtensions
 section .data
 	D0 DQ `Hello Triangle`, 0 
-	D1 DW 1.000000
-	D2 DW 0.000000
-	D3 DW 1.000000
-	D4 DW 1.000000
+	D1 DD 1.000000
+	D2 DD 0.200000
+	D3 DD 0.500000
+	D4 DD 0.100000
+	D5 DD 1.000000
+	D6 DD 0.000000
+	D7 DD 0.000000
+	D8 DD 1.000000
+	D9 DD 0.500000
+	D10 DD 0.500000
+	D11 DD 1.000000
+	D12 DD 0.000000
+	D13 DD 1.000000
+	D14 DD 0.000000
+	D15 DD 0.500000
+	D16 DD 0.000000
+	D17 DD 1.000000
+	D18 DD 1.000000
+	D19 DD 0.000000
+	D20 DD 0.000000
+	D21 DD 0.500000
+	D22 DD 0.500000
 global _main
 section .text
 _main:
@@ -208,26 +226,26 @@ _main:
 	MOV RAX, D1; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
-	MOVSD [RSP], XMM0
+	MOVSS [RSP], XMM0
 	MOV RAX, D2; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
-	MOVSD [RSP], XMM0
+	MOVSS [RSP], XMM0
 	MOV RAX, D3; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
-	MOVSD [RSP], XMM0
+	MOVSS [RSP], XMM0
 	MOV RAX, D4; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
-	MOVSD [RSP], XMM0
-	MOVSD XMM0, QWORD [RSP]
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RSP]
 	ADD RSP, 8
-	MOVSD XMM1, QWORD [RSP]
+	MOVSS XMM1, DWORD [RSP]
 	ADD RSP, 8
-	MOVSD XMM2, QWORD [RSP]
+	MOVSS XMM2, DWORD [RSP]
 	ADD RSP, 8
-	MOVSD XMM3, QWORD [RSP]
+	MOVSS XMM3, DWORD [RSP]
 	ADD RSP, 8
 	CALL _glClearColor
 .L0:
@@ -244,6 +262,128 @@ _main:
 	POP RDI
 	CALL _glClear
 	CALL _glfwPollEvents
+	MOV EAX, 4
+	PUSH RAX
+	POP RDI
+	CALL _glBegin
+	MOV RAX, D5; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D6; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D7; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D8; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM2, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM3, DWORD [RSP]
+	ADD RSP, 8
+	CALL _glColor4f
+	MOV RAX, D9; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	XORPS XMM0, XMM0
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D10; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	XORPS XMM0, XMM0
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	CALL _glVertex2f
+	MOV RAX, D11; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D12; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D13; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D14; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM2, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM3, DWORD [RSP]
+	ADD RSP, 8
+	CALL _glColor4f
+	MOV RAX, D15; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D16; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	CALL _glVertex2f
+	MOV RAX, D17; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D18; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D19; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D20; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM2, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM3, DWORD [RSP]
+	ADD RSP, 8
+	CALL _glColor4f
+	MOV RAX, D21; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	XORPS XMM0, XMM0
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D22; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	CALL _glVertex2f
+	CALL _glEnd
 	MOV RAX, QWORD [RBP-8]; load
 	PUSH RAX
 	POP RDI

@@ -237,7 +237,7 @@ void push(Codegen_Context* ctx, int reg) {
     char* r = get_reg(reg);
     if (reg >= XMM0 && reg <= XMM7) {
         emit(ctx, "SUB RSP, 8");
-        emit(ctx, "MOVSD [RSP], %s", r);
+        emit(ctx, "MOVSS [RSP], %s", r);
     } else {
         emit(ctx, "PUSH %s", r);
     }
@@ -248,7 +248,7 @@ void pop(Codegen_Context* ctx, int reg) {
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
     char* r = get_reg(reg);
     if (reg >= XMM0 && reg <= XMM7) {
-        emit(ctx, "MOVSD %s, QWORD [RSP]", r);
+        emit(ctx, "MOVSS %s, DWORD [RSP]", r);
         emit(ctx, "ADD RSP, 8");
     } else {
         emit(ctx, "POP %s", r);
@@ -294,8 +294,8 @@ char* get_db_op(Typespec* type) {
     s64 bytes = get_size_of_typespec(type);
     switch (bytes) {
     case 1: return "DB";
-    case 2: return "DD";
-    case 4: return "DW";
+    case 2: return "DW";
+    case 4: return "DD";
     case 8: return "DQ";
     }
     return NULL;
@@ -465,10 +465,10 @@ Value* codegen_unary(Codegen_Context* ctx, Expr* expr) {
     Expr*      operand = expr->Unary.operand;
 
     Value* operand_val = codegen_expr(ctx, operand);
-    s32    reg_n       = get_rax_reg_of_byte_size(get_size_of_value(operand_val));
-    Value* result      = operand_val;
 
-    char* reg = get_reg(reg_n);
+
+    char* reg       = get_result_reg(operand_val->type);
+    Value* result      = operand_val;
 
     switch (op) {
     case THI_SYNTAX_ADDRESS: {
@@ -494,7 +494,12 @@ Value* codegen_unary(Codegen_Context* ctx, Expr* expr) {
         emit(ctx, "NOT AL");
     } break;
     case TOKEN_MINUS: {
-        emit(ctx, "NEG %s", reg);
+        switch(operand_val->type->kind) {
+            case TYPESPEC_INT: emit(ctx, "NEG %s", reg); break;
+            case TYPESPEC_FLOAT: {
+                emit(ctx, "XORPS XMM0, XMM0");
+            } break;
+        }
         break;
     }
     default: error("unhandled unary case: %c", token_kind_to_str(op)); break;
