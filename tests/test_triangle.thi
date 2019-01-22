@@ -112,7 +112,6 @@ def main () -> s32
         if glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS 
             running = false
         
-
         width: s32
         height: s32
         glfwGetFramebufferSize(window, &width, &height)

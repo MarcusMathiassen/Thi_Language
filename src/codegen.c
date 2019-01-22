@@ -81,7 +81,7 @@ char* get_next_available_reg_fitting(Codegen_Context* ctx, Typespec* type);
 s8    get_next_available_xmm_reg_fitting(Codegen_Context* ctx);
 s8    get_next_available_rax_reg_fitting(Codegen_Context* ctx, s64 size);
 
-s64    get_all_alloca_in_block(Expr* block);
+s64 get_all_alloca_in_block(Expr* block);
 
 void   emit_cast(Codegen_Context* ctx, Value* variable, Typespec* desired_type);
 void   emit_cast_int_to_int(Codegen_Context* ctx, char* reg, Typespec* type);
@@ -574,7 +574,7 @@ Value* codegen_binary(Codegen_Context* ctx, Expr* expr) {
         Value* rhs_v = codegen_expr(ctx, rhs);
         if (rhs_v->type->kind == TYPESPEC_FLOAT) {
             Value* rhs_v = codegen_expr(ctx, rhs);
-            char* inst = get_instr(op, rhs_v->type);
+            char*  inst  = get_instr(op, rhs_v->type);
             push(ctx, XMM0);
             Value* lhs_v = codegen_expr(ctx, lhs);
             pop(ctx, XMM1);
@@ -623,7 +623,6 @@ Value* codegen_binary(Codegen_Context* ctx, Expr* expr) {
             return rhs_v;
         }
     }
-
 
     case TOKEN_PERCENT: {
         expr            = make_expr_binary(TOKEN_FWSLASH, lhs, rhs);
@@ -694,14 +693,25 @@ Value* codegen_binary(Codegen_Context* ctx, Expr* expr) {
     case TOKEN_EQ_EQ: // FALLTHROUGH
     case TOKEN_BANG_EQ: {
         Value* lhs_v = codegen_expr(ctx, lhs);
-        push(ctx, RAX);
-        codegen_expr(ctx, rhs);
-        pop(ctx, RCX);
-        emit(ctx, "CMP RCX, RAX");
+        if (lhs_v->type->kind == TYPESPEC_FLOAT) {
+            push(ctx, XMM0);
+            codegen_expr(ctx, rhs);
+            pop(ctx, XMM1);
+            if (lhs_v->type->Float.bytes == 4) {
+                emit(ctx, "UCOMISS XMM1, XMM0");
+            } else {
+                emit(ctx, "UCOMISD XMM1, XMM0");
+            }
+        } else {
+            push(ctx, RAX);
+            codegen_expr(ctx, rhs);
+            pop(ctx, RCX);
+            emit(ctx, "CMP RCX, RAX");
+        }
         switch (op) {
-        case TOKEN_LT: emit(ctx, "SETL AL"); break;
+        case TOKEN_LT: lhs_v->type->kind == TYPESPEC_FLOAT ? emit(ctx, "SETB AL") : emit(ctx, "SETL AL"); break;
         case TOKEN_GT: emit(ctx, "SETG AL"); break;
-        case TOKEN_LT_EQ: emit(ctx, "SETLE AL"); break;
+        case TOKEN_LT_EQ: lhs_v->type->kind == TYPESPEC_FLOAT ? emit(ctx, "SETNA AL") : emit(ctx, "SETLE AL"); break;
         case TOKEN_GT_EQ: emit(ctx, "SETGE AL"); break;
         case TOKEN_EQ_EQ: emit(ctx, "SETE AL"); break;
         case TOKEN_BANG_EQ: emit(ctx, "SETNE AL"); break;

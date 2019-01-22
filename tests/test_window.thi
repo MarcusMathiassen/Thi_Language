@@ -49,6 +49,8 @@ def main () -> s32
         if glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS  do y += -0.001 
         if glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS    do y +=  0.001 
 
+        if x > 0.0
+            x = 0.0
 
         glBegin(GL_TRIANGLES)
         glColor3f(1.0, 0.0, 0.0)
