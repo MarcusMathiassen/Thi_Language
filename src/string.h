@@ -10,6 +10,7 @@ typedef struct {
 string make_string(char* str);
 string make_string_f(char* fmt, ...);
 void   append_string(string* s, char* str);
+void   append_string_f(string* s, char* fmt, ...);
 void   free_string(string* s);
 
 void  init_interns_list();

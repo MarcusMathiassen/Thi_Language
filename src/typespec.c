@@ -104,13 +104,13 @@ char* typespec_to_str(Typespec* type) {
     case TYPESPEC_FLOAT: return strf("f%d", type->Float.bytes * 8);
     case TYPESPEC_STRING: return strf("\"\", %d", type->String.len);
     case TYPESPEC_STRUCT: {
-        string str = make_string(strf("type %s {", type->Struct.name));
+        string str = make_string_f("type %s {", type->Struct.name);
         if (type->Struct.members) {
             s64 count = type->Struct.members->count;
             s64 index = 0;
             LIST_FOREACH(type->Struct.members) {
                 Expr* mem = (Expr*)it->data;
-                append_string(&str, strf("%s", expr_to_str(mem)));
+                append_string_f(&str, "%s", expr_to_str(mem));
                 if (index != count - 1) {
                     append_string(&str, " ");
                 }
@@ -121,16 +121,16 @@ char* typespec_to_str(Typespec* type) {
         return str.c_str;
     };
     case TYPESPEC_ENUM: {
-        string str = make_string(strf("%s :: enum {", type->Enum.name));
+        string str = make_string_f("%s :: enum {", type->Enum.name);
         LIST_FOREACH(type->Enum.members) {
             char* mem = (char*)it->data;
-            append_string(&str, strf("%s", mem));
+            append_string_f(&str, "%s", mem);
         }
         return str.c_str;
     };
 
     case TYPESPEC_FUNCTION: {
-        string str = make_string(strf("def %s (", type->Function.name));
+        string str = make_string_f("def %s (", type->Function.name);
         strf("func. name: %d", type->Function.name);
 
         s64 arg_count = type->Function.args->count;
@@ -144,7 +144,7 @@ char* typespec_to_str(Typespec* type) {
             arg_index += 1;
         }
         append_string(&str, ")");
-        if (type->Function.ret_type) append_string(&str, strf(" -> %s", typespec_to_str(type->Function.ret_type)));
+        if (type->Function.ret_type) append_string_f(&str, " -> %s", typespec_to_str(type->Function.ret_type));
         return str.c_str;
     }
     default: warning("typespec_to_str not implemented kind %d", typespec_kind_to_str(type->kind));

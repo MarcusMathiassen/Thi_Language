@@ -103,7 +103,7 @@ char* expr_to_str(Expr* expr) {
         string str = make_string("{");
         LIST_FOREACH(expr->Block.stmts) {
             Expr* stmt = (Expr*)it->data;
-            append_string(&str, strf("%s\n", expr_to_str(stmt)));
+            append_string_f(&str, "%s\n", expr_to_str(stmt));
         }
         append_string(&str, "}");
         return str.c_str;

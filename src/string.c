@@ -49,6 +49,26 @@ void append_string(string* s, char* str) {
     s->c_str[s->len] = 0;
 }
 
+void append_string_f(string* s, char* fmt, ...) {
+    assert(s);
+    assert(fmt);
+    va_list args;
+    va_start(args, fmt);
+    s64 n = 1 + vsnprintf(0, 0, fmt, args);
+    va_end(args);
+    
+    char* str = xmalloc(n);
+
+    va_start(args, fmt);
+    vsnprintf(str, n, fmt, args);
+    va_end(args);
+
+    append_string(s, str);
+
+    free(str);
+}
+
+
 void free_string(string* s) { free(s->c_str); }
 
 //------------------------------------------------------------------------------
