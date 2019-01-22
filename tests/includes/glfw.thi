@@ -1,5 +1,10 @@
-
-link "-lglfw"
+link "-lglfw3"
+link "-framework OpenGL"
+link "-framework CoreVideo"
+link "-framework IOKit"
+link "-framework Cocoa"
+link "-framework Carbon"
+link "-framework CoreFoundation"
 
 type GLFWvidmode
     width:        s32

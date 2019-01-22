@@ -1,8 +1,4 @@
-
 link "-lglew"
-link "-framework OpenGL"
-link "-framework CoreVideo"
-link "-framework IOKit"
 
 extern glewInit () -> s32
 extern glewIsSupported (s8*) -> bool

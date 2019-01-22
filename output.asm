@@ -167,16 +167,11 @@ extern _fputs
 extern _puts
 extern _perror
 section .data
-	D0 db `OpenGL Triangle`, 0 
-	D1 db `GLFW init failed`, 0 
-	D2 db `Hello Triangle`, 0 
-	D3 db `GLEW init failed`, 0 
-	D4 db `settings background color..`, 0 
-	D5 db 1.000000
-	D6 db 1.000000
-	D7 db 1.000000
-	D8 db 1.000000
-	D9 db `Starting loop..`, 0 
+	D0 db `Hello Triangle`, 0 
+	D1 db 1.000000
+	D2 db 0.020000
+	D3 db 1.000000
+	D4 db 1.000000
 global _main
 section .text
 _main:
@@ -184,31 +179,65 @@ _main:
 	MOV RBP, RSP
 	SUB RSP, 16; 8 alloc, 8 padding
 .BEGIN:
+	CALL _glfwInit
+	MOV EAX, 2
+	PUSH RAX
+	MOV EAX, 139266
+	PUSH RAX
+	POP RDI
+	POP RSI
+	CALL _glfwWindowHint
+	MOV EAX, 1
+	PUSH RAX
+	MOV EAX, 139267
+	PUSH RAX
+	POP RDI
+	POP RSI
+	CALL _glfwWindowHint
+	MOV EAX, 4
+	PUSH RAX
+	MOV EAX, 135181
+	PUSH RAX
+	POP RDI
+	POP RSI
+	CALL _glfwWindowHint
+	MOV EAX, 8
+	PUSH RAX
+	MOV EAX, 135169
+	PUSH RAX
+	POP RDI
+	POP RSI
+	CALL _glfwWindowHint
+	MOV EAX, 8
+	PUSH RAX
+	MOV EAX, 135170
+	PUSH RAX
+	POP RDI
+	POP RSI
+	CALL _glfwWindowHint
+	MOV EAX, 8
+	PUSH RAX
+	MOV EAX, 135171
+	PUSH RAX
+	POP RDI
+	POP RSI
+	CALL _glfwWindowHint
+	MOV EAX, 8
+	PUSH RAX
+	MOV EAX, 135172
+	PUSH RAX
+	POP RDI
+	POP RSI
+	CALL _glfwWindowHint
+	MOV EAX, 0
+	PUSH RAX
+	MOV EAX, 0
+	PUSH RAX
 	MOV RAX, D0; string_ref
 	PUSH RAX
-	POP RDI
-	CALL _puts
-	CALL _glfwInit
-	CMP AL, 0
-	SETE AL
-	CMP AL, 0
-	JE .L1
-	MOV RAX, D1; string_ref
-	PUSH RAX
-	POP RDI
-	CALL _puts
-	JMP .L1
-.L0:
-.L1:
 	MOV EAX, 512
 	PUSH RAX
 	MOV EAX, 512
-	PUSH RAX
-	MOV RAX, D2; string_ref
-	PUSH RAX
-	MOV EAX, 0
-	PUSH RAX
-	MOV EAX, 0
 	PUSH RAX
 	POP RDI
 	POP RSI
@@ -225,37 +254,19 @@ _main:
 	POP RDI
 	CALL _glfwMakeContextCurrent
 	CALL _glewInit
-	PUSH RAX
-	MOV EAX, 0
-	POP RCX
-	CMP RCX, RAX
-	SETNE AL
-	CMP AL, 0
-	JE .L3
-	MOV RAX, D3; string_ref
-	PUSH RAX
-	POP RDI
-	CALL _puts
-	JMP .L3
-.L2:
-.L3:
-	MOV RAX, D4; string_ref
-	PUSH RAX
-	POP RDI
-	CALL _puts
-	MOV RAX, D5; float_ref
+	MOV RAX, D1; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSD [RSP], XMM0
-	MOV RAX, D6; float_ref
+	MOV RAX, D2; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSD [RSP], XMM0
-	MOV RAX, D7; float_ref
+	MOV RAX, D3; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSD [RSP], XMM0
-	MOV RAX, D8; float_ref
+	MOV RAX, D4; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSD [RSP], XMM0
@@ -268,11 +279,7 @@ _main:
 	MOVSD XMM3, [RSP]
 	ADD RSP, 8
 	CALL _glClearColor
-	MOV RAX, D9; string_ref
-	PUSH RAX
-	POP RDI
-	CALL _puts
-.L4:
+.L0:
 	MOV RAX, QWORD [RBP-8]; load
 	PUSH RAX
 	POP RDI
@@ -280,21 +287,22 @@ _main:
 	CMP AL, 0
 	SETE AL
 	CMP AL, 0
-	JE .L5
-	CALL _glfwPollEvents
+	JE .L1
 	MOV EAX, 16384
 	PUSH RAX
 	POP RDI
 	CALL _glClear
+	CALL _glfwPollEvents
 	MOV RAX, QWORD [RBP-8]; load
 	PUSH RAX
 	POP RDI
 	CALL _glfwSwapBuffers
-	JMP .L4
-.L5:
-.L7:
-	JMP .L6
-.L6:
+	JMP .L0
+.L1:
+	CALL _glfwTerminate
+.L3:
+	JMP .L2
+.L2:
 	MOV EAX, 1
 	JMP .END
 .END:

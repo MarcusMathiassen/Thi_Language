@@ -234,7 +234,7 @@ void pop_type(Codegen_Context* ctx, Typespec* type) {
 void push(Codegen_Context* ctx, int reg) {
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
     char* r = get_reg(reg);
-    if (reg >= XMM0 && reg <= XMM3) {
+    if (reg >= XMM0 && reg <= XMM7) {
         emit(ctx, "SUB RSP, 8");
         emit(ctx, "MOVSD [RSP], %s", r);
     } else {
@@ -246,7 +246,7 @@ void push(Codegen_Context* ctx, int reg) {
 void pop(Codegen_Context* ctx, int reg) {
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
     char* r = get_reg(reg);
-    if (reg >= XMM0 && reg <= XMM3) {
+    if (reg >= XMM0 && reg <= XMM7) {
         emit(ctx, "MOVSD %s, [RSP]", r);
         emit(ctx, "ADD RSP, 8");
     } else {
@@ -753,18 +753,17 @@ Value* codegen_call(Codegen_Context* ctx, Expr* expr) {
     // If the callee function has any default argument we can skip them
 
     List* arg_values = make_list();
+    s8 int_arg_counter = 0;
+    s8 float_arg_counter = 0;
 
-    LIST_FOREACH(args) {
+    LIST_FOREACH_REVERSE(args) {
         Expr*  arg = (Expr*)it->data;
         Value* v = codegen_expr(ctx, arg);
-        push_type(ctx, v);
+        push_type(ctx, v->type);
         list_append(arg_values, v);
     }
 
-    s8 int_arg_counter = 0;
-    s8 float_arg_counter = 0;
-    
-    LIST_FOREACH_REVERSE(arg_values) {
+    LIST_FOREACH(arg_values) {
         Value* v = (Value*)it->data;
         switch (v->type->kind ) {
             case TYPESPEC_ARRAY: // fallthrough
@@ -788,6 +787,8 @@ Value* codegen_call(Codegen_Context* ctx, Expr* expr) {
                     case 3: pop(ctx, XMM3); break;
                     case 4: pop(ctx, XMM4); break;
                     case 5: pop(ctx, XMM5); break;
+                    case 6: pop(ctx, XMM6); break;
+                    case 7: pop(ctx, XMM7); break;
                 }
                 float_arg_counter += 1; 
             } break;
