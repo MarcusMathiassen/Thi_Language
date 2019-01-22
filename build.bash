@@ -32,6 +32,7 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_pointer.thi
     # ./test.bash ./tests/test_basic_ternary.thi
     # ./test.bash ./tests/test_ternary.thi
+    # ./test.bash ./tests/test_math_plus.thi
     # ./test.bash ./tests/test_plus_equal.thi
     # ./test.bash ./tests/test_math.thi
     # ./test.bash ./tests/test_window.thi

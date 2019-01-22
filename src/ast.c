@@ -154,6 +154,12 @@ char* expr_to_str(Expr* expr) {
 
 Typespec* get_inferred_type_of_expr(Expr* expr) {
     switch (expr->kind) {
+    case EXPR_BLOCK:
+    case EXPR_BREAK:
+    case EXPR_CONTINUE:
+    case EXPR_DEFER: return NULL;
+    case EXPR_RETURN: if(expr->Return.expr) return get_inferred_type_of_expr(expr->Return.expr);
+
     case EXPR_CAST: return expr->Cast.type;
     case EXPR_MACRO: return get_inferred_type_of_expr(expr->Macro.expr);
     case EXPR_NOTE: return get_inferred_type_of_expr(expr->Note.expr);
@@ -326,7 +332,11 @@ Expr* constant_fold_expr(Expr* expr) {
 
 void print_ast(List* ast) {
     info("Printing AST..");
-    LIST_FOREACH(ast) { info("%s", wrap_with_colored_parens(expr_to_str((Expr*)it->data))); }
+    LIST_FOREACH(ast) { 
+        Expr* expr = it->data;
+        char* str = strf("%s", wrap_with_colored_parens(expr_to_str(expr)));
+        info("%s", str); 
+    }
 }
 
 //------------------------------------------------------------------------------

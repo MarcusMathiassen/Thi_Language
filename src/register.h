@@ -88,7 +88,15 @@ int   get_reg_as_another_size(int reg, s8 size);
 #define XMM5 73
 #define XMM6 74
 #define XMM7 75
+#define XMM8 76
+#define XMM9 77
+#define XMM10 78
+#define XMM11 79
+#define XMM12 80
+#define XMM13 81
+#define XMM14 82
+#define XMM15 83
 
-#define TOTAL_REG_COUNT 76
+#define TOTAL_REG_COUNT 84
 
 #endif

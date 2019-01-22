@@ -36,6 +36,9 @@ typedef struct {
     char*  obreak;
     char*  lbreak;
     char*  l_end;
+
+    s8 next_available_xmm_reg_counter;
+    s8 next_available_rax_reg_counter;
 } Codegen_Context;
 
 //------------------------------------------------------------------------------
@@ -71,7 +74,15 @@ Value* get_variable_in_scope(Scope* scope, char* name);
 Value* get_variable(Codegen_Context* ctx, char* name);
 void   add_variable(Codegen_Context* ctx, Value* variable);
 int    align(int n, s32 m);
+char*  get_instr(Token_Kind op, Typespec* type);
+
+char* emit_save_result(Codegen_Context* ctx, Value* value);
+char* get_next_available_reg_fitting(Codegen_Context* ctx, Typespec* type);
+s8    get_next_available_xmm_reg_fitting(Codegen_Context* ctx);
+s8    get_next_available_rax_reg_fitting(Codegen_Context* ctx, s64 size);
+
 s64    get_all_alloca_in_block(Expr* block);
+
 void   emit_cast(Codegen_Context* ctx, Value* variable, Typespec* desired_type);
 void   emit_cast_int_to_int(Codegen_Context* ctx, char* reg, Typespec* type);
 void   emit_cast_float_to_int(Codegen_Context* ctx, char* reg, Typespec* type);
@@ -464,11 +475,11 @@ Value* codegen_unary(Codegen_Context* ctx, Expr* expr) {
     Token_Kind op      = expr->Unary.op;
     Expr*      operand = expr->Unary.operand;
 
-    Value* operand_val = codegen_expr(ctx, operand);
+    Value* operand_val  = codegen_expr(ctx, operand);
+    s64    operand_size = get_size_of_value(operand_val);
 
-
-    char* reg       = get_result_reg(operand_val->type);
-    Value* result      = operand_val;
+    char*  reg    = get_result_reg(operand_val->type);
+    Value* result = operand_val;
 
     switch (op) {
     case THI_SYNTAX_ADDRESS: {
@@ -494,11 +505,13 @@ Value* codegen_unary(Codegen_Context* ctx, Expr* expr) {
         emit(ctx, "NOT AL");
     } break;
     case TOKEN_MINUS: {
-        switch(operand_val->type->kind) {
-            case TYPESPEC_INT: emit(ctx, "NEG %s", reg); break;
-            case TYPESPEC_FLOAT: {
-                emit(ctx, "XORPS XMM0, XMM0");
-            } break;
+        switch (operand_val->type->kind) {
+        case TYPESPEC_INT: emit(ctx, "NEG %s", reg); break;
+        case TYPESPEC_FLOAT: {
+            emit(ctx, "MOVD ECX, XMM0");
+            emit(ctx, "XOR ECX, 2147483648");
+            emit(ctx, "MOVD XMM0, ECX");
+        } break;
         }
         break;
     }
@@ -541,36 +554,77 @@ Value* codegen_binary(Codegen_Context* ctx, Expr* expr) {
         return variable;
     }
     case TOKEN_PLUS: {
-        codegen_expr(ctx, rhs);
-        push(ctx, RAX);
-        Value* lhs_v = codegen_expr(ctx, lhs);
-        pop(ctx, RCX);
-        emit(ctx, "ADD RAX, RCX");
-        return lhs_v;
+        Value* rhs_v = codegen_expr(ctx, rhs);
+        if (rhs_v->type->kind == TYPESPEC_FLOAT) {
+            char* inst = get_instr(op, rhs_v->type);
+            push(ctx, XMM0);
+            Value* lhs_v = codegen_expr(ctx, lhs);
+            pop(ctx, XMM1);
+            emit(ctx, "%s XMM0, XMM1", inst);
+            return lhs_v;
+        } else {
+            push(ctx, RAX);
+            Value* lhs_v = codegen_expr(ctx, lhs);
+            pop(ctx, RCX);
+            emit(ctx, "ADD RAX, RCX");
+            return lhs_v;
+        }
     }
     case TOKEN_MINUS: {
-        rhs             = make_expr_unary(TOKEN_MINUS, rhs);
-        expr            = make_expr_binary(TOKEN_PLUS, lhs, rhs);
-        Value* variable = codegen_expr(ctx, expr);
-        return variable;
+        Value* rhs_v = codegen_expr(ctx, rhs);
+        if (rhs_v->type->kind == TYPESPEC_FLOAT) {
+            Value* rhs_v = codegen_expr(ctx, rhs);
+            char* inst = get_instr(op, rhs_v->type);
+            push(ctx, XMM0);
+            Value* lhs_v = codegen_expr(ctx, lhs);
+            pop(ctx, XMM1);
+            emit(ctx, "%s XMM0, XMM1", inst);
+            return lhs_v;
+        } else {
+            push(ctx, RAX);
+            Value* lhs_v = codegen_expr(ctx, lhs);
+            pop(ctx, RCX);
+            emit(ctx, "SUB RAX, RCX");
+            return lhs_v;
+        }
     }
     case TOKEN_ASTERISK: {
         Value* lhs_v = codegen_expr(ctx, lhs);
-        push(ctx, RAX);
-        codegen_expr(ctx, rhs);
-        pop(ctx, RCX);
-        emit(ctx, "IMUL RAX, RCX");
-        return lhs_v;
+        if (lhs_v->type->kind == TYPESPEC_FLOAT) {
+            char* inst = get_instr(op, lhs_v->type);
+            push(ctx, XMM0);
+            codegen_expr(ctx, rhs);
+            pop(ctx, XMM1);
+            emit(ctx, "%s XMM0, XMM1", inst);
+            return lhs_v;
+        } else {
+            push(ctx, RAX);
+            codegen_expr(ctx, rhs);
+            pop(ctx, RCX);
+            emit(ctx, "IMUL RAX, RCX");
+            return lhs_v;
+        }
     }
     case TOKEN_FWSLASH: {
         Value* rhs_v = codegen_expr(ctx, rhs);
-        push(ctx, RAX);
-        codegen_expr(ctx, lhs);
-        pop(ctx, RCX);
-        emit(ctx, "CDQ");
-        emit(ctx, "IDIV RCX");
-        return rhs_v;
+        if (rhs_v->type->kind == TYPESPEC_FLOAT) {
+            char* inst = get_instr(op, rhs_v->type);
+            push(ctx, XMM0);
+            codegen_expr(ctx, lhs);
+            pop(ctx, XMM1);
+            emit(ctx, "%s XMM1", inst);
+            return rhs_v;
+        } else {
+            push(ctx, RAX);
+            codegen_expr(ctx, lhs);
+            pop(ctx, RCX);
+            emit(ctx, "CDQ");
+            emit(ctx, "IDIV RCX");
+            return rhs_v;
+        }
     }
+
+
     case TOKEN_PERCENT: {
         expr            = make_expr_binary(TOKEN_FWSLASH, lhs, rhs);
         Value* variable = codegen_expr(ctx, expr);
@@ -1137,20 +1191,22 @@ s64 get_all_alloca_in_block(Expr* block) {
 
 Codegen_Context make_codegen_context() {
     Codegen_Context ctx;
-    ctx.scope_stack        = make_stack();
-    ctx.current_function   = NULL;
-    ctx.section_text       = make_string("");
-    ctx.section_data       = make_string("");
-    ctx.stack_index        = 0;
-    ctx.temp_label0        = NULL;
-    ctx.temp_label1        = NULL;
-    ctx.text_label_counter = 0;
-    ctx.data_label_counter = 0;
-    ctx.ocontinue          = NULL;
-    ctx.lcontinue          = NULL;
-    ctx.obreak             = NULL;
-    ctx.lbreak             = NULL;
-    ctx.l_end              = NULL;
+    ctx.scope_stack                    = make_stack();
+    ctx.current_function               = NULL;
+    ctx.section_text                   = make_string("");
+    ctx.section_data                   = make_string("");
+    ctx.stack_index                    = 0;
+    ctx.temp_label0                    = NULL;
+    ctx.temp_label1                    = NULL;
+    ctx.text_label_counter             = 0;
+    ctx.data_label_counter             = 0;
+    ctx.ocontinue                      = NULL;
+    ctx.lcontinue                      = NULL;
+    ctx.obreak                         = NULL;
+    ctx.lbreak                         = NULL;
+    ctx.l_end                          = NULL;
+    ctx.next_available_xmm_reg_counter = 0;
+    ctx.next_available_rax_reg_counter = 0;
     return ctx;
 }
 
@@ -1193,3 +1249,124 @@ char* make_data_label(Codegen_Context* ctx) {
 void reset_text_label_counter(Codegen_Context* ctx) { ctx->text_label_counter = 0; }
 void reset_stack(Codegen_Context* ctx) { ctx->stack_index = 0; }
 void set_current_function_expr(Codegen_Context* ctx, Expr* func_expr) { ctx->current_function = func_expr; }
+
+char* emit_save_result(Codegen_Context* ctx, Value* value) {
+    char* mov_op     = get_move_op(value->type);
+    char* reg        = get_next_available_reg_fitting(ctx, value->type);
+    char* result_reg = get_result_reg(value->type);
+    emit(ctx, "%s %s, %s", mov_op, reg, result_reg);
+    return reg;
+}
+
+char* get_instr(Token_Kind op, Typespec* type) {
+    char* inst = NULL;
+    switch (type->kind) {
+    case TYPESPEC_INT: {
+        bool usig = type->Int.is_unsigned;
+        switch (op) {
+        case TOKEN_PLUS: inst = "ADD"; break;
+        case TOKEN_MINUS: inst = "SUB"; break;
+        case TOKEN_ASTERISK: inst = "IMUL"; break;
+        case TOKEN_FWSLASH: inst = (usig ? "DIV" : "IDIV"); break;
+        }
+    } break;
+    case TYPESPEC_FLOAT: {
+        s64 size = get_size_of_typespec(type);
+        switch (op) {
+        case TOKEN_PLUS: inst = (size == 8 ? "ADDSD" : "ADDSS"); break;
+        case TOKEN_MINUS: inst = (size == 8 ? "SUBSD" : "SUBSS"); break;
+        case TOKEN_ASTERISK: inst = (size == 8 ? "MULSD" : "MULSS"); break;
+        case TOKEN_FWSLASH: inst = (size == 8 ? "DIVSD" : "DIVSS"); break;
+        }
+    } break;
+    }
+    return inst;
+}
+char* get_next_available_reg_fitting(Codegen_Context* ctx, Typespec* type) {
+    s64 size = get_size_of_typespec(type);
+    s8  r    = -1;
+    switch (type->kind) {
+    case TYPESPEC_ARRAY:   // fallthrough
+    case TYPESPEC_POINTER: // fallthrough
+    case TYPESPEC_INT: r = get_next_available_rax_reg_fitting(ctx, size); break;
+    case TYPESPEC_FLOAT: r = get_next_available_xmm_reg_fitting(ctx); break;
+    default: error("Unhandled get_next_available_reg_fitting");
+    }
+    return get_reg(r);
+}
+
+s8 get_next_available_xmm_reg_fitting(Codegen_Context* ctx) {
+    s8 res = -1;
+    switch (ctx->next_available_xmm_reg_counter) {
+    case 0: res = XMM8; break;
+    case 1: res = XMM9; break;
+    case 2: res = XMM10; break;
+    case 3: res = XMM11; break;
+    case 4: res = XMM12; break;
+    case 5: res = XMM13; break;
+    case 6: res = XMM14; break;
+    case 7: res = XMM15; break;
+    }
+
+    if (ctx->next_available_xmm_reg_counter == 7) ctx->next_available_xmm_reg_counter = 0;
+    ++ctx->next_available_xmm_reg_counter;
+    return res;
+}
+
+s8 get_next_available_rax_reg_fitting(Codegen_Context* ctx, s64 size) {
+    s8 res = -1;
+    switch (ctx->next_available_rax_reg_counter) {
+    case 0:
+        switch (size) {
+        case 8: res = R10; break;
+        case 4: res = R10D; break;
+        case 2: res = R10W; break;
+        case 1: res = R10B; break;
+        }
+        break;
+    case 1:
+        switch (size) {
+        case 8: res = R11; break;
+        case 4: res = R11D; break;
+        case 2: res = R11W; break;
+        case 1: res = R11B; break;
+        }
+        break;
+    case 2:
+        switch (size) {
+        case 8: res = R12; break;
+        case 4: res = R12D; break;
+        case 2: res = R12W; break;
+        case 1: res = R12B; break;
+        }
+        break;
+    case 3:
+        switch (size) {
+        case 8: res = R13; break;
+        case 4: res = R13D; break;
+        case 2: res = R13W; break;
+        case 1: res = R13B; break;
+        }
+        break;
+    case 4:
+        switch (size) {
+        case 8: res = R14; break;
+        case 4: res = R14D; break;
+        case 2: res = R14W; break;
+        case 1: res = R14B; break;
+        }
+        break;
+    case 5:
+        switch (size) {
+        case 8: res = R15; break;
+        case 4: res = R15D; break;
+        case 2: res = R15W; break;
+        case 1: res = R15B; break;
+        }
+        break;
+    }
+
+    if (ctx->next_available_rax_reg_counter == 5) ctx->next_available_rax_reg_counter = 0;
+    ++ctx->next_available_rax_reg_counter;
+    return res;
+}

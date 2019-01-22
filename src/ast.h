@@ -139,6 +139,7 @@ typedef struct {
 
 struct Expr {
     Expr_Kind kind;
+    Typespec* type;
     union {
         AST_Asm       Asm;
         AST_Macro     Macro;

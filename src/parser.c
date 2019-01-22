@@ -156,6 +156,33 @@ void syntax_error(Parser_Context* pctx, char* fmt, ...);
 //                               Public
 //------------------------------------------------------------------------------
 
+void give_type_to_all_nodes(Expr* expr)
+{
+    switch (expr->kind) {
+    case EXPR_MACRO:    give_type_to_all_nodes(expr->Macro.expr);       break;
+    case EXPR_NOTE:     give_type_to_all_nodes(expr->Note.expr);        break;
+    case EXPR_UNARY:    give_type_to_all_nodes(expr->Unary.operand);    break;
+    case EXPR_BINARY: {
+        give_type_to_all_nodes(expr->Binary.lhs);
+        give_type_to_all_nodes(expr->Binary.rhs);
+    } break;
+    case EXPR_GROUPING: give_type_to_all_nodes(expr->Grouping.expr);    break;
+    case EXPR_BLOCK: {
+        List* stmts = expr->Block.stmts;
+        LIST_FOREACH(stmts) {
+            Expr* stmt = (Expr*)it->data;
+            give_type_to_all_nodes(stmt);
+        }
+    } break;
+    case EXPR_FUNCTION: {
+        give_type_to_all_nodes(expr->Function.body);
+    } break;
+    }
+
+    expr->type = get_inferred_type_of_expr(expr);
+    if (expr->type) warning("%s | %s", expr_to_str(expr), typespec_to_str(expr->type));
+}
+
 void parse(List* ast, char* source_file) {
     // We need to set some state
     char* last_file = get_source_file();
@@ -180,6 +207,10 @@ void parse(List* ast, char* source_file) {
     pctx.source         = source;
 
     recursively_fill_ast(ast, &pctx);
+
+    // LIST_FOREACH(ast) {
+    //     give_type_to_all_nodes(it->data);
+    // }
 
     print_symbol_map();
     print_ast(ast);

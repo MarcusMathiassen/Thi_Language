@@ -5,26 +5,60 @@ load "includes/glfw.thi"
 
 def main () -> s32
 
-    glfwInit()
-    context := glfwCreateWindow(512, 512, "Hello Triangle", 0, 0)
-    glfwMakeContextCurrent(context)
-    glewInit()
+    if !glfwInit()
+        puts("GLFW init failed.")
 
-    glClearColor(0.1, 0.5, 0.2, 1.0)
-    while !glfwWindowShouldClose(context)
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2)
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1)
+  
+    glfwWindowHint(GLFW_SAMPLES, 4)
+    glfwWindowHint(GLFW_RED_BITS, 8)
+    glfwWindowHint(GLFW_GREEN_BITS, 8)
+    glfwWindowHint(GLFW_BLUE_BITS, 8)
+    glfwWindowHint(GLFW_ALPHA_BITS, 8)
+
+    window := glfwCreateWindow(512, 512, "Hello Triangle", 0, 0)
+    glfwMakeContextCurrent(window)
+
+    if glfwInit() != GLEW_OK
+        puts("GLEW init failed.")
+
+    glClearColor(0.005, 0.005, 0.005, 1.0)
+
+    glEnable(GL_FRAMEBUFFER_SRGB)
+
+    x := 0.0
+    y := 0.0
+
+    running := true
+
+    while running
+
+        if glfwWindowShouldClose(window) 
+            running = false
+        
+        if glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS 
+            running = false
+        
 
         glClear(GL_COLOR_BUFFER_BIT)
         glfwPollEvents()
 
+        if glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS  do x += -0.001 
+        if glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS do x +=  0.001 
+        if glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS  do y += -0.001 
+        if glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS    do y +=  0.001 
+
+
         glBegin(GL_TRIANGLES)
-        glColor4f(1.0, 0.0, 0.0, 1.0)
-        glVertex2f(-0.5, -0.5)
-        glColor4f(0.0, 1.0, 0.0, 1.0)
-        glVertex2f(0.0, 0.5)
-        glColor4f(0.0, 0.0, 1.0, 1.0)
-        glVertex2f(0.5, -0.5)
+        glColor3f(1.0, 0.0, 0.0)
+        glVertex2f(x + -0.5, y + -0.5)
+        glColor3f(0.0, 1.0, 0.0)
+        glVertex2f(x + 0.0, y + 0.5)
+        glColor3f(0.0, 0.0, 1.0)
+        glVertex2f(x + 0.5, y -0.5)
         glEnd()
 
-        glfwSwapBuffers(context)
+        glfwSwapBuffers(window)
 
     return 1
