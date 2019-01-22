@@ -25,7 +25,7 @@ enum Expr_Kind {
     EXPR_BINARY,
     EXPR_GROUPING,
     EXPR_SUBSCRIPT,
-    
+
     EXPR_CAST,
 
     EXPR_BLOCK,
@@ -136,9 +136,9 @@ typedef struct {
     Typespec* type;
     Expr* expr;
 } AST_Cast;
+
 struct Expr {
     Expr_Kind kind;
-    Typespec* type;
     union {
         AST_Asm       Asm;
         AST_Macro     Macro;
@@ -196,8 +196,8 @@ Expr* make_expr_cast(Expr* expr, Typespec* type);
 Expr* make_expr_break();
 Expr* make_expr_continue();
 
-Expr*     get_arg_from_func(Typespec* func_t, s64 arg_index);
 Typespec* get_inferred_type_of_expr(Expr* expr);
+Expr*     get_arg_from_func(Typespec* func_t, s64 arg_index);
 Expr*     constant_fold_expr(Expr* expr);
 void      print_ast(List* ast);
 char*     expr_to_str(Expr* expr);

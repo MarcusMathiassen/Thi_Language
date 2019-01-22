@@ -1,5 +1,5 @@
 def main () -> s32 
-    return cat(-bar(8, 3) + foo(3) + cat(2)) + 3 + 4 + 1 - 8
+    return cat(-bar(8, 3) + foo(3) + cat(8) + 3)
 
 
 def foo (a: s32) -> s32 
@@ -7,7 +7,7 @@ def foo (a: s32) -> s32
 
 
 def cat (a: s32)-> s32 
-    return a / 3
+    return a - 3
 
 
 def bar (a: s32, b: s32) -> s32 

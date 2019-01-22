@@ -156,29 +156,6 @@ void syntax_error(Parser_Context* pctx, char* fmt, ...);
 //                               Public
 //------------------------------------------------------------------------------
 
-void give_type_to_all_nodes(Expr* expr) {
-    switch (expr->kind) {
-    case EXPR_MACRO: give_type_to_all_nodes(expr->Macro.expr); break;
-    case EXPR_NOTE: give_type_to_all_nodes(expr->Note.expr); break;
-    case EXPR_UNARY: give_type_to_all_nodes(expr->Unary.operand); break;
-    case EXPR_BINARY: {
-        give_type_to_all_nodes(expr->Binary.lhs);
-        give_type_to_all_nodes(expr->Binary.rhs);
-    } break;
-    case EXPR_GROUPING: give_type_to_all_nodes(expr->Grouping.expr); break;
-    case EXPR_BLOCK: {
-        List* stmts = expr->Block.stmts;
-        LIST_FOREACH(stmts) {
-            Expr* stmt = (Expr*)it->data;
-            give_type_to_all_nodes(stmt);
-        }
-    } break;
-    }
-
-    expr->type = get_inferred_type_of_expr(expr);
-    if (expr->type) info("%s | %s", expr_to_str(expr), typespec_to_str(expr->type));
-}
-
 void parse(List* ast, char* source_file) {
     // We need to set some state
     char* last_file = get_source_file();
@@ -517,7 +494,7 @@ Expr* parse_variable_decl(Parser_Context* pctx) {
         // We need to infer the type based on the assignment expr
         eat_kind(pctx, TOKEN_COLON_EQ);
         variable_value = parse_expression(pctx);
-        variable_type  = get_inferred_type_of_expr(variable_value);
+        variable_type = get_inferred_type_of_expr(variable_value);
     } break;
     }
 

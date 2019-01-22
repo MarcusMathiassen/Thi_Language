@@ -1,14 +1,28 @@
 load "includes/opengl.thi"
 load "includes/glew.thi"
 load "includes/glfw.thi"
+load "includes/cstdio.thi"
 
 def main () -> s32
-    glfwInit() 
-    window := glfwCreateWindow(512, 512, "Hello", 0, 0)
+
+    puts("OpenGL Triangle")
+
+    if !glfwInit()
+        puts("GLFW init failed")
+
+    window := glfwCreateWindow(512, 512, "Hello Triangle", 0, 0)
     glfwMakeContextCurrent(window)
-    glewInit()
+
+    if glewInit() != GLEW_OK
+        puts("GLEW init failed")
+
+    puts("settings background color..")
+    glClearColor(1.0, 1.0, 1.0, 1.0)
+
+    puts("Starting loop..")
     while !glfwWindowShouldClose(window)
         glfwPollEvents()
         glClear(GL_COLOR_BUFFER_BIT)
         glfwSwapBuffers(window)
+
     return 1

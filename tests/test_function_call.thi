@@ -1,4 +1,5 @@
-def add (a: s32, b: s32) -> s32 
-    return a + b
+def add (a: s32, b: s32, c:s32) -> s32 
+    return a + b + c
+    
 def main () -> s32
-    return add(2, -1)
+    return add(2, -1, 0)

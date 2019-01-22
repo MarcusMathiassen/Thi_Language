@@ -57,6 +57,8 @@ void   emit_data(Codegen_Context* ctx, char* fmt, ...);
 void   emit(Codegen_Context* ctx, char* fmt, ...);
 void   push(Codegen_Context* ctx, int reg);
 void   pop(Codegen_Context* ctx, int reg);
+void   push_type(Codegen_Context* ctx, Typespec* type);
+void   pop_type(Codegen_Context* ctx, Typespec* type);
 void   push_scope(Codegen_Context* ctx);
 void   pop_scope(Codegen_Context* ctx);
 char*  get_result_reg(Typespec* type);
@@ -207,15 +209,49 @@ void emit(Codegen_Context* ctx, char* fmt, ...) {
     free(str);
 }
 
+void push_type(Codegen_Context* ctx, Typespec* type) {
+    assert(type);
+    switch (type->kind) {
+    case TYPESPEC_ARRAY: // fallthrough
+    case TYPESPEC_POINTER: // fallthrough
+    case TYPESPEC_INT: push(ctx, RAX); break;
+    case TYPESPEC_FLOAT: push(ctx, XMM0); break;
+    default: error("Unhandled push_type %s", typespec_to_str(type));
+    }
+}
+
+void pop_type(Codegen_Context* ctx, Typespec* type) {
+    assert(type);
+    switch (type->kind) {
+    case TYPESPEC_ARRAY: // fallthrough
+    case TYPESPEC_POINTER: // fallthrough
+    case TYPESPEC_INT: pop(ctx, RAX); break;
+    case TYPESPEC_FLOAT: pop(ctx, XMM0); break;
+    default: error("Unhandled pop_type %s", typespec_to_str(type));
+    }
+}
+
 void push(Codegen_Context* ctx, int reg) {
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
-    emit(ctx, "PUSH %s", get_reg(reg));
+    char* r = get_reg(reg);
+    if (reg >= XMM0 && reg <= XMM3) {
+        emit(ctx, "SUB RSP, 8");
+        emit(ctx, "MOVSD [RSP], %s", r);
+    } else {
+        emit(ctx, "PUSH %s", r);
+    }
     ctx->stack_index += 8;
 }
 
 void pop(Codegen_Context* ctx, int reg) {
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
-    emit(ctx, "POP %s", get_reg(reg));
+    char* r = get_reg(reg);
+    if (reg >= XMM0 && reg <= XMM3) {
+        emit(ctx, "MOVSD %s, [RSP]", r);
+        emit(ctx, "ADD RSP, 8");
+    } else {
+        emit(ctx, "POP %s", r);
+    }
     ctx->stack_index -= 8;
     assert(ctx->stack_index >= 0);
 }
@@ -336,46 +372,50 @@ int align(int n, s32 m) { return (m - (n % m)) % m; }
 
 void emit_cast_float_to_int(Codegen_Context* ctx, char* reg, Typespec* type) {
     assert(type->kind == TYPESPEC_INT);
-    bool usig = type->Int.is_unsigned;
-    s8 type_size = get_size_of_typespec(type);
+    bool usig      = type->Int.is_unsigned;
+    s8   type_size = get_size_of_typespec(type);
     switch (type_size) {
-        case 4: emit(ctx, "CVTTSS2SI %s, XMM0", reg); break;
-        case 8: emit(ctx, "CVTTSD2SI %s, XMM0", reg); break;
+    case 4: emit(ctx, "CVTTSS2SI %s, XMM0", reg); break;
+    case 8: emit(ctx, "CVTTSD2SI %s, XMM0", reg); break;
     }
     if (usig) {
         emit_cast_int_to_int(ctx, reg, make_typespec_int(type_size, usig));
     }
 }
+
 void emit_cast_int_to_int(Codegen_Context* ctx, char* reg, Typespec* type) {
     assert(type->kind == TYPESPEC_INT);
-    bool usig = type->Int.is_unsigned;
-    s8 type_size = get_size_of_typespec(type);
+    bool usig      = type->Int.is_unsigned;
+    s8   type_size = get_size_of_typespec(type);
     switch (type_size) {
-        case 1: usig ? emit(ctx, "MOVZBQ %s, al", reg) : emit(ctx, "MOVSBQ %s, al", reg); break;
-        case 2: usig ? emit(ctx, "MOVZWQ %s, ax", reg) : emit(ctx, "MOVSWQ %s, ax", reg); break;
-        case 4: usig ? emit(ctx, "MOV %s, %s", reg, reg) : emit(ctx, "CLTQ"); break;
+    case 1: usig ? emit(ctx, "MOVZBQ %s, al", reg) : emit(ctx, "MOVSBQ %s, al", reg); break;
+    case 2: usig ? emit(ctx, "MOVZWQ %s, ax", reg) : emit(ctx, "MOVSWQ %s, ax", reg); break;
+    case 4:
+        usig ? emit(ctx, "MOV %s, %s", reg, reg) : emit(ctx, "CLTQ");
+        break;
         // case 8: // fallthrough
     }
 }
+
 void emit_cast(Codegen_Context* ctx, Value* variable, Typespec* desired_type) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     assert(desired_type);
 
-    s64 variable_size = get_size_of_value(variable);
-    char* reg = get_reg(get_rax_reg_of_byte_size(variable_size));
+    s64   variable_size = get_size_of_value(variable);
+    char* reg           = get_reg(get_rax_reg_of_byte_size(variable_size));
 
     switch (variable->type->kind) {
-        case TYPESPEC_INT: {
-            switch (desired_type->kind) {
-                case TYPESPEC_INT: emit_cast_int_to_int(ctx, reg, desired_type); break;
-            }
-        } break;
-        case TYPESPEC_FLOAT: {
-            switch (desired_type->kind) {
-                case TYPESPEC_INT: emit_cast_float_to_int(ctx, reg, desired_type); break;
-            }
-        } break;
+    case TYPESPEC_INT: {
+        switch (desired_type->kind) {
+        case TYPESPEC_INT: emit_cast_int_to_int(ctx, reg, desired_type); break;
+        }
+    } break;
+    case TYPESPEC_FLOAT: {
+        switch (desired_type->kind) {
+        case TYPESPEC_INT: emit_cast_float_to_int(ctx, reg, desired_type); break;
+        }
+    } break;
     }
 }
 
@@ -476,21 +516,11 @@ Value* codegen_binary(Codegen_Context* ctx, Expr* expr) {
         return codegen_expr(ctx, lhs);
     }
     case THI_SYNTAX_ASSIGNMENT: {
-        codegen_expr(ctx, rhs);
-        push(ctx, RAX);
-        Value* variable = NULL;
-        push(ctx, RAX);
-
-        // @HACK: i dont like specific cases like this.
-        // if (lhs->kind == EXPR_UNARY) {
-        // variable = codegen_expr(lhs->Unary.operand);
-        // } else {
-        variable = codegen_expr(ctx, lhs);
-        // }
-
-        pop(ctx, RCX);
+        Value* rhs_v = codegen_expr(ctx, rhs);
+        push_type(ctx, rhs_v->type);
+        Value* variable = codegen_expr(ctx, lhs);
+        pop_type(ctx, rhs_v->type);
         emit_store(ctx, variable);
-        pop(ctx, RAX);
         return variable;
     }
     case TOKEN_PLUS: {
@@ -705,6 +735,7 @@ Value* codegen_variable_decl(Codegen_Context* ctx, Expr* expr) {
     return variable;
 }
 
+
 Value* codegen_call(Codegen_Context* ctx, Expr* expr) {
     DEBUG_START;
     char* callee = expr->Call.callee;
@@ -720,21 +751,47 @@ Value* codegen_call(Codegen_Context* ctx, Expr* expr) {
 
     // Check if we really need all arguments.
     // If the callee function has any default argument we can skip them
+
+    List* arg_values = make_list();
+
     LIST_FOREACH(args) {
-        Expr* arg = (Expr*)it->data;
-        codegen_expr(ctx, arg);
-        push(ctx, RAX);
+        Expr*  arg = (Expr*)it->data;
+        Value* v = codegen_expr(ctx, arg);
+        push_type(ctx, v);
+        list_append(arg_values, v);
     }
 
-    // %rdi, %rsi, %rdx, %rcx, %r8 and %r9 is used.
-    for (int i = arg_count - 1; i >= 0; --i) {
-        switch (i) {
-        case 0: pop(ctx, RDI); break;
-        case 1: pop(ctx, RSI); break;
-        case 2: pop(ctx, RDX); break;
-        case 3: pop(ctx, RCX); break;
-        case 4: pop(ctx, R8); break;
-        case 5: pop(ctx, R9); break;
+    s8 int_arg_counter = 0;
+    s8 float_arg_counter = 0;
+    
+    LIST_FOREACH_REVERSE(arg_values) {
+        Value* v = (Value*)it->data;
+        switch (v->type->kind ) {
+            case TYPESPEC_ARRAY: // fallthrough
+            case TYPESPEC_POINTER: // fallthrough
+            case TYPESPEC_INT: {
+                switch (int_arg_counter) {
+                    case 0: pop(ctx, RDI); break;
+                    case 1: pop(ctx, RSI); break;
+                    case 2: pop(ctx, RDX); break;
+                    case 3: pop(ctx, RCX); break;
+                    case 4: pop(ctx, R8); break;
+                    case 5: pop(ctx, R9); break;
+                }
+                int_arg_counter += 1; 
+            } break;
+            case TYPESPEC_FLOAT: {
+                switch (float_arg_counter) {
+                    case 0: pop(ctx, XMM0); break;
+                    case 1: pop(ctx, XMM1); break;
+                    case 2: pop(ctx, XMM2); break;
+                    case 3: pop(ctx, XMM3); break;
+                    case 4: pop(ctx, XMM4); break;
+                    case 5: pop(ctx, XMM5); break;
+                }
+                float_arg_counter += 1; 
+            } break;
+            case TYPESPEC_STRUCT: error("undhandled");
         }
     }
 
@@ -965,9 +1022,9 @@ Value* codegen_break(Codegen_Context* ctx, Expr* expr) {
 Value* codegen_cast(Codegen_Context* ctx, Expr* expr) {
     DEBUG_START;
     assert(expr->kind == EXPR_CAST);
-    Expr* e = expr->Cast.expr;
+    Expr*     e = expr->Cast.expr;
     Typespec* t = expr->Cast.type;
-    Value* v = codegen_expr(ctx, e);
+    Value*    v = codegen_expr(ctx, e);
     emit_cast(ctx, v, t);
     return v;
 }
@@ -984,19 +1041,6 @@ Value* codegen_struct(Codegen_Context* ctx, Expr* expr) {
     assert(expr->kind == EXPR_STRUCT);
     warning("struct incomplete?");
     return make_value_struct(expr->Struct.type);
-}
-
-s64 get_all_alloca_in_block(Expr* block) {
-    s64   sum   = 0;
-    List* stmts = block->Block.stmts;
-    LIST_FOREACH(stmts) {
-        Expr* stmt = (Expr*)it->data;
-        switch (stmt->kind) {
-        case EXPR_VARIABLE_DECL: sum += get_size_of_typespec(stmt->Variable_Decl.type); break;
-        case EXPR_BLOCK: sum += get_all_alloca_in_block(stmt); break;
-        }
-    }
-    return sum;
 }
 
 Value* codegen_function(Codegen_Context* ctx, Expr* expr) {
@@ -1057,6 +1101,19 @@ Value* codegen_function(Codegen_Context* ctx, Expr* expr) {
     pop_scope(ctx);
 
     return NULL;
+}
+
+s64 get_all_alloca_in_block(Expr* block) {
+    s64   sum   = 0;
+    List* stmts = block->Block.stmts;
+    LIST_FOREACH(stmts) {
+        Expr* stmt = (Expr*)it->data;
+        switch (stmt->kind) {
+        case EXPR_VARIABLE_DECL: sum += get_size_of_typespec(stmt->Variable_Decl.type); break;
+        case EXPR_BLOCK: sum += get_all_alloca_in_block(stmt); break;
+        }
+    }
+    return sum;
 }
 
 Codegen_Context make_codegen_context() {

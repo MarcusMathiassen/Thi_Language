@@ -1,4 +1,4 @@
 def main () -> s32 
     f := 5.3
-    return cast(s32, f)
+    return cast(s64, f)
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 output=./thi
-olvl=-O3
+olvl=
 compiler=clang
 src=./src/*.c
 flags=-Wall\ -Wextra\ -Wno-switch\ -Wno-unused-function
@@ -10,8 +10,10 @@ $compiler $src -std=$std $olvl $flags -o $output -g -fsanitize=address -fno-omit
 
 if [ $? == 0 ]; then
     # ./test.bash
-    ./test.bash ./tests/test_float.thi
-    # ./test.bash ./tests/test_window.thi
+    # ./test.bash ./tests/test_float.thi
+    ./test.bash ./tests/test_window.thi
+    # ./test.bash ./tests/test_function_call.thi
+    # ./test.bash ./tests/test_function_call_2.thi
     # ./test.bash ./tests/test_macro_definition.thi
     # ./test.bash ./tests/test_order_independance.thi
     # ./test.bash ./tests/test_defer.thi

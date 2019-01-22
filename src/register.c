@@ -1,8 +1,7 @@
 #include "register.h"
 #include "utility.h" // error
 
-#define REG_COUNT 68
-char* reg[REG_COUNT] = {
+char* reg[TOTAL_REG_COUNT] = {
     "RAX",  "EAX",  "AX",   "AL",   "AH",   "RCX",  "ECX",  "CX",   "CL",   "CH",   "RDX",
     "EDX",  "DX",   "DL",   "DH",   "RBX",  "EBX",  "BX",   "BL",   "BH",
 
@@ -12,9 +11,10 @@ char* reg[REG_COUNT] = {
     "R8",   "R8D",  "R8W",  "R8B",  "R9",   "R9D",  "R9W",  "R9B",  "R10",  "R10D", "R10W",
     "R10B", "R11",  "R11D", "R11W", "R11B", "R12",  "R12D", "R12W", "R12B", "R13",  "R13D",
     "R13W", "R13B", "R14",  "R14D", "R14W", "R14B", "R15",  "R15D", "R15W", "R15B",
+    "XMM0", "XMM1", "XMM2", "XMM3", "XMM4", "XMM5", "XMM6", "XMM7",
 };
 
-int   get_num_registers() { return REG_COUNT; }
+int   get_num_registers() { return TOTAL_REG_COUNT; }
 char* get_reg(int reg_n) { return reg[reg_n]; }
 char* get_reg_fitting_value(Value* value) {
     s64 size  = get_size_of_value(value);
