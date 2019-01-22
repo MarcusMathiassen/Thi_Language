@@ -14,7 +14,7 @@ struct Stack {
     Stack_Node* head;
 };
 
-#define STACK_FOREACH(stack) for (Stack_Node* it = (stack.head); (it); (it) = (it)->next)
+#define STACK_FOREACH(stack) for (Stack_Node* it = (stack->head); (it); (it) = (it)->next)
 
 Stack* make_stack();
 void   stack_init(Stack* stack);

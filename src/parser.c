@@ -1,5 +1,4 @@
 #include "parser.h"
-
 #include "globals.h"  // add_symbol
 #include "lexer.h"    // Token, Token_Kind, generate_tokens_from_source, token_array_get_info_of
 #include "typedefs.h" // s32 , s64, etc.
