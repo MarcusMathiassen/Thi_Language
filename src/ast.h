@@ -25,6 +25,8 @@ enum Expr_Kind {
     EXPR_BINARY,
     EXPR_GROUPING,
     EXPR_SUBSCRIPT,
+    
+    EXPR_CAST,
 
     EXPR_BLOCK,
     EXPR_STRUCT,
@@ -130,6 +132,10 @@ typedef struct {
 typedef struct {
     Expr* expr;
 } AST_Defer;
+typedef struct {
+    Typespec* type;
+    Expr* expr;
+} AST_Cast;
 struct Expr {
     Expr_Kind kind;
     Typespec* type;
@@ -149,6 +155,8 @@ struct Expr {
         AST_Unary     Unary;
         AST_Binary    Binary;
         AST_Subscript Subscript;
+
+        AST_Cast Cast;
 
         AST_Variable_Decl Variable_Decl;
         AST_If            If;
@@ -183,6 +191,7 @@ Expr* make_expr_for(Expr* init, Expr* cond, Expr* step, Expr* then_block);
 Expr* make_expr_while(Expr* cond, Expr* then_block);
 Expr* make_expr_return(Expr* expr);
 Expr* make_expr_defer(Expr* expr);
+Expr* make_expr_cast(Expr* expr, Typespec* type);
 
 Expr* make_expr_break();
 Expr* make_expr_continue();

@@ -111,6 +111,7 @@ Expr* parse_expression(Parser_Context* pctx);
 Expr* parse_unary(Parser_Context* pctx);
 Expr* parse_binary(Parser_Context* pctx, s32 expr_prec, Expr* lhs);
 Expr* parse_integer(Parser_Context* pctx);
+Expr* parse_float(Parser_Context* pctx);
 Expr* parse_parens(Parser_Context* pctx);
 Expr* parse_defer(Parser_Context* pctx);
 Expr* parse_load(Parser_Context* pctx);
@@ -126,6 +127,7 @@ Expr* parse_sizeof(Parser_Context* pctx);
 Expr* parse_def(Parser_Context* pctx);
 Expr* parse_macro(Parser_Context* pctx);
 Expr* parse_type(Parser_Context* pctx);
+Expr* parse_cast(Parser_Context* pctx);
 
 //------------------------------------------------------------------------------
 //                               Helpers
@@ -195,10 +197,10 @@ void parse(List* ast, char* source_file) {
     print_tokens(token_array);
 
     Parser_Context pctx = make_parser_context();
-    pctx.token_array   = token_array;
-    pctx.ast           = ast;
-    pctx.source_file   = source_file;
-    pctx.source        = source;
+    pctx.token_array    = token_array;
+    pctx.ast            = ast;
+    pctx.source_file    = source_file;
+    pctx.source         = source;
 
     recursively_fill_ast(ast, &pctx);
 
@@ -276,8 +278,10 @@ Expr* parse_primary(Parser_Context* pctx) {
     case TOKEN_TRUE: eat(pctx); return make_expr_int(1);
     case TOKEN_FALSE: eat(pctx); return make_expr_int(0);
     case TOKEN_SIZEOF: return parse_sizeof(pctx);
+    case TOKEN_CAST: return parse_cast(pctx);
     case TOKEN_IDENTIFIER: return parse_identifier(pctx);
     case TOKEN_DOLLAR_SIGN: return parse_note(pctx);
+    case TOKEN_FLOAT: return parse_float(pctx);
     case TOKEN_CHAR: // FALLTHROUGH
     case TOKEN_HEX:  // FALLTHROUGH
     case TOKEN_INTEGER: return parse_integer(pctx);
@@ -611,6 +615,17 @@ Expr* parse_postfix(Parser_Context* pctx) {
     return parse_postfix_tail(pctx, primary_expr);
 }
 
+Expr* parse_cast(Parser_Context* pctx) {
+    DEBUG_START;
+    eat_kind(pctx, TOKEN_CAST);
+    eat_kind(pctx, TOKEN_OPEN_PAREN);
+    Typespec* type = get_type(pctx);
+    eat_kind(pctx, TOKEN_COMMA);
+    Expr* expr = parse_expression(pctx);
+    eat_kind(pctx, TOKEN_CLOSE_PAREN);
+    return make_expr_cast(expr, type);
+}
+
 Expr* parse_unary(Parser_Context* pctx) {
     DEBUG_START;
     Expr* unary_expr = NULL;
@@ -651,6 +666,11 @@ Expr* parse_expression(Parser_Context* pctx) {
     return expr;
 }
 
+Expr* parse_float(Parser_Context* pctx) {
+    DEBUG_START;
+    Expr* res = make_expr_float(get_float(pctx));
+    return res;
+}
 Expr* parse_integer(Parser_Context* pctx) {
     DEBUG_START;
     Expr* res = make_expr_int(get_integer(pctx));
@@ -878,8 +898,8 @@ void syntax_error(Parser_Context* pctx, char* fmt, ...) {
     assert(fmt);
 
     Token_Info token_info = token_array_get_info_of(pctx->token_array, pctx->curr_tok.id);
-    s64 line_pos = token_info.line_pos;
-    s64 col_pos = token_info.col_pos;
+    s64        line_pos   = token_info.line_pos;
+    s64        col_pos    = token_info.col_pos;
 
     va_list args;
     va_start(args, fmt);

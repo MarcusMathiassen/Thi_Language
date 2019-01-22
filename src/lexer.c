@@ -156,8 +156,6 @@ Token_Array generate_tokens_from_source(char* source) {
 //                               Private
 //------------------------------------------------------------------------------
 
-const u8 EOF = '\0';
-
 #define CASE_SINGLE_TOKEN(c1, t_kind)                                                                                  \
     case c1: token.kind = t_kind; ++c;
 
@@ -199,7 +197,7 @@ Token_Fat get_next_token(Lexer_Context* lctx) {
             lctx->current_indentation_level = c - lctx->position_of_newline;
         }
     } break;
-        CASE_SINGLE_TOKEN(EOF, TOKEN_EOF);
+        CASE_SINGLE_TOKEN('\0', TOKEN_EOF);
         break;
         CASE_SINGLE_TOKEN('(', TOKEN_OPEN_PAREN);
         break;

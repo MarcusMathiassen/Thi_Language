@@ -17,6 +17,7 @@ s64 get_size_of_underlying_typespec(Typespec* type);
 s64 get_size_of_typespec(Typespec* Typespec);
 
 char* typespec_to_str(Typespec* type);
+char* typespec_kind_to_str(Typespec_Kind kind);
 
 Typespec* make_typespec_int(s8 bytes, bool is_unsigned);
 Typespec* make_typespec_float(s8 bytes);

@@ -240,7 +240,7 @@ int main(int argc, char** argv) {
 
     // Codegen
     push_timer("Codegen");
-    char* output = generate_code_from_ast(ast);
+    char* output = generate_X64_from_ast(ast);
     pop_timer();
 
     // Write to file

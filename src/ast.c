@@ -38,6 +38,7 @@ char* expr_kind_to_str(Expr_Kind kind) {
     case EXPR_DEFER: return "EXPR_DEFER";
     case EXPR_BREAK: return "EXPR_BREAK";
     case EXPR_CONTINUE: return "EXPR_CONTINUE";
+    case EXPR_CAST: return "EXPR_CAST";
     default: warning("expr_kind_to_str unhandled case '%d'", kind);
     }
     return NULL;
@@ -48,6 +49,7 @@ char* expr_to_str(Expr* expr) {
     case EXPR_DEFER: return strf("defer %s", expr_to_str(expr->Defer.expr));
     case EXPR_BREAK: return "break";
     case EXPR_CONTINUE: return "continue";
+    case EXPR_CAST: return strf("cast(%s, %s)", typespec_to_str(expr->Cast.type), expr_to_str(expr->Cast.expr));
     case EXPR_ASM: {
         return strf("%s", expr->Asm.str);
     }
@@ -152,10 +154,11 @@ char* expr_to_str(Expr* expr) {
 
 Typespec* get_inferred_type_of_expr(Expr* expr) {
     switch (expr->kind) {
+    case EXPR_CAST: return expr->Cast.type;
     case EXPR_MACRO: return get_inferred_type_of_expr(expr->Macro.expr);
     case EXPR_NOTE: return get_inferred_type_of_expr(expr->Note.expr);
     case EXPR_INT: return make_typespec_int(DEFAULT_INT_BYTE_SIZE, 0);
-    case EXPR_FLOAT: error("get_inferred_type_of_expr EXPR_FLOAT not implemented");
+    case EXPR_FLOAT: return make_typespec_float(DEFAULT_FLOAT_BYTE_SIZE);
     case EXPR_STRING: return make_typespec_pointer(make_typespec_int(8, 1));
     case EXPR_IDENT: return get_symbol(expr->Ident.name);
     case EXPR_CALL: return get_symbol(expr->Call.callee)->Function.ret_type;
@@ -293,7 +296,10 @@ Expr* constant_fold_expr(Expr* expr) {
         }
     } break;
     case EXPR_GROUPING: {
-        expr = constant_fold_expr(expr->Grouping.expr);
+        expr->Grouping.expr = constant_fold_expr(expr->Grouping.expr);
+    } break;
+    case EXPR_CAST: {
+        expr = constant_fold_expr(expr->Cast.expr);
     } break;
     case EXPR_SUBSCRIPT: {
         expr->Subscript.load = constant_fold_expr(expr->Subscript.load);
@@ -508,5 +514,14 @@ Expr* make_expr_break() {
 
 Expr* make_expr_continue() {
     Expr* e = make_expr(EXPR_CONTINUE);
+    return e;
+}
+
+Expr* make_expr_cast(Expr* expr, Typespec* type) {
+    assert(expr);
+    assert(type);
+    Expr* e      = make_expr(EXPR_CAST);
+    e->Cast.type = type;
+    e->Cast.expr = expr;
     return e;
 }

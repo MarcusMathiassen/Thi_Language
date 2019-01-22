@@ -19,7 +19,8 @@
 s64 get_size_of_value(Value* value) {
     assert(value);
     switch (value->kind) {
-    case VALUE_INT: return value->Int.bytes;
+    case VALUE_FLOAT: return get_size_of_typespec(value->type);
+    case VALUE_INT: return get_size_of_typespec(value->type);
     case VALUE_STRING: return value->String.len;
     case VALUE_VARIABLE: return get_size_of_typespec(value->type);
     case VALUE_FUNCTION: error("Asking for the size of a function? Why?");
@@ -68,6 +69,15 @@ Value* make_value_int(u8 bytes, Typespec* type, s64 value) {
     v->Int.bytes = bytes;
     v->Int.value = value;
     return v;
+}
+
+Value* make_value_float(Typespec* type, f64 value)
+{
+    assert(type);
+    Value* v     = make_value(VALUE_FLOAT);
+    v->type      = type;
+    v->Float.value = value;
+    return v;   
 }
 
 Value* make_value_string(char* value, Typespec* type) {
