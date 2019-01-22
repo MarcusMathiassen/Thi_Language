@@ -167,50 +167,349 @@ extern _glfwGetTimerValue
 extern _glfwGetTimerFrequency
 extern _glfwGetRequiredInstanceExtensions
 section .data
-	D0 DQ `GLFW init failed.`, 0 
-	D1 DQ `Hello Triangle`, 0 
-	D2 DQ `GLEW init failed.`, 0 
-	D3 DD 1.000000
-	D4 DD 0.005000
-	D5 DD 0.005000
-	D6 DD 0.005000
-	D7 DD 0.000000
+	D0 DD 0.000000
+	D1 DD 0.000000
+	D2 DD 0.000000
+	D3 DD 0.000000
+	D4 DD 0.000000
+	D5 DD 1.000000
+	D6 DD 0.500000
+	D7 DD 0.500000
 	D8 DD 0.000000
-	D9 DD 0.001000
-	D10 DD 0.001000
-	D11 DD 0.001000
-	D12 DD 0.001000
-	D13 DD 0.000000
+	D9 DD 1.000000
+	D10 DD 0.000000
+	D11 DD 0.500000
+	D12 DD 0.000000
+	D13 DD 1.000000
 	D14 DD 0.000000
 	D15 DD 0.000000
-	D16 DD 0.000000
-	D17 DD 1.000000
+	D16 DD 0.500000
+	D17 DD 0.500000
 	D18 DD 0.500000
-	D19 DD 0.500000
-	D20 DD 0.000000
-	D21 DD 1.000000
-	D22 DD 0.000000
-	D23 DD 0.500000
-	D24 DD 0.000000
-	D25 DD 1.000000
+	D19 DQ `GLFW init failed.`, 0 
+	D20 DQ `Hello Triangle`, 0 
+	D21 DQ `GLEW init failed.`, 0 
+	D22 DD 1.000000
+	D23 DD 0.010000
+	D24 DD 0.010000
+	D25 DD 0.010000
 	D26 DD 0.000000
 	D27 DD 0.000000
-	D28 DD 0.500000
-	D29 DD 0.500000
-	D30 DD 0.500000
+	D28 DD 1.000000
+	D29 DD 0.001000
+	D30 DD 0.001000
+	D31 DD 0.001000
+	D32 DD 0.001000
+	D33 DD 0.001000
+	D34 DD 0.001000
+	D35 DD 0.000000
+	D36 DD 0.000000
+	D37 DD 1.000000
+	D38 DD 0.500000
+	D39 DD 0.500000
+	D40 DD 0.000000
+	D41 DD 1.000000
+	D42 DD 0.000000
+	D43 DD 0.500000
+	D44 DD 0.000000
+	D45 DD 1.000000
+	D46 DD 0.000000
+	D47 DD 0.000000
+	D48 DD 0.500000
+	D49 DD 0.500000
+	D50 DD 0.500000
 global _main
 section .text
+_sqrt:
+	PUSH RBP
+	MOV RBP, RSP
+	SUB RSP, 16; 16 alloc, 0 padding
+.BEGIN:
+	MOV [RBP-4], EDI; store
+	MOV RAX, D0; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-8]; load
+	MOVSS XMM0, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS [RBP-8], XMM0; store
+	MOV RAX, D1; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-12]; load
+	MOVSS XMM0, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS [RBP-12], XMM0; store
+	MOV RAX, D2; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-16]; load
+	MOVSS XMM0, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS [RBP-16], XMM0; store
+	MOV EAX, 0
+	PUSH RAX
+	MOV EAX, DWORD [RBP-20]; load
+	POP RAX
+	MOV [RBP-20], EAX; store
+.L0:
+	MOV EAX, DWORD [RBP-20]; load
+	PUSH RAX
+	MOV EAX, 1000
+	POP RCX
+	CMP RCX, RAX
+	SETL AL
+	CMP AL, 0
+	JE .L2
+	MOVSS XMM0, DWORD [RBP-16]; load
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-16]; load
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	MULSS XMM0, XMM1
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-4]; load
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	UCOMISS XMM1, XMM0
+	SETE AL
+	CMP AL, 0
+	JE .L4
+.L6:
+	JMP .L5
+.L5:
+	MOVSS XMM0, DWORD [RBP-16]; load
+	JMP .END
+	JMP .L4
+.L3:
+.L4:
+	MOVSS XMM0, DWORD [RBP-16]; load
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-16]; load
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	MULSS XMM0, XMM1
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-4]; load
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	UCOMISS XMM1, XMM0
+	SETG AL
+	CMP AL, 0
+	JE .L7
+	MOVSS XMM0, DWORD [RBP-16]; load
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-12]; load
+	MOVSS XMM0, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS [RBP-12], XMM0; store
+	JMP .L8
+.L7:
+	MOVSS XMM0, DWORD [RBP-16]; load
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-8]; load
+	MOVSS XMM0, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS [RBP-8], XMM0; store
+.L8:
+.L1:
+	MOV EAX, 1
+	PUSH RAX
+	MOV EAX, DWORD [RBP-20]; load
+	POP RCX
+	ADD RAX, RCX
+	PUSH RAX
+	MOV EAX, DWORD [RBP-20]; load
+	POP RAX
+	MOV [RBP-20], EAX; store
+	JMP .L0
+.L2:
+.L10:
+	JMP .L9
+.L9:
+	MOVSS XMM0, DWORD [RBP-16]; load
+	JMP .END
+.END:
+	ADD RSP, 16; 16 alloc, 0 padding
+	LEAVE
+	RET
+_draw_triangle:
+	PUSH RBP
+	MOV RBP, RSP
+	SUB RSP, 16; 12 alloc, 4 padding
+.BEGIN:
+	MOV [RBP-4], EDI; store
+	MOV [RBP-8], ESI; store
+	MOV [RBP-12], EDX; store
+	MOV EAX, 4
+	PUSH RAX
+	POP RDI
+	CALL _glBegin
+	MOV RAX, D3; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D4; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D5; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM2, DWORD [RSP]
+	ADD RSP, 8
+	CALL _glColor3f
+	MOV RAX, D6; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	MOVD ECX, XMM0
+	XOR ECX, 2147483648
+	MOVD XMM0, ECX
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-8]; load
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	ADDSS XMM0, XMM1
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D7; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	MOVD ECX, XMM0
+	XOR ECX, 2147483648
+	MOVD XMM0, ECX
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-4]; load
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	ADDSS XMM0, XMM1
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	CALL _glVertex2f
+	MOV RAX, D8; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D9; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D10; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM2, DWORD [RSP]
+	ADD RSP, 8
+	CALL _glColor3f
+	MOV RAX, D11; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-8]; load
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	ADDSS XMM0, XMM1
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D12; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-4]; load
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	ADDSS XMM0, XMM1
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	CALL _glVertex2f
+	MOV RAX, D13; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D14; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D15; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM2, DWORD [RSP]
+	ADD RSP, 8
+	CALL _glColor3f
+	MOV RAX, D16; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	MOV RAX, D17; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-8]; load
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	SUBSS XMM0, XMM1
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOV RAX, D18; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-4]; load
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	ADDSS XMM0, XMM1
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	CALL _glVertex2f
+	CALL _glEnd
+.END:
+	ADD RSP, 16; 12 alloc, 4 padding
+	LEAVE
+	RET
 _main:
 	PUSH RBP
 	MOV RBP, RSP
-	SUB RSP, 32; 20 alloc, 12 padding
+	SUB RSP, 32; 24 alloc, 8 padding
 .BEGIN:
 	CALL _glfwInit
 	CMP AL, 0
 	SETE AL
 	CMP AL, 0
 	JE .L1
-	MOV RAX, D0; string_ref
+	MOV RAX, D19; string_ref
 	PUSH RAX
 	POP RDI
 	CALL _puts
@@ -270,7 +569,7 @@ _main:
 	PUSH RAX
 	MOV EAX, 0
 	PUSH RAX
-	MOV RAX, D1; string_ref
+	MOV RAX, D20; string_ref
 	PUSH RAX
 	MOV EAX, 512
 	PUSH RAX
@@ -298,26 +597,26 @@ _main:
 	SETNE AL
 	CMP AL, 0
 	JE .L3
-	MOV RAX, D2; string_ref
+	MOV RAX, D21; string_ref
 	PUSH RAX
 	POP RDI
 	CALL _puts
 	JMP .L3
 .L2:
 .L3:
-	MOV RAX, D3; float_ref
+	MOV RAX, D22; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
-	MOV RAX, D4; float_ref
+	MOV RAX, D23; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
-	MOV RAX, D5; float_ref
+	MOV RAX, D24; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
-	MOV RAX, D6; float_ref
+	MOV RAX, D25; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
@@ -334,7 +633,7 @@ _main:
 	PUSH RAX
 	POP RDI
 	CALL _glEnable
-	MOV RAX, D7; float_ref
+	MOV RAX, D26; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
@@ -342,7 +641,7 @@ _main:
 	MOVSS XMM0, DWORD [RSP]
 	ADD RSP, 8
 	MOVSS [RBP-12], XMM0; store
-	MOV RAX, D8; float_ref
+	MOV RAX, D27; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
@@ -350,13 +649,21 @@ _main:
 	MOVSS XMM0, DWORD [RSP]
 	ADD RSP, 8
 	MOVSS [RBP-16], XMM0; store
+	MOV RAX, D28; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-20]; load
+	MOVSS XMM0, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS [RBP-20], XMM0; store
 	MOV EAX, 1
 	PUSH RAX
-	MOV EAX, DWORD [RBP-20]; load
+	MOV EAX, DWORD [RBP-24]; load
 	POP RAX
-	MOV [RBP-20], EAX; store
+	MOV [RBP-24], EAX; store
 .L4:
-	MOV EAX, DWORD [RBP-20]; load
+	MOV EAX, DWORD [RBP-24]; load
 	CMP AL, 0
 	JE .L5
 	MOV RAX, QWORD [RBP-8]; load
@@ -367,9 +674,9 @@ _main:
 	JE .L7
 	MOV EAX, 0
 	PUSH RAX
-	MOV EAX, DWORD [RBP-20]; load
+	MOV EAX, DWORD [RBP-24]; load
 	POP RAX
-	MOV [RBP-20], EAX; store
+	MOV [RBP-24], EAX; store
 	JMP .L7
 .L6:
 .L7:
@@ -389,9 +696,9 @@ _main:
 	JE .L9
 	MOV EAX, 0
 	PUSH RAX
-	MOV EAX, DWORD [RBP-20]; load
+	MOV EAX, DWORD [RBP-24]; load
 	POP RAX
-	MOV [RBP-20], EAX; store
+	MOV [RBP-24], EAX; store
 	JMP .L9
 .L8:
 .L9:
@@ -414,7 +721,7 @@ _main:
 	SETE AL
 	CMP AL, 0
 	JE .L11
-	MOV RAX, D9; float_ref
+	MOV RAX, D29; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	MOVD ECX, XMM0
 	XOR ECX, 2147483648
@@ -448,7 +755,7 @@ _main:
 	SETE AL
 	CMP AL, 0
 	JE .L13
-	MOV RAX, D10; float_ref
+	MOV RAX, D30; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
@@ -479,7 +786,7 @@ _main:
 	SETE AL
 	CMP AL, 0
 	JE .L15
-	MOV RAX, D11; float_ref
+	MOV RAX, D31; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	MOVD ECX, XMM0
 	XOR ECX, 2147483648
@@ -513,7 +820,7 @@ _main:
 	SETE AL
 	CMP AL, 0
 	JE .L17
-	MOV RAX, D12; float_ref
+	MOV RAX, D32; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
@@ -530,41 +837,84 @@ _main:
 	JMP .L17
 .L16:
 .L17:
-	MOVSS XMM0, DWORD [RBP-12]; load
-	SUB RSP, 8
-	MOVSS [RSP], XMM0
-	MOV RAX, D13; float_ref
-	MOVSS XMM0, [RAX]; float_ref
-	MOVSS XMM1, DWORD [RSP]
-	ADD RSP, 8
-	UCOMISS XMM1, XMM0
-	SETG AL
+	MOV EAX, 88
+	PUSH RAX
+	MOV RAX, QWORD [RBP-8]; load
+	PUSH RAX
+	POP RDI
+	POP RSI
+	CALL _glfwGetKey
+	PUSH RAX
+	MOV EAX, 1
+	POP RCX
+	CMP RCX, RAX
+	SETE AL
 	CMP AL, 0
 	JE .L19
-	MOV RAX, D14; float_ref
+	MOV RAX, D33; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
-	MOVSS XMM0, DWORD [RBP-12]; load
+	MOVSS XMM0, DWORD [RBP-20]; load
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	ADDSS XMM0, XMM1
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-20]; load
 	MOVSS XMM0, DWORD [RSP]
 	ADD RSP, 8
-	MOVSS [RBP-12], XMM0; store
+	MOVSS [RBP-20], XMM0; store
 	JMP .L19
 .L18:
 .L19:
+	MOV EAX, 90
+	PUSH RAX
+	MOV RAX, QWORD [RBP-8]; load
+	PUSH RAX
+	POP RDI
+	POP RSI
+	CALL _glfwGetKey
+	PUSH RAX
+	MOV EAX, 1
+	POP RCX
+	CMP RCX, RAX
+	SETE AL
+	CMP AL, 0
+	JE .L21
+	MOV RAX, D34; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	MOVD ECX, XMM0
+	XOR ECX, 2147483648
+	MOVD XMM0, ECX
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-20]; load
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	ADDSS XMM0, XMM1
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-20]; load
+	MOVSS XMM0, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS [RBP-20], XMM0; store
+	JMP .L21
+.L20:
+.L21:
 	MOV EAX, 4
 	PUSH RAX
 	POP RDI
 	CALL _glBegin
-	MOV RAX, D15; float_ref
+	MOV RAX, D35; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
-	MOV RAX, D16; float_ref
+	MOV RAX, D36; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
-	MOV RAX, D17; float_ref
+	MOV RAX, D37; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
@@ -575,11 +925,17 @@ _main:
 	MOVSS XMM2, DWORD [RSP]
 	ADD RSP, 8
 	CALL _glColor3f
-	MOV RAX, D18; float_ref
+	MOV RAX, D38; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	MOVD ECX, XMM0
 	XOR ECX, 2147483648
 	MOVD XMM0, ECX
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-20]; load
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	MULSS XMM0, XMM1
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
 	MOVSS XMM0, DWORD [RBP-16]; load
@@ -588,11 +944,17 @@ _main:
 	ADDSS XMM0, XMM1
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
-	MOV RAX, D19; float_ref
+	MOV RAX, D39; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	MOVD ECX, XMM0
 	XOR ECX, 2147483648
 	MOVD XMM0, ECX
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-20]; load
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	MULSS XMM0, XMM1
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
 	MOVSS XMM0, DWORD [RBP-12]; load
@@ -606,15 +968,15 @@ _main:
 	MOVSS XMM1, DWORD [RSP]
 	ADD RSP, 8
 	CALL _glVertex2f
-	MOV RAX, D20; float_ref
+	MOV RAX, D40; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
-	MOV RAX, D21; float_ref
+	MOV RAX, D41; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
-	MOV RAX, D22; float_ref
+	MOV RAX, D42; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
@@ -625,8 +987,14 @@ _main:
 	MOVSS XMM2, DWORD [RSP]
 	ADD RSP, 8
 	CALL _glColor3f
-	MOV RAX, D23; float_ref
+	MOV RAX, D43; float_ref
 	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-20]; load
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	MULSS XMM0, XMM1
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
 	MOVSS XMM0, DWORD [RBP-16]; load
@@ -635,8 +1003,14 @@ _main:
 	ADDSS XMM0, XMM1
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
-	MOV RAX, D24; float_ref
+	MOV RAX, D44; float_ref
 	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-20]; load
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	MULSS XMM0, XMM1
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
 	MOVSS XMM0, DWORD [RBP-12]; load
@@ -650,15 +1024,15 @@ _main:
 	MOVSS XMM1, DWORD [RSP]
 	ADD RSP, 8
 	CALL _glVertex2f
-	MOV RAX, D25; float_ref
+	MOV RAX, D45; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
-	MOV RAX, D26; float_ref
+	MOV RAX, D46; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
-	MOV RAX, D27; float_ref
+	MOV RAX, D47; float_ref
 	MOVSS XMM0, [RAX]; float_ref
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
@@ -669,10 +1043,22 @@ _main:
 	MOVSS XMM2, DWORD [RSP]
 	ADD RSP, 8
 	CALL _glColor3f
-	MOV RAX, D28; float_ref
+	MOV RAX, D48; float_ref
 	MOVSS XMM0, [RAX]; float_ref
-	MOV RAX, D29; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-20]; load
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	MULSS XMM0, XMM1
+	MOV RAX, D49; float_ref
 	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-20]; load
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	MULSS XMM0, XMM1
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
 	MOVSS XMM0, DWORD [RBP-16]; load
@@ -681,8 +1067,14 @@ _main:
 	SUBSS XMM0, XMM1
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
-	MOV RAX, D30; float_ref
+	MOV RAX, D50; float_ref
 	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-20]; load
+	MOVSS XMM1, DWORD [RSP]
+	ADD RSP, 8
+	MULSS XMM0, XMM1
 	SUB RSP, 8
 	MOVSS [RSP], XMM0
 	MOVSS XMM0, DWORD [RBP-12]; load
@@ -703,12 +1095,13 @@ _main:
 	CALL _glfwSwapBuffers
 	JMP .L4
 .L5:
-.L21:
-	JMP .L20
-.L20:
+.L23:
+	CALL _glfwTerminate
+	JMP .L22
+.L22:
 	MOV EAX, 1
 	JMP .END
 .END:
-	ADD RSP, 32; 20 alloc, 12 padding
+	ADD RSP, 32; 24 alloc, 8 padding
 	LEAVE
 	RET

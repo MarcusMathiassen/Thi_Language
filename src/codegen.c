@@ -615,11 +615,12 @@ Value* codegen_binary(Codegen_Context* ctx, Expr* expr) {
             emit(ctx, "%s XMM1", inst);
             return rhs_v;
         } else {
+            char* inst = get_instr(op, rhs_v->type);
             push(ctx, RAX);
             codegen_expr(ctx, lhs);
             pop(ctx, RCX);
             emit(ctx, "CDQ");
-            emit(ctx, "IDIV RCX");
+            emit(ctx, "%s RCX", inst);
             return rhs_v;
         }
     }
