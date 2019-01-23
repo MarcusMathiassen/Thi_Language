@@ -4,16 +4,6 @@ load "includes/glew.thi"
 load "includes/glfw.thi"
 load "includes/math.thi"
 
-def draw_triangle(x: f32, y: f32, s: f32)
-        glBegin(GL_TRIANGLES)
-        glColor3f(1.0, 0.0, 0.0)
-        glVertex2f(x + -0.5 , y + -0.5 )
-        glColor3f(0.0, 1.0, 0.0)
-        glVertex2f(x + 0.0, y + 0.5)
-        glColor3f(0.0, 0.0, 1.0)
-        glVertex2f(x + 0.5, y -0.5)
-        glEnd()
-
 def main () -> s32
 
     if !glfwInit() do puts("GLFW init failed.")
@@ -62,15 +52,28 @@ def main () -> s32
         if glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS    do scale +=  0.001 
         if glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS    do scale +=  -0.001 
 
-        glBegin(GL_TRIANGLES)
-        glColor3f(1.0, 0.0, 0.0)
-        glVertex2f(x + -0.5 * scale, y + -0.5 * scale)
-        glColor3f(0.0, 1.0, 0.0)
-        glVertex2f(x + 0.0* scale, y + 0.5* scale)
-        glColor3f(0.0, 0.0, 1.0)
-        glVertex2f(x + 0.5* scale, y -0.5* scale)
-        glEnd()
+
+        draw_triangle(x, y, scale)
+
+        # glBegin(GL_TRIANGLES)
+        # glColor3f(1.0, 0.0, 0.0)
+        # glVertex2f(x + -0.5 * scale, y + -0.5 * scale)
+        # glColor3f(0.0, 1.0, 0.0)
+        # glVertex2f(x + 0.0* scale, y + 0.5* scale)
+        # glColor3f(0.0, 0.0, 1.0)
+        # glVertex2f(x + 0.5* scale, y -0.5* scale)
+        # glEnd()
 
         glfwSwapBuffers(window)
 
     return 1
+
+def draw_triangle(x: f32, y: f32, s: f32)
+        glBegin(GL_TRIANGLES)
+        glColor3f(1.0, 0.0, 0.0)
+        glVertex2f(x + -0.5 *s, y + -0.5*s )
+        glColor3f(0.0, 1.0, 0.0)
+        glVertex2f(x + 0.0*s, y + 0.5*s)
+        glColor3f(0.0, 0.0, 1.0)
+        glVertex2f(x + 0.5*s, y -0.5*s)
+        glEnd()

@@ -448,7 +448,8 @@ void emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg) {
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
     s64   stack_pos = get_stack_pos_of_variable(variable);
     char* reg_c     = get_reg(reg);
-    emit(ctx, "MOV [RBP-%lld], %s; store", stack_pos, reg_c);
+    char* mov_op    = get_move_op(variable->type);
+    emit(ctx, "%s [RBP-%lld], %s; store", mov_op, stack_pos, reg_c);
 }
 void emit_store(Codegen_Context* ctx, Value* variable) {
     assert(variable);
@@ -1161,11 +1162,45 @@ Value* codegen_function(Codegen_Context* ctx, Expr* expr) {
 
     List* args = func_type->Function.args;
     s64   i    = 0;
+    s8    int_arg_counter   = 0;
+    s8    float_arg_counter = 0;
     LIST_FOREACH(args) {
         Expr*  arg       = (Expr*)it->data;
         Value* v         = codegen_expr(ctx, arg);
         s64    size      = get_size_of_value(v);
-        s64    param_reg = get_parameter_reg(i, size);
+
+        s8    param_reg = -1;
+
+        switch (v->type->kind) {
+        case TYPESPEC_ARRAY:   // fallthrough
+        case TYPESPEC_POINTER: // fallthrough
+        case TYPESPEC_INT: {
+            switch (int_arg_counter) {
+            case 0: param_reg = RDI; break;
+            case 1: param_reg = RSI; break;
+            case 2: param_reg = RDX; break;
+            case 3: param_reg = RCX; break;
+            case 4: param_reg = R8; break;
+            case 5: param_reg = R9; break;
+            }
+            int_arg_counter += 1;
+        } break;
+        case TYPESPEC_FLOAT: {
+            switch (float_arg_counter) {
+            case 0: param_reg = XMM0; break;
+            case 1: param_reg = XMM1; break;
+            case 2: param_reg = XMM2; break;
+            case 3: param_reg = XMM3; break;
+            case 4: param_reg = XMM4; break;
+            case 5: param_reg = XMM5; break;
+            case 6: param_reg = XMM6; break;
+            case 7: param_reg = XMM7; break;
+            }
+            float_arg_counter += 1;
+        } break;
+        case TYPESPEC_STRUCT: error("undhandled");
+        }
+
         emit_store_r(ctx, v, param_reg);
         i += 1;
     }
