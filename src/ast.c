@@ -1,9 +1,9 @@
 #include "ast.h"
-#include "globals.h"
-#include "lexer.h"   // token_kind_to_str,
-#include "string.h"  // strf, append_string, string
-#include "utility.h" // info, success, error, warning, xmalloc, xrealloc
 #include <assert.h>  // assert
+#include "globals.h"
+#include "lexer.h"    // token_kind_to_str,
+#include "string.h"   // strf, append_string, string
+#include "utility.h"  // info, success, error, warning, xmalloc, xrealloc
 
 //------------------------------------------------------------------------------
 //                               ast.c
@@ -15,167 +15,281 @@
 
 char* expr_kind_to_str(Expr_Kind kind) {
     switch (kind) {
-    case EXPR_ASM: return "EXPR_ASM";
-    case EXPR_MACRO: return "EXPR_MACRO";
-    case EXPR_NOTE: return "EXPR_NOTE";
-    case EXPR_INT: return "EXPR_INT";
-    case EXPR_FLOAT: return "EXPR_FLOAT";
-    case EXPR_STRING: return "EXPR_STRING";
-    case EXPR_IDENT: return "EXPR_IDENT";
-    case EXPR_CALL: return "EXPR_CALL";
-    case EXPR_UNARY: return "EXPR_UNARY";
-    case EXPR_BINARY: return "EXPR_BINARY";
-    case EXPR_VARIABLE_DECL: return "EXPR_VARIABLE_DECL";
-    case EXPR_FUNCTION: return "EXPR_FUNCTION";
-    case EXPR_STRUCT: return "EXPR_STRUCT";
-    case EXPR_BLOCK: return "EXPR_BLOCK";
-    case EXPR_GROUPING: return "EXPR_GROUPING";
-    case EXPR_SUBSCRIPT: return "EXPR_SUBSCRIPT";
-    case EXPR_IF: return "EXPR_IF";
-    case EXPR_FOR: return "EXPR_FOR";
-    case EXPR_WHILE: return "EXPR_WHILE";
-    case EXPR_RETURN: return "EXPR_RETURN";
-    case EXPR_DEFER: return "EXPR_DEFER";
-    case EXPR_BREAK: return "EXPR_BREAK";
-    case EXPR_CONTINUE: return "EXPR_CONTINUE";
-    case EXPR_CAST: return "EXPR_CAST";
-    default: warning("expr_kind_to_str unhandled case '%d'", kind);
+        case EXPR_ASM: return "EXPR_ASM";
+        case EXPR_MACRO: return "EXPR_MACRO";
+        case EXPR_NOTE: return "EXPR_NOTE";
+        case EXPR_INT: return "EXPR_INT";
+        case EXPR_FLOAT: return "EXPR_FLOAT";
+        case EXPR_STRING: return "EXPR_STRING";
+        case EXPR_IDENT: return "EXPR_IDENT";
+        case EXPR_CALL: return "EXPR_CALL";
+        case EXPR_UNARY: return "EXPR_UNARY";
+        case EXPR_BINARY: return "EXPR_BINARY";
+        case EXPR_VARIABLE_DECL: return "EXPR_VARIABLE_DECL";
+        case EXPR_FUNCTION: return "EXPR_FUNCTION";
+        case EXPR_STRUCT: return "EXPR_STRUCT";
+        case EXPR_BLOCK: return "EXPR_BLOCK";
+        case EXPR_GROUPING: return "EXPR_GROUPING";
+        case EXPR_SUBSCRIPT: return "EXPR_SUBSCRIPT";
+        case EXPR_IF: return "EXPR_IF";
+        case EXPR_FOR: return "EXPR_FOR";
+        case EXPR_WHILE: return "EXPR_WHILE";
+        case EXPR_RETURN: return "EXPR_RETURN";
+        case EXPR_DEFER: return "EXPR_DEFER";
+        case EXPR_BREAK: return "EXPR_BREAK";
+        case EXPR_CONTINUE: return "EXPR_CONTINUE";
+        case EXPR_CAST: return "EXPR_CAST";
+        default: warning("expr_kind_to_str unhandled case '%d'", kind);
     }
     return NULL;
 }
 
 char* expr_to_str(Expr* expr) {
     switch (expr->kind) {
-    case EXPR_DEFER: return strf("defer %s", expr_to_str(expr->Defer.expr));
-    case EXPR_BREAK: return "break";
-    case EXPR_CONTINUE: return "continue";
-    case EXPR_CAST: return strf("cast(%s, %s)", typespec_to_str(expr->Cast.type), expr_to_str(expr->Cast.expr));
-    case EXPR_ASM: {
-        return strf("%s", expr->Asm.str);
-    }
-    case EXPR_MACRO: {
-        return strf("%s :: %s", expr->Macro.name, expr_to_str(expr->Macro.expr));
-    }
-    case EXPR_RETURN: {
-        if (expr->Return.expr) {
-            return strf("return %s", expr_to_str(expr->Return.expr));
-        } else {
-            return strf("return");
+        case EXPR_DEFER: return strf("defer %s", expr_to_str(expr->Defer.expr));
+        case EXPR_BREAK: return "break";
+        case EXPR_CONTINUE: return "continue";
+        case EXPR_CAST: return strf("cast(%s, %s)", typespec_to_str(expr->Cast.type), expr_to_str(expr->Cast.expr));
+        case EXPR_ASM: {
+            return strf("%s", expr->Asm.str);
         }
-    }
-    case EXPR_NOTE: {
-        return strf("$%s", expr_to_str(expr->Note.expr));
-    }
-    case EXPR_INT: {
-        return strf("%lld", expr->Int.val);
-    }
-    case EXPR_FLOAT: {
-        return strf("%f", expr->Float.val);
-    }
-    case EXPR_STRING: {
-        return strf("\"%s\"", expr->String.val);
-    }
-    case EXPR_IDENT: {
-        return strf("%s", expr->Ident.name);
-    }
-    case EXPR_UNARY: {
-        return strf("%s(%s)", token_kind_to_str(expr->Unary.op), expr_to_str(expr->Unary.operand));
-    }
-    case EXPR_BINARY: {
-        return strf("%s %s %s", expr_to_str(expr->Binary.lhs), token_kind_to_str(expr->Binary.op),
-                    expr_to_str(expr->Binary.rhs));
-    }
-    case EXPR_VARIABLE_DECL: {
-        if (expr->Variable_Decl.value) {
-            if (expr->Variable_Decl.name) {
-                return strf("%s: %s = %s", expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type),
-                            expr_to_str(expr->Variable_Decl.value));
+        case EXPR_MACRO: {
+            return strf("%s :: %s", expr->Macro.name, expr_to_str(expr->Macro.expr));
+        }
+        case EXPR_RETURN: {
+            if (expr->Return.expr) {
+                return strf("return %s", expr_to_str(expr->Return.expr));
             } else {
-                return strf("%s", typespec_to_str(expr->Variable_Decl.type));
-            }
-        } else {
-            if (expr->Variable_Decl.name) {
-                return strf("%s: %s", expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type));
-            } else {
-                return strf("%s", typespec_to_str(expr->Variable_Decl.type));
+                return strf("return");
             }
         }
-    }
-    case EXPR_BLOCK: {
-        string str = make_string("{");
-        LIST_FOREACH(expr->Block.stmts) {
-            Expr* stmt = (Expr*)it->data;
-            append_string_f(&str, "%s\n", expr_to_str(stmt));
+        case EXPR_NOTE: {
+            return strf("$%s", expr_to_str(expr->Note.expr));
         }
-        append_string(&str, "}");
-        return str.c_str;
-    }
-    case EXPR_STRUCT: {
-        return strf("%s", typespec_to_str(expr->Struct.type));
-    }
-    case EXPR_FUNCTION: {
-        string str = make_string_f("%s %s", typespec_to_str(expr->Function.type), expr_to_str(expr->Function.body));
-        return str.c_str;
-    }
-    case EXPR_GROUPING: return strf("(%s)", expr_to_str(expr->Grouping.expr));
-    case EXPR_SUBSCRIPT: return strf("%s[%s]", expr_to_str(expr->Subscript.load), expr_to_str(expr->Subscript.sub));
-    case EXPR_IF: {
-        if (expr->If.else_block) {
-            return strf("if %s %s else %s", expr_to_str(expr->If.cond), expr_to_str(expr->If.then_block),
-                        expr_to_str(expr->If.else_block));
-        } else {
-            return strf("if %s %s", expr_to_str(expr->If.cond), expr_to_str(expr->If.then_block));
+        case EXPR_INT: {
+            return strf("%lld", expr->Int.val);
         }
-    }
-    case EXPR_FOR: {
-        return strf("for %s, %s, %s %s", expr_to_str(expr->For.init), expr_to_str(expr->For.cond),
-                    expr_to_str(expr->For.step), expr_to_str(expr->For.then_block));
-    }
-    case EXPR_WHILE: {
-        return strf("while %s %s", expr_to_str(expr->While.cond), expr_to_str(expr->While.then_block));
-    }
-    case EXPR_CALL: {
-        string str   = make_string(expr->Call.callee);
-        s64    count = expr->Call.args->count;
-        s64    index = 0;
-        append_string(&str, "(");
-        LIST_FOREACH(expr->Call.args) {
-            Expr* arg = (Expr*)it->data;
-            append_string(&str, expr_to_str(arg));
-            if (index++ != count - 1) append_string(&str, ", ");
+        case EXPR_FLOAT: {
+            return strf("%f", expr->Float.val);
         }
-        append_string(&str, ")");
-        return str.c_str;
-    }
-    default: warning("%s: unhandled case %s", __func__, expr_kind_to_str(expr->kind));
+        case EXPR_STRING: {
+            return strf("\"%s\"", expr->String.val);
+        }
+        case EXPR_IDENT: {
+            return strf("%s", expr->Ident.name);
+        }
+        case EXPR_UNARY: {
+            return strf("%s(%s)", token_kind_to_str(expr->Unary.op), expr_to_str(expr->Unary.operand));
+        }
+        case EXPR_BINARY: {
+            return strf("%s %s %s", expr_to_str(expr->Binary.lhs), token_kind_to_str(expr->Binary.op),
+                        expr_to_str(expr->Binary.rhs));
+        }
+        case EXPR_VARIABLE_DECL: {
+            if (expr->Variable_Decl.value) {
+                if (expr->Variable_Decl.name) {
+                    return strf("%s: %s = %s", expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type),
+                                expr_to_str(expr->Variable_Decl.value));
+                } else {
+                    return strf("%s", typespec_to_str(expr->Variable_Decl.type));
+                }
+            } else {
+                if (expr->Variable_Decl.name) {
+                    return strf("%s: %s", expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type));
+                } else {
+                    return strf("%s", typespec_to_str(expr->Variable_Decl.type));
+                }
+            }
+        }
+        case EXPR_BLOCK: {
+            string str = make_string("{");
+            LIST_FOREACH(expr->Block.stmts) {
+                Expr* stmt = (Expr*)it->data;
+                append_string_f(&str, "%s\n", expr_to_str(stmt));
+            }
+            append_string(&str, "}");
+            return str.c_str;
+        }
+        case EXPR_STRUCT: {
+            return strf("%s", typespec_to_str(expr->Struct.type));
+        }
+        case EXPR_FUNCTION: {
+            string str = make_string_f("%s %s", typespec_to_str(expr->Function.type), expr_to_str(expr->Function.body));
+            return str.c_str;
+        }
+        case EXPR_GROUPING: return strf("(%s)", expr_to_str(expr->Grouping.expr));
+        case EXPR_SUBSCRIPT: return strf("%s[%s]", expr_to_str(expr->Subscript.load), expr_to_str(expr->Subscript.sub));
+        case EXPR_IF: {
+            if (expr->If.else_block) {
+                return strf("if %s %s else %s", expr_to_str(expr->If.cond), expr_to_str(expr->If.then_block),
+                            expr_to_str(expr->If.else_block));
+            } else {
+                return strf("if %s %s", expr_to_str(expr->If.cond), expr_to_str(expr->If.then_block));
+            }
+        }
+        case EXPR_FOR: {
+            return strf("for %s, %s, %s %s", expr_to_str(expr->For.init), expr_to_str(expr->For.cond),
+                        expr_to_str(expr->For.step), expr_to_str(expr->For.then_block));
+        }
+        case EXPR_WHILE: {
+            return strf("while %s %s", expr_to_str(expr->While.cond), expr_to_str(expr->While.then_block));
+        }
+        case EXPR_CALL: {
+            string str   = make_string(expr->Call.callee);
+            s64    count = expr->Call.args->count;
+            s64    index = 0;
+            append_string(&str, "(");
+            LIST_FOREACH(expr->Call.args) {
+                Expr* arg = (Expr*)it->data;
+                append_string(&str, expr_to_str(arg));
+                if (index++ != count - 1) append_string(&str, ", ");
+            }
+            append_string(&str, ")");
+            return str.c_str;
+        }
+        default: warning("%s: unhandled case %s", __func__, expr_kind_to_str(expr->kind));
     }
     return NULL;
 }
 
+char* expr_to_json(Expr* expr)
+{
+    if (!expr) return "\"\"";
+    char* result = NULL;
+    switch (expr->kind) {
+    case EXPR_ASM: {
+    result = strf("{\"%s\": {\"value\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->Asm.str);
+    } break;
+    case EXPR_CONTINUE: {
+        result = strf("{\"%s\": {%s}}", expr_kind_to_str(expr->kind), "continue");
+    } break;
+    case EXPR_BREAK: {
+        result = strf("{\"%s\": {%s}}", expr_kind_to_str(expr->kind), "break");
+    } break;
+    case EXPR_MACRO: {
+        result = strf("{\"%s\": {\"name\": \"%s\", \"expr\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->Macro.name,
+                      expr_to_json(expr));
+    } break;
+    case EXPR_DEFER: {
+        result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), expr_to_json(expr->Defer.expr));
+    } break;
+    case EXPR_NOTE: {
+        result = strf("{\"%s\": {\"note\":\"%s\"}}", expr_kind_to_str(expr->kind), expr_to_json(expr->Note.expr));
+    } break;
+    case EXPR_INT: {
+        result = strf("{\"%s\": {\"value\": %lld}}", expr_kind_to_str(expr->kind), expr->Int.val);
+    } break;
+    case EXPR_STRING: {
+        result = strf("{\"%s\": {\"value\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->String.val);
+    } break;
+    case EXPR_FLOAT: {
+        result = strf("{\"%s\": {\"value\": %f}}", expr_kind_to_str(expr->kind), expr->Float.val);
+    } break;
+    case EXPR_IDENT: {
+        result = strf("{\"%s\": {\"ident\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->Ident.name);
+    } break;
+    case EXPR_UNARY: {
+        result = strf("{\"%s\": {\"op\": \"%s\", \"expr\": \"%s\"}}", expr_kind_to_str(expr->kind),
+                      token_kind_to_str(expr->Unary.op), expr_to_json(expr->Unary.operand));
+    } break;
+    case EXPR_BINARY: {
+        result =
+            strf("{\"%s\": {\"op\": \"%s\", \"lhs\": %s, \"rhs\": %s}}", expr_kind_to_str(expr->kind),
+                 token_kind_to_str(expr->Binary.op), expr_to_json(expr->Binary.lhs), expr_to_json(expr->Binary.rhs));
+    } break;
+    case EXPR_RETURN: {
+        result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), expr_to_json(expr->Return.expr));
+    } break;
+    case EXPR_VARIABLE_DECL: {
+        result = strf("{\"%s\": {\"name\": \"%s\", \"type\": \"%s\", \"value\": %s}}", expr_kind_to_str(expr->kind),
+                      expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type),
+                      expr_to_json(expr->Variable_Decl.value));
+    } break;
+    case EXPR_BLOCK: {
+        s64 block_count = expr->Block.stmts->count;
+        s64 counter = 0;
+        string str = make_string("{\"EXPR_BLOCK\": [");
+        LIST_FOREACH(expr->Block.stmts) {
+            append_string(&str, expr_to_json(it->data));
+            if (counter != block_count - 1) append_string(&str, ", ");
+            block_count += 1;
+        }
+        append_string(&str, "]}");
+        result = str.c_str;
+    } break;
+    case EXPR_FUNCTION: {
+        result = strf("{\"%s\": {\"type\": \"%s\", \"body\": %s }}", expr_kind_to_str(expr->kind),
+                      typespec_to_str(expr->Function.type), expr_to_json(expr->Function.body));
+    } break;
+    case EXPR_GROUPING: {
+        result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), expr_to_json(expr->Grouping.expr));
+    } break;
+    case EXPR_WHILE: {
+        result = strf("{\"%s\": {\"cond\": %s, \"then_block\": %s}}", 
+                      expr_kind_to_str(expr->kind),
+                      expr_to_json(expr->While.cond), 
+                      expr_to_json(expr->While.then_block));
+    } break;
+    case EXPR_FOR: {
+        result = strf("{\"%s\": {\"init\": %s, \"cond\": %s, \"step\": %s, \"then_block\": %s }}",
+                      expr_kind_to_str(expr->kind), 
+                      expr_to_json(expr->For.init),
+                      expr_to_json(expr->For.cond),
+                      expr_to_json(expr->For.step), 
+                      expr_to_json(expr->For.then_block));
+    } break;
+    case EXPR_IF: {
+        result = strf("{\"%s\": {\"cond\": %s, \"then_block\": %s, \"else_block\": %s }}", 
+                        expr_kind_to_str(expr->kind),
+                        expr_to_json(expr->If.cond), 
+                        expr_to_json(expr->If.then_block),
+                        expr_to_json(expr->If.else_block));
+    } break;
+    case EXPR_CALL: {
+        string str = make_string("");
+        append_string_f(&str, "{\"%s\": {\"callee\": \"%s\", ", expr_kind_to_str(expr->kind), expr->Call.callee);
+        append_string(&str, "\"args\": [");
+        s64 arg_count = expr->Call.args->count;
+        s64 counter   = 0;
+        LIST_FOREACH(expr->Call.args) {
+            append_string(&str, expr_to_json(it->data));
+            if (counter != arg_count - 1) append_string(&str, ", ");
+            counter += 1;
+        }
+        append_string(&str, "]}}");
+        result = str.c_str;
+    } break;
+    default: warning("%s: unhandled case %s", __func__, expr_kind_to_str(expr->kind));
+    }
+    assert(result);
+    return result;
+}
+
 Typespec* get_inferred_type_of_expr(Expr* expr) {
     switch (expr->kind) {
-    case EXPR_BLOCK:
-    case EXPR_BREAK:
-    case EXPR_CONTINUE:
-    case EXPR_DEFER: return NULL;
-    case EXPR_RETURN: if(expr->Return.expr) return get_inferred_type_of_expr(expr->Return.expr);
+        case EXPR_BLOCK:
+        case EXPR_BREAK:
+        case EXPR_CONTINUE:
+        case EXPR_DEFER: return NULL;
+        case EXPR_RETURN:
+            if (expr->Return.expr) return get_inferred_type_of_expr(expr->Return.expr);
 
-    case EXPR_CAST: return expr->Cast.type;
-    case EXPR_MACRO: return get_inferred_type_of_expr(expr->Macro.expr);
-    case EXPR_NOTE: return get_inferred_type_of_expr(expr->Note.expr);
-    case EXPR_INT: return make_typespec_int(DEFAULT_INT_BYTE_SIZE, 0);
-    case EXPR_FLOAT: return make_typespec_float(DEFAULT_FLOAT_BYTE_SIZE);
-    case EXPR_STRING: return make_typespec_pointer(make_typespec_int(8, 1));
-    case EXPR_IDENT: return get_symbol(expr->Ident.name);
-    case EXPR_CALL: return get_symbol(expr->Call.callee)->Function.ret_type;
-    case EXPR_UNARY: return get_inferred_type_of_expr(expr->Unary.operand);
-    case EXPR_BINARY: return get_inferred_type_of_expr(expr->Binary.rhs);
-    case EXPR_VARIABLE_DECL: return expr->Variable_Decl.type;
-    case EXPR_FUNCTION: return expr->Function.type->Function.ret_type;
-    case EXPR_STRUCT: return expr->Struct.type;
-    case EXPR_GROUPING: return get_inferred_type_of_expr(expr->Grouping.expr);
-    case EXPR_SUBSCRIPT: return get_inferred_type_of_expr(expr->Subscript.load);
-    default: error("%s has no type", expr_kind_to_str(expr->kind));
+        case EXPR_CAST: return expr->Cast.type;
+        case EXPR_MACRO: return get_inferred_type_of_expr(expr->Macro.expr);
+        case EXPR_NOTE: return get_inferred_type_of_expr(expr->Note.expr);
+        case EXPR_INT: return make_typespec_int(DEFAULT_INT_BYTE_SIZE, 0);
+        case EXPR_FLOAT: return make_typespec_float(DEFAULT_FLOAT_BYTE_SIZE);
+        case EXPR_STRING: return make_typespec_pointer(make_typespec_int(8, 1));
+        case EXPR_IDENT: return get_symbol(expr->Ident.name);
+        case EXPR_CALL: return get_symbol(expr->Call.callee)->Function.ret_type;
+        case EXPR_UNARY: return get_inferred_type_of_expr(expr->Unary.operand);
+        case EXPR_BINARY: return get_inferred_type_of_expr(expr->Binary.rhs);
+        case EXPR_VARIABLE_DECL: return expr->Variable_Decl.type;
+        case EXPR_FUNCTION: return expr->Function.type->Function.ret_type;
+        case EXPR_STRUCT: return expr->Struct.type;
+        case EXPR_GROUPING: return get_inferred_type_of_expr(expr->Grouping.expr);
+        case EXPR_SUBSCRIPT: return get_inferred_type_of_expr(expr->Subscript.load);
+        default: error("%s has no type", expr_kind_to_str(expr->kind));
     }
     return NULL;
 }
@@ -197,145 +311,145 @@ Expr* constant_fold_expr(Expr* expr) {
     info("constant_fold_expr %s: %s", expr_kind_to_str(expr->kind), expr_to_str(expr));
 
     switch (expr->kind) {
-    case EXPR_CONTINUE: return expr;
-    case EXPR_BREAK: return expr;
-    case EXPR_ASM: return expr;
-    case EXPR_INT: return expr;
-    case EXPR_STRING: return expr;
-    case EXPR_FLOAT: return expr;
-    case EXPR_NOTE: return expr;
-    case EXPR_DEFER: {
-        expr->Defer.expr = constant_fold_expr(expr->Defer.expr);
-    } break;
-    case EXPR_RETURN: {
-        if (expr->Return.expr) {
-            expr->Return.expr = constant_fold_expr(expr->Return.expr);
-        }
-    } break;
-    case EXPR_MACRO: {
-        expr->Macro.expr = constant_fold_expr(expr->Macro.expr);
-    } break;
-    case EXPR_IDENT: {
-        Expr* macro_expr = get_macro_def(expr->Ident.name);
-        if (macro_expr) {
-            expr = constant_fold_expr(macro_expr);
-        }
-    } break;
-    case EXPR_CALL: {
-        LIST_FOREACH(expr->Call.args) {
-            Expr* arg = (Expr*)it->data;
-            it->data  = constant_fold_expr(arg);
-        }
-    } break;
-    case EXPR_UNARY: {
-        Expr* oper = expr->Unary.operand;
-        oper       = constant_fold_expr(oper);
-        if (oper->kind == EXPR_INT) {
-            Token_Kind op     = expr->Unary.op;
-            s64        oper_v = oper->Int.val;
-            s64        value  = 0;
-            switch (op) {
-            case TOKEN_BANG: value = !oper_v; break;
-            case TOKEN_PLUS: value = oper_v; break;
-            case TOKEN_TILDE: value = ~oper_v; break;
-            case TOKEN_MINUS: value = -oper_v; break;
-            default: error("constant_fold_expr unary %s not implemented", token_kind_to_str(op));
+        case EXPR_CONTINUE: return expr;
+        case EXPR_BREAK: return expr;
+        case EXPR_ASM: return expr;
+        case EXPR_INT: return expr;
+        case EXPR_STRING: return expr;
+        case EXPR_FLOAT: return expr;
+        case EXPR_NOTE: return expr;
+        case EXPR_DEFER: {
+            expr->Defer.expr = constant_fold_expr(expr->Defer.expr);
+        } break;
+        case EXPR_RETURN: {
+            if (expr->Return.expr) {
+                expr->Return.expr = constant_fold_expr(expr->Return.expr);
             }
-            info("folded %s into %lld", expr_to_str(expr), value);
-            expr = make_expr_int(value);
-        }
-    } break;
-    case EXPR_BINARY: {
-        Token_Kind op  = expr->Binary.op;
-        Expr*      lhs = expr->Binary.lhs;
-        Expr*      rhs = expr->Binary.rhs;
-        lhs            = constant_fold_expr(lhs);
-        rhs            = constant_fold_expr(rhs);
-        if (op == TOKEN_EQ) expr = make_expr_binary(TOKEN_EQ, lhs, rhs);
-        if (lhs->kind == EXPR_INT && rhs->kind == EXPR_INT) {
-            s64 lhs_v = lhs->Int.val;
-            s64 rhs_v = rhs->Int.val;
-            s64 value = 0;
-            switch (op) {
-            case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
-            case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
-            case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
-            case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
-            case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
-            case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
-            case TOKEN_AND: value = (lhs_v & rhs_v); break;
-            case TOKEN_PIPE: value = (lhs_v | rhs_v); break;
-            case TOKEN_LT: value = (lhs_v < rhs_v); break;
-            case TOKEN_GT: value = (lhs_v > rhs_v); break;
-            case TOKEN_GT_GT: value = (lhs_v >> rhs_v); break;
-            case TOKEN_LT_LT: value = (lhs_v << rhs_v); break;
-            case TOKEN_PERCENT: value = (lhs_v % rhs_v); break;
-            case TOKEN_HAT: value = (lhs_v ^ rhs_v); break;
-            case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
-            case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
-            case TOKEN_COLON: {
-                value         = last_was_true ? lhs_v : rhs_v;
-                last_was_true = false;
-            } break;
-            case TOKEN_QUESTION_MARK: {
-                if (lhs_v) {
-                    last_was_true = true;
-                    value         = rhs_v;
+        } break;
+        case EXPR_MACRO: {
+            expr->Macro.expr = constant_fold_expr(expr->Macro.expr);
+        } break;
+        case EXPR_IDENT: {
+            Expr* macro_expr = get_macro_def(expr->Ident.name);
+            if (macro_expr) {
+                expr = constant_fold_expr(macro_expr);
+            }
+        } break;
+        case EXPR_CALL: {
+            LIST_FOREACH(expr->Call.args) {
+                Expr* arg = (Expr*)it->data;
+                it->data  = constant_fold_expr(arg);
+            }
+        } break;
+        case EXPR_UNARY: {
+            Expr* oper = expr->Unary.operand;
+            oper       = constant_fold_expr(oper);
+            if (oper->kind == EXPR_INT) {
+                Token_Kind op     = expr->Unary.op;
+                s64        oper_v = oper->Int.val;
+                s64        value  = 0;
+                switch (op) {
+                    case TOKEN_BANG: value = !oper_v; break;
+                    case TOKEN_PLUS: value = oper_v; break;
+                    case TOKEN_TILDE: value = ~oper_v; break;
+                    case TOKEN_MINUS: value = -oper_v; break;
+                    default: error("constant_fold_expr unary %s not implemented", token_kind_to_str(op));
                 }
-            } break;
-            default: error("constant_fold_expr binary %s not implemented", token_kind_to_str(op));
+                info("folded %s into %lld", expr_to_str(expr), value);
+                expr = make_expr_int(value);
             }
-            info("folded %s into %lld", expr_to_str(expr), value);
-            expr = make_expr_int(value);
-        }
-    } break;
-    case EXPR_VARIABLE_DECL: {
-        if (expr->Variable_Decl.value) expr->Variable_Decl.value = constant_fold_expr(expr->Variable_Decl.value);
-    } break;
-    case EXPR_FUNCTION: {
-        return constant_fold_expr(expr->Function.body);
-    } break;
-    case EXPR_BLOCK: {
-        LIST_FOREACH(expr->Block.stmts) {
-            Expr* stmt = (Expr*)it->data;
-            it->data   = constant_fold_expr(stmt);
-        }
-    } break;
-    case EXPR_GROUPING: {
-        expr->Grouping.expr = constant_fold_expr(expr->Grouping.expr);
-    } break;
-    case EXPR_CAST: {
-        expr = constant_fold_expr(expr->Cast.expr);
-    } break;
-    case EXPR_SUBSCRIPT: {
-        expr->Subscript.load = constant_fold_expr(expr->Subscript.load);
-        expr->Subscript.sub  = constant_fold_expr(expr->Subscript.sub);
-    } break;
-    case EXPR_IF: {
-        expr->If.cond       = constant_fold_expr(expr->If.cond);
-        expr->If.then_block = constant_fold_expr(expr->If.then_block);
-    } break;
-    case EXPR_FOR: {
-        expr->For.init       = constant_fold_expr(expr->For.init);
-        expr->For.cond       = constant_fold_expr(expr->For.cond);
-        expr->For.step       = constant_fold_expr(expr->For.step);
-        expr->For.then_block = constant_fold_expr(expr->For.then_block);
-    } break;
-    case EXPR_WHILE: {
-        expr->While.cond       = constant_fold_expr(expr->While.cond);
-        expr->While.then_block = constant_fold_expr(expr->While.then_block);
-    } break;
-    default: error("constant_fold_expr %s not implemented", expr_kind_to_str(expr->kind));
+        } break;
+        case EXPR_BINARY: {
+            Token_Kind op  = expr->Binary.op;
+            Expr*      lhs = expr->Binary.lhs;
+            Expr*      rhs = expr->Binary.rhs;
+            lhs            = constant_fold_expr(lhs);
+            rhs            = constant_fold_expr(rhs);
+            if (op == TOKEN_EQ) expr = make_expr_binary(TOKEN_EQ, lhs, rhs);
+            if (lhs->kind == EXPR_INT && rhs->kind == EXPR_INT) {
+                s64 lhs_v = lhs->Int.val;
+                s64 rhs_v = rhs->Int.val;
+                s64 value = 0;
+                switch (op) {
+                    case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
+                    case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
+                    case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
+                    case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
+                    case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
+                    case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
+                    case TOKEN_AND: value = (lhs_v & rhs_v); break;
+                    case TOKEN_PIPE: value = (lhs_v | rhs_v); break;
+                    case TOKEN_LT: value = (lhs_v < rhs_v); break;
+                    case TOKEN_GT: value = (lhs_v > rhs_v); break;
+                    case TOKEN_GT_GT: value = (lhs_v >> rhs_v); break;
+                    case TOKEN_LT_LT: value = (lhs_v << rhs_v); break;
+                    case TOKEN_PERCENT: value = (lhs_v % rhs_v); break;
+                    case TOKEN_HAT: value = (lhs_v ^ rhs_v); break;
+                    case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
+                    case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
+                    case TOKEN_COLON: {
+                        value         = last_was_true ? lhs_v : rhs_v;
+                        last_was_true = false;
+                    } break;
+                    case TOKEN_QUESTION_MARK: {
+                        if (lhs_v) {
+                            last_was_true = true;
+                            value         = rhs_v;
+                        }
+                    } break;
+                    default: error("constant_fold_expr binary %s not implemented", token_kind_to_str(op));
+                }
+                info("folded %s into %lld", expr_to_str(expr), value);
+                expr = make_expr_int(value);
+            }
+        } break;
+        case EXPR_VARIABLE_DECL: {
+            if (expr->Variable_Decl.value) expr->Variable_Decl.value = constant_fold_expr(expr->Variable_Decl.value);
+        } break;
+        case EXPR_FUNCTION: {
+            return constant_fold_expr(expr->Function.body);
+        } break;
+        case EXPR_BLOCK: {
+            LIST_FOREACH(expr->Block.stmts) {
+                Expr* stmt = (Expr*)it->data;
+                it->data   = constant_fold_expr(stmt);
+            }
+        } break;
+        case EXPR_GROUPING: {
+            expr->Grouping.expr = constant_fold_expr(expr->Grouping.expr);
+        } break;
+        case EXPR_CAST: {
+            expr = constant_fold_expr(expr->Cast.expr);
+        } break;
+        case EXPR_SUBSCRIPT: {
+            expr->Subscript.load = constant_fold_expr(expr->Subscript.load);
+            expr->Subscript.sub  = constant_fold_expr(expr->Subscript.sub);
+        } break;
+        case EXPR_IF: {
+            expr->If.cond       = constant_fold_expr(expr->If.cond);
+            expr->If.then_block = constant_fold_expr(expr->If.then_block);
+        } break;
+        case EXPR_FOR: {
+            expr->For.init       = constant_fold_expr(expr->For.init);
+            expr->For.cond       = constant_fold_expr(expr->For.cond);
+            expr->For.step       = constant_fold_expr(expr->For.step);
+            expr->For.then_block = constant_fold_expr(expr->For.then_block);
+        } break;
+        case EXPR_WHILE: {
+            expr->While.cond       = constant_fold_expr(expr->While.cond);
+            expr->While.then_block = constant_fold_expr(expr->While.then_block);
+        } break;
+        default: error("constant_fold_expr %s not implemented", expr_kind_to_str(expr->kind));
     }
     return expr;
 }
 
 void print_ast(List* ast) {
     info("Printing AST..");
-    LIST_FOREACH(ast) { 
+    LIST_FOREACH(ast) {
         Expr* expr = it->data;
-        char* str = strf("%s", wrap_with_colored_parens(expr_to_str(expr)));
-        info("%s", str); 
+        char* str  = strf("%s", wrap_with_colored_parens(expr_to_str(expr)));
+        info("%s", str);
     }
 }
 

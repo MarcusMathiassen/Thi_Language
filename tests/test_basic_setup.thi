@@ -1,5 +1,6 @@
-load "includes/cstdio.thi"
-
 def main () -> s32
-    c := "Jello"
+    v: vec2
     return 1
+type vec2
+    x: f32
+    y: f32

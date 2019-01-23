@@ -422,7 +422,6 @@ void emit_cast_int_to_int(Codegen_Context* ctx, char* reg, Typespec* type) {
 
 void emit_cast(Codegen_Context* ctx, Value* variable, Typespec* desired_type) {
     assert(variable);
-    assert(variable->kind == VALUE_VARIABLE);
     assert(desired_type);
 
     s64   variable_size = get_size_of_value(variable);
@@ -484,7 +483,6 @@ Value* codegen_unary(Codegen_Context* ctx, Expr* expr) {
 
     switch (op) {
     case THI_SYNTAX_ADDRESS: {
-        // Operand must be an identifier
         s64 stack_pos = get_stack_pos_of_variable(operand_val);
         emit(ctx, "LEA RAX, [RSP-%lld]; addrsof", stack_pos);
     } break;
@@ -493,7 +491,7 @@ Value* codegen_unary(Codegen_Context* ctx, Expr* expr) {
         switch (t->kind) {
         case TYPESPEC_ARRAY:
         case TYPESPEC_POINTER: emit(ctx, "LEA RAX, [RAX]; deref"); break;
-        default: emit(ctx, "MOV RAX, [RAX]; deref"); break;
+        default: emit(ctx, "MOV %s, [RAX]; deref", reg); break;
         }
     } break;
     case TOKEN_BANG: {
@@ -1160,29 +1158,22 @@ Value* codegen_function(Codegen_Context* ctx, Expr* expr) {
 
     reset_stack(ctx);
 
-    List* args = func_type->Function.args;
-    s64   i    = 0;
+    List* args              = func_type->Function.args;
+    s64   i                 = 0;
     s8    int_arg_counter   = 0;
     s8    float_arg_counter = 0;
     LIST_FOREACH(args) {
-        Expr*  arg       = (Expr*)it->data;
-        Value* v         = codegen_expr(ctx, arg);
-        s64    size      = get_size_of_value(v);
+        Expr*  arg  = (Expr*)it->data;
+        Value* v    = codegen_expr(ctx, arg);
+        s64    size = get_size_of_value(v);
 
-        s8    param_reg = -1;
+        s8 param_reg = -1;
 
         switch (v->type->kind) {
         case TYPESPEC_ARRAY:   // fallthrough
         case TYPESPEC_POINTER: // fallthrough
         case TYPESPEC_INT: {
-            switch (int_arg_counter) {
-            case 0: param_reg = RDI; break;
-            case 1: param_reg = RSI; break;
-            case 2: param_reg = RDX; break;
-            case 3: param_reg = RCX; break;
-            case 4: param_reg = R8; break;
-            case 5: param_reg = R9; break;
-            }
+            param_reg = get_parameter_reg(int_arg_counter, size);
             int_arg_counter += 1;
         } break;
         case TYPESPEC_FLOAT: {

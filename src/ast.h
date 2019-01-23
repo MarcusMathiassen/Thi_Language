@@ -1,9 +1,9 @@
 #ifndef AST_H
 #define AST_H
 
-#include "lexer.h"    // Token_Kind
-#include "list.h"     // List
-#include "typespec.h" // Typespec
+#include "lexer.h"     // Token_Kind
+#include "list.h"      // List
+#include "typespec.h"  // Typespec
 
 //------------------------------------------------------------------------------
 //                               ast.h
@@ -50,79 +50,99 @@ enum Expr_Kind {
 typedef struct {
     char* str;
 } AST_Asm;
+
 typedef struct {
     char* name;
     Expr* expr;
 } AST_Macro;
+
 typedef struct {
     Expr* expr;
 } AST_Note;
+
 typedef struct {
     Expr* expr;
 } AST_Grouping;
+
 typedef struct {
     List* stmts;
 } AST_Block;
+
 typedef struct {
     s64 val;
 } AST_Int;
+
 typedef struct {
     f64 val;
 } AST_Float;
+
 typedef struct {
     char* val;
 } AST_String;
+
 typedef struct {
     Typespec* type;
 } AST_Struct;
+
 typedef struct {
     Typespec* type;
     Expr*     body;
     List*     defers;
 } AST_Function;
+
 typedef struct {
     char* name;
 } AST_Ident;
+
 typedef struct {
     char* callee;
     List* args;
 } AST_Call;
+
 typedef struct {
     Token_Kind op;
     Expr*      operand;
 } AST_Unary;
+
 typedef struct {
     Token_Kind op;
     Expr*      lhs;
     Expr*      rhs;
 } AST_Binary;
+
 typedef struct {
     char*     name;
     Typespec* type;
     Expr*     value;
 } AST_Variable_Decl;
+
 typedef struct {
     Expr* load;
     Expr* sub;
 } AST_Subscript;
+
 typedef struct {
     Expr* cond;
     Expr* then_block;
     Expr* else_block;
 } AST_If;
+
 typedef struct {
     Expr* init;
     Expr* cond;
     Expr* step;
     Expr* then_block;
 } AST_For;
+
 typedef struct {
     Expr* cond;
     Expr* then_block;
 } AST_While;
+
 typedef struct {
     Expr* expr;
 } AST_Return;
+
 typedef struct {
     Expr* expr;
 } AST_Break;
@@ -134,7 +154,7 @@ typedef struct {
 } AST_Defer;
 typedef struct {
     Typespec* type;
-    Expr* expr;
+    Expr*     expr;
 } AST_Cast;
 
 struct Expr {
@@ -201,7 +221,9 @@ Typespec* get_inferred_type_of_expr(Expr* expr);
 Expr*     get_arg_from_func(Typespec* func_t, s64 arg_index);
 Expr*     constant_fold_expr(Expr* expr);
 void      print_ast(List* ast);
-char*     expr_to_str(Expr* expr);
-char*     expr_kind_to_str(Expr_Kind kind);
+
+char* expr_to_json(Expr* expr);
+char* expr_to_str(Expr* expr);
+char* expr_kind_to_str(Expr_Kind kind);
 
 #endif

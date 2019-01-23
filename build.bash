@@ -12,8 +12,9 @@ if [ $? == 0 ]; then
     # ./test.bash
     # ./test.bash ./tests/test_float_GT.thi
     # ./test.bash ./tests/test_float.thi
-    ./test.bash ./tests/test_window.thi
-    # ./test.bash ./tests/test_function_call.thi
+    # ./test.bash ./tests/test_window.thi
+    # ./test.bash ./tests/test_basic_setup.thi
+    ./test.bash ./tests/test_function_call.thi
     # ./test.bash ./tests/test_function_call_2.thi
     # ./test.bash ./tests/test_macro_definition.thi
     # ./test.bash ./tests/test_order_independance.thi

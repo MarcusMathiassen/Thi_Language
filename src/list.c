@@ -1,8 +1,8 @@
 #include "list.h"
-#include "stack.h"
-#include "utility.h" // error, xmalloc
 #include <assert.h>
-#include <stdlib.h> // xmalloc
+#include <stdlib.h>  // xmalloc
+#include "stack.h"
+#include "utility.h"  // error, xmalloc
 
 List* make_list(void) {
     List* l  = xmalloc(sizeof(List));

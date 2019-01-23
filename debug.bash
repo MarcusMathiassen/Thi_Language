@@ -37,4 +37,3 @@ fi
 rm $name
 
 echo -e "${GRAY} [DEBUG] ${NC}${GRAY}FINISHED. RETURNED: ${res} ${NC}"
-

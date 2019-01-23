@@ -18,7 +18,7 @@ def main () -> s32
     glfwWindowHint(GLFW_BLUE_BITS, 8)
     glfwWindowHint(GLFW_ALPHA_BITS, 8)
 
-    window := glfwCreateWindow(512, 512, "Hello Triangle", 0, 0)
+    window := glfwCreateWindow(640, 480, "Hello Triangle", 0, 0)
     glfwMakeContextCurrent(window)
 
     if glfwInit() != GLEW_OK do puts("GLEW init failed.")
@@ -52,17 +52,7 @@ def main () -> s32
         if glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS    do scale +=  0.001 
         if glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS    do scale +=  -0.001 
 
-
         draw_triangle(x, y, scale)
-
-        # glBegin(GL_TRIANGLES)
-        # glColor3f(1.0, 0.0, 0.0)
-        # glVertex2f(x + -0.5 * scale, y + -0.5 * scale)
-        # glColor3f(0.0, 1.0, 0.0)
-        # glVertex2f(x + 0.0* scale, y + 0.5* scale)
-        # glColor3f(0.0, 0.0, 1.0)
-        # glVertex2f(x + 0.5* scale, y -0.5* scale)
-        # glEnd()
 
         glfwSwapBuffers(window)
 

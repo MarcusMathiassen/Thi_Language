@@ -156,17 +156,16 @@ void syntax_error(Parser_Context* pctx, char* fmt, ...);
 //                               Public
 //------------------------------------------------------------------------------
 
-void give_type_to_all_nodes(Expr* expr)
-{
+void give_type_to_all_nodes(Expr* expr) {
     switch (expr->kind) {
-    case EXPR_MACRO:    give_type_to_all_nodes(expr->Macro.expr);       break;
-    case EXPR_NOTE:     give_type_to_all_nodes(expr->Note.expr);        break;
-    case EXPR_UNARY:    give_type_to_all_nodes(expr->Unary.operand);    break;
+    case EXPR_MACRO: give_type_to_all_nodes(expr->Macro.expr); break;
+    case EXPR_NOTE: give_type_to_all_nodes(expr->Note.expr); break;
+    case EXPR_UNARY: give_type_to_all_nodes(expr->Unary.operand); break;
     case EXPR_BINARY: {
         give_type_to_all_nodes(expr->Binary.lhs);
         give_type_to_all_nodes(expr->Binary.rhs);
     } break;
-    case EXPR_GROUPING: give_type_to_all_nodes(expr->Grouping.expr);    break;
+    case EXPR_GROUPING: give_type_to_all_nodes(expr->Grouping.expr); break;
     case EXPR_BLOCK: {
         List* stmts = expr->Block.stmts;
         LIST_FOREACH(stmts) {
@@ -208,9 +207,17 @@ void parse(List* ast, char* source_file) {
 
     recursively_fill_ast(ast, &pctx);
 
-    // LIST_FOREACH(ast) {
-    //     give_type_to_all_nodes(it->data);
-    // }
+    string json = make_string("{\"AST\": [");
+    s64 ast_count = ast->count;
+    s64 counter = 0;
+    LIST_FOREACH(ast) {
+        append_string(&json, expr_to_json(it->data));
+        if (counter != ast_count-1) 
+            append_string(&json, ",");
+        counter += 1;
+    }
+    append_string(&json, "]}");
+    warning(json.c_str);
 
     print_symbol_map();
     print_ast(ast);
@@ -525,7 +532,7 @@ Expr* parse_variable_decl(Parser_Context* pctx) {
         // We need to infer the type based on the assignment expr
         eat_kind(pctx, TOKEN_COLON_EQ);
         variable_value = parse_expression(pctx);
-        variable_type = get_inferred_type_of_expr(variable_value);
+        variable_type  = get_inferred_type_of_expr(variable_value);
     } break;
     }
 

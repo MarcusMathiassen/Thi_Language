@@ -1,13 +1,13 @@
 #include "string.h"
 
-#include "list.h"
-#include "typedefs.h"
-#include "utility.h" // xmalloc, xrealloc
 #include <assert.h>  // assert
 #include <stdarg.h>  // va_list, va_start, va_end
 #include <stdio.h>   // printf, vprintf
 #include <stdlib.h>  // free
 #include <string.h>  // memcpy
+#include "list.h"
+#include "typedefs.h"
+#include "utility.h"  // xmalloc, xrealloc
 
 string make_string(char* str) {
     assert(str);
@@ -56,7 +56,7 @@ void append_string_f(string* s, char* fmt, ...) {
     va_start(args, fmt);
     s64 n = 1 + vsnprintf(0, 0, fmt, args);
     va_end(args);
-    
+
     char* str = xmalloc(n);
 
     va_start(args, fmt);
@@ -67,7 +67,6 @@ void append_string_f(string* s, char* fmt, ...) {
 
     free(str);
 }
-
 
 void free_string(string* s) { free(s->c_str); }
 
@@ -116,6 +115,7 @@ void string_tests(void) {
     assert(strcmp(s.c_str, "Hello, Marcus Mathiasssen.") == 0);
     append_string(&s, " It's nice to see you again. How are you?");
     assert(s.len == 67);
-    assert(strcmp(s.c_str, "Hello, Marcus Mathiasssen. It's nice to see you "
-                           "again. How are you?") == 0);
+    assert(strcmp(s.c_str,
+                  "Hello, Marcus Mathiasssen. It's nice to see you "
+                  "again. How are you?") == 0);
 }
