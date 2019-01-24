@@ -183,10 +183,11 @@ Token_Fat get_next_token(Lexer_Context* lctx) {
     } break;
     case ' ':
     case '\n':
-    case '\r': {
+    case '\r':
+    case '\t': {
         // Skip whitespace
         bool has_newline = false;
-        while (*c == ' ' || *c == '\n' || *c == '\r') {
+        while (*c == ' ' || *c == '\n' || *c == '\r' || *c == '\t') {
             if (*c == '\n') {
                 has_newline = true;
                 lctx->line_count += 1;
@@ -196,7 +197,8 @@ Token_Fat get_next_token(Lexer_Context* lctx) {
         }
         lctx->start_of_line = c;
         if (has_newline) {
-            lctx->current_indentation_level = c - lctx->position_of_newline;
+            lctx->current_indentation_level = c - lctx->position_of_newline - 1;
+            // info("current_indentation_level: %lld\nprevious_indentation_level: %lld", lctx->current_indentation_level, lctx->previous_indentation_level);
         }
     } break;
         CASE_SINGLE_TOKEN('\0', TOKEN_EOF);
@@ -555,8 +557,7 @@ char* token_kind_to_str(Token_Kind kind) {
     case TOKEN_BWSLASH: return "\\";
     case TOKEN_HASH: return "#";
     case TOKEN_EQ: return "=";
-
-    default: error("Unhandled token kind.");
+    default: warning("Unhandled token kind.");
     }
     return "";
 }

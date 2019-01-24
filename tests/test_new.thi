@@ -1,2 +1,35 @@
-main () s32
+extern puts(char*)s32
+
+main() int
+    puts("Hello")
     return 1
+
+# <func_def> ::= <ident> "(" <expr>.. ")" <ident> '\n'
+# <func_decl> ::= <ident> "(" <expr>.. ")" <ident> '\n' <block>
+
+
+TokenKind
+    Ident 0
+    Load 1
+    Link 2
+
+vec2
+    x f32
+    y f32
+
+
+
+# is_func_def_if..
+#     current_block_has_return
+#     and
+#     current_block_parent_is_func_def_or_call
+
+# is_enum_def_if
+#     current_block_parent_is_ident
+#     and
+#     current_block_has_variable_decls == false
+
+# is_struct_def_if
+#     current_block_parent_is_ident
+#     and
+#     current_block_has_variable_decls == true

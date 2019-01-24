@@ -30,8 +30,12 @@ enum Expr_Kind {
 
     EXPR_BLOCK,
     EXPR_STRUCT,
+    EXPR_ENUM,
     EXPR_FUNCTION,
+
     EXPR_VARIABLE_DECL,
+    EXPR_CONSTANT_DECL,
+
     EXPR_IF,
     EXPR_FOR,
     EXPR_WHILE,
@@ -86,6 +90,10 @@ typedef struct {
 
 typedef struct {
     Typespec* type;
+} AST_Enum;
+
+typedef struct {
+    Typespec* type;
     Expr*     body;
     List*     defers;
 } AST_Function;
@@ -115,6 +123,11 @@ typedef struct {
     Typespec* type;
     Expr*     value;
 } AST_Variable_Decl;
+
+typedef struct {
+    char* name;
+    Expr* value;
+} AST_Constant_Decl;
 
 typedef struct {
     Expr* load;
@@ -170,6 +183,7 @@ struct Expr {
         AST_Float     Float;
         AST_String    String;
         AST_Struct    Struct;
+        AST_Enum      Enum;
         AST_Function  Function;
         AST_Ident     Ident;
         AST_Call      Call;
@@ -180,6 +194,7 @@ struct Expr {
         AST_Cast Cast;
 
         AST_Variable_Decl Variable_Decl;
+        AST_Constant_Decl Constant_Decl;
         AST_If            If;
         AST_For           For;
         AST_While         While;
@@ -199,6 +214,7 @@ Expr* make_expr_float(f64 value);
 Expr* make_expr_string(char* value);
 Expr* make_expr_ident(char* ident);
 Expr* make_expr_struct(Typespec* struct_t);
+Expr* make_expr_enum(Typespec* enum_t);
 Expr* make_expr_function(Typespec* func_t, Expr* body);
 Expr* make_expr_call(char* callee, List* args);
 Expr* make_expr_unary(Token_Kind op, Expr* operand);
@@ -206,6 +222,7 @@ Expr* make_expr_binary(Token_Kind op, Expr* lhs, Expr* rhs);
 Expr* make_expr_block(List* stmts);
 Expr* make_expr_grouping(Expr* expr);
 Expr* make_expr_variable_decl(char* name, Typespec* type, Expr* value);
+Expr* make_expr_constant_decl(char* name, Expr* value);
 Expr* make_expr_subscript(Expr* load, Expr* sub);
 Expr* make_expr_if(Expr* cond, Expr* then_block, Expr* else_block);
 Expr* make_expr_for(Expr* init, Expr* cond, Expr* step, Expr* then_block);

@@ -190,7 +190,13 @@ int main(int argc, char** argv) {
     Typespec* f64_t = make_typespec_float(8);
 
     add_builtin_type("void", u8_t);
+
     add_builtin_type("bool", u8_t);
+    add_builtin_type("char", u8_t);
+    add_builtin_type("int", s32_t);
+    add_builtin_type("short", s16_t);
+    add_builtin_type("float", f32_t);
+    add_builtin_type("double", f64_t);
 
     add_builtin_type("s8", s8_t);
     add_builtin_type("s16", s16_t);

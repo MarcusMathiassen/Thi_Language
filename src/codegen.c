@@ -92,6 +92,7 @@ void   emit_load(Codegen_Context* ctx, Value* variable);
 Value* codegen_unary(Codegen_Context* ctx, Expr* expr);
 Value* codegen_binary(Codegen_Context* ctx, Expr* expr);
 Value* codegen_variable_decl(Codegen_Context* ctx, Expr* expr);
+Value* codegen_constant_decl(Codegen_Context* ctx, Expr* expr);
 Value* codegen_call(Codegen_Context* ctx, Expr* expr);
 Value* codegen_float(Codegen_Context* ctx, Expr* expr);
 Value* codegen_int(Codegen_Context* ctx, Expr* expr);
@@ -109,6 +110,7 @@ Value* codegen_return(Codegen_Context* ctx, Expr* expr);
 Value* codegen_break(Codegen_Context* ctx, Expr* expr);
 Value* codegen_continue(Codegen_Context* ctx, Expr* expr);
 Value* codegen_struct(Codegen_Context* ctx, Expr* expr);
+Value* codegen_enum(Codegen_Context* ctx, Expr* expr);
 Value* codegen_function(Codegen_Context* ctx, Expr* expr);
 Value* codegen_cast(Codegen_Context* ctx, Expr* expr);
 Value* codegen_expr(Codegen_Context* ctx, Expr* expr);
@@ -121,6 +123,7 @@ Value* codegen_expr(Codegen_Context* ctx, Expr* expr) {
     case EXPR_ASM: emit(ctx, "%s", expr->Asm.str); return NULL;
     case EXPR_MACRO: return codegen_macro(ctx, expr);
     case EXPR_STRUCT: return codegen_struct(ctx, expr);
+    case EXPR_ENUM: return codegen_enum(ctx, expr);
     case EXPR_FUNCTION: return codegen_function(ctx, expr);
     case EXPR_NOTE: return codegen_note(ctx, expr);
     case EXPR_INT: return codegen_int(ctx, expr);
@@ -131,6 +134,7 @@ Value* codegen_expr(Codegen_Context* ctx, Expr* expr) {
     case EXPR_UNARY: return codegen_unary(ctx, expr);
     case EXPR_BINARY: return codegen_binary(ctx, expr);
     case EXPR_VARIABLE_DECL: return codegen_variable_decl(ctx, expr);
+    case EXPR_CONSTANT_DECL: return codegen_constant_decl(ctx, expr);
     case EXPR_BLOCK: return codegen_block(ctx, expr);
     case EXPR_GROUPING: return codegen_expr(ctx, expr->Grouping.expr);
     case EXPR_SUBSCRIPT: return codegen_subscript(ctx, expr);
@@ -795,6 +799,18 @@ Value* codegen_binary(Codegen_Context* ctx, Expr* expr) {
     return NULL;
 }
 
+Value* codegen_constant_decl(Codegen_Context* ctx, Expr* expr) {
+    DEBUG_START;
+    assert(expr);
+    assert(expr->kind == EXPR_CONSTANT_DECL);
+    char*     name            = expr->Constant_Decl.name;
+    Expr*     assignment_expr = expr->Constant_Decl.value;
+
+    add_macro_def(name, assignment_expr);
+
+    return NULL;
+}
+
 Value* codegen_variable_decl(Codegen_Context* ctx, Expr* expr) {
     DEBUG_START;
     assert(expr);
@@ -1119,6 +1135,12 @@ Value* codegen_continue(Codegen_Context* ctx, Expr* expr) {
     return NULL;
 }
 
+Value* codegen_enum(Codegen_Context* ctx, Expr* expr) {
+    DEBUG_START;
+    assert(expr->kind == EXPR_ENUM);
+    warning("enum incomplete?");
+    return NULL;
+}
 Value* codegen_struct(Codegen_Context* ctx, Expr* expr) {
     DEBUG_START;
     assert(expr->kind == EXPR_STRUCT);

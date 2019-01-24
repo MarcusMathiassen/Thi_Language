@@ -56,6 +56,15 @@ s64 get_size_of_typespec(Typespec* type) {
             }
             return accum_size;
         }
+        case TYPESPEC_ENUM: {
+            s64 accum_size = 0;
+            if (type->Enum.members) {
+                LIST_FOREACH(type->Enum.members) {
+                    accum_size += 8;
+                }
+            }
+            return accum_size;
+        }
         case TYPESPEC_FUNCTION: {
             s64 accum_size = 0;
             LIST_FOREACH(type->Function.args) {
@@ -124,8 +133,8 @@ char* typespec_to_str(Typespec* type) {
         case TYPESPEC_ENUM: {
             string str = make_string_f("%s :: enum {", type->Enum.name);
             LIST_FOREACH(type->Enum.members) {
-                char* mem = (char*)it->data;
-                append_string_f(&str, "%s", mem);
+                Expr* mem = (Expr*)it->data;
+                append_string_f(&str, "%s %s", mem->Constant_Decl.name, expr_to_str(mem->Constant_Decl.value));
             }
             return str.c_str;
         };

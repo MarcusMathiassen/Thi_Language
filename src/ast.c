@@ -26,8 +26,10 @@ char* expr_kind_to_str(Expr_Kind kind) {
         case EXPR_UNARY: return "EXPR_UNARY";
         case EXPR_BINARY: return "EXPR_BINARY";
         case EXPR_VARIABLE_DECL: return "EXPR_VARIABLE_DECL";
+        case EXPR_CONSTANT_DECL: return "EXPR_CONSTANT_DECL";
         case EXPR_FUNCTION: return "EXPR_FUNCTION";
         case EXPR_STRUCT: return "EXPR_STRUCT";
+        case EXPR_ENUM: return "EXPR_ENUM";
         case EXPR_BLOCK: return "EXPR_BLOCK";
         case EXPR_GROUPING: return "EXPR_GROUPING";
         case EXPR_SUBSCRIPT: return "EXPR_SUBSCRIPT";
@@ -45,6 +47,7 @@ char* expr_kind_to_str(Expr_Kind kind) {
 }
 
 char* expr_to_str(Expr* expr) {
+    if(!expr) return "NULL";
     switch (expr->kind) {
         case EXPR_DEFER: return strf("defer %s", expr_to_str(expr->Defer.expr));
         case EXPR_BREAK: return "break";
@@ -101,6 +104,9 @@ char* expr_to_str(Expr* expr) {
                 }
             }
         }
+        case EXPR_CONSTANT_DECL: {
+            return strf("%s %s", expr->Constant_Decl.name, expr_to_str(expr->Constant_Decl.value));
+        }
         case EXPR_BLOCK: {
             string str = make_string("{");
             LIST_FOREACH(expr->Block.stmts) {
@@ -112,6 +118,9 @@ char* expr_to_str(Expr* expr) {
         }
         case EXPR_STRUCT: {
             return strf("%s", typespec_to_str(expr->Struct.type));
+        }
+        case EXPR_ENUM: {
+            return strf("%s", typespec_to_str(expr->Enum.type));
         }
         case EXPR_FUNCTION: {
             string str = make_string_f("%s %s", typespec_to_str(expr->Function.type), expr_to_str(expr->Function.body));
@@ -154,7 +163,7 @@ char* expr_to_str(Expr* expr) {
 
 char* expr_to_json(Expr* expr)
 {
-    if (!expr) return "\"\"";
+    if (!expr) return "\"NULL\"";
     char* result = NULL;
     switch (expr->kind) {
     case EXPR_ASM: {
@@ -205,6 +214,10 @@ char* expr_to_json(Expr* expr)
                       expr->Variable_Decl.name, typespec_to_str(expr->Variable_Decl.type),
                       expr_to_json(expr->Variable_Decl.value));
     } break;
+    case EXPR_CONSTANT_DECL: {
+        result = strf("{\"%s\": {\"name\": \"%s\", \"value\": %s}}", expr_kind_to_str(expr->kind),
+                      expr->Constant_Decl.name, expr_to_json(expr->Constant_Decl.value));
+    } break;
     case EXPR_BLOCK: {
         s64 block_count = expr->Block.stmts->count;
         s64 counter = 0;
@@ -220,6 +233,14 @@ char* expr_to_json(Expr* expr)
     case EXPR_FUNCTION: {
         result = strf("{\"%s\": {\"type\": \"%s\", \"body\": %s }}", expr_kind_to_str(expr->kind),
                       typespec_to_str(expr->Function.type), expr_to_json(expr->Function.body));
+    } break;
+    case EXPR_STRUCT: {
+        result = strf("{\"%s\": {\"type\": \"%s\"}}", expr_kind_to_str(expr->kind),
+                      typespec_to_str(expr->Struct.type));
+    } break;
+    case EXPR_ENUM: {
+        result = strf("{\"%s\": {\"type\": \"%s\"}}", expr_kind_to_str(expr->kind),
+                      typespec_to_str(expr->Enum.type));
     } break;
     case EXPR_GROUPING: {
         result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), expr_to_json(expr->Grouping.expr));
@@ -517,6 +538,14 @@ Expr* make_expr_struct(Typespec* struct_t) {
     e->Struct.type = struct_t;
     return e;
 }
+
+Expr* make_expr_enum(Typespec* enum_t) {
+    assert(enum_t);
+    Expr* e        = make_expr(EXPR_ENUM);
+    e->Enum.type = enum_t;
+    return e;
+}
+
 Expr* make_expr_function(Typespec* func_t, Expr* body) {
     assert(func_t);
     assert(func_t->kind == TYPESPEC_FUNCTION);
@@ -579,6 +608,16 @@ Expr* make_expr_variable_decl(char* name, Typespec* type, Expr* value) {
     return e;
 }
 
+Expr* make_expr_constant_decl(char* name, Expr* value) {
+    assert(name);
+    assert(value);
+    Expr* e                = make_expr(EXPR_CONSTANT_DECL);
+    e->Constant_Decl.name  = name;
+    e->Constant_Decl.value = value;
+    return e;
+}
+
+
 Expr* make_expr_subscript(Expr* load, Expr* sub) {
     assert(load);
     assert(sub);
@@ -619,7 +658,7 @@ Expr* make_expr_while(Expr* cond, Expr* then_block) {
 }
 
 Expr* make_expr_return(Expr* expr) {
-    assert(expr);
+    // assert(expr);
     Expr* e        = make_expr(EXPR_RETURN);
     e->Return.expr = expr;
     return e;

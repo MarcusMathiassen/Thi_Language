@@ -12,12 +12,14 @@ typedef enum CST_Kind CST_Kind;
 
 enum CST_Kind {
 
+    CST_TOKEN,
+
     CST_INT,
     CST_FLOAT,
     CST_STRING,
 
     CST_IDENT,
-    
+
     CST_BLOCK,
 
     CST_IF,
@@ -32,8 +34,13 @@ enum CST_Kind {
 //------------------------------------------------------------------------------
 
 struct CST {
+
     CST_Kind kind;
+    
     union {
+
+        Token token;
+
         typedef struct { s64 val; } Int;
         typedef struct { f64 val; } Float;
         typedef struct { char* val; } String;
