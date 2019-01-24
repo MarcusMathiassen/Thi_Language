@@ -120,6 +120,7 @@ char* typespec_to_str(Typespec* type) {
                 s64 index = 0;
                 LIST_FOREACH(type->Struct.members) {
                     Expr* mem = (Expr*)it->data;
+                    warning("%s", expr_to_str(mem));
                     append_string_f(&str, "%s", expr_to_str(mem));
                     if (index != count - 1) {
                         append_string(&str, " ");
@@ -130,13 +131,16 @@ char* typespec_to_str(Typespec* type) {
             append_string(&str, "}");
             return str.c_str;
         };
+
         case TYPESPEC_ENUM: {
-            string str = make_string_f("%s :: enum {", type->Enum.name);
+            char* s = strf("%s\n", type->Enum.name);
             LIST_FOREACH(type->Enum.members) {
                 Expr* mem = (Expr*)it->data;
-                append_string_f(&str, "%s %s", mem->Constant_Decl.name, expr_to_str(mem->Constant_Decl.value));
+                // info("%s %s", mem->Constant_Decl.name, expr_to_str(mem->Constant_Decl.value));
+                s = strf("%s\t%s", s, strf("%s %s\n", mem->Constant_Decl.name, expr_to_str(mem->Constant_Decl.value)));
+                // append_string_f(&str, "%s %s\n", mem->Constant_Decl.name, expr_to_str(mem->Constant_Decl.value));
             }
-            return str.c_str;
+            return s;
         };
 
         case TYPESPEC_FUNCTION: {

@@ -245,9 +245,9 @@ void parse(List* ast, char* source_file) {
         Expr* expr = (Expr*)it->data;
         Expr* next_expr = NULL;
 
-        warning("curr %s\nnext %s", expr_to_str(expr), expr_to_str(next_expr));
         if (it->next)
             next_expr = (Expr*)it->next->data;
+        // warning("curr %s\nnext %s", expr_to_str(expr), expr_to_str(next_expr));
 
         if (expr->kind == EXPR_CALL && next_expr->kind == EXPR_BLOCK) {
 
@@ -283,11 +283,11 @@ void parse(List* ast, char* source_file) {
             Typespec* type = NULL;
             Expr* new_expr = NULL;
             if (has_variable_decls || has_func_defs) {
-                warning("ITS A STRUCT!");
+                // warning("ITS A STRUCT!");
                 type = make_typespec_struct(ident, NULL);
                 new_expr = make_expr_struct(type);
             } else if (!has_variable_decls && !has_func_defs) {
-                warning("ITS AN ENUM! %s %s", ident, expr_to_str(next_expr));
+                // warning("ITS AN ENUM! %s %s", ident, expr_to_str(next_expr));
                 type = make_typespec_enum(ident, next_expr->Block.stmts);
                 new_expr = make_expr_enum(type);
             }
@@ -667,8 +667,8 @@ Expr* parse_function_call(Parser_Context* pctx) {
 }
 
 Expr* parse_constant_decl(Parser_Context* pctx) {
-    eat_kind(pctx, TOKEN_IDENTIFIER);
     char* name  = pctx->curr_tok.value;
+    eat_kind(pctx, TOKEN_IDENTIFIER);
     Expr* value = parse_expression(pctx);
     return make_expr_constant_decl(name, value);
 }

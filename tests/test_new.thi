@@ -2,6 +2,8 @@ extern puts(char*)s32
 
 main() int
     puts("Hello")
+
+    k TokenKind
     return 1
 
 # <func_def> ::= <ident> "(" <expr>.. ")" <ident> '\n'
