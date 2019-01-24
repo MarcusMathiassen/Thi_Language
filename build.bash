@@ -18,7 +18,8 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_macro_definition.thi
     # ./test.bash ./tests/test_order_independance.thi
     # ./test.bash ./tests/test_bigfile.thi
-    ./test.bash ./tests/test_defer.thi
+    ./test.bash ./tests/test_new.thi
+    # ./test.bash ./tests/test_defer.thi
     # ./test.bash ./tests/test_continue.thi
     # ./test.bash ./tests/test_if.thi
     # ./test.bash ./tests/test_comments.thi

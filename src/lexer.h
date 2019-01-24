@@ -36,6 +36,7 @@ typedef enum {
     TOKEN_ENUM,
     TOKEN_BREAK,
     TOKEN_CONTINUE,
+    TOKEN_AS,
 
     TOKEN_NUMBER,
     TOKEN_CHAR,

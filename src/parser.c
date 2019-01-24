@@ -182,6 +182,39 @@ void give_type_to_all_nodes(Expr* expr) {
     if (expr->type) warning("%s | %s", expr_to_str(expr), typespec_to_str(expr->type));
 }
 
+// List* generate_ast_from_tokens(Token_Array tokens) {
+
+//     List* ast = make_list();
+
+
+//     Parser_Context pctx = make_parser_context();
+//     pctx.token_array    = token_array;
+//     pctx.ast            = ast;
+//     pctx.source_file    = source_file;
+//     pctx.source         = source;
+
+
+//     info("Generating ast from tokens..");
+//     eat(&pctx);
+//     while (!tok_is(&pctx, TOKEN_EOF)) {
+//         Expr* stmt = parse_top_level(&pctx);
+//         if (stmt) {
+//             list_append(ast, stmt);
+//         }
+//     }
+
+//     list_append(ast_list, ast)
+// }
+
+
+// AST* parse_load(Parse_Context* pctx) {
+//     eat_kind(pctx, TOKEN_LOAD);
+//     char* file_to_load = pctx->curr_tok.value;
+//     eat_kind(pctx, TOKEN_STRING);
+//     make_ast_load(file_to_load);
+// }
+
+
 void parse(List* ast, char* source_file) {
     // We need to set some state
     char* last_file = get_source_file();

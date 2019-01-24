@@ -67,12 +67,13 @@ typedef enum {
     KEY_ENUM,
     KEY_BREAK,
     KEY_CONTINUE,
+    KEY_AS,
 } Keyword_Kind;
 
-#define KEYWORD_COUNT 20
+#define KEYWORD_COUNT 21
 char* keywords_str[KEYWORD_COUNT] = {
     "link",   "type", "true", "false", "def",   "do",     "defer",  "extern", "load",  "cast",
-    "sizeof", "if",   "else", "for",   "while", "return", "struct", "enum",   "break", "continue",
+    "sizeof", "if",   "else", "for",   "while", "return", "struct", "enum",   "break", "continue", "as",
 };
 
 char** keywords = NULL;
@@ -116,9 +117,8 @@ Token_Array generate_tokens_from_source(char* source) {
         keywords[17] = str_intern("enum");
         keywords[18] = str_intern("break");
         keywords[19] = str_intern("continue");
+        keywords[20] = str_intern("as");
     }
-
-    cast(s32*)xmalloc
 
     // LEX
     for (;;) {
@@ -473,6 +473,7 @@ char* token_kind_to_str(Token_Kind kind) {
     case TOKEN_WHITESPACE: return "whitespace";
     case TOKEN_NEWLINE: return "newline";
     case TOKEN_IDENTIFIER: return "identifier";
+    case TOKEN_AS: return "as";
     case TOKEN_CAST: return "cast";
     case TOKEN_SIZEOF: return "sizeof";
     case TOKEN_LINK: return "link";
@@ -604,6 +605,7 @@ Token_Kind get_identifier_kind(char* identifier) {
     case KEY_ENUM: return TOKEN_ENUM;
     case KEY_BREAK: return TOKEN_BREAK;
     case KEY_CONTINUE: return TOKEN_CONTINUE;
+    case KEY_AS: return TOKEN_AS;
     }
     return TOKEN_IDENTIFIER;
 }
