@@ -3,6 +3,8 @@ extern puts(char*)s32
 main() int
     puts("Hello")
 
+    counter int
+
     k TokenKind
     return 1
 
@@ -11,9 +13,9 @@ main() int
 
 
 TokenKind
-    Ident 0
-    Load 1
-    Link 2
+    Ident :: 0
+    Load :: 1
+    Link :: 2
 
 vec2
     x f32

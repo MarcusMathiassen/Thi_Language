@@ -1,9 +1,9 @@
-type Foo 
-    i: s32[5]
+Foo 
+    i s32[5]
 
 
-def main () -> s32 
-    array: Foo[5]
+main ()  s32 
+    array Foo[5]
     array[4].i[5] = 1
     return array[4].i[5]
 

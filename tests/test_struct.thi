@@ -1,7 +1,7 @@
-type int2
-    x: s32
-    y: s32
+int2
+    x s32
+    y s32
 
-def main() -> s32 
-    my_vec: int2
+main()  s32 
+    my_vec int2
     return 1

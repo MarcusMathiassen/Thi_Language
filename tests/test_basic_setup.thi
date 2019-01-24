@@ -1,6 +1,6 @@
-def main () -> s32
-    v: vec2
+main ()  s32
+    a vec2
     return 1
-type vec2
-    x: f32
-    y: f32
+vec2
+    x f32
+    y f32

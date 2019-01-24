@@ -1,12 +1,12 @@
-type Child
-    c: s32
+Child
+    c s32
 
 
-type Parent
-    b: Child
+Parent
+    b Child
 
 
-def main () -> s32 
-    a: Parent
+main ()  s32 
+    a Parent
     a.b.c = 1
     return a.b.c

@@ -1,12 +1,12 @@
-extern putchar (s32) -> s32
-extern malloc (s64) -> u8*
-extern atoi (u8*) -> s32
-extern exit (s32) -> u8*
-extern system (u8*) -> s32
+extern putchar (s32)  s32
+extern malloc (s64)  u8*
+extern atoi (u8*)  s32
+extern exit (s32)  u8*
+extern system (u8*)  s32
 
 EOF :: -1
 
-def puts(c: u8*) -> s32
+puts(c u8*)  s32
     i := 0
     while *(c+sizeof(char)*i)
         if putchar(*(c+sizeof(char)*i)) == EOF
@@ -16,9 +16,9 @@ def puts(c: u8*) -> s32
         return EOF
     return 1
 
-def main () -> s32 
+main ()  s32 
 
-    a: u8* = "65"
+    a u8* = "65"
     # putchar(a[0])
     # putchar('\n')
     puts("Hello")

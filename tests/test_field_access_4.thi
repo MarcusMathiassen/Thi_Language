@@ -1,16 +1,16 @@
-type Child
-    k: s32
-    a: s32[5]
+Child
+    b s32
+    a s32[5]
 
 
-type Parent
-    a: s32
-    b: Child
-    f: f32
+Parent
+    a s32
+    b Child
+    c f32
 
 
-def main () -> s32 
-    a: Parent
+main ()  s32 
+    w Parent
     a.b.a[4] = 1
     a.a = 1
     return a.b.a[4]

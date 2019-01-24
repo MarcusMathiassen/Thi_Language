@@ -1,9 +1,9 @@
-type Person
-    age: s64
+Person
+    age s64
 
 
-def main () -> s32 
-    p: Person
+main ()  s32 
+    p Person
     p.age = 65
     i := 0
     return p.age

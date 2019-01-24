@@ -1,5 +1,5 @@
-def main () -> s32  
-    a: f32[5] 
+main ()  s32  
+    a f32[5] 
     a[3] = 5
     return a[3] - 4
 

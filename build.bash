@@ -9,7 +9,7 @@ std=c99
 $compiler $src -std=$std $olvl $flags -o $output -g -fsanitize=address -fno-omit-frame-pointer
 
 if [ $? == 0 ]; then
-    # ./test.bash
+    ./test.bash
     # ./test.bash ./tests/test_float_GT.thi
     # ./test.bash ./tests/test_float.thi
     # ./test.bash ./tests/test_window.thi
@@ -18,7 +18,7 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_macro_definition.thi
     # ./test.bash ./tests/test_order_independance.thi
     # ./test.bash ./tests/test_bigfile.thi
-    ./test.bash ./tests/test_new.thi
+    # ./test.bash ./tests/test_new.thi
     # ./test.bash ./tests/test_defer.thi
     # ./test.bash ./tests/test_continue.thi
     # ./test.bash ./tests/test_if.thi
