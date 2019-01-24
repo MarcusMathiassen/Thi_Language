@@ -207,20 +207,22 @@ void parse(List* ast, char* source_file) {
 
     recursively_fill_ast(ast, &pctx);
 
-    string json = make_string("{\"AST\": [");
-    s64 ast_count = ast->count;
-    s64 counter = 0;
-    LIST_FOREACH(ast) {
-        append_string(&json, expr_to_json(it->data));
-        if (counter != ast_count-1) 
-            append_string(&json, ",");
-        counter += 1;
-    }
-    append_string(&json, "]}");
-    warning(json.c_str);
+    if (detailed_print) {
+        string json = make_string("{\"AST\": [");
+        s64 ast_count = ast->count;
+        s64 counter = 0;
+        LIST_FOREACH(ast) {
+            append_string(&json, expr_to_json(it->data));
+            if (counter != ast_count-1) 
+                append_string(&json, ",");
+            counter += 1;
+        }
+        append_string(&json, "]}");
+        warning(json.c_str);
 
-    print_symbol_map();
-    print_ast(ast);
+        print_symbol_map();
+        print_ast(ast);
+    } 
 
     pop_timer();
 

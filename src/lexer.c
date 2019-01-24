@@ -118,6 +118,8 @@ Token_Array generate_tokens_from_source(char* source) {
         keywords[19] = str_intern("continue");
     }
 
+    cast(s32*)xmalloc
+
     // LEX
     for (;;) {
         Token_Fat token = get_next_token(&lctx);

@@ -1,0 +1,135 @@
+
+#
+# Keywords
+#
+    if
+    else
+    case
+    for
+    return
+    defer
+    continue
+    break
+    link
+    load
+    sizeof
+    as
+    true
+    false
+#
+# Grammar
+#
+    <integer>               ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+    <float>                 ::= <integer> "." <integer> 
+                                | "." <integer>
+    <string>                ::= "\"" <ASCII> "\""
+    <char>                  ::= "'" <ASCII> "'"
+    <binary_operator>       ::= "*" | "-" | "+" | "/"| "&" | "|" | "%" | "^" | "<" | ">"
+                                |  "<<" |  ">>" | "<=" | ">=" | "*=" | "&&" | "||" | "/=" | "+=" | "-=" | "%=" | "|=" | "&=" | "^="
+    <unary_operator>        ::= "!" | "*" | "-" | "+" | "&" | "^"
+    <character>             ::= "Aa".."Zz"
+    <ident>                 ::= "_" + <character> | <digit>
+    <type>                  ::= <ident> | "u8" | "u16" | "u32" | "u64" | "s8" | "s16" | "s32" | "s64"
+                              | <type> "*"..
+    <expr>                  ::= <ident>
+                                | <break>
+                                | <continue>
+                                | <binary>
+                                | <unary>
+                                | <cond_expr>
+                                | <integer>
+                                | <float>
+                                | <string>
+    <binary>                ::= <expr> <binary_operator> <expr>
+    <unary>                 ::= <unary_operator> <expr>
+    <cond_expr>             ::=   <expr> "==" <expr>
+                                | <expr> "!=" <expr>
+                                | <expr> "<" <expr>
+                                | <expr> "<=" <expr>
+                                | <expr> ">=" <expr>
+                                | <expr> ">" <expr>
+    <constant_decl>         ::= <ident> <expr>
+    <var_decl>              ::= <ident> : <type>
+                                | <ident> : <type> = <expr>
+                                | <ident> := <expr>
+    <subscript>             ::= "[" <expr> "]"
+    <statement>             ::= <expr>
+                                | <var_decl>
+                                | <func_call>
+                                | <return>
+    <block_start>           ::= On indent
+    <block_end>             ::= On undent
+    <block>                 ::= <block_start> <statement>.. <block_end>
+    <defer>                 ::= "defer" <expr>
+                                | "defer" <block>
+    <as>                    ::= <expr> "as" <type>
+    <sizeof>                ::= "sizeof" <expr>
+    <link>                  ::= "link" <string>
+    <load>                  ::= "load" <string>
+    <break>                 ::= "break"
+    <continue>              ::= "continue"
+    <true>                  ::= "true"
+    <false>                 ::= "false"
+    <return>                ::= "return" <expr>
+    <func_call>             ::= <ident> "(" <expr>.. ")"
+    <func_def_extern>       ::= <ident> "(" <type>.. ")" <type>
+    <func_def>              ::= <ident> "(" <var_decl>.. ")" <type> <block>
+    <var_decl_block>        ::= <block_start> <var_decl>.. <block_end>
+    <constant_decl_block>   ::= <block_start> <constant_decl>.. <block_end>
+    <struct_def>            ::= <ident> <var_decl_block>
+    <enum_def>              ::= <ident> <constant_decl_block>
+    <case>                  ::= "case" <expr> <expr>
+                                | "case" <expr> <block>
+                                | "case" "." <enum_member> <expr>
+                                | "case" "." <enum_member> <block>
+    <case_block>            ::= <block_start> <case>.. <block_start>
+    <if>                    ::= "if" <expr> <block>
+                                | "if" <expr> <block> "else" <block>
+    <if_switch>             ::= "if" <expr> <case_block>
+    <for>                   ::= "for" <block>
+                                | "for" <var_decl> "," <cond_expr> "," <expr> <block>
+                                | "for" <cond_expr> <block>
+
+#
+# Binary Operator Precedence
+#
+    [] 100
+    . 100
+    () 100
+    -> 100
+    ! 85
+    ~ 85
+    * 85
+    & 85
+    * 80
+    / 80
+    % 80
+    - 70
+    + 70
+    < 65
+    >> 65
+    < 60
+    > 60
+    >= 60
+    <= 60
+    == 50
+    != 50
+    && 48
+    || 47
+    @ 40
+    & 40
+    ^ 30
+    | 20
+    ? 15
+    : 15
+    = 10
+    += 10
+    -= 10
+    *= 10
+    /= 10
+    %= 10
+    &= 10
+    ^= 10
+    |= 10
+    <= 10
+    >>= 10
