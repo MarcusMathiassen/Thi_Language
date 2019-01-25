@@ -49,7 +49,6 @@ typedef enum {
     TOKEN_AND_AND,
     TOKEN_PLUS_EQ,
     TOKEN_MINUS_EQ,
-    TOKEN_FWSLASH_EQ,
     TOKEN_HAT_EQ,
     TOKEN_ASTERISK_EQ,
     TOKEN_PIPE_EQ,
@@ -93,6 +92,7 @@ typedef enum {
     TOKEN_COLON,
     TOKEN_SEMICOLON,
     TOKEN_ASTERISK,
+    TOKEN_ASTERISK_FWSLASH,
     TOKEN_MINUS,
     TOKEN_MINUS_MINUS,
     TOKEN_MINUS_MINUS_MINUS,
@@ -101,26 +101,24 @@ typedef enum {
     TOKEN_PLUS_PLUS,
     TOKEN_PERCENT,
     TOKEN_FWSLASH,
+    TOKEN_FWSLASH_ASTERISK,
+    TOKEN_FWSLASH_FWSLASH,
+    TOKEN_FWSLASH_EQ,
     TOKEN_BWSLASH,
     TOKEN_HASH,
     TOKEN_EQ,
 } Token_Kind;
 
 typedef struct {
-    s64        id;
     Token_Kind kind;
     char*      value;
+    s64        line_pos;
+    s64        col_pos;
+    char*      line_start;
 } Token;
 
 typedef struct {
-    s64   line_pos;
-    s64   col_pos;
-    char* line_start;
-} Token_Info;
-
-typedef struct {
     Token*      data;
-    Token_Info* info;
     s64         count;
     s64         allocated;
 } Token_Array;
@@ -130,9 +128,6 @@ void        print_token(Token token);
 char*       token_to_str(Token token);
 char*       token_kind_to_str(Token_Kind kind);
 Token_Array generate_tokens_from_source(char* source);
-
-Token      token_array_at(Token_Array token_array, s64 token_index);
-Token_Info token_array_get_info_of(Token_Array token_array, s64 token_id);
 
 #define THI_SYNTAX_POINTER TOKEN_ASTERISK
 #define THI_SYNTAX_ADDRESS TOKEN_AND

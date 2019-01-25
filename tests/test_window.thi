@@ -6,8 +6,8 @@ load "includes/math.thi"
 
 main() s32
 
-    if !glfwInit() do puts("GLFW init failed.")
-    defer do glfwTerminate()
+    if !glfwInit() puts("GLFW init failed.")
+    defer glfwTerminate()
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1)
@@ -21,7 +21,7 @@ main() s32
     window := glfwCreateWindow(640, 480, "Hello Triangle", 0, 0)
     glfwMakeContextCurrent(window)
 
-    if glfwInit() != GLEW_OK do puts("GLEW init failed.")
+    if glfwInit() != GLEW_OK puts("GLEW init failed.")
 
     glClearColor(0.01, 0.01, 0.01, 1.0)
 
@@ -44,13 +44,13 @@ main() s32
         glClear(GL_COLOR_BUFFER_BIT)
         glfwPollEvents()
 
-        if glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS  do x += -0.001 
-        if glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS do x +=  0.001 
-        if glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS  do y += -0.001 
-        if glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS    do y +=  0.001 
+        if glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS  x += -0.001 
+        if glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS x +=  0.001 
+        if glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS  y += -0.001 
+        if glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS    y +=  0.001 
 
-        if glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS    do scale +=  0.001 
-        if glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS    do scale +=  -0.001 
+        if glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS    scale +=  0.001 
+        if glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS    scale +=  -0.001 
 
         draw_triangle(x, y, scale)
 

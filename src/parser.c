@@ -80,6 +80,8 @@ typedef struct {
 
     bool o_current_function_should_return_a_value;
     bool l_current_function_should_return_a_value;
+
+    Expr* last_if_statement; // used for dangling else
 } Parser_Context;
 
 Parser_Context make_parser_context() {
@@ -120,6 +122,7 @@ Expr* parse_load(Parser_Context* pctx);
 Expr* parse_extern(Parser_Context* pctx);
 Expr* parse_link(Parser_Context* pctx);
 Expr* parse_if(Parser_Context* pctx);
+Expr* parse_dangling_else(Parser_Context* pctx);
 Expr* parse_for(Parser_Context* pctx);
 Expr* parse_while(Parser_Context* pctx);
 Expr* parse_break(Parser_Context* pctx);
@@ -263,7 +266,7 @@ void parse(List* ast, char* source_file) {
                 bool  has_variable_decls = false;
                 bool  has_func_defs      = false;
 
-                LIST_FOREACH(next_expr->Block.stmts) {
+                LIST_FOREACH(next_expr->Block.stmts) {
                     Expr* e = (Expr*)it->data;
                     if (e->kind == EXPR_VARIABLE_DECL) {
                         has_func_defs = true;
@@ -336,6 +339,7 @@ Expr* parse_top_level(Parser_Context* pctx) {
     DEBUG_START;
     pctx->top_tok_kind = pctx->curr_tok.kind;
     switch (pctx->curr_tok.kind) {
+        case TOKEN_NEWLINE: eat(pctx); break;
         case TOKEN_BLOCK_START: return parse_block(pctx);
         case TOKEN_IDENTIFIER: return parse_identifier(pctx);
         case TOKEN_TYPE: return parse_type(pctx);
@@ -353,7 +357,6 @@ Expr* parse_top_level(Parser_Context* pctx) {
 
 Expr* parse_statement(Parser_Context* pctx) {
     DEBUG_START;
-
     switch (pctx->curr_tok.kind) {
         case TOKEN_BLOCK_START: return parse_block(pctx);
         case TOKEN_DEF: return parse_def(pctx);
@@ -364,17 +367,20 @@ Expr* parse_statement(Parser_Context* pctx) {
         case TOKEN_BREAK: return parse_break(pctx);
         case TOKEN_CONTINUE: return parse_continue(pctx);
         case TOKEN_IF: return parse_if(pctx);
+        case TOKEN_ELSE: return parse_dangling_else(pctx);
         case TOKEN_DEFER: return parse_defer(pctx);
         case TOKEN_FOR: return parse_for(pctx);
         case TOKEN_WHILE: return parse_while(pctx);
         case TOKEN_EXTERN: return parse_extern(pctx);
         case TOKEN_LOAD: return parse_load(pctx);
         case TOKEN_LINK: return parse_link(pctx);
+        case TOKEN_NEWLINE: break;
         default:
             warning("Invalid statement token '%s'. Skipping it.", token_to_str(pctx->curr_tok));
             eat(pctx);
             break;
     }
+    eat_kind(pctx, TOKEN_NEWLINE);
     return NULL;
 }
 
@@ -523,6 +529,14 @@ Expr* parse_defer(Parser_Context* pctx) {
     return make_expr_defer(block);
 }
 
+Expr* parse_dangling_else(Parser_Context* pctx) {
+    DEBUG_START;
+    eat_kind(pctx, TOKEN_ELSE);
+    Expr* else_block = parse_block(pctx);
+    pctx->last_if_statement->If.else_block = else_block;
+    return NULL;
+}
+
 Expr* parse_if(Parser_Context* pctx) {
     DEBUG_START;
     eat_kind(pctx, TOKEN_IF);
@@ -533,7 +547,12 @@ Expr* parse_if(Parser_Context* pctx) {
         eat_kind(pctx, TOKEN_ELSE);
         else_block = parse_block(pctx);
     }
-    return make_expr_if(cond, then_block, else_block);
+
+    Expr* expr = make_expr_if(cond, then_block, else_block);
+
+    pctx->last_if_statement = expr;
+
+    return expr;
 }
 
 Expr* parse_sizeof(Parser_Context* pctx) {
@@ -587,14 +606,14 @@ Expr* parse_block(Parser_Context* pctx) {
     DEBUG_START;
 
     // Is it a single statement?
-    if (tok_is(pctx, TOKEN_DO)) {
-        eat_kind(pctx, TOKEN_DO);
+    if (!tok_is(pctx, TOKEN_NEWLINE)) {
         return parse_statement(pctx);
     }
 
     List* stmts = make_list();
 
     // else it's a block
+    eat_kind(pctx, TOKEN_NEWLINE);
     eat_kind(pctx, TOKEN_BLOCK_START);
     while (!tok_is(pctx, TOKEN_BLOCK_END)) {
         Expr* stmt = parse_statement(pctx);
@@ -603,9 +622,7 @@ Expr* parse_block(Parser_Context* pctx) {
         }
     }
     eat_kind(pctx, TOKEN_BLOCK_END);
-
     return make_expr_block(stmts);
-    ;
 }
 
 Expr* parse_return(Parser_Context* pctx) {
@@ -1018,16 +1035,13 @@ Token_Kind next_tok_kind(Parser_Context* pctx) {
 }
 
 bool tok_is_on_same_line(Parser_Context* pctx) {
-    Token_Info t1 = token_array_get_info_of(pctx->token_array, pctx->prev_tok.id);
-    Token_Info t2 = token_array_get_info_of(pctx->token_array, pctx->curr_tok.id);
-    s64        l1 = t1.line_pos;
-    s64        l2 = t2.line_pos;
+    s64        l1 = pctx->curr_tok.line_pos;
+    s64        l2 = pctx->prev_tok.line_pos;
     return l1 == l2;
 }
 bool next_tok_is_on_same_line(Parser_Context* pctx) {
-    Token_Info t1 = token_array_get_info_of(pctx->token_array, pctx->curr_tok.id);
-    Token_Info t2 = token_array_get_info_of(pctx->token_array, next_tok(pctx).id);
-    s64        l1 = t1.line_pos;
+    Token t2 = next_tok(pctx);
+    s64        l1 = pctx->curr_tok.line_pos;
     s64        l2 = t2.line_pos;
     return l1 == l2;
 }
@@ -1035,7 +1049,7 @@ bool tok_is(Parser_Context* pctx, Token_Kind kind) { return pctx->curr_tok.kind 
 
 void eat(Parser_Context* pctx) {
     pctx->prev_tok = pctx->curr_tok;
-    pctx->curr_tok = token_array_at(pctx->token_array, pctx->token_index);
+    pctx->curr_tok = pctx->token_array.data[pctx->token_index];
     pctx->token_index += 1;
 }
 
@@ -1050,13 +1064,13 @@ void eat_kind(Parser_Context* pctx, Token_Kind kind) {
 void syntax_error(Parser_Context* pctx, char* fmt, ...) {
     assert(fmt);
 
-    Token_Info token_info = token_array_get_info_of(pctx->token_array, pctx->curr_tok.id);
-    s64        line_pos   = token_info.line_pos;
-    s64        col_pos    = token_info.col_pos;
+    char* source_file = pctx->source_file;
+    s64 line_pos = pctx->curr_tok.line_pos;
+    s64 col_pos  = pctx->curr_tok.col_pos;
 
     va_list args;
     va_start(args, fmt);
-    printf("%s%s %lld:%lld Syntax Error: ", RED, pctx->source_file, line_pos, col_pos);
+    printf("%s%s %lld:%lld Syntax Error: ", RED, source_file, line_pos, col_pos);
     vprintf(fmt, args);
     puts(RESET);
     va_end(args);

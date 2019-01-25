@@ -1,6 +1,2 @@
-main ()  s32
-    a vec2
+main() s32
     return 1
-vec2
-    x f32
-    y f32
