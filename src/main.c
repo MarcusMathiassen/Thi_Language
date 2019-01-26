@@ -257,10 +257,11 @@ List* parse(Thi_Context* tctx, char* source_file) {
     push_timer("Finding all definitions");
     definitions_pass(tctx, ast);
     pop_timer();
+    print_symbol_map();
+
     push_timer("Type resolution");
     type_resolution_pass(tctx, ast);
     pop_timer();
-
     print_symbol_map();
 
     // Constant folding
@@ -296,9 +297,7 @@ Type* get_inferred_type_of_expr(Thi_Context* tctx, AST* expr) {
             if (expr->Return.expr) return get_inferred_type_of_expr(tctx, expr->Return.expr);
 
         case AST_SIZEOF: {
-            if (expr->Sizeof.type->kind == TYPE_PLACEHOLDER) {
-                expr->Sizeof.type = get_symbol(get_type_name(expr->Sizeof.type));
-            }
+            expr->Sizeof.type = get_symbol(get_type_name(expr->Sizeof.type));
             return expr->Sizeof.type;
         } break;
         case AST_CAST: return expr->Cast.type;
@@ -311,13 +310,16 @@ Type* get_inferred_type_of_expr(Thi_Context* tctx, AST* expr) {
         case AST_UNARY: return get_inferred_type_of_expr(tctx, expr->Unary.operand);
         case AST_BINARY: return get_inferred_type_of_expr(tctx, expr->Binary.rhs);
         case AST_VARIABLE_DECL: {
-            if (expr->Variable_Decl.type->kind == TYPE_PLACEHOLDER) {
-                expr->Variable_Decl.type = get_symbol(get_type_name(expr->Variable_Decl.type));
-            }
+            expr->Variable_Decl.type = get_symbol(get_type_name(expr->Variable_Decl.type));
             return expr->Variable_Decl.type;
         } break;
         case AST_FUNCTION: {
             AST* body  = expr->Function.body;
+            expr->Function.type->Function.ret_type = get_symbol(get_type_name(expr->Function.type->Function.ret_type));
+            LIST_FOREACH(expr->Function.type->Function.args) {
+                AST*  stmt = (AST*)it->data;
+                stmt->type = get_inferred_type_of_expr(tctx, stmt);
+            }
             expr->type = get_inferred_type_of_expr(tctx, body);
         } break;
         case AST_STRUCT: {
@@ -325,8 +327,7 @@ Type* get_inferred_type_of_expr(Thi_Context* tctx, AST* expr) {
             List* members   = expr->Struct.type->Struct.members;
             LIST_FOREACH(members) {
                 AST*  stmt = (AST*)it->data;
-                Type* type = get_inferred_type_of_expr(tctx, stmt);
-                stmt->type = type;
+                stmt->type = get_inferred_type_of_expr(tctx, stmt);
             }
             return get_symbol(type_name);
         } break;
@@ -335,8 +336,7 @@ Type* get_inferred_type_of_expr(Thi_Context* tctx, AST* expr) {
             List* members   = expr->Enum.type->Enum.members;
             LIST_FOREACH(members) {
                 AST*  stmt = (AST*)it->data;
-                Type* type = get_inferred_type_of_expr(tctx, stmt);
-                stmt->type = type;
+                stmt->type = get_inferred_type_of_expr(tctx, stmt);
             }
             return get_symbol(type_name);
         } break;

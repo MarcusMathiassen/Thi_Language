@@ -44,6 +44,14 @@ s64 get_size_of_underlying_type(Type* type) {
 char* get_type_name(Type* type) {
     switch (type->kind) {
         case TYPE_PLACEHOLDER: return type->Placeholder.name;
+        case TYPE_POINTER: {
+            Type* t = type->Pointer.pointee;
+            while(t->kind == TYPE_POINTER) {
+                warning("%s", type_to_str(t));
+                t = type->Pointer.pointee;
+            }
+            return get_type_name(t);
+        }
         case TYPE_STRUCT: return type->Struct.name;
         case TYPE_ENUM: return type->Enum.name;
         case TYPE_FUNCTION: return type->Function.name;

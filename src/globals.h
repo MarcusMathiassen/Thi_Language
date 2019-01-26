@@ -22,6 +22,7 @@ extern bool enable_constant_folding;
 
 extern bool  detailed_print;
 extern List* file_list;
+extern List* type_list;
 
 #define LINES_ABOVE_AND_BELOW_TO_SHOW_ON_ERROR 2
 

@@ -54,6 +54,7 @@ struct Arg {
 };
 
 struct Type {
+    char* name;
     Type_Kind kind;
     union {
         struct {

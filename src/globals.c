@@ -25,6 +25,7 @@ string source_file;
 char*  previous_file;
 string current_directory;
 List*  file_list;
+List*  type_list;
 
 char* get_output_name(void) { return output_name.c_str; }
 void  set_output_name(char* name) { output_name = make_string(name); }
@@ -48,6 +49,7 @@ void initilize_globals(void) {
     file_list             = make_list();
     symbol_map            = make_map();
     macro_map             = make_map();
+    type_list             = make_list();
 }
 
 void add_link(char* library_name) {

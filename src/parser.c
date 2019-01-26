@@ -7,6 +7,7 @@
 #include <string.h>  // strcmp
 
 #include "ast.h"       // AST, ast_make_*
+#include "globals.h"   // type_list
 #include "lexer.h"     // Token, Token_Kind, generate_tokens_from_source, token_array_get_info_of
 #include "type.h"      // Type, make_typspec_*,
 #include "typedefs.h"  // s32 , s64, etc.
@@ -74,8 +75,7 @@ typedef struct {
     Token      curr_tok;
     Token      prev_tok;
     Token_Kind top_tok_kind;
-
-    AST* last_if_statement;  // used for dangling else
+    AST*       last_if_statement;  // used for dangling else
 
 } Parser_Context;
 
@@ -259,7 +259,7 @@ AST* parse_def(Parser_Context* pctx) {
     char* ident = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
     Type* type = parse_function_signature(pctx, ident);
-    AST* body = parse_block(pctx);
+    AST*  body = parse_block(pctx);
     return make_ast_function(type, body);
 }
 
@@ -680,6 +680,8 @@ Type* get_type(Parser_Context* pctx) {
     eat_kind(pctx, TOKEN_IDENTIFIER);
 
     Type* type = make_type_placeholder(type_name);
+    type->name = type_name;
+    list_append(type_list, &type);
 
     switch (pctx->curr_tok.kind) {
         case THI_SYNTAX_POINTER: {
@@ -698,6 +700,7 @@ Type* get_type(Parser_Context* pctx) {
             type = make_type_array(type, size);
         } break;
     }
+
 
     return type;
 }

@@ -1,2 +1,14 @@
 def main() s32
-    return 1
+    
+    //if add(0,0) == 1 return 1
+    //if add(1,0) == 0 return 0
+
+    return add(1,2)
+
+
+struct vec2
+    x f32
+    y f32
+
+def add(a s32, b s32) vec2*
+    return a + b
