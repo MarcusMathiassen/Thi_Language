@@ -163,19 +163,20 @@ int main(int argc, char** argv) {
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
-    success("--- Compiler timings ---");
-    success("lines %lld comments %lld", thi.lines, thi.comments);
-    success("resolved %lld types", thi.unresolved_types.count);
-    success("type inferred %lld variables", thi.variables_in_need_of_type_inference->count);
+    info("--- Compiler timings ---");
+    info("lines %lld comments %lld", thi.lines, thi.comments);
+    info("resolved %lld types", thi.unresolved_types.count);
+    info("type inferred %lld variables", thi.variables_in_need_of_type_inference->count);
+    info("checked calls %lld", thi.function_calls->count);
     LIST_FOREACH(get_timers(&thi)) {
         Timer* tm      = (Timer*)it->data;
         s64    len     = strlen(tm->desc);
         char*  ms      = strf("%f seconds", tm->ms / 1e3);
         s64    ms_l    = strlen(ms);
         s64    padding = w.ws_col - len - ms_l - 1;  // -1 is the ':'
-        success("%s:%*s%s", tm->desc, padding, "", ms);
+        info("%s:%*s%s", tm->desc, padding, "", ms);
     }
-    success("---------------------------");
+    info("---------------------------");
 
     return 0;
 }
@@ -243,7 +244,10 @@ void add_all_definitions(Thi* thi, Parsed_File* pf) {
     for (s64 i = 0; i < pf->unresolved_types.count; ++i) {
         type_ref_list_append(&thi->unresolved_types, pf->unresolved_types.data[i]);
     }
+
+    LIST_FOREACH(pf->function_calls) { warning("function_call: %s", ast_to_str(it->data)); }
     list_append_content_of(thi->variables_in_need_of_type_inference, pf->variables_in_need_of_type_inference);
+    list_append_content_of(thi->function_calls, pf->function_calls);
 
     LIST_FOREACH(pf->link_list) { add_link(thi, it->data); }
     LIST_FOREACH(pf->load_list) { add_load(thi, it->data); }
@@ -280,6 +284,13 @@ void pass_type_inference(Thi* thi) {
     LIST_FOREACH(thi->variables_in_need_of_type_inference) {
         AST* var_decl                = (AST*)it->data;
         var_decl->Variable_Decl.type = get_inferred_type_of_expr(thi, var_decl->Variable_Decl.value);
+    }
+    LIST_FOREACH(thi->function_calls) {
+        AST* call                = (AST*)it->data;
+        call->type = get_inferred_type_of_expr(thi, call);
+        if (!call->type) {
+            call->type = make_type_void();
+        }
     }
     pop_timer(thi);
 }

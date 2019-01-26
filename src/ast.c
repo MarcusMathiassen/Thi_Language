@@ -315,13 +315,6 @@ void print_ast_json(List* ast) {
 //                               AST* Maker Functions
 //------------------------------------------------------------------------------
 
-AST* ast_replace(AST* this, AST* that) {
-    assert(this);
-    assert(that);
-    // free(this);
-    return that;
-}
-
 AST* make_ast(AST_Kind kind) {
     AST* e  = xmalloc(sizeof(AST));
     e->kind = kind;

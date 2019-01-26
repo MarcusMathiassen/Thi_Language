@@ -29,11 +29,17 @@ typedef struct {
     string section_extern;
     s64    text_label_counter;
     s64    data_label_counter;
-    char*  ocontinue;
-    char*  lcontinue;
-    char*  obreak;
-    char*  lbreak;
-    char*  l_end;
+
+    char* o0;
+    char* o1;
+    char* l0;
+    char* l1;
+
+    char* ocontinue;
+    char* lcontinue;
+    char* obreak;
+    char* lbreak;
+    char* l_end;
 
     s8 next_available_xmm_reg_counter;
     s8 next_available_rax_reg_counter;
@@ -44,6 +50,8 @@ typedef struct {
 //------------------------------------------------------------------------------
 
 Codegen_Context make_codegen_context();
+void            set_temp_labels(Codegen_Context* ctx, char* l0, char* l1);
+void            restore_temp_labels(Codegen_Context* ctx);
 void            set_jump_labels(Codegen_Context* ctx, char* continue_l, char* break_l);
 void            restore_jump_labels(Codegen_Context* ctx);
 char*           make_text_label(Codegen_Context* ctx);
@@ -801,6 +809,26 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr) {
             Value* variable = codegen_expr(ctx, expr);
             return variable;
         }
+        case TOKEN_QUESTION_MARK: {
+            char* l0 = make_text_label(ctx);
+            char* l1 = make_text_label(ctx);
+            set_temp_labels(ctx, l0, l1);
+            Value* lhs_v = codegen_expr(ctx, lhs);
+            char*  reg   = get_result_reg(lhs_v->type);
+            emit(ctx, "CMP %s, 0", reg);
+            emit(ctx, "JE %s", l0);
+            Value* rhs_v = codegen_expr(ctx, rhs);
+            emit(ctx, "JMP %s", l1);
+            return rhs_v;
+        }
+        case TOKEN_COLON: {
+            codegen_expr(ctx, lhs);  // '?' part
+            emit(ctx, "%s:", ctx->l0);
+            Value* rhs_v = codegen_expr(ctx, rhs);
+            emit(ctx, "%s:", ctx->l1);
+            restore_temp_labels(ctx);
+            return rhs_v;
+        }
     }
 
     error("Codegen: Unhandled binary op %s", token_kind_to_str(op));
@@ -1260,6 +1288,10 @@ Codegen_Context make_codegen_context() {
     ctx.obreak                         = NULL;
     ctx.lbreak                         = NULL;
     ctx.l_end                          = NULL;
+    ctx.l0                             = NULL;
+    ctx.l1                             = NULL;
+    ctx.o0                             = NULL;
+    ctx.o1                             = NULL;
     ctx.next_available_xmm_reg_counter = 0;
     ctx.next_available_rax_reg_counter = 0;
     return ctx;
@@ -1277,6 +1309,16 @@ void restore_jump_labels(Codegen_Context* ctx) {
     ctx->lbreak    = ctx->obreak;
 }
 
+void set_temp_labels(Codegen_Context* ctx, char* l0, char* l1) {
+    ctx->o0 = ctx->l0;
+    ctx->o1 = ctx->l1;
+    ctx->l0 = l0;
+    ctx->l1 = l1;
+}
+void restore_temp_labels(Codegen_Context* ctx) {
+    ctx->l0 = ctx->o0;
+    ctx->l1 = ctx->o1;
+}
 char* make_text_label(Codegen_Context* ctx) {
     char* l = strf(".L%d", ctx->text_label_counter);
     ctx->text_label_counter += 1;

@@ -14,6 +14,7 @@ Thi make_thi() {
     thi.optimize                            = true;
     thi.extern_list                         = make_list();
     thi.link_list                           = make_list();
+    thi.function_calls                      = make_list();
     thi.load_list                           = make_list();
     thi.timer_list                          = make_list();
     thi.symbol_map                          = make_map();

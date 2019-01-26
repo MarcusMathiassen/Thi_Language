@@ -8,6 +8,7 @@
 typedef struct {
     List*         ast;
     Type_Ref_List unresolved_types;
+    List*         function_calls;
     List*         variables_in_need_of_type_inference;
     List*         extern_list;
     List*         load_list;

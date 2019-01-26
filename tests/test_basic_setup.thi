@@ -9,8 +9,8 @@ enum TokenKind
 
 def get()
     i := "Hello"
-    // implicitly decline any proceedings
     return
+
 
 def main() s32
     v vec2
@@ -20,9 +20,21 @@ def main() s32
     k s64
     l s64
 
-    puts("Hello this is a test")
+    compile("Hello you")
+
+    puts("this is a test")
     return 1
 
 struct vec2 
     x f32
     y f32
+
+
+struct vec2 
+    x f32
+    y f32
+    def add(a f32, b f32) f32
+        return a + b
+
+def compile(source char*)
+    puts(source)

@@ -1,9 +1,6 @@
 def main() s32
-    return add(0,1)
+    if add(0, 1) == 1 return 1
+    return 0
 
 def add(a s32, b s32) s32
     return a + b
-
-struct vec2
-    x f32
-    y f32

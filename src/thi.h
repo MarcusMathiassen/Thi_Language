@@ -30,6 +30,7 @@ typedef struct {
     Map*          macro_map;
     Stack*        timer_stack;
     List*         timer_list;
+    List*         function_calls;
     Type_Ref_List unresolved_types;
     List*         variables_in_need_of_type_inference;
 

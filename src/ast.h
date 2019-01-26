@@ -246,7 +246,6 @@ AST* make_ast_defer(AST* expr);
 AST* make_ast_cast(AST* expr, Type* type);
 AST* make_ast_sizeof(Type* type);
 
-AST* ast_replace(AST* this, AST* that);
 AST* make_ast_break();
 AST* make_ast_continue();
 

@@ -21,6 +21,7 @@ char* type_to_str(Type* type);
 char* type_kind_to_str(Type_Kind kind);
 
 Type* make_type_unresolved(char* name);
+Type* make_type_void();
 Type* make_type_int(s8 bytes, bool is_unsigned);
 Type* make_type_float(s8 bytes);
 Type* make_type_string(s64 len);
@@ -35,6 +36,8 @@ s64 type_array_get_count(Type* type);
 
 enum Type_Kind {
     TYPE_UNRESOLVED,
+
+    TYPE_VOID,
 
     TYPE_INT,
     TYPE_FLOAT,

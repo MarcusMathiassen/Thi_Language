@@ -19,6 +19,7 @@
 char* type_kind_to_str(Type_Kind kind) {
     switch (kind) {
         case TYPE_UNRESOLVED: return "TYPE_UNRESOLVED";
+        case TYPE_VOID: return "TYPE_VOID";
         case TYPE_INT: return "TYPE_INT";
         case TYPE_FLOAT: return "TYPE_FLOAT";
         case TYPE_STRING: return "TYPE_STRING";
@@ -43,6 +44,7 @@ s64 get_size_of_underlying_type(Type* type) {
 
 char* get_type_name(Type* type) {
     switch (type->kind) {
+        case TYPE_VOID: return "void";
         case TYPE_UNRESOLVED: return type->Unresolved.name;
         case TYPE_POINTER: {
             Type* t = type->Pointer.pointee;
@@ -62,6 +64,7 @@ char* get_type_name(Type* type) {
 s64 get_size_of_type(Type* type) {
     switch (type->kind) {
         case TYPE_UNRESOLVED: return 0;
+        case TYPE_VOID: return 0;
         case TYPE_INT: return type->Int.bytes;
         case TYPE_FLOAT: return type->Float.bytes;
         case TYPE_STRING: return type->String.len;
@@ -127,6 +130,7 @@ s64 type_array_get_count(Type* type) {
 char* type_to_str(Type* type) {
     if (!type) return "";
     switch (type->kind) {
+        case TYPE_VOID: return "void";
         case TYPE_UNRESOLVED: return strf("PLACEHOLDER(%s)", type->Unresolved.name);
         case TYPE_ARRAY: return strf("%s[%d]", type_to_str(type->Array.type), type->Array.size);
         case TYPE_INT: return strf(type->Int.is_unsigned ? "u%d" : "s%d", type->Int.bytes * 8);
@@ -196,6 +200,11 @@ void type_ref_list_append(Type_Ref_List* l, Type* t) {
 Type* make_type(Type_Kind kind) {
     Type* t = xmalloc(sizeof(Type));
     t->kind = kind;
+    return t;
+}
+
+Type* make_type_void() {
+    Type* t = make_type(TYPE_VOID);
     return t;
 }
 

@@ -50,6 +50,8 @@ struct {
     {TOKEN_AND, 40},            // &
     {TOKEN_HAT, 30},            // ^
     {TOKEN_PIPE, 20},           // |
+    {TOKEN_QUESTION_MARK, 15},  // ?
+    {TOKEN_COLON, 15},          // :
     {TOKEN_EQ, 10},             // =
     {TOKEN_PLUS_EQ, 10},        // +=
     {TOKEN_MINUS_EQ, 10},       // -=
@@ -74,6 +76,7 @@ typedef struct {
     Type_Ref_List unresolved_types;
     List*         variables_in_need_of_type_inference;
 
+    List* function_calls;
     List* extern_list;
     List* load_list;
     List* link_list;
@@ -95,10 +98,11 @@ Parser_Context make_parser_context() {
     pctx.unresolved_types                    = make_type_ref_list();
     pctx.variables_in_need_of_type_inference = make_list();
 
-    pctx.extern_list = make_list();
-    pctx.load_list   = make_list();
-    pctx.link_list   = make_list();
-    pctx.symbol_map  = make_map();
+    pctx.function_calls = make_list();
+    pctx.extern_list    = make_list();
+    pctx.load_list      = make_list();
+    pctx.link_list      = make_list();
+    pctx.symbol_map     = make_map();
     return pctx;
 }
 
@@ -138,6 +142,7 @@ AST* parse_cast(Parser_Context* pctx);
 AST* parse_def(Parser_Context* pctx);
 AST* parse_enum(Parser_Context* pctx);
 AST* parse_struct(Parser_Context* pctx);
+AST* parse_ternary(Parser_Context* pctx);
 
 //------------------------------------------------------------------------------
 //                               Helpers
@@ -188,6 +193,7 @@ Parsed_File generate_ast_from_tokens(Token_Array tokens) {
     pf.load_list                           = pctx.load_list;
     pf.link_list                           = pctx.link_list;
     pf.symbol_map                          = pctx.symbol_map;
+    pf.function_calls                      = pctx.function_calls;
 
     return pf;
 }
@@ -267,6 +273,7 @@ AST* parse_identifier(Parser_Context* pctx) {
     eat_kind(pctx, TOKEN_IDENTIFIER);
     return make_ast_ident(ident);
 }
+
 AST* parse_struct(Parser_Context* pctx) {
     DEBUG_START;
     eat_kind(pctx, TOKEN_STRUCT);
@@ -394,7 +401,9 @@ AST* parse_if(Parser_Context* pctx) {
 AST* parse_sizeof(Parser_Context* pctx) {
     DEBUG_START;
     eat_kind(pctx, TOKEN_SIZEOF);
+    eat_kind(pctx, TOKEN_OPEN_PAREN);
     Type* type = get_type(pctx);
+    eat_kind(pctx, TOKEN_CLOSE_PAREN);
     return make_ast_sizeof(type);
 }
 
@@ -457,7 +466,9 @@ AST* parse_function_call(Parser_Context* pctx) {
     }
     eat_kind(pctx, TOKEN_CLOSE_PAREN);
 
-    return make_ast_call(ident, args);
+    AST* call = make_ast_call(ident, args);
+    list_append(pctx->function_calls, call);
+    return call;
 }
 
 AST* parse_constant_decl(Parser_Context* pctx) {
