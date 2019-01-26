@@ -1,23 +1,27 @@
-enum TokenKind
-    Ident :: 0
-    Load :: 1
-    Int :: 2
 
-struct vec2 
-    x f32
-    y f32
+//extern puts(char*) s32
+
+//enum TokenKind
+//    Ident :: 0
+//    Load :: 1
+//    Int :: 2
 
 
-get()
-    i := 0
-    // implicitly decline any proceedings
-    return
+//get()
+//    i := 0
+//    // implicitly decline any proceedings
+//    return
+
+//main() s32
+//    v vec2
+//    get()
+//    puts("Hello this is a test")
+//    return 1
+
 
 main() s32
-    v vec2
-    get()
+    x vec2
     return 1
-
 
 //A 'CALL' is transformed into a 'DEF' if..
 //        the next node is on the same line and is an 'IDENTIFIER' and is a known 'TYPE'.
@@ -35,4 +39,6 @@ main() s32
 //    parsed as..
 //        'CALL' 'BLOCK'
 
-
+struct vec2 
+    x f32
+    y f32

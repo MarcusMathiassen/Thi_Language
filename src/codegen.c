@@ -4,10 +4,11 @@
 #include <stdio.h>   //
 #include <stdlib.h>  // free
 #include "ast.h"     // AST*, ast_to_str
-#include "globals.h"
+#include "constants.h"
 #include "lexer.h"  // token_kind_to_str
 #include "list.h"
 #include "register.h"
+#include "stack.h"   // make_stack
 #include "string.h"  // string
 #include "typedefs.h"
 #include "utility.h"  // error warning info, wrap_with_colored_parens
@@ -20,15 +21,12 @@
 #define DEBUG_START info("%s: %s", __func__, wrap_with_colored_parens(ast_to_str(expr)));
 
 typedef struct {
-    List*  ast;
-    List*  foreign_function_list;
     AST*   current_function;
     Stack* scope_stack;
     s64    stack_index;
     string section_text;
     string section_data;
-    char*  temp_label0;
-    char*  temp_label1;
+    string section_extern;
     s64    text_label_counter;
     s64    data_label_counter;
     char*  ocontinue;
@@ -46,7 +44,6 @@ typedef struct {
 //------------------------------------------------------------------------------
 
 Codegen_Context make_codegen_context();
-char*           compile(Codegen_Context* ctx);
 void            set_jump_labels(Codegen_Context* ctx, char* continue_l, char* break_l);
 void            restore_jump_labels(Codegen_Context* ctx);
 char*           make_text_label(Codegen_Context* ctx);
@@ -55,9 +52,11 @@ void            reset_text_label_counter(Codegen_Context* ctx);
 void            reset_stack(Codegen_Context* ctx);
 void            set_current_function_expr(Codegen_Context* ctx, AST* func_expr);
 
-void   emit_no_tab(Codegen_Context* ctx, char* fmt, ...);
-void   emit_data(Codegen_Context* ctx, char* fmt, ...);
-void   emit(Codegen_Context* ctx, char* fmt, ...);
+void emit_no_tab(Codegen_Context* ctx, char* fmt, ...);
+void emit_extern(Codegen_Context* ctx, char* fmt, ...);
+void emit_data(Codegen_Context* ctx, char* fmt, ...);
+void emit(Codegen_Context* ctx, char* fmt, ...);
+
 void   push(Codegen_Context* ctx, int reg);
 void   pop(Codegen_Context* ctx, int reg);
 void   push_type(Codegen_Context* ctx, Type* type);
@@ -89,6 +88,7 @@ void   emit_cast_float_to_int(Codegen_Context* ctx, char* reg, Type* type);
 void   emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg);
 void   emit_store(Codegen_Context* ctx, Value* variable);
 void   emit_load(Codegen_Context* ctx, Value* variable);
+Value* codegen_extern(Codegen_Context* ctx, AST* expr);
 Value* codegen_unary(Codegen_Context* ctx, AST* expr);
 Value* codegen_binary(Codegen_Context* ctx, AST* expr);
 Value* codegen_variable_decl(Codegen_Context* ctx, AST* expr);
@@ -115,11 +115,12 @@ Value* codegen_function(Codegen_Context* ctx, AST* expr);
 Value* codegen_cast(Codegen_Context* ctx, AST* expr);
 Value* codegen_expr(Codegen_Context* ctx, AST* expr);
 
-char* generate_X64_from_ast(List* ast);
+char* generate_code_from_ast(List* ast);
 
 // @Hotpath
 Value* codegen_expr(Codegen_Context* ctx, AST* expr) {
     switch (expr->kind) {
+        case AST_EXTERN: return codegen_extern(ctx, expr);
         case AST_STRUCT: return codegen_struct(ctx, expr);
         case AST_ENUM: return codegen_enum(ctx, expr);
         case AST_FUNCTION: return codegen_function(ctx, expr);
@@ -144,19 +145,23 @@ Value* codegen_expr(Codegen_Context* ctx, AST* expr) {
         case AST_BREAK: return codegen_break(ctx, expr);
         case AST_CONTINUE: return codegen_continue(ctx, expr);
         case AST_CAST: return codegen_cast(ctx, expr);
-        default: error("Unhandled codegen_expr case for kind '%s'", expr_kind_to_str(expr->kind));
+        default: error("Unhandled codegen_expr case for kind '%s'", ast_kind_to_str(expr->kind));
     }
     return NULL;
 }
 
-char* generate_X64_from_ast(List* ast) {
-    info("Generating X64 Assembly from AST");
+char* generate_code_from_ast(List* ast) {
+    info("Generating code from ast");
 
-    Codegen_Context ctx       = make_codegen_context();
-    ctx.ast                   = ast;
-    ctx.foreign_function_list = get_foreign_function_list();
+    Codegen_Context ctx = make_codegen_context();
 
-    char* output = compile(&ctx);
+    append_string(&ctx.section_data, "section .data\n");
+    emit_no_tab(&ctx, "section .text");
+    LIST_FOREACH(ast) { codegen_expr(&ctx, (AST*)it->data); }
+
+    char* output =
+        strf("%s%sglobal _main\n%s", ctx.section_extern.c_str, ctx.section_data.c_str, ctx.section_text.c_str);
+
     info("%s", output);
 
     return output;
@@ -174,6 +179,22 @@ void emit_no_tab(Codegen_Context* ctx, char* fmt, ...) {
     va_end(args);
 
     append_string_f(&ctx->section_text, "%s\n", str);
+
+    free(str);
+}
+
+void emit_extern(Codegen_Context* ctx, char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    s64 str_len = vsnprintf(0, 0, fmt, args) + 1;  // strlen + 1 for '\n'
+    va_end(args);
+    char* str = xmalloc(str_len);
+
+    va_start(args, fmt);
+    vsnprintf(str, str_len, fmt, args);
+    va_end(args);
+
+    append_string_f(&ctx->section_extern, "extern _%s\n", str);
 
     free(str);
 }
@@ -777,22 +798,6 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr) {
             Value* variable = codegen_expr(ctx, expr);
             return variable;
         }
-        case TOKEN_QUESTION_MARK: {
-            emit(ctx, "CMP %s, 0", get_reg_fitting_value(codegen_expr(ctx, lhs)));
-            ctx->temp_label0 = make_text_label(ctx);
-            emit(ctx, "JE %s", ctx->temp_label0);
-            ctx->temp_label1 = make_text_label(ctx);
-            Value* rhs_val   = codegen_expr(ctx, rhs);
-            emit(ctx, "JMP %s", ctx->temp_label1);
-            return rhs_val;
-        }
-        case TOKEN_COLON: {
-            codegen_expr(ctx, lhs);  // '?' part
-            emit(ctx, "%s:", ctx->temp_label0);
-            Value* rhs_val = codegen_expr(ctx, rhs);
-            emit(ctx, "%s:", ctx->temp_label1);
-            return rhs_val;
-        }
     }
 
     error("Codegen: Unhandled binary op %s", token_kind_to_str(op));
@@ -833,19 +838,9 @@ Value* codegen_variable_decl(Codegen_Context* ctx, AST* expr) {
 
 Value* codegen_call(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
-    char* callee = expr->Call.callee;
-    List* args   = expr->Call.args;
-
-    Type* func_t = get_symbol(callee);
-
-    // push the arguments in reverse order onto the stack
-    s32 func_arg_count = type_function_get_arg_count(func_t);
-    s32 arg_count      = args->count;
-
-    if (func_arg_count != arg_count) error("wrong amount of parameters for call to function '%s'", callee);
-
-    // Check if we really need all arguments.
-    // If the callee function has any default argument we can skip them
+    char* callee   = expr->Call.callee;
+    List* args     = expr->Call.args;
+    Type* ret_type = expr->type;
 
     List* arg_values        = make_list();
     s8    int_arg_counter   = 0;
@@ -891,9 +886,6 @@ Value* codegen_call(Codegen_Context* ctx, AST* expr) {
         }
     }
     emit(ctx, "CALL _%s", callee);
-
-    Type* ret_type = func_t->Function.ret_type;
-    if (!ret_type) ret_type = make_type_int(1, true);
 
     return make_value_call(callee, ret_type);
 }
@@ -1134,6 +1126,15 @@ Value* codegen_enum(Codegen_Context* ctx, AST* expr) {
     warning("enum incomplete?");
     return NULL;
 }
+
+Value* codegen_extern(Codegen_Context* ctx, AST* expr) {
+    DEBUG_START;
+    assert(expr->kind == AST_EXTERN);
+    char* func_name = expr->Extern.node->Function.type->Function.name;
+    emit_extern(ctx, func_name);
+    return NULL;
+}
+
 Value* codegen_struct(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_STRUCT);
@@ -1245,11 +1246,10 @@ Codegen_Context make_codegen_context() {
     Codegen_Context ctx;
     ctx.scope_stack                    = make_stack();
     ctx.current_function               = NULL;
+    ctx.section_extern                 = make_string("");
     ctx.section_text                   = make_string("");
     ctx.section_data                   = make_string("");
     ctx.stack_index                    = 0;
-    ctx.temp_label0                    = NULL;
-    ctx.temp_label1                    = NULL;
     ctx.text_label_counter             = 0;
     ctx.data_label_counter             = 0;
     ctx.ocontinue                      = NULL;
@@ -1260,18 +1260,6 @@ Codegen_Context make_codegen_context() {
     ctx.next_available_xmm_reg_counter = 0;
     ctx.next_available_rax_reg_counter = 0;
     return ctx;
-}
-
-char* compile(Codegen_Context* ctx) {
-    LIST_FOREACH(ctx->foreign_function_list) {
-        char* func_name = ((Type*)it->data)->Function.name;
-        append_string_f(&ctx->section_data, "extern _%s\n", func_name);
-    }
-    append_string(&ctx->section_data, "section .data\n");
-    emit_no_tab(ctx, "section .text");
-    LIST_FOREACH(ctx->ast) { codegen_expr(ctx, (AST*)it->data); }
-    char* output = strf("%sglobal _main\n%s", ctx->section_data.c_str, ctx->section_text.c_str);
-    return output;
 }
 
 void set_jump_labels(Codegen_Context* ctx, char* continue_l, char* break_l) {

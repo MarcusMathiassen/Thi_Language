@@ -18,6 +18,7 @@
 
 char* type_kind_to_str(Type_Kind kind) {
     switch (kind) {
+        case TYPE_PLACEHOLDER: return "TYPE_PLACEHOLDER";
         case TYPE_INT: return "TYPE_INT";
         case TYPE_FLOAT: return "TYPE_FLOAT";
         case TYPE_STRING: return "TYPE_STRING";
@@ -39,8 +40,10 @@ s64 get_size_of_underlying_type(Type* type) {
     }
     return 0;
 }
+
 s64 get_size_of_type(Type* type) {
     switch (type->kind) {
+        case TYPE_PLACEHOLDER: return 0;
         case TYPE_INT: return type->Int.bytes;
         case TYPE_FLOAT: return type->Float.bytes;
         case TYPE_STRING: return type->String.len;
@@ -106,36 +109,26 @@ s64 type_array_get_count(Type* type) {
 char* type_to_str(Type* type) {
     if (!type) return "\"\"";
     switch (type->kind) {
+        case TYPE_PLACEHOLDER: return strf("PLACEHOLDER %s", type->Placeholder.name);
         case TYPE_ARRAY: return strf("%s[%d]", type_to_str(type->Array.type), type->Array.size);
         case TYPE_INT: return strf(type->Int.is_unsigned ? "u%d" : "s%d", type->Int.bytes * 8);
         case TYPE_POINTER: return strf("%s*", type_to_str(type->Pointer.pointee));
         case TYPE_FLOAT: return strf("f%d", type->Float.bytes * 8);
         case TYPE_STRING: return strf("\"\", %d", type->String.len);
         case TYPE_STRUCT: {
-            string str = make_string_f("type %s {", type->Struct.name);
-            if (type->Struct.members) {
-                s64 count = type->Struct.members->count;
-                s64 index = 0;
-                LIST_FOREACH(type->Struct.members) {
-                    AST* mem = (AST*)it->data;
-                    append_string_f(&str, "%s", ast_to_str(mem));
-                    if (index != count - 1) {
-                        append_string(&str, " ");
-                    }
-                    index += 1;
-                }
+            char* s = strf("%s\n", type->Struct.name);
+            LIST_FOREACH(type->Struct.members) {
+                AST* mem = (AST*)it->data;
+                s = strf("%s\t%s", s, strf("%s\n", ast_to_str(mem)));
             }
-            append_string(&str, "}");
-            return str.c_str;
+            return s;
         };
 
         case TYPE_ENUM: {
             char* s = strf("%s\n", type->Enum.name);
             LIST_FOREACH(type->Enum.members) {
                 AST* mem = (AST*)it->data;
-                // info("%s %s", mem->Constant_Decl.name, ast_to_str(mem->Constant_Decl.value));
                 s = strf("%s\t%s", s, strf("%s %s\n", mem->Constant_Decl.name, ast_to_str(mem->Constant_Decl.value)));
-                // append_string_f(&str, "%s %s\n", mem->Constant_Decl.name, ast_to_str(mem->Constant_Decl.value));
             }
             return s;
         };
@@ -168,6 +161,13 @@ char* type_to_str(Type* type) {
 Type* make_type(Type_Kind kind) {
     Type* t = xmalloc(sizeof(Type));
     t->kind = kind;
+    return t;
+}
+
+Type* make_type_placeholder(char* name) {
+    assert(name);
+    Type* t       = make_type(TYPE_PLACEHOLDER);
+    t->Placeholder.name = name;
     return t;
 }
 

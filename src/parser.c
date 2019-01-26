@@ -50,8 +50,6 @@ struct {
     {TOKEN_AND, 40},            // &
     {TOKEN_HAT, 30},            // ^
     {TOKEN_PIPE, 20},           // |
-    {TOKEN_QUESTION_MARK, 15},  // ?
-    {TOKEN_COLON, 15},          // :
     {TOKEN_EQ, 10},             // =
     {TOKEN_PLUS_EQ, 10},        // +=
     {TOKEN_MINUS_EQ, 10},       // -=
@@ -246,6 +244,7 @@ AST* parse_identifier(Parser_Context* pctx) {
     return make_ast_ident(ident);
 }
 AST* parse_struct(Parser_Context* pctx) {
+    DEBUG_START;
     eat_kind(pctx, TOKEN_STRUCT);
     char* ident = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
@@ -254,6 +253,7 @@ AST* parse_struct(Parser_Context* pctx) {
 }
 
 AST* parse_enum(Parser_Context* pctx) {
+    DEBUG_START;
     eat_kind(pctx, TOKEN_ENUM);
     char* ident = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
@@ -262,20 +262,27 @@ AST* parse_enum(Parser_Context* pctx) {
 }
 
 AST* parse_load(Parser_Context* pctx) {
+    DEBUG_START;
     eat_kind(pctx, TOKEN_LOAD);
     AST* expr = parse_expression(pctx);
     return make_ast_load(expr);
 }
+
 AST* parse_link(Parser_Context* pctx) {
+    DEBUG_START;
     eat_kind(pctx, TOKEN_LINK);
     AST* expr = parse_expression(pctx);
     return make_ast_link(expr);
 }
 
 AST* parse_extern(Parser_Context* pctx) {
+    DEBUG_START;
     eat_kind(pctx, TOKEN_EXTERN);
-    AST* expr = parse_expression(pctx);
-    return make_ast_extern(expr);
+    char* ident = pctx->curr_tok.value;
+    eat_kind(pctx, TOKEN_IDENTIFIER);
+    Type* type = parse_function_signature(pctx, ident);
+    AST*  func = make_ast_function(type, NULL);
+    return make_ast_extern(func);
 }
 
 AST* parse_continue(Parser_Context* pctx) {
@@ -311,6 +318,7 @@ AST* parse_for(Parser_Context* pctx) {
 }
 
 AST* parse_defer(Parser_Context* pctx) {
+    DEBUG_START;
     eat_kind(pctx, TOKEN_DEFER);
     AST* block = parse_block(pctx);
     return make_ast_defer(block);
@@ -436,7 +444,7 @@ AST* parse_variable_decl(Parser_Context* pctx) {
         // We need to infer the type based on the assignment expr
         eat_kind(pctx, TOKEN_COLON_EQ);
         variable_value = parse_expression(pctx);
-        variable_type  = get_inferred_type_of_expr(variable_value);
+        // variable_type  = get_inferred_type_of_expr(variable_value);
     }
     if (tok_is(pctx, TOKEN_IDENTIFIER) && tok_is_on_same_line(pctx)) {
         variable_type = get_type(pctx);
@@ -494,22 +502,6 @@ AST* parse_binary(Parser_Context* pctx, s32 expr_prec, AST* lhs) {
     return expr;
 }
 
-Type* active_type = NULL;
-AST*  read_field_access_expr(Parser_Context* pctx, AST* expr) {
-    eat_kind(pctx, TOKEN_DOT);
-    char* field_name = pctx->curr_tok.value;
-    eat_kind(pctx, TOKEN_IDENTIFIER);
-
-    Type* type  = get_inferred_type_of_expr(expr);
-    active_type = type;
-    s64 offset  = get_offset_in_struct_to_field(type, field_name);
-
-    expr = make_ast_unary(THI_SYNTAX_ADDRESS, expr);
-    expr = make_ast_binary(TOKEN_PLUS, expr, make_ast_int(offset));
-
-    return make_ast_unary(THI_SYNTAX_POINTER, expr);
-}
-
 AST* read_subscript_expr(Parser_Context* pctx, AST* expr) {
     eat_kind(pctx, TOKEN_OPEN_BRACKET);
     AST* sub = parse_expression(pctx);
@@ -521,10 +513,6 @@ AST* parse_postfix_tail(Parser_Context* pctx, AST* primary_expr) {
     DEBUG_START;
     if (!primary_expr) return NULL;
     while (1) {
-        if (tok_is(pctx, TOKEN_DOT)) {
-            primary_expr = read_field_access_expr(pctx, primary_expr);
-            continue;
-        }
         if (tok_is(pctx, TOKEN_OPEN_BRACKET)) {
             primary_expr = read_subscript_expr(pctx, primary_expr);
             continue;
@@ -681,9 +669,9 @@ Type* get_type(Parser_Context* pctx) {
     DEBUG_START;
 
     char* type_name = pctx->curr_tok.value;
-
     eat_kind(pctx, TOKEN_IDENTIFIER);
-    Type* type = make_type_struct(type_name, NULL);
+
+    Type* type = make_type_placeholder(type_name);
 
     switch (pctx->curr_tok.kind) {
         case THI_SYNTAX_POINTER: {

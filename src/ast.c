@@ -13,7 +13,7 @@
 //                               Public
 //------------------------------------------------------------------------------
 
-char* expr_kind_to_str(AST_Kind kind) {
+char* ast_kind_to_str(AST_Kind kind) {
     switch (kind) {
         case AST_EXTERN: return "AST_EXTERN";
         case AST_LOAD: return "AST_LOAD";
@@ -42,7 +42,7 @@ char* expr_kind_to_str(AST_Kind kind) {
         case AST_BREAK: return "AST_BREAK";
         case AST_CONTINUE: return "AST_CONTINUE";
         case AST_CAST: return "AST_CAST";
-        default: warning("expr_kind_to_str unhandled case '%d'", kind);
+        default: warning("ast_kind_to_str unhandled case '%d'", kind);
     }
     return NULL;
 }
@@ -154,7 +154,7 @@ char* ast_to_str(AST* expr) {
             append_string(&str, ")");
             return str.c_str;
         }
-        default: warning("%s: unhandled case %s", __func__, expr_kind_to_str(expr->kind));
+        default: warning("%s: unhandled case %s", __func__, ast_kind_to_str(expr->kind));
     }
     return NULL;
 }
@@ -164,57 +164,57 @@ char* ast_to_json(AST* expr) {
     char* result = NULL;
     switch (expr->kind) {
         case AST_EXTERN: {
-            result = strf("{\"%s\": {\"extern\": %s}}", expr_kind_to_str(expr->kind), ast_to_str(expr->Extern.node));
+            result = strf("{\"%s\": {\"extern\": %s}}", ast_kind_to_str(expr->kind), ast_to_str(expr->Extern.node));
         } break;
         case AST_LOAD: {
-            result = strf("{\"%s\": {\"load\": %s}}", expr_kind_to_str(expr->kind), ast_to_str(expr->Load.node));
+            result = strf("{\"%s\": {\"load\": %s}}", ast_kind_to_str(expr->kind), ast_to_str(expr->Load.node));
         } break;
         case AST_LINK: {
-            result = strf("{\"%s\": {\"link\": %s}}", expr_kind_to_str(expr->kind), ast_to_str(expr->Link.node));
+            result = strf("{\"%s\": {\"link\": %s}}", ast_kind_to_str(expr->kind), ast_to_str(expr->Link.node));
         } break;
         case AST_CONTINUE: {
-            result = strf("{\"%s\": {%s}}", expr_kind_to_str(expr->kind), "continue");
+            result = strf("{\"%s\": {%s}}", ast_kind_to_str(expr->kind), "continue");
         } break;
         case AST_BREAK: {
-            result = strf("{\"%s\": {%s}}", expr_kind_to_str(expr->kind), "break");
+            result = strf("{\"%s\": {%s}}", ast_kind_to_str(expr->kind), "break");
         } break;
         case AST_DEFER: {
-            result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), ast_to_json(expr->Defer.expr));
+            result = strf("{\"%s\": {\"expr\": %s}}", ast_kind_to_str(expr->kind), ast_to_json(expr->Defer.expr));
         } break;
         case AST_NOTE: {
-            result = strf("{\"%s\": {\"note\":\"%s\"}}", expr_kind_to_str(expr->kind), ast_to_json(expr->Note.expr));
+            result = strf("{\"%s\": {\"note\":\"%s\"}}", ast_kind_to_str(expr->kind), ast_to_json(expr->Note.expr));
         } break;
         case AST_INT: {
-            result = strf("{\"%s\": {\"value\": %lld}}", expr_kind_to_str(expr->kind), expr->Int.val);
+            result = strf("{\"%s\": {\"value\": %lld}}", ast_kind_to_str(expr->kind), expr->Int.val);
         } break;
         case AST_STRING: {
-            result = strf("{\"%s\": {\"value\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->String.val);
+            result = strf("{\"%s\": {\"value\": \"%s\"}}", ast_kind_to_str(expr->kind), expr->String.val);
         } break;
         case AST_FLOAT: {
-            result = strf("{\"%s\": {\"value\": %f}}", expr_kind_to_str(expr->kind), expr->Float.val);
+            result = strf("{\"%s\": {\"value\": %f}}", ast_kind_to_str(expr->kind), expr->Float.val);
         } break;
         case AST_IDENT: {
-            result = strf("{\"%s\": {\"ident\": \"%s\"}}", expr_kind_to_str(expr->kind), expr->Ident.name);
+            result = strf("{\"%s\": {\"ident\": \"%s\"}}", ast_kind_to_str(expr->kind), expr->Ident.name);
         } break;
         case AST_UNARY: {
-            result = strf("{\"%s\": {\"op\": \"%s\", \"expr\": \"%s\"}}", expr_kind_to_str(expr->kind),
+            result = strf("{\"%s\": {\"op\": \"%s\", \"expr\": \"%s\"}}", ast_kind_to_str(expr->kind),
                           token_kind_to_str(expr->Unary.op), ast_to_json(expr->Unary.operand));
         } break;
         case AST_BINARY: {
             result =
-                strf("{\"%s\": {\"op\": \"%s\", \"lhs\": %s, \"rhs\": %s}}", expr_kind_to_str(expr->kind),
+                strf("{\"%s\": {\"op\": \"%s\", \"lhs\": %s, \"rhs\": %s}}", ast_kind_to_str(expr->kind),
                      token_kind_to_str(expr->Binary.op), ast_to_json(expr->Binary.lhs), ast_to_json(expr->Binary.rhs));
         } break;
         case AST_RETURN: {
-            result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), ast_to_json(expr->Return.expr));
+            result = strf("{\"%s\": {\"expr\": %s}}", ast_kind_to_str(expr->kind), ast_to_json(expr->Return.expr));
         } break;
         case AST_VARIABLE_DECL: {
-            result = strf("{\"%s\": {\"name\": \"%s\", \"type\": \"%s\", \"value\": %s}}", expr_kind_to_str(expr->kind),
+            result = strf("{\"%s\": {\"name\": \"%s\", \"type\": \"%s\", \"value\": %s}}", ast_kind_to_str(expr->kind),
                           expr->Variable_Decl.name, type_to_str(expr->Variable_Decl.type),
                           ast_to_json(expr->Variable_Decl.value));
         } break;
         case AST_CONSTANT_DECL: {
-            result = strf("{\"%s\": {\"name\": \"%s\", \"value\": \"%s\"}}", expr_kind_to_str(expr->kind),
+            result = strf("{\"%s\": {\"name\": \"%s\", \"value\": \"%s\"}}", ast_kind_to_str(expr->kind),
                           expr->Constant_Decl.name, ast_to_json(expr->Constant_Decl.value));
         } break;
         case AST_BLOCK: {
@@ -230,35 +230,35 @@ char* ast_to_json(AST* expr) {
             result = str.c_str;
         } break;
         case AST_FUNCTION: {
-            result = strf("{\"%s\": {\"type\": \"%s\", \"body\": %s }}", expr_kind_to_str(expr->kind),
+            result = strf("{\"%s\": {\"type\": \"%s\", \"body\": %s }}", ast_kind_to_str(expr->kind),
                           type_to_str(expr->Function.type), ast_to_json(expr->Function.body));
         } break;
         case AST_STRUCT: {
-            result = strf("{\"%s\": {\"type\": \"%s\"}}", expr_kind_to_str(expr->kind), type_to_str(expr->Struct.type));
+            result = strf("{\"%s\": {\"type\": \"%s\"}}", ast_kind_to_str(expr->kind), type_to_str(expr->Struct.type));
         } break;
         case AST_ENUM: {
-            result = strf("{\"%s\": {\"type\": \"%s\"}}", expr_kind_to_str(expr->kind), type_to_str(expr->Enum.type));
+            result = strf("{\"%s\": {\"type\": \"%s\"}}", ast_kind_to_str(expr->kind), type_to_str(expr->Enum.type));
         } break;
         case AST_GROUPING: {
-            result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), ast_to_json(expr->Grouping.expr));
+            result = strf("{\"%s\": {\"expr\": %s}}", ast_kind_to_str(expr->kind), ast_to_json(expr->Grouping.expr));
         } break;
         case AST_WHILE: {
-            result = strf("{\"%s\": {\"cond\": %s, \"then_block\": %s}}", expr_kind_to_str(expr->kind),
+            result = strf("{\"%s\": {\"cond\": %s, \"then_block\": %s}}", ast_kind_to_str(expr->kind),
                           ast_to_json(expr->While.cond), ast_to_json(expr->While.then_block));
         } break;
         case AST_FOR: {
             result = strf("{\"%s\": {\"init\": %s, \"cond\": %s, \"step\": %s, \"then_block\": %s }}",
-                          expr_kind_to_str(expr->kind), ast_to_json(expr->For.init), ast_to_json(expr->For.cond),
+                          ast_kind_to_str(expr->kind), ast_to_json(expr->For.init), ast_to_json(expr->For.cond),
                           ast_to_json(expr->For.step), ast_to_json(expr->For.then_block));
         } break;
         case AST_IF: {
             result =
-                strf("{\"%s\": {\"cond\": %s, \"then_block\": %s, \"else_block\": %s }}", expr_kind_to_str(expr->kind),
+                strf("{\"%s\": {\"cond\": %s, \"then_block\": %s, \"else_block\": %s }}", ast_kind_to_str(expr->kind),
                      ast_to_json(expr->If.cond), ast_to_json(expr->If.then_block), ast_to_json(expr->If.else_block));
         } break;
         case AST_CALL: {
             string str = make_string("");
-            append_string_f(&str, "{\"%s\": {\"callee\": \"%s\", ", expr_kind_to_str(expr->kind), expr->Call.callee);
+            append_string_f(&str, "{\"%s\": {\"callee\": \"%s\", ", ast_kind_to_str(expr->kind), expr->Call.callee);
             append_string(&str, "\"args\": [");
             s64 arg_count = expr->Call.args->count;
             s64 counter   = 0;
@@ -270,41 +270,10 @@ char* ast_to_json(AST* expr) {
             append_string(&str, "]}}");
             result = str.c_str;
         } break;
-        default: warning("%s: unhandled case %s", __func__, expr_kind_to_str(expr->kind));
+        default: warning("%s: unhandled case %s", __func__, ast_kind_to_str(expr->kind));
     }
     assert(result);
     return result;
-}
-
-Type* get_inferred_type_of_expr(AST* expr) {
-    switch (expr->kind) {
-        case AST_EXTERN:
-        case AST_LOAD:
-        case AST_LINK:
-        case AST_BLOCK:
-        case AST_BREAK:
-        case AST_CONTINUE:
-        case AST_DEFER: return NULL;
-        case AST_RETURN:
-            if (expr->Return.expr) return get_inferred_type_of_expr(expr->Return.expr);
-
-        case AST_CAST: return expr->Cast.type;
-        case AST_NOTE: return get_inferred_type_of_expr(expr->Note.expr);
-        case AST_INT: return make_type_int(DEFAULT_INT_BYTE_SIZE, 0);
-        case AST_FLOAT: return make_type_float(DEFAULT_FLOAT_BYTE_SIZE);
-        case AST_STRING: return make_type_pointer(make_type_int(8, 1));
-        case AST_IDENT: return get_symbol(expr->Ident.name);
-        case AST_CALL: return get_symbol(expr->Call.callee)->Function.ret_type;
-        case AST_UNARY: return get_inferred_type_of_expr(expr->Unary.operand);
-        case AST_BINARY: return get_inferred_type_of_expr(expr->Binary.rhs);
-        case AST_VARIABLE_DECL: return expr->Variable_Decl.type;
-        case AST_FUNCTION: return expr->Function.type->Function.ret_type;
-        case AST_STRUCT: return expr->Struct.type;
-        case AST_GROUPING: return get_inferred_type_of_expr(expr->Grouping.expr);
-        case AST_SUBSCRIPT: return get_inferred_type_of_expr(expr->Subscript.load);
-        default: error("%s has no type", expr_kind_to_str(expr->kind));
-    }
-    return NULL;
 }
 
 AST* get_arg_from_func(Type* func_t, s64 arg_index) {
@@ -316,12 +285,10 @@ AST* get_arg_from_func(Type* func_t, s64 arg_index) {
     return expr;
 }
 
-// @HACK
-bool last_was_true = false;
 AST* constant_fold_expr(AST* expr) {
     assert(expr);
 
-    info("constant_fold_expr %s: %s", expr_kind_to_str(expr->kind), ast_to_str(expr));
+    info("constant_fold_expr %s: %s", ast_kind_to_str(expr->kind), ast_to_str(expr));
 
     switch (expr->kind) {
         case AST_EXTERN: return expr;
@@ -399,16 +366,6 @@ AST* constant_fold_expr(AST* expr) {
                     case TOKEN_HAT: value = (lhs_v ^ rhs_v); break;
                     case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
                     case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
-                    case TOKEN_COLON: {
-                        value         = last_was_true ? lhs_v : rhs_v;
-                        last_was_true = false;
-                    } break;
-                    case TOKEN_QUESTION_MARK: {
-                        if (lhs_v) {
-                            last_was_true = true;
-                            value         = rhs_v;
-                        }
-                    } break;
                     default: error("constant_fold_expr binary %s not implemented", token_kind_to_str(op));
                 }
                 info("folded %s into %lld", ast_to_str(expr), value);
@@ -451,7 +408,7 @@ AST* constant_fold_expr(AST* expr) {
             expr->While.cond       = constant_fold_expr(expr->While.cond);
             expr->While.then_block = constant_fold_expr(expr->While.then_block);
         } break;
-        default: error("constant_fold_expr %s not implemented", expr_kind_to_str(expr->kind));
+        default: error("constant_fold_expr %s not implemented", ast_kind_to_str(expr->kind));
     }
     return expr;
 }
@@ -490,7 +447,7 @@ AST* make_ast(AST_Kind kind) {
 
 AST* make_ast_extern(AST* node) {
     assert(node);
-    AST* e       = make_ast(AST_EXTERN);
+    AST* e         = make_ast(AST_EXTERN);
     e->Extern.node = node;
     return e;
 }
@@ -607,7 +564,7 @@ AST* make_ast_grouping(AST* expr) {
 
 AST* make_ast_variable_decl(char* name, Type* type, AST* value) {
     // 'value' and 'name' can be NULL
-    assert(type);
+    // assert(type);
     AST* e                 = make_ast(AST_VARIABLE_DECL);
     e->Variable_Decl.name  = name;
     e->Variable_Decl.type  = type;

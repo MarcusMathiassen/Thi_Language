@@ -4,6 +4,7 @@
 #include <string.h>   // strcmp
 #include "ast.h"      // AST
 #include "codegen.h"  // generate_code_from_ast
+#include "constants.h"
 #include "globals.h"  // init_maps
 #include "lexer.h"    // generate_tokens_from_source, print_tokens
 #include "list.h"     // list_tests
@@ -32,18 +33,21 @@ typedef struct {
     Stack* timer_stack;
     List*  timer_list;
 
-    string        output_name;
-    string        source_file;
-    char*         previous_file;
-    string        current_directory;
-    List*         file_list;
+    string output_name;
+    string source_file;
+    char*  previous_file;
+    string current_directory;
+    List*  file_list;
 
 } Thi_Context;
 
 //------------------------------------------------------------------------------
 //                               Main Driver
 //------------------------------------------------------------------------------
-void  ast_resolution_pass(Thi_Context* tctx, List* ast);
+void  ast_type_resolution_pass(Thi_Context* tctx, List* ast);
+void  ast_definitions_pass(Thi_Context* tctx, List* ast);
+Type* get_inferred_type_of_expr(Thi_Context* tctx, AST* expr);
+
 List* parse(Thi_Context* tctx, char* source_file);
 
 void assemble(char* asm_file, char* exec_name);
@@ -182,7 +186,7 @@ int main(int argc, char** argv) {
 
     // Codegen
     push_timer("Codegen");
-    char* output = generate_X64_from_ast(ast);
+    char* output = generate_code_from_ast(ast);
     pop_timer();
 
     // Write to file
@@ -260,8 +264,11 @@ List* parse(Thi_Context* tctx, char* source_file) {
 
     List* ast = generate_ast_from_tokens(tokens);
 
-    push_timer("Resolution");
-    ast_resolution_pass(tctx, ast);
+    push_timer("Finding all definitions");
+    ast_definitions_pass(tctx, ast);
+    pop_timer();
+    push_timer("Type resolution");
+    ast_type_resolution_pass(tctx, ast);
     pop_timer();
 
     // Constant folding
@@ -274,9 +281,9 @@ List* parse(Thi_Context* tctx, char* source_file) {
         pop_timer();
     }
 
-    print_tokens(tokens);
-    print_symbol_map();
-    print_ast(ast);
+    // print_tokens(tokens);
+    // print_symbol_map();
+    // print_ast(ast);
 
     pop_timer();
 
@@ -286,12 +293,93 @@ List* parse(Thi_Context* tctx, char* source_file) {
     return ast;
 }
 
-void ast_resolution_pass(Thi_Context* tctx, List* ast) {
-    info("Resolving AST");
+Type* get_inferred_type_of_expr(Thi_Context* tctx, AST* expr) {
+    switch (expr->kind) {
+        case AST_EXTERN:
+        case AST_LOAD:
+        case AST_LINK:
+        case AST_BLOCK:
+        case AST_BREAK:
+        case AST_CONTINUE:
+        case AST_DEFER: return NULL;
+        case AST_RETURN:
+            if (expr->Return.expr) return get_inferred_type_of_expr(tctx, expr->Return.expr);
+
+        case AST_CAST: return expr->Cast.type;
+        case AST_NOTE: return get_inferred_type_of_expr(tctx, expr->Note.expr);
+        case AST_INT: return make_type_int(DEFAULT_INT_BYTE_SIZE, 0);
+        case AST_FLOAT: return make_type_float(DEFAULT_FLOAT_BYTE_SIZE);
+        case AST_STRING: return make_type_pointer(make_type_int(8, 1));
+        case AST_IDENT: return get_symbol(expr->Ident.name);
+        case AST_CALL: return get_symbol(expr->Call.callee)->Function.ret_type;
+        case AST_UNARY: return get_inferred_type_of_expr(tctx, expr->Unary.operand);
+        case AST_BINARY: return get_inferred_type_of_expr(tctx, expr->Binary.rhs);
+        case AST_VARIABLE_DECL: return expr->Variable_Decl.type;
+        case AST_FUNCTION: return expr->Function.type->Function.ret_type;
+        case AST_STRUCT: {
+                List* members = expr->Struct.type->Struct.members;
+                LIST_FOREACH(members) {
+                    AST* mem = (AST*)it->data;
+                    // if (mem->kind == Variable_Decl) {
+                        // mem->Variable_Decl->type = get_inferred_type_of_expr(mem);
+                    // }
+                }
+
+        } break;
+
+
+        return get_symbol(expr->Struct.type->Struct.name);
+        case AST_ENUM: return get_symbol(expr->Struct.type->Struct.name);
+        case AST_GROUPING: return get_inferred_type_of_expr(tctx, expr->Grouping.expr);
+        case AST_SUBSCRIPT: return get_inferred_type_of_expr(tctx, expr->Subscript.load);
+        default: error("%s has no type", ast_kind_to_str(expr->kind));
+    }
+    return NULL;
+}
+
+void ast_type_resolution_pass(Thi_Context* tctx, List* ast) {
+    info("Type resolution..");
+    LIST_FOREACH(ast) {
+        AST*  expr_1 = (AST*)it->data;
+        Type* type   = get_inferred_type_of_expr(tctx, expr_1);
+
+        if (!type) continue;
+
+
+        warning("before %s", ast_to_str(expr_1));
+        warning("%s", type_to_str(type));
+        if (type->kind == TYPE_PLACEHOLDER) {
+            type = get_symbol(type->Placeholder.name);
+        }
+
+        if (expr_1->kind == AST_VARIABLE_DECL) {
+            expr_1->Variable_Decl.type = type;
+        }
+        warning("after %s", ast_to_str(expr_1));
+
+        expr_1->type = type;
+    }
+}
+void ast_definitions_pass(Thi_Context* tctx, List* ast) {
+    info("Finding all definition..");
     LIST_FOREACH(ast) {
         AST* expr_1 = (AST*)it->data;
 
         switch (expr_1->kind) {
+            case AST_ENUM: {
+                char* enum_name = expr_1->Enum.type->Enum.name;
+                add_symbol(enum_name, expr_1->Enum.type);
+                list_remove(ast, it);
+            } break;
+            case AST_STRUCT: {
+                char* struct_name = expr_1->Struct.type->Struct.name;
+                add_symbol(struct_name, expr_1->Struct.type);
+                list_remove(ast, it);
+            } break;
+            case AST_EXTERN: {
+                char* func_name = expr_1->Extern.node->Function.type->Function.name;
+                add_symbol(func_name, expr_1->Extern.node->Function.type);
+            } break;
             case AST_LOAD: {
                 char* file_name = expr_1->Load.node->String.val;
                 list_append(file_list, file_name);

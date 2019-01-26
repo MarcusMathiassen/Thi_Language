@@ -2,15 +2,13 @@
 
 #include <ctype.h>   // isalnum, isdigit
 #include <string.h>  // strncmp
+#include "constants.h"
 #include "typedefs.h"
 #include "utility.h"  // info, warning, xmalloc, xrealloc
 
 //------------------------------------------------------------------------------
 //                              lexer.c
 //------------------------------------------------------------------------------
-
-#define INTERN_ARRAY_STARTING_ALLOC 10000
-#define TOKEN_ARRAY_STARTING_ALLOC 10000
 
 typedef enum {
     KEY_LINK,

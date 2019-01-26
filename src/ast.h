@@ -243,7 +243,6 @@ AST* make_ast_cast(AST* expr, Type* type);
 AST* make_ast_break();
 AST* make_ast_continue();
 
-Type* get_inferred_type_of_expr(AST* expr);
 AST*  get_arg_from_func(Type* func_t, s64 arg_index);
 AST*  constant_fold_expr(AST* expr);
 
@@ -252,6 +251,6 @@ void print_ast_json(List* ast);
 
 char* ast_to_json(AST* expr);
 char* ast_to_str(AST* expr);
-char* expr_kind_to_str(AST_Kind kind);
+char* ast_kind_to_str(AST_Kind kind);
 
 #endif

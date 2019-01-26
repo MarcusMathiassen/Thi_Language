@@ -23,17 +23,6 @@ extern bool enable_constant_folding;
 extern bool  detailed_print;
 extern List* file_list;
 
-#define X64_ASM_OSX_STACK_PADDING 16
-
-#define DEFAULT_FUNCTION_ENTRY_LABEL_NAME ".BEGIN"
-#define DEFAULT_FUNCTION_END_LABEL_NAME ".END"
-
-#define DEFAULT_INT_BYTE_SIZE 4
-#define DEFAULT_FLOAT_BYTE_SIZE 4
-
-#define INTERN_ARRAY_STARTING_ALLOC 10000
-#define TOKEN_ARRAY_STARTING_ALLOC 10000
-
 #define LINES_ABOVE_AND_BELOW_TO_SHOW_ON_ERROR 2
 
 void  set_source_file(char* file_name);
