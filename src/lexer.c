@@ -84,7 +84,7 @@ char* STATIC_KEYWORDS_ARRAY[KEY_COUNT] = {
     "if",   "else", "for",  "while", "return", "struct", "enum",   "break", "continue", "as",
 };
 
-Token_Array generate_tokens_from_source(char* source) {
+Lexed_File generate_tokens_from_source(char* source) {
     Lexer_Context lctx;
     lctx.stream                     = source;
     lctx.position_of_newline        = source;
@@ -124,6 +124,7 @@ Token_Array generate_tokens_from_source(char* source) {
             lctx.previous_indentation_level -= 4;
             token_array_append(&tokens, t);
         }
+
         if (token.kind != TOKEN_UNKNOWN && token.kind != TOKEN_COMMENT) {
             token_array_append(&tokens, token);
         }
@@ -132,9 +133,14 @@ Token_Array generate_tokens_from_source(char* source) {
         }
     }
 
+    Lexed_File lf;
+    lf.tokens = tokens;
+    lf.lines = lctx.line_count;
+    lf.comments = lctx.comment_count;
+
     info("lexed %lld lines, %lld comments", lctx.line_count, lctx.comment_count);
 
-    return tokens;
+    return lf;
 }
 
 //------------------------------------------------------------------------------
@@ -214,6 +220,7 @@ Token get_token(Lexer_Context* lctx) {
                     while (*c != '\n') {
                         ++c;
                     }
+                    lctx->comment_count += 1;
                     token.kind = TOKEN_COMMENT;
                 } break;
 
@@ -221,6 +228,7 @@ Token get_token(Lexer_Context* lctx) {
                     s64 counter = 1;
                     ++c;
                     for (;;) {
+                        if (*c == '\n') lctx->comment_count += 1;
                         if (*c == '/' && c[1] == '*') counter += 1;
                         if (*c == '*' && c[1] == '/') counter += 1;
                         if (counter == 0) break;

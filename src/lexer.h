@@ -122,11 +122,17 @@ typedef struct {
     s64    allocated;
 } Token_Array;
 
-void        print_tokens(Token_Array token_array);
-void        print_token(Token token);
-char*       token_to_str(Token token);
-char*       token_kind_to_str(Token_Kind kind);
-Token_Array generate_tokens_from_source(char* source);
+typedef struct {
+    Token_Array tokens;
+    s64         lines;
+    s64         comments;
+} Lexed_File;
+
+void       print_tokens(Token_Array token_array);
+void       print_token(Token token);
+char*      token_to_str(Token token);
+char*      token_kind_to_str(Token_Kind kind);
+Lexed_File generate_tokens_from_source(char* source);
 
 #define THI_SYNTAX_POINTER TOKEN_ASTERISK
 #define THI_SYNTAX_ADDRESS TOKEN_AND

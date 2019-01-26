@@ -1,8 +1,8 @@
 extern puts(u8*) s32
 
-def main() int
+def main() s32
     puts("Hello")
-    counter int
+    counter s32
 
     k TokenKind
     return 1

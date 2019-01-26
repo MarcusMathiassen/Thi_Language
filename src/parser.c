@@ -5,9 +5,7 @@
 #include <stdio.h>   // printf, vprintf
 #include <stdlib.h>  // xmalloc
 #include <string.h>  // strcmp
-
 #include "ast.h"       // AST, ast_make_*
-#include "globals.h"   // type_list
 #include "lexer.h"     // Token, Token_Kind, generate_tokens_from_source, token_array_get_info_of
 #include "type.h"      // Type, make_typspec_*,
 #include "typedefs.h"  // s32 , s64, etc.
@@ -153,13 +151,14 @@ bool       next_tok_is_on_same_line(Parser_Context* pctx);
 //                               Public
 //------------------------------------------------------------------------------
 
-List* generate_ast_from_tokens(Token_Array tokens) {
+Parsed_File generate_ast_from_tokens(Token_Array tokens) {
     info("Generating ast from tokens..");
 
-    List* ast = make_list();
 
     Parser_Context pctx = make_parser_context();
     pctx.tokens         = tokens;
+    
+    List* ast = make_list();
 
     eat(&pctx);
     while (!tok_is(&pctx, TOKEN_EOF)) {
@@ -169,7 +168,11 @@ List* generate_ast_from_tokens(Token_Array tokens) {
         }
     }
 
-    return ast;
+    Parsed_File pf;
+    pf.ast = ast;
+    pf.unresolved_types = pctx.unresolved_types;
+
+    return pf;
 }
 
 //------------------------------------------------------------------------------
@@ -685,7 +688,6 @@ Type* get_type(Parser_Context* pctx) {
     Type* type = make_type_unresolved(type_name);
     type->name = type_name;
     type_ref_list_append(&pctx->unresolved_types, type);
-    list_append(type_list, type);  // TODO(marcus) remove
 
     switch (pctx->curr_tok.kind) {
         case THI_SYNTAX_POINTER: {

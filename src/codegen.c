@@ -929,11 +929,11 @@ Value* codegen_block(Codegen_Context* ctx, AST* expr) {
 Value* codegen_ident(Codegen_Context* ctx, AST* expr) {
     assert(expr->kind == AST_IDENT);
     DEBUG_START;
-    char* name       = expr->Ident.name;
-    AST*  macro_expr = get_macro_def(name);
-    if (macro_expr) {
-        return codegen_expr(ctx, macro_expr);
-    }
+    char* name = expr->Ident.name;
+    // AST*  macro_expr = get_macro_def(name);
+    // if (macro_expr) {
+    // return codegen_expr(ctx, macro_expr);
+    // }
     Value* var = get_variable(ctx, name);
     emit_load(ctx, var);
     return var;

@@ -1,19 +1,19 @@
 #include "utility.h"
-#include "globals.h"
-#include <assert.h> // assert
-#include <stdarg.h> // va_list, va_start, va_end
-#include <stdio.h>  // printf, vprintf
-#include <stdlib.h> // malloc, realloc, calloc
-#include <string.h> // memcpy
-#include <time.h>   // timeval
+#include <assert.h>  // assert
+#include <stdarg.h>  // va_list, va_start, va_end
+#include <stdio.h>   // printf, vprintf
+#include <stdlib.h>  // malloc, realloc, calloc
+#include <string.h>  // memcpy
+#include <time.h>    // timeval
 #include <unistd.h>
+#include "constants.h"
 
 //------------------------------------------------------------------------------
 //                               Printing Functions
 //------------------------------------------------------------------------------
 
 void info(char* fmt, ...) {
-    if (!detailed_print) return;
+#ifndef NDEBUG
     assert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -21,6 +21,7 @@ void info(char* fmt, ...) {
     vprintf(fmt, args);
     puts(RESET);
     va_end(args);
+#endif
 }
 
 void warning(char* fmt, ...) {
@@ -66,8 +67,8 @@ char* get_file_path_from_directory(char* dir, char* filename) {
     s64 f_len = strlen(filename);
     s64 len   = d_len + f_len;
     assert(len < 1000);
-    memcpy(strbuf, dir, d_len);              // copy dir into strbuf
-    memcpy(strbuf + d_len, filename, f_len); // append filename
+    memcpy(strbuf, dir, d_len);               // copy dir into strbuf
+    memcpy(strbuf + d_len, filename, f_len);  // append filename
     char* str = xmalloc(len + 1);
     memcpy(str, strbuf, len);
     str[len] = 0;
@@ -78,9 +79,8 @@ char* get_file_extension(char* filename) {
     assert(filename);
     s64 len = strlen(filename);
     s64 i   = 0;
-    while (filename[len - (++i)] != '.')
-        continue;
-    ++len; // skip the '.'
+    while (filename[len - (++i)] != '.') continue;
+    ++len;  // skip the '.'
     char* str = xmalloc(i + 1);
     memcpy(str, filename + len - i, i);
     str[i] = 0;
@@ -90,9 +90,8 @@ char* get_file_extension(char* filename) {
 char* get_file_directory(char* filename) {
     assert(filename);
     s64 len = strlen(filename);
-    while (filename[--len] != '/')
-        continue;
-    ++len; // we preserve the '/'
+    while (filename[--len] != '/') continue;
+    ++len;  // we preserve the '/'
     char* str = xmalloc(len + 1);
     memcpy(str, filename, len);
     str[len] = 0;
@@ -102,9 +101,8 @@ char* get_file_name(char* filename) {
     assert(filename);
     s64 len = strlen(filename);
     s64 i   = 0;
-    while (filename[len - (++i)] != '/')
-        continue;
-    ++len; // skip the '/'
+    while (filename[len - (++i)] != '/') continue;
+    ++len;  // skip the '/'
     char* str = xmalloc(i + 1);
     memcpy(str, filename + len - i, i);
     str[i] = 0;
@@ -208,12 +206,12 @@ char* strf(char* fmt, ...) {
 
 // Color Whell
 char* colors[6] = {
-    "\033[31m", // red
-    "\033[32m", // green
-    "\033[33m", // yellow
-    "\033[34m", // blue
-    "\033[35m", // magenta
-    "\033[36m", // cyan,
+    "\033[31m",  // red
+    "\033[32m",  // green
+    "\033[33m",  // yellow
+    "\033[34m",  // blue
+    "\033[35m",  // magenta
+    "\033[36m",  // cyan,
 };
 int   counter      = 0;
 int   colors_count = 6;
@@ -260,7 +258,7 @@ f64 get_time(void) {
     time_t          s;
     struct timespec ts;
 
-#ifdef __MACH__ // OS X does not have clock_gettime, use clock_get_time
+#ifdef __MACH__  // OS X does not have clock_gettime, use clock_get_time
     clock_serv_t    cclock;
     mach_timespec_t mts;
     host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);

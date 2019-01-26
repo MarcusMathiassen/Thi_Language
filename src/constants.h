@@ -1,6 +1,14 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#define RESET "\033[0m"
+#define GRAY "\033[30m"
+#define RED "\033[31m"
+#define GREEN "\033[32m"
+#define YELLOW "\033[33m"
+#define RGB_GRAY "\033[38;2;110;110;110;m"
+#define RGB_WHITE "\033[38;2;255;255;255;m"
+
 #define DEFAULT_INT_BYTE_SIZE 4
 #define DEFAULT_FLOAT_BYTE_SIZE 4
 

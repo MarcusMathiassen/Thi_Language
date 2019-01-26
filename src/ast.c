@@ -1,6 +1,5 @@
 #include "ast.h"
 #include <assert.h>  // assert
-#include "globals.h"
 #include "lexer.h"    // token_kind_to_str,
 #include "string.h"   // strf, append_string, string
 #include "utility.h"  // info, success, error, warning, xmalloc, xrealloc
@@ -418,6 +417,55 @@ AST* make_ast_binary(Token_Kind op, AST* lhs, AST* rhs) {
     e->Binary.op  = op;
     e->Binary.lhs = lhs;
     e->Binary.rhs = rhs;
+
+    if (lhs->kind == AST_INT && rhs->kind == AST_INT) {
+        s64 lhs_v = lhs->Int.val;
+        s64 rhs_v = rhs->Int.val;
+        s64 value = 0;
+        switch (op) {
+            case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
+            case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
+            case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
+            case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
+            case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
+            case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
+            case TOKEN_AND: value = (lhs_v & rhs_v); break;
+            case TOKEN_PIPE: value = (lhs_v | rhs_v); break;
+            case TOKEN_LT: value = (lhs_v < rhs_v); break;
+            case TOKEN_GT: value = (lhs_v > rhs_v); break;
+            case TOKEN_GT_GT: value = (lhs_v >> rhs_v); break;
+            case TOKEN_LT_LT: value = (lhs_v << rhs_v); break;
+            case TOKEN_PERCENT: value = (lhs_v % rhs_v); break;
+            case TOKEN_HAT: value = (lhs_v ^ rhs_v); break;
+            case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
+            case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
+            default: error("constant_fold_expr binary %s not implemented", token_kind_to_str(op));
+        }
+        info("folded %s into %lld", ast_to_str(e), value);
+
+        e = make_ast_int(value);
+    } else if (lhs->kind == AST_FLOAT && rhs->kind == AST_FLOAT) {
+        f64 lhs_v = lhs->Float.val;
+        f64 rhs_v = rhs->Float.val;
+        f64 value = 0.0;
+        switch (op) {
+            case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
+            case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
+            case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
+            case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
+            case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
+            case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
+            case TOKEN_LT: value = (lhs_v < rhs_v); break;
+            case TOKEN_GT: value = (lhs_v > rhs_v); break;
+            case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
+            case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
+            default: error("constant_fold_expr binary %s not implemented", token_kind_to_str(op));
+        }
+        info("folded %s into %lld", ast_to_str(e), value);
+
+        e = make_ast_float(value);
+    }
+
     return e;
 }
 
@@ -427,6 +475,22 @@ AST* make_ast_unary(Token_Kind op, AST* operand) {
     AST* e           = make_ast(AST_UNARY);
     e->Unary.op      = op;
     e->Unary.operand = operand;
+
+    if (operand->kind == AST_INT) {
+        Token_Kind op     = e->Unary.op;
+        s64        oper_v = operand->Int.val;
+        s64        value  = 0;
+        switch (op) {
+            case TOKEN_BANG: value = !oper_v; break;
+            case TOKEN_PLUS: value = oper_v; break;
+            case TOKEN_TILDE: value = ~oper_v; break;
+            case TOKEN_MINUS: value = -oper_v; break;
+            default: error("constant_fold_expr unary %s not implemented", token_kind_to_str(op));
+        }
+        info("folded %s into %lld", ast_to_str(e), value);
+        e = make_ast_int(value);
+    }
+
     return e;
 }
 
