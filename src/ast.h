@@ -1,71 +1,82 @@
 #ifndef AST_H
 #define AST_H
 
-#include "lexer.h"     // Token_Kind
-#include "list.h"      // List
-#include "typespec.h"  // Typespec
+#include "lexer.h"  // Token_Kind
+#include "list.h"   // List
+#include "type.h"   // Type
 
 //------------------------------------------------------------------------------
 //                               ast.h
 //------------------------------------------------------------------------------
-typedef struct Expr    Expr;
-typedef enum Expr_Kind Expr_Kind;
+typedef struct AST    AST;
+typedef enum AST_Kind AST_Kind;
 
-enum Expr_Kind {
-    EXPR_ASM,
+enum AST_Kind {
 
-    EXPR_MACRO,
-    EXPR_NOTE,
-    EXPR_INT,
-    EXPR_FLOAT,
-    EXPR_STRING,
-    EXPR_IDENT,
-    EXPR_CALL,
-    EXPR_UNARY,
-    EXPR_BINARY,
-    EXPR_GROUPING,
-    EXPR_SUBSCRIPT,
+    AST_EXTERN,
+    AST_LOAD,
+    AST_LINK,
 
-    EXPR_CAST,
+    AST_MACRO,
+    AST_NOTE,
+    AST_INT,
+    AST_FLOAT,
+    AST_STRING,
+    AST_IDENT,
+    AST_CALL,
+    AST_UNARY,
+    AST_BINARY,
+    AST_GROUPING,
+    AST_SUBSCRIPT,
 
-    EXPR_BLOCK,
-    EXPR_STRUCT,
-    EXPR_ENUM,
-    EXPR_FUNCTION,
+    AST_CAST,
 
-    EXPR_VARIABLE_DECL,
-    EXPR_CONSTANT_DECL,
+    AST_BLOCK,
+    AST_STRUCT,
+    AST_ENUM,
+    AST_FUNCTION,
 
-    EXPR_IF,
-    EXPR_FOR,
-    EXPR_WHILE,
-    EXPR_RETURN,
-    EXPR_DEFER,
+    AST_VARIABLE_DECL,
+    AST_CONSTANT_DECL,
 
-    EXPR_BREAK,
-    EXPR_CONTINUE,
+    AST_IF,
+    AST_FOR,
+    AST_WHILE,
+    AST_RETURN,
+    AST_DEFER,
 
-    EXPR_COUNT
+    AST_BREAK,
+    AST_CONTINUE,
+
+    AST_COUNT
 };
 
 //------------------------------------------------------------------------------
-//                          AST Expression Structures
+//                                  AST Structures
 //------------------------------------------------------------------------------
 typedef struct {
-    char* str;
-} AST_Asm;
+    AST*  node;
+} AST_Extern;
+
+typedef struct {
+    AST*  node;
+} AST_Load;
+
+typedef struct {
+    AST* node;
+} AST_Link;
 
 typedef struct {
     char* name;
-    Expr* expr;
+    AST*  expr;
 } AST_Macro;
 
 typedef struct {
-    Expr* expr;
+    AST* expr;
 } AST_Note;
 
 typedef struct {
-    Expr* expr;
+    AST* expr;
 } AST_Grouping;
 
 typedef struct {
@@ -85,17 +96,17 @@ typedef struct {
 } AST_String;
 
 typedef struct {
-    Typespec* type;
+    Type* type;
 } AST_Struct;
 
 typedef struct {
-    Typespec* type;
+    Type* type;
 } AST_Enum;
 
 typedef struct {
-    Typespec* type;
-    Expr*     body;
-    List*     defers;
+    Type* type;
+    AST*  body;
+    List* defers;
 } AST_Function;
 
 typedef struct {
@@ -109,72 +120,75 @@ typedef struct {
 
 typedef struct {
     Token_Kind op;
-    Expr*      operand;
+    AST*       operand;
 } AST_Unary;
 
 typedef struct {
     Token_Kind op;
-    Expr*      lhs;
-    Expr*      rhs;
+    AST*       lhs;
+    AST*       rhs;
 } AST_Binary;
 
 typedef struct {
-    char*     name;
-    Typespec* type;
-    Expr*     value;
+    char* name;
+    Type* type;
+    AST*  value;
 } AST_Variable_Decl;
 
 typedef struct {
     char* name;
-    Expr* value;
+    AST*  value;
 } AST_Constant_Decl;
 
 typedef struct {
-    Expr* load;
-    Expr* sub;
+    AST* load;
+    AST* sub;
 } AST_Subscript;
 
 typedef struct {
-    Expr* cond;
-    Expr* then_block;
-    Expr* else_block;
+    AST* cond;
+    AST* then_block;
+    AST* else_block;
 } AST_If;
 
 typedef struct {
-    Expr* init;
-    Expr* cond;
-    Expr* step;
-    Expr* then_block;
+    AST* init;
+    AST* cond;
+    AST* step;
+    AST* then_block;
 } AST_For;
 
 typedef struct {
-    Expr* cond;
-    Expr* then_block;
+    AST* cond;
+    AST* then_block;
 } AST_While;
 
 typedef struct {
-    Expr* expr;
+    AST* expr;
 } AST_Return;
 
 typedef struct {
-    Expr* expr;
+    AST* expr;
 } AST_Break;
 typedef struct {
-    Expr* expr;
+    AST* expr;
 } AST_Continue;
 typedef struct {
-    Expr* expr;
+    AST* expr;
 } AST_Defer;
 typedef struct {
-    Typespec* type;
-    Expr*     expr;
+    Type* type;
+    AST*  expr;
 } AST_Cast;
 
-struct Expr {
-    Expr_Kind kind;
-    Typespec* type;
+struct AST {
+    AST_Kind kind;
+    Type*    type;
     union {
-        AST_Asm       Asm;
+        AST_Extern     Extern;
+        AST_Load     Load;
+        AST_Link     Link;
+
         AST_Macro     Macro;
         AST_Note      Note;
         AST_Grouping  Grouping;
@@ -206,41 +220,46 @@ struct Expr {
     };
 };
 
-Expr* make_expr_asm(char* name);
-Expr* make_expr_macro(char* name, Expr* expr);
-Expr* make_expr_note(Expr* expr);
-Expr* make_expr_int(s64 value);
-Expr* make_expr_float(f64 value);
-Expr* make_expr_string(char* value);
-Expr* make_expr_ident(char* ident);
-Expr* make_expr_struct(Typespec* struct_t);
-Expr* make_expr_enum(Typespec* enum_t);
-Expr* make_expr_function(Typespec* func_t, Expr* body);
-Expr* make_expr_call(char* callee, List* args);
-Expr* make_expr_unary(Token_Kind op, Expr* operand);
-Expr* make_expr_binary(Token_Kind op, Expr* lhs, Expr* rhs);
-Expr* make_expr_block(List* stmts);
-Expr* make_expr_grouping(Expr* expr);
-Expr* make_expr_variable_decl(char* name, Typespec* type, Expr* value);
-Expr* make_expr_constant_decl(char* name, Expr* value);
-Expr* make_expr_subscript(Expr* load, Expr* sub);
-Expr* make_expr_if(Expr* cond, Expr* then_block, Expr* else_block);
-Expr* make_expr_for(Expr* init, Expr* cond, Expr* step, Expr* then_block);
-Expr* make_expr_while(Expr* cond, Expr* then_block);
-Expr* make_expr_return(Expr* expr);
-Expr* make_expr_defer(Expr* expr);
-Expr* make_expr_cast(Expr* expr, Typespec* type);
+AST* make_ast_extern(AST* node);
+AST* make_ast_load(AST* node);
+AST* make_ast_link(AST* node);
 
-Expr* make_expr_break();
-Expr* make_expr_continue();
+AST* make_ast_macro(char* name, AST* expr);
+AST* make_ast_note(AST* expr);
+AST* make_ast_int(s64 value);
+AST* make_ast_float(f64 value);
+AST* make_ast_string(char* value);
+AST* make_ast_ident(char* ident);
+AST* make_ast_struct(Type* struct_t);
+AST* make_ast_enum(Type* enum_t);
+AST* make_ast_function(Type* func_t, AST* body);
+AST* make_ast_call(char* callee, List* args);
+AST* make_ast_unary(Token_Kind op, AST* operand);
+AST* make_ast_binary(Token_Kind op, AST* lhs, AST* rhs);
+AST* make_ast_block(List* stmts);
+AST* make_ast_grouping(AST* expr);
+AST* make_ast_variable_decl(char* name, Type* type, AST* value);
+AST* make_ast_constant_decl(char* name, AST* value);
+AST* make_ast_subscript(AST* load, AST* sub);
+AST* make_ast_if(AST* cond, AST* then_block, AST* else_block);
+AST* make_ast_for(AST* init, AST* cond, AST* step, AST* then_block);
+AST* make_ast_while(AST* cond, AST* then_block);
+AST* make_ast_return(AST* expr);
+AST* make_ast_defer(AST* expr);
+AST* make_ast_cast(AST* expr, Type* type);
 
-Typespec* get_inferred_type_of_expr(Expr* expr);
-Expr*     get_arg_from_func(Typespec* func_t, s64 arg_index);
-Expr*     constant_fold_expr(Expr* expr);
-void      print_ast(List* ast);
+AST* make_ast_break();
+AST* make_ast_continue();
 
-char* expr_to_json(Expr* expr);
-char* expr_to_str(Expr* expr);
-char* expr_kind_to_str(Expr_Kind kind);
+Type* get_inferred_type_of_expr(AST* expr);
+AST*  get_arg_from_func(Type* func_t, s64 arg_index);
+AST*  constant_fold_expr(AST* expr);
+
+void print_ast(List* ast);
+void print_ast_json(List* ast);
+
+char* ast_to_json(AST* expr);
+char* ast_to_str(AST* expr);
+char* expr_kind_to_str(AST_Kind kind);
 
 #endif

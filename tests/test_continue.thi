@@ -2,14 +2,14 @@ main ()  s32
 
     i := 0
 
-    # The issue here is that were
-    # generating the code from the bottom of the tree
-    # so the if statements has a continue trying to
-    # jump to a contiue label. That label hasnt been
-    # set up yet by the for loop.
+    //The issue here is that were
+    //generating the code from the bottom of the tree
+    //so the if statements has a continue trying to
+    //jump to a contiue label. That label hasnt been
+    //set up yet by the for loop.
     #
-    # We need to do like LLVM and return an abstraction
-    # of the call. Like CallInst, ValueInst
+    //We need to do like LLVM and return an abstraction
+    //of the call. Like CallInst, ValueInst
 
     for k := 0, k < 9, k += 1
         continue

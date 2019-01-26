@@ -3,7 +3,7 @@
 
 #include "list.h"     // list
 #include "string.h"   // string
-#include "typespec.h" // Typespec
+#include "type.h" // Type
 
 typedef struct Value    Value;
 typedef enum Value_Kind Value_Kind;
@@ -62,7 +62,7 @@ typedef struct {
 
 struct Value {
     Value_Kind kind;
-    Typespec*  type;
+    Type*  type;
     union {
         Value_Int       Int;
         Value_Float     Float;
@@ -78,13 +78,13 @@ struct Value {
 
 Value* make_value_load_inst(Value* variable, s64 offset);
 Value* make_value_store_inst(Value* variable, s64 offset);
-Value* make_value_int(u8 bytes, Typespec* type, s64 value);
-Value* make_value_float(Typespec* type, f64 value);
-Value* make_value_string(char* value, Typespec* type);
-Value* make_value_variable(char* name, Typespec* type, s64 stack_pos);
-Value* make_value_call(char* callee, Typespec* type);
-Value* make_value_function(Typespec* type);
-Value* make_value_struct(Typespec* type);
+Value* make_value_int(u8 bytes, Type* type, s64 value);
+Value* make_value_float(Type* type, f64 value);
+Value* make_value_string(char* value, Type* type);
+Value* make_value_variable(char* name, Type* type, s64 stack_pos);
+Value* make_value_call(char* callee, Type* type);
+Value* make_value_function(Type* type);
+Value* make_value_struct(Type* type);
 
 s64 get_size_of_value(Value* value);
 s64 get_stack_pos_of_variable(Value* variable);

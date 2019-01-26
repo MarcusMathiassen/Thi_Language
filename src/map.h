@@ -2,22 +2,24 @@
 #define MAP_H
 
 #include "typedefs.h"
-#include "typespec.h"
 
 //------------------------------------------------------------------------------
-//                               Map
+//                               map.h
 //------------------------------------------------------------------------------
 
-typedef struct Map_Element {
+typedef struct Map         Map;
+typedef struct Map_Element Map_Element;
+
+struct Map_Element {
     s64   key;
     void* data;
-} Map_Element;
+};
 
-typedef struct Map {
+struct Map {
     s64          table_size;
     s64          size;
     Map_Element* data;
-} Map;
+};
 
 Map*  make_map();
 void  map_tests(void);

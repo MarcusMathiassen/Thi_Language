@@ -1,7 +1,7 @@
 section .data
 global _main
 section .text
-_main:
+_get:
 	PUSH RBP
 	MOV RBP, RSP
 	SUB RSP, 16; 4 alloc, 12 padding
@@ -11,28 +11,26 @@ _main:
 	MOV EAX, DWORD [RBP-4]; load
 	POP RAX
 	MOV [RBP-4], EAX; store
-	MOV EAX, 1
-	PUSH RAX
-	MOV EAX, 0
-	POP RCX
-	CMP RCX, RAX
-	SETL AL
-	CMP AL, 0
-	JE .L1
-	MOV EAX, 0
-	PUSH RAX
-	MOV EAX, DWORD [RBP-4]; load
-	POP RAX
-	MOV [RBP-4], EAX; store
-	JMP .L1
-.L0:
 .L1:
-.L3:
-	JMP .L2
-.L2:
-	MOV EAX, DWORD [RBP-4]; load
+	JMP .L0
+.L0:
 	JMP .END
 .END:
 	ADD RSP, 16; 4 alloc, 12 padding
+	LEAVE
+	RET
+_main:
+	PUSH RBP
+	MOV RBP, RSP
+	SUB RSP, 16; 8 alloc, 8 padding
+.BEGIN:
+	CALL _get
+.L1:
+	JMP .L0
+.L0:
+	MOV EAX, 1
+	JMP .END
+.END:
+	ADD RSP, 16; 8 alloc, 8 padding
 	LEAVE
 	RET

@@ -1,6 +1,8 @@
-# Hello
+// Hello
 main ()  s32 
     return 1
-    # This is a multiline comment
-    # This is a multiline comment
-
+    // Hello
+    // Hello
+    // Hello
+    // Hello
+    // Hello

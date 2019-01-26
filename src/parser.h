@@ -1,7 +1,6 @@
 #ifndef PARSER_H
 #define PARSER_H
-#include "ast.h"
 #include "list.h" // List
-void parse(List* ast, char* source_file);
-void give_type_to_all_nodes(Expr* expr);
+#include "lexer.h"  // Token_Array
+List* generate_ast_from_tokens(Token_Array tokens);
 #endif

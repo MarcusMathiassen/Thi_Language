@@ -13,11 +13,21 @@
 //                              lexer.c
 //------------------------------------------------------------------------------
 
+typedef struct {
+    char* stream;
+    char* position_of_newline;
+    char* start_of_line;
+    s64   line_count;
+    s64   comment_count;
+    s64   previous_indentation_level;
+    s64   current_indentation_level;
+} Lexer_Context;
+
 //------------------------------------------------------------------------------
 //                               Lexer Functions
 //------------------------------------------------------------------------------
 
-Token       get_token(char** source);
+Token       get_token(Lexer_Context* lctx);
 bool        is_valid_digit(u8 c);
 bool        is_valid_identifier(u8 c);
 int         get_keyword_index(char* identifier);
@@ -89,79 +99,49 @@ Token_Array generate_tokens_from_source(char* source) {
         keywords[20] = str_intern("as");
     }
 
-    char* c = source;
-
-    char* position_of_newline        = NULL;
-    char* start_of_line              = c;
-    s64   line_count                 = 1;
-    s64   comment_count              = 0;
-    s64   previous_indentation_level = 0;
-    s64   current_indentation_level  = 0;
+    Lexer_Context lctx;
+    lctx.stream                     = source;
+    lctx.position_of_newline        = source;
+    lctx.start_of_line              = source;
+    lctx.line_count                 = 1;
+    lctx.comment_count              = 0;
+    lctx.previous_indentation_level = 0;
+    lctx.current_indentation_level  = 0;
 
     Token_Array tokens = make_token_array();
 
     for (;;) {
-        Token token = get_token(&c);
+        Token token = get_token(&lctx);
 
-        token.line_pos   = line_count;
-        token.col_pos    = c - position_of_newline;
-        token.line_start = start_of_line;
-
-        if (token.kind == TOKEN_NEWLINE) {
-            line_count += 1;
-            position_of_newline = c;
-            while (*c == ' ') {
-                ++c;
-            }
-            start_of_line             = c;
-            current_indentation_level = start_of_line - position_of_newline;
-        }
-
-        switch (token.kind) {
-            case TOKEN_FWSLASH_FWSLASH: {
-                comment_count += 1;
-                // ++c;
-                // token.value = c;
-                while (*c != '\n' || *c != '\0') {
-                    ++c;
-                }
-                token.kind  = TOKEN_COMMENT;
-                token.value = str_intern_range(token.value, c);
-            } break;
-        }
-
-        if (token.kind != TOKEN_UNKNOWN && token.kind != TOKEN_COMMENT && token.kind != TOKEN_WHITESPACE) {
-            token_array_append(&tokens, token);
-        }
-
-        if (current_indentation_level > previous_indentation_level) {
+        if (lctx.current_indentation_level > lctx.previous_indentation_level) {
             Token t;
-            t.kind                     = TOKEN_BLOCK_START;
-            t.value                    = "";
-            t.line_pos                 = line_count;
-            t.col_pos                  = c - position_of_newline;
-            t.line_start               = start_of_line;
-            previous_indentation_level = current_indentation_level;
+            t.kind                          = TOKEN_BLOCK_START;
+            t.value                         = "";
+            t.line_pos                      = lctx.line_count;
+            t.col_pos                       = lctx.stream - lctx.position_of_newline;
+            t.line_start                    = lctx.start_of_line;
+            lctx.previous_indentation_level = lctx.current_indentation_level;
             token_array_append(&tokens, t);
         }
-
-        while (current_indentation_level < previous_indentation_level) {
+        while (lctx.current_indentation_level < lctx.previous_indentation_level) {
             Token t;
             t.kind       = TOKEN_BLOCK_END;
             t.value      = "";
-            t.line_pos   = line_count;
-            t.col_pos    = c - position_of_newline;
-            t.line_start = start_of_line;
-            previous_indentation_level -= 4;
+            t.line_pos   = lctx.line_count;
+            t.col_pos    = lctx.stream - lctx.position_of_newline;
+            t.line_start = lctx.start_of_line;
+            lctx.previous_indentation_level -= 4;
             token_array_append(&tokens, t);
         }
-
+        if (token.kind != TOKEN_UNKNOWN && token.kind != TOKEN_COMMENT) {
+            token_array_append(&tokens, token);
+        }
         if (token.kind == TOKEN_EOF) {
             break;
         }
     }
 
-    info("lexed %lld lines, %lld comments", line_count, comment_count);
+    info("lexed %lld lines, %lld comments", lctx.line_count, lctx.comment_count);
 
     return tokens;
 }
@@ -173,33 +153,38 @@ Token_Array generate_tokens_from_source(char* source) {
 #define CASE_SINGLE_TOKEN(c1, t_kind) \
     case c1: token.kind = t_kind; ++c;
 
-Token get_token(char** source) {
-    char* c = *source;
+Token get_token(Lexer_Context* lctx) {
+    char* c = lctx->stream;
 
     Token token;
-    token.kind  = TOKEN_UNKNOWN;
-    token.value = c;
+    token.kind       = TOKEN_UNKNOWN;
+    token.value      = c;
+    token.line_pos   = lctx->line_count;
+    token.col_pos    = c - lctx->position_of_newline;
+    token.line_start = lctx->start_of_line;
 
     switch (*c) {
-        case '#': {
-            ++c;
-            token.value = c;
-            token.kind  = TOKEN_COMMENT;
-            while (*c != '\n' && *c != '\r') {
-                ++c;
-            }
-        } break;
+        case ' ':  /* fallthrough */
         case '\n': /* fallthrough */
-        case '\r': {
-            token.kind = TOKEN_NEWLINE;
-            ++c;
-        } break;
-        case ' ': {
-            token.kind = TOKEN_WHITESPACE;
-            while (*c == ' ') {
+        case '\r': /* fallthrough */
+        case '\t': {
+            // Skip whitespace
+            bool has_newline = false;
+            while (*c == ' ' || *c == '\n' || *c == '\r' || *c == '\t') {
+                if (*c == '\n') {
+                    has_newline = true;
+                    lctx->line_count += 1;
+                    lctx->position_of_newline = c;
+                }
                 ++c;
             }
+            lctx->start_of_line = c;
+            if (has_newline) {
+                lctx->current_indentation_level = c - lctx->position_of_newline - 1;
+            }
         } break;
+            CASE_SINGLE_TOKEN('#', TOKEN_HASH);
+            break;
             CASE_SINGLE_TOKEN('\0', TOKEN_EOF);
             break;
             CASE_SINGLE_TOKEN('(', TOKEN_OPEN_PAREN);
@@ -233,10 +218,26 @@ Token get_token(char** source) {
 
             CASE_SINGLE_TOKEN('/', TOKEN_FWSLASH);
             switch (*c) {
-                CASE_SINGLE_TOKEN('/', TOKEN_FWSLASH_FWSLASH);
-                break;
-                CASE_SINGLE_TOKEN('*', TOKEN_FWSLASH_ASTERISK);
-                break;
+                case '/': {
+                    ++c;
+                    while (*c != '\n') {
+                        ++c;
+                    }
+                    token.kind = TOKEN_COMMENT;
+                } break;
+
+                case '*': {
+                    s64 counter = 1;
+                    ++c;
+                    for (;;) {
+                        if (*c == '/' && c[1] == '*') counter += 1;
+                        if (*c == '*' && c[1] == '/') counter += 1;
+                        if (counter == 0) break;
+                        ++c;
+                    }
+                    token.kind = TOKEN_COMMENT;
+                } break;
+
                 CASE_SINGLE_TOKEN('=', TOKEN_FWSLASH_EQ);
                 break;
             }
@@ -251,7 +252,7 @@ Token get_token(char** source) {
 
             CASE_SINGLE_TOKEN('*', TOKEN_ASTERISK);
             switch (*c) {
-                CASE_SINGLE_TOKEN('/', TOKEN_ASTERISK_FWSLASH);
+                CASE_SINGLE_TOKEN('/', TOKEN_ASTERISK_FWSLASH)
                 break;
                 CASE_SINGLE_TOKEN('=', TOKEN_ASTERISK_EQ);
                 break;
@@ -460,7 +461,7 @@ Token get_token(char** source) {
         case TOKEN_STRING: ++c; break;  // we skip the last '"'
     }
 
-    *source = c;
+    lctx->stream = c;
 
     return token;
 }
@@ -565,7 +566,9 @@ char* token_kind_to_str(Token_Kind kind) {
     return "";
 }
 
-char* token_to_str(Token token) { return strf("%s :: %s", token.value, token_kind_to_str(token.kind)); }
+char* token_to_str(Token token) {
+    return strf("%s :: %s %lld:%lld", token.value, token_kind_to_str(token.kind), token.line_pos, token.col_pos);
+}
 
 void print_token(Token token) { info("%s %s", token_kind_to_str(token.kind), token.value); }
 void print_tokens(Token_Array tokens) {

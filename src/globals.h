@@ -1,12 +1,12 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-#include "ast.h"    // expr
-#include "list.h"   // List
-#include "stack.h"  // Stack
-#include "string.h" // string
+#include "ast.h"     // expr
+#include "list.h"    // List
+#include "stack.h"   // Stack
+#include "string.h"  // string
+#include "type.h"    // Type
 #include "typedefs.h"
-#include "typespec.h" // Typespec
 
 #define RESET "\033[0m"
 #define GRAY "\033[30m"
@@ -50,25 +50,19 @@ void  add_link(char* library_name);
 void  set_current_dir(char* dir_name);
 char* get_current_dir();
 
-void      initilize_globals(void);
-bool      is_builtin_type(char* name);
-void      add_builtin_type(char* name, Typespec* type);
-Typespec* get_builtin_type(char* name);
+void initilize_globals(void);
 
-Typespec* add_symbol(char* name, Typespec* type);
-Typespec* set_symbol(char* name, Typespec* type);
-Typespec* get_symbol(char* name);
+Type* add_symbol(char* name, Type* type);
+Type* set_symbol(char* name, Type* type);
+Type* get_symbol(char* name);
 
-void  add_macro_def(char* name, Expr* expr);
-Expr* get_macro_def(char* name);
+void add_macro_def(char* name, AST* expr);
+AST* get_macro_def(char* name);
 
 void print_symbol_map(void);
 
-void  add_foreign_function(char* name, Typespec* type);
+void  add_foreign_function(char* name, Type* type);
 List* get_foreign_function_list(void);
-
-void  add_constant_string(char* name);
-List* get_constant_string_list(void);
 
 typedef struct {
     f64   ms;

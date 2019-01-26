@@ -1,18 +1,12 @@
 extern puts (u8*)  s32
 main ()  s32
-
     i := 0
-
     defer 
-        puts("3rd")
+        puts("4th")
         i = 1
-
     defer
-        puts("2nd")
+        puts("3rd")
         i = 2
-
-    defer
-        puts("1st") 
-        i = 3
-        
+    defer puts("2nd") 
+    puts("1st")
     return i

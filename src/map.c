@@ -1,7 +1,8 @@
 #include "map.h"
-#include "utility.h"
 #include <assert.h>
 #include <string.h>
+#include "utility.h"
+#include "utility.h"
 
 #define INITIAL_SIZE 16
 
@@ -110,7 +111,6 @@ u32 hash_it(char* str) {
     assert(str);
     u32 hash = 5381;
     s32 c;
-    while ((c = *str++))
-        hash = ((hash << 5) + hash) + c;
+    while ((c = *str++)) hash = ((hash << 5) + hash) + c;
     return hash;
 }

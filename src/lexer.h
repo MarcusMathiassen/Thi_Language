@@ -118,9 +118,9 @@ typedef struct {
 } Token;
 
 typedef struct {
-    Token*      data;
-    s64         count;
-    s64         allocated;
+    Token* data;
+    s64    count;
+    s64    allocated;
 } Token_Array;
 
 void        print_tokens(Token_Array token_array);

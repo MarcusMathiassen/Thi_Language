@@ -1,12 +1,12 @@
 #include "globals.h"
 
-#include "list.h"    // List
-#include "map.h"     // Map
-#include "stack.h"   // Stack
-#include "string.h"  // string
-#include "utility.h" // warning, error, xmalloc
-#include <assert.h>  // assert
-#include <string.h>  // strcmp
+#include <assert.h>   // assert
+#include <string.h>   // strcmp
+#include "list.h"     // List
+#include "map.h"      // Map
+#include "stack.h"    // Stack
+#include "string.h"   // string
+#include "utility.h"  // warning, error, xmalloc
 
 bool detailed_print          = false;
 bool debug_mode              = false;
@@ -14,11 +14,9 @@ bool enable_constant_folding = true;
 bool optimize                = true;
 
 List*  foreign_function_list;
-List*  constant_string_list;
 List*  link_list;
 Map*   symbol_map;
 Map*   macro_map;
-Map*   builtin_type_map;
 Stack* timer_stack;
 List*  timers;
 
@@ -45,13 +43,11 @@ List* get_file_list() { return file_list; }
 void initilize_globals(void) {
     timer_stack           = make_stack();
     foreign_function_list = make_list();
-    constant_string_list  = make_list();
     link_list             = make_list();
     timers                = make_list();
     file_list             = make_list();
     symbol_map            = make_map();
     macro_map             = make_map();
-    builtin_type_map      = make_map();
 }
 
 void add_link(char* library_name) {
@@ -72,87 +68,57 @@ void print_symbol_map(void) {
     s64 count = symbol_map->size;
     info("symbol_map count: %d", count);
     for (s64 i = 0; i < count; ++i) {
-        info("%s", typespec_to_str(symbol_map->data[i].data));
+        info("key %lld type %s", symbol_map->data[i].key, type_to_str(symbol_map->data[i].data));
     }
 }
 
-bool is_builtin_type(char* name) {
-    assert(name);
-    if (map_get(builtin_type_map, name)) return true;
-    return false;
-}
-
-void add_builtin_type(char* name, Typespec* type) {
-    assert(name);
-    assert(type);
-    if (!map_set(builtin_type_map, name, type)) {
-        warning("type redecl: '%s'", name);
-    }
-    info("added builtin type: %s of type '%s'", name, typespec_to_str(type));
-}
-
-Typespec* get_builtin_type(char* name) {
-    assert(name);
-    Typespec* type = (Typespec*)map_get(builtin_type_map, name);
-    if (!type) {
-        error("no type with name '%s'", name);
-    }
-    return type;
-}
-
-void add_foreign_function(char* name, Typespec* type) {
+void add_foreign_function(char* name, Type* type) {
     assert(type);
     list_append(foreign_function_list, type);
-    info("added extern function: '%s' of type '%s'", name, typespec_to_str(type));
+    info("added extern function: '%s' of type '%s'", name, type_to_str(type));
 }
 List* get_foreign_function_list(void) { return foreign_function_list; }
 
-void add_constant_string(char* name) {
-    assert(name);
-    list_append(constant_string_list, name);
-}
-List* get_constant_string_list(void) { return constant_string_list; }
-
-Typespec* add_symbol(char* name, Typespec* type) {
+Type* add_symbol(char* name, Type* type) {
     assert(name);
     assert(type);
-    Typespec* t = map_set(symbol_map, name, type);
+    Type* t = map_set(symbol_map, name, type);
     if (!t) {
         error("symbol redecl: '%s'", name);
     }
-    info("added symbol: '%s' of type '%s'", name, typespec_to_str(type));
+    info("added symbol: '%s' of type '%s'", name, type_to_str(type));
     return t;
 }
 
-Typespec* set_symbol(char* name, Typespec* type) {
+Type* set_symbol(char* name, Type* type) {
     assert(name);
     assert(type);
-    Typespec* t = map_set_overwrite(symbol_map, name, type);
-    info("set symbol: '%s' to '%s'", name, typespec_to_str(type));
+    Type* t = map_set_overwrite(symbol_map, name, type);
+    info("set symbol: '%s' to '%s'", name, type_to_str(type));
     return t;
 }
 
-Typespec* get_symbol(char* name) {
+Type* get_symbol(char* name) {
     assert(name);
-    Typespec* t = (Typespec*)map_get(symbol_map, name);
+    Type* t = (Type*)map_get(symbol_map, name);
     if (!t) {
         warning("no symbol with name '%s'", name);
     }
     return t;
 }
 
-void add_macro_def(char* name, Expr* expr) {
+void add_macro_def(char* name, AST* expr) {
     assert(name);
     assert(expr);
     if (!map_set(macro_map, name, expr)) {
         warning("macro redecl: '%s'", name);
     }
-    info("added macro: %s :: %s", name, expr_to_str(expr));
+    info("added macro: %s :: %s", name, ast_to_str(expr));
 }
 
-Expr* get_macro_def(char* name) {
+AST* get_macro_def(char* name) {
     assert(name);
-    Expr* expr = (Expr*)map_get(macro_map, name);
+    AST* expr = (AST*)map_get(macro_map, name);
     // if (!expr) {
     //     error("no macro with name '%s'", name);
     // }
