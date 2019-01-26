@@ -18,7 +18,6 @@ char* expr_kind_to_str(AST_Kind kind) {
         case AST_EXTERN: return "AST_EXTERN";
         case AST_LOAD: return "AST_LOAD";
         case AST_LINK: return "AST_LINK";
-        case AST_MACRO: return "AST_MACRO";
         case AST_NOTE: return "AST_NOTE";
         case AST_INT: return "AST_INT";
         case AST_FLOAT: return "AST_FLOAT";
@@ -58,9 +57,6 @@ char* ast_to_str(AST* expr) {
         case AST_BREAK: return "break";
         case AST_CONTINUE: return "continue";
         case AST_CAST: return strf("cast(%s, %s)", type_to_str(expr->Cast.type), ast_to_str(expr->Cast.expr));
-        case AST_MACRO: {
-            return strf("%s :: %s", expr->Macro.name, ast_to_str(expr->Macro.expr));
-        }
         case AST_RETURN: {
             if (expr->Return.expr) {
                 return strf("return %s", ast_to_str(expr->Return.expr));
@@ -182,10 +178,6 @@ char* ast_to_json(AST* expr) {
         case AST_BREAK: {
             result = strf("{\"%s\": {%s}}", expr_kind_to_str(expr->kind), "break");
         } break;
-        case AST_MACRO: {
-            result = strf("{\"%s\": {\"name\": \"%s\", \"expr\": \"%s\"}}", expr_kind_to_str(expr->kind),
-                          expr->Macro.name, ast_to_json(expr));
-        } break;
         case AST_DEFER: {
             result = strf("{\"%s\": {\"expr\": %s}}", expr_kind_to_str(expr->kind), ast_to_json(expr->Defer.expr));
         } break;
@@ -297,7 +289,6 @@ Type* get_inferred_type_of_expr(AST* expr) {
             if (expr->Return.expr) return get_inferred_type_of_expr(expr->Return.expr);
 
         case AST_CAST: return expr->Cast.type;
-        case AST_MACRO: return get_inferred_type_of_expr(expr->Macro.expr);
         case AST_NOTE: return get_inferred_type_of_expr(expr->Note.expr);
         case AST_INT: return make_type_int(DEFAULT_INT_BYTE_SIZE, 0);
         case AST_FLOAT: return make_type_float(DEFAULT_FLOAT_BYTE_SIZE);
@@ -349,9 +340,6 @@ AST* constant_fold_expr(AST* expr) {
             if (expr->Return.expr) {
                 expr->Return.expr = constant_fold_expr(expr->Return.expr);
             }
-        } break;
-        case AST_MACRO: {
-            expr->Macro.expr = constant_fold_expr(expr->Macro.expr);
         } break;
         case AST_IDENT: {
             AST* macro_expr = get_macro_def(expr->Ident.name);
@@ -516,15 +504,6 @@ AST* make_ast_link(AST* node) {
     assert(node);
     AST* e       = make_ast(AST_LINK);
     e->Link.node = node;
-    return e;
-}
-
-AST* make_ast_macro(char* name, AST* expr) {
-    assert(name);
-    assert(expr);
-    AST* e        = make_ast(AST_MACRO);
-    e->Macro.name = name;
-    e->Macro.expr = expr;
     return e;
 }
 

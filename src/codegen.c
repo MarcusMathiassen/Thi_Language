@@ -120,7 +120,6 @@ char* generate_X64_from_ast(List* ast);
 // @Hotpath
 Value* codegen_expr(Codegen_Context* ctx, AST* expr) {
     switch (expr->kind) {
-        case AST_MACRO: return codegen_macro(ctx, expr);
         case AST_STRUCT: return codegen_struct(ctx, expr);
         case AST_ENUM: return codegen_enum(ctx, expr);
         case AST_FUNCTION: return codegen_function(ctx, expr);
@@ -802,13 +801,12 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr) {
 
 Value* codegen_constant_decl(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
+    assert(0);
     assert(expr);
     assert(expr->kind == AST_CONSTANT_DECL);
     char* name            = expr->Constant_Decl.name;
     AST*  assignment_expr = expr->Constant_Decl.value;
-
-    add_macro_def(name, assignment_expr);
-
+    // add_macro_def(name, assignment_expr);
     return NULL;
 }
 
@@ -933,12 +931,6 @@ Value* codegen_block(Codegen_Context* ctx, AST* expr) {
     }
     pop_scope(ctx);
     return last;
-}
-
-Value* codegen_macro(Codegen_Context* ctx, AST* expr) {
-    DEBUG_START;
-    assert(expr->kind == AST_MACRO);
-    return NULL;
 }
 
 Value* codegen_ident(Codegen_Context* ctx, AST* expr) {

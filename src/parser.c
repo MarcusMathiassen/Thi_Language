@@ -1,11 +1,12 @@
 #include "parser.h"
-#include <assert.h>    // assert
-#include <ctype.h>     // atoll
-#include <stdarg.h>    // va_list, va_start, va_end
-#include <stdio.h>     // printf, vprintf
-#include <stdlib.h>    // xmalloc
-#include <string.h>    // strcmp
-#include "globals.h"   // add_symbol
+#include <assert.h>  // assert
+#include <ctype.h>   // atoll
+#include <stdarg.h>  // va_list, va_start, va_end
+#include <stdio.h>   // printf, vprintf
+#include <stdlib.h>  // xmalloc
+#include <string.h>  // strcmp
+
+#include "ast.h"       // AST, ast_make_*
 #include "lexer.h"     // Token, Token_Kind, generate_tokens_from_source, token_array_get_info_of
 #include "type.h"      // Type, make_typspec_*,
 #include "typedefs.h"  // s32 , s64, etc.
@@ -92,8 +93,6 @@ Parser_Context make_parser_context() {
 //------------------------------------------------------------------------------
 //              Each construct of the language gets its own function
 //------------------------------------------------------------------------------
-
-void recursively_fill_ast(List* ast, Parser_Context* pctx);
 
 AST* parse_top_level(Parser_Context* pctx);
 AST* parse_statement(Parser_Context* pctx);
@@ -251,8 +250,7 @@ AST* parse_struct(Parser_Context* pctx) {
     char* ident = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
     Type* type = parse_struct_signature(pctx, ident);
-    add_symbol(ident, type);
-    return NULL;
+    return make_ast_struct(type);
 }
 
 AST* parse_enum(Parser_Context* pctx) {
@@ -260,8 +258,7 @@ AST* parse_enum(Parser_Context* pctx) {
     char* ident = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
     Type* type = parse_enum_signature(pctx, ident);
-    add_symbol(ident, type);
-    return NULL;
+    return make_ast_enum(type);
 }
 
 AST* parse_load(Parser_Context* pctx) {
@@ -353,15 +350,6 @@ AST* parse_sizeof(Parser_Context* pctx) {
     eat_kind(pctx, TOKEN_CLOSE_PAREN);
     s64 size = get_size_of_type(t);
     return make_ast_int(size);
-}
-
-AST* parse_macro(Parser_Context* pctx) {
-    char* identifier = pctx->curr_tok.value;
-    eat_kind(pctx, TOKEN_IDENTIFIER);
-    eat_kind(pctx, TOKEN_COLON_COLON);
-    AST* expr = parse_expression(pctx);
-    add_macro_def(identifier, expr);
-    return NULL;
 }
 
 AST* parse_string(Parser_Context* pctx) {
@@ -695,12 +683,7 @@ Type* get_type(Parser_Context* pctx) {
     char* type_name = pctx->curr_tok.value;
 
     eat_kind(pctx, TOKEN_IDENTIFIER);
-    Type* type = get_symbol(type_name);
-
-    // If the type is not yet known, make a stub for it
-    if (!type) {
-        type = make_type_struct(type_name, NULL);
-    }
+    Type* type = make_type_struct(type_name, NULL);
 
     switch (pctx->curr_tok.kind) {
         case THI_SYNTAX_POINTER: {

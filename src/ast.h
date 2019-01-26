@@ -17,7 +17,6 @@ enum AST_Kind {
     AST_LOAD,
     AST_LINK,
 
-    AST_MACRO,
     AST_NOTE,
     AST_INT,
     AST_FLOAT,
@@ -65,11 +64,6 @@ typedef struct {
 typedef struct {
     AST* node;
 } AST_Link;
-
-typedef struct {
-    char* name;
-    AST*  expr;
-} AST_Macro;
 
 typedef struct {
     AST* expr;
@@ -189,7 +183,6 @@ struct AST {
         AST_Load     Load;
         AST_Link     Link;
 
-        AST_Macro     Macro;
         AST_Note      Note;
         AST_Grouping  Grouping;
         AST_Block     Block;
@@ -224,7 +217,6 @@ AST* make_ast_extern(AST* node);
 AST* make_ast_load(AST* node);
 AST* make_ast_link(AST* node);
 
-AST* make_ast_macro(char* name, AST* expr);
 AST* make_ast_note(AST* expr);
 AST* make_ast_int(s64 value);
 AST* make_ast_float(f64 value);

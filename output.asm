@@ -22,7 +22,6 @@ _get:
 _main:
 	PUSH RBP
 	MOV RBP, RSP
-	SUB RSP, 16; 8 alloc, 8 padding
 .BEGIN:
 	CALL _get
 .L1:
@@ -31,6 +30,5 @@ _main:
 	MOV EAX, 1
 	JMP .END
 .END:
-	ADD RSP, 16; 8 alloc, 8 padding
 	LEAVE
 	RET

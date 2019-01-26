@@ -71,37 +71,6 @@ void append_string_f(string* s, char* fmt, ...) {
 void free_string(string* s) { free(s->c_str); }
 
 //------------------------------------------------------------------------------
-//                              Intern String
-//------------------------------------------------------------------------------
-
-typedef struct Intern_Str {
-    s64   len;
-    char* str;
-} Intern_Str;
-
-List* interns;
-void  init_interns_list() { interns = make_list(); }
-char* str_intern_range(char* start, char* end) {
-    s64 len = end - start;
-    LIST_FOREACH(interns) {
-        Intern_Str* intern = (Intern_Str*)it->data;
-        if (intern->len == len && strncmp(intern->str, start, len) == 0) {
-            return intern->str;
-        }
-    }
-    char* str = xmalloc(len + 1);
-    memcpy(str, start, len);
-    str[len] = 0;
-
-    Intern_Str* intern = xmalloc(sizeof(Intern_Str));
-    intern->len        = len;
-    intern->str        = str;
-    list_append(interns, intern);
-    return str;
-}
-char* str_intern(char* str) { return str_intern_range(str, str + strlen(str)); }
-
-//------------------------------------------------------------------------------
 //                               Tests
 //------------------------------------------------------------------------------
 

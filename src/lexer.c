@@ -5,44 +5,17 @@
 #include <ctype.h>    // isalnum, isdigit, isspace, isalpha
 #include <stdlib.h>   // xmalloc
 #include <string.h>   // strncmp
-#include "globals.h"  // get_source_file
-#include "string.h"   // str_intern_range
 #include "utility.h"  // info, success, error, warning, xmalloc, xrealloc
 
 //------------------------------------------------------------------------------
 //                              lexer.c
 //------------------------------------------------------------------------------
 
-typedef struct {
-    char* stream;
-    char* position_of_newline;
-    char* start_of_line;
-    s64   line_count;
-    s64   comment_count;
-    s64   previous_indentation_level;
-    s64   current_indentation_level;
-} Lexer_Context;
-
-//------------------------------------------------------------------------------
-//                               Lexer Functions
-//------------------------------------------------------------------------------
-
-Token       get_token(Lexer_Context* lctx);
-bool        is_valid_digit(u8 c);
-bool        is_valid_identifier(u8 c);
-int         get_keyword_index(char* identifier);
-Token_Kind  get_identifier_kind(char* identifier);
-void        token_array_append(Token_Array* l, Token t);
-Token_Array make_token_array();
-//------------------------------------------------------------------------------
-//                               Keywords
-//------------------------------------------------------------------------------
 typedef enum {
     KEY_LINK,
     KEY_TYPE,
     KEY_TRUE,
     KEY_FALSE,
-    KEY_DEF,
     KEY_DO,
     KEY_DEFER,
     KEY_EXTERN,
@@ -59,46 +32,60 @@ typedef enum {
     KEY_BREAK,
     KEY_CONTINUE,
     KEY_AS,
+
+    KEY_COUNT
 } Keyword_Kind;
 
-#define KEYWORD_COUNT 21
-char* keywords_str[KEYWORD_COUNT] = {
-    "link", "type", "true", "false", "def",    "do",     "defer", "extern", "load",     "cast", "sizeof",
-    "if",   "else", "for",  "while", "return", "struct", "enum",  "break",  "continue", "as",
-};
+typedef struct {
+    s64   len;
+    char* str;
+} Intern;
 
-char** keywords = NULL;
+typedef struct {
+    Intern* data;
+    s64     count;
+    s64     allocated;
+} Intern_Array;
+
+typedef struct {
+    char*        stream;
+    char*        position_of_newline;
+    char*        start_of_line;
+    s64          line_count;
+    s64          comment_count;
+    s64          previous_indentation_level;
+    s64          current_indentation_level;
+    Intern_Array interns;
+    char*        keywords[KEY_COUNT];
+} Lexer_Context;
+
+//------------------------------------------------------------------------------
+//                               Lexer Functions
+//------------------------------------------------------------------------------
+
+Token        get_token(Lexer_Context* lctx);
+bool         is_valid_digit(u8 c);
+bool         is_valid_identifier(u8 c);
+int          get_keyword_index(char* identifier);
+Token_Kind   get_identifier_kind(char* identifier);
+void         token_array_append(Token_Array* l, Token t);
+Token_Array  make_token_array();
+Intern_Array make_intern_array();
+
+void  intern_array_append(Intern_Array* l, Intern intern);
+char* intern_range(Intern_Array* intern_array, char* start, char* end);
+char* intern(Intern_Array* intern_array, char* str);
 
 //------------------------------------------------------------------------------
 //                               Public
 //------------------------------------------------------------------------------
 
-Token_Array generate_tokens_from_source(char* source) {
-    if (!keywords) {
-        keywords     = xmalloc(sizeof(char*) * KEYWORD_COUNT);
-        keywords[0]  = str_intern("link");
-        keywords[1]  = str_intern("type");
-        keywords[2]  = str_intern("true");
-        keywords[3]  = str_intern("false");
-        keywords[4]  = str_intern("def");
-        keywords[5]  = str_intern("do");
-        keywords[6]  = str_intern("defer");
-        keywords[7]  = str_intern("extern");
-        keywords[8]  = str_intern("load");
-        keywords[9]  = str_intern("cast");
-        keywords[10] = str_intern("sizeof");
-        keywords[11] = str_intern("if");
-        keywords[12] = str_intern("else");
-        keywords[13] = str_intern("for");
-        keywords[14] = str_intern("while");
-        keywords[15] = str_intern("return");
-        keywords[16] = str_intern("struct");
-        keywords[17] = str_intern("enum");
-        keywords[18] = str_intern("break");
-        keywords[19] = str_intern("continue");
-        keywords[20] = str_intern("as");
-    }
+char* STATIC_KEYWORDS_ARRAY[KEY_COUNT] = {
+    "link", "type", "true", "false", "do",     "defer",  "extern", "load",  "cast",     "sizeof",
+    "if",   "else", "for",  "while", "return", "struct", "enum",   "break", "continue", "as",
+};
 
+Token_Array generate_tokens_from_source(char* source) {
     Lexer_Context lctx;
     lctx.stream                     = source;
     lctx.position_of_newline        = source;
@@ -107,6 +94,11 @@ Token_Array generate_tokens_from_source(char* source) {
     lctx.comment_count              = 0;
     lctx.previous_indentation_level = 0;
     lctx.current_indentation_level  = 0;
+    lctx.interns                    = make_intern_array();
+
+    for (s64 i = 0; i < KEY_COUNT; ++i) {
+        lctx.keywords[i] = intern(&lctx.interns, STATIC_KEYWORDS_ARRAY[i]);
+    }
 
     Token_Array tokens = make_token_array();
 
@@ -238,8 +230,8 @@ Token get_token(Lexer_Context* lctx) {
                     token.kind = TOKEN_COMMENT;
                 } break;
 
-                CASE_SINGLE_TOKEN('=', TOKEN_FWSLASH_EQ);
-                break;
+                    CASE_SINGLE_TOKEN('=', TOKEN_FWSLASH_EQ);
+                    break;
             }
             break;
 
@@ -455,9 +447,39 @@ Token get_token(Lexer_Context* lctx) {
         } break;
     }
 
-    token.value = str_intern_range(token.value, c);
+    token.value = intern_range(&lctx->interns, token.value, c);
     switch (token.kind) {
-        case TOKEN_IDENTIFIER: token.kind = get_identifier_kind(token.value); break;
+        case TOKEN_IDENTIFIER: {
+            s64 i = 0;
+            while (i < KEY_COUNT) {
+                if (token.value == lctx->keywords[i]) {
+                    break;
+                }
+                i += 1;
+            }
+            switch (i) {
+                case KEY_LINK: token.kind = TOKEN_LINK; break;
+                case KEY_TYPE: token.kind = TOKEN_TYPE; break;
+                case KEY_TRUE: token.kind = TOKEN_TRUE; break;
+                case KEY_FALSE: token.kind = TOKEN_FALSE; break;
+                case KEY_DO: token.kind = TOKEN_DO; break;
+                case KEY_DEFER: token.kind = TOKEN_DEFER; break;
+                case KEY_EXTERN: token.kind = TOKEN_EXTERN; break;
+                case KEY_LOAD: token.kind = TOKEN_LOAD; break;
+                case KEY_CAST: token.kind = TOKEN_CAST; break;
+                case KEY_SIZEOF: token.kind = TOKEN_SIZEOF; break;
+                case KEY_IF: token.kind = TOKEN_IF; break;
+                case KEY_ELSE: token.kind = TOKEN_ELSE; break;
+                case KEY_FOR: token.kind = TOKEN_FOR; break;
+                case KEY_WHILE: token.kind = TOKEN_WHILE; break;
+                case KEY_RETURN: token.kind = TOKEN_RETURN; break;
+                case KEY_STRUCT: token.kind = TOKEN_STRUCT; break;
+                case KEY_ENUM: token.kind = TOKEN_ENUM; break;
+                case KEY_BREAK: token.kind = TOKEN_BREAK; break;
+                case KEY_CONTINUE: token.kind = TOKEN_CONTINUE; break;
+                case KEY_AS: token.kind = TOKEN_AS; break;
+            }
+        } break;
         case TOKEN_STRING: ++c; break;  // we skip the last '"'
     }
 
@@ -580,41 +602,6 @@ void print_tokens(Token_Array tokens) {
 
 bool is_valid_identifier(u8 c) { return isalnum(c) || c == '_'; }
 bool is_valid_digit(u8 c) { return isdigit(c) || c == '.' || c == '_' || c == 'e' || c == 'x'; }
-int  get_keyword_index(char* identifier) {
-    for (s64 i = 0; i < KEYWORD_COUNT; ++i) {
-        if (identifier == keywords[i]) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-Token_Kind get_identifier_kind(char* identifier) {
-    switch (get_keyword_index(identifier)) {
-        case KEY_LINK: return TOKEN_LINK;
-        case KEY_TYPE: return TOKEN_TYPE;
-        case KEY_TRUE: return TOKEN_TRUE;
-        case KEY_FALSE: return TOKEN_FALSE;
-        case KEY_DEF: return TOKEN_DEF;
-        case KEY_DO: return TOKEN_DO;
-        case KEY_DEFER: return TOKEN_DEFER;
-        case KEY_EXTERN: return TOKEN_EXTERN;
-        case KEY_LOAD: return TOKEN_LOAD;
-        case KEY_CAST: return TOKEN_CAST;
-        case KEY_SIZEOF: return TOKEN_SIZEOF;
-        case KEY_IF: return TOKEN_IF;
-        case KEY_ELSE: return TOKEN_ELSE;
-        case KEY_FOR: return TOKEN_FOR;
-        case KEY_WHILE: return TOKEN_WHILE;
-        case KEY_RETURN: return TOKEN_RETURN;
-        case KEY_STRUCT: return TOKEN_STRUCT;
-        case KEY_ENUM: return TOKEN_ENUM;
-        case KEY_BREAK: return TOKEN_BREAK;
-        case KEY_CONTINUE: return TOKEN_CONTINUE;
-        case KEY_AS: return TOKEN_AS;
-    }
-    return TOKEN_IDENTIFIER;
-}
 
 Token_Array make_token_array() {
     Token_Array l;
@@ -631,4 +618,43 @@ void token_array_append(Token_Array* l, Token t) {
     }
     l->data[l->count] = t;
     l->count += 1;
+}
+
+Intern_Array make_intern_array() {
+    Intern_Array l;
+    l.count     = 0;
+    l.allocated = INTERN_ARRAY_STARTING_ALLOC;
+    l.data      = xmalloc(l.allocated * sizeof(Intern));
+    return l;
+}
+
+void intern_array_append(Intern_Array* l, Intern intern) {
+    if (l->count >= l->allocated) {
+        l->allocated *= 2;
+        l->data = xrealloc(l->data, l->allocated * sizeof(Intern));
+    }
+    l->data[l->count] = intern;
+    l->count += 1;
+}
+
+char* intern(Intern_Array* interns, char* str) { return intern_range(interns, str, str + strlen(str)); }
+char* intern_range(Intern_Array* interns, char* start, char* end) {
+    s64 len = end - start;
+
+    for (s64 i = 0; i < interns->count; ++i) {
+        Intern intern = (Intern)interns->data[i];
+        if (intern.len == len && strncmp(intern.str, start, len) == 0) {
+            return intern.str;
+        }
+    }
+    char* str = xmalloc(len + 1);
+    memcpy(str, start, len);
+    str[len] = 0;
+
+    Intern intern;
+    intern.len = len;
+    intern.str = str;
+    intern_array_append(interns, intern);
+
+    return str;
 }

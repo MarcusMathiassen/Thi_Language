@@ -20,17 +20,6 @@
 #include <unistd.h>
 
 typedef struct {
-    s64   len;
-    char* str;
-} Intern;
-
-typedef struct {
-    Intern* data;
-    s64     count;
-    s64     allocated;
-} Intern_Array;
-
-typedef struct {
     bool detailed_print;
     bool debug_mode;
     bool enable_constant_folding;
@@ -48,61 +37,21 @@ typedef struct {
     char*         previous_file;
     string        current_directory;
     List*         file_list;
-    Intern_Array* intern_array;
 
 } Thi_Context;
 
 //------------------------------------------------------------------------------
 //                               Main Driver
 //------------------------------------------------------------------------------
-void ast_transformation_pass(Thi_Context* tctx, List* ast);
+void  ast_resolution_pass(Thi_Context* tctx, List* ast);
 List* parse(Thi_Context* tctx, char* source_file);
 
-void  assemble(char* asm_file, char* exec_name);
-void  linking_stage(char* exec_name);
+void assemble(char* asm_file, char* exec_name);
+void linking_stage(char* exec_name);
 
 /*
     Figure out all the files that are loaded by the source.
 */
-
-Intern_Array* make_intern_array() {
-    Intern_Array* l = xmalloc(sizeof(Intern_Array));
-    l->count        = 0;
-    l->allocated    = INTERN_ARRAY_STARTING_ALLOC;
-    l->data         = xmalloc(sizeof(Intern) * l->allocated);
-    return l;
-}
-
-void intern_array_append(Intern_Array* l, Intern intern) {
-    if (l->count >= l->allocated) {
-        l->allocated *= 2;
-        l->data = xrealloc(l->data, l->allocated);
-    }
-    l->data[l->count] = intern;
-    l->count += 1;
-}
-
-char* intern_range(Intern_Array* intern_array, char* start, char* end) {
-    s64 len = end - start;
-
-    for (s64 i = 0; i < intern_array->count; ++i) {
-        Intern intern = (Intern)intern_array->data[i];
-        if (intern.len == len && strncmp(intern.str, start, len) == 0) {
-            return intern.str;
-        }
-    }
-    char* str = xmalloc(len + 1);
-    memcpy(str, start, len);
-    str[len] = 0;
-
-    Intern intern;
-    intern.len = len;
-    intern.str = str;
-    intern_array_append(intern_array, intern);
-
-    return str;
-}
-
 Thi_Context make_thi_context() {
     Thi_Context t;
 
@@ -121,7 +70,6 @@ Thi_Context make_thi_context() {
     t.previous_file           = NULL;
     t.source_file             = make_string("");
     t.current_directory       = make_string("");
-    t.intern_array            = make_intern_array();
 
     return t;
 }
@@ -137,7 +85,6 @@ int main(int argc, char** argv) {
     stack_tests();
 
     initilize_globals();
-    init_interns_list();
 
     Thi_Context tctx = make_thi_context();
 
@@ -228,7 +175,7 @@ int main(int argc, char** argv) {
 
     LIST_FOREACH(file_list) {
         warning("file %s", it->data);
-        char* file = strf("%s%s", get_current_dir(), it->data);
+        char* file  = strf("%s%s", get_current_dir(), it->data);
         List* ast_l = parse(&tctx, file);
         list_append_content_of(ast, ast_l);
     }
@@ -250,7 +197,7 @@ int main(int argc, char** argv) {
 
     // Debug info. Writing out sizes of our types.
     info("size of Token: %lu bytes", sizeof(Token));
-    info("size of AST:   %lu bytes", sizeof(AST*));
+    info("size of AST:   %lu bytes", sizeof(AST));
     info("size of Type:  %lu bytes", sizeof(Type));
     info("size of Value: %lu bytes", sizeof(Value));
 
@@ -313,17 +260,18 @@ List* parse(Thi_Context* tctx, char* source_file) {
 
     List* ast = generate_ast_from_tokens(tokens);
 
-    ast_transformation_pass(ast);
+    push_timer("Resolution");
+    ast_resolution_pass(tctx, ast);
+    pop_timer();
 
     // Constant folding
     if (enable_constant_folding) {
-        push_timer("Constant folding");
+        push_timer("Constant Folding");
         LIST_FOREACH(ast) {
             AST* expr = (AST*)it->data;
             expr      = constant_fold_expr(expr);
         }
         pop_timer();
-        print_ast(ast);
     }
 
     print_tokens(tokens);
@@ -338,10 +286,9 @@ List* parse(Thi_Context* tctx, char* source_file) {
     return ast;
 }
 
-void ast_transformation_pass(Thi_Context* tctx, List* ast) {
-    info("Transforming AST");
+void ast_resolution_pass(Thi_Context* tctx, List* ast) {
+    info("Resolving AST");
     LIST_FOREACH(ast) {
-
         AST* expr_1 = (AST*)it->data;
 
         switch (expr_1->kind) {
@@ -350,6 +297,7 @@ void ast_transformation_pass(Thi_Context* tctx, List* ast) {
                 list_append(file_list, file_name);
                 list_remove(ast, it);
             } break;
+
             case AST_LINK: {
                 char* link_name = expr_1->Link.node->String.val;
                 add_link(link_name);
@@ -358,7 +306,7 @@ void ast_transformation_pass(Thi_Context* tctx, List* ast) {
 
             case AST_CALL: {
                 if (it->next) {
-                   AST* expr_2 = (AST*)it->next->data;
+                    AST* expr_2 = (AST*)it->next->data;
                     if (expr_2->kind == AST_BLOCK) {
                         char* func_name = expr_1->Call.callee;
                         List* args      = expr_1->Call.args;
@@ -370,31 +318,29 @@ void ast_transformation_pass(Thi_Context* tctx, List* ast) {
                         list_append(ast, make_ast_function(type, body));
                         list_remove(ast, it->next);
                         list_remove(ast, it);
-                    }   
+                    }
+
+                    if (it->next->next) {
+                        AST* expr_3 = (AST*)it->next->next->data;
+                        if (expr_1->kind == AST_CALL && expr_2->kind == AST_IDENT && expr_3->kind == AST_BLOCK) {
+                            char* func_name     = expr_1->Call.callee;
+                            char* ret_type_name = expr_2->Ident.name;
+
+                            Type* ret_type = get_symbol(ret_type_name);
+                            AST*  body     = expr_3;
+                            List* args     = expr_1->Call.args;
+
+                            Type* type = make_type_function(func_name, args, ret_type);
+                            add_symbol(func_name, type);
+
+                            list_append(ast, make_ast_function(type, body));
+                            list_remove(ast, it->next->next);
+                            list_remove(ast, it->next);
+                            list_remove(ast, it);
+                        }
+                    }
                 }
             } break;
-        }
-
-        if (it->next && it->next->next) {
-            AST* expr_2 = (AST*)it->next->data;
-            AST* expr_3 = (AST*)it->next->next->data;
-
-            if (expr_1->kind == AST_CALL && expr_2->kind == AST_IDENT && expr_3->kind == AST_BLOCK) {
-                char* func_name     = expr_1->Call.callee;
-                char* ret_type_name = expr_2->Ident.name;
-
-                Type* ret_type = get_symbol(ret_type_name);
-                AST*  body     = expr_3;
-                List* args     = expr_1->Call.args;
-
-                Type* type = make_type_function(func_name, args, ret_type);
-                add_symbol(func_name, type);
-
-                list_append(ast, make_ast_function(type, body));
-                list_remove(ast, it->next->next);
-                list_remove(ast, it->next);
-                list_remove(ast, it);
-            }
         }
     }
 }
