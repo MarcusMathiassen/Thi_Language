@@ -681,7 +681,6 @@ Type* get_type(Parser_Context* pctx) {
 
     Type* type = make_type_placeholder(type_name);
     type->name = type_name;
-    list_append(type_list, &type);
 
     switch (pctx->curr_tok.kind) {
         case THI_SYNTAX_POINTER: {
@@ -701,7 +700,7 @@ Type* get_type(Parser_Context* pctx) {
         } break;
     }
 
-
+    list_append(type_list, type);
     return type;
 }
 

@@ -222,7 +222,7 @@ void* list_prepend(List* list, void* data) {
     new_node->next = list->head;
     new_node->prev = new_node;
     list->head     = new_node;
-    return data;
+    return new_node->data;
 }
 
 void* list_append(List* list, void* data) {
@@ -240,7 +240,7 @@ void* list_append(List* list, void* data) {
     }
     list->tail->next = new_node;
     list->tail       = new_node;
-    return data;
+    return new_node->data;
 }
 
 void* list_first(List* list) {

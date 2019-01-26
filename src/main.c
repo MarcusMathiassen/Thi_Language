@@ -44,10 +44,11 @@ typedef struct {
 //------------------------------------------------------------------------------
 //                               Main Driver
 //------------------------------------------------------------------------------
-AST*  constant_fold_expr(Thi_Context* tctx, AST* expr);
+AST* constant_fold_expr(Thi_Context* tctx, AST* expr);
+
 void  type_resolution_pass(Thi_Context* tctx, List* ast);
 void  definitions_pass(Thi_Context* tctx, List* ast);
-Type* get_inferred_type_of_expr(Thi_Context* tctx, AST* expr);
+void  resolve_type(Thi_Context* tctx, Type* type);
 List* parse(Thi_Context* tctx, char* source_file);
 
 void assemble(char* asm_file, char* exec_name);
@@ -282,82 +283,26 @@ List* parse(Thi_Context* tctx, char* source_file) {
     return ast;
 }
 
-Type* get_inferred_type_of_expr(Thi_Context* tctx, AST* expr) {
-    switch (expr->kind) {
-        case AST_EXTERN:
-        case AST_LOAD:
-        case AST_LINK:
-        case AST_IF:
-        case AST_FOR:
-        case AST_WHILE:
-        case AST_BREAK:
-        case AST_CONTINUE:
-        case AST_DEFER: return NULL;
-        case AST_RETURN:
-            if (expr->Return.expr) return get_inferred_type_of_expr(tctx, expr->Return.expr);
-
-        case AST_SIZEOF: {
-            expr->Sizeof.type = get_symbol(get_type_name(expr->Sizeof.type));
-            return expr->Sizeof.type;
-        } break;
-        case AST_CAST: return expr->Cast.type;
-        case AST_NOTE: return get_inferred_type_of_expr(tctx, expr->Note.expr);
-        case AST_INT: return make_type_int(DEFAULT_INT_BYTE_SIZE, 0);
-        case AST_FLOAT: return make_type_float(DEFAULT_FLOAT_BYTE_SIZE);
-        case AST_STRING: return make_type_pointer(make_type_int(8, 1));
-        case AST_IDENT: return get_symbol(expr->Ident.name);
-        case AST_CALL: return get_symbol(expr->Call.callee)->Function.ret_type;
-        case AST_UNARY: return get_inferred_type_of_expr(tctx, expr->Unary.operand);
-        case AST_BINARY: return get_inferred_type_of_expr(tctx, expr->Binary.rhs);
-        case AST_VARIABLE_DECL: {
-            expr->Variable_Decl.type = get_symbol(get_type_name(expr->Variable_Decl.type));
-            return expr->Variable_Decl.type;
-        } break;
-        case AST_FUNCTION: {
-            AST* body  = expr->Function.body;
-            expr->Function.type->Function.ret_type = get_symbol(get_type_name(expr->Function.type->Function.ret_type));
-            LIST_FOREACH(expr->Function.type->Function.args) {
-                AST*  stmt = (AST*)it->data;
-                stmt->type = get_inferred_type_of_expr(tctx, stmt);
-            }
-            expr->type = get_inferred_type_of_expr(tctx, body);
-        } break;
-        case AST_STRUCT: {
-            char* type_name = get_type_name(expr->Struct.type);
-            List* members   = expr->Struct.type->Struct.members;
-            LIST_FOREACH(members) {
-                AST*  stmt = (AST*)it->data;
-                stmt->type = get_inferred_type_of_expr(tctx, stmt);
-            }
-            return get_symbol(type_name);
-        } break;
-        case AST_ENUM: {
-            char* type_name = get_type_name(expr->Enum.type);
-            List* members   = expr->Enum.type->Enum.members;
-            LIST_FOREACH(members) {
-                AST*  stmt = (AST*)it->data;
-                stmt->type = get_inferred_type_of_expr(tctx, stmt);
-            }
-            return get_symbol(type_name);
-        } break;
-        case AST_BLOCK: {
-            LIST_FOREACH(expr->Block.stmts) {
-                AST* stmt  = (AST*)it->data;
-                stmt->type = get_inferred_type_of_expr(tctx, stmt);
-            }
-        } break;
-        case AST_GROUPING: return get_inferred_type_of_expr(tctx, expr->Grouping.expr);
-        case AST_SUBSCRIPT: return get_inferred_type_of_expr(tctx, expr->Subscript.load);
-        default: error("%s has no type", ast_kind_to_str(expr->kind));
+void resolve_type(Thi_Context* tctx, Type* type) {
+    switch (type->kind) {
+        case TYPE_PLACEHOLDER: *type = *get_symbol(type->Placeholder.name); break;
+        case TYPE_INT: break;
+        case TYPE_FLOAT: break;
+        case TYPE_STRING: break;
+        case TYPE_POINTER: resolve_type(tctx, type->Pointer.pointee); break;
+        case TYPE_ARRAY: resolve_type(tctx, type->Array.type); break;
+        case TYPE_ENUM: break;
+        case TYPE_STRUCT: break;
+        case TYPE_FUNCTION: break;
+        default: warning("not implemented resolve_type kind %d", type_kind_to_str(type->kind));
     }
-    return NULL;
 }
 
 void type_resolution_pass(Thi_Context* tctx, List* ast) {
     info("Type resolution..");
-    LIST_FOREACH(ast) {
-        AST* expr_1  = (AST*)it->data;
-        expr_1->type = get_inferred_type_of_expr(tctx, expr_1);
+    LIST_FOREACH(type_list) {
+        Type* t = (Type*)it->data;
+        resolve_type(tctx, t);
     }
 }
 
