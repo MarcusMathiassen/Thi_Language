@@ -172,7 +172,7 @@ char* type_to_str(Type* type) {
     return NULL;
 }
 
-Type_Ref_List make_type_list() {
+Type_Ref_List make_type_ref_list() {
     Type_Ref_List l;
     l.count     = 0;
     l.allocated = TYPE_REF_LIST_STARTING_ALLOC;

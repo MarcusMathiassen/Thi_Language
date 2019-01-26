@@ -151,6 +151,8 @@ int main(int argc, char** argv) {
     char* dir  = get_file_directory(source_file);
     char* name = get_file_name(source_file);
 
+    list_append(file_list, name);
+
     set_source_file(name);
     set_current_dir(dir);
 
@@ -165,11 +167,10 @@ int main(int argc, char** argv) {
         error("%s is not a .thi file.", source_file);
     }
 
-    // Parse
-    List* ast = parse(&tctx, source_file);
+    List* ast = make_list();
 
+    // Parse
     LIST_FOREACH(file_list) {
-        warning("file %s", it->data);
         char* file  = strf("%s%s", get_current_dir(), it->data);
         List* ast_l = parse(&tctx, file);
         list_append_content_of(ast, ast_l);

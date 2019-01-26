@@ -72,7 +72,7 @@ typedef struct {
     Token_Array tokens;
 
     Type_Ref_List unresolved_types;
-    s64       token_index;
+    s64           token_index;
 
     Token      curr_tok;
     Token      prev_tok;
@@ -684,8 +684,8 @@ Type* get_type(Parser_Context* pctx) {
 
     Type* type = make_type_unresolved(type_name);
     type->name = type_name;
-    type_list_append(&pctx->unresolved_types, type);
-    list_append(type_list, type); // TODO(marcus) remove
+    type_ref_list_append(&pctx->unresolved_types, type);
+    list_append(type_list, type);  // TODO(marcus) remove
 
     switch (pctx->curr_tok.kind) {
         case THI_SYNTAX_POINTER: {

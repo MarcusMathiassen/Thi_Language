@@ -1,5 +1,4 @@
 load "foo.thi"
-
-bar (a s32)  s32 
+def bar (a s32)  s32 
     return foo(a)
 

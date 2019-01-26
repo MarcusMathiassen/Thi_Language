@@ -1,4 +1,3 @@
 load "includes/foo.thi"
-
-def main ()  s32 
+def main() s32 
     return foo(1)
