@@ -12,6 +12,11 @@ def get()
     return
 
 
+
+m :: n * 3
+n :: 3
+
+
 def main() s32
     v vec2
     get()
@@ -23,7 +28,7 @@ def main() s32
     compile("Hello you")
 
     puts("this is a test")
-    return 1
+    return m
 
 struct vec2 
     x f32

@@ -74,9 +74,12 @@ typedef struct {
     s64         token_index;
 
     Type_Ref_List unresolved_types;
-    List*         variables_in_need_of_type_inference;
 
-    List* function_calls;
+    AST_Ref_List function_calls;
+    AST_Ref_List variables_in_need_of_type_inference;
+    AST_Ref_List constants;
+    AST_Ref_List identifiers;
+
     List* extern_list;
     List* load_list;
     List* link_list;
@@ -96,13 +99,15 @@ Parser_Context make_parser_context() {
     pctx.curr_tok.kind                       = TOKEN_UNKNOWN;
     pctx.last_if_statement                   = NULL;
     pctx.unresolved_types                    = make_type_ref_list();
-    pctx.variables_in_need_of_type_inference = make_list();
+    pctx.variables_in_need_of_type_inference = make_ast_ref_list();
+    pctx.function_calls                      = make_ast_ref_list();
+    pctx.constants                           = make_ast_ref_list();
+    pctx.identifiers                         = make_ast_ref_list();
 
-    pctx.function_calls = make_list();
-    pctx.extern_list    = make_list();
-    pctx.load_list      = make_list();
-    pctx.link_list      = make_list();
-    pctx.symbol_map     = make_map();
+    pctx.extern_list = make_list();
+    pctx.load_list   = make_list();
+    pctx.link_list   = make_list();
+    pctx.symbol_map  = make_map();
     return pctx;
 }
 
@@ -194,6 +199,8 @@ Parsed_File generate_ast_from_tokens(Token_Array tokens) {
     pf.link_list                           = pctx.link_list;
     pf.symbol_map                          = pctx.symbol_map;
     pf.function_calls                      = pctx.function_calls;
+    pf.constants                           = pctx.constants;
+    pf.identifiers                         = pctx.identifiers;
 
     return pf;
 }
@@ -269,9 +276,11 @@ AST* parse_identifier(Parser_Context* pctx) {
         case TOKEN_COLON_COLON: return parse_constant_decl(pctx);
         case TOKEN_OPEN_PAREN: return parse_function_call(pctx);
     }
-    char* ident = pctx->curr_tok.value;
+    char* ident_name = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
-    return make_ast_ident(ident);
+    AST* identifier = make_ast_ident(ident_name);
+    ast_ref_list_append(&pctx->identifiers, identifier);
+    return identifier;
 }
 
 AST* parse_struct(Parser_Context* pctx) {
@@ -467,7 +476,7 @@ AST* parse_function_call(Parser_Context* pctx) {
     eat_kind(pctx, TOKEN_CLOSE_PAREN);
 
     AST* call = make_ast_call(ident, args);
-    list_append(pctx->function_calls, call);
+    ast_ref_list_append(&pctx->function_calls, call);
     return call;
 }
 
@@ -476,8 +485,10 @@ AST* parse_constant_decl(Parser_Context* pctx) {
     char* name = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
     eat_kind(pctx, TOKEN_COLON_COLON);
-    AST* value = parse_expression(pctx);
-    return make_ast_constant_decl(name, value);
+    AST* value         = parse_expression(pctx);
+    AST* constant_decl = make_ast_constant_decl(name, value);
+    ast_ref_list_append(&pctx->constants, constant_decl);
+    return constant_decl;
 }
 
 AST* parse_variable_decl(Parser_Context* pctx) {
@@ -507,7 +518,7 @@ AST* parse_variable_decl(Parser_Context* pctx) {
     AST* variable_decl = make_ast_variable_decl(variable_name, variable_type, variable_value);
 
     if (variable_needs_type_inference) {
-        list_append(pctx->variables_in_need_of_type_inference, variable_decl);
+        ast_ref_list_append(&pctx->variables_in_need_of_type_inference, variable_decl);
     }
 
     return variable_decl;

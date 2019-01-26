@@ -1,7 +1,9 @@
-#include <assert.h>   // assert
-#include <stdio.h>    // sprintf
-#include <stdlib.h>   // free
-#include <string.h>   // strcmp
+#include <assert.h>  // assert
+#include <stdio.h>   // sprintf
+#include <stdlib.h>  // free
+#include <string.h>  // strcmp
+#include <sys/ioctl.h>
+#include <unistd.h>
 #include "ast.h"      // AST
 #include "codegen.h"  // generate_code_from_ast
 #include "constants.h"
@@ -17,19 +19,19 @@
 #include "utility.h"  // get_file_content, success, info, get_time
 #include "value.h"    // Value
 
-#include <sys/ioctl.h>
-#include <unistd.h>
-
 //------------------------------------------------------------------------------
 //                               Main Driver
 //------------------------------------------------------------------------------
 void  add_all_definitions(Thi* thi, Parsed_File* pf);
 Type* get_inferred_type_of_expr(Thi* thi, AST* expr);
+void  pass_progate_identifiers_to_constants(Thi* thi);
 void  pass_type_inference(Thi* thi);
 void  pass_resolve_all_unresolved_types(Thi* thi);
 List* parse(Thi* thi, char* source_file);
 void  assemble(Thi* thi, char* asm_file, char* exec_name);
 void  linking_stage(Thi* thi, char* exec_name);
+void  pass_general(Thi* thi);
+void  transform_ast(Thi* thi, AST* node);
 
 int main(int argc, char** argv) {
     // Argument validation
@@ -134,8 +136,11 @@ int main(int argc, char** argv) {
         list_append_content_of(ast, ast_l);
     }
 
+    thi.ast = ast;
+
     pass_resolve_all_unresolved_types(&thi);
     pass_type_inference(&thi);
+    pass_progate_identifiers_to_constants(&thi);
 
     // Codegen
     push_timer(&thi, "Codegen");
@@ -166,8 +171,8 @@ int main(int argc, char** argv) {
     info("--- Compiler timings ---");
     info("lines %lld comments %lld", thi.lines, thi.comments);
     info("resolved %lld types", thi.unresolved_types.count);
-    info("type inferred %lld variables", thi.variables_in_need_of_type_inference->count);
-    info("checked calls %lld", thi.function_calls->count);
+    info("type inferred %lld variables", thi.variables_in_need_of_type_inference.count);
+    info("checked calls %lld", thi.function_calls.count);
     LIST_FOREACH(get_timers(&thi)) {
         Timer* tm      = (Timer*)it->data;
         s64    len     = strlen(tm->desc);
@@ -245,9 +250,21 @@ void add_all_definitions(Thi* thi, Parsed_File* pf) {
         type_ref_list_append(&thi->unresolved_types, pf->unresolved_types.data[i]);
     }
 
-    LIST_FOREACH(pf->function_calls) { warning("function_call: %s", ast_to_str(it->data)); }
-    list_append_content_of(thi->variables_in_need_of_type_inference, pf->variables_in_need_of_type_inference);
-    list_append_content_of(thi->function_calls, pf->function_calls);
+    for (s64 i = 0; i < pf->function_calls.count; ++i) {
+        ast_ref_list_append(&thi->function_calls, pf->function_calls.data[i]);
+    }
+
+    for (s64 i = 0; i < pf->variables_in_need_of_type_inference.count; ++i) {
+        ast_ref_list_append(&thi->variables_in_need_of_type_inference, pf->variables_in_need_of_type_inference.data[i]);
+    }
+
+    for (s64 i = 0; i < pf->constants.count; ++i) {
+        ast_ref_list_append(&thi->constants, pf->constants.data[i]);
+    }
+    for (s64 i = 0; i < pf->identifiers.count; ++i) {
+        ast_ref_list_append(&thi->identifiers, pf->identifiers.data[i]);
+    }
+
 
     LIST_FOREACH(pf->link_list) { add_link(thi, it->data); }
     LIST_FOREACH(pf->load_list) { add_load(thi, it->data); }
@@ -278,20 +295,64 @@ Type* get_inferred_type_of_expr(Thi* thi, AST* expr) {
     return NULL;
 }
 
+void transform_ast(Thi* thi, AST* node) {
+    switch (node->kind) {
+        case AST_IDENT: {
+        } break;
+        case AST_FUNCTION: {
+            transform_ast(thi, node->Function.body);
+        } break;
+        case AST_STRUCT: {
+            List* l = node->Struct.type->Struct.members;
+            LIST_FOREACH(l) { transform_ast(thi, it->data); }
+        } break;
+        case AST_ENUM: {
+            List* l = node->Enum.type->Enum.members;
+            LIST_FOREACH(l) { transform_ast(thi, it->data); }
+        } break;
+        case AST_BLOCK: {
+            LIST_FOREACH(node->Block.stmts) { transform_ast(thi, it->data); }
+        } break;
+        default: break;
+    }
+}
+
+void pass_progate_identifiers_to_constants(Thi* thi) {
+    info("pass_progate_identifiers_to_constants");
+    push_timer(thi, "pass_progate_identifiers_to_constants");
+
+    for (s64 i = 0; i < thi->identifiers.count; ++i) { 
+        AST* ident  = thi->identifiers.data[i];
+        for (s64 j = 0; j < thi->constants.count; ++j) {
+            AST* const_decl = thi->constants.data[j];
+            if (strcmp(ident->Ident.name, const_decl->Constant_Decl.name) == 0) {
+                warning("%s turned into %s", ast_to_str(ident), ast_to_str(const_decl->Constant_Decl.value));
+                *ident = *const_decl->Constant_Decl.value;
+                break;
+            }
+        }
+    }
+
+    pop_timer(thi);
+}
+
 void pass_type_inference(Thi* thi) {
     info("pass_type_inference");
     push_timer(thi, "pass_type_inference");
-    LIST_FOREACH(thi->variables_in_need_of_type_inference) {
-        AST* var_decl                = (AST*)it->data;
-        var_decl->Variable_Decl.type = get_inferred_type_of_expr(thi, var_decl->Variable_Decl.value);
-    }
-    LIST_FOREACH(thi->function_calls) {
-        AST* call                = (AST*)it->data;
+
+    for (s64 i = 0; i < thi->function_calls.count; ++i) {
+        AST* call  = thi->function_calls.data[i];
         call->type = get_inferred_type_of_expr(thi, call);
         if (!call->type) {
             call->type = make_type_void();
         }
     }
+
+    for (s64 i = 0; i < thi->variables_in_need_of_type_inference.count; ++i) {
+        AST* var_decl                = thi->variables_in_need_of_type_inference.data[i];
+        var_decl->Variable_Decl.type = get_inferred_type_of_expr(thi, var_decl->Variable_Decl.value);
+    }
+
     pop_timer(thi);
 }
 

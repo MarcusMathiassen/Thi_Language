@@ -1,5 +1,6 @@
 #include "ast.h"
-#include <assert.h>   // assert
+#include <assert.h>  // assert
+#include "constants.h"
 #include "lexer.h"    // token_kind_to_str,
 #include "string.h"   // strf, append_string, string
 #include "utility.h"  // info, success, error, warning, xmalloc, xrealloc
@@ -311,6 +312,23 @@ void print_ast_json(List* ast) {
     info(json.c_str);
 }
 
+AST_Ref_List make_ast_ref_list() {
+    AST_Ref_List l;
+    l.count     = 0;
+    l.allocated = AST_REF_LIST_STARTING_ALLOC;
+    l.data      = xmalloc(l.allocated * sizeof(AST*));
+    return l;
+}
+
+void ast_ref_list_append(AST_Ref_List* l, AST* a) {
+    if (l->count >= l->allocated) {
+        l->allocated *= 2;
+        l->data = xrealloc(l->data, l->allocated * sizeof(AST*));
+    }
+    l->data[l->count] = a;
+    l->count += 1;
+}
+
 //------------------------------------------------------------------------------
 //                               AST* Maker Functions
 //------------------------------------------------------------------------------
@@ -580,6 +598,7 @@ AST* make_ast_defer(AST* expr) {
     e->Defer.expr = expr;
     return e;
 }
+
 AST* make_ast_break() {
     AST* e = make_ast(AST_BREAK);
     return e;

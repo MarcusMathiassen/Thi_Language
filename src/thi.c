@@ -12,9 +12,10 @@ Thi make_thi() {
     thi.debug_mode                          = false;
     thi.enable_constant_folding             = true;
     thi.optimize                            = true;
+    thi.ast                                 = make_list();
     thi.extern_list                         = make_list();
     thi.link_list                           = make_list();
-    thi.function_calls                      = make_list();
+    thi.function_calls                      = make_ast_ref_list();
     thi.load_list                           = make_list();
     thi.timer_list                          = make_list();
     thi.symbol_map                          = make_map();
@@ -25,7 +26,9 @@ Thi make_thi() {
     thi.source_file                         = make_string("");
     thi.current_directory                   = make_string("");
     thi.unresolved_types                    = make_type_ref_list();
-    thi.variables_in_need_of_type_inference = make_list();
+    thi.variables_in_need_of_type_inference = make_ast_ref_list();
+    thi.constants                           = make_ast_ref_list();
+    thi.identifiers                           = make_ast_ref_list();
     return thi;
 }
 

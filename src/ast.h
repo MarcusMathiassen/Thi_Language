@@ -55,166 +55,139 @@ enum AST_Kind {
 //------------------------------------------------------------------------------
 //                                  AST Structures
 //------------------------------------------------------------------------------
-typedef struct {
-    Type* type;
-} AST_Extern;
 
-typedef struct {
-    char* str;
-} AST_Load;
-
-typedef struct {
-    char* str;
-} AST_Link;
-
-typedef struct {
-    AST* expr;
-} AST_Note;
-
-typedef struct {
-    AST* expr;
-} AST_Grouping;
-
-typedef struct {
-    List* stmts;
-} AST_Block;
-
-typedef struct {
-    s64 val;
-} AST_Int;
-
-typedef struct {
-    f64 val;
-} AST_Float;
-
-typedef struct {
-    char* val;
-} AST_String;
-
-typedef struct {
-    Type* type;
-} AST_Struct;
-
-typedef struct {
-    Type* type;
-} AST_Enum;
-
-typedef struct {
-    Type* type;
-    AST*  body;
-    List* defers;
-} AST_Function;
-
-typedef struct {
-    char* name;
-} AST_Ident;
-
-typedef struct {
-    char* callee;
-    List* args;
-} AST_Call;
-
-typedef struct {
-    Token_Kind op;
-    AST*       operand;
-} AST_Unary;
-
-typedef struct {
-    Token_Kind op;
-    AST*       lhs;
-    AST*       rhs;
-} AST_Binary;
-
-typedef struct {
-    char* name;
-    Type* type;
-    AST*  value;
-} AST_Variable_Decl;
-
-typedef struct {
-    char* name;
-    AST*  value;
-} AST_Constant_Decl;
-
-typedef struct {
-    AST* load;
-    AST* sub;
-} AST_Subscript;
-
-typedef struct {
-    AST* cond;
-    AST* then_block;
-    AST* else_block;
-} AST_If;
-
-typedef struct {
-    AST* init;
-    AST* cond;
-    AST* step;
-    AST* then_block;
-} AST_For;
-
-typedef struct {
-    AST* cond;
-    AST* then_block;
-} AST_While;
-
-typedef struct {
-    AST* expr;
-} AST_Return;
-
-typedef struct {
-    AST* expr;
-} AST_Break;
-typedef struct {
-    AST* expr;
-} AST_Continue;
-typedef struct {
-    AST* expr;
-} AST_Defer;
-typedef struct {
-    Type* type;
-    AST*  expr;
-} AST_Cast;
-typedef struct {
-    Type* type;
-} AST_Sizeof;
 struct AST {
     AST_Kind kind;
     Type*    type;
     union {
-        AST_Extern Extern;
-        AST_Load   Load;
-        AST_Link   Link;
+        struct {
+            Type* type;
+        } Extern;
 
-        AST_Note      Note;
-        AST_Grouping  Grouping;
-        AST_Block     Block;
-        AST_Int       Int;
-        AST_Float     Float;
-        AST_String    String;
-        AST_Struct    Struct;
-        AST_Enum      Enum;
-        AST_Function  Function;
-        AST_Ident     Ident;
-        AST_Call      Call;
-        AST_Unary     Unary;
-        AST_Binary    Binary;
-        AST_Subscript Subscript;
+        struct {
+            char* str;
+        } Load;
 
-        AST_Cast Cast;
+        struct {
+            char* str;
+        } Link;
 
-        AST_Variable_Decl Variable_Decl;
-        AST_Constant_Decl Constant_Decl;
-        AST_If            If;
-        AST_For           For;
-        AST_While         While;
-        AST_Return        Return;
-        AST_Defer         Defer;
+        struct {
+            AST* expr;
+        } Note;
 
-        AST_Break    Break;
-        AST_Continue Continue;
-        AST_Sizeof   Sizeof;
+        struct {
+            AST* expr;
+        } Grouping;
+
+        struct {
+            List* stmts;
+        } Block;
+
+        struct {
+            s64 val;
+        } Int;
+
+        struct {
+            f64 val;
+        } Float;
+
+        struct {
+            char* val;
+        } String;
+
+        struct {
+            Type* type;
+        } Struct;
+
+        struct {
+            Type* type;
+        } Enum;
+
+        struct {
+            Type* type;
+            AST*  body;
+            List* defers;
+        } Function;
+
+        struct {
+            char* name;
+        } Ident;
+
+        struct {
+            char* callee;
+            List* args;
+        } Call;
+
+        struct {
+            Token_Kind op;
+            AST*       operand;
+        } Unary;
+
+        struct {
+            Token_Kind op;
+            AST*       lhs;
+            AST*       rhs;
+        } Binary;
+
+        struct {
+            char* name;
+            Type* type;
+            AST*  value;
+        } Variable_Decl;
+
+        struct {
+            char* name;
+            AST*  value;
+        } Constant_Decl;
+
+        struct {
+            AST* load;
+            AST* sub;
+        } Subscript;
+
+        struct {
+            AST* cond;
+            AST* then_block;
+            AST* else_block;
+        } If;
+
+        struct {
+            AST* init;
+            AST* cond;
+            AST* step;
+            AST* then_block;
+        } For;
+
+        struct {
+            AST* cond;
+            AST* then_block;
+        } While;
+
+        struct {
+            AST* expr;
+        } Return;
+
+        struct {
+            AST* expr;
+        } Break;
+
+        struct {
+            AST* expr;
+        } Continue;
+
+        struct {
+            AST* expr;
+        } Defer;
+
+        struct {
+            Type* type;
+            AST*  expr;
+        } Cast;
+
+        struct {
+            Type* type;
+        } Sizeof;
     };
 };
 
@@ -257,5 +230,14 @@ void print_ast_json(List* ast);
 char* ast_to_json(AST* expr);
 char* ast_to_str(AST* expr);
 char* ast_kind_to_str(AST_Kind kind);
+
+typedef struct {
+    AST** data;
+    s64   count;
+    s64   allocated;
+} AST_Ref_List;
+
+AST_Ref_List make_ast_ref_list();
+void         ast_ref_list_append(AST_Ref_List* l, AST* a);
 
 #endif

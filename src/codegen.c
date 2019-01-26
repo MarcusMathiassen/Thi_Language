@@ -837,11 +837,11 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr) {
 
 Value* codegen_constant_decl(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
-    assert(0);
-    assert(expr);
-    assert(expr->kind == AST_CONSTANT_DECL);
-    char* name            = expr->Constant_Decl.name;
-    AST*  assignment_expr = expr->Constant_Decl.value;
+    // assert(0);
+    // assert(expr);
+    // assert(expr->kind == AST_CONSTANT_DECL);
+    // char* name            = expr->Constant_Decl.name;
+    // AST*  assignment_expr = expr->Constant_Decl.value;
     // add_macro_def(name, assignment_expr);
     return NULL;
 }
