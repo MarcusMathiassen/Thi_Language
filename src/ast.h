@@ -56,15 +56,15 @@ enum AST_Kind {
 //                                  AST Structures
 //------------------------------------------------------------------------------
 typedef struct {
-    AST*  node;
+    Type* type;
 } AST_Extern;
 
 typedef struct {
-    AST*  node;
+    char* str;
 } AST_Load;
 
 typedef struct {
-    AST* node;
+    char* str;
 } AST_Link;
 
 typedef struct {
@@ -183,9 +183,9 @@ struct AST {
     AST_Kind kind;
     Type*    type;
     union {
-        AST_Extern     Extern;
-        AST_Load     Load;
-        AST_Link     Link;
+        AST_Extern Extern;
+        AST_Load   Load;
+        AST_Link   Link;
 
         AST_Note      Note;
         AST_Grouping  Grouping;
@@ -214,13 +214,13 @@ struct AST {
 
         AST_Break    Break;
         AST_Continue Continue;
-        AST_Sizeof Sizeof;
+        AST_Sizeof   Sizeof;
     };
 };
 
-AST* make_ast_extern(AST* node);
-AST* make_ast_load(AST* node);
-AST* make_ast_link(AST* node);
+AST* make_ast_extern(Type* type);
+AST* make_ast_load(char* str);
+AST* make_ast_link(char* str);
 
 AST* make_ast_note(AST* expr);
 AST* make_ast_int(s64 value);
@@ -247,11 +247,10 @@ AST* make_ast_cast(AST* expr, Type* type);
 AST* make_ast_sizeof(Type* type);
 
 AST* ast_replace(AST* this, AST* that);
-
 AST* make_ast_break();
 AST* make_ast_continue();
 
-AST*  get_arg_from_func(Type* func_t, s64 arg_index);
+AST* get_arg_from_func(Type* func_t, s64 arg_index);
 
 void print_ast(List* ast);
 void print_ast_json(List* ast);

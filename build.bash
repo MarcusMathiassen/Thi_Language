@@ -3,7 +3,7 @@ output=./thi
 olvl=
 compiler=clang
 src=./src/*.c
-flags=-Wall\ -Wextra\ -Wno-switch\ -Wno-unused-function #\ -Werror
+flags=-Wall\ -Wextra\ -Wno-switch\ -Wno-unused-function\ -DNDEBUG #\ -Werror
 std=c99
 
 $compiler $src -std=$std $olvl $flags -o $output -g -fsanitize=address -fno-omit-frame-pointer

@@ -23,19 +23,20 @@ typedef struct {
     s64 lines;
     s64 comments;
 
+    List*         load_list;
     List*         extern_list;
     List*         link_list;
     Map*          symbol_map;
     Map*          macro_map;
     Stack*        timer_stack;
     List*         timer_list;
-    Type_Ref_List type_ref_list;
+    Type_Ref_List unresolved_types;
+    List*         variables_in_need_of_type_inference;
 
     string output_name;
     string source_file;
     char*  previous_file;
     string current_directory;
-    List*  file_list;
 } Thi;
 
 Thi            make_thi();
@@ -43,10 +44,9 @@ void           add_load(Thi* thi, char* loaded_file);
 void           add_link(Thi* thi, char* library_name);
 Type*          add_symbol(Thi* thi, char* name, Type* type);
 Type*          get_symbol(Thi* thi, char* name);
-Type_Ref_List* get_type_ref_list(Thi* thi);
 void           set_current_directory(Thi* thi, char* dir_name);
 char*          get_current_directory(Thi* thi);
-List*          get_file_list(Thi* thi);
+List*          get_load_list(Thi* thi);
 List*          get_link_list(Thi* thi);
 char*          get_output_name(Thi* thi);
 void           set_output_name(Thi* thi, char* name);

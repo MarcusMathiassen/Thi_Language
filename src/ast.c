@@ -1,5 +1,5 @@
 #include "ast.h"
-#include <assert.h>  // assert
+#include <assert.h>   // assert
 #include "lexer.h"    // token_kind_to_str,
 #include "string.h"   // strf, append_string, string
 #include "utility.h"  // info, success, error, warning, xmalloc, xrealloc
@@ -51,9 +51,9 @@ char* ast_to_str(AST* expr) {
     if (!expr) return "NULL";
     switch (expr->kind) {
         case AST_SIZEOF: return strf("sizeof %s", type_to_str(expr->Sizeof.type));
-        case AST_EXTERN: return strf("extern %s", ast_to_str(expr->Extern.node));
-        case AST_LOAD: return strf("load %s", ast_to_str(expr->Load.node));
-        case AST_LINK: return strf("link %s", ast_to_str(expr->Link.node));
+        case AST_EXTERN: return strf("extern %s", type_to_str(expr->Extern.type));
+        case AST_LOAD: return strf("load %s", expr->Load.str);
+        case AST_LINK: return strf("link %s", expr->Link.str);
         case AST_DEFER: return strf("defer %s", ast_to_str(expr->Defer.expr));
         case AST_BREAK: return "break";
         case AST_CONTINUE: return "continue";
@@ -168,13 +168,13 @@ char* ast_to_json(AST* expr) {
             result = strf("{\"%s\": {\"sizeof\": %s}}", ast_kind_to_str(expr->kind), type_to_str(expr->Sizeof.type));
         } break;
         case AST_EXTERN: {
-            result = strf("{\"%s\": {\"extern\": %s}}", ast_kind_to_str(expr->kind), ast_to_str(expr->Extern.node));
+            result = strf("{\"%s\": {\"extern\": %s}}", ast_kind_to_str(expr->kind), type_to_str(expr->Extern.type));
         } break;
         case AST_LOAD: {
-            result = strf("{\"%s\": {\"load\": %s}}", ast_kind_to_str(expr->kind), ast_to_str(expr->Load.node));
+            result = strf("{\"%s\": {\"load\": %s}}", ast_kind_to_str(expr->kind), expr->Load.str);
         } break;
         case AST_LINK: {
-            result = strf("{\"%s\": {\"link\": %s}}", ast_kind_to_str(expr->kind), ast_to_str(expr->Link.node));
+            result = strf("{\"%s\": {\"link\": %s}}", ast_kind_to_str(expr->kind), expr->Link.str);
         } break;
         case AST_CONTINUE: {
             result = strf("{\"%s\": {%s}}", ast_kind_to_str(expr->kind), "continue");
@@ -334,22 +334,22 @@ AST* make_ast_sizeof(Type* type) {
     e->Sizeof.type = type;
     return e;
 }
-AST* make_ast_extern(AST* node) {
-    assert(node);
+AST* make_ast_extern(Type* type) {
+    assert(type);
     AST* e         = make_ast(AST_EXTERN);
-    e->Extern.node = node;
+    e->Extern.type = type;
     return e;
 }
-AST* make_ast_load(AST* node) {
-    assert(node);
-    AST* e       = make_ast(AST_LOAD);
-    e->Load.node = node;
+AST* make_ast_load(char* str) {
+    assert(str);
+    AST* e      = make_ast(AST_LOAD);
+    e->Load.str = str;
     return e;
 }
-AST* make_ast_link(AST* node) {
-    assert(node);
-    AST* e       = make_ast(AST_LINK);
-    e->Link.node = node;
+AST* make_ast_link(char* str) {
+    assert(str);
+    AST* e      = make_ast(AST_LINK);
+    e->Link.str = str;
     return e;
 }
 

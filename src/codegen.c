@@ -121,6 +121,8 @@ char* generate_code_from_ast(List* ast);
 // @Hotpath
 Value* codegen_expr(Codegen_Context* ctx, AST* expr) {
     switch (expr->kind) {
+        case AST_LOAD: return NULL;
+        case AST_LINK: return NULL;
         case AST_EXTERN: return codegen_extern(ctx, expr);
         case AST_STRUCT: return codegen_struct(ctx, expr);
         case AST_ENUM: return codegen_enum(ctx, expr);
@@ -1131,7 +1133,7 @@ Value* codegen_enum(Codegen_Context* ctx, AST* expr) {
 Value* codegen_extern(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_EXTERN);
-    char* func_name = expr->Extern.node->Function.type->Function.name;
+    char* func_name = expr->Extern.type->Function.name;
     emit_extern(ctx, func_name);
     return NULL;
 }

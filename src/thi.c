@@ -1,28 +1,30 @@
 #include "thi.h"
 #include <assert.h>  // assert
 #include <string.h>  // strcmp
+#include "type.h"
 #include "utility.h"
 
 Thi make_thi() {
     Thi thi;
-    thi.lines                   = 0;
-    thi.comments                 = 0;
-    thi.detailed_print          = false;
-    thi.debug_mode              = false;
-    thi.enable_constant_folding = true;
-    thi.optimize                = true;
-    thi.extern_list             = make_list();
-    thi.link_list               = make_list();
-    thi.file_list               = make_list();
-    thi.timer_list              = make_list();
-    thi.symbol_map              = make_map();
-    thi.macro_map               = make_map();
-    thi.timer_stack             = make_stack();
-    thi.output_name             = make_string("");
-    thi.previous_file           = NULL;
-    thi.source_file             = make_string("");
-    thi.current_directory       = make_string("");
-    thi.type_ref_list           = make_type_ref_list();
+    thi.lines                               = 0;
+    thi.comments                            = 0;
+    thi.detailed_print                      = false;
+    thi.debug_mode                          = false;
+    thi.enable_constant_folding             = true;
+    thi.optimize                            = true;
+    thi.extern_list                         = make_list();
+    thi.link_list                           = make_list();
+    thi.load_list                           = make_list();
+    thi.timer_list                          = make_list();
+    thi.symbol_map                          = make_map();
+    thi.macro_map                           = make_map();
+    thi.timer_stack                         = make_stack();
+    thi.output_name                         = make_string("");
+    thi.previous_file                       = NULL;
+    thi.source_file                         = make_string("");
+    thi.current_directory                   = make_string("");
+    thi.unresolved_types                    = make_type_ref_list();
+    thi.variables_in_need_of_type_inference = make_list();
     return thi;
 }
 
@@ -38,17 +40,17 @@ char* get_previous_source_file(Thi* thi) { return thi->previous_file; }
 void  set_current_directory(Thi* thi, char* dir_name) { thi->current_directory = make_string(dir_name); }
 char* get_current_directory(Thi* thi) { return thi->current_directory.c_str; }
 
-List* get_file_list(Thi* thi) { return thi->file_list; }
+List* get_load_list(Thi* thi) { return thi->load_list; }
 
 void add_load(Thi* thi, char* loaded_file) {
     assert(loaded_file);
-    LIST_FOREACH(thi->file_list) {
+    LIST_FOREACH(thi->load_list) {
         char* l = (char*)it->data;
         if (strcmp(l, loaded_file) == 0) {
             return;
         }
     }
-    list_append(thi->file_list, loaded_file);
+    list_append(thi->load_list, loaded_file);
     info("added load: '%s'", loaded_file);
 }
 
@@ -64,8 +66,7 @@ void add_link(Thi* thi, char* library_name) {
     info("added link: '%s'", library_name);
 }
 
-List*          get_link_list(Thi* thi) { return thi->link_list; }
-Type_Ref_List* get_type_ref_list(Thi* thi) { return &thi->type_ref_list; }
+List* get_link_list(Thi* thi) { return thi->link_list; }
 
 void print_symbol_map(Thi* thi) {
     s64 count = thi->symbol_map->size;

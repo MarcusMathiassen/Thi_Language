@@ -5,8 +5,10 @@ load "includes/glfw.thi"
 load "includes/math.thi"
 
 def main() s32
-    if !glfwInit() puts("GLFW init failed.")
-    defer glfwTerminate()
+    if !glfwInit()
+        puts("GLFW init failed.")
+    defer 
+        glfwTerminate()
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1)
@@ -35,19 +37,27 @@ def main() s32
 
     while running
 
-        if glfwWindowShouldClose(window) running = false
-        if glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS running = false
+        if glfwWindowShouldClose(window) 
+            running = false
+        if glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS 
+            running = false
 
         glClear(GL_COLOR_BUFFER_BIT)
         glfwPollEvents()
 
-        if glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS  x += -0.001 
-        if glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS x +=  0.001 
-        if glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS  y += -0.001 
-        if glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS    y +=  0.001 
+        if glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS  
+            x += -0.001 
+        if glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS 
+            x +=  0.001 
+        if glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS  
+            y += -0.001 
+        if glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS    
+            y +=  0.001 
 
-        if glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS    scale +=  0.001 
-        if glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS    scale +=  -0.001 
+        if glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS    
+            scale +=  0.001 
+        if glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS    
+            scale +=  -0.001 
 
         draw_triangle(x, y, scale)
 

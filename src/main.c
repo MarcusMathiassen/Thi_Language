@@ -23,8 +23,10 @@
 //------------------------------------------------------------------------------
 //                               Main Driver
 //------------------------------------------------------------------------------
-void  pass_resolve_all_unresolved_types(Thi* thi, Type_Ref_List* unresolved_types);
-void  pass_find_and_add_all_definitions_to_symbol_table(Thi* thi, List* ast);
+void  add_all_definitions(Thi* thi, Parsed_File* pf);
+Type* get_inferred_type_of_expr(Thi* thi, AST* expr);
+void  pass_type_inference(Thi* thi);
+void  pass_resolve_all_unresolved_types(Thi* thi);
 List* parse(Thi* thi, char* source_file);
 void  assemble(Thi* thi, char* asm_file, char* exec_name);
 void  linking_stage(Thi* thi, char* exec_name);
@@ -126,11 +128,14 @@ int main(int argc, char** argv) {
     List* ast = parse(&thi, source_file);
 
     // Parse
-    LIST_FOREACH(get_file_list(&thi)) {
+    LIST_FOREACH(get_load_list(&thi)) {
         char* file  = strf("%s%s", get_current_directory(&thi), it->data);
         List* ast_l = parse(&thi, file);
         list_append_content_of(ast, ast_l);
     }
+
+    pass_resolve_all_unresolved_types(&thi);
+    pass_type_inference(&thi);
 
     // Codegen
     push_timer(&thi, "Codegen");
@@ -158,17 +163,19 @@ int main(int argc, char** argv) {
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
-    info("--- Compiler timings ---");
-    info("lines %lld comments %lld", thi.lines, thi.comments);
+    success("--- Compiler timings ---");
+    success("lines %lld comments %lld", thi.lines, thi.comments);
+    success("resolved %lld types", thi.unresolved_types.count);
+    success("type inferred %lld variables", thi.variables_in_need_of_type_inference->count);
     LIST_FOREACH(get_timers(&thi)) {
         Timer* tm      = (Timer*)it->data;
         s64    len     = strlen(tm->desc);
         char*  ms      = strf("%f seconds", tm->ms / 1e3);
         s64    ms_l    = strlen(ms);
         s64    padding = w.ws_col - len - ms_l - 1;  // -1 is the ':'
-        info("%s:%*s%s", tm->desc, padding, "", ms);
+        success("%s:%*s%s", tm->desc, padding, "", ms);
     }
-    info("---------------------------");
+    success("---------------------------");
 
     return 0;
 }
@@ -212,8 +219,7 @@ List* parse(Thi* thi, char* source_file) {
     Parsed_File pf     = generate_ast_from_tokens(lf.tokens);
     List*       ast    = pf.ast;
 
-    pass_find_and_add_all_definitions_to_symbol_table(thi, ast);
-    pass_resolve_all_unresolved_types(thi, &pf.unresolved_types);
+    add_all_definitions(thi, &pf);
 
     // print_symbol_map(thi);
     // print_tokens(tokens);
@@ -231,49 +237,59 @@ List* parse(Thi* thi, char* source_file) {
     return ast;
 }
 
-void pass_resolve_all_unresolved_types(Thi* thi, Type_Ref_List* unresolved_types) {
-    info("pass_resolve_all_unresolved_types");
-    push_timer(thi, "pass_resolve_all_unresolved_types");
-    for (s64 i = 0; i < unresolved_types->count; ++i) {
-        Type* t = unresolved_types->data[i];
-        *t      = *get_symbol(thi, get_type_name(t));
+void add_all_definitions(Thi* thi, Parsed_File* pf) {
+    list_append_content_of(thi->extern_list, pf->extern_list);
+
+    for (s64 i = 0; i < pf->unresolved_types.count; ++i) {
+        type_ref_list_append(&thi->unresolved_types, pf->unresolved_types.data[i]);
+    }
+    list_append_content_of(thi->variables_in_need_of_type_inference, pf->variables_in_need_of_type_inference);
+
+    LIST_FOREACH(pf->link_list) { add_link(thi, it->data); }
+    LIST_FOREACH(pf->load_list) { add_load(thi, it->data); }
+
+    s64 count = pf->symbol_map->size;
+    for (s64 i = 0; i < count; ++i) {
+        Type* type = pf->symbol_map->data[i].data;
+        add_symbol(thi, type->name, type);
+    }
+}
+
+Type* get_inferred_type_of_expr(Thi* thi, AST* expr) {
+    switch (expr->kind) {
+        case AST_SIZEOF: return expr->Sizeof.type;
+        case AST_CAST: return expr->Cast.type;
+        case AST_NOTE: return get_inferred_type_of_expr(thi, expr->Note.expr);
+        case AST_INT: return make_type_int(DEFAULT_INT_BYTE_SIZE, 0);
+        case AST_FLOAT: return make_type_float(DEFAULT_FLOAT_BYTE_SIZE);
+        case AST_STRING: return make_type_pointer(make_type_int(8, 1));
+        case AST_IDENT: return get_symbol(thi, expr->Ident.name);
+        case AST_CALL: return get_symbol(thi, expr->Call.callee)->Function.ret_type;
+        case AST_UNARY: return get_inferred_type_of_expr(thi, expr->Unary.operand);
+        case AST_BINARY: return get_inferred_type_of_expr(thi, expr->Binary.rhs);
+        case AST_GROUPING: return get_inferred_type_of_expr(thi, expr->Grouping.expr);
+        case AST_SUBSCRIPT: return get_inferred_type_of_expr(thi, expr->Subscript.load);
+        default: error("%s has no type", ast_kind_to_str(expr->kind));
+    }
+    return NULL;
+}
+
+void pass_type_inference(Thi* thi) {
+    info("pass_type_inference");
+    push_timer(thi, "pass_type_inference");
+    LIST_FOREACH(thi->variables_in_need_of_type_inference) {
+        AST* var_decl                = (AST*)it->data;
+        var_decl->Variable_Decl.type = get_inferred_type_of_expr(thi, var_decl->Variable_Decl.value);
     }
     pop_timer(thi);
 }
 
-void pass_find_and_add_all_definitions_to_symbol_table(Thi* thi, List* ast) {
-    info("pass_find_and_add_all_definitions_to_symbol_table");
-    push_timer(thi, "pass_find_and_add_all_definitions_to_symbol_table");
-    LIST_FOREACH(ast) {
-        AST* expr = (AST*)it->data;
-        switch (expr->kind) {
-            case AST_FUNCTION: {
-                char* func_name = expr->Function.type->Function.name;
-                add_symbol(thi, func_name, expr->Function.type);
-            } break;
-            case AST_ENUM: {
-                char* enum_name = expr->Enum.type->Enum.name;
-                add_symbol(thi, enum_name, expr->Enum.type);
-            } break;
-            case AST_STRUCT: {
-                char* struct_name = expr->Struct.type->Struct.name;
-                add_symbol(thi, struct_name, expr->Struct.type);
-            } break;
-            case AST_EXTERN: {
-                char* func_name = expr->Extern.node->Function.type->Function.name;
-                add_symbol(thi, func_name, expr->Extern.node->Function.type);
-            } break;
-            case AST_LOAD: {
-                char* file_name = expr->Load.node->String.val;
-                add_load(thi, file_name);
-                list_remove(ast, it);
-            } break;
-            case AST_LINK: {
-                char* link_name = expr->Link.node->String.val;
-                add_link(thi, link_name);
-                list_remove(ast, it);
-            } break;
-        }
+void pass_resolve_all_unresolved_types(Thi* thi) {
+    info("pass_resolve_all_unresolved_types %lld", thi->unresolved_types.count);
+    push_timer(thi, "pass_resolve_all_unresolved_types");
+    for (s64 i = 0; i < thi->unresolved_types.count; ++i) {
+        Type* t = (Type*)(thi->unresolved_types.data[i]);
+        *t      = *get_symbol(thi, get_type_name(t));
     }
     pop_timer(thi);
 }

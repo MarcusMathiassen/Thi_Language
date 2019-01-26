@@ -125,7 +125,7 @@ s64 type_array_get_count(Type* type) {
 }
 
 char* type_to_str(Type* type) {
-    if (!type) return "\"\"";
+    if (!type) return "";
     switch (type->kind) {
         case TYPE_UNRESOLVED: return strf("PLACEHOLDER(%s)", type->Unresolved.name);
         case TYPE_ARRAY: return strf("%s[%d]", type_to_str(type->Array.type), type->Array.size);
@@ -247,6 +247,7 @@ Type* make_type_pointer(Type* pointee) {
 Type* make_type_enum(char* name, List* members) {
     assert(name);
     Type* t         = make_type(TYPE_ENUM);
+    t->name         = name;
     t->Enum.name    = name;
     t->Enum.members = members;
     return t;
@@ -255,6 +256,7 @@ Type* make_type_enum(char* name, List* members) {
 Type* make_type_struct(char* name, List* members) {
     assert(name);
     Type* t           = make_type(TYPE_STRUCT);
+    t->name           = name;
     t->Struct.name    = name;
     t->Struct.members = members;
     return t;
@@ -263,6 +265,7 @@ Type* make_type_struct(char* name, List* members) {
 Type* make_type_function(char* name, List* args, Type* ret_type) {
     assert(name);
     Type* t              = make_type(TYPE_FUNCTION);
+    t->name              = name;
     t->Function.name     = name;
     t->Function.args     = args;
     t->Function.ret_type = ret_type;
