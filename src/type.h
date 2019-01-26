@@ -12,15 +12,15 @@ typedef struct Type    Type;
 typedef struct Arg     Arg;
 typedef enum Type_Kind Type_Kind;
 
-s64 get_offset_in_struct_to_field(Type* type, char* name);
-s64 get_size_of_underlying_type(Type* type);
-s64 get_size_of_type(Type* Type);
+s64   get_offset_in_struct_to_field(Type* type, char* name);
+s64   get_size_of_underlying_type(Type* type);
+s64   get_size_of_type(Type* Type);
 char* get_type_name(Type* Type);
 
 char* type_to_str(Type* type);
 char* type_kind_to_str(Type_Kind kind);
 
-Type* make_type_placeholder(char* name);
+Type* make_type_unresolved(char* name);
 Type* make_type_int(s8 bytes, bool is_unsigned);
 Type* make_type_float(s8 bytes);
 Type* make_type_string(s64 len);
@@ -34,7 +34,7 @@ s64 type_function_get_arg_count(Type* type);
 s64 type_array_get_count(Type* type);
 
 enum Type_Kind {
-    TYPE_PLACEHOLDER,
+    TYPE_UNRESOLVED,
 
     TYPE_INT,
     TYPE_FLOAT,
@@ -54,12 +54,12 @@ struct Arg {
 };
 
 struct Type {
-    char* name;
+    char*     name;
     Type_Kind kind;
     union {
         struct {
             char* name;
-        } Placeholder;
+        } Unresolved;
         struct {
             s8 bytes;
             s8 is_unsigned;
@@ -92,5 +92,14 @@ struct Type {
         } Function;
     };
 };
+
+typedef struct {
+    Type** data;
+    s64    count;
+    s64    allocated;
+} Type_Ref_List;
+
+Type_Ref_List make_type_ref_list();
+void          type_ref_list_append(Type_Ref_List* l, Type* t);
 
 #endif

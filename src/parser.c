@@ -70,7 +70,9 @@ struct {
 
 typedef struct {
     Token_Array tokens;
-    s64         token_index;
+
+    Type_Ref_List unresolved_types;
+    s64       token_index;
 
     Token      curr_tok;
     Token      prev_tok;
@@ -85,6 +87,7 @@ Parser_Context make_parser_context() {
     pctx.top_tok_kind      = TOKEN_UNKNOWN;
     pctx.curr_tok.kind     = TOKEN_UNKNOWN;
     pctx.last_if_statement = NULL;
+    pctx.unresolved_types  = make_type_ref_list();
     return pctx;
 }
 
@@ -679,8 +682,10 @@ Type* get_type(Parser_Context* pctx) {
     char* type_name = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
 
-    Type* type = make_type_placeholder(type_name);
+    Type* type = make_type_unresolved(type_name);
     type->name = type_name;
+    type_list_append(&pctx->unresolved_types, type);
+    list_append(type_list, type); // TODO(marcus) remove
 
     switch (pctx->curr_tok.kind) {
         case THI_SYNTAX_POINTER: {
@@ -700,7 +705,6 @@ Type* get_type(Parser_Context* pctx) {
         } break;
     }
 
-    list_append(type_list, type);
     return type;
 }
 

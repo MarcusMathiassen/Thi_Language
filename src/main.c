@@ -46,9 +46,9 @@ typedef struct {
 //------------------------------------------------------------------------------
 AST* constant_fold_expr(Thi_Context* tctx, AST* expr);
 
-void  type_resolution_pass(Thi_Context* tctx, List* ast);
-void  definitions_pass(Thi_Context* tctx, List* ast);
-void  resolve_type(Thi_Context* tctx, Type* type);
+void  pass_constant_fold(Thi_Context* tctx, List* ast);
+void  pass_resolve_all_unresolved_types(Thi_Context* tctx, List* ast);
+void  pass_find_and_add_all_definitions_to_symbol_table(Thi_Context* tctx, List* ast);
 List* parse(Thi_Context* tctx, char* source_file);
 
 void assemble(char* asm_file, char* exec_name);
@@ -255,23 +255,11 @@ List* parse(Thi_Context* tctx, char* source_file) {
 
     List* ast = generate_ast_from_tokens(tokens);
 
-    push_timer("Finding all definitions");
-    definitions_pass(tctx, ast);
-    pop_timer();
-    print_symbol_map();
+    pass_find_and_add_all_definitions_to_symbol_table(tctx, ast);
+    pass_resolve_all_unresolved_types(tctx, ast);
+    // pass_constant_fold(tctx, ast); // BUGGY
 
-    push_timer("Type resolution");
-    type_resolution_pass(tctx, ast);
-    pop_timer();
-    print_symbol_map();
-
-    // Constant folding
-    if (enable_constant_folding) {
-        push_timer("Constant Folding");
-        LIST_FOREACH(ast) { it->data = constant_fold_expr(tctx, it->data); }
-        pop_timer();
-    }
-
+    // print_symbol_map();
     // print_tokens(tokens);
     // print_ast(ast);
 
@@ -283,31 +271,19 @@ List* parse(Thi_Context* tctx, char* source_file) {
     return ast;
 }
 
-void resolve_type(Thi_Context* tctx, Type* type) {
-    switch (type->kind) {
-        case TYPE_PLACEHOLDER: *type = *get_symbol(type->Placeholder.name); break;
-        case TYPE_INT: break;
-        case TYPE_FLOAT: break;
-        case TYPE_STRING: break;
-        case TYPE_POINTER: resolve_type(tctx, type->Pointer.pointee); break;
-        case TYPE_ARRAY: resolve_type(tctx, type->Array.type); break;
-        case TYPE_ENUM: break;
-        case TYPE_STRUCT: break;
-        case TYPE_FUNCTION: break;
-        default: warning("not implemented resolve_type kind %d", type_kind_to_str(type->kind));
-    }
-}
-
-void type_resolution_pass(Thi_Context* tctx, List* ast) {
-    info("Type resolution..");
+void pass_resolve_all_unresolved_types(Thi_Context* tctx, List* ast) {
+    info("pass_resolve_all_unresolved_types");
+    push_timer("pass_resolve_all_unresolved_types");
     LIST_FOREACH(type_list) {
         Type* t = (Type*)it->data;
-        resolve_type(tctx, t);
+        *t = *get_symbol(get_type_name(t));
     }
+    pop_timer();
 }
 
-void definitions_pass(Thi_Context* tctx, List* ast) {
-    info("Finding all definition..");
+void pass_find_and_add_all_definitions_to_symbol_table(Thi_Context* tctx, List* ast) {
+    info("pass_find_and_add_all_definitions_to_symbol_table");
+    push_timer("pass_find_and_add_all_definitions_to_symbol_table");
     LIST_FOREACH(ast) {
         AST* expr_1 = (AST*)it->data;
         switch (expr_1->kind) {
@@ -339,6 +315,13 @@ void definitions_pass(Thi_Context* tctx, List* ast) {
             } break;
         }
     }
+    pop_timer();
+}
+
+void  pass_constant_fold(Thi_Context* tctx, List* ast) {
+    push_timer("Constant Folding");
+    LIST_FOREACH(ast) { it->data = constant_fold_expr(tctx, it->data); }
+    pop_timer();
 }
 
 AST* constant_fold_expr(Thi_Context* tctx, AST* expr) {
@@ -436,6 +419,19 @@ AST* constant_fold_expr(Thi_Context* tctx, AST* expr) {
         case AST_FUNCTION: {
             return constant_fold_expr(tctx, expr->Function.body);
         } break;
+        case AST_STRUCT: {
+            LIST_FOREACH(expr->Struct.type->Struct.members) {
+                AST* mem = (AST*)it->data;
+                mem = constant_fold_expr(tctx, mem);
+            }
+        } break;
+        case AST_ENUM: {
+            LIST_FOREACH(expr->Enum.type->Enum.members) {
+                AST* mem = (AST*)it->data;
+                mem = constant_fold_expr(tctx, mem);
+            }
+        } break;
+
         case AST_BLOCK: {
             LIST_FOREACH(expr->Block.stmts) {
                 AST* stmt = (AST*)it->data;
