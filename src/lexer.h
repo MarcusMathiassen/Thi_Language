@@ -21,7 +21,6 @@ typedef enum {
     TOKEN_LINK,
     TOKEN_EXTERN,
     TOKEN_LOAD,
-    TOKEN_DO,
     TOKEN_TRUE,
     TOKEN_FALSE,
     TOKEN_TYPE,

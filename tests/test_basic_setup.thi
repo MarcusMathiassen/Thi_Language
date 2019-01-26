@@ -19,7 +19,8 @@
 //    return 1
 
 
-main() s32
+def main() s32
+    i s64
     x vec2
     return 1
 

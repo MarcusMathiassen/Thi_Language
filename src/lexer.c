@@ -15,7 +15,7 @@ typedef enum {
     KEY_TYPE,
     KEY_TRUE,
     KEY_FALSE,
-    KEY_DO,
+    KEY_DEF,
     KEY_DEFER,
     KEY_EXTERN,
     KEY_LOAD,
@@ -80,7 +80,7 @@ char* intern(Intern_Array* intern_array, char* str);
 //------------------------------------------------------------------------------
 
 char* STATIC_KEYWORDS_ARRAY[KEY_COUNT] = {
-    "link", "type", "true", "false", "do",     "defer",  "extern", "load",  "cast",     "sizeof",
+    "link", "type", "true", "false", "def",     "defer",  "extern", "load",  "cast",     "sizeof",
     "if",   "else", "for",  "while", "return", "struct", "enum",   "break", "continue", "as",
 };
 
@@ -461,7 +461,7 @@ Token get_token(Lexer_Context* lctx) {
                 case KEY_TYPE: token.kind = TOKEN_TYPE; break;
                 case KEY_TRUE: token.kind = TOKEN_TRUE; break;
                 case KEY_FALSE: token.kind = TOKEN_FALSE; break;
-                case KEY_DO: token.kind = TOKEN_DO; break;
+                case KEY_DEF: token.kind = TOKEN_DEF; break;
                 case KEY_DEFER: token.kind = TOKEN_DEFER; break;
                 case KEY_EXTERN: token.kind = TOKEN_EXTERN; break;
                 case KEY_LOAD: token.kind = TOKEN_LOAD; break;
@@ -503,13 +503,12 @@ char* token_kind_to_str(Token_Kind kind) {
         case TOKEN_LINK: return "link";
         case TOKEN_EXTERN: return "extern";
         case TOKEN_LOAD: return "load";
-        case TOKEN_DO: return "do";
+        case TOKEN_DEF: return "def";
         case TOKEN_TRUE: return "true";
         case TOKEN_FALSE: return "false";
         case TOKEN_TYPE: return "type";
         case TOKEN_DEFER: return "defer";
         case TOKEN_IF: return "if";
-        case TOKEN_DEF: return "def";
         case TOKEN_ELSE: return "else";
         case TOKEN_FOR: return "for";
         case TOKEN_WHILE: return "while";

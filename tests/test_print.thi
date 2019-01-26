@@ -1,4 +1,4 @@
-main :: ( )  s32 {
+def main :: ( )  s32 {
     print 3
     ret 1
 }

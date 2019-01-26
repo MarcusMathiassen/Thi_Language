@@ -1,5 +1,4 @@
-
-main ()  s32 
+def main ()  s32 
     a s32 = cast(s64)(1)
     b s64 = 2
     c f32 = cast(f64)(3.0)

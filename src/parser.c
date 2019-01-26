@@ -121,6 +121,7 @@ AST* parse_continue(Parser_Context* pctx);
 AST* parse_string(Parser_Context* pctx);
 AST* parse_sizeof(Parser_Context* pctx);
 AST* parse_cast(Parser_Context* pctx);
+AST* parse_def(Parser_Context* pctx);
 AST* parse_enum(Parser_Context* pctx);
 AST* parse_struct(Parser_Context* pctx);
 
@@ -176,8 +177,8 @@ AST* parse_top_level(Parser_Context* pctx) {
     DEBUG_START;
     pctx->top_tok_kind = pctx->curr_tok.kind;
     switch (pctx->curr_tok.kind) {
-        case TOKEN_BLOCK_START: return parse_block(pctx);
         case TOKEN_IDENTIFIER: return parse_identifier(pctx);
+        case TOKEN_DEF: return parse_def(pctx);
         case TOKEN_ENUM: return parse_enum(pctx);
         case TOKEN_STRUCT: return parse_struct(pctx);
         case TOKEN_EXTERN: return parse_extern(pctx);
@@ -191,9 +192,9 @@ AST* parse_top_level(Parser_Context* pctx) {
 AST* parse_statement(Parser_Context* pctx) {
     DEBUG_START;
     switch (pctx->curr_tok.kind) {
+        case TOKEN_DEF: return parse_def(pctx);
         case TOKEN_ENUM: return parse_enum(pctx);
         case TOKEN_STRUCT: return parse_struct(pctx);
-        case TOKEN_BLOCK_START: return parse_block(pctx);
         case TOKEN_IDENTIFIER: return parse_expression(pctx);
         case TOKEN_RETURN: return parse_return(pctx);
         case TOKEN_BREAK: return parse_break(pctx);
@@ -250,6 +251,16 @@ AST* parse_struct(Parser_Context* pctx) {
     eat_kind(pctx, TOKEN_IDENTIFIER);
     Type* type = parse_struct_signature(pctx, ident);
     return make_ast_struct(type);
+}
+
+AST* parse_def(Parser_Context* pctx) {
+    DEBUG_START;
+    eat_kind(pctx, TOKEN_DEF);
+    char* ident = pctx->curr_tok.value;
+    eat_kind(pctx, TOKEN_IDENTIFIER);
+    Type* type = parse_function_signature(pctx, ident);
+    AST* body = parse_block(pctx);
+    return make_ast_function(type, body);
 }
 
 AST* parse_enum(Parser_Context* pctx) {
@@ -353,11 +364,8 @@ AST* parse_if(Parser_Context* pctx) {
 AST* parse_sizeof(Parser_Context* pctx) {
     DEBUG_START;
     eat_kind(pctx, TOKEN_SIZEOF);
-    eat_kind(pctx, TOKEN_OPEN_PAREN);
-    Type* t = get_type(pctx);
-    eat_kind(pctx, TOKEN_CLOSE_PAREN);
-    s64 size = get_size_of_type(t);
-    return make_ast_int(size);
+    Type* type = get_type(pctx);
+    return make_ast_sizeof(type);
 }
 
 AST* parse_string(Parser_Context* pctx) {

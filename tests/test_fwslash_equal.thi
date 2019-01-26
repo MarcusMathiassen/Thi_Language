@@ -1,4 +1,4 @@
-main ()  s32 
+def main ()  s32 
     a := 4
     a /= 2
     return a - 1

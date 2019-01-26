@@ -47,6 +47,8 @@ enum AST_Kind {
     AST_BREAK,
     AST_CONTINUE,
 
+    AST_SIZEOF,
+
     AST_COUNT
 };
 
@@ -174,7 +176,9 @@ typedef struct {
     Type* type;
     AST*  expr;
 } AST_Cast;
-
+typedef struct {
+    Type* type;
+} AST_Sizeof;
 struct AST {
     AST_Kind kind;
     Type*    type;
@@ -210,6 +214,7 @@ struct AST {
 
         AST_Break    Break;
         AST_Continue Continue;
+        AST_Sizeof Sizeof;
     };
 };
 
@@ -239,12 +244,14 @@ AST* make_ast_while(AST* cond, AST* then_block);
 AST* make_ast_return(AST* expr);
 AST* make_ast_defer(AST* expr);
 AST* make_ast_cast(AST* expr, Type* type);
+AST* make_ast_sizeof(Type* type);
+
+AST* ast_replace(AST* this, AST* that);
 
 AST* make_ast_break();
 AST* make_ast_continue();
 
 AST*  get_arg_from_func(Type* func_t, s64 arg_index);
-AST*  constant_fold_expr(AST* expr);
 
 void print_ast(List* ast);
 void print_ast_json(List* ast);

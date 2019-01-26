@@ -1,3 +1,2 @@
-main ()  s32  
-    return sizeof(s64) - 7
-
+def main ()  s32  
+    return sizeof s64 - 1

@@ -1,8 +1,8 @@
-Person
+struct Person
     age s64
 
 
-main ()  s32 
+def main ()  s32 
     p Person
     p.age = 65
     i := 0

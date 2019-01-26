@@ -1,12 +1,12 @@
-Child
+struct Child
     c s32
 
 
-Parent
+struct Parent
     b Child
 
 
-main ()  s32 
+def main ()  s32 
     a Parent
     a.b.c = 1
     return a.b.c

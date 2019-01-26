@@ -41,6 +41,16 @@ s64 get_size_of_underlying_type(Type* type) {
     return 0;
 }
 
+char* get_type_name(Type* type) {
+    switch (type->kind) {
+        case TYPE_PLACEHOLDER: return type->Placeholder.name;
+        case TYPE_STRUCT: return type->Struct.name;
+        case TYPE_ENUM: return type->Enum.name;
+        case TYPE_FUNCTION: return type->Function.name;
+    }
+    return NULL;
+}
+
 s64 get_size_of_type(Type* type) {
     switch (type->kind) {
         case TYPE_PLACEHOLDER: return 0;
@@ -109,7 +119,7 @@ s64 type_array_get_count(Type* type) {
 char* type_to_str(Type* type) {
     if (!type) return "\"\"";
     switch (type->kind) {
-        case TYPE_PLACEHOLDER: return strf("PLACEHOLDER %s", type->Placeholder.name);
+        case TYPE_PLACEHOLDER: return strf("PLACEHOLDER(%s)", type->Placeholder.name);
         case TYPE_ARRAY: return strf("%s[%d]", type_to_str(type->Array.type), type->Array.size);
         case TYPE_INT: return strf(type->Int.is_unsigned ? "u%d" : "s%d", type->Int.bytes * 8);
         case TYPE_POINTER: return strf("%s*", type_to_str(type->Pointer.pointee));

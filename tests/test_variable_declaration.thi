@@ -1,4 +1,4 @@
-main ()  s32 
+def main ()  s32 
     a s32 = 1
     b s64
     c s32 = 3

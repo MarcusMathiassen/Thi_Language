@@ -1,5 +1,5 @@
 // Hello
-main ()  s32 
+def main ()  s32 
     return 1
     // Hello
     // Hello

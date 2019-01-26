@@ -1,8 +1,8 @@
-DeviceType
+enum DeviceType
     GPU :: 0
     CPU :: 1
 
 
-main ()  s32 
+def main ()  s32 
     return 1
 

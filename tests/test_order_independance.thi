@@ -1,5 +1,5 @@
-main ()  s32
+def main ()  s32
     return get_integer(1)
 
-get_integer(i s32)  s32
+def get_integer(i s32)  s32
     return i

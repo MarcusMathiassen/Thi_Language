@@ -1,4 +1,4 @@
-sqrt (n f64) f64
+def sqrt (n f64) f64
     lo f64 = 0.0
     hi f64 = 0.0
     mi f64 = 0.0

@@ -6,7 +6,7 @@ extern system (u8*)  s32
 
 EOF :: -1
 
-puts(c u8*)  s32
+def puts(c u8*)  s32
     i := 0
     while *(c+sizeof(char)*i)
         if putchar(*(c+sizeof(char)*i)) == EOF
@@ -16,7 +16,7 @@ puts(c u8*)  s32
         return EOF
     return 1
 
-main ()  s32 
+def main ()  s32 
 
     a u8* = "65"
     //putchar(a[0])

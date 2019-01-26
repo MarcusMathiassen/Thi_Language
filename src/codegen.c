@@ -88,6 +88,7 @@ void   emit_cast_float_to_int(Codegen_Context* ctx, char* reg, Type* type);
 void   emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg);
 void   emit_store(Codegen_Context* ctx, Value* variable);
 void   emit_load(Codegen_Context* ctx, Value* variable);
+Value* codegen_sizeof(Codegen_Context* ctx, AST* expr);
 Value* codegen_extern(Codegen_Context* ctx, AST* expr);
 Value* codegen_unary(Codegen_Context* ctx, AST* expr);
 Value* codegen_binary(Codegen_Context* ctx, AST* expr);

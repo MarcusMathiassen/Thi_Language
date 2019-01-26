@@ -15,6 +15,7 @@
 
 char* ast_kind_to_str(AST_Kind kind) {
     switch (kind) {
+        case AST_SIZEOF: return "AST_SIZEOF";
         case AST_EXTERN: return "AST_EXTERN";
         case AST_LOAD: return "AST_LOAD";
         case AST_LINK: return "AST_LINK";
@@ -50,6 +51,7 @@ char* ast_kind_to_str(AST_Kind kind) {
 char* ast_to_str(AST* expr) {
     if (!expr) return "NULL";
     switch (expr->kind) {
+        case AST_SIZEOF: return strf("sizeof %s", type_to_str(expr->Sizeof.type));
         case AST_EXTERN: return strf("extern %s", ast_to_str(expr->Extern.node));
         case AST_LOAD: return strf("load %s", ast_to_str(expr->Load.node));
         case AST_LINK: return strf("link %s", ast_to_str(expr->Link.node));
@@ -163,6 +165,9 @@ char* ast_to_json(AST* expr) {
     if (!expr) return "\"NULL\"";
     char* result = NULL;
     switch (expr->kind) {
+        case AST_SIZEOF: {
+            result = strf("{\"%s\": {\"sizeof\": %s}}", ast_kind_to_str(expr->kind), type_to_str(expr->Sizeof.type));
+        } break;
         case AST_EXTERN: {
             result = strf("{\"%s\": {\"extern\": %s}}", ast_kind_to_str(expr->kind), ast_to_str(expr->Extern.node));
         } break;
@@ -285,134 +290,6 @@ AST* get_arg_from_func(Type* func_t, s64 arg_index) {
     return expr;
 }
 
-AST* constant_fold_expr(AST* expr) {
-    assert(expr);
-
-    info("constant_fold_expr %s: %s", ast_kind_to_str(expr->kind), ast_to_str(expr));
-
-    switch (expr->kind) {
-        case AST_EXTERN: return expr;
-        case AST_LOAD: return expr;
-        case AST_LINK: return expr;
-        case AST_CONTINUE: return expr;
-        case AST_BREAK: return expr;
-        case AST_INT: return expr;
-        case AST_STRING: return expr;
-        case AST_FLOAT: return expr;
-        case AST_NOTE: return expr;
-        case AST_DEFER: {
-            expr->Defer.expr = constant_fold_expr(expr->Defer.expr);
-        } break;
-        case AST_RETURN: {
-            if (expr->Return.expr) {
-                expr->Return.expr = constant_fold_expr(expr->Return.expr);
-            }
-        } break;
-        case AST_IDENT: {
-            AST* macro_expr = get_macro_def(expr->Ident.name);
-            if (macro_expr) {
-                expr = constant_fold_expr(macro_expr);
-            }
-        } break;
-        case AST_CALL: {
-            LIST_FOREACH(expr->Call.args) {
-                AST* arg = (AST*)it->data;
-                it->data = constant_fold_expr(arg);
-            }
-        } break;
-        case AST_UNARY: {
-            AST* oper = expr->Unary.operand;
-            oper      = constant_fold_expr(oper);
-            if (oper->kind == AST_INT) {
-                Token_Kind op     = expr->Unary.op;
-                s64        oper_v = oper->Int.val;
-                s64        value  = 0;
-                switch (op) {
-                    case TOKEN_BANG: value = !oper_v; break;
-                    case TOKEN_PLUS: value = oper_v; break;
-                    case TOKEN_TILDE: value = ~oper_v; break;
-                    case TOKEN_MINUS: value = -oper_v; break;
-                    default: error("constant_fold_expr unary %s not implemented", token_kind_to_str(op));
-                }
-                info("folded %s into %lld", ast_to_str(expr), value);
-                expr = make_ast_int(value);
-            }
-        } break;
-        case AST_BINARY: {
-            Token_Kind op  = expr->Binary.op;
-            AST*       lhs = expr->Binary.lhs;
-            AST*       rhs = expr->Binary.rhs;
-            lhs            = constant_fold_expr(lhs);
-            rhs            = constant_fold_expr(rhs);
-            if (op == TOKEN_EQ) expr = make_ast_binary(TOKEN_EQ, lhs, rhs);
-            if (lhs->kind == AST_INT && rhs->kind == AST_INT) {
-                s64 lhs_v = lhs->Int.val;
-                s64 rhs_v = rhs->Int.val;
-                s64 value = 0;
-                switch (op) {
-                    case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
-                    case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
-                    case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
-                    case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
-                    case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
-                    case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
-                    case TOKEN_AND: value = (lhs_v & rhs_v); break;
-                    case TOKEN_PIPE: value = (lhs_v | rhs_v); break;
-                    case TOKEN_LT: value = (lhs_v < rhs_v); break;
-                    case TOKEN_GT: value = (lhs_v > rhs_v); break;
-                    case TOKEN_GT_GT: value = (lhs_v >> rhs_v); break;
-                    case TOKEN_LT_LT: value = (lhs_v << rhs_v); break;
-                    case TOKEN_PERCENT: value = (lhs_v % rhs_v); break;
-                    case TOKEN_HAT: value = (lhs_v ^ rhs_v); break;
-                    case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
-                    case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
-                    default: error("constant_fold_expr binary %s not implemented", token_kind_to_str(op));
-                }
-                info("folded %s into %lld", ast_to_str(expr), value);
-                expr = make_ast_int(value);
-            }
-        } break;
-        case AST_VARIABLE_DECL: {
-            if (expr->Variable_Decl.value) expr->Variable_Decl.value = constant_fold_expr(expr->Variable_Decl.value);
-        } break;
-        case AST_FUNCTION: {
-            return constant_fold_expr(expr->Function.body);
-        } break;
-        case AST_BLOCK: {
-            LIST_FOREACH(expr->Block.stmts) {
-                AST* stmt = (AST*)it->data;
-                it->data  = constant_fold_expr(stmt);
-            }
-        } break;
-        case AST_GROUPING: {
-            expr->Grouping.expr = constant_fold_expr(expr->Grouping.expr);
-        } break;
-        case AST_CAST: {
-            expr = constant_fold_expr(expr->Cast.expr);
-        } break;
-        case AST_SUBSCRIPT: {
-            expr->Subscript.load = constant_fold_expr(expr->Subscript.load);
-            expr->Subscript.sub  = constant_fold_expr(expr->Subscript.sub);
-        } break;
-        case AST_IF: {
-            expr->If.cond       = constant_fold_expr(expr->If.cond);
-            expr->If.then_block = constant_fold_expr(expr->If.then_block);
-        } break;
-        case AST_FOR: {
-            expr->For.init       = constant_fold_expr(expr->For.init);
-            expr->For.cond       = constant_fold_expr(expr->For.cond);
-            expr->For.step       = constant_fold_expr(expr->For.step);
-            expr->For.then_block = constant_fold_expr(expr->For.then_block);
-        } break;
-        case AST_WHILE: {
-            expr->While.cond       = constant_fold_expr(expr->While.cond);
-            expr->While.then_block = constant_fold_expr(expr->While.then_block);
-        } break;
-        default: error("constant_fold_expr %s not implemented", ast_kind_to_str(expr->kind));
-    }
-    return expr;
-}
-
 void print_ast(List* ast) {
     info("Printing AST..");
     LIST_FOREACH(ast) {
@@ -439,12 +316,25 @@ void print_ast_json(List* ast) {
 //                               AST* Maker Functions
 //------------------------------------------------------------------------------
 
+AST* ast_replace(AST* this, AST* that) {
+    assert(this);
+    assert(that);
+    // free(this);
+    return that;
+}
+
 AST* make_ast(AST_Kind kind) {
     AST* e  = xmalloc(sizeof(AST));
     e->kind = kind;
     return e;
 }
 
+AST* make_ast_sizeof(Type* type) {
+    assert(type);
+    AST* e         = make_ast(AST_SIZEOF);
+    e->Sizeof.type = type;
+    return e;
+}
 AST* make_ast_extern(AST* node) {
     assert(node);
     AST* e         = make_ast(AST_EXTERN);

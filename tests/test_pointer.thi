@@ -1,6 +1,6 @@
 extern malloc(u64)  void*
 
-main ()  s32 
+def main ()  s32 
     c s64* = malloc(sizeof(s64))
     c[0] = 1
     return c[0]

@@ -1,4 +1,4 @@
-main()s32
+def main()s32
     i:=0
     if 1 < 0 i = 0
     else if 2 < 1 i = 3

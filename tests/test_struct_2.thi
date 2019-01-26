@@ -1,15 +1,15 @@
-bar
+struct bar
     a s32
     b s64
     c f32
 
 
-foo
+struct foo
     a bar
     b bar
 
 
-main ()  s32 
+def main ()  s32 
     a bar
     b foo
     return 1

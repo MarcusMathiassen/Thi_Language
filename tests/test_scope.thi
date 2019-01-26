@@ -1,5 +1,4 @@
-
-main ()  s32 
+def main ()  s32 
     x s32 = 2
     if x == 2 
         x = 1

@@ -1,4 +1,4 @@
-main ()  s32 
+def main ()  s32 
     f := 5.3
     return 1
 

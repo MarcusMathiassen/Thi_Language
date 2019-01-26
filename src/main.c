@@ -44,39 +44,14 @@ typedef struct {
 //------------------------------------------------------------------------------
 //                               Main Driver
 //------------------------------------------------------------------------------
-void  ast_type_resolution_pass(Thi_Context* tctx, List* ast);
-void  ast_definitions_pass(Thi_Context* tctx, List* ast);
+AST*  constant_fold_expr(Thi_Context* tctx, AST* expr);
+void  type_resolution_pass(Thi_Context* tctx, List* ast);
+void  definitions_pass(Thi_Context* tctx, List* ast);
 Type* get_inferred_type_of_expr(Thi_Context* tctx, AST* expr);
-
 List* parse(Thi_Context* tctx, char* source_file);
 
 void assemble(char* asm_file, char* exec_name);
 void linking_stage(char* exec_name);
-
-/*
-    Figure out all the files that are loaded by the source.
-*/
-Thi_Context make_thi_context() {
-    Thi_Context t;
-
-    t.detailed_print          = false;
-    t.debug_mode              = false;
-    t.enable_constant_folding = true;
-    t.optimize                = true;
-    t.extern_list             = make_list();
-    t.link_list               = make_list();
-    t.file_list               = make_list();
-    t.timer_list              = make_list();
-    t.symbol_map              = make_map();
-    t.macro_map               = make_map();
-    t.timer_stack             = make_stack();
-    t.output_name             = make_string("");
-    t.previous_file           = NULL;
-    t.source_file             = make_string("");
-    t.current_directory       = make_string("");
-
-    return t;
-}
 
 int main(int argc, char** argv) {
     // Argument validation
@@ -90,7 +65,22 @@ int main(int argc, char** argv) {
 
     initilize_globals();
 
-    Thi_Context tctx = make_thi_context();
+    Thi_Context tctx;
+    tctx.detailed_print          = false;
+    tctx.debug_mode              = false;
+    tctx.enable_constant_folding = true;
+    tctx.optimize                = true;
+    tctx.extern_list             = make_list();
+    tctx.link_list               = make_list();
+    tctx.file_list               = make_list();
+    tctx.timer_list              = make_list();
+    tctx.symbol_map              = make_map();
+    tctx.macro_map               = make_map();
+    tctx.timer_stack             = make_stack();
+    tctx.output_name             = make_string("");
+    tctx.previous_file           = NULL;
+    tctx.source_file             = make_string("");
+    tctx.current_directory       = make_string("");
 
     add_link("-lSystem");
 
@@ -265,24 +255,22 @@ List* parse(Thi_Context* tctx, char* source_file) {
     List* ast = generate_ast_from_tokens(tokens);
 
     push_timer("Finding all definitions");
-    ast_definitions_pass(tctx, ast);
+    definitions_pass(tctx, ast);
     pop_timer();
     push_timer("Type resolution");
-    ast_type_resolution_pass(tctx, ast);
+    type_resolution_pass(tctx, ast);
     pop_timer();
+
+    print_symbol_map();
 
     // Constant folding
     if (enable_constant_folding) {
         push_timer("Constant Folding");
-        LIST_FOREACH(ast) {
-            AST* expr = (AST*)it->data;
-            expr      = constant_fold_expr(expr);
-        }
+        LIST_FOREACH(ast) { it->data = constant_fold_expr(tctx, it->data); }
         pop_timer();
     }
 
     // print_tokens(tokens);
-    // print_symbol_map();
     // print_ast(ast);
 
     pop_timer();
@@ -298,13 +286,21 @@ Type* get_inferred_type_of_expr(Thi_Context* tctx, AST* expr) {
         case AST_EXTERN:
         case AST_LOAD:
         case AST_LINK:
-        case AST_BLOCK:
+        case AST_IF:
+        case AST_FOR:
+        case AST_WHILE:
         case AST_BREAK:
         case AST_CONTINUE:
         case AST_DEFER: return NULL;
         case AST_RETURN:
             if (expr->Return.expr) return get_inferred_type_of_expr(tctx, expr->Return.expr);
 
+        case AST_SIZEOF: {
+            if (expr->Sizeof.type->kind == TYPE_PLACEHOLDER) {
+                expr->Sizeof.type = get_symbol(get_type_name(expr->Sizeof.type));
+            }
+            return expr->Sizeof.type;
+        } break;
         case AST_CAST: return expr->Cast.type;
         case AST_NOTE: return get_inferred_type_of_expr(tctx, expr->Note.expr);
         case AST_INT: return make_type_int(DEFAULT_INT_BYTE_SIZE, 0);
@@ -314,22 +310,42 @@ Type* get_inferred_type_of_expr(Thi_Context* tctx, AST* expr) {
         case AST_CALL: return get_symbol(expr->Call.callee)->Function.ret_type;
         case AST_UNARY: return get_inferred_type_of_expr(tctx, expr->Unary.operand);
         case AST_BINARY: return get_inferred_type_of_expr(tctx, expr->Binary.rhs);
-        case AST_VARIABLE_DECL: return expr->Variable_Decl.type;
-        case AST_FUNCTION: return expr->Function.type->Function.ret_type;
-        case AST_STRUCT: {
-                List* members = expr->Struct.type->Struct.members;
-                LIST_FOREACH(members) {
-                    AST* mem = (AST*)it->data;
-                    // if (mem->kind == Variable_Decl) {
-                        // mem->Variable_Decl->type = get_inferred_type_of_expr(mem);
-                    // }
-                }
-
+        case AST_VARIABLE_DECL: {
+            if (expr->Variable_Decl.type->kind == TYPE_PLACEHOLDER) {
+                expr->Variable_Decl.type = get_symbol(get_type_name(expr->Variable_Decl.type));
+            }
+            return expr->Variable_Decl.type;
         } break;
-
-
-        return get_symbol(expr->Struct.type->Struct.name);
-        case AST_ENUM: return get_symbol(expr->Struct.type->Struct.name);
+        case AST_FUNCTION: {
+            AST* body  = expr->Function.body;
+            expr->type = get_inferred_type_of_expr(tctx, body);
+        } break;
+        case AST_STRUCT: {
+            char* type_name = get_type_name(expr->Struct.type);
+            List* members   = expr->Struct.type->Struct.members;
+            LIST_FOREACH(members) {
+                AST*  stmt = (AST*)it->data;
+                Type* type = get_inferred_type_of_expr(tctx, stmt);
+                stmt->type = type;
+            }
+            return get_symbol(type_name);
+        } break;
+        case AST_ENUM: {
+            char* type_name = get_type_name(expr->Enum.type);
+            List* members   = expr->Enum.type->Enum.members;
+            LIST_FOREACH(members) {
+                AST*  stmt = (AST*)it->data;
+                Type* type = get_inferred_type_of_expr(tctx, stmt);
+                stmt->type = type;
+            }
+            return get_symbol(type_name);
+        } break;
+        case AST_BLOCK: {
+            LIST_FOREACH(expr->Block.stmts) {
+                AST* stmt  = (AST*)it->data;
+                stmt->type = get_inferred_type_of_expr(tctx, stmt);
+            }
+        } break;
         case AST_GROUPING: return get_inferred_type_of_expr(tctx, expr->Grouping.expr);
         case AST_SUBSCRIPT: return get_inferred_type_of_expr(tctx, expr->Subscript.load);
         default: error("%s has no type", ast_kind_to_str(expr->kind));
@@ -337,44 +353,30 @@ Type* get_inferred_type_of_expr(Thi_Context* tctx, AST* expr) {
     return NULL;
 }
 
-void ast_type_resolution_pass(Thi_Context* tctx, List* ast) {
+void type_resolution_pass(Thi_Context* tctx, List* ast) {
     info("Type resolution..");
     LIST_FOREACH(ast) {
-        AST*  expr_1 = (AST*)it->data;
-        Type* type   = get_inferred_type_of_expr(tctx, expr_1);
-
-        if (!type) continue;
-
-
-        warning("before %s", ast_to_str(expr_1));
-        warning("%s", type_to_str(type));
-        if (type->kind == TYPE_PLACEHOLDER) {
-            type = get_symbol(type->Placeholder.name);
-        }
-
-        if (expr_1->kind == AST_VARIABLE_DECL) {
-            expr_1->Variable_Decl.type = type;
-        }
-        warning("after %s", ast_to_str(expr_1));
-
-        expr_1->type = type;
+        AST* expr_1  = (AST*)it->data;
+        expr_1->type = get_inferred_type_of_expr(tctx, expr_1);
     }
 }
-void ast_definitions_pass(Thi_Context* tctx, List* ast) {
+
+void definitions_pass(Thi_Context* tctx, List* ast) {
     info("Finding all definition..");
     LIST_FOREACH(ast) {
         AST* expr_1 = (AST*)it->data;
-
         switch (expr_1->kind) {
+            case AST_FUNCTION: {
+                char* func_name = expr_1->Function.type->Function.name;
+                add_symbol(func_name, expr_1->Function.type);
+            } break;
             case AST_ENUM: {
                 char* enum_name = expr_1->Enum.type->Enum.name;
                 add_symbol(enum_name, expr_1->Enum.type);
-                list_remove(ast, it);
             } break;
             case AST_STRUCT: {
                 char* struct_name = expr_1->Struct.type->Struct.name;
                 add_symbol(struct_name, expr_1->Struct.type);
-                list_remove(ast, it);
             } break;
             case AST_EXTERN: {
                 char* func_name = expr_1->Extern.node->Function.type->Function.name;
@@ -385,50 +387,141 @@ void ast_definitions_pass(Thi_Context* tctx, List* ast) {
                 list_append(file_list, file_name);
                 list_remove(ast, it);
             } break;
-
             case AST_LINK: {
                 char* link_name = expr_1->Link.node->String.val;
                 add_link(link_name);
                 list_remove(ast, it);
             } break;
-
-            case AST_CALL: {
-                if (it->next) {
-                    AST* expr_2 = (AST*)it->next->data;
-                    if (expr_2->kind == AST_BLOCK) {
-                        char* func_name = expr_1->Call.callee;
-                        List* args      = expr_1->Call.args;
-                        AST*  body      = expr_2;
-
-                        Type* type = make_type_function(func_name, args, NULL);
-                        add_symbol(func_name, type);
-
-                        list_append(ast, make_ast_function(type, body));
-                        list_remove(ast, it->next);
-                        list_remove(ast, it);
-                    }
-
-                    if (it->next->next) {
-                        AST* expr_3 = (AST*)it->next->next->data;
-                        if (expr_1->kind == AST_CALL && expr_2->kind == AST_IDENT && expr_3->kind == AST_BLOCK) {
-                            char* func_name     = expr_1->Call.callee;
-                            char* ret_type_name = expr_2->Ident.name;
-
-                            Type* ret_type = get_symbol(ret_type_name);
-                            AST*  body     = expr_3;
-                            List* args     = expr_1->Call.args;
-
-                            Type* type = make_type_function(func_name, args, ret_type);
-                            add_symbol(func_name, type);
-
-                            list_append(ast, make_ast_function(type, body));
-                            list_remove(ast, it->next->next);
-                            list_remove(ast, it->next);
-                            list_remove(ast, it);
-                        }
-                    }
-                }
-            } break;
         }
     }
+}
+
+AST* constant_fold_expr(Thi_Context* tctx, AST* expr) {
+    assert(expr);
+
+    info("constant_fold_expr %s: %s", ast_kind_to_str(expr->kind), ast_to_str(expr));
+
+    switch (expr->kind) {
+        case AST_SIZEOF: return ast_replace(expr, make_ast_int(get_size_of_type(expr->Sizeof.type)));
+        case AST_EXTERN: return expr;
+        case AST_LOAD: return expr;
+        case AST_LINK: return expr;
+        case AST_CONTINUE: return expr;
+        case AST_BREAK: return expr;
+        case AST_INT: return expr;
+        case AST_STRING: return expr;
+        case AST_FLOAT: return expr;
+        case AST_NOTE: return expr;
+        case AST_DEFER: {
+            expr->Defer.expr = constant_fold_expr(tctx, expr->Defer.expr);
+        } break;
+        case AST_RETURN: {
+            if (expr->Return.expr) {
+                expr->Return.expr = constant_fold_expr(tctx, expr->Return.expr);
+            }
+        } break;
+        case AST_IDENT: {
+            AST* macro_expr = get_macro_def(expr->Ident.name);
+            if (macro_expr) {
+                expr = constant_fold_expr(tctx, macro_expr);
+            }
+        } break;
+        case AST_CALL: {
+            LIST_FOREACH(expr->Call.args) {
+                AST* arg = (AST*)it->data;
+                it->data = constant_fold_expr(tctx, arg);
+            }
+        } break;
+        case AST_UNARY: {
+            AST* oper = expr->Unary.operand;
+            oper      = constant_fold_expr(tctx, oper);
+            if (oper->kind == AST_INT) {
+                Token_Kind op     = expr->Unary.op;
+                s64        oper_v = oper->Int.val;
+                s64        value  = 0;
+                switch (op) {
+                    case TOKEN_BANG: value = !oper_v; break;
+                    case TOKEN_PLUS: value = oper_v; break;
+                    case TOKEN_TILDE: value = ~oper_v; break;
+                    case TOKEN_MINUS: value = -oper_v; break;
+                    default: error("constant_fold_expr unary %s not implemented", token_kind_to_str(op));
+                }
+                info("folded %s into %lld", ast_to_str(expr), value);
+                expr = make_ast_int(value);
+            }
+        } break;
+        case AST_BINARY: {
+            Token_Kind op  = expr->Binary.op;
+            AST*       lhs = expr->Binary.lhs;
+            AST*       rhs = expr->Binary.rhs;
+            lhs            = constant_fold_expr(tctx, lhs);
+            rhs            = constant_fold_expr(tctx, rhs);
+            if (op == TOKEN_EQ) expr = make_ast_binary(TOKEN_EQ, lhs, rhs);
+            if (lhs->kind == AST_INT && rhs->kind == AST_INT) {
+                s64 lhs_v = lhs->Int.val;
+                s64 rhs_v = rhs->Int.val;
+                s64 value = 0;
+                switch (op) {
+                    case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
+                    case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
+                    case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
+                    case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
+                    case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
+                    case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
+                    case TOKEN_AND: value = (lhs_v & rhs_v); break;
+                    case TOKEN_PIPE: value = (lhs_v | rhs_v); break;
+                    case TOKEN_LT: value = (lhs_v < rhs_v); break;
+                    case TOKEN_GT: value = (lhs_v > rhs_v); break;
+                    case TOKEN_GT_GT: value = (lhs_v >> rhs_v); break;
+                    case TOKEN_LT_LT: value = (lhs_v << rhs_v); break;
+                    case TOKEN_PERCENT: value = (lhs_v % rhs_v); break;
+                    case TOKEN_HAT: value = (lhs_v ^ rhs_v); break;
+                    case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
+                    case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
+                    default: error("constant_fold_expr binary %s not implemented", token_kind_to_str(op));
+                }
+                info("folded %s into %lld", ast_to_str(expr), value);
+                expr = make_ast_int(value);
+            }
+        } break;
+        case AST_VARIABLE_DECL: {
+            if (expr->Variable_Decl.value)
+                expr->Variable_Decl.value = constant_fold_expr(tctx, expr->Variable_Decl.value);
+        } break;
+        case AST_FUNCTION: {
+            return constant_fold_expr(tctx, expr->Function.body);
+        } break;
+        case AST_BLOCK: {
+            LIST_FOREACH(expr->Block.stmts) {
+                AST* stmt = (AST*)it->data;
+                it->data  = constant_fold_expr(tctx, stmt);
+            }
+        } break;
+        case AST_GROUPING: {
+            expr->Grouping.expr = constant_fold_expr(tctx, expr->Grouping.expr);
+        } break;
+        case AST_CAST: {
+            expr = constant_fold_expr(tctx, expr->Cast.expr);
+        } break;
+        case AST_SUBSCRIPT: {
+            expr->Subscript.load = constant_fold_expr(tctx, expr->Subscript.load);
+            expr->Subscript.sub  = constant_fold_expr(tctx, expr->Subscript.sub);
+        } break;
+        case AST_IF: {
+            expr->If.cond       = constant_fold_expr(tctx, expr->If.cond);
+            expr->If.then_block = constant_fold_expr(tctx, expr->If.then_block);
+        } break;
+        case AST_FOR: {
+            expr->For.init       = constant_fold_expr(tctx, expr->For.init);
+            expr->For.cond       = constant_fold_expr(tctx, expr->For.cond);
+            expr->For.step       = constant_fold_expr(tctx, expr->For.step);
+            expr->For.then_block = constant_fold_expr(tctx, expr->For.then_block);
+        } break;
+        case AST_WHILE: {
+            expr->While.cond       = constant_fold_expr(tctx, expr->While.cond);
+            expr->While.then_block = constant_fold_expr(tctx, expr->While.then_block);
+        } break;
+        default: error("constant_fold_expr %s not implemented", ast_kind_to_str(expr->kind));
+    }
+    return expr;
 }

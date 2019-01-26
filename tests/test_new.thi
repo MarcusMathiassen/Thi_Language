@@ -1,17 +1,17 @@
 extern puts(u8*) s32
 
-main() int
+def main() int
     puts("Hello")
     counter int
 
     k TokenKind
     return 1
 
-TokenKind
+enum TokenKind
     Ident :: 0
     Load :: 1
     Link :: 2
 
-vec2
+struct vec2
     x f32
     y f32
