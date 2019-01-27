@@ -572,9 +572,9 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr) {
             s64 offset = get_offset_in_struct_to_field(variable->type, rhs->Ident.name);
             // if (offset == 0) { emit_load(variable); return variable; }
 
-            lhs = make_ast_unary(THI_SYNTAX_ADDRESS, lhs);
-            lhs = make_ast_binary(TOKEN_PLUS, lhs, make_ast_int(offset));
-            lhs = make_ast_unary(THI_SYNTAX_POINTER, lhs);
+            lhs = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, lhs);
+            lhs = make_ast_binary(expr->t, TOKEN_PLUS, lhs, make_ast_int(expr->t, offset));
+            lhs = make_ast_unary(expr->t, THI_SYNTAX_POINTER, lhs);
 
             return codegen_expr(ctx, lhs);
         }
@@ -659,7 +659,7 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr) {
         }
 
         case TOKEN_PERCENT: {
-            expr            = make_ast_binary(TOKEN_FWSLASH, lhs, rhs);
+            expr            = make_ast_binary(expr->t, TOKEN_FWSLASH, lhs, rhs);
             Value* variable = codegen_expr(ctx, expr);
             emit(ctx, "MOV RAX, RDX");
             return variable;
@@ -714,7 +714,7 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr) {
         }
 
         case TOKEN_PIPE_PIPE: {
-            expr     = make_ast_binary(TOKEN_PIPE, lhs, rhs);
+            expr     = make_ast_binary(expr->t, TOKEN_PIPE, lhs, rhs);
             Value* v = codegen_expr(ctx, expr);
             emit(ctx, "SETNE AL");
             return v;
@@ -756,56 +756,56 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr) {
         } break;
 
         case TOKEN_LT_LT_EQ: {
-            rhs             = make_ast_binary(TOKEN_LT_LT, lhs, rhs);
-            expr            = make_ast_unary(TOKEN_EQ, rhs);
+            rhs             = make_ast_binary(expr->t, TOKEN_LT_LT, lhs, rhs);
+            expr            = make_ast_unary(expr->t, TOKEN_EQ, rhs);
             Value* variable = codegen_expr(ctx, expr);
             return variable;
         }
         case TOKEN_GT_GT_EQ: {
-            rhs             = make_ast_binary(TOKEN_GT_GT, lhs, rhs);
-            expr            = make_ast_unary(TOKEN_EQ, rhs);
+            rhs             = make_ast_binary(expr->t, TOKEN_GT_GT, lhs, rhs);
+            expr            = make_ast_unary(expr->t, TOKEN_EQ, rhs);
             Value* variable = codegen_expr(ctx, expr);
             return variable;
         }
         case TOKEN_PLUS_EQ: {
-            rhs             = make_ast_binary(TOKEN_PLUS, lhs, rhs);
-            expr            = make_ast_binary(TOKEN_EQ, lhs, rhs);
+            rhs             = make_ast_binary(expr->t, TOKEN_PLUS, lhs, rhs);
+            expr            = make_ast_binary(expr->t, TOKEN_EQ, lhs, rhs);
             Value* variable = codegen_expr(ctx, expr);
             return variable;
         }
         case TOKEN_MINUS_EQ: {
-            rhs             = make_ast_binary(TOKEN_MINUS, lhs, rhs);
-            expr            = make_ast_binary(TOKEN_EQ, lhs, rhs);
+            rhs             = make_ast_binary(expr->t, TOKEN_MINUS, lhs, rhs);
+            expr            = make_ast_binary(expr->t, TOKEN_EQ, lhs, rhs);
             Value* variable = codegen_expr(ctx, expr);
             return variable;
         }
         case TOKEN_ASTERISK_EQ: {
-            rhs             = make_ast_binary(TOKEN_ASTERISK, lhs, rhs);
-            expr            = make_ast_binary(TOKEN_EQ, lhs, rhs);
+            rhs             = make_ast_binary(expr->t, TOKEN_ASTERISK, lhs, rhs);
+            expr            = make_ast_binary(expr->t, TOKEN_EQ, lhs, rhs);
             Value* variable = codegen_expr(ctx, expr);
             return variable;
         }
         case TOKEN_FWSLASH_EQ: {
-            rhs             = make_ast_binary(TOKEN_FWSLASH, lhs, rhs);
-            expr            = make_ast_binary(TOKEN_EQ, lhs, rhs);
+            rhs             = make_ast_binary(expr->t, TOKEN_FWSLASH, lhs, rhs);
+            expr            = make_ast_binary(expr->t, TOKEN_EQ, lhs, rhs);
             Value* variable = codegen_expr(ctx, expr);
             return variable;
         }
         case TOKEN_PERCENT_EQ: {
-            rhs             = make_ast_binary(TOKEN_PERCENT, lhs, rhs);
-            expr            = make_ast_binary(TOKEN_EQ, lhs, rhs);
+            rhs             = make_ast_binary(expr->t, TOKEN_PERCENT, lhs, rhs);
+            expr            = make_ast_binary(expr->t, TOKEN_EQ, lhs, rhs);
             Value* variable = codegen_expr(ctx, expr);
             return variable;
         }
         case TOKEN_PIPE_EQ: {
-            rhs             = make_ast_binary(TOKEN_PIPE, lhs, rhs);
-            expr            = make_ast_binary(TOKEN_EQ, lhs, rhs);
+            rhs             = make_ast_binary(expr->t, TOKEN_PIPE, lhs, rhs);
+            expr            = make_ast_binary(expr->t, TOKEN_EQ, lhs, rhs);
             Value* variable = codegen_expr(ctx, expr);
             return variable;
         }
         case TOKEN_HAT_EQ: {
-            rhs             = make_ast_binary(TOKEN_HAT, lhs, rhs);
-            expr            = make_ast_binary(TOKEN_EQ, lhs, rhs);
+            rhs             = make_ast_binary(expr->t, TOKEN_HAT, lhs, rhs);
+            expr            = make_ast_binary(expr->t, TOKEN_EQ, lhs, rhs);
             Value* variable = codegen_expr(ctx, expr);
             return variable;
         }
@@ -862,7 +862,7 @@ Value* codegen_variable_decl(Codegen_Context* ctx, AST* expr) {
 
     if (assignment_expr)
         if (type->kind != TYPE_ARRAY || type->kind != TYPE_POINTER || type->kind != TYPE_STRING)
-            codegen_expr(ctx, make_ast_binary(TOKEN_EQ, make_ast_ident(name), assignment_expr));
+            codegen_expr(ctx, make_ast_binary(expr->t, TOKEN_EQ, make_ast_ident(expr->t, name), assignment_expr));
 
     return variable;
 }
@@ -978,9 +978,9 @@ Value* codegen_subscript(Codegen_Context* ctx, AST* expr) {
     Value* variable = codegen_expr(ctx, load);  // ADDRESS OF 'C' is in 'RAX'
     s64    size     = get_size_of_value(variable);
 
-    sub    = make_ast_binary(TOKEN_ASTERISK, make_ast_int(size), sub);
-    AST* t = make_ast_binary(TOKEN_PLUS, load, sub);
-    t      = make_ast_unary(THI_SYNTAX_POINTER, t);
+    sub    = make_ast_binary(expr->t, TOKEN_ASTERISK, make_ast_int(expr->t, size), sub);
+    AST* t = make_ast_binary(expr->t, TOKEN_PLUS, load, sub);
+    t      = make_ast_unary(expr->t, THI_SYNTAX_POINTER, t);
     return codegen_expr(ctx, t);
 }
 

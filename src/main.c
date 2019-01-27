@@ -26,7 +26,9 @@ void  add_all_definitions(Thi* thi, Parsed_File* pf);
 Type* get_inferred_type_of_expr(Thi* thi, AST* expr);
 void  pass_progate_identifiers_to_constants(Thi* thi);
 void  pass_type_inference(Thi* thi);
+void  pass_give_all_identifiers_a_type(Thi* thi);
 void  pass_resolve_all_unresolved_types(Thi* thi);
+void  pass_type_checker(Thi* thi);
 List* parse(Thi* thi, char* source_file);
 void  assemble(Thi* thi, char* asm_file, char* exec_name);
 void  linking_stage(Thi* thi, char* exec_name);
@@ -141,6 +143,9 @@ int main(int argc, char** argv) {
     pass_resolve_all_unresolved_types(&thi);
     pass_type_inference(&thi);
     pass_progate_identifiers_to_constants(&thi);
+    // pass_give_all_identifiers_a_type(&thi);
+    // pass_type_checker(&thi);
+    warning("Typechecker disabled");
 
     // Codegen
     push_timer(&thi, "Codegen");
@@ -265,7 +270,6 @@ void add_all_definitions(Thi* thi, Parsed_File* pf) {
         ast_ref_list_append(&thi->identifiers, pf->identifiers.data[i]);
     }
 
-
     LIST_FOREACH(pf->link_list) { add_link(thi, it->data); }
     LIST_FOREACH(pf->load_list) { add_load(thi, it->data); }
 
@@ -317,20 +321,94 @@ void transform_ast(Thi* thi, AST* node) {
     }
 }
 
+void pass_type_checker(Thi* thi) {
+    info("pass_type_checker");
+    push_timer(thi, "pass_type_checker");
+
+    // For all functions call..
+    for (s64 i = 0; i < thi->function_calls.count; ++i) {
+        // Get the caller and its args
+        AST*  call      = thi->function_calls.data[i];
+        List* call_args = call->Call.args;
+
+        warning("Typechecking: %s", ast_to_str(call));
+
+        // Get the callee function and its args
+        Type* callee_t  = get_symbol(thi, call->Call.callee);
+        List* func_args = callee_t->Function.args;
+
+        // The args must be of equal length.
+        if (call_args->count != func_args->count) {
+            // Make a nice error message
+            char* callee         = call->Call.callee;
+            s64   expected_count = func_args->count;
+            s64   got_count      = call_args->count;
+            s64   line           = call->t.line_pos;
+            s64   pos            = call->t.col_pos;
+
+            char* str =
+                strf("function call '%s' expected %lld arguments. Got %lld.", callee, expected_count, got_count);
+            error("[TYPE_CHECKER %lld:%lld]: %s", line, pos, str);
+        }
+
+        // And each callers arguments type must match
+        // with the callees arguments type.
+        List_Node* it2 = func_args->head;
+        LIST_FOREACH(call_args) {
+            AST* call_arg = (AST*)it->data;
+            AST* func_arg = (AST*)it2->data;
+
+            Type* t0 = call_arg->type;
+            Type* t1 = func_arg->type;
+
+            assert(t0);
+            assert(t1);
+
+            warning("%s %s", ast_to_str(call_arg), ast_to_str(func_arg));
+
+            if (t0->kind != t1->kind) {
+                s64   line = call->t.line_pos;
+                s64   pos  = call->t.col_pos;
+                char* str  = strf("type missmatch");
+                error("[TYPE_CHECKER %lld:%lld]: %s", line, pos, str);
+            }
+
+            // NOTE(marcus) I dont really like this..
+            it2 = it2->next;
+        }
+    }
+
+    pop_timer(thi);
+}
+
 void pass_progate_identifiers_to_constants(Thi* thi) {
     info("pass_progate_identifiers_to_constants");
     push_timer(thi, "pass_progate_identifiers_to_constants");
 
-    for (s64 i = 0; i < thi->identifiers.count; ++i) { 
-        AST* ident  = thi->identifiers.data[i];
+    for (s64 i = 0; i < thi->identifiers.count; ++i) {
+        AST* ident = thi->identifiers.data[i];
         for (s64 j = 0; j < thi->constants.count; ++j) {
             AST* const_decl = thi->constants.data[j];
             if (strcmp(ident->Ident.name, const_decl->Constant_Decl.name) == 0) {
-                warning("%s turned into %s", ast_to_str(ident), ast_to_str(const_decl->Constant_Decl.value));
+                info("%s turned into %s", ast_to_str(ident), ast_to_str(const_decl->Constant_Decl.value));
                 *ident = *const_decl->Constant_Decl.value;
                 break;
             }
         }
+    }
+
+    pop_timer(thi);
+}
+
+void pass_give_all_identifiers_a_type(Thi* thi) {
+    info("pass_give_all_identifiers_a_type");
+    push_timer(thi, "pass_give_all_identifiers_a_type");
+
+    for (s64 i = 0; i < thi->identifiers.count; ++i) {
+        AST* ident = thi->identifiers.data[i];
+        if (ident->kind != AST_IDENT) continue;
+        ident->type = get_symbol(thi, ident->Ident.name);
+        warning("%s got type %s", ast_to_str(ident), type_to_str(ident->type));
     }
 
     pop_timer(thi);
@@ -351,6 +429,7 @@ void pass_type_inference(Thi* thi) {
     for (s64 i = 0; i < thi->variables_in_need_of_type_inference.count; ++i) {
         AST* var_decl                = thi->variables_in_need_of_type_inference.data[i];
         var_decl->Variable_Decl.type = get_inferred_type_of_expr(thi, var_decl->Variable_Decl.value);
+        var_decl->type               = var_decl->Variable_Decl.type;
     }
 
     pop_timer(thi);
