@@ -1,0 +1,10 @@
+
+puts("Hello, world!")
+extern puts(char*) s32
+
+return add(4, 5)
+
+# Order doesnt matter
+
+def add(a s32, b s32) s32
+    return a + b

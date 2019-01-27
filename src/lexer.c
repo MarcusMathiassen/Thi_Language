@@ -181,6 +181,14 @@ Token get_token(Lexer_Context* lctx)
     token.line_start = lctx->start_of_line;
 
     switch (*c) {
+    case '#': {
+        ++c;
+        while (*c != '\n') {
+            ++c;
+        }
+        lctx->comment_count += 1;
+        token.kind = TOKEN_COMMENT;
+    } break;
     case ' ': /* fallthrough */
     case '\n': /* fallthrough */
     case '\r': /* fallthrough */
@@ -200,8 +208,6 @@ Token get_token(Lexer_Context* lctx)
             lctx->current_indentation_level = c - lctx->position_of_newline - 1;
         }
     } break;
-        CASE_SINGLE_TOKEN('#', TOKEN_HASH);
-        break;
         CASE_SINGLE_TOKEN('\0', TOKEN_EOF);
         break;
         CASE_SINGLE_TOKEN('(', TOKEN_OPEN_PAREN);
@@ -232,43 +238,19 @@ Token get_token(Lexer_Context* lctx)
         break;
         CASE_SINGLE_TOKEN('\\', TOKEN_BWSLASH);
         break;
-
+        
         CASE_SINGLE_TOKEN('/', TOKEN_FWSLASH);
         switch (*c) {
-        case '/': {
-            ++c;
-            while (*c != '\n') {
-                ++c;
-            }
-            lctx->comment_count += 1;
-            token.kind = TOKEN_COMMENT;
-        } break;
-
-        case '*': {
-            s64 counter = 1;
-            ++c;
-            for (;;) {
-                if (*c == '\n') lctx->comment_count += 1;
-                if (*c == '/' && c[1] == '*') counter += 1;
-                if (*c == '*' && c[1] == '/') counter += 1;
-                if (counter == 0) break;
-                ++c;
-            }
-            token.kind = TOKEN_COMMENT;
-        } break;
-
             CASE_SINGLE_TOKEN('=', TOKEN_FWSLASH_EQ);
             break;
         }
         break;
-
         CASE_SINGLE_TOKEN('!', TOKEN_BANG);
         switch (*c) {
             CASE_SINGLE_TOKEN('=', TOKEN_BANG_EQ);
             break;
         }
         break;
-
         CASE_SINGLE_TOKEN('*', TOKEN_ASTERISK);
         switch (*c) {
             CASE_SINGLE_TOKEN('/', TOKEN_ASTERISK_FWSLASH)
