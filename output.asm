@@ -202,7 +202,7 @@ section .data
 	D5 DD 64.300000
 	D6 DQ `Hello`, 0 
 	D7 DQ `you`, 0 
-	D8 DQ `you`, 0 
+	D8 DQ `h`, 0 
 	D9 DQ `echo hello you`, 0 
 global _test_no_main
 section .text
@@ -319,11 +319,6 @@ _cstdio:
 	PUSH RBP
 	MOV RBP, RSP
 .BEGIN:
-.L1:
-	JMP .L0
-.L0:
-	MOV EAX, 1
-	JMP .END
 .END:
 	LEAVE
 	RET
@@ -331,11 +326,6 @@ _cstdlib:
 	PUSH RBP
 	MOV RBP, RSP
 .BEGIN:
-.L1:
-	JMP .L0
-.L0:
-	MOV EAX, 1
-	JMP .END
 .END:
 	LEAVE
 	RET
@@ -343,11 +333,6 @@ _glfw:
 	PUSH RBP
 	MOV RBP, RSP
 .BEGIN:
-.L1:
-	JMP .L0
-.L0:
-	MOV EAX, 1
-	JMP .END
 .END:
 	LEAVE
 	RET
@@ -355,11 +340,6 @@ _glew:
 	PUSH RBP
 	MOV RBP, RSP
 .BEGIN:
-.L1:
-	JMP .L0
-.L0:
-	MOV EAX, 1
-	JMP .END
 .END:
 	LEAVE
 	RET
@@ -367,11 +347,6 @@ _opengl:
 	PUSH RBP
 	MOV RBP, RSP
 .BEGIN:
-.L1:
-	JMP .L0
-.L0:
-	MOV EAX, 1
-	JMP .END
 .END:
 	LEAVE
 	RET

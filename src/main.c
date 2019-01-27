@@ -226,12 +226,6 @@ List* parse(Thi* thi, char* source_file)
     Type* s32_t  = make_type_int(4, 0);
     Type* u8pp_t = make_type_pointer(make_type_pointer(make_type_int(1, 1)));
 
-    List* args = make_list();
-    if (strcmp(source_file, thi->input_file) == 0) {
-        list_append(args, make_ast_variable_decl(t, "argc", s32_t, NULL));
-        list_append(args, make_ast_variable_decl(t, "argv", u8pp_t, NULL));
-    }
-
     List* stmts = make_list();
 
     char*       source = get_file_content(source_file);
@@ -239,7 +233,13 @@ List* parse(Thi* thi, char* source_file)
     Parsed_File pf     = generate_ast_from_tokens(lf.tokens);
 
     list_append_content_of(stmts, pf.ast);
-    list_append(stmts, make_ast_return(t, make_ast_int(t, 1)));
+    
+    List* args = make_list();
+    if (strcmp(source_file, thi->input_file) == 0) {
+        list_append(args, make_ast_variable_decl(t, "argc", s32_t, NULL));
+        list_append(args, make_ast_variable_decl(t, "argv", u8pp_t, NULL));
+        list_append(stmts, make_ast_return(t, make_ast_int(t, 1)));
+    }
 
     AST*  body        = make_ast_block(t, stmts);
     char* name        = get_file_name(source_file);

@@ -22,7 +22,7 @@ f4 double = 64.3
 
 s := "Hello"
 s1 u8* = "you"
-s2 char* = "you"
+s2 char* = "h"
 
 b := false
 b1 bool = true

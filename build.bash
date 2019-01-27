@@ -140,4 +140,4 @@ if [ $? == 0 ]; then
 fi
 
 #if debug
-# rm ./thi
+rm ./thi

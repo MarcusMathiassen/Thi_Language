@@ -182,7 +182,7 @@ char* type_to_str(Type* type)
             arg_index += 1;
         }
         append_string(&str, ")");
-        if (type->Function.ret_type) append_string_f(&str, " -> %s", type_to_str(type->Function.ret_type));
+        if (type->Function.ret_type) append_string_f(&str, " %s", type_to_str(type->Function.ret_type));
         return str.c_str;
     }
     default: warning("type_to_str not implemented kind %d", type_kind_to_str(type->kind));

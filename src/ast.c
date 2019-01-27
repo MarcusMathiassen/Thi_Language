@@ -108,7 +108,7 @@ char* ast_to_str(AST* expr)
         }
     }
     case AST_CONSTANT_DECL: {
-        return strf("%s %s", expr->Constant_Decl.name, ast_to_str(expr->Constant_Decl.value));
+        return strf("%s :: %s", expr->Constant_Decl.name, ast_to_str(expr->Constant_Decl.value));
     }
     case AST_BLOCK: {
         string str = make_string("{");
