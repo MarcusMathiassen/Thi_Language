@@ -193,7 +193,8 @@ void assemble(Thi* thi, char* asm_file, char* exec_name)
 
 void linking_stage(Thi* thi, char* exec_name)
 {
-    char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _%s", exec_name, exec_name, exec_name);
+    // char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _%s", exec_name, exec_name, exec_name);
+    char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _main", exec_name, exec_name);
     List* links     = get_link_list(thi);
     LIST_FOREACH(links)
     {
@@ -221,34 +222,35 @@ List* parse(Thi* thi, char* source_file)
     push_timer(thi, source_file);
 
     // We create a parent function for each file
-    Token t;
+    // Token t;
 
-    Type* s32_t  = make_type_int(4, 0);
-    Type* u8pp_t = make_type_pointer(make_type_pointer(make_type_int(1, 1)));
+    // Type* s32_t  = make_type_int(4, 0);
+    // Type* u8pp_t = make_type_pointer(make_type_pointer(make_type_int(1, 1)));
 
-    List* stmts = make_list();
+    // List* stmts = make_list();
 
     char*       source = get_file_content(source_file);
     Lexed_File  lf     = generate_tokens_from_source(source);
     Parsed_File pf     = generate_ast_from_tokens(lf.tokens);
 
-    list_append_content_of(stmts, pf.ast);
-    
-    List* args = make_list();
-    if (strcmp(source_file, thi->input_file) == 0) {
-        list_append(args, make_ast_variable_decl(t, "argc", s32_t, NULL));
-        list_append(args, make_ast_variable_decl(t, "argv", u8pp_t, NULL));
-        list_append(stmts, make_ast_return(t, make_ast_int(t, 1)));
-    }
+    // list_append_content_of(stmts, pf.ast);
 
-    AST*  body        = make_ast_block(t, stmts);
-    char* name        = get_file_name(source_file);
-    char* func_name   = remove_file_extension(name);
-    Type* type        = make_type_function(func_name, args, make_type_int(4, 0));
-    AST*  parent_func = make_ast_function(t, type, body);
+    // List* args = make_list();
+    // if (strcmp(source_file, thi->input_file) == 0) {
+        // list_append(args, make_ast_variable_decl(t, "argc", s32_t, NULL));
+        // list_append(args, make_ast_variable_decl(t, "argv", u8pp_t, NULL));
+        // list_append(stmts, make_ast_return(t, make_ast_int(t, 1)));
+    // }
+
+    // AST*  body        = make_ast_block(t, stmts);
+    // char* name        = get_file_name(source_file);
+    // char* func_name   = remove_file_extension(name);
+    // Type* type        = make_type_function(func_name, args, make_type_int(4, 0));
+    // AST*  parent_func = make_ast_function(t, type, body);
 
     List* ast = make_list();
-    list_append(ast, parent_func);
+    list_append_content_of(ast, pf.ast);
+    // list_append(ast, parent_func);
 
     add_all_definitions(thi, &pf);
 

@@ -69,8 +69,8 @@ def main ()  s32
         print error_msg
     
 
-    //Integers are implicitly cast to integers of different bitwidth.
-    //Floats are implicitly cast to floats of different bitwidth.
+    #Integers are implicitly cast to integers of different bitwidth.
+    #Floats are implicitly cast to floats of different bitwidth.
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1)

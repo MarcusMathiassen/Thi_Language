@@ -94,7 +94,9 @@ typedef struct {
     Token      curr_tok;
     Token      prev_tok;
     Token_Kind top_tok_kind;
-    AST*       last_if_statement; // used for dangling else
+
+    AST* llast_if_statement; // used for dangling else
+    AST* olast_if_statement; // used for dangling else
 
 } Parser_Context;
 
@@ -104,7 +106,8 @@ Parser_Context make_parser_context()
     pctx.token_index                         = 0;
     pctx.top_tok_kind                        = TOKEN_UNKNOWN;
     pctx.curr_tok.kind                       = TOKEN_UNKNOWN;
-    pctx.last_if_statement                   = NULL;
+    pctx.llast_if_statement                  = NULL;
+    pctx.olast_if_statement                  = NULL;
     pctx.unresolved_types                    = make_type_ref_list();
     pctx.variables_in_need_of_type_inference = make_ast_ref_list();
     pctx.function_calls                      = make_ast_ref_list();
@@ -168,6 +171,10 @@ s64   get_integer(Parser_Context* pctx);
 f64   get_float(Parser_Context* pctx);
 Type* get_type(Parser_Context* pctx);
 
+void set_if_statement(Parser_Context* pctx, AST* if_statement);
+void restore_if_statement(Parser_Context* pctx);
+void set_dangling_else(Parser_Context* pctx, AST* else_block);
+
 Token      next_tok(Parser_Context* pctx);
 bool       tok_is_on_same_line(Parser_Context* pctx);
 bool       tok_is(Parser_Context* pctx, Token_Kind kind);
@@ -192,9 +199,9 @@ Parsed_File generate_ast_from_tokens(Token_Array tokens)
     pctx.ast            = ast;
 
     eat(&pctx);
-    while(!tok_is(&pctx, TOKEN_EOF)) {
+    while (!tok_is(&pctx, TOKEN_EOF)) {
         pctx.top_tok_kind = pctx.curr_tok.kind;
-        AST* stmt = parse_statement(&pctx);
+        AST* stmt         = parse_statement(&pctx);
         if (stmt) {
             list_append(ast, stmt);
         }
@@ -411,8 +418,8 @@ AST* parse_dangling_else(Parser_Context* pctx)
 {
     DEBUG_START;
     eat_kind(pctx, TOKEN_ELSE);
-    AST* else_block                        = parse_block(pctx);
-    pctx->last_if_statement->If.else_block = else_block;
+    AST* else_block = parse_block(pctx);
+    set_dangling_else(pctx, else_block);
     return NULL;
 }
 
@@ -427,12 +434,9 @@ AST* parse_if(Parser_Context* pctx)
         eat_kind(pctx, TOKEN_ELSE);
         else_block = parse_block(pctx);
     }
-
-    AST* expr = make_ast_if(pctx->curr_tok, cond, then_block, else_block);
-
-    pctx->last_if_statement = expr;
-
-    return expr;
+    AST* if_statement = make_ast_if(pctx->curr_tok, cond, then_block, else_block);
+    set_if_statement(pctx, if_statement);
+    return if_statement;
 }
 
 AST* parse_sizeof(Parser_Context* pctx)
@@ -457,24 +461,32 @@ AST* parse_block(Parser_Context* pctx)
 {
     DEBUG_START;
 
+    AST* block = NULL;
+
     // Is it a single statement?
     if (tok_is_on_same_line(pctx)) {
         List* stmt = make_list();
         AST*  expr = parse_statement(pctx);
         if (expr) list_append(stmt, expr);
-        return make_ast_block(pctx->curr_tok, stmt);
+        block = make_ast_block(pctx->curr_tok, stmt);
     }
 
-    List* stmts = make_list();
-    eat_kind(pctx, TOKEN_BLOCK_START);
-    while (!tok_is(pctx, TOKEN_BLOCK_END)) {
-        AST* stmt = parse_statement(pctx);
-        if (stmt) {
-            list_append(stmts, stmt);
+    if (!block) {
+        List* stmts = make_list();
+        eat_kind(pctx, TOKEN_BLOCK_START);
+        while (!tok_is(pctx, TOKEN_BLOCK_END)) {
+            AST* stmt = parse_statement(pctx);
+            if (stmt) {
+                list_append(stmts, stmt);
+            }
         }
+        eat_kind(pctx, TOKEN_BLOCK_END);
+        block = make_ast_block(pctx->curr_tok, stmts);
     }
-    eat_kind(pctx, TOKEN_BLOCK_END);
-    return make_ast_block(pctx->curr_tok, stmts);
+
+    restore_if_statement(pctx);
+
+    return block;
 }
 
 AST* parse_return(Parser_Context* pctx)
@@ -916,3 +928,11 @@ void eat_kind(Parser_Context* pctx, Token_Kind kind)
     }
     eat(pctx);
 }
+
+void set_if_statement(Parser_Context* pctx, AST* if_statement)
+{
+    pctx->olast_if_statement = pctx->llast_if_statement;
+    pctx->llast_if_statement = if_statement;
+}
+void restore_if_statement(Parser_Context* pctx) { pctx->llast_if_statement = pctx->olast_if_statement; }
+void set_dangling_else(Parser_Context* pctx, AST* else_block) { pctx->llast_if_statement->If.else_block = else_block; }

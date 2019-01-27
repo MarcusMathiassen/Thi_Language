@@ -173,7 +173,8 @@ char* generate_code_from_ast(List* ast, char* entry)
     LIST_FOREACH(ast) { codegen_expr(&ctx, (AST*)it->data); }
 
     char* output
-        = strf("%s%sglobal _%s\n%s", ctx.section_extern.c_str, ctx.section_data.c_str, entry, ctx.section_text.c_str);
+        // = strf("%s%sglobal _%s\n%s", ctx.section_extern.c_str, ctx.section_data.c_str, entry, ctx.section_text.c_str);
+        = strf("%s%sglobal _main\n%s", ctx.section_extern.c_str, ctx.section_data.c_str, ctx.section_text.c_str);
 
     info("%s", output);
 
@@ -1265,6 +1266,7 @@ Value* codegen_function(Codegen_Context* ctx, AST* expr)
     s64   i                 = 0;
     s8    int_arg_counter   = 0;
     s8    float_arg_counter = 0;
+
     LIST_FOREACH(args)
     {
         AST*   arg  = (AST*)it->data;
