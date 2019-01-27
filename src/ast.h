@@ -1,9 +1,9 @@
 #ifndef AST_H
 #define AST_H
 
-#include "lexer.h"  // Token_Kind
-#include "list.h"   // List
-#include "type.h"   // Type
+#include "lexer.h" // Token_Kind
+#include "list.h" // List
+#include "type.h" // Type
 
 //------------------------------------------------------------------------------
 //                               ast.h

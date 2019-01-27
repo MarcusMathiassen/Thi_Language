@@ -1,23 +1,23 @@
-#include <assert.h>  // assert
-#include <stdio.h>   // sprintf
-#include <stdlib.h>  // free
-#include <string.h>  // strcmp
+#include "ast.h" // AST
+#include "codegen.h" // generate_code_from_ast
+#include "constants.h"
+#include "lexer.h" // generate_tokens_from_source, print_tokens
+#include "list.h" // list_tests
+#include "map.h" // map
+#include "parser.h" // generate_ast_from_tokens
+#include "stack.h" // stack_tests
+#include "string.h" // strcmp
+#include "thi.h" // Thi
+#include "type.h" // Type
+#include "typedefs.h"
+#include "utility.h" // get_file_content, success, info, get_time
+#include "value.h" // Value
+#include <assert.h> // assert
+#include <stdio.h> // sprintf
+#include <stdlib.h> // free
+#include <string.h> // strcmp
 #include <sys/ioctl.h>
 #include <unistd.h>
-#include "ast.h"      // AST
-#include "codegen.h"  // generate_code_from_ast
-#include "constants.h"
-#include "lexer.h"   // generate_tokens_from_source, print_tokens
-#include "list.h"    // list_tests
-#include "map.h"     // map
-#include "parser.h"  // generate_ast_from_tokens
-#include "stack.h"   // stack_tests
-#include "string.h"  // strcmp
-#include "thi.h"     // Thi
-#include "type.h"    // Type
-#include "typedefs.h"
-#include "utility.h"  // get_file_content, success, info, get_time
-#include "value.h"    // Value
 
 //------------------------------------------------------------------------------
 //                               Main Driver
@@ -35,7 +35,8 @@ void  linking_stage(Thi* thi, char* exec_name);
 void  pass_general(Thi* thi);
 void  transform_ast(Thi* thi, AST* node);
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
     // Argument validation
     if (argc < 2) error("too few arguments.");
 
@@ -52,18 +53,18 @@ int main(int argc, char** argv) {
     s32 opt;
     while ((opt = getopt(argc, argv, "f:dvo:")) != -1) {
         switch (opt) {
-            case 'v': thi.detailed_print = true; break;
-            case 'd': thi.debug_mode = true; break;
-            case 'f':
-                set_source_file(&thi, optarg);
-                info("filename: %s\n", optarg);
-                break;
-            case 'o':
-                set_output_name(&thi, optarg);
-                info("exec_name: %s\n", optarg);
-                break;
-            case ':': info("option needs a value\n"); break;
-            case '?': info("unknown option: %c\n", optopt); break;
+        case 'v': thi.detailed_print = true; break;
+        case 'd': thi.debug_mode = true; break;
+        case 'f':
+            set_source_file(&thi, optarg);
+            info("filename: %s\n", optarg);
+            break;
+        case 'o':
+            set_output_name(&thi, optarg);
+            info("exec_name: %s\n", optarg);
+            break;
+        case ':': info("option needs a value\n"); break;
+        case '?': info("unknown option: %c\n", optopt); break;
         }
     }
 
@@ -80,36 +81,26 @@ int main(int argc, char** argv) {
     char* exec_name   = get_output_name(&thi);
     info("Compiling %s", source_file);
 
-    // Setup types
-    Type* u8_t  = make_type_int(1, true);
-    Type* u16_t = make_type_int(2, true);
-    Type* u32_t = make_type_int(4, true);
-    Type* u64_t = make_type_int(8, true);
+    // Setup builtin types
+    add_symbol(&thi, "void", make_type_void());
+    add_symbol(&thi, "bool", make_type_int(1, true));
+    add_symbol(&thi, "char", make_type_int(1, true));
+    add_symbol(&thi, "int", make_type_int(DEFAULT_INT_BYTE_SIZE, false));
+    add_symbol(&thi, "float", make_type_float(DEFAULT_FLOAT_BYTE_SIZE));
+    add_symbol(&thi, "double", make_type_float(8));
 
-    Type* s8_t  = make_type_int(1, false);
-    Type* s16_t = make_type_int(2, false);
-    Type* s32_t = make_type_int(4, false);
-    Type* s64_t = make_type_int(8, false);
+    add_symbol(&thi, "s8", make_type_int(1, false));
+    add_symbol(&thi, "s16", make_type_int(2, false));
+    add_symbol(&thi, "s32", make_type_int(4, false));
+    add_symbol(&thi, "s64", make_type_int(8, false));
 
-    Type* f32_t = make_type_float(4);
-    Type* f64_t = make_type_float(8);
+    add_symbol(&thi, "u8", make_type_int(1, true));
+    add_symbol(&thi, "u16", make_type_int(2, true));
+    add_symbol(&thi, "u32", make_type_int(4, true));
+    add_symbol(&thi, "u64", make_type_int(8, true));
 
-    add_symbol(&thi, "void", u8_t);
-    add_symbol(&thi, "bool", u8_t);
-    add_symbol(&thi, "char", u8_t);
-
-    add_symbol(&thi, "s8", s8_t);
-    add_symbol(&thi, "s16", s16_t);
-    add_symbol(&thi, "s32", s32_t);
-    add_symbol(&thi, "s64", s64_t);
-
-    add_symbol(&thi, "u8", u8_t);
-    add_symbol(&thi, "u16", u16_t);
-    add_symbol(&thi, "u32", u32_t);
-    add_symbol(&thi, "u64", u64_t);
-
-    add_symbol(&thi, "f32", f32_t);
-    add_symbol(&thi, "f64", f64_t);
+    add_symbol(&thi, "f32", make_type_float(4));
+    add_symbol(&thi, "f64", make_type_float(8));
 
     char* ext  = get_file_extension(source_file);
     char* dir  = get_file_directory(source_file);
@@ -132,7 +123,8 @@ int main(int argc, char** argv) {
     List* ast = parse(&thi, source_file);
 
     // Parse
-    LIST_FOREACH(get_load_list(&thi)) {
+    LIST_FOREACH(get_load_list(&thi))
+    {
         char* file  = strf("%s%s", get_current_directory(&thi), it->data);
         List* ast_l = parse(&thi, file);
         list_append_content_of(ast, ast_l);
@@ -178,12 +170,13 @@ int main(int argc, char** argv) {
     info("resolved %lld types", thi.unresolved_types.count);
     info("type inferred %lld variables", thi.variables_in_need_of_type_inference.count);
     info("checked calls %lld", thi.function_calls.count);
-    LIST_FOREACH(get_timers(&thi)) {
+    LIST_FOREACH(get_timers(&thi))
+    {
         Timer* tm      = (Timer*)it->data;
         s64    len     = strlen(tm->desc);
         char*  ms      = strf("%f seconds", tm->ms / 1e3);
         s64    ms_l    = strlen(ms);
-        s64    padding = w.ws_col - len - ms_l - 1;  // -1 is the ':'
+        s64    padding = w.ws_col - len - ms_l - 1; // -1 is the ':'
         info("%s:%*s%s", tm->desc, padding, "", ms);
     }
     info("---------------------------");
@@ -191,7 +184,8 @@ int main(int argc, char** argv) {
     return 0;
 }
 
-void assemble(Thi* thi, char* asm_file, char* exec_name) {
+void assemble(Thi* thi, char* asm_file, char* exec_name)
+{
     string comp_call = make_string_f("nasm -f macho64 -g %s -o %s.o", asm_file, exec_name);
     push_timer(thi, "Assembler");
     system(comp_call.c_str);
@@ -199,10 +193,12 @@ void assemble(Thi* thi, char* asm_file, char* exec_name) {
     pop_timer(thi);
 }
 
-void linking_stage(Thi* thi, char* exec_name) {
+void linking_stage(Thi* thi, char* exec_name)
+{
     char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _main", exec_name, exec_name);
     List* links     = get_link_list(thi);
-    LIST_FOREACH(links) {
+    LIST_FOREACH(links)
+    {
         char* l   = (char*)it->data;
         link_call = strf("%s %s", link_call, l);
     }
@@ -215,7 +211,8 @@ void linking_stage(Thi* thi, char* exec_name) {
     system(strf("rm %s.o", exec_name));
 }
 
-List* parse(Thi* thi, char* source_file) {
+List* parse(Thi* thi, char* source_file)
+{
     char* last_file = get_source_file(thi);
     char* last_dir  = get_current_directory(thi);
     char* dir       = get_file_directory(source_file);
@@ -248,7 +245,8 @@ List* parse(Thi* thi, char* source_file) {
     return ast;
 }
 
-void add_all_definitions(Thi* thi, Parsed_File* pf) {
+void add_all_definitions(Thi* thi, Parsed_File* pf)
+{
     list_append_content_of(thi->extern_list, pf->extern_list);
 
     for (s64 i = 0; i < pf->unresolved_types.count; ++i) {
@@ -280,48 +278,51 @@ void add_all_definitions(Thi* thi, Parsed_File* pf) {
     }
 }
 
-Type* get_inferred_type_of_expr(Thi* thi, AST* expr) {
+Type* get_inferred_type_of_expr(Thi* thi, AST* expr)
+{
     switch (expr->kind) {
-        case AST_SIZEOF: return expr->Sizeof.type;
-        case AST_CAST: return expr->Cast.type;
-        case AST_NOTE: return get_inferred_type_of_expr(thi, expr->Note.expr);
-        case AST_INT: return make_type_int(DEFAULT_INT_BYTE_SIZE, 0);
-        case AST_FLOAT: return make_type_float(DEFAULT_FLOAT_BYTE_SIZE);
-        case AST_STRING: return make_type_pointer(make_type_int(8, 1));
-        case AST_IDENT: return get_symbol(thi, expr->Ident.name);
-        case AST_CALL: return get_symbol(thi, expr->Call.callee)->Function.ret_type;
-        case AST_UNARY: return get_inferred_type_of_expr(thi, expr->Unary.operand);
-        case AST_BINARY: return get_inferred_type_of_expr(thi, expr->Binary.rhs);
-        case AST_GROUPING: return get_inferred_type_of_expr(thi, expr->Grouping.expr);
-        case AST_SUBSCRIPT: return get_inferred_type_of_expr(thi, expr->Subscript.load);
-        default: error("%s has no type", ast_kind_to_str(expr->kind));
+    case AST_SIZEOF: return expr->Sizeof.type;
+    case AST_CAST: return expr->Cast.type;
+    case AST_NOTE: return get_inferred_type_of_expr(thi, expr->Note.expr);
+    case AST_INT: return make_type_int(DEFAULT_INT_BYTE_SIZE, 0);
+    case AST_FLOAT: return make_type_float(DEFAULT_FLOAT_BYTE_SIZE);
+    case AST_STRING: return make_type_pointer(make_type_int(8, 1));
+    case AST_IDENT: return get_symbol(thi, expr->Ident.name);
+    case AST_CALL: return get_symbol(thi, expr->Call.callee)->Function.ret_type;
+    case AST_UNARY: return get_inferred_type_of_expr(thi, expr->Unary.operand);
+    case AST_BINARY: return get_inferred_type_of_expr(thi, expr->Binary.rhs);
+    case AST_GROUPING: return get_inferred_type_of_expr(thi, expr->Grouping.expr);
+    case AST_SUBSCRIPT: return get_inferred_type_of_expr(thi, expr->Subscript.load);
+    default: error("%s has no type", ast_kind_to_str(expr->kind));
     }
     return NULL;
 }
 
-void transform_ast(Thi* thi, AST* node) {
+void transform_ast(Thi* thi, AST* node)
+{
     switch (node->kind) {
-        case AST_IDENT: {
-        } break;
-        case AST_FUNCTION: {
-            transform_ast(thi, node->Function.body);
-        } break;
-        case AST_STRUCT: {
-            List* l = node->Struct.type->Struct.members;
-            LIST_FOREACH(l) { transform_ast(thi, it->data); }
-        } break;
-        case AST_ENUM: {
-            List* l = node->Enum.type->Enum.members;
-            LIST_FOREACH(l) { transform_ast(thi, it->data); }
-        } break;
-        case AST_BLOCK: {
-            LIST_FOREACH(node->Block.stmts) { transform_ast(thi, it->data); }
-        } break;
-        default: break;
+    case AST_IDENT: {
+    } break;
+    case AST_FUNCTION: {
+        transform_ast(thi, node->Function.body);
+    } break;
+    case AST_STRUCT: {
+        List* l = node->Struct.type->Struct.members;
+        LIST_FOREACH(l) { transform_ast(thi, it->data); }
+    } break;
+    case AST_ENUM: {
+        List* l = node->Enum.type->Enum.members;
+        LIST_FOREACH(l) { transform_ast(thi, it->data); }
+    } break;
+    case AST_BLOCK: {
+        LIST_FOREACH(node->Block.stmts) { transform_ast(thi, it->data); }
+    } break;
+    default: break;
     }
 }
 
-void pass_type_checker(Thi* thi) {
+void pass_type_checker(Thi* thi)
+{
     info("pass_type_checker");
     push_timer(thi, "pass_type_checker");
 
@@ -346,15 +347,16 @@ void pass_type_checker(Thi* thi) {
             s64   line           = call->t.line_pos;
             s64   pos            = call->t.col_pos;
 
-            char* str =
-                strf("function call '%s' expected %lld arguments. Got %lld.", callee, expected_count, got_count);
+            char* str
+                = strf("function call '%s' expected %lld arguments. Got %lld.", callee, expected_count, got_count);
             error("[TYPE_CHECKER %lld:%lld]: %s", line, pos, str);
         }
 
         // And each callers arguments type must match
         // with the callees arguments type.
         List_Node* it2 = func_args->head;
-        LIST_FOREACH(call_args) {
+        LIST_FOREACH(call_args)
+        {
             AST* call_arg = (AST*)it->data;
             AST* func_arg = (AST*)it2->data;
 
@@ -381,7 +383,8 @@ void pass_type_checker(Thi* thi) {
     pop_timer(thi);
 }
 
-void pass_progate_identifiers_to_constants(Thi* thi) {
+void pass_progate_identifiers_to_constants(Thi* thi)
+{
     info("pass_progate_identifiers_to_constants");
     push_timer(thi, "pass_progate_identifiers_to_constants");
 
@@ -400,7 +403,8 @@ void pass_progate_identifiers_to_constants(Thi* thi) {
     pop_timer(thi);
 }
 
-void pass_give_all_identifiers_a_type(Thi* thi) {
+void pass_give_all_identifiers_a_type(Thi* thi)
+{
     info("pass_give_all_identifiers_a_type");
     push_timer(thi, "pass_give_all_identifiers_a_type");
 
@@ -414,7 +418,8 @@ void pass_give_all_identifiers_a_type(Thi* thi) {
     pop_timer(thi);
 }
 
-void pass_type_inference(Thi* thi) {
+void pass_type_inference(Thi* thi)
+{
     info("pass_type_inference");
     push_timer(thi, "pass_type_inference");
 
@@ -435,7 +440,8 @@ void pass_type_inference(Thi* thi) {
     pop_timer(thi);
 }
 
-void pass_resolve_all_unresolved_types(Thi* thi) {
+void pass_resolve_all_unresolved_types(Thi* thi)
+{
     info("pass_resolve_all_unresolved_types %lld", thi->unresolved_types.count);
     push_timer(thi, "pass_resolve_all_unresolved_types");
     for (s64 i = 0; i < thi->unresolved_types.count; ++i) {

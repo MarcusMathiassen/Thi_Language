@@ -1,8 +1,8 @@
 #ifndef VALUES_H
 #define VALUES_H
 
-#include "list.h"     // list
-#include "string.h"   // string
+#include "list.h" // list
+#include "string.h" // string
 #include "type.h" // Type
 
 typedef struct Value    Value;
@@ -62,7 +62,7 @@ typedef struct {
 
 struct Value {
     Value_Kind kind;
-    Type*  type;
+    Type*      type;
     union {
         Value_Int       Int;
         Value_Float     Float;

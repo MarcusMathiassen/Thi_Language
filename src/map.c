@@ -1,8 +1,7 @@
 #include "map.h"
+#include "utility.h"
 #include <assert.h>
 #include <string.h>
-#include "utility.h"
-#include "utility.h"
 
 #define INITIAL_SIZE 16
 
@@ -13,7 +12,8 @@ typedef struct {
     float val;
 } Test_Type;
 
-void map_tests(void) {
+void map_tests(void)
+{
     Map* map = make_map();
 
     Test_Type t1;
@@ -31,20 +31,23 @@ void map_tests(void) {
     assert(((Test_Type*)map_get(map, "t2"))->val == 6.41f);
 }
 
-void map_init(Map* map) {
+void map_init(Map* map)
+{
     map->table_size = INITIAL_SIZE;
     map->size       = 0;
     map->data       = NULL;
     map->data       = xcalloc(INITIAL_SIZE, map->table_size * sizeof(Map_Element));
 }
 
-Map* make_map() {
+Map* make_map()
+{
     Map* m = xmalloc(sizeof(Map));
     map_init(m);
     return m;
 }
 
-void* map_set_overwrite(Map* map, char* key, void* value) {
+void* map_set_overwrite(Map* map, char* key, void* value)
+{
     assert(map);
     assert(key);
 
@@ -67,7 +70,8 @@ void* map_set_overwrite(Map* map, char* key, void* value) {
     return map->data[map->size - 1].data;
 }
 // Add a pointer to the hashmap with some key
-void* map_set(Map* map, char* key, void* value) {
+void* map_set(Map* map, char* key, void* value)
+{
     assert(map);
     assert(key);
 
@@ -91,7 +95,8 @@ void* map_set(Map* map, char* key, void* value) {
 }
 
 // Get your pointer out of the hashmap with a key
-void* map_get(Map* map, char* key) {
+void* map_get(Map* map, char* key)
+{
     assert(map);
     assert(key);
     s64 hash_val = hash_it(key);
@@ -107,10 +112,12 @@ void* map_get(Map* map, char* key) {
 //                               Hash Function
 //------------------------------------------------------------------------------
 
-u32 hash_it(char* str) {
+u32 hash_it(char* str)
+{
     assert(str);
     u32 hash = 5381;
     s32 c;
-    while ((c = *str++)) hash = ((hash << 5) + hash) + c;
+    while ((c = *str++))
+        hash = ((hash << 5) + hash) + c;
     return hash;
 }
