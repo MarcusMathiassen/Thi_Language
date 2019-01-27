@@ -124,7 +124,7 @@ Value* codegen_function(Codegen_Context* ctx, AST* expr);
 Value* codegen_cast(Codegen_Context* ctx, AST* expr);
 Value* codegen_expr(Codegen_Context* ctx, AST* expr);
 
-char* generate_code_from_ast(List* ast);
+char* generate_code_from_ast(List* ast, char* entry);
 
 // @Hotpath
 Value* codegen_expr(Codegen_Context* ctx, AST* expr)
@@ -162,7 +162,7 @@ Value* codegen_expr(Codegen_Context* ctx, AST* expr)
     return NULL;
 }
 
-char* generate_code_from_ast(List* ast)
+char* generate_code_from_ast(List* ast, char* entry)
 {
     info("Generating code from ast");
 
@@ -173,7 +173,7 @@ char* generate_code_from_ast(List* ast)
     LIST_FOREACH(ast) { codegen_expr(&ctx, (AST*)it->data); }
 
     char* output
-        = strf("%s%sglobal _main\n%s", ctx.section_extern.c_str, ctx.section_data.c_str, ctx.section_text.c_str);
+        = strf("%s%sglobal _%s\n%s", ctx.section_extern.c_str, ctx.section_data.c_str, entry, ctx.section_text.c_str);
 
     info("%s", output);
 

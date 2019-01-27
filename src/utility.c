@@ -94,6 +94,19 @@ char* get_file_extension(char* filename)
     return str;
 }
 
+char* remove_file_extension(char* filename)
+{
+    assert(filename);
+    s64 len = strlen(filename);
+    s64 i   = 0;
+    while (filename[len - (++i)] != '.')
+        continue;
+    char* str = xmalloc(len - i + 1);
+    memcpy(str, filename, len - i);
+    str[len-i] = 0;
+    return str;
+}
+
 char* get_file_directory(char* filename)
 {
     assert(filename);

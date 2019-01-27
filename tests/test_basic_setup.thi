@@ -46,3 +46,4 @@ struct vec2
 
 def compile(source u8*)
     puts(source)
+

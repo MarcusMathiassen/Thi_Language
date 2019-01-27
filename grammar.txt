@@ -5,6 +5,10 @@
     else
     case
     for
+    while
+    struct
+    enum
+    def
     return
     defer
     continue

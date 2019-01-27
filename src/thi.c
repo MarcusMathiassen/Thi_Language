@@ -24,6 +24,7 @@ Thi make_thi()
     thi.timer_stack                         = make_stack();
     thi.output_name                         = make_string("");
     thi.previous_file                       = NULL;
+    thi.input_file                          = NULL;
     thi.source_file                         = make_string("");
     thi.current_directory                   = make_string("");
     thi.unresolved_types                    = make_type_ref_list();

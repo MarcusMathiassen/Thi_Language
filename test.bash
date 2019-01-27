@@ -27,11 +27,11 @@ thi_executable=./thi
 
 for tf in $test_files
 do
-    name="test_${test_counter}"
-    ((test_counter++))
-
     # Compile the file
-    $thi_executable -f $tf -o $name -v -d
+    $thi_executable -f $tf -v -d
+
+    filename="${tf##*/}"                      # Strip longest match of */ from start
+    name="${filename%.[^.]*}"
 
     if [ -f $name ]; then
         # Run it
@@ -54,7 +54,7 @@ do
         echo -e "${RGB_GRAY}[TEST] ${NC}${RED} FAILED ${NC} ${RGB_GRAY} $tf returned ${NC}${RGB_WHITE}$res ${NC}"
     fi
 
-    rm $name
+    # rm $name
 done
 
 

@@ -191,37 +191,14 @@ Parsed_File generate_ast_from_tokens(Token_Array tokens)
     pctx.tokens         = tokens;
     pctx.ast            = ast;
 
-    // def main(argc s32, argv char**) s32
-    List* args = make_list();
-
-    Token t;
-
-    Type* s32_t  = make_type_int(4, 0);
-    Type* u8pp_t = make_type_pointer(make_type_pointer(make_type_int(1, 1)));
-
-    AST* argc = make_ast_variable_decl(t, "argc", s32_t, NULL);
-    AST* argv = make_ast_variable_decl(t, "argv", u8pp_t, NULL);
-
-    list_append(args, argc);
-    list_append(args, argv);
-
     eat(&pctx);
-    List* stmts = make_list();
-    while (!tok_is(&pctx, TOKEN_EOF)) {
+    while(!tok_is(&pctx, TOKEN_EOF)) {
         pctx.top_tok_kind = pctx.curr_tok.kind;
-        AST* stmt         = parse_statement(&pctx);
+        AST* stmt = parse_statement(&pctx);
         if (stmt) {
-            list_append(stmts, stmt);
+            list_append(ast, stmt);
         }
     }
-
-    list_append(stmts, make_ast_return(t, make_ast_int(t, 1)));
-
-    AST*  body = make_ast_block(t, stmts);
-    Type* type = make_type_function("main", args, make_type_int(4, 0));
-    AST*  main = make_ast_function(t, type, body);
-
-    list_append(ast, main);
 
     Parsed_File pf;
     pf.ast                                 = ast;
@@ -341,8 +318,7 @@ AST* parse_def(Parser_Context* pctx)
     AST*  body = parse_block(pctx);
     map_set(pctx->symbol_map, ident, type);
     AST* func = make_ast_function(pctx->curr_tok, type, body);
-    list_append(pctx->ast, func);
-    return NULL;
+    return func;
 }
 
 AST* parse_enum(Parser_Context* pctx)
@@ -360,7 +336,7 @@ AST* parse_load(Parser_Context* pctx)
 {
     DEBUG_START;
     eat_kind(pctx, TOKEN_LOAD);
-    char* str = pctx->curr_tok.value;
+    char* str = strf("%s.thi", pctx->curr_tok.value);
     eat_kind(pctx, TOKEN_STRING);
     list_append(pctx->load_list, str);
     return make_ast_load(pctx->curr_tok, str);

@@ -39,6 +39,7 @@ typedef struct {
 
     string output_name;
     string source_file;
+    char*  input_file;
     char*  previous_file;
     string current_directory;
 } Thi;

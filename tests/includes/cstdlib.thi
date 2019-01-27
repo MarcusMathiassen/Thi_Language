@@ -1,4 +1,5 @@
-link "c"
+link "-lc"
+link "-lSystem"
 extern atoi (u8*)  s32
 extern atol (u8*)  s32
 extern atoll (u8*)  s64

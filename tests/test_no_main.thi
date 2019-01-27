@@ -1,10 +1,30 @@
 
 puts("Hello, world!")
-extern puts(char*) s32
 
-return add(4, 5)
+load "includes/cstdio"
+load "includes/cstdlib"
+load "includes/glfw"
+load "includes/glew"
+load "includes/opengl"
 
-# Order doesnt matter
+# order doesnt matter
 
-def add(a s32, b s32) s32
-    return a + b
+i := 0
+i1 s32 = 0
+i2 int = 0
+i3 s64 = 4
+
+f := 3.1
+f1 f32 = 5.03
+f2 float = 5.03
+f3 f64 = 64.3
+f4 double = 64.3
+
+s := "Hello"
+s1 u8* = "you"
+s2 char* = "you"
+
+b := false
+b1 bool = true
+
+system("echo hello you")

@@ -17,6 +17,7 @@ void error(char* fmt, ...);
 //------------------------------------------------------------------------------
 char* get_file_path_from_directory(char* dir, char* filename);
 char* get_file_extension(char* filename);
+char* remove_file_extension(char* filename);
 char* get_file_directory(char* filename);
 char* get_file_name(char* filename);
 char* get_file_content(char* filename);

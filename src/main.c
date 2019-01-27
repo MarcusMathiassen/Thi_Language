@@ -48,20 +48,14 @@ int main(int argc, char** argv)
 
     Thi thi = make_thi();
 
-    add_link(&thi, "-lSystem");
-
     s32 opt;
-    while ((opt = getopt(argc, argv, "f:dvo:")) != -1) {
+    while ((opt = getopt(argc, argv, "f:dv:")) != -1) {
         switch (opt) {
         case 'v': thi.detailed_print = true; break;
         case 'd': thi.debug_mode = true; break;
         case 'f':
             set_source_file(&thi, optarg);
             info("filename: %s\n", optarg);
-            break;
-        case 'o':
-            set_output_name(&thi, optarg);
-            info("exec_name: %s\n", optarg);
             break;
         case ':': info("option needs a value\n"); break;
         case '?': info("unknown option: %c\n", optopt); break;
@@ -78,7 +72,6 @@ int main(int argc, char** argv)
 
     // Grab the source file
     char* source_file = get_source_file(&thi);
-    char* exec_name   = get_output_name(&thi);
     info("Compiling %s", source_file);
 
     // Setup builtin types
@@ -102,9 +95,12 @@ int main(int argc, char** argv)
     add_symbol(&thi, "f32", make_type_float(4));
     add_symbol(&thi, "f64", make_type_float(8));
 
-    char* ext  = get_file_extension(source_file);
-    char* dir  = get_file_directory(source_file);
-    char* name = get_file_name(source_file);
+    char* ext       = get_file_extension(source_file);
+    char* dir       = get_file_directory(source_file);
+    char* name      = get_file_name(source_file);
+    char* exec_name = remove_file_extension(name);
+
+    thi.input_file = source_file;
 
     set_source_file(&thi, name);
     set_current_directory(&thi, dir);
@@ -120,7 +116,9 @@ int main(int argc, char** argv)
         error("%s is not a .thi file.", source_file);
     }
 
-    List* ast = parse(&thi, source_file);
+    List* ast = make_list();
+
+    add_load(&thi, name);
 
     // Parse
     LIST_FOREACH(get_load_list(&thi))
@@ -141,7 +139,7 @@ int main(int argc, char** argv)
 
     // Codegen
     push_timer(&thi, "Codegen");
-    char* output = generate_code_from_ast(ast);
+    char* output = generate_code_from_ast(ast, exec_name);
     pop_timer(&thi);
 
     // Write to file
@@ -195,7 +193,7 @@ void assemble(Thi* thi, char* asm_file, char* exec_name)
 
 void linking_stage(Thi* thi, char* exec_name)
 {
-    char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _main", exec_name, exec_name);
+    char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _%s", exec_name, exec_name, exec_name);
     List* links     = get_link_list(thi);
     LIST_FOREACH(links)
     {
@@ -222,10 +220,35 @@ List* parse(Thi* thi, char* source_file)
 
     push_timer(thi, source_file);
 
+    // We create a parent function for each file
+    Token t;
+
+    Type* s32_t  = make_type_int(4, 0);
+    Type* u8pp_t = make_type_pointer(make_type_pointer(make_type_int(1, 1)));
+
+    List* args = make_list();
+    if (strcmp(source_file, thi->input_file) == 0) {
+        list_append(args, make_ast_variable_decl(t, "argc", s32_t, NULL));
+        list_append(args, make_ast_variable_decl(t, "argv", u8pp_t, NULL));
+    }
+
+    List* stmts = make_list();
+
     char*       source = get_file_content(source_file);
     Lexed_File  lf     = generate_tokens_from_source(source);
     Parsed_File pf     = generate_ast_from_tokens(lf.tokens);
-    List*       ast    = pf.ast;
+
+    list_append_content_of(stmts, pf.ast);
+    list_append(stmts, make_ast_return(t, make_ast_int(t, 1)));
+
+    AST*  body        = make_ast_block(t, stmts);
+    char* name        = get_file_name(source_file);
+    char* func_name   = remove_file_extension(name);
+    Type* type        = make_type_function(func_name, args, make_type_int(4, 0));
+    AST*  parent_func = make_ast_function(t, type, body);
+
+    List* ast = make_list();
+    list_append(ast, parent_func);
 
     add_all_definitions(thi, &pf);
 
