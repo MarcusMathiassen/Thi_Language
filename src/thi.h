@@ -23,19 +23,22 @@ typedef struct {
     s64 lines;
     s64 comments;
 
-    List*         ast;
-    List*         load_list;
-    List*         extern_list;
-    List*         link_list;
-    Map*          symbol_map;
-    Map*          macro_map;
-    Stack*        timer_stack;
-    List*         timer_list;
-    AST_Ref_List  function_calls;
-    AST_Ref_List  constants;
     Type_Ref_List unresolved_types;
+    AST_Ref_List  calls;
     AST_Ref_List  variables_in_need_of_type_inference;
+    AST_Ref_List  constants;
     AST_Ref_List  identifiers;
+    AST_Ref_List  structs;
+    AST_Ref_List  enums;
+    AST_Ref_List  externs;
+    List*         loads;
+    List*         links;
+
+    List*  ast;
+    Map*   symbol_map;
+    Map*   macro_map;
+    Stack* timer_stack;
+    List*  timer_list;
 
     string output_name;
     string source_file;

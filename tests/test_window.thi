@@ -1,10 +1,10 @@
-load "includes/cstdio.thi"
-load "includes/opengl.thi"
-load "includes/glew.thi"
-load "includes/glfw.thi"
-load "includes/math.thi"
+load "includes/cstdio"
+load "includes/opengl"
+load "includes/glew"
+load "includes/glfw"
+load "includes/math"
 
-def main() s32
+main()
     if !glfwInit() puts("GLFW init failed.")
     defer glfwTerminate()
 
@@ -54,7 +54,7 @@ def main() s32
 
     return 1
 
-def draw_triangle(x f32, y f32, s f32)
+draw_triangle(x: f32, y: f32, s: f32)
     glBegin(GL_TRIANGLES)
     glColor3f(1.0, 0.0, 0.0)
     glVertex2f(x + -0.5 *s, y + -0.5*s )

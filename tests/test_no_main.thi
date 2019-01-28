@@ -2,14 +2,16 @@ load "includes/cstdio"
 load "includes/cstdlib"
 
 main()
-    v vec2
+    v: vec2
 
     puts("Hello")
 
     system("echo Hello there")
 
-    return add(0, 1)
+    X :: 0
+    if add(0, 1) == X puts("fewfwefwe")
 
+    return add(0, 1)
 
 enum TokenKind
     Ident :: 0
@@ -18,8 +20,8 @@ enum TokenKind
     Eof :: 3
 
 struct vec2
-    x f32
-    y f32
+    x: f32
+    y: f32
 
-add(a s32, b s32)
+add(a: s32, b: s32)
     return a + b

@@ -113,7 +113,6 @@ typedef struct {
     char*      value;
     s64        line_pos;
     s64        col_pos;
-    char*      line_start;
 } Token;
 
 typedef struct {

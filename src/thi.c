@@ -7,30 +7,33 @@
 Thi make_thi()
 {
     Thi thi;
-    thi.lines                               = 0;
-    thi.comments                            = 0;
-    thi.detailed_print                      = false;
-    thi.debug_mode                          = false;
-    thi.enable_constant_folding             = true;
-    thi.optimize                            = true;
+    thi.lines                   = 0;
+    thi.comments                = 0;
+    thi.detailed_print          = false;
+    thi.debug_mode              = false;
+    thi.enable_constant_folding = true;
+    thi.optimize                = true;
+    thi.timer_list              = make_list();
+    thi.symbol_map              = make_map();
+    thi.macro_map               = make_map();
+    thi.timer_stack             = make_stack();
+    thi.output_name             = make_string("");
+    thi.previous_file           = NULL;
+    thi.input_file              = NULL;
+    thi.source_file             = make_string("");
+    thi.current_directory       = make_string("");
+
     thi.ast                                 = make_list();
-    thi.extern_list                         = make_list();
-    thi.link_list                           = make_list();
-    thi.function_calls                      = make_ast_ref_list();
-    thi.load_list                           = make_list();
-    thi.timer_list                          = make_list();
-    thi.symbol_map                          = make_map();
-    thi.macro_map                           = make_map();
-    thi.timer_stack                         = make_stack();
-    thi.output_name                         = make_string("");
-    thi.previous_file                       = NULL;
-    thi.input_file                          = NULL;
-    thi.source_file                         = make_string("");
-    thi.current_directory                   = make_string("");
+    thi.links                               = make_list();
+    thi.loads                               = make_list();
     thi.unresolved_types                    = make_type_ref_list();
+    thi.externs                             = make_ast_ref_list();
+    thi.calls                               = make_ast_ref_list();
     thi.variables_in_need_of_type_inference = make_ast_ref_list();
     thi.constants                           = make_ast_ref_list();
     thi.identifiers                         = make_ast_ref_list();
+    thi.structs                             = make_ast_ref_list();
+    thi.enums                               = make_ast_ref_list();
     return thi;
 }
 
@@ -47,37 +50,37 @@ char* get_previous_source_file(Thi* thi) { return thi->previous_file; }
 void  set_current_directory(Thi* thi, char* dir_name) { thi->current_directory = make_string(dir_name); }
 char* get_current_directory(Thi* thi) { return thi->current_directory.c_str; }
 
-List* get_load_list(Thi* thi) { return thi->load_list; }
+List* get_load_list(Thi* thi) { return thi->loads; }
 
 void add_load(Thi* thi, char* loaded_file)
 {
     assert(loaded_file);
-    LIST_FOREACH(thi->load_list)
+    LIST_FOREACH(thi->loads)
     {
         char* l = (char*)it->data;
         if (strcmp(l, loaded_file) == 0) {
             return;
         }
     }
-    list_append(thi->load_list, loaded_file);
+    list_append(thi->loads, loaded_file);
     info("added load: '%s'", loaded_file);
 }
 
 void add_link(Thi* thi, char* library_name)
 {
     assert(library_name);
-    LIST_FOREACH(thi->link_list)
+    LIST_FOREACH(thi->links)
     {
         char* l = (char*)it->data;
         if (strcmp(l, library_name) == 0) {
             return;
         }
     }
-    list_append(thi->link_list, library_name);
+    list_append(thi->links, library_name);
     info("added link: '%s'", library_name);
 }
 
-List* get_link_list(Thi* thi) { return thi->link_list; }
+List* get_link_list(Thi* thi) { return thi->links; }
 
 void print_symbol_map(Thi* thi)
 {

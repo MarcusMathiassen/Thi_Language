@@ -33,7 +33,7 @@ List* parse(Thi* thi, char* source_file);
 void  assemble(Thi* thi, char* asm_file, char* exec_name);
 void  linking_stage(Thi* thi, char* exec_name);
 void  pass_general(Thi* thi);
-void  find_all_definitions(Thi* thi, List* ast, List_Node* it);
+void  maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it);
 
 int main(int argc, char** argv)
 {
@@ -167,7 +167,7 @@ int main(int argc, char** argv)
     info("lines %lld comments %lld", thi.lines, thi.comments);
     info("resolved %lld types", thi.unresolved_types.count);
     info("type inferred %lld variables", thi.variables_in_need_of_type_inference.count);
-    info("checked calls %lld", thi.function_calls.count);
+    info("checked calls %lld", thi.calls.count);
     LIST_FOREACH(get_timers(&thi))
     {
         Timer* tm      = (Timer*)it->data;
@@ -210,32 +210,10 @@ void linking_stage(Thi* thi, char* exec_name)
     system(strf("rm %s.o", exec_name));
 }
 
-void find_all_definitions(Thi* thi, List* ast, List_Node* it)
+void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it)
 {
     AST* node = (AST*)it->data;
-
-    warning("find_all_definitions: %s", ast_to_json(node));
-
     switch (node->kind) {
-    case AST_ENUM: {
-        List* l = node->Enum.type->Enum.members;
-        LIST_FOREACH(l) { find_all_definitions(thi, ast, it); }
-        add_symbol(thi, node->Enum.type->Enum.name, node->Enum.type);
-    } break;
-    case AST_STRUCT: {
-        List* l = node->Struct.type->Struct.members;
-        LIST_FOREACH(l) { find_all_definitions(thi, ast, it); }
-        add_symbol(thi, node->Struct.type->Struct.name, node->Struct.type);
-    } break;
-    case AST_LINK: {
-        add_link(thi, node->Link.str);
-    } break;
-    case AST_LOAD: {
-        add_load(thi, node->Load.str);
-    } break;
-    case AST_BLOCK: {
-        LIST_FOREACH(node->Block.stmts) { find_all_definitions(thi, ast, it); }
-    } break;
     case AST_CALL: {
         if (it->next) {
             AST* next_expr = (AST*)it->next->data;
@@ -245,13 +223,9 @@ void find_all_definitions(Thi* thi, List* ast, List_Node* it)
                 Type* type      = make_type_function(func_name, args, NULL);
                 add_symbol(thi, func_name, type);
 
-                find_all_definitions(thi, ast, it->next);
                 AST* body = (AST*)it->next->data;
-
-                // list_append(ast, make_ast_function(node->t, type, body));
+                it->data  = make_ast_function(node->t, type, body);
                 list_remove(ast, it->next);
-                // list_remove(ast, it);
-                it->data = make_ast_function(node->t, type, body);
             }
         }
     } break;
@@ -275,9 +249,7 @@ List* parse(Thi* thi, char* source_file)
     List*       ast    = pf.ast;
 
     // Find all definitions
-    print_ast(ast);
-    LIST_FOREACH(ast) { find_all_definitions(thi, ast, it); }
-    print_ast(ast);
+    LIST_FOREACH(ast) { maybe_convert_call_to_def(thi, ast, it); }
 
     add_all_definitions(thi, &pf);
 
@@ -298,11 +270,54 @@ void add_all_definitions(Thi* thi, Parsed_File* pf)
     for (s64 i = 0; i < pf->unresolved_types.count; ++i) {
         type_ref_list_append(&thi->unresolved_types, pf->unresolved_types.data[i]);
     }
+    for (s64 i = 0; i < pf->calls.count; ++i) {
+        ast_ref_list_append(&thi->calls, pf->calls.data[i]);
+    }
+    for (s64 i = 0; i < pf->externs.count; ++i) {
+        AST*  node = pf->externs.data[i];
+        char* name = node->Extern.type->Function.name;
+        add_symbol(thi, name, node->Extern.type);
+        ast_ref_list_append(&thi->externs, pf->externs.data[i]);
+    }
+    for (s64 i = 0; i < pf->structs.count; ++i) {
+        AST* node = pf->structs.data[i];
+        add_symbol(thi, node->Struct.type->Struct.name, node->Struct.type);
+        ast_ref_list_append(&thi->structs, node);
+    }
+    for (s64 i = 0; i < pf->enums.count; ++i) {
+        AST* node = pf->enums.data[i];
+        add_symbol(thi, node->Enum.type->Enum.name, node->Enum.type);
+        ast_ref_list_append(&thi->enums, node);
+    }
+    for (s64 i = 0; i < pf->variables_in_need_of_type_inference.count; ++i) {
+        ast_ref_list_append(&thi->variables_in_need_of_type_inference, pf->variables_in_need_of_type_inference.data[i]);
+    }
+    for (s64 i = 0; i < pf->constants.count; ++i) {
+        ast_ref_list_append(&thi->constants, pf->constants.data[i]);
+    }
+    for (s64 i = 0; i < pf->identifiers.count; ++i) {
+        ast_ref_list_append(&thi->identifiers, pf->identifiers.data[i]);
+    }
+    LIST_FOREACH(pf->links) { add_link(thi, it->data); }
+    LIST_FOREACH(pf->loads) { add_load(thi, it->data); }
 }
 
 Type* get_inferred_type_of_expr(Thi* thi, AST* expr)
 {
+    if (!expr) return NULL;
     switch (expr->kind) {
+    case AST_FUNCTION: return get_inferred_type_of_expr(thi, expr->Function.body);
+    case AST_BLOCK: {
+        Type* type = NULL;
+        LIST_FOREACH(expr->Block.stmts)
+        {
+            AST* stmt = (AST*)it->data;
+            if (stmt->kind == AST_RETURN) {
+                type = get_inferred_type_of_expr(thi, stmt);
+            }
+        }
+    } break;
+    case AST_RETURN: return get_inferred_type_of_expr(thi, expr->Return.expr);
     case AST_SIZEOF: return expr->Sizeof.type;
     case AST_CAST: return expr->Cast.type;
     case AST_NOTE: return get_inferred_type_of_expr(thi, expr->Note.expr);
@@ -326,9 +341,9 @@ void pass_type_checker(Thi* thi)
     push_timer(thi, "pass_type_checker");
 
     // For all functions call..
-    for (s64 i = 0; i < thi->function_calls.count; ++i) {
+    for (s64 i = 0; i < thi->calls.count; ++i) {
         // Get the caller and its args
-        AST*  call      = thi->function_calls.data[i];
+        AST*  call      = thi->calls.data[i];
         List* call_args = call->Call.args;
 
         warning("Typechecking: %s", ast_to_str(call));
@@ -422,8 +437,9 @@ void pass_type_inference(Thi* thi)
     info("pass_type_inference");
     push_timer(thi, "pass_type_inference");
 
-    for (s64 i = 0; i < thi->function_calls.count; ++i) {
-        AST* call  = thi->function_calls.data[i];
+    for (s64 i = 0; i < thi->calls.count; ++i) {
+        AST* call = thi->calls.data[i];
+        warning("%s", ast_to_json(call));
         call->type = get_inferred_type_of_expr(thi, call);
         if (!call->type) {
             call->type = make_type_void();

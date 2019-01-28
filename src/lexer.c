@@ -129,7 +129,6 @@ Lexed_File generate_tokens_from_source(char* source)
             t.value                         = "";
             t.line_pos                      = lctx.line_count;
             t.col_pos                       = lctx.stream - lctx.position_of_newline;
-            t.line_start                    = lctx.start_of_line;
             lctx.previous_indentation_level = lctx.current_indentation_level;
             token_array_append(&tokens, t);
         }
@@ -139,7 +138,6 @@ Lexed_File generate_tokens_from_source(char* source)
             t.value      = "";
             t.line_pos   = lctx.line_count;
             t.col_pos    = lctx.stream - lctx.position_of_newline;
-            t.line_start = lctx.start_of_line;
             lctx.previous_indentation_level -= 4;
             token_array_append(&tokens, t);
         }
@@ -178,7 +176,6 @@ Token get_token(Lexer_Context* lctx)
     token.value      = c;
     token.line_pos   = lctx->line_count;
     token.col_pos    = c - lctx->position_of_newline;
-    token.line_start = lctx->start_of_line;
 
     switch (*c) {
     case '#': {

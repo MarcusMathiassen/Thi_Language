@@ -906,6 +906,8 @@ Value* codegen_call(Codegen_Context* ctx, AST* expr)
     char* callee   = expr->Call.callee;
     List* args     = expr->Call.args;
     Type* ret_type = expr->type;
+    
+    assert(ret_type);
 
     List* arg_values        = make_list();
     s8    int_arg_counter   = 0;
