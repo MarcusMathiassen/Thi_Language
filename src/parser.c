@@ -5,6 +5,7 @@
 #include "map.h" // Map
 #include "type.h" // Type, make_typspec_*,
 #include "typedefs.h" // s32 , s64, etc.
+#include "constants.h"
 #include "utility.h" // info, error, warning, success, strf, get_file_content
 #include <assert.h> // assert
 #include <ctype.h> // atoll
@@ -89,6 +90,8 @@ typedef struct {
     List*         loads;
     List*         links;
 
+    Map* symbols;
+
     Token curr_tok;
     Token prev_tok;
 
@@ -115,6 +118,7 @@ Parser_Context make_parser_context()
     pctx.externs                             = make_ast_ref_list();
     pctx.loads                               = make_list();
     pctx.links                               = make_list();
+    pctx.symbols                               = make_map();
 
     return pctx;
 }
@@ -213,6 +217,7 @@ Parsed_File generate_ast_from_tokens(Token_Array tokens)
     pf.calls                               = pctx.calls;
     pf.constants                           = pctx.constants;
     pf.identifiers                         = pctx.identifiers;
+    pf.symbols                             = pctx.symbols;
     return pf;
 }
 
@@ -273,7 +278,7 @@ AST* parse_identifier(Parser_Context* pctx)
     eat_kind(pctx, TOKEN_IDENTIFIER);
 
     switch (pctx->curr_tok.kind) {
-    case TOKEN_COLON:  // fallthrough
+    case TOKEN_COLON: // fallthrough
     case TOKEN_COLON_EQ: return parse_variable_decl(pctx, ident);
     case TOKEN_COLON_COLON: return parse_constant_decl(pctx, ident);
     case TOKEN_OPEN_PAREN: return parse_function_call(pctx, ident);
@@ -293,6 +298,7 @@ AST* parse_struct(Parser_Context* pctx)
     eat_kind(pctx, TOKEN_IDENTIFIER);
     Type* type = parse_struct_signature(pctx, ident);
     AST*  s    = make_ast_struct(pctx->curr_tok, type);
+    map_set(pctx->symbols, ident, type);
     ast_ref_list_append(&pctx->structs, s);
     return s;
 }
@@ -305,6 +311,7 @@ AST* parse_enum(Parser_Context* pctx)
     eat_kind(pctx, TOKEN_IDENTIFIER);
     Type* type = parse_enum_signature(pctx, ident);
     AST*  e    = make_ast_enum(pctx->curr_tok, type);
+    map_set(pctx->symbols, ident, type);
     ast_ref_list_append(&pctx->enums, e);
     return e;
 }
@@ -317,7 +324,6 @@ AST* parse_load(Parser_Context* pctx)
     eat_kind(pctx, TOKEN_STRING);
     list_append(pctx->loads, str);
     return make_ast_load(pctx->curr_tok, str);
-    ;
 }
 
 AST* parse_link(Parser_Context* pctx)
@@ -338,6 +344,7 @@ AST* parse_extern(Parser_Context* pctx)
     eat_kind(pctx, TOKEN_IDENTIFIER);
     Type* type = parse_extern_function_signature(pctx, ident);
     AST*  e    = make_ast_extern(pctx->curr_tok, type);
+    map_set(pctx->symbols, ident, type);
     ast_ref_list_append(&pctx->externs, e);
     return e;
 }
@@ -511,20 +518,20 @@ AST* parse_variable_decl(Parser_Context* pctx, char* ident)
     bool variable_needs_type_inference = false;
 
     switch (pctx->curr_tok.kind) {
-        case TOKEN_COLON: {
-            eat_kind(pctx, TOKEN_COLON);
-            variable_type = get_type(pctx);
-            if (tok_is(pctx, TOKEN_EQ)) {
-                eat_kind(pctx, TOKEN_EQ);
-                variable_value = parse_expression(pctx);
-            }
-        } break;
+    case TOKEN_COLON: {
+        eat_kind(pctx, TOKEN_COLON);
+        variable_type = get_type(pctx);
+        if (tok_is(pctx, TOKEN_EQ)) {
+            eat_kind(pctx, TOKEN_EQ);
+            variable_value = parse_expression(pctx);
+        }
+    } break;
 
-        case TOKEN_COLON_EQ: {
-          eat_kind(pctx, TOKEN_COLON_EQ);
-            variable_value                = parse_expression(pctx);
-            variable_needs_type_inference = true;
-        } break;
+    case TOKEN_COLON_EQ: {
+        eat_kind(pctx, TOKEN_COLON_EQ);
+        variable_value                = parse_expression(pctx);
+        variable_needs_type_inference = true;
+    } break;
     }
 
     AST* var_decl = make_ast_variable_decl(pctx->curr_tok, variable_name, variable_type, variable_value);
@@ -771,9 +778,13 @@ Type* get_type(Parser_Context* pctx)
     char* type_name = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
 
-    Type* type = make_type_unresolved(type_name);
+    Type* type = map_get(pctx->symbols, type_name);
+    if (!type) {
+        type = make_type_unresolved(type_name);
+        type->name = type_name;
+        type_ref_list_append(&pctx->unresolved_types, type);
+    }
     type->name = type_name;
-    type_ref_list_append(&pctx->unresolved_types, type);
 
     switch (pctx->curr_tok.kind) {
     case THI_SYNTAX_POINTER: {

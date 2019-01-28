@@ -1,4 +1,4 @@
-def main ()  s32 
-    a s32[10]
+main() 
+    a: s32[10]
     a[3] = 1
     return a[3]

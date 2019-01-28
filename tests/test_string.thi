@@ -1,6 +1,4 @@
-def main ()  s32 
-
+main()
     name := "Marcus"
-
     return 1
 

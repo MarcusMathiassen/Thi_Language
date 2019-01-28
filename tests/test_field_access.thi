@@ -1,9 +1,9 @@
 struct Person
-    age s64
+    age: s64
 
 
-def main ()  s32 
-    p Person
+main()
+    p: Person
     p.age = 65
     i := 0
     return p.age

@@ -1,5 +1,5 @@
-def min(a s32, b s32)  s32
+min(a: s32, b: s32)
     return a < b ? a : b
     
-def main(argc s32, argv u8*)  s32
+main(argc: s32, argv: u8*)
     return min(1, min(2, 3))

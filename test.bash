@@ -29,6 +29,7 @@ for tf in $test_files
 do
     # Compile the file
     $thi_executable -f $tf -v -d
+    ((test_counter++))
 
     filename="${tf##*/}"                      # Strip longest match of */ from start
     name="${filename%.[^.]*}"

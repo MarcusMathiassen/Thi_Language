@@ -1,6 +1,4 @@
 NUMBER1 :: 3
 NUMBER2 :: -2
-
-def main ()  s32 
+main()
     return NUMBER1 + NUMBER2
-

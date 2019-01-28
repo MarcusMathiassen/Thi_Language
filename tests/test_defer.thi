@@ -1,5 +1,5 @@
 extern puts (u8*)  s32
-def main ()  s32
+main()
     i := 0
     defer 
         puts("4th")

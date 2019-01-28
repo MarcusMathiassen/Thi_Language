@@ -1,16 +1,15 @@
 struct bar
-    a s32
-    b s64
-    c f32
+    a: s32
+    b: s64
+    c: f32
 
 
 struct foo
-    a bar
-    b bar
+    a: bar
+    b: bar
 
-
-def main ()  s32 
-    a bar
-    b foo
+main()
+    a: bar
+    b: foo
     return 1
 

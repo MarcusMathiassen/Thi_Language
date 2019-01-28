@@ -74,27 +74,6 @@ int main(int argc, char** argv)
     char* source_file = get_source_file(&thi);
     info("Compiling %s", source_file);
 
-    // Setup builtin types
-    add_symbol(&thi, "void", make_type_void());
-    add_symbol(&thi, "bool", make_type_int(1, true));
-    add_symbol(&thi, "char", make_type_int(1, true));
-    add_symbol(&thi, "int", make_type_int(DEFAULT_INT_BYTE_SIZE, false));
-    add_symbol(&thi, "float", make_type_float(DEFAULT_FLOAT_BYTE_SIZE));
-    add_symbol(&thi, "double", make_type_float(8));
-
-    add_symbol(&thi, "s8", make_type_int(1, false));
-    add_symbol(&thi, "s16", make_type_int(2, false));
-    add_symbol(&thi, "s32", make_type_int(4, false));
-    add_symbol(&thi, "s64", make_type_int(8, false));
-
-    add_symbol(&thi, "u8", make_type_int(1, true));
-    add_symbol(&thi, "u16", make_type_int(2, true));
-    add_symbol(&thi, "u32", make_type_int(4, true));
-    add_symbol(&thi, "u64", make_type_int(8, true));
-
-    add_symbol(&thi, "f32", make_type_float(4));
-    add_symbol(&thi, "f64", make_type_float(8));
-
     char* ext       = get_file_extension(source_file);
     char* dir       = get_file_directory(source_file);
     char* name      = get_file_name(source_file);
@@ -119,6 +98,27 @@ int main(int argc, char** argv)
     List* ast = make_list();
 
     add_load(&thi, name);
+    add_link(&thi, "-lSystem");
+
+    add_symbol(&thi, "void", make_type_void());
+    add_symbol(&thi, "bool", make_type_int(1, true));
+    add_symbol(&thi, "char", make_type_int(1, true));
+    add_symbol(&thi, "int", make_type_int(DEFAULT_INT_BYTE_SIZE, false));
+    add_symbol(&thi, "float", make_type_float(DEFAULT_FLOAT_BYTE_SIZE));
+    add_symbol(&thi, "double", make_type_float(8));
+
+    add_symbol(&thi, "s8", make_type_int(1, false));
+    add_symbol(&thi, "s16", make_type_int(2, false));
+    add_symbol(&thi, "s32", make_type_int(4, false));
+    add_symbol(&thi, "s64", make_type_int(8, false));
+
+    add_symbol(&thi, "u8", make_type_int(1, true));
+    add_symbol(&thi, "u16", make_type_int(2, true));
+    add_symbol(&thi, "u32", make_type_int(4, true));
+    add_symbol(&thi, "u64", make_type_int(8, true));
+
+    add_symbol(&thi, "f32", make_type_float(4));
+    add_symbol(&thi, "f64", make_type_float(8));
 
     // Parse
     LIST_FOREACH(get_load_list(&thi))
@@ -133,7 +133,7 @@ int main(int argc, char** argv)
     pass_resolve_all_unresolved_types(&thi);
     pass_type_inference(&thi);
     pass_progate_identifiers_to_constants(&thi);
-    // pass_give_all_identifiers_a_type(&thi);
+    pass_give_all_identifiers_a_type(&thi);
     // pass_type_checker(&thi);
     warning("Typechecker disabled");
 
@@ -276,17 +276,17 @@ void add_all_definitions(Thi* thi, Parsed_File* pf)
     for (s64 i = 0; i < pf->externs.count; ++i) {
         AST*  node = pf->externs.data[i];
         char* name = node->Extern.type->Function.name;
-        add_symbol(thi, name, node->Extern.type);
+        // add_symbol(thi, name, node->Extern.type);
         ast_ref_list_append(&thi->externs, pf->externs.data[i]);
     }
     for (s64 i = 0; i < pf->structs.count; ++i) {
         AST* node = pf->structs.data[i];
-        add_symbol(thi, node->Struct.type->Struct.name, node->Struct.type);
+        // add_symbol(thi, node->Struct.type->Struct.name, node->Struct.type);
         ast_ref_list_append(&thi->structs, node);
     }
     for (s64 i = 0; i < pf->enums.count; ++i) {
         AST* node = pf->enums.data[i];
-        add_symbol(thi, node->Enum.type->Enum.name, node->Enum.type);
+        // add_symbol(thi, node->Enum.type->Enum.name, node->Enum.type);
         ast_ref_list_append(&thi->enums, node);
     }
     for (s64 i = 0; i < pf->variables_in_need_of_type_inference.count; ++i) {
@@ -300,6 +300,12 @@ void add_all_definitions(Thi* thi, Parsed_File* pf)
     }
     LIST_FOREACH(pf->links) { add_link(thi, it->data); }
     LIST_FOREACH(pf->loads) { add_load(thi, it->data); }
+
+    s64 count = pf->symbols->size;
+    for (s64 i = 0; i < count; ++i) {
+        Type* type = pf->symbols->data[i].data;
+        add_symbol(thi, type->name, type);
+    }
 }
 
 Type* get_inferred_type_of_expr(Thi* thi, AST* expr)

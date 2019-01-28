@@ -1,7 +1,6 @@
 extern putchar (s32)  s32
 
-def main ()  s32 
-
+main()
     putchar(72)
     putchar(101)
     putchar(108)
@@ -16,6 +15,5 @@ def main ()  s32
     putchar(100)
     putchar(33)
     putchar(10)
-
     return 1
 

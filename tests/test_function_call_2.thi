@@ -1,15 +1,15 @@
-def main ()  s32 
+main()
     return cat(-bar(8, 3) + foo(3) + cat(8)) - 5
 
 
-def foo (a s32)  s32 
+foo(a: s32)
     return a * 3 
 
 
-def cat (a s32) s32 
+cat (a: s32) 
     return a - 3
 
 
-def bar (a s32, b s32)  s32 
+bar (a: s32, b: s32)
     return a - b
 

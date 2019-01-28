@@ -1,2 +1,2 @@
-def main ()  s32 
+main() 
     return 0x0001

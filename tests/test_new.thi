@@ -1,10 +1,10 @@
 extern puts(u8*) s32
 
-def main() s32
+main()
     puts("Hello")
-    counter s32
+    counter: s32
 
-    k TokenKind
+    k: TokenKind
     return 1
 
 enum TokenKind
@@ -13,5 +13,5 @@ enum TokenKind
     Link :: 2
 
 struct vec2
-    x f32
-    y f32
+    x: f32
+    y: f32

@@ -3,6 +3,6 @@ enum DeviceType
     CPU :: 1
 
 
-def main ()  s32 
+main()
     return 1
 

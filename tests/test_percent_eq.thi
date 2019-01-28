@@ -1,4 +1,4 @@
-def main ()  s32 
+main()
     i := 5
     return i %= 4
 

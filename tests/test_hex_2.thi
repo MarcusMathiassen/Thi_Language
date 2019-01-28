@@ -1,6 +1,4 @@
-def main ()  s32 
-
+main() 
     i := 0x1
-
     return i
 

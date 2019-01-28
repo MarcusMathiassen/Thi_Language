@@ -7,7 +7,7 @@ enum TokenKind
     Int :: 2
 
 
-def get()
+get()
     i := "Hello"
     return
 
@@ -18,14 +18,14 @@ n :: 3
 
 DEFAULT_SIZE_OF_OBJECTS :: 3
 
-def main() s32
-    v vec2
+main()
+    v: vec2
 
     get()
-    d vec2
+    d: vec2
 
-    k s64
-    l s64
+    k: s64
+    l: s64
 
     compile("Hello")
 
@@ -33,11 +33,10 @@ def main() s32
     return DEFAULT_SIZE_OF_OBJECTS * 3 - 8
 
 struct vec2 
-    x f32
-    y f32
-    def add(a f32, b f32) f32
+    x: f32
+    y: f32
+    add(a: f32, b: f32)
         return a + b
 
-def compile(source u8*)
+compile(source: u8*)
     puts(source)
-

@@ -1,9 +1,9 @@
 struct Foo
-    w s32
+    i: s32
 
 
-def main ()  s32 
-    arraw Foo[5]
+main()
+    array: Foo[5]
     array[4].i = 1
     return array[4].i
 

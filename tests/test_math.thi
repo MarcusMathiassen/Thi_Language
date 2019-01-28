@@ -1,2 +1,2 @@
-def main() s32 
-    return 2 + (4 * 3) / 10
+main()
+    return (2  + 4 * 3) / 10

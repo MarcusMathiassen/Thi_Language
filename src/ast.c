@@ -455,16 +455,12 @@ AST* make_ast_function(Token t, Type* func_t, AST* body)
     return e;
 }
 
-AST* make_ast_binary(Token t, Token_Kind op, AST* lhs, AST* rhs)
-{
-    assert(op != TOKEN_UNKNOWN);
-    assert(lhs);
-    assert(rhs);
-    AST* e        = make_ast(AST_BINARY, t);
-    e->Binary.op  = op;
-    e->Binary.lhs = lhs;
-    e->Binary.rhs = rhs;
-
+AST* try_fold(AST* e) {
+    Token_Kind op = e->Binary.op;
+    AST* lhs = e->Binary.lhs;
+    AST* rhs = e->Binary.rhs;
+    if (lhs->kind == AST_GROUPING) lhs = lhs->Grouping.expr;
+    if (rhs->kind == AST_GROUPING) rhs = rhs->Grouping.expr;
     if (lhs->kind == AST_INT && rhs->kind == AST_INT) {
         s64 lhs_v = lhs->Int.val;
         s64 rhs_v = rhs->Int.val;
@@ -490,7 +486,7 @@ AST* make_ast_binary(Token t, Token_Kind op, AST* lhs, AST* rhs)
         }
         info("folded %s into %lld", ast_to_str(e), value);
 
-        e = make_ast_int(t, value);
+        return make_ast_int(e->t, value);
     } else if (lhs->kind == AST_FLOAT && rhs->kind == AST_FLOAT) {
         f64 lhs_v = lhs->Float.val;
         f64 rhs_v = rhs->Float.val;
@@ -510,9 +506,22 @@ AST* make_ast_binary(Token t, Token_Kind op, AST* lhs, AST* rhs)
         }
         info("folded %s into %lld", ast_to_str(e), value);
 
-        e = make_ast_float(t, value);
+        return make_ast_float(e->t, value);
     }
+    return e;
+}
 
+AST* make_ast_binary(Token t, Token_Kind op, AST* lhs, AST* rhs)
+{
+    assert(op != TOKEN_UNKNOWN);
+    assert(lhs);
+    assert(rhs);
+    AST* e        = make_ast(AST_BINARY, t);
+    e->t = t;
+    e->Binary.op  = op;
+    e->Binary.lhs = lhs;
+    e->Binary.rhs = rhs;
+    e = try_fold(e);
     return e;
 }
 
