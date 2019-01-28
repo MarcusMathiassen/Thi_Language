@@ -8,22 +8,21 @@ _main:
 .begin:
 	mov eax, 2
 	push rax
-	mov rax, qword [rbp-40]; load
-	mov eax, 4
 	push rax
-	mov rax, qword [rbp-40]; load
+	mov eax, 8
+	push rax
+	lea rax, [rbp-40]; load
 	pop rcx
 	add rax, rcx
-	mov eax, dword [rax]; deref
+	pop rcx
+	mov [rax], rcx; store
 	pop rax
-	mov [rbp-40], rax; store
 .l1:
 	jmp .l0
 .l0:
-	mov rax, qword [rbp-40]; load
-	mov eax, 4
+	mov eax, 8
 	push rax
-	mov rax, qword [rbp-40]; load
+	lea rax, [rbp-40]; load
 	pop rcx
 	add rax, rcx
 	mov eax, dword [rax]; deref

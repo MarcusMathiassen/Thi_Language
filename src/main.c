@@ -27,6 +27,7 @@ Type* get_inferred_type_of_expr(Thi* thi, AST* expr);
 void  pass_progate_identifiers_to_constants(Thi* thi);
 void  pass_type_inference(Thi* thi);
 void  pass_initilize_all_enums(Thi* thi);
+void  pass_resolve_subscripts(Thi* thi);
 void  pass_give_all_identifiers_a_type(Thi* thi);
 void  pass_resolve_all_unresolved_types(Thi* thi);
 void  pass_type_checker(Thi* thi);
@@ -140,6 +141,8 @@ int main(int argc, char** argv)
     pass_resolve_all_unresolved_types(&thi);
     pass_type_inference(&thi);
     pass_give_all_identifiers_a_type(&thi);
+
+    pass_resolve_subscripts(&thi);
 
 
     // pass_type_checker(&thi);
@@ -358,6 +361,9 @@ void add_all_definitions(Thi* thi, Parsed_File* pf)
     for (s64 i = 0; i < pf->field_access.count; ++i) {
         ast_ref_list_append(&thi->field_access, pf->field_access.data[i]);
     }
+    for (s64 i = 0; i < pf->subscripts.count; ++i) {
+        ast_ref_list_append(&thi->subscripts, pf->subscripts.data[i]);
+    }
     LIST_FOREACH(pf->links) { add_link(thi, it->data); }
     LIST_FOREACH(pf->loads) { add_load(thi, it->data); }
 
@@ -527,6 +533,24 @@ void pass_initilize_all_enums(Thi* thi)
                 break;
             }
         }
+    }
+
+    pop_timer(thi);   
+}
+void pass_resolve_subscripts(Thi* thi)
+{
+    info("pass_resolve_subscripts");
+    push_timer(thi, "pass_resolve_subscripts");
+
+    for (s64 i = 0; i < thi->subscripts.count; ++i) {
+        AST* it = thi->subscripts.data[i];
+        AST* load = it->Subscript.load;
+        AST* sub = it->Subscript.sub;
+
+        sub = make_ast_binary(it->t, TOKEN_ASTERISK, make_ast_int(it->t, 4), sub);
+        sub = make_ast_binary(it->t, TOKEN_PLUS, load, sub);
+        sub = make_ast_unary(it->t, THI_SYNTAX_POINTER, sub);
+        *it = *sub;
     }
 
     pop_timer(thi);   

@@ -530,11 +530,11 @@ void emit_store(Codegen_Context* ctx, Value* variable)
     s64   stack_pos = get_stack_pos_of_variable(variable);
     char* reg       = get_result_reg(variable->type);
     char* mov_op    = get_move_op(variable->type);
-    // if (variable->type->kind == TYPE_ARRAY) {
-    //     emit(ctx, "mov [rax], %s; store", reg);
-    // } else {
-    emit(ctx, "%s [rbp-%lld], %s; store", mov_op, stack_pos, reg);
-    // }
+    if (variable->type->kind == TYPE_ARRAY) {
+        emit(ctx, "mov [rax], rcx; store");
+    } else {
+        emit(ctx, "%s [rbp-%lld], %s; store", mov_op, stack_pos, reg);
+    }
 }
 
 void emit_load(Codegen_Context* ctx, Value* variable)
@@ -546,11 +546,11 @@ void emit_load(Codegen_Context* ctx, Value* variable)
     char* mov_size  = get_op_size(size);
     char* reg       = get_result_reg(variable->type);
     char* mov_op    = get_move_op(variable->type);
-    // if (variable->type->kind == TYPE_ARRAY) {
-    //     emit(ctx, "lea rax, [rbp-%lld]; load", stack_pos);
-    // } else {
-    emit(ctx, "%s %s, %s [rbp-%lld]; load", mov_op, reg, mov_size, stack_pos);
-    // }
+    if (variable->type->kind == TYPE_ARRAY) {
+        emit(ctx, "lea rax, [rbp-%lld]; load", stack_pos);
+    } else {
+        emit(ctx, "%s %s, %s [rbp-%lld]; load", mov_op, reg, mov_size, stack_pos);
+    }
 }
 
 Value* codegen_unary(Codegen_Context* ctx, AST* expr)
@@ -635,7 +635,6 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
     case TOKEN_DOT: {
         Value* variable = get_variable(ctx, lhs->Ident.name);
         assert(variable->kind == VALUE_VARIABLE);
-
         switch (variable->type->kind) {
         case TYPE_STRUCT: error("codegen field access on structs not implemented");
         }
@@ -643,9 +642,16 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
     case THI_SYNTAX_ASSIGNMENT: {
         Value* rhs_v = codegen_expr(ctx, rhs);
         push_type(ctx, rhs_v->type);
-        Value* variable = codegen_expr(ctx, lhs);
-        pop_type(ctx, variable->type);
+        push(ctx, RAX);
+        Value* variable = NULL;
+        if (lhs->kind == AST_UNARY) {
+            variable = codegen_expr(ctx, lhs->Unary.operand);
+        } else {
+            variable = codegen_expr(ctx, lhs);
+        }
+        pop(ctx, RCX);
         emit_store(ctx, variable);
+        pop(ctx, RAX);
         return variable;
     }
     case TOKEN_PLUS: {
@@ -1033,12 +1039,8 @@ Value* codegen_ident(Codegen_Context* ctx, AST* expr)
 {
     assert(expr->kind == AST_IDENT);
     DEBUG_START;
-    char* name = expr->Ident.name;
-    // AST*  macro_expr = get_macro_def(name);
-    // if (macro_expr) {
-    // return codegen_expr(ctx, macro_expr);
-    // }
-    Value* var = get_variable(ctx, name);
+    char*  name = expr->Ident.name;
+    Value* var  = get_variable(ctx, name);
     emit_load(ctx, var);
     return var;
 }
@@ -1056,6 +1058,7 @@ Value* codegen_subscript(Codegen_Context* ctx, AST* expr)
     sub = make_ast_binary(expr->t, TOKEN_ASTERISK, make_ast_int(expr->t, size), sub);
     sub = make_ast_binary(expr->t, TOKEN_PLUS, load, sub);
     sub = make_ast_unary(expr->t, THI_SYNTAX_POINTER, sub);
+
     return codegen_expr(ctx, sub);
 }
 

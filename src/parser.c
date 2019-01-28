@@ -89,6 +89,7 @@ typedef struct {
     AST_Ref_List  enums;
     AST_Ref_List  externs;
     AST_Ref_List  field_access;
+    AST_Ref_List  subscripts;
     List*         loads;
     List*         links;
 
@@ -119,6 +120,7 @@ Parser_Context make_parser_context()
     pctx.enums                               = make_ast_ref_list();
     pctx.externs                             = make_ast_ref_list();
     pctx.field_access                        = make_ast_ref_list();
+    pctx.subscripts                        = make_ast_ref_list();
     pctx.loads                               = make_list();
     pctx.links                               = make_list();
     pctx.symbols                             = make_map();
@@ -221,6 +223,7 @@ Parsed_File generate_ast_from_tokens(Token_Array tokens)
     pf.enums                               = pctx.enums;
     pf.structs                             = pctx.structs;
     pf.field_access                        = pctx.field_access;
+    pf.subscripts                        = pctx.subscripts;
     pf.calls                               = pctx.calls;
     pf.constants                           = pctx.constants;
     pf.identifiers                         = pctx.identifiers;
@@ -653,7 +656,9 @@ AST* read_subscript_expr(Parser_Context* pctx, AST* expr)
     eat_kind(pctx, TOKEN_OPEN_BRACKET);
     AST* sub = parse_expression(pctx);
     eat_kind(pctx, TOKEN_CLOSE_BRACKET);
-    return make_ast_subscript(pctx->curr_tok, expr, sub);
+    sub = make_ast_subscript(pctx->curr_tok, expr, sub);
+    ast_ref_list_append(&pctx->subscripts, sub);
+    return sub;
 }
 
 AST* parse_postfix_tail(Parser_Context* pctx, AST* primary_expr)

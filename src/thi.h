@@ -32,6 +32,7 @@ typedef struct {
     AST_Ref_List  enums;
     AST_Ref_List  field_access;
     AST_Ref_List  externs;
+    AST_Ref_List  subscripts;
     List*         loads;
     List*         links;
 

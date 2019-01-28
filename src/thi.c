@@ -29,6 +29,7 @@ Thi make_thi()
     thi.unresolved_types                    = make_type_ref_list();
     thi.externs                             = make_ast_ref_list();
     thi.calls                               = make_ast_ref_list();
+    thi.subscripts                          = make_ast_ref_list();
     thi.variables_in_need_of_type_inference = make_ast_ref_list();
     thi.constants                           = make_ast_ref_list();
     thi.identifiers                         = make_ast_ref_list();
