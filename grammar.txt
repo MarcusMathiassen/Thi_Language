@@ -3,12 +3,10 @@
 #
     if
     else
-    case
     for
     while
     struct
     enum
-    def
     return
     defer
     continue
@@ -16,7 +14,9 @@
     link
     load
     sizeof
+    typeof
     as
+    is
     true
     false
 #

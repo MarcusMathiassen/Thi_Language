@@ -53,6 +53,10 @@ typedef struct {
 Codegen_Context make_codegen_context();
 void            set_temp_labels(Codegen_Context* ctx, char* l0, char* l1);
 void            restore_temp_labels(Codegen_Context* ctx);
+void            set_break_label(Codegen_Context* ctx, char* break_l);
+void            set_continue_label(Codegen_Context* ctx, char* continue_l);
+void            restore_break_label(Codegen_Context* ctx);
+void            restore_continue_label(Codegen_Context* ctx);
 void            set_jump_labels(Codegen_Context* ctx, char* continue_l, char* break_l);
 void            restore_jump_labels(Codegen_Context* ctx);
 char*           make_text_label(Codegen_Context* ctx);
@@ -623,9 +627,8 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
         Value* variable = get_variable(ctx, lhs->Ident.name);
         assert(variable->kind == VALUE_VARIABLE);
 
-        switch(variable->type->kind)
-        {
-            case TYPE_STRUCT: error("codegen field access on structs not implemented");
+        switch (variable->type->kind) {
+        case TYPE_STRUCT: error("codegen field access on structs not implemented");
         }
     }
     case THI_SYNTAX_ASSIGNMENT: {
@@ -1214,7 +1217,7 @@ Value* codegen_switch(Codegen_Context* ctx, AST* expr)
     char* default_l = make_text_label(ctx);
     char* end_l     = make_text_label(ctx);
 
-    set_jump_labels(ctx, NULL, end_l);
+    set_break_label(ctx, end_l);
 
     AST* cond         = expr->Switch.cond;
     AST* cases        = expr->Switch.cases;
@@ -1262,7 +1265,7 @@ Value* codegen_switch(Codegen_Context* ctx, AST* expr)
 
     emit(ctx, "%s:", end_l);
 
-    restore_jump_labels(ctx);
+    restore_break_label(ctx);
 
     return NULL;
 }
@@ -1441,18 +1444,30 @@ Codegen_Context make_codegen_context()
     return ctx;
 }
 
-void set_jump_labels(Codegen_Context* ctx, char* continue_l, char* break_l)
+void set_break_label(Codegen_Context* ctx, char* break_l)
+{
+    ctx->obreak = ctx->lbreak;
+    ctx->lbreak = break_l;
+}
+void restore_break_label(Codegen_Context* ctx) { ctx->lbreak = ctx->obreak; }
+
+void set_continue_label(Codegen_Context* ctx, char* continue_l)
 {
     ctx->ocontinue = ctx->lcontinue;
-    ctx->obreak    = ctx->lbreak;
     ctx->lcontinue = continue_l;
-    ctx->lbreak    = break_l;
+}
+void restore_continue_label(Codegen_Context* ctx) { ctx->lcontinue = ctx->ocontinue; }
+
+void set_jump_labels(Codegen_Context* ctx, char* continue_l, char* break_l)
+{
+    set_continue_label(ctx, continue_l);
+    set_break_label(ctx, break_l);
 }
 
 void restore_jump_labels(Codegen_Context* ctx)
 {
-    ctx->lcontinue = ctx->ocontinue;
-    ctx->lbreak    = ctx->obreak;
+    restore_continue_label(ctx);
+    restore_break_label(ctx);
 }
 
 void set_temp_labels(Codegen_Context* ctx, char* l0, char* l1)

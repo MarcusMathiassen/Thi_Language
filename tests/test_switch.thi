@@ -1,21 +1,19 @@
 
 extern puts(u8*) s32
 
-
 enum Kind
     Int
     Float
     String
 
 main()
-
     i: Kind = Kind.Float
 
     if i == .Float
         puts("Its a float!")
 
     if i 
-        is Kind.Int fallthrough
+        is .Int fallthrough
         is 1 puts("Hello")
         is .String puts("are")
         is 3 puts("you?")

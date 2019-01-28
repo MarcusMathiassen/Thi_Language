@@ -37,12 +37,12 @@
 - [x] char
 - [x] pointer
 
-- [x] subscript access
+- [ ] subscript access
 
 - [x] structs
 - [ ] field access
 
-- [ ] enums
+- [x] enums
 
 - [x] if
 - [x] for
@@ -53,5 +53,5 @@
 - [x] return
 - [x] continue
 
-- [ ] switch
-- [ ] case
+- [x] switch
+- [x] case
