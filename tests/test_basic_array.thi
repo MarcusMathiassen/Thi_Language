@@ -1,4 +1,18 @@
 main() 
     a: s32[10]
-    a[3] = 1
-    return a[3]
+    a[1] = 2
+    return a[1]
+
+
+# Resolve all subscripts
+# LOAD
+# a[1]
+#   find variable 'a'
+#       LEA RAX, [A]
+#       MOV RAX, [RAX + sizeof(a) * 1]
+
+# STORE
+# a[1]
+#   find variable 'a'
+#       LEA RAX, [A]
+#       MOV [RAX + sizeof(a) * 1], RCX

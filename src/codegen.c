@@ -13,6 +13,7 @@
 #include <stdarg.h> // va_list, va_start, va_end
 #include <stdio.h> //
 #include <stdlib.h> // free
+#include <string.h> // strcmp
 
 //------------------------------------------------------------------------------
 //                              codegen.c
@@ -288,7 +289,7 @@ void pop_type(Codegen_Context* ctx, Type* type)
     assert(type);
     switch (type->kind) {
     case TYPE_ARRAY: // fallthrough
-    case TYPE_POINTER: // fallthrough
+    case TYPE_POINTER: //pop(ctx, RCX); break;
     case TYPE_INT: pop(ctx, RAX); break;
     case TYPE_FLOAT: pop(ctx, XMM0); break;
     default: error("Unhandled pop_type %s", type_to_str(type));
@@ -300,10 +301,10 @@ void push(Codegen_Context* ctx, int reg)
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
     char* r = get_reg(reg);
     if (reg >= XMM0 && reg <= XMM7) {
-        emit(ctx, "SUB RSP, 8");
-        emit(ctx, "MOVSS [RSP], %s", r);
+        emit(ctx, "sub rsp, 8");
+        emit(ctx, "movss [rsp], %s", r);
     } else {
-        emit(ctx, "PUSH %s", r);
+        emit(ctx, "push %s", r);
     }
     ctx->stack_index += 8;
 }
@@ -313,10 +314,10 @@ void pop(Codegen_Context* ctx, int reg)
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
     char* r = get_reg(reg);
     if (reg >= XMM0 && reg <= XMM7) {
-        emit(ctx, "MOVSS %s, DWORD [RSP]", r);
-        emit(ctx, "ADD RSP, 8");
+        emit(ctx, "movss %s, dword [rsp]", r);
+        emit(ctx, "add rsp, 8");
     } else {
-        emit(ctx, "POP %s", r);
+        emit(ctx, "pop %s", r);
     }
     ctx->stack_index -= 8;
     assert(ctx->stack_index >= 0);
@@ -326,15 +327,12 @@ char* get_op_size(s8 bytes)
 {
     assert(bytes >= 0);
     switch (bytes) {
-    case 1: return "BYTE";
-    case 2: return "WORD";
-    case 4: return "DWORD";
-    case 8:
-        return "QWORD";
-        // default: error("get_op_size unknown byte size: %d", bytes);
+    case 1: return "byte";
+    case 2: return "word";
+    case 4: return "dword";
+    case 8: return "qword";
     }
-    return "QWORD";
-    ;
+    return "qword";
 }
 
 char* get_result_reg(Type* type)
@@ -344,12 +342,12 @@ char* get_result_reg(Type* type)
     switch (type->kind) {
     case TYPE_FLOAT:
         switch (bytes) {
-        case 4: return "XMM0";
-        case 8: return "XMM0";
+        case 4: return "xmm0";
+        case 8: return "xmm0";
         }
     case TYPE_POINTER: // fallthrough
+    case TYPE_ARRAY: //return get_reg(RCX);
     case TYPE_STRUCT: // fallthrough
-    case TYPE_ARRAY: // fallthrough
     case TYPE_ENUM: // fallthrough
     case TYPE_INT: return get_reg(get_rax_reg_of_byte_size(bytes));
     default: error("get_result_reg unhandled case: %s", type_kind_to_str(type->kind));
@@ -362,10 +360,10 @@ char* get_db_op(Type* type)
     assert(type);
     s64 bytes = get_size_of_type(type);
     switch (bytes) {
-    case 1: return "DB";
-    case 2: return "DW";
-    case 4: return "DD";
-    case 8: return "DQ";
+    case 1: return "db";
+    case 2: return "dw";
+    case 4: return "dd";
+    case 8: return "dq";
     }
     return NULL;
 }
@@ -376,14 +374,14 @@ char* get_move_op(Type* type)
     switch (type->kind) {
     case TYPE_FLOAT:
         switch (bytes) {
-        case 4: return "MOVSS";
-        case 8: return "MOVSD";
+        case 4: return "movss";
+        case 8: return "movsd";
         }
     case TYPE_POINTER: // fallthrough
+    case TYPE_ARRAY: //return "lea";
     case TYPE_STRUCT: // fallthrough
-    case TYPE_ARRAY: // fallthrough
     case TYPE_ENUM: // fallthrough
-    case TYPE_INT: return "MOV";
+    case TYPE_INT: return "mov";
     default: error("get_move_op unhandled case: %s", type_kind_to_str(type->kind));
     }
     return NULL;
@@ -469,8 +467,8 @@ void emit_cast_float_to_int(Codegen_Context* ctx, char* reg, Type* type)
     bool usig      = type->Int.is_unsigned;
     s8   type_size = get_size_of_type(type);
     switch (type_size) {
-    case 4: emit(ctx, "CVTTSS2SI %s, XMM0", reg); break;
-    case 8: emit(ctx, "CVTTSD2SI %s, XMM0", reg); break;
+    case 4: emit(ctx, "cvttss2si %s, xmm0", reg); break;
+    case 8: emit(ctx, "cvttsd2si %s, xmm0", reg); break;
     }
     if (usig) {
         emit_cast_int_to_int(ctx, reg, make_type_int(type_size, usig));
@@ -483,10 +481,10 @@ void emit_cast_int_to_int(Codegen_Context* ctx, char* reg, Type* type)
     bool usig      = type->Int.is_unsigned;
     s8   type_size = get_size_of_type(type);
     switch (type_size) {
-    case 1: usig ? emit(ctx, "MOVZBQ %s, al", reg) : emit(ctx, "MOVSBQ %s, al", reg); break;
-    case 2: usig ? emit(ctx, "MOVZWQ %s, ax", reg) : emit(ctx, "MOVSWQ %s, ax", reg); break;
+    case 1: usig ? emit(ctx, "movzbq %s, al", reg) : emit(ctx, "movsbq %s, al", reg); break;
+    case 2: usig ? emit(ctx, "movzwq %s, ax", reg) : emit(ctx, "movswq %s, ax", reg); break;
     case 4:
-        usig ? emit(ctx, "MOV %s, %s", reg, reg) : emit(ctx, "CLTQ");
+        usig ? emit(ctx, "mov %s, %s", reg, reg) : emit(ctx, "cltq");
         break;
         // case 8: // fallthrough
     }
@@ -522,8 +520,9 @@ void emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg)
     s64   stack_pos = get_stack_pos_of_variable(variable);
     char* reg_c     = get_reg(reg);
     char* mov_op    = get_move_op(variable->type);
-    emit(ctx, "%s [RBP-%lld], %s; store", mov_op, stack_pos, reg_c);
+    emit(ctx, "%s [rbp-%lld], %s; store", mov_op, stack_pos, reg_c);
 }
+
 void emit_store(Codegen_Context* ctx, Value* variable)
 {
     assert(variable);
@@ -531,7 +530,11 @@ void emit_store(Codegen_Context* ctx, Value* variable)
     s64   stack_pos = get_stack_pos_of_variable(variable);
     char* reg       = get_result_reg(variable->type);
     char* mov_op    = get_move_op(variable->type);
-    emit(ctx, "%s [RBP-%lld], %s; store", mov_op, stack_pos, reg);
+    // if (variable->type->kind == TYPE_ARRAY) {
+    //     emit(ctx, "mov [rax], %s; store", reg);
+    // } else {
+        emit(ctx, "%s [rbp-%lld], %s; store", mov_op, stack_pos, reg);
+    // }
 }
 
 void emit_load(Codegen_Context* ctx, Value* variable)
@@ -543,7 +546,11 @@ void emit_load(Codegen_Context* ctx, Value* variable)
     char* mov_size  = get_op_size(size);
     char* reg       = get_result_reg(variable->type);
     char* mov_op    = get_move_op(variable->type);
-    emit(ctx, "%s %s, %s [RBP-%lld]; load", mov_op, reg, mov_size, stack_pos);
+    // if (variable->type->kind == TYPE_ARRAY) {
+    //     emit(ctx, "lea rax, [rbp-%lld]; load", stack_pos);
+    // } else {
+        emit(ctx, "%s %s, %s [rbp-%lld]; load", mov_op, reg, mov_size, stack_pos);
+    // }
 }
 
 Value* codegen_unary(Codegen_Context* ctx, AST* expr)
@@ -576,24 +583,26 @@ Value* codegen_unary(Codegen_Context* ctx, AST* expr)
     switch (op) {
     case THI_SYNTAX_ADDRESS: {
         s64 stack_pos = get_stack_pos_of_variable(operand_val);
-        emit(ctx, "LEA RAX, [RSP-%lld]; addrsof", stack_pos);
+        emit(ctx, "lea rax, [rsp-%lld]; addrsof", stack_pos);
     } break;
     case THI_SYNTAX_POINTER: {
-        Type* t = operand_val->type->Array.type;
+        Type* t        = operand_val->type->Array.type;
+        char* reg      = get_result_reg(t);
+        char* mov_size = get_op_size(get_size_of_type(t));
         switch (t->kind) {
         case TYPE_ARRAY:
-        case TYPE_POINTER: emit(ctx, "LEA RAX, [RAX]; deref"); break;
-        default: emit(ctx, "MOV %s, [RAX]; deref", reg); break;
+        case TYPE_POINTER: emit(ctx, "lea rax, [rax]; deref"); break;
+        default: emit(ctx, "mov %s, %s [rax]; deref", reg, mov_size); break;
         }
     } break;
     case TOKEN_BANG: {
-        emit(ctx, "CMP %s, 0", reg);
-        emit(ctx, "SETE AL");
+        emit(ctx, "cmp %s, 0", reg);
+        emit(ctx, "sete al");
     } break;
     case TOKEN_PLUS: { // no nothing
     } break;
     case TOKEN_TILDE: {
-        emit(ctx, "NOT AL");
+        emit(ctx, "not al");
     } break;
     case TOKEN_DOT: {
     } break;
@@ -601,9 +610,9 @@ Value* codegen_unary(Codegen_Context* ctx, AST* expr)
         switch (operand_val->type->kind) {
         case TYPE_INT: emit(ctx, "NEG %s", reg); break;
         case TYPE_FLOAT: {
-            emit(ctx, "MOVD ECX, XMM0");
-            emit(ctx, "XOR ECX, 2147483648");
-            emit(ctx, "MOVD XMM0, ECX");
+            emit(ctx, "movd ecx, xmm0");
+            emit(ctx, "xor ecx, 2147483648");
+            emit(ctx, "movd xmm0, ecx");
         } break;
         }
         break;
@@ -635,7 +644,7 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
         Value* rhs_v = codegen_expr(ctx, rhs);
         push_type(ctx, rhs_v->type);
         Value* variable = codegen_expr(ctx, lhs);
-        pop_type(ctx, rhs_v->type);
+        pop_type(ctx, variable->type);
         emit_store(ctx, variable);
         return variable;
     }
@@ -646,13 +655,13 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
             push(ctx, XMM0);
             Value* lhs_v = codegen_expr(ctx, lhs);
             pop(ctx, XMM1);
-            emit(ctx, "%s XMM0, XMM1", inst);
+            emit(ctx, "%s xmm0, xmm1", inst);
             return lhs_v;
         } else {
             push(ctx, RAX);
             Value* lhs_v = codegen_expr(ctx, lhs);
             pop(ctx, RCX);
-            emit(ctx, "ADD RAX, RCX");
+            emit(ctx, "add rax, rcx");
             return lhs_v;
         }
     }
@@ -664,13 +673,13 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
             push(ctx, XMM0);
             Value* lhs_v = codegen_expr(ctx, lhs);
             pop(ctx, XMM1);
-            emit(ctx, "%s XMM0, XMM1", inst);
+            emit(ctx, "%s xmm0, xmm1", inst);
             return lhs_v;
         } else {
             push(ctx, RAX);
             Value* lhs_v = codegen_expr(ctx, lhs);
             pop(ctx, RCX);
-            emit(ctx, "SUB RAX, RCX");
+            emit(ctx, "sub rax, rcx");
             return lhs_v;
         }
     }
@@ -681,13 +690,13 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
             push(ctx, XMM0);
             codegen_expr(ctx, rhs);
             pop(ctx, XMM1);
-            emit(ctx, "%s XMM0, XMM1", inst);
+            emit(ctx, "%s xmm0, xmm1", inst);
             return lhs_v;
         } else {
             push(ctx, RAX);
             codegen_expr(ctx, rhs);
             pop(ctx, RCX);
-            emit(ctx, "IMUL RAX, RCX");
+            emit(ctx, "imul rax, rcx");
             return lhs_v;
         }
     }
@@ -698,15 +707,15 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
             push(ctx, XMM0);
             codegen_expr(ctx, lhs);
             pop(ctx, XMM1);
-            emit(ctx, "%s XMM1", inst);
+            emit(ctx, "%s xmm1", inst);
             return rhs_v;
         } else {
             char* inst = get_instr(op, rhs_v->type);
             push(ctx, RAX);
             codegen_expr(ctx, lhs);
             pop(ctx, RCX);
-            emit(ctx, "CDQ");
-            emit(ctx, "%s RCX", inst);
+            emit(ctx, "cdq");
+            emit(ctx, "%s rcx", inst);
             return rhs_v;
         }
     }
@@ -714,7 +723,7 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
     case TOKEN_PERCENT: {
         expr            = make_ast_binary(expr->t, TOKEN_FWSLASH, lhs, rhs);
         Value* variable = codegen_expr(ctx, expr);
-        emit(ctx, "MOV RAX, RDX");
+        emit(ctx, "mov rax, rdx");
         return variable;
     }
     case TOKEN_PIPE: {
@@ -722,7 +731,7 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
         push(ctx, RAX);
         codegen_expr(ctx, rhs);
         pop(ctx, RCX);
-        emit(ctx, "OR AL, CL");
+        emit(ctx, "or al, cl");
         return lhs_v;
     }
     case TOKEN_AND: {
@@ -730,7 +739,7 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
         push(ctx, RAX);
         codegen_expr(ctx, rhs);
         pop(ctx, RCX);
-        emit(ctx, "AND AL, CL");
+        emit(ctx, "and al, cl");
         return lhs_v;
     }
     case TOKEN_HAT: {
@@ -738,19 +747,19 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
         push(ctx, RAX);
         codegen_expr(ctx, rhs);
         pop(ctx, RCX);
-        emit(ctx, "XOR AL, CL");
+        emit(ctx, "xor al, cl");
         return lhs_v;
     }
     case TOKEN_LT_LT: {
         Value* lhs_v = codegen_expr(ctx, lhs);
         assert(rhs->kind == AST_INT);
-        emit(ctx, "SHL AL, %lld", rhs->Int.val);
+        emit(ctx, "shl al, %lld", rhs->Int.val);
         return lhs_v;
     }
     case TOKEN_GT_GT: {
         Value* lhs_v = codegen_expr(ctx, lhs);
         assert(rhs->kind == AST_INT);
-        emit(ctx, "SHR AL, %lld", rhs->Int.val);
+        emit(ctx, "shr al, %lld", rhs->Int.val);
         return lhs_v;
     }
     case TOKEN_AND_AND: {
@@ -758,18 +767,18 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
         push(ctx, RAX);
         codegen_expr(ctx, rhs);
         pop(ctx, RCX);
-        emit(ctx, "CMP RAX, 0");
-        emit(ctx, "SETNE AL");
-        emit(ctx, "CMP RCX, 0");
-        emit(ctx, "SETNE CL");
-        emit(ctx, "AND AL, CL");
+        emit(ctx, "cmp rax, 0");
+        emit(ctx, "setne al");
+        emit(ctx, "cmp rcx, 0");
+        emit(ctx, "setne cl");
+        emit(ctx, "and al, cl");
         return lhs_v;
     }
 
     case TOKEN_PIPE_PIPE: {
         expr     = make_ast_binary(expr->t, TOKEN_PIPE, lhs, rhs);
         Value* v = codegen_expr(ctx, expr);
-        emit(ctx, "SETNE AL");
+        emit(ctx, "setne al");
         return v;
     }
 
@@ -785,23 +794,23 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
             codegen_expr(ctx, rhs);
             pop(ctx, XMM1);
             if (lhs_v->type->Float.bytes == 4) {
-                emit(ctx, "UCOMISS XMM1, XMM0");
+                emit(ctx, "ucomiss xmm1, xmm0");
             } else {
-                emit(ctx, "UCOMISD XMM1, XMM0");
+                emit(ctx, "ucomisd xmm1, xmm0");
             }
         } else {
             push(ctx, RAX);
             codegen_expr(ctx, rhs);
             pop(ctx, RCX);
-            emit(ctx, "CMP RCX, RAX");
+            emit(ctx, "cmp rcx, rax");
         }
         switch (op) {
         case TOKEN_LT: lhs_v->type->kind == TYPE_FLOAT ? emit(ctx, "SETB AL") : emit(ctx, "SETL AL"); break;
-        case TOKEN_GT: emit(ctx, "SETG AL"); break;
+        case TOKEN_GT: emit(ctx, "setg al"); break;
         case TOKEN_LT_EQ: lhs_v->type->kind == TYPE_FLOAT ? emit(ctx, "SETNA AL") : emit(ctx, "SETLE AL"); break;
-        case TOKEN_GT_EQ: emit(ctx, "SETGE AL"); break;
-        case TOKEN_EQ_EQ: emit(ctx, "SETE AL"); break;
-        case TOKEN_BANG_EQ: emit(ctx, "SETNE AL"); break;
+        case TOKEN_GT_EQ: emit(ctx, "setge al"); break;
+        case TOKEN_EQ_EQ: emit(ctx, "sete al"); break;
+        case TOKEN_BANG_EQ: emit(ctx, "setne al"); break;
         }
         return lhs_v;
     } break;
@@ -866,10 +875,10 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
         set_temp_labels(ctx, l0, l1);
         Value* lhs_v = codegen_expr(ctx, lhs);
         char*  reg   = get_result_reg(lhs_v->type);
-        emit(ctx, "CMP %s, 0", reg);
-        emit(ctx, "JE %s", l0);
+        emit(ctx, "cmp %s, 0", reg);
+        emit(ctx, "je %s", l0);
         Value* rhs_v = codegen_expr(ctx, rhs);
-        emit(ctx, "JMP %s", l1);
+        emit(ctx, "jmp %s", l1);
         return rhs_v;
     }
     case TOKEN_COLON: {
@@ -976,7 +985,7 @@ Value* codegen_call(Codegen_Context* ctx, AST* expr)
         case TYPE_STRUCT: error("undhandled");
         }
     }
-    emit(ctx, "CALL _%s", callee);
+    emit(ctx, "call _%s", callee);
 
     return make_value_call(callee, ret_type);
 }
@@ -989,9 +998,9 @@ Value* codegen_float(Codegen_Context* ctx, AST* expr)
     char*  flabel = make_data_label(ctx);
     char*  db_op  = get_db_op(val->type);
     emit_data(ctx, "%s %s %f", flabel, db_op, expr->Float.val);
-    emit(ctx, "MOV RAX, %s; float_ref", flabel);
+    emit(ctx, "mov rax, %s; float_ref", flabel);
     char* mov_op = get_move_op(val->type);
-    emit(ctx, "%s XMM0, [RAX]; float_ref", mov_op);
+    emit(ctx, "%s xmm0, [rax]; float_ref", mov_op);
     return val;
 }
 
@@ -1001,7 +1010,7 @@ Value* codegen_int(Codegen_Context* ctx, AST* expr)
     assert(expr->kind == AST_INT);
     Value* val   = make_value_int(DEFAULT_INT_BYTE_SIZE, make_type_int(DEFAULT_INT_BYTE_SIZE, 0), expr->Int.val);
     s32    reg_n = get_rax_reg_of_byte_size(DEFAULT_INT_BYTE_SIZE);
-    emit(ctx, "MOV %s, %d", get_reg(reg_n), val->Int.value);
+    emit(ctx, "mov %s, %d", get_reg(reg_n), val->Int.value);
     return val;
 }
 
@@ -1042,12 +1051,12 @@ Value* codegen_subscript(Codegen_Context* ctx, AST* expr)
     AST* sub  = expr->Subscript.sub;
 
     Value* variable = codegen_expr(ctx, load); // ADDRESS OF 'C' is in 'RAX'
-    s64    size     = get_size_of_value(variable);
+    s64    size     = get_size_of_underlying_type(variable->type);
 
-    sub    = make_ast_binary(expr->t, TOKEN_ASTERISK, make_ast_int(expr->t, size), sub);
-    AST* t = make_ast_binary(expr->t, TOKEN_PLUS, load, sub);
-    t      = make_ast_unary(expr->t, THI_SYNTAX_POINTER, t);
-    return codegen_expr(ctx, t);
+    sub = make_ast_binary(expr->t, TOKEN_ASTERISK, make_ast_int(expr->t, size), sub);
+    sub = make_ast_binary(expr->t, TOKEN_PLUS, load, sub);
+    sub = make_ast_unary(expr->t, THI_SYNTAX_POINTER, sub);
+    return codegen_expr(ctx, sub);
 }
 
 Value* codegen_string(Codegen_Context* ctx, AST* expr)
@@ -1059,7 +1068,7 @@ Value* codegen_string(Codegen_Context* ctx, AST* expr)
     char* slabel = make_data_label(ctx);
     char* db_op  = get_db_op(t);
     emit_data(ctx, "%s %s `%s`, 0 ", slabel, db_op, val);
-    emit(ctx, "MOV RAX, %s; string_ref", slabel);
+    emit(ctx, "mov rax, %s; string_ref", slabel);
     return make_value_string(val, t);
 }
 
@@ -1094,10 +1103,10 @@ Value* codegen_if(Codegen_Context* ctx, AST* expr)
     AST* else_block = expr->If.else_block;
 
     codegen_expr(ctx, cond);
-    emit(ctx, "CMP AL, 0");
-    emit(ctx, "JE %s", else_block ? else_l : end_l);
+    emit(ctx, "cmp al, 0");
+    emit(ctx, "je %s", else_block ? else_l : end_l);
     codegen_expr(ctx, then_block);
-    emit(ctx, "JMP %s", end_l);
+    emit(ctx, "jmp %s", end_l);
     emit(ctx, "%s:", else_l);
     if (else_block) {
         codegen_expr(ctx, else_block);
@@ -1152,7 +1161,7 @@ Value* codegen_while(Codegen_Context* ctx, AST* expr)
 
     emit(ctx, "%s:", begin_l);
     codegen_expr(ctx, cond);
-    emit(ctx, "CMP AL, 0");
+    emit(ctx, "cmp al, 0");
     emit(ctx, "JE %s", end_l);
 
     set_jump_labels(ctx, begin_l, end_l);
@@ -1191,12 +1200,12 @@ Value* codegen_return(Codegen_Context* ctx, AST* expr)
         AST* defer_expr = (AST*)it->data;
         codegen_expr(ctx, defer_expr);
     }
-    emit(ctx, "JMP %s", label);
+    emit(ctx, "jmp %s", label);
     emit(ctx, "%s:", label);
     if (ret_expr) {
         codegen_expr(ctx, ret_expr);
     }
-    emit(ctx, "JMP %s", DEFAULT_FUNCTION_END_LABEL_NAME);
+    emit(ctx, "jmp %s", DEFAULT_FUNCTION_END_LABEL_NAME);
 
     return NULL;
 }
@@ -1205,7 +1214,7 @@ Value* codegen_break(Codegen_Context* ctx, AST* expr)
 {
     DEBUG_START;
     assert(expr->kind == AST_BREAK);
-    emit(ctx, "JMP %s", ctx->lbreak);
+    emit(ctx, "jmp %s", ctx->lbreak);
     return NULL;
 }
 
@@ -1235,16 +1244,16 @@ Value* codegen_switch(Codegen_Context* ctx, AST* expr)
         AST*   case_cond = c->Is.expr;
         Value* v         = codegen_expr(ctx, make_ast_binary(c->t, TOKEN_EQ_EQ, cond, case_cond));
 
-        emit(ctx, "CMP AL, 1");
-        emit(ctx, "JE %s", l);
+        emit(ctx, "cmp al, 1");
+        emit(ctx, "je %s", l);
     }
 
     if (default_case) {
         emit(ctx, "%s:", default_l);
         codegen_expr(ctx, default_case);
-        emit(ctx, "JMP %s", end_l);
+        emit(ctx, "jmp %s", end_l);
     } else
-        emit(ctx, "JMP %s", end_l);
+        emit(ctx, "jmp %s", end_l);
 
     List_Node* label_it = labels->head;
     LIST_FOREACH(cases->Block.stmts)
@@ -1257,7 +1266,7 @@ Value* codegen_switch(Codegen_Context* ctx, AST* expr)
         codegen_expr(ctx, c->Is.body);
 
         if (!c->Is.has_fallthrough) {
-            emit(ctx, "JMP %s", end_l);
+            emit(ctx, "jmp %s", end_l);
         }
 
         label_it = label_it->next;
@@ -1284,7 +1293,7 @@ Value* codegen_continue(Codegen_Context* ctx, AST* expr)
 {
     DEBUG_START;
     assert(expr->kind == AST_CONTINUE);
-    emit(ctx, "JMP %s", ctx->lcontinue);
+    emit(ctx, "jmp %s", ctx->lcontinue);
     return NULL;
 }
 
@@ -1329,7 +1338,7 @@ Value* codegen_function(Codegen_Context* ctx, AST* expr)
 
     emit(ctx, "_%s:", func_name);
     push(ctx, RBP);
-    emit(ctx, "MOV RBP, RSP");
+    emit(ctx, "mov rbp, rsp");
 
     // Sum the params
     s64 sum = get_size_of_type(expr->Function.type);
@@ -1340,7 +1349,7 @@ Value* codegen_function(Codegen_Context* ctx, AST* expr)
     s32 padding
         = (X64_ASM_OSX_STACK_PADDING - (stack_allocated % X64_ASM_OSX_STACK_PADDING)) % X64_ASM_OSX_STACK_PADDING;
     if (stack_allocated + padding)
-        emit(ctx, "SUB RSP, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);
+        emit(ctx, "sub rsp, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);
 
     emit(ctx, "%s:", DEFAULT_FUNCTION_ENTRY_LABEL_NAME);
 
@@ -1391,10 +1400,10 @@ Value* codegen_function(Codegen_Context* ctx, AST* expr)
     emit(ctx, "%s:", DEFAULT_FUNCTION_END_LABEL_NAME);
 
     if (stack_allocated + padding)
-        emit(ctx, "ADD RSP, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);
+        emit(ctx, "add rsp, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);
 
-    emit(ctx, "LEAVE");
-    emit(ctx, "RET");
+    emit(ctx, "leave");
+    emit(ctx, "ret");
 
     reset_text_label_counter(ctx);
 
@@ -1484,14 +1493,14 @@ void restore_temp_labels(Codegen_Context* ctx)
 }
 char* make_text_label(Codegen_Context* ctx)
 {
-    char* l = strf(".L%d", ctx->text_label_counter);
+    char* l = strf(".l%d", ctx->text_label_counter);
     ctx->text_label_counter += 1;
     return l;
 }
 
 char* make_data_label(Codegen_Context* ctx)
 {
-    char* l = strf("D%d", ctx->data_label_counter);
+    char* l = strf("d%d", ctx->data_label_counter);
     ctx->data_label_counter += 1;
     return l;
 }
@@ -1516,19 +1525,19 @@ char* get_instr(Token_Kind op, Type* type)
     case TYPE_INT: {
         bool usig = type->Int.is_unsigned;
         switch (op) {
-        case TOKEN_PLUS: inst = "ADD"; break;
-        case TOKEN_MINUS: inst = "SUB"; break;
-        case TOKEN_ASTERISK: inst = "IMUL"; break;
-        case TOKEN_FWSLASH: inst = (usig ? "DIV" : "IDIV"); break;
+        case TOKEN_PLUS: inst = "add"; break;
+        case TOKEN_MINUS: inst = "sub"; break;
+        case TOKEN_ASTERISK: inst = "imul"; break;
+        case TOKEN_FWSLASH: inst = (usig ? "div" : "idiv"); break;
         }
     } break;
     case TYPE_FLOAT: {
         s64 size = get_size_of_type(type);
         switch (op) {
-        case TOKEN_PLUS: inst = (size == 8 ? "ADDSD" : "ADDSS"); break;
-        case TOKEN_MINUS: inst = (size == 8 ? "SUBSD" : "SUBSS"); break;
-        case TOKEN_ASTERISK: inst = (size == 8 ? "MULSD" : "MULSS"); break;
-        case TOKEN_FWSLASH: inst = (size == 8 ? "DIVSD" : "DIVSS"); break;
+        case TOKEN_PLUS: inst = (size == 8 ? "addsd" : "addss"); break;
+        case TOKEN_MINUS: inst = (size == 8 ? "subsd" : "subss"); break;
+        case TOKEN_ASTERISK: inst = (size == 8 ? "mulsd" : "mulss"); break;
+        case TOKEN_FWSLASH: inst = (size == 8 ? "divsd" : "divss"); break;
         }
     } break;
     }
