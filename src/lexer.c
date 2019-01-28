@@ -31,6 +31,7 @@ typedef enum {
     KEY_BREAK,
     KEY_CONTINUE,
     KEY_AS,
+    KEY_CASE,
 
     KEY_COUNT
 } Keyword_Kind;
@@ -100,6 +101,7 @@ char* STATIC_KEYWORDS_ARRAY[KEY_COUNT] = {
     "break",
     "continue",
     "as",
+    "case",
 };
 
 Lexed_File generate_tokens_from_source(char* source)
@@ -485,6 +487,7 @@ Token get_token(Lexer_Context* lctx)
         case KEY_BREAK: token.kind = TOKEN_BREAK; break;
         case KEY_CONTINUE: token.kind = TOKEN_CONTINUE; break;
         case KEY_AS: token.kind = TOKEN_AS; break;
+        case KEY_CASE: token.kind = TOKEN_CASE; break;
         }
     } break;
     case TOKEN_STRING: ++c; break; // we skip the last '"'
@@ -506,6 +509,7 @@ char* token_kind_to_str(Token_Kind kind)
     case TOKEN_WHITESPACE: return "whitespace";
     case TOKEN_NEWLINE: return "newline";
     case TOKEN_IDENTIFIER: return "identifier";
+    case TOKEN_CASE: return "case";
     case TOKEN_AS: return "as";
     case TOKEN_CAST: return "cast";
     case TOKEN_SIZEOF: return "sizeof";

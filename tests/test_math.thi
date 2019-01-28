@@ -1,2 +1,2 @@
-main()
+main() 
     return (2  + 4 * 3) / 10

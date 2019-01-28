@@ -14,6 +14,8 @@ typedef enum AST_Kind       AST_Kind;
 
 enum AST_Kind {
 
+    AST_CASE,
+
     AST_EXTERN,
     AST_LOAD,
     AST_LINK,
@@ -50,6 +52,8 @@ enum AST_Kind {
 
     AST_SIZEOF,
 
+    AST_SWITCH,
+
     AST_COUNT
 };
 
@@ -62,6 +66,15 @@ struct AST {
     Type*    type;
     Token    t;
     union {
+        struct {
+            AST* cond;
+            AST* cases;
+            AST* default_case;
+        } Switch;
+        struct {
+            AST* expr;
+            AST* body;
+        } Case;
         struct {
             Type* type;
         } Extern;
@@ -220,6 +233,8 @@ AST* make_ast_return(Token t, AST* expr);
 AST* make_ast_defer(Token t, AST* expr);
 AST* make_ast_cast(Token t, AST* expr, Type* type);
 AST* make_ast_sizeof(Token t, Type* type);
+AST* make_ast_case(Token t, AST* expr, AST* body);
+AST* make_ast_switch(Token t, AST* if_statement);
 
 AST* make_ast_break(Token t);
 AST* make_ast_continue(Token t);

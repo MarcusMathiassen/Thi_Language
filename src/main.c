@@ -214,6 +214,54 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it)
 {
     AST* node = (AST*)it->data;
     switch (node->kind) {
+    case AST_WHILE: {
+        LIST_FOREACH(node->While.then_block->Block.stmts) {
+            maybe_convert_call_to_def(thi, ast, it);
+        }
+    } break;
+    case AST_FOR: {
+        LIST_FOREACH(node->For.then_block->Block.stmts) {
+            maybe_convert_call_to_def(thi, ast, it);
+        }
+    } break;
+    case AST_IF: {
+        LIST_FOREACH(node->If.then_block->Block.stmts) {
+            maybe_convert_call_to_def(thi, ast, it);
+        }
+        if (node->If.else_block) {   
+            LIST_FOREACH(node->If.else_block->Block.stmts) {
+                maybe_convert_call_to_def(thi, ast, it);
+            }
+        }
+
+        // check for any AST_CASE inside
+        List* stmts = node->If.then_block->Block.stmts;
+        bool is_actually_a_switch = false;
+
+        LIST_FOREACH(stmts) {
+            maybe_convert_call_to_def(thi, ast, it);
+            AST* stmt = (AST*)it->data;
+            if (stmt->kind == AST_CASE) {
+                is_actually_a_switch = true;
+                break;
+            }
+        }
+
+        // Go through it again and make sure every statement
+        // is a case 
+        if (is_actually_a_switch) {
+            LIST_FOREACH(stmts) {
+                AST* stmt = (AST*)it->data;
+                if (stmt->kind != AST_CASE) {
+                    error("only 'case' statements are allowed inside an if switch");
+                }
+            } 
+            warning("ITS A Switch");
+            
+            // Transform this if into a switch
+            it->data = make_ast_switch(node->t, node);
+        }
+    } break;
     case AST_CALL: {
         if (it->next) {
             AST* next_expr = (AST*)it->next->data;
@@ -224,6 +272,11 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it)
                 add_symbol(thi, func_name, type);
 
                 AST* body = (AST*)it->next->data;
+
+                LIST_FOREACH(body->Block.stmts) {
+                    maybe_convert_call_to_def(thi, ast, it);
+                }
+
                 it->data  = make_ast_function(node->t, type, body);
                 list_remove(ast, it->next);
             }
@@ -253,6 +306,8 @@ List* parse(Thi* thi, char* source_file)
 
     add_all_definitions(thi, &pf);
 
+    print_ast(ast);
+
     pop_timer(thi);
 
     set_source_file(thi, last_file);
@@ -275,18 +330,14 @@ void add_all_definitions(Thi* thi, Parsed_File* pf)
     }
     for (s64 i = 0; i < pf->externs.count; ++i) {
         AST*  node = pf->externs.data[i];
-        char* name = node->Extern.type->Function.name;
-        // add_symbol(thi, name, node->Extern.type);
         ast_ref_list_append(&thi->externs, pf->externs.data[i]);
     }
     for (s64 i = 0; i < pf->structs.count; ++i) {
         AST* node = pf->structs.data[i];
-        // add_symbol(thi, node->Struct.type->Struct.name, node->Struct.type);
         ast_ref_list_append(&thi->structs, node);
     }
     for (s64 i = 0; i < pf->enums.count; ++i) {
         AST* node = pf->enums.data[i];
-        // add_symbol(thi, node->Enum.type->Enum.name, node->Enum.type);
         ast_ref_list_append(&thi->enums, node);
     }
     for (s64 i = 0; i < pf->variables_in_need_of_type_inference.count; ++i) {

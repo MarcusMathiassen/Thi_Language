@@ -122,6 +122,7 @@ Value* codegen_struct(Codegen_Context* ctx, AST* expr);
 Value* codegen_enum(Codegen_Context* ctx, AST* expr);
 Value* codegen_function(Codegen_Context* ctx, AST* expr);
 Value* codegen_cast(Codegen_Context* ctx, AST* expr);
+Value* codegen_switch(Codegen_Context* ctx, AST* expr);
 Value* codegen_expr(Codegen_Context* ctx, AST* expr);
 
 char* generate_code_from_ast(List* ast, char* entry);
@@ -132,6 +133,7 @@ Value* codegen_expr(Codegen_Context* ctx, AST* expr)
     switch (expr->kind) {
     case AST_LOAD: return NULL;
     case AST_LINK: return NULL;
+    case AST_SWITCH: return codegen_switch(ctx, expr);
     case AST_EXTERN: return codegen_extern(ctx, expr);
     case AST_STRUCT: return codegen_struct(ctx, expr);
     case AST_ENUM: return codegen_enum(ctx, expr);
@@ -173,7 +175,8 @@ char* generate_code_from_ast(List* ast, char* entry)
     LIST_FOREACH(ast) { codegen_expr(&ctx, (AST*)it->data); }
 
     char* output
-        // = strf("%s%sglobal _%s\n%s", ctx.section_extern.c_str, ctx.section_data.c_str, entry, ctx.section_text.c_str);
+        // = strf("%s%sglobal _%s\n%s", ctx.section_extern.c_str, ctx.section_data.c_str, entry,
+        // ctx.section_text.c_str);
         = strf("%s%sglobal _main\n%s", ctx.section_extern.c_str, ctx.section_data.c_str, ctx.section_text.c_str);
 
     info("%s", output);
@@ -906,7 +909,7 @@ Value* codegen_call(Codegen_Context* ctx, AST* expr)
     char* callee   = expr->Call.callee;
     List* args     = expr->Call.args;
     Type* ret_type = expr->type;
-    
+
     assert(ret_type);
 
     List* arg_values        = make_list();
@@ -1187,6 +1190,57 @@ Value* codegen_break(Codegen_Context* ctx, AST* expr)
     return NULL;
 }
 
+Value* codegen_switch(Codegen_Context* ctx, AST* expr)
+{
+    DEBUG_START;
+    assert(expr->kind == AST_SWITCH);
+
+    char* default_l = make_text_label(ctx);
+    char* end_l     = make_text_label(ctx);
+
+    AST* cond         = expr->Switch.cond;
+    AST* cases        = expr->Switch.cases;
+    AST* default_case = expr->Switch.default_case;
+
+
+    List* labels = make_list();
+    LIST_FOREACH(cases->Block.stmts) {
+
+        AST* c = (AST*)it->data;
+
+        char* l = make_text_label(ctx);
+        list_append(labels, l);
+
+        AST* case_cond = c->Case.expr;
+        Value* v = codegen_expr(ctx, make_ast_binary(c->t, TOKEN_EQ_EQ, cond, case_cond));
+
+        emit(ctx, "CMP AL, 1");
+        emit(ctx, "JE %s", l);
+    }
+
+    emit(ctx, "JMP %s", default_case ? default_l : end_l);
+
+    List_Node* label_it = labels->head; 
+    LIST_FOREACH(cases->Block.stmts) {
+
+        AST* c = (AST*)it->data;
+        char* l = (char*)label_it->data;
+        emit(ctx, "%s:", l);
+        codegen_expr(ctx, c->Case.body);
+        emit(ctx, "JMP %s", end_l);
+
+        label_it = label_it->next;
+    }
+
+    if (default_case) {
+        emit(ctx, "%s:", default_l);
+        codegen_expr(ctx, default_case);
+    }
+
+    emit(ctx, "%s:", end_l);
+
+    return NULL;
+}
 Value* codegen_cast(Codegen_Context* ctx, AST* expr)
 {
     DEBUG_START;

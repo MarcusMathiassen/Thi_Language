@@ -4,12 +4,102 @@ section .text
 _main:
 	PUSH RBP
 	MOV RBP, RSP
+	SUB RSP, 16; 4 alloc, 12 padding
 .BEGIN:
-.L1:
+	MOV EAX, 2
+	PUSH RAX
+	MOV EAX, DWORD [RBP-4]; load
+	POP RAX
+	MOV [RBP-4], EAX; store
+	MOV EAX, DWORD [RBP-4]; load
+	PUSH RAX
+	MOV EAX, 0
+	POP RCX
+	CMP RCX, RAX
+	SETE AL
+	CMP AL, 1
+	JE .L2
+	MOV EAX, DWORD [RBP-4]; load
+	PUSH RAX
+	MOV EAX, 1
+	POP RCX
+	CMP RCX, RAX
+	SETE AL
+	CMP AL, 1
+	JE .L3
+	MOV EAX, DWORD [RBP-4]; load
+	PUSH RAX
+	MOV EAX, 2
+	POP RCX
+	CMP RCX, RAX
+	SETE AL
+	CMP AL, 1
+	JE .L4
+	MOV EAX, DWORD [RBP-4]; load
+	PUSH RAX
+	MOV EAX, 3
+	POP RCX
+	CMP RCX, RAX
+	SETE AL
+	CMP AL, 1
+	JE .L5
+	MOV EAX, DWORD [RBP-4]; load
+	PUSH RAX
+	MOV EAX, 4
+	POP RCX
+	CMP RCX, RAX
+	SETE AL
+	CMP AL, 1
+	JE .L6
 	JMP .L0
-.L0:
+.L2:
+.L8:
+	JMP .L7
+.L7:
+	MOV EAX, 9
+	JMP .END
+	JMP .L1
+.L3:
+.L10:
+	JMP .L9
+.L9:
+	MOV EAX, 0
+	JMP .END
+	JMP .L1
+.L4:
+.L12:
+	JMP .L11
+.L11:
 	MOV EAX, 1
 	JMP .END
+	JMP .L1
+.L5:
+.L14:
+	JMP .L13
+.L13:
+	MOV EAX, 3
+	JMP .END
+	JMP .L1
+.L6:
+.L16:
+	JMP .L15
+.L15:
+	MOV EAX, 4
+	JMP .END
+	JMP .L1
+.L0:
+.L18:
+	JMP .L17
+.L17:
+	MOV EAX, 7
+	JMP .END
+.L1:
+.L20:
+	JMP .L19
+.L19:
+	MOV EAX, 5
+	JMP .END
 .END:
+	ADD RSP, 16; 4 alloc, 12 padding
 	LEAVE
 	RET

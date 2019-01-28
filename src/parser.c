@@ -147,6 +147,7 @@ AST* parse_load(Parser_Context* pctx);
 AST* parse_extern(Parser_Context* pctx);
 AST* parse_link(Parser_Context* pctx);
 AST* parse_if(Parser_Context* pctx);
+AST* parse_case(Parser_Context* pctx);
 AST* parse_dangling_else(Parser_Context* pctx);
 AST* parse_for(Parser_Context* pctx);
 AST* parse_while(Parser_Context* pctx);
@@ -197,6 +198,26 @@ Parsed_File generate_ast_from_tokens(Token_Array tokens)
     Parser_Context pctx = make_parser_context();
     pctx.tokens         = tokens;
 
+    // map_set(pctx.symbols, "void", make_type_void());
+    // map_set(pctx.symbols, "bool", make_type_int(1, true));
+    // map_set(pctx.symbols, "char", make_type_int(1, true));
+    // map_set(pctx.symbols, "int", make_type_int(DEFAULT_INT_BYTE_SIZE, false));
+    // map_set(pctx.symbols, "float", make_type_float(DEFAULT_FLOAT_BYTE_SIZE));
+    // map_set(pctx.symbols, "double", make_type_float(8));
+
+    // map_set(pctx.symbols, "s8", make_type_int(1, false));
+    // map_set(pctx.symbols, "s16", make_type_int(2, false));
+    // map_set(pctx.symbols, "s32", make_type_int(4, false));
+    // map_set(pctx.symbols, "s64", make_type_int(8, false));
+
+    // map_set(pctx.symbols, "u8", make_type_int(1, true));
+    // map_set(pctx.symbols, "u16", make_type_int(2, true));
+    // map_set(pctx.symbols, "u32", make_type_int(4, true));
+    // map_set(pctx.symbols, "u64", make_type_int(8, true));
+
+    // map_set(pctx.symbols, "f32", make_type_float(4));
+    // map_set(pctx.symbols, "f64", make_type_float(8));
+
     eat(&pctx);
     while (!tok_is(&pctx, TOKEN_EOF)) {
         AST* stmt = parse_statement(&pctx);
@@ -237,6 +258,7 @@ AST* parse_statement(Parser_Context* pctx)
     case TOKEN_BREAK: return parse_break(pctx);
     case TOKEN_CONTINUE: return parse_continue(pctx);
     case TOKEN_IF: return parse_if(pctx);
+    case TOKEN_CASE: return parse_case(pctx);
     case TOKEN_ELSE: return parse_dangling_else(pctx);
     case TOKEN_DEFER: return parse_defer(pctx);
     case TOKEN_FOR: return parse_for(pctx);
@@ -393,6 +415,16 @@ AST* parse_defer(Parser_Context* pctx)
     return make_ast_defer(pctx->curr_tok, block);
 }
 
+AST* parse_case(Parser_Context* pctx)
+{
+    DEBUG_START;
+    Token t = pctx->curr_tok;
+    eat_kind(pctx, TOKEN_CASE);
+    AST* expr = parse_expression(pctx);
+    AST* body = parse_block(pctx);
+    return make_ast_case(t, expr, body);
+}
+
 AST* parse_dangling_else(Parser_Context* pctx)
 {
     DEBUG_START;
@@ -444,10 +476,10 @@ AST* parse_block(Parser_Context* pctx)
 
     // Is it a single statement?
     if (tok_is_on_same_line(pctx)) {
-        List* stmt = make_list();
-        AST*  expr = parse_statement(pctx);
-        if (expr) list_append(stmt, expr);
-        block = make_ast_block(pctx->curr_tok, stmt);
+        List* stmts = make_list();
+        AST*  stmt = parse_statement(pctx);
+        if (stmt) list_append(stmts, stmt);
+        block = make_ast_block(pctx->curr_tok, stmts);
     }
 
     if (!block) {
@@ -462,6 +494,8 @@ AST* parse_block(Parser_Context* pctx)
         eat_kind(pctx, TOKEN_BLOCK_END);
         block = make_ast_block(pctx->curr_tok, stmts);
     }
+
+    assert(block);
 
     restore_if_statement(pctx);
 

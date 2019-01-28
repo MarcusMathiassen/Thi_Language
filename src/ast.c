@@ -17,6 +17,8 @@
 char* ast_kind_to_str(AST_Kind kind)
 {
     switch (kind) {
+    case AST_SWITCH: return "AST_SWITCH";
+    case AST_CASE: return "AST_CASE";
     case AST_SIZEOF: return "AST_SIZEOF";
     case AST_EXTERN: return "AST_EXTERN";
     case AST_LOAD: return "AST_LOAD";
@@ -54,6 +56,8 @@ char* ast_to_str(AST* expr)
 {
     if (!expr) return "NULL";
     switch (expr->kind) {
+    case AST_SWITCH: return strf("if %s %s else %s", ast_to_str(expr->Switch.cond), ast_to_str(expr->Switch.cases), ast_to_str(expr->Switch.default_case));
+    case AST_CASE: return strf("case %s %s", ast_to_str(expr->Case.expr), ast_to_str(expr->Case.body));
     case AST_SIZEOF: return strf("sizeof %s", type_to_str(expr->Sizeof.type));
     case AST_EXTERN: return strf("extern %s", type_to_str(expr->Extern.type));
     case AST_LOAD: return strf("load %s", expr->Load.str);
@@ -171,6 +175,12 @@ char* ast_to_json(AST* expr)
     if (!expr) return "\"NULL\"";
     char* result = NULL;
     switch (expr->kind) {
+    case AST_SWITCH: {
+        result = strf("{\"%s\": {\"cond\":%s, \"cases\", \"default\"}}", ast_kind_to_str(expr->kind), ast_to_json(expr->Switch.cond), ast_to_json(expr->Switch.cases), ast_to_json(expr->Switch.default_case));
+    } break;
+    case AST_CASE: {
+        result = strf("{\"%s\": {\"case\": %s, \"body\": %s}}", ast_kind_to_str(expr->kind), ast_to_json(expr->Case.expr), ast_to_json(expr->Case.body));
+    } break;
     case AST_SIZEOF: {
         result = strf("{\"%s\": {\"sizeof\": %s}}", ast_kind_to_str(expr->kind), type_to_str(expr->Sizeof.type));
     } break;
@@ -455,10 +465,11 @@ AST* make_ast_function(Token t, Type* func_t, AST* body)
     return e;
 }
 
-AST* try_fold(AST* e) {
-    Token_Kind op = e->Binary.op;
-    AST* lhs = e->Binary.lhs;
-    AST* rhs = e->Binary.rhs;
+AST* try_fold(AST* e)
+{
+    Token_Kind op  = e->Binary.op;
+    AST*       lhs = e->Binary.lhs;
+    AST*       rhs = e->Binary.rhs;
     if (lhs->kind == AST_GROUPING) lhs = lhs->Grouping.expr;
     if (rhs->kind == AST_GROUPING) rhs = rhs->Grouping.expr;
     if (lhs->kind == AST_INT && rhs->kind == AST_INT) {
@@ -517,11 +528,11 @@ AST* make_ast_binary(Token t, Token_Kind op, AST* lhs, AST* rhs)
     assert(lhs);
     assert(rhs);
     AST* e        = make_ast(AST_BINARY, t);
-    e->t = t;
+    e->t          = t;
     e->Binary.op  = op;
     e->Binary.lhs = lhs;
     e->Binary.rhs = rhs;
-    e = try_fold(e);
+    e             = try_fold(e);
     return e;
 }
 
@@ -549,6 +560,21 @@ AST* make_ast_unary(Token t, Token_Kind op, AST* operand)
     }
 
     return e;
+}
+
+AST* make_ast_switch(Token t, AST* if_statement) {
+    AST* e = make_ast(AST_SWITCH, t);
+    e->Switch.cond = if_statement->If.cond;
+    e->Switch.cases = if_statement->If.then_block;
+    e->Switch.default_case = if_statement->If.else_block;
+    return e;   
+}
+
+AST* make_ast_case(Token t, AST* expr, AST* body) {
+    AST* e = make_ast(AST_CASE, t);
+    e->Case.expr = expr;
+    e->Case.body = body;
+    return e;   
 }
 
 AST* make_ast_block(Token t, List* stmts)

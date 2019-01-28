@@ -10,7 +10,8 @@ $compiler $src -std=$std $olvl $flags -o $output -g -fsanitize=address -fno-omit
  
 if [ $? == 0 ]; then
     # ./test.bash
-    ./test.bash ./tests/test_math.thi
+    # ./test.bash ./tests/test_math.thi
+    ./test.bash ./tests/test_switch.thi
     # ./test.bash ./tests/test_no_main.thi
     # ./test.bash ./tests/test_ternary.thi
     # ./test.bash ./tests/test_float_GT.thi
