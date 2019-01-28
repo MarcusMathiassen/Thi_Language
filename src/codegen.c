@@ -289,7 +289,7 @@ void pop_type(Codegen_Context* ctx, Type* type)
     assert(type);
     switch (type->kind) {
     case TYPE_ARRAY: // fallthrough
-    case TYPE_POINTER: //pop(ctx, RCX); break;
+    case TYPE_POINTER: // pop(ctx, RCX); break;
     case TYPE_INT: pop(ctx, RAX); break;
     case TYPE_FLOAT: pop(ctx, XMM0); break;
     default: error("Unhandled pop_type %s", type_to_str(type));
@@ -346,7 +346,7 @@ char* get_result_reg(Type* type)
         case 8: return "xmm0";
         }
     case TYPE_POINTER: // fallthrough
-    case TYPE_ARRAY: //return get_reg(RCX);
+    case TYPE_ARRAY: // return get_reg(RCX);
     case TYPE_STRUCT: // fallthrough
     case TYPE_ENUM: // fallthrough
     case TYPE_INT: return get_reg(get_rax_reg_of_byte_size(bytes));
@@ -378,7 +378,7 @@ char* get_move_op(Type* type)
         case 8: return "movsd";
         }
     case TYPE_POINTER: // fallthrough
-    case TYPE_ARRAY: //return "lea";
+    case TYPE_ARRAY: // return "lea";
     case TYPE_STRUCT: // fallthrough
     case TYPE_ENUM: // fallthrough
     case TYPE_INT: return "mov";
@@ -533,7 +533,7 @@ void emit_store(Codegen_Context* ctx, Value* variable)
     // if (variable->type->kind == TYPE_ARRAY) {
     //     emit(ctx, "mov [rax], %s; store", reg);
     // } else {
-        emit(ctx, "%s [rbp-%lld], %s; store", mov_op, stack_pos, reg);
+    emit(ctx, "%s [rbp-%lld], %s; store", mov_op, stack_pos, reg);
     // }
 }
 
@@ -549,7 +549,7 @@ void emit_load(Codegen_Context* ctx, Value* variable)
     // if (variable->type->kind == TYPE_ARRAY) {
     //     emit(ctx, "lea rax, [rbp-%lld]; load", stack_pos);
     // } else {
-        emit(ctx, "%s %s, %s [rbp-%lld]; load", mov_op, reg, mov_size, stack_pos);
+    emit(ctx, "%s %s, %s [rbp-%lld]; load", mov_op, reg, mov_size, stack_pos);
     // }
 }
 
