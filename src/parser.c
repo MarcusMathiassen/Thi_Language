@@ -80,20 +80,8 @@ typedef struct {
 
     Type_Ref_List unresolved_types;
 
-    AST_Ref_List function_calls;
-    AST_Ref_List variables_in_need_of_type_inference;
-    AST_Ref_List constants;
-    AST_Ref_List identifiers;
-
-    List* ast;
-    List* extern_list;
-    List* load_list;
-    List* link_list;
-    Map*  symbol_map;
-
-    Token      curr_tok;
-    Token      prev_tok;
-    Token_Kind top_tok_kind;
+    Token curr_tok;
+    Token prev_tok;
 
     AST* llast_if_statement; // used for dangling else
     AST* olast_if_statement; // used for dangling else
@@ -103,21 +91,11 @@ typedef struct {
 Parser_Context make_parser_context()
 {
     Parser_Context pctx;
-    pctx.token_index                         = 0;
-    pctx.top_tok_kind                        = TOKEN_UNKNOWN;
-    pctx.curr_tok.kind                       = TOKEN_UNKNOWN;
-    pctx.llast_if_statement                  = NULL;
-    pctx.olast_if_statement                  = NULL;
-    pctx.unresolved_types                    = make_type_ref_list();
-    pctx.variables_in_need_of_type_inference = make_ast_ref_list();
-    pctx.function_calls                      = make_ast_ref_list();
-    pctx.constants                           = make_ast_ref_list();
-    pctx.identifiers                         = make_ast_ref_list();
-
-    pctx.extern_list = make_list();
-    pctx.load_list   = make_list();
-    pctx.link_list   = make_list();
-    pctx.symbol_map  = make_map();
+    pctx.token_index        = 0;
+    pctx.curr_tok.kind      = TOKEN_UNKNOWN;
+    pctx.llast_if_statement = NULL;
+    pctx.olast_if_statement = NULL;
+    pctx.unresolved_types   = make_type_ref_list();
     return pctx;
 }
 
@@ -166,6 +144,7 @@ AST* parse_ternary(Parser_Context* pctx);
 Type* parse_enum_signature(Parser_Context* pctx, char* enum_name);
 Type* parse_struct_signature(Parser_Context* pctx, char* struct_name);
 Type* parse_function_signature(Parser_Context* pctx, char* func_name);
+Type* parse_extern_function_signature(Parser_Context* pctx, char* func_name);
 
 s64   get_integer(Parser_Context* pctx);
 f64   get_float(Parser_Context* pctx);
@@ -196,29 +175,18 @@ Parsed_File generate_ast_from_tokens(Token_Array tokens)
 
     Parser_Context pctx = make_parser_context();
     pctx.tokens         = tokens;
-    pctx.ast            = ast;
 
     eat(&pctx);
     while (!tok_is(&pctx, TOKEN_EOF)) {
-        pctx.top_tok_kind = pctx.curr_tok.kind;
-        AST* stmt         = parse_statement(&pctx);
+        AST* stmt = parse_statement(&pctx);
         if (stmt) {
             list_append(ast, stmt);
         }
     }
 
     Parsed_File pf;
-    pf.ast                                 = ast;
-    pf.unresolved_types                    = pctx.unresolved_types;
-    pf.variables_in_need_of_type_inference = pctx.variables_in_need_of_type_inference;
-    pf.extern_list                         = pctx.extern_list;
-    pf.load_list                           = pctx.load_list;
-    pf.link_list                           = pctx.link_list;
-    pf.symbol_map                          = pctx.symbol_map;
-    pf.function_calls                      = pctx.function_calls;
-    pf.constants                           = pctx.constants;
-    pf.identifiers                         = pctx.identifiers;
-
+    pf.ast              = ast;
+    pf.unresolved_types = pctx.unresolved_types;
     return pf;
 }
 
@@ -229,10 +197,9 @@ Parsed_File generate_ast_from_tokens(Token_Array tokens)
 AST* parse_top_level(Parser_Context* pctx)
 {
     DEBUG_START;
-    pctx->top_tok_kind = pctx->curr_tok.kind;
     switch (pctx->curr_tok.kind) {
+    case TOKEN_BLOCK_START: return parse_block(pctx);
     case TOKEN_IDENTIFIER: return parse_identifier(pctx);
-    case TOKEN_DEF: return parse_def(pctx);
     case TOKEN_ENUM: return parse_enum(pctx);
     case TOKEN_STRUCT: return parse_struct(pctx);
     case TOKEN_EXTERN: return parse_extern(pctx);
@@ -247,7 +214,7 @@ AST* parse_statement(Parser_Context* pctx)
 {
     DEBUG_START;
     switch (pctx->curr_tok.kind) {
-    case TOKEN_DEF: return parse_def(pctx);
+    case TOKEN_BLOCK_START: return parse_block(pctx);
     case TOKEN_ENUM: return parse_enum(pctx);
     case TOKEN_STRUCT: return parse_struct(pctx);
     case TOKEN_IDENTIFIER: return parse_expression(pctx);
@@ -299,9 +266,7 @@ AST* parse_identifier(Parser_Context* pctx)
     }
     char* ident_name = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
-    AST* identifier = make_ast_ident(pctx->curr_tok, ident_name);
-    ast_ref_list_append(&pctx->identifiers, identifier);
-    return identifier;
+    return make_ast_ident(pctx->curr_tok, ident_name);
 }
 
 AST* parse_struct(Parser_Context* pctx)
@@ -311,7 +276,6 @@ AST* parse_struct(Parser_Context* pctx)
     char* ident = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
     Type* type = parse_struct_signature(pctx, ident);
-    map_set(pctx->symbol_map, ident, type);
     return make_ast_struct(pctx->curr_tok, type);
 }
 
@@ -323,9 +287,7 @@ AST* parse_def(Parser_Context* pctx)
     eat_kind(pctx, TOKEN_IDENTIFIER);
     Type* type = parse_function_signature(pctx, ident);
     AST*  body = parse_block(pctx);
-    map_set(pctx->symbol_map, ident, type);
-    AST* func = make_ast_function(pctx->curr_tok, type, body);
-    return func;
+    return make_ast_function(pctx->curr_tok, type, body);
 }
 
 AST* parse_enum(Parser_Context* pctx)
@@ -335,7 +297,6 @@ AST* parse_enum(Parser_Context* pctx)
     char* ident = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
     Type* type = parse_enum_signature(pctx, ident);
-    map_set(pctx->symbol_map, ident, type);
     return make_ast_enum(pctx->curr_tok, type);
 }
 
@@ -345,7 +306,6 @@ AST* parse_load(Parser_Context* pctx)
     eat_kind(pctx, TOKEN_LOAD);
     char* str = strf("%s.thi", pctx->curr_tok.value);
     eat_kind(pctx, TOKEN_STRING);
-    list_append(pctx->load_list, str);
     return make_ast_load(pctx->curr_tok, str);
 }
 
@@ -355,7 +315,6 @@ AST* parse_link(Parser_Context* pctx)
     eat_kind(pctx, TOKEN_LINK);
     char* str = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_STRING);
-    list_append(pctx->link_list, str);
     return make_ast_link(pctx->curr_tok, str);
 }
 
@@ -365,8 +324,7 @@ AST* parse_extern(Parser_Context* pctx)
     eat_kind(pctx, TOKEN_EXTERN);
     char* ident = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
-    Type* type = parse_function_signature(pctx, ident);
-    map_set(pctx->symbol_map, ident, type);
+    Type* type = parse_extern_function_signature(pctx, ident);
     return make_ast_extern(pctx->curr_tok, type);
 }
 
@@ -503,15 +461,11 @@ AST* parse_return(Parser_Context* pctx)
 AST* parse_function_call(Parser_Context* pctx)
 {
     DEBUG_START;
-
     char* ident = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
-
     eat_kind(pctx, TOKEN_OPEN_PAREN);
-
-    List* args = make_list();
-
-    bool has_multiple_arguments = false;
+    List* args                   = make_list();
+    bool  has_multiple_arguments = false;
     while (!tok_is(pctx, TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(pctx, TOKEN_COMMA);
         AST* arg = parse_expression(pctx);
@@ -519,10 +473,7 @@ AST* parse_function_call(Parser_Context* pctx)
         has_multiple_arguments = true;
     }
     eat_kind(pctx, TOKEN_CLOSE_PAREN);
-
-    AST* call = make_ast_call(pctx->curr_tok, ident, args);
-    ast_ref_list_append(&pctx->function_calls, call);
-    return call;
+    return make_ast_call(pctx->curr_tok, ident, args);
 }
 
 AST* parse_constant_decl(Parser_Context* pctx)
@@ -531,10 +482,8 @@ AST* parse_constant_decl(Parser_Context* pctx)
     char* name = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
     eat_kind(pctx, TOKEN_COLON_COLON);
-    AST* value         = parse_expression(pctx);
-    AST* constant_decl = make_ast_constant_decl(pctx->curr_tok, name, value);
-    ast_ref_list_append(&pctx->constants, constant_decl);
-    return constant_decl;
+    AST* value = parse_expression(pctx);
+    return make_ast_constant_decl(pctx->curr_tok, name, value);
 }
 
 AST* parse_variable_decl(Parser_Context* pctx)
@@ -545,14 +494,11 @@ AST* parse_variable_decl(Parser_Context* pctx)
     Type* variable_type  = NULL;
     AST*  variable_value = NULL;
 
-    bool variable_needs_type_inference = false;
-
     eat_kind(pctx, TOKEN_IDENTIFIER);
     if (tok_is(pctx, TOKEN_COLON_EQ)) {
         // We need to infer the type based on the assignment expr
         eat_kind(pctx, TOKEN_COLON_EQ);
-        variable_value                = parse_expression(pctx);
-        variable_needs_type_inference = true;
+        variable_value = parse_expression(pctx);
     }
     if (tok_is(pctx, TOKEN_IDENTIFIER) && tok_is_on_same_line(pctx)) {
         variable_type = get_type(pctx);
@@ -561,16 +507,7 @@ AST* parse_variable_decl(Parser_Context* pctx)
             variable_value = parse_expression(pctx);
         }
     }
-
-    AST* variable_decl = make_ast_variable_decl(pctx->curr_tok, variable_name, variable_type, variable_value);
-
-    if (variable_needs_type_inference) {
-        ast_ref_list_append(&pctx->variables_in_need_of_type_inference, variable_decl);
-    }
-
-    // map_set(pctx->symbol_map, variable_name, variable_type);
-
-    return variable_decl;
+    return make_ast_variable_decl(pctx->curr_tok, variable_name, variable_type, variable_value);
 }
 
 AST* parse_binary(Parser_Context* pctx, s8 expr_prec, AST* lhs)
@@ -762,28 +699,16 @@ Type* parse_struct_signature(Parser_Context* pctx, char* struct_name)
     return make_type_struct(struct_name, members);
 }
 
-Type* parse_function_signature(Parser_Context* pctx, char* func_name)
+Type* parse_extern_function_signature(Parser_Context* pctx, char* func_name)
 {
     DEBUG_START;
-
     eat_kind(pctx, TOKEN_OPEN_PAREN);
-
-    List* args = make_list();
-
-    bool has_multiple_arguments = false;
+    List* args                   = make_list();
+    bool  has_multiple_arguments = false;
     while (!tok_is(pctx, TOKEN_CLOSE_PAREN)) {
-        if (has_multiple_arguments) {
-            eat_kind(pctx, TOKEN_COMMA);
-        }
-
-        AST* expr = NULL;
-
-        // foreign's dont have named parameters
-        if (pctx->top_tok_kind == TOKEN_EXTERN) {
-            expr = make_ast_variable_decl(pctx->curr_tok, NULL, get_type(pctx), NULL);
-        } else {
-            if (tok_is(pctx, TOKEN_IDENTIFIER)) expr = parse_variable_decl(pctx);
-        }
+        if (has_multiple_arguments) eat_kind(pctx, TOKEN_COMMA);
+        Type* type             = get_type(pctx);
+        AST*  expr             = make_ast_variable_decl(pctx->curr_tok, NULL, type, NULL);
         has_multiple_arguments = true;
         list_append(args, expr);
     }
@@ -795,6 +720,22 @@ Type* parse_function_signature(Parser_Context* pctx, char* func_name)
     }
 
     return make_type_function(func_name, args, ret_type);
+}
+
+Type* parse_function_signature(Parser_Context* pctx, char* func_name)
+{
+    DEBUG_START;
+    eat_kind(pctx, TOKEN_OPEN_PAREN);
+    List* args                   = make_list();
+    bool  has_multiple_arguments = false;
+    while (!tok_is(pctx, TOKEN_CLOSE_PAREN)) {
+        if (has_multiple_arguments) eat_kind(pctx, TOKEN_COMMA);
+        AST* expr              = parse_variable_decl(pctx);
+        has_multiple_arguments = true;
+        list_append(args, expr);
+    }
+    eat_kind(pctx, TOKEN_CLOSE_PAREN);
+    return make_type_function(func_name, args, NULL);
 }
 
 Type* get_type(Parser_Context* pctx)

@@ -18,7 +18,6 @@ n :: 3
 
 DEFAULT_SIZE_OF_OBJECTS :: 3
 
-
 def main() s32
     v vec2
 
@@ -32,11 +31,6 @@ def main() s32
 
     puts("this is a test")
     return DEFAULT_SIZE_OF_OBJECTS * 3 - 8
-
-struct vec2 
-    x f32
-    y f32
-
 
 struct vec2 
     x f32

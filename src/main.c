@@ -33,7 +33,7 @@ List* parse(Thi* thi, char* source_file);
 void  assemble(Thi* thi, char* asm_file, char* exec_name);
 void  linking_stage(Thi* thi, char* exec_name);
 void  pass_general(Thi* thi);
-void  transform_ast(Thi* thi, AST* node);
+void  find_all_definitions(Thi* thi, List* ast, List_Node* it);
 
 int main(int argc, char** argv)
 {
@@ -210,6 +210,54 @@ void linking_stage(Thi* thi, char* exec_name)
     system(strf("rm %s.o", exec_name));
 }
 
+void find_all_definitions(Thi* thi, List* ast, List_Node* it)
+{
+    AST* node = (AST*)it->data;
+
+    warning("find_all_definitions: %s", ast_to_json(node));
+
+    switch (node->kind) {
+    case AST_ENUM: {
+        List* l = node->Enum.type->Enum.members;
+        LIST_FOREACH(l) { find_all_definitions(thi, ast, it); }
+        add_symbol(thi, node->Enum.type->Enum.name, node->Enum.type);
+    } break;
+    case AST_STRUCT: {
+        List* l = node->Struct.type->Struct.members;
+        LIST_FOREACH(l) { find_all_definitions(thi, ast, it); }
+        add_symbol(thi, node->Struct.type->Struct.name, node->Struct.type);
+    } break;
+    case AST_LINK: {
+        add_link(thi, node->Link.str);
+    } break;
+    case AST_LOAD: {
+        add_load(thi, node->Load.str);
+    } break;
+    case AST_BLOCK: {
+        LIST_FOREACH(node->Block.stmts) { find_all_definitions(thi, ast, it); }
+    } break;
+    case AST_CALL: {
+        if (it->next) {
+            AST* next_expr = (AST*)it->next->data;
+            if (next_expr->kind == AST_BLOCK) {
+                char* func_name = node->Call.callee;
+                List* args      = node->Call.args;
+                Type* type      = make_type_function(func_name, args, NULL);
+                add_symbol(thi, func_name, type);
+
+                find_all_definitions(thi, ast, it->next);
+                AST* body = (AST*)it->next->data;
+
+                // list_append(ast, make_ast_function(node->t, type, body));
+                list_remove(ast, it->next);
+                // list_remove(ast, it);
+                it->data = make_ast_function(node->t, type, body);
+            }
+        }
+    } break;
+    }
+}
+
 List* parse(Thi* thi, char* source_file)
 {
     char* last_file = get_source_file(thi);
@@ -221,42 +269,17 @@ List* parse(Thi* thi, char* source_file)
 
     push_timer(thi, source_file);
 
-    // We create a parent function for each file
-    // Token t;
-
-    // Type* s32_t  = make_type_int(4, 0);
-    // Type* u8pp_t = make_type_pointer(make_type_pointer(make_type_int(1, 1)));
-
-    // List* stmts = make_list();
-
     char*       source = get_file_content(source_file);
     Lexed_File  lf     = generate_tokens_from_source(source);
     Parsed_File pf     = generate_ast_from_tokens(lf.tokens);
+    List*       ast    = pf.ast;
 
-    // list_append_content_of(stmts, pf.ast);
-
-    // List* args = make_list();
-    // if (strcmp(source_file, thi->input_file) == 0) {
-        // list_append(args, make_ast_variable_decl(t, "argc", s32_t, NULL));
-        // list_append(args, make_ast_variable_decl(t, "argv", u8pp_t, NULL));
-        // list_append(stmts, make_ast_return(t, make_ast_int(t, 1)));
-    // }
-
-    // AST*  body        = make_ast_block(t, stmts);
-    // char* name        = get_file_name(source_file);
-    // char* func_name   = remove_file_extension(name);
-    // Type* type        = make_type_function(func_name, args, make_type_int(4, 0));
-    // AST*  parent_func = make_ast_function(t, type, body);
-
-    List* ast = make_list();
-    list_append_content_of(ast, pf.ast);
-    // list_append(ast, parent_func);
+    // Find all definitions
+    print_ast(ast);
+    LIST_FOREACH(ast) { find_all_definitions(thi, ast, it); }
+    print_ast(ast);
 
     add_all_definitions(thi, &pf);
-
-    // print_symbol_map(thi);
-    // print_tokens(tokens);
-    // print_ast(ast);
 
     pop_timer(thi);
 
@@ -272,34 +295,8 @@ List* parse(Thi* thi, char* source_file)
 
 void add_all_definitions(Thi* thi, Parsed_File* pf)
 {
-    list_append_content_of(thi->extern_list, pf->extern_list);
-
     for (s64 i = 0; i < pf->unresolved_types.count; ++i) {
         type_ref_list_append(&thi->unresolved_types, pf->unresolved_types.data[i]);
-    }
-
-    for (s64 i = 0; i < pf->function_calls.count; ++i) {
-        ast_ref_list_append(&thi->function_calls, pf->function_calls.data[i]);
-    }
-
-    for (s64 i = 0; i < pf->variables_in_need_of_type_inference.count; ++i) {
-        ast_ref_list_append(&thi->variables_in_need_of_type_inference, pf->variables_in_need_of_type_inference.data[i]);
-    }
-
-    for (s64 i = 0; i < pf->constants.count; ++i) {
-        ast_ref_list_append(&thi->constants, pf->constants.data[i]);
-    }
-    for (s64 i = 0; i < pf->identifiers.count; ++i) {
-        ast_ref_list_append(&thi->identifiers, pf->identifiers.data[i]);
-    }
-
-    LIST_FOREACH(pf->link_list) { add_link(thi, it->data); }
-    LIST_FOREACH(pf->load_list) { add_load(thi, it->data); }
-
-    s64 count = pf->symbol_map->size;
-    for (s64 i = 0; i < count; ++i) {
-        Type* type = pf->symbol_map->data[i].data;
-        add_symbol(thi, type->name, type);
     }
 }
 
@@ -321,29 +318,6 @@ Type* get_inferred_type_of_expr(Thi* thi, AST* expr)
     default: error("%s has no type", ast_kind_to_str(expr->kind));
     }
     return NULL;
-}
-
-void transform_ast(Thi* thi, AST* node)
-{
-    switch (node->kind) {
-    case AST_IDENT: {
-    } break;
-    case AST_FUNCTION: {
-        transform_ast(thi, node->Function.body);
-    } break;
-    case AST_STRUCT: {
-        List* l = node->Struct.type->Struct.members;
-        LIST_FOREACH(l) { transform_ast(thi, it->data); }
-    } break;
-    case AST_ENUM: {
-        List* l = node->Enum.type->Enum.members;
-        LIST_FOREACH(l) { transform_ast(thi, it->data); }
-    } break;
-    case AST_BLOCK: {
-        LIST_FOREACH(node->Block.stmts) { transform_ast(thi, it->data); }
-    } break;
-    default: break;
-    }
 }
 
 void pass_type_checker(Thi* thi)
