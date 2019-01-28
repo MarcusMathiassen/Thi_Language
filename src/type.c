@@ -85,13 +85,7 @@ s64 get_size_of_type(Type* type)
         }
         return accum_size;
     }
-    case TYPE_ENUM: {
-        s64 accum_size = 0;
-        if (type->Enum.members) {
-            LIST_FOREACH(type->Enum.members) { accum_size += 8; }
-        }
-        return accum_size;
-    }
+    case TYPE_ENUM: return 8;
     case TYPE_FUNCTION: {
         s64 accum_size = 0;
         LIST_FOREACH(type->Function.args)

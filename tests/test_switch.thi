@@ -4,16 +4,20 @@ extern puts(u8*) s32
 
 enum Kind
     Int
-    Float :: 4
+    Float
     String
 
 main()
 
-    i := 0
+    i: Kind = Kind.Float
+
+    if i == .Float
+        puts("Its a float!")
+
     if i 
-        is 0 fallthrough
+        is Kind.Int fallthrough
         is 1 puts("Hello")
-        is 2 puts("are")
+        is .String puts("are")
         is 3 puts("you?")
         is 4 return 4
         is 5 return 5

@@ -61,7 +61,7 @@ struct {
     // {TOKEN_COMMA, 1},          // ,
 };
 
-#define UNARY_OP_COUNT 6
+#define UNARY_OP_COUNT 7
 Token_Kind unary_ops[UNARY_OP_COUNT] = {
     TOKEN_BANG,
     THI_SYNTAX_POINTER,
@@ -69,6 +69,7 @@ Token_Kind unary_ops[UNARY_OP_COUNT] = {
     THI_SYNTAX_ADDRESS,
     TOKEN_MINUS,
     TOKEN_TILDE,
+    TOKEN_DOT,
 };
 
 //------------------------------------------------------------------------------
@@ -87,6 +88,7 @@ typedef struct {
     AST_Ref_List  structs;
     AST_Ref_List  enums;
     AST_Ref_List  externs;
+    AST_Ref_List  field_access;
     List*         loads;
     List*         links;
 
@@ -116,6 +118,7 @@ Parser_Context make_parser_context()
     pctx.structs                             = make_ast_ref_list();
     pctx.enums                               = make_ast_ref_list();
     pctx.externs                             = make_ast_ref_list();
+    pctx.field_access                        = make_ast_ref_list();
     pctx.loads                               = make_list();
     pctx.links                               = make_list();
     pctx.symbols                             = make_map();
@@ -217,6 +220,7 @@ Parsed_File generate_ast_from_tokens(Token_Array tokens)
     pf.links                               = pctx.links;
     pf.enums                               = pctx.enums;
     pf.structs                             = pctx.structs;
+    pf.field_access                        = pctx.field_access;
     pf.calls                               = pctx.calls;
     pf.constants                           = pctx.constants;
     pf.identifiers                         = pctx.identifiers;
@@ -634,6 +638,11 @@ AST* parse_binary(Parser_Context* pctx, s8 expr_prec, AST* lhs)
 
         // Merge LHS/rhs.
         lhs = make_ast_binary(pctx->curr_tok, binary_op_token, lhs, rhs);
+
+        // We do something special for dot operators
+        if (binary_op_token == TOKEN_DOT) {
+            ast_ref_list_append(&pctx->field_access, lhs);
+        }
     }
 
     return expr;

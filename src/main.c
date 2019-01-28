@@ -132,12 +132,15 @@ int main(int argc, char** argv)
     thi.ast = ast;
 
 
+    pass_initilize_all_enums(&thi);
+
+    // pass_initilize_all_enums MUST BE RUN BEFORE THIS
+    pass_progate_identifiers_to_constants(&thi);
+
     pass_resolve_all_unresolved_types(&thi);
     pass_type_inference(&thi);
-    pass_progate_identifiers_to_constants(&thi);
     pass_give_all_identifiers_a_type(&thi);
 
-    pass_initilize_all_enums(&thi);
 
     // pass_type_checker(&thi);
     warning("Typechecker disabled");
@@ -352,6 +355,9 @@ void add_all_definitions(Thi* thi, Parsed_File* pf)
     for (s64 i = 0; i < pf->identifiers.count; ++i) {
         ast_ref_list_append(&thi->identifiers, pf->identifiers.data[i]);
     }
+    for (s64 i = 0; i < pf->field_access.count; ++i) {
+        ast_ref_list_append(&thi->field_access, pf->field_access.data[i]);
+    }
     LIST_FOREACH(pf->links) { add_link(thi, it->data); }
     LIST_FOREACH(pf->loads) { add_load(thi, it->data); }
 
@@ -492,6 +498,7 @@ void pass_initilize_all_enums(Thi* thi)
             switch (m->kind) {
                 case AST_IDENT:
                     it->data = make_ast_constant_decl(m->t, m->Ident.name, make_ast_int(m->t, counter));
+                    // ast_ref_list_append(&thi->constants, it->data);
                     break;
                 case AST_CONSTANT_DECL:
                     assert(m->Constant_Decl.value->kind == AST_INT);
@@ -500,6 +507,25 @@ void pass_initilize_all_enums(Thi* thi)
             }
             counter += 1;
             warning("%s", ast_to_json(m));
+        }
+    }
+
+    for (s64 i = 0; i < thi->field_access.count; ++i) {
+        AST* b = thi->field_access.data[i];
+        AST* lhs = b->Binary.lhs;
+        AST* rhs = b->Binary.rhs;
+
+        assert(lhs->kind == AST_IDENT);
+        assert(rhs->kind == AST_IDENT);
+        Type* e = get_symbol(thi, lhs->Ident.name);
+        LIST_FOREACH(e->Enum.members)
+        {
+            char* access_member_name = rhs->Ident.name;
+            AST* mem = (AST*)it->data;
+            if (strcmp(access_member_name, mem->Constant_Decl.name) == 0) {
+                *b = *make_ast_int(mem->t, mem->Constant_Decl.value->Int.val);
+                break;
+            }
         }
     }
 

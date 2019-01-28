@@ -34,6 +34,7 @@ Thi make_thi()
     thi.identifiers                         = make_ast_ref_list();
     thi.structs                             = make_ast_ref_list();
     thi.enums                               = make_ast_ref_list();
+    thi.field_access                        = make_ast_ref_list();
     return thi;
 }
 

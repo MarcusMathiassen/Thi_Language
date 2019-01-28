@@ -22,6 +22,7 @@
 
 typedef struct {
     AST*   current_function;
+    Type*  expected_type;
     Stack* scope_stack;
     s64    stack_index;
     string section_text;
@@ -345,8 +346,9 @@ char* get_result_reg(Type* type)
     case TYPE_POINTER: // fallthrough
     case TYPE_STRUCT: // fallthrough
     case TYPE_ARRAY: // fallthrough
+    case TYPE_ENUM: // fallthrough
     case TYPE_INT: return get_reg(get_rax_reg_of_byte_size(bytes));
-    default: error("get_move_op unhandled case: %s", type_kind_to_str(type->kind));
+    default: error("get_result_reg unhandled case: %s", type_kind_to_str(type->kind));
     }
     return NULL;
 }
@@ -376,6 +378,7 @@ char* get_move_op(Type* type)
     case TYPE_POINTER: // fallthrough
     case TYPE_STRUCT: // fallthrough
     case TYPE_ARRAY: // fallthrough
+    case TYPE_ENUM: // fallthrough
     case TYPE_INT: return "MOV";
     default: error("get_move_op unhandled case: %s", type_kind_to_str(type->kind));
     }
@@ -545,6 +548,21 @@ Value* codegen_unary(Codegen_Context* ctx, AST* expr)
     Token_Kind op      = expr->Unary.op;
     AST*       operand = expr->Unary.operand;
 
+    if (op == TOKEN_DOT) {
+        // This is an enum accessor
+        // Find the enum member
+        assert(ctx->expected_type);
+        Type* enum_type = ctx->expected_type;
+        assert(operand->kind == AST_IDENT);
+        LIST_FOREACH(enum_type->Enum.members)
+        {
+            AST* mem = (AST*)it->data;
+            if (strcmp(operand->Ident.name, mem->Constant_Decl.name) == 0) {
+                return codegen_expr(ctx, make_ast_int(mem->t, mem->Constant_Decl.value->Int.val));
+            }
+        }
+    }
+
     Value* operand_val  = codegen_expr(ctx, operand);
     s64    operand_size = get_size_of_value(operand_val);
 
@@ -573,6 +591,8 @@ Value* codegen_unary(Codegen_Context* ctx, AST* expr)
     case TOKEN_TILDE: {
         emit(ctx, "NOT AL");
     } break;
+    case TOKEN_DOT: {
+    } break;
     case TOKEN_MINUS: {
         switch (operand_val->type->kind) {
         case TYPE_INT: emit(ctx, "NEG %s", reg); break;
@@ -600,20 +620,13 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
     switch (op) {
     // Field access
     case TOKEN_DOT: {
-        error("FIELD ACCESS NOT IMPLEMENTED");
         Value* variable = get_variable(ctx, lhs->Ident.name);
-
         assert(variable->kind == VALUE_VARIABLE);
-        assert(variable->type->kind == TYPE_STRUCT);
 
-        s64 offset = get_offset_in_struct_to_field(variable->type, rhs->Ident.name);
-        // if (offset == 0) { emit_load(variable); return variable; }
-
-        lhs = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, lhs);
-        lhs = make_ast_binary(expr->t, TOKEN_PLUS, lhs, make_ast_int(expr->t, offset));
-        lhs = make_ast_unary(expr->t, THI_SYNTAX_POINTER, lhs);
-
-        return codegen_expr(ctx, lhs);
+        switch(variable->type->kind)
+        {
+            case TYPE_STRUCT: error("codegen field access on structs not implemented");
+        }
     }
     case THI_SYNTAX_ASSIGNMENT: {
         Value* rhs_v = codegen_expr(ctx, rhs);
@@ -890,6 +903,8 @@ Value* codegen_variable_decl(Codegen_Context* ctx, AST* expr)
     char* name            = expr->Variable_Decl.name;
     Type* type            = expr->Variable_Decl.type;
     AST*  assignment_expr = expr->Variable_Decl.value;
+
+    ctx->expected_type = type;
 
     s64 type_size = get_size_of_type(type);
     s64 stack_pos = type_size + ctx->stack_index;
@@ -1205,17 +1220,17 @@ Value* codegen_switch(Codegen_Context* ctx, AST* expr)
     AST* cases        = expr->Switch.cases;
     AST* default_case = expr->Switch.default_case;
 
-
     List* labels = make_list();
-    LIST_FOREACH(cases->Block.stmts) {
+    LIST_FOREACH(cases->Block.stmts)
+    {
 
         AST* c = (AST*)it->data;
 
         char* l = make_text_label(ctx);
         list_append(labels, l);
 
-        AST* case_cond = c->Is.expr;
-        Value* v = codegen_expr(ctx, make_ast_binary(c->t, TOKEN_EQ_EQ, cond, case_cond));
+        AST*   case_cond = c->Is.expr;
+        Value* v         = codegen_expr(ctx, make_ast_binary(c->t, TOKEN_EQ_EQ, cond, case_cond));
 
         emit(ctx, "CMP AL, 1");
         emit(ctx, "JE %s", l);
@@ -1225,10 +1240,12 @@ Value* codegen_switch(Codegen_Context* ctx, AST* expr)
         emit(ctx, "%s:", default_l);
         codegen_expr(ctx, default_case);
         emit(ctx, "JMP %s", end_l);
-    } else emit(ctx, "JMP %s", end_l);
+    } else
+        emit(ctx, "JMP %s", end_l);
 
-    List_Node* label_it = labels->head; 
-    LIST_FOREACH(cases->Block.stmts) {
+    List_Node* label_it = labels->head;
+    LIST_FOREACH(cases->Block.stmts)
+    {
 
         AST* c = (AST*)it->data;
 
@@ -1403,6 +1420,7 @@ Codegen_Context make_codegen_context()
     Codegen_Context ctx;
     ctx.scope_stack                    = make_stack();
     ctx.current_function               = NULL;
+    ctx.expected_type                  = NULL;
     ctx.section_extern                 = make_string("");
     ctx.section_text                   = make_string("");
     ctx.section_data                   = make_string("");

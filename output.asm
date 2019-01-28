@@ -1,139 +1,155 @@
 extern _puts
 section .data
-	D0 DQ `Hello`, 0 
-	D1 DQ `are`, 0 
-	D2 DQ `you?`, 0 
-	D3 DD 5.000000
+	D0 DQ `Its a float!`, 0 
+	D1 DQ `Hello`, 0 
+	D2 DQ `are`, 0 
+	D3 DQ `you?`, 0 
+	D4 DD 5.000000
 global _main
 section .text
 _main:
 	PUSH RBP
 	MOV RBP, RSP
-	SUB RSP, 16; 4 alloc, 12 padding
+	SUB RSP, 16; 8 alloc, 8 padding
 .BEGIN:
-	MOV EAX, 0
+	MOV EAX, 1
 	PUSH RAX
-	MOV EAX, DWORD [RBP-4]; load
+	MOV RAX, QWORD [RBP-8]; load
 	POP RAX
-	MOV [RBP-4], EAX; store
-	MOV EAX, DWORD [RBP-4]; load
+	MOV [RBP-8], RAX; store
+	MOV RAX, QWORD [RBP-8]; load
+	PUSH RAX
+	MOV EAX, 1
+	POP RCX
+	CMP RCX, RAX
+	SETE AL
+	CMP AL, 0
+	JE .L1
+	MOV RAX, D0; string_ref
+	PUSH RAX
+	POP RDI
+	CALL _puts
+	JMP .L1
+.L0:
+.L1:
+	MOV RAX, QWORD [RBP-8]; load
 	PUSH RAX
 	MOV EAX, 0
 	POP RCX
 	CMP RCX, RAX
 	SETE AL
 	CMP AL, 1
-	JE .L2
-	MOV EAX, DWORD [RBP-4]; load
+	JE .L4
+	MOV RAX, QWORD [RBP-8]; load
 	PUSH RAX
 	MOV EAX, 1
 	POP RCX
 	CMP RCX, RAX
 	SETE AL
 	CMP AL, 1
-	JE .L3
-	MOV EAX, DWORD [RBP-4]; load
+	JE .L5
+	MOV RAX, QWORD [RBP-8]; load
 	PUSH RAX
 	MOV EAX, 2
 	POP RCX
 	CMP RCX, RAX
 	SETE AL
 	CMP AL, 1
-	JE .L4
-	MOV EAX, DWORD [RBP-4]; load
+	JE .L6
+	MOV RAX, QWORD [RBP-8]; load
 	PUSH RAX
 	MOV EAX, 3
 	POP RCX
 	CMP RCX, RAX
 	SETE AL
 	CMP AL, 1
-	JE .L5
-	MOV EAX, DWORD [RBP-4]; load
+	JE .L7
+	MOV RAX, QWORD [RBP-8]; load
 	PUSH RAX
 	MOV EAX, 4
-	POP RCX
-	CMP RCX, RAX
-	SETE AL
-	CMP AL, 1
-	JE .L6
-	MOV EAX, DWORD [RBP-4]; load
-	PUSH RAX
-	MOV EAX, 5
-	POP RCX
-	CMP RCX, RAX
-	SETE AL
-	CMP AL, 1
-	JE .L7
-	MOV EAX, DWORD [RBP-4]; load
-	PUSH RAX
-	MOV EAX, 6
 	POP RCX
 	CMP RCX, RAX
 	SETE AL
 	CMP AL, 1
 	JE .L8
-.L0:
-.L10:
-	JMP .L9
-.L9:
+	MOV RAX, QWORD [RBP-8]; load
+	PUSH RAX
+	MOV EAX, 5
+	POP RCX
+	CMP RCX, RAX
+	SETE AL
+	CMP AL, 1
+	JE .L9
+	MOV RAX, QWORD [RBP-8]; load
+	PUSH RAX
+	MOV EAX, 6
+	POP RCX
+	CMP RCX, RAX
+	SETE AL
+	CMP AL, 1
+	JE .L10
+.L2:
+.L12:
+	JMP .L11
+.L11:
 	MOV EAX, 7
 	JMP .END
-	JMP .L1
-.L2:
-.L3:
-	MOV RAX, D0; string_ref
-	PUSH RAX
-	POP RDI
-	CALL _puts
-	JMP .L1
+	JMP .L3
 .L4:
+.L5:
 	MOV RAX, D1; string_ref
 	PUSH RAX
 	POP RDI
 	CALL _puts
-	JMP .L1
-.L5:
+	JMP .L3
+.L6:
 	MOV RAX, D2; string_ref
 	PUSH RAX
 	POP RDI
 	CALL _puts
-	JMP .L1
-.L6:
-.L12:
-	JMP .L11
-.L11:
-	MOV EAX, 4
-	JMP .END
-	JMP .L1
+	JMP .L3
 .L7:
+	MOV RAX, D3; string_ref
+	PUSH RAX
+	POP RDI
+	CALL _puts
+	JMP .L3
+.L8:
 .L14:
 	JMP .L13
 .L13:
-	MOV EAX, 5
+	MOV EAX, 4
 	JMP .END
-	JMP .L1
-.L8:
-	MOV RAX, D3; float_ref
-	MOVSS XMM0, [RAX]; float_ref
-	SUB RSP, 8
-	MOVSS [RSP], XMM0
-	MOVSS XMM0, DWORD [RBP-8]; load
-	MOVSS XMM0, DWORD [RSP]
-	ADD RSP, 8
-	MOVSS [RBP-8], XMM0; store
+	JMP .L3
+.L9:
 .L16:
 	JMP .L15
 .L15:
-	MOV EAX, 6
+	MOV EAX, 5
 	JMP .END
-	JMP .L1
-.L1:
+	JMP .L3
+.L10:
+	MOV RAX, D4; float_ref
+	MOVSS XMM0, [RAX]; float_ref
+	SUB RSP, 8
+	MOVSS [RSP], XMM0
+	MOVSS XMM0, DWORD [RBP-12]; load
+	MOVSS XMM0, DWORD [RSP]
+	ADD RSP, 8
+	MOVSS [RBP-12], XMM0; store
 .L18:
 	JMP .L17
 .L17:
+	MOV EAX, 6
+	JMP .END
+	JMP .L3
+.L3:
+.L20:
+	JMP .L19
+.L19:
 	MOV EAX, 1
 	JMP .END
 .END:
-	ADD RSP, 16; 4 alloc, 12 padding
+	ADD RSP, 16; 8 alloc, 8 padding
 	LEAVE
 	RET
