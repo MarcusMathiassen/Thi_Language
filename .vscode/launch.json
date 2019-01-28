@@ -12,8 +12,6 @@
             "args": [
                 "-f",
                 "${workspaceFolder}/tests/test_basic_setup.thi",
-                "-o",
-                "test",
                 "-v",
                 "-d"
             ],

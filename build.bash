@@ -6,7 +6,7 @@ src=./src/*.c
 flags=-Wall\ -Wextra\ -Wno-switch\ -Wno-unused-function #-DNDEBUG #\ -Werror
 std=c99
 
-$compiler $src -std=$std $olvl $flags -o $output -g -fsanitize=address -fno-omit-frame-pointer
+$compiler $src -std=$std $olvl $flags -o $output #-g -fsanitize=address -fno-omit-frame-pointer
  
 if [ $? == 0 ]; then
     # ./test.bash

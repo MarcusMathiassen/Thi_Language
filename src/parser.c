@@ -1,11 +1,11 @@
 #include "parser.h"
 #include "ast.h" // AST, ast_make_*
+#include "constants.h"
 #include "lexer.h" // Token, Token_Kind, generate_tokens_from_source, token_array_get_info_of
 #include "list.h" // List
 #include "map.h" // Map
 #include "type.h" // Type, make_typspec_*,
 #include "typedefs.h" // s32 , s64, etc.
-#include "constants.h"
 #include "utility.h" // info, error, warning, success, strf, get_file_content
 #include <assert.h> // assert
 #include <ctype.h> // atoll
@@ -118,7 +118,7 @@ Parser_Context make_parser_context()
     pctx.externs                             = make_ast_ref_list();
     pctx.loads                               = make_list();
     pctx.links                               = make_list();
-    pctx.symbols                               = make_map();
+    pctx.symbols                             = make_map();
 
     return pctx;
 }
@@ -431,7 +431,8 @@ AST* parse_is(Parser_Context* pctx)
     AST* body = parse_block(pctx);
 
     bool has_fallthrough = false;
-    LIST_FOREACH(body->Block.stmts) {
+    LIST_FOREACH(body->Block.stmts)
+    {
         AST* stmt = (AST*)it->data;
         if (stmt->kind == AST_FALLTHROUGH) {
             has_fallthrough = true;
@@ -494,7 +495,7 @@ AST* parse_block(Parser_Context* pctx)
     // Is it a single statement?
     if (tok_is_on_same_line(pctx)) {
         List* stmts = make_list();
-        AST*  stmt = parse_statement(pctx);
+        AST*  stmt  = parse_statement(pctx);
         if (stmt) list_append(stmts, stmt);
         block = make_ast_block(pctx->curr_tok, stmts);
     }
@@ -757,7 +758,7 @@ Type* parse_enum_signature(Parser_Context* pctx, char* enum_name)
     eat_kind(pctx, TOKEN_BLOCK_START);
     List* members = make_list();
     while (!tok_is(pctx, TOKEN_BLOCK_END)) {
-        AST* expr = parse_statement(pctx);
+        AST* expr = parse_identifier(pctx);
         if (expr) {
             list_append(members, expr);
         }
@@ -831,7 +832,7 @@ Type* get_type(Parser_Context* pctx)
 
     Type* type = map_get(pctx->symbols, type_name);
     if (!type) {
-        type = make_type_unresolved(type_name);
+        type       = make_type_unresolved(type_name);
         type->name = type_name;
         type_ref_list_append(&pctx->unresolved_types, type);
     }

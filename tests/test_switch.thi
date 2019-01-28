@@ -1,6 +1,12 @@
 
 extern puts(u8*) s32
 
+
+enum Kind
+    Int
+    Float :: 4
+    String
+
 main()
 
     i := 0

@@ -26,6 +26,7 @@ void  add_all_definitions(Thi* thi, Parsed_File* pf);
 Type* get_inferred_type_of_expr(Thi* thi, AST* expr);
 void  pass_progate_identifiers_to_constants(Thi* thi);
 void  pass_type_inference(Thi* thi);
+void  pass_initilize_all_enums(Thi* thi);
 void  pass_give_all_identifiers_a_type(Thi* thi);
 void  pass_resolve_all_unresolved_types(Thi* thi);
 void  pass_type_checker(Thi* thi);
@@ -130,10 +131,14 @@ int main(int argc, char** argv)
 
     thi.ast = ast;
 
+
     pass_resolve_all_unresolved_types(&thi);
     pass_type_inference(&thi);
     pass_progate_identifiers_to_constants(&thi);
     pass_give_all_identifiers_a_type(&thi);
+
+    pass_initilize_all_enums(&thi);
+
     // pass_type_checker(&thi);
     warning("Typechecker disabled");
 
@@ -256,8 +261,6 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it)
                     error("only 'case' statements are allowed inside an if switch");
                 }
             } 
-            warning("ITS A Switch");
-            
             // Transform this if into a switch
             it->data = make_ast_switch(node->t, node);
         }
@@ -474,6 +477,34 @@ void pass_progate_identifiers_to_constants(Thi* thi)
     pop_timer(thi);
 }
 
+void pass_initilize_all_enums(Thi* thi)
+{
+    info("pass_initilize_all_enums");
+    push_timer(thi, "pass_initilize_all_enums");
+
+    s64 counter = 0;
+    for (s64 i = 0; i < thi->enums.count; ++i) {
+        AST* e = thi->enums.data[i];
+
+        LIST_FOREACH(e->Enum.type->Enum.members) {
+            AST* m = (AST*)it->data;
+            // Turn idents into constant decls 
+            switch (m->kind) {
+                case AST_IDENT:
+                    it->data = make_ast_constant_decl(m->t, m->Ident.name, make_ast_int(m->t, counter));
+                    break;
+                case AST_CONSTANT_DECL:
+                    assert(m->Constant_Decl.value->kind == AST_INT);
+                    counter = m->Constant_Decl.value->Int.val;
+                    break;
+            }
+            counter += 1;
+            warning("%s", ast_to_json(m));
+        }
+    }
+
+    pop_timer(thi);   
+}
 void pass_give_all_identifiers_a_type(Thi* thi)
 {
     info("pass_give_all_identifiers_a_type");
