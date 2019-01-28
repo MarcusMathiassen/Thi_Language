@@ -15,7 +15,6 @@ typedef enum {
     KEY_TYPE,
     KEY_TRUE,
     KEY_FALSE,
-    KEY_DEF,
     KEY_DEFER,
     KEY_EXTERN,
     KEY_LOAD,
@@ -31,7 +30,8 @@ typedef enum {
     KEY_BREAK,
     KEY_CONTINUE,
     KEY_AS,
-    KEY_CASE,
+    KEY_IS,
+    KEY_FALLTHROUGH,
 
     KEY_COUNT
 } Keyword_Kind;
@@ -85,7 +85,6 @@ char* STATIC_KEYWORDS_ARRAY[KEY_COUNT] = {
     "type",
     "true",
     "false",
-    "def",
     "defer",
     "extern",
     "load",
@@ -101,7 +100,8 @@ char* STATIC_KEYWORDS_ARRAY[KEY_COUNT] = {
     "break",
     "continue",
     "as",
-    "case",
+    "is",
+    "fallthrough",
 };
 
 Lexed_File generate_tokens_from_source(char* source)
@@ -136,10 +136,10 @@ Lexed_File generate_tokens_from_source(char* source)
         }
         while (lctx.current_indentation_level < lctx.previous_indentation_level) {
             Token t;
-            t.kind       = TOKEN_BLOCK_END;
-            t.value      = "";
-            t.line_pos   = lctx.line_count;
-            t.col_pos    = lctx.stream - lctx.position_of_newline;
+            t.kind     = TOKEN_BLOCK_END;
+            t.value    = "";
+            t.line_pos = lctx.line_count;
+            t.col_pos  = lctx.stream - lctx.position_of_newline;
             lctx.previous_indentation_level -= 4;
             token_array_append(&tokens, t);
         }
@@ -174,10 +174,10 @@ Token get_token(Lexer_Context* lctx)
     char* c = lctx->stream;
 
     Token token;
-    token.kind       = TOKEN_UNKNOWN;
-    token.value      = c;
-    token.line_pos   = lctx->line_count;
-    token.col_pos    = c - lctx->position_of_newline;
+    token.kind     = TOKEN_UNKNOWN;
+    token.value    = c;
+    token.line_pos = lctx->line_count;
+    token.col_pos  = c - lctx->position_of_newline;
 
     switch (*c) {
     case '#': {
@@ -193,7 +193,9 @@ Token get_token(Lexer_Context* lctx)
     case '\r': /* fallthrough */
     case '\t': {
         // Skip whitespace
+
         bool has_newline = false;
+skip:
         while (*c == ' ' || *c == '\n' || *c == '\r' || *c == '\t') {
             if (*c == '\n') {
                 has_newline = true;
@@ -202,6 +204,16 @@ Token get_token(Lexer_Context* lctx)
             }
             ++c;
         }
+        // HACK
+        if (*c == '#') {
+            ++c;
+            while (*c != '\n') {
+                ++c;
+            }
+            lctx->comment_count += 1;
+            goto skip;
+        }
+
         lctx->start_of_line = c;
         if (has_newline) {
             lctx->current_indentation_level = c - lctx->position_of_newline - 1;
@@ -237,7 +249,7 @@ Token get_token(Lexer_Context* lctx)
         break;
         CASE_SINGLE_TOKEN('\\', TOKEN_BWSLASH);
         break;
-        
+
         CASE_SINGLE_TOKEN('/', TOKEN_FWSLASH);
         switch (*c) {
             CASE_SINGLE_TOKEN('=', TOKEN_FWSLASH_EQ);
@@ -471,7 +483,6 @@ Token get_token(Lexer_Context* lctx)
         case KEY_TYPE: token.kind = TOKEN_TYPE; break;
         case KEY_TRUE: token.kind = TOKEN_TRUE; break;
         case KEY_FALSE: token.kind = TOKEN_FALSE; break;
-        case KEY_DEF: token.kind = TOKEN_DEF; break;
         case KEY_DEFER: token.kind = TOKEN_DEFER; break;
         case KEY_EXTERN: token.kind = TOKEN_EXTERN; break;
         case KEY_LOAD: token.kind = TOKEN_LOAD; break;
@@ -487,7 +498,8 @@ Token get_token(Lexer_Context* lctx)
         case KEY_BREAK: token.kind = TOKEN_BREAK; break;
         case KEY_CONTINUE: token.kind = TOKEN_CONTINUE; break;
         case KEY_AS: token.kind = TOKEN_AS; break;
-        case KEY_CASE: token.kind = TOKEN_CASE; break;
+        case KEY_IS: token.kind = TOKEN_IS; break;
+        case KEY_FALLTHROUGH: token.kind = TOKEN_FALLTHROUGH; break;
         }
     } break;
     case TOKEN_STRING: ++c; break; // we skip the last '"'
@@ -509,17 +521,17 @@ char* token_kind_to_str(Token_Kind kind)
     case TOKEN_WHITESPACE: return "whitespace";
     case TOKEN_NEWLINE: return "newline";
     case TOKEN_IDENTIFIER: return "identifier";
-    case TOKEN_CASE: return "case";
+    case TOKEN_IS: return "is";
     case TOKEN_AS: return "as";
     case TOKEN_CAST: return "cast";
     case TOKEN_SIZEOF: return "sizeof";
     case TOKEN_LINK: return "link";
     case TOKEN_EXTERN: return "extern";
     case TOKEN_LOAD: return "load";
-    case TOKEN_DEF: return "def";
     case TOKEN_TRUE: return "true";
     case TOKEN_FALSE: return "false";
     case TOKEN_TYPE: return "type";
+    case TOKEN_FALLTHROUGH: return "fallthrough";
     case TOKEN_DEFER: return "defer";
     case TOKEN_IF: return "if";
     case TOKEN_ELSE: return "else";

@@ -11,39 +11,36 @@ struct Parser
         next = lexer.getToken()
 
     eat(kind: TokenKind)
-        if curr.kind != kind
-            error("expected % got %", kind.str(), curr.kind.str())
+        if curr.kind != kind error("expected % got %", kind.str(), curr.kind.str())
         eat()
 
     sameLine() return prev.line == curr.line
     nextSameLine() return curr.line == next.line
-    is(kind: TokenKind) return curr.kind == kind
-    nextIs(kind: TokenKind) return next.kind == kind
+    isCurr(kind: TokenKind) return curr.kind == kind
+    isNext(kind: TokenKind) return next.kind == kind
 
     generateAST()
         ast := makeList()
-        while is(.eof)
+        while !isCurr(.eof)
             stmt := parseStatement()
-            if stmt
-                ast.append(stmt)
+            if stmt ast.append(stmt)
         return ast
 
-    parsePrimary()
+    Parser.parsePrimary()
         if curr.kind
-            case .true return parseTrue()
-            case .false return parseFalse()
-            case .sizeof return parseSizeof()
-            case .cast return parseCast()
-            case .identifier return parseIdentifier()
-            case .dollarSign return parseNote()
-            case .float return parseFloat()
-            case .char return parseChar()
-            case .hex return parseHex()
-            case .integer return parseInt()
-            case .string return parseString()
-            case .openParen return parseParen()
-        else
-            error("Invalid primary token '%s'", curr.str())
+            is .true return parseTrue()
+            is .false return parseFalse()
+            is .sizeof return parseSizeof()
+            is .cast return parseCast()
+            is .identifier return parseIdentifier()
+            is .dollarSign return parseNote()
+            is .float return parseFloat()
+            is .char return parseChar()
+            is .hex return parseHex()
+            is .integer return parseInt()
+            is .string return parseString()
+            is .openParen return parseParen()
+        else error("Invalid primary token '%s'", curr.str())
         return nil
 
 main()

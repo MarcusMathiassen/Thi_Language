@@ -14,7 +14,8 @@ typedef enum AST_Kind       AST_Kind;
 
 enum AST_Kind {
 
-    AST_CASE,
+    AST_IS,
+    AST_FALLTHROUGH,
 
     AST_EXTERN,
     AST_LOAD,
@@ -74,7 +75,8 @@ struct AST {
         struct {
             AST* expr;
             AST* body;
-        } Case;
+            bool has_fallthrough;
+        } Is;
         struct {
             Type* type;
         } Extern;
@@ -233,8 +235,9 @@ AST* make_ast_return(Token t, AST* expr);
 AST* make_ast_defer(Token t, AST* expr);
 AST* make_ast_cast(Token t, AST* expr, Type* type);
 AST* make_ast_sizeof(Token t, Type* type);
-AST* make_ast_case(Token t, AST* expr, AST* body);
+AST* make_ast_is(Token t, AST* expr, AST* body, bool has_fallthrough);
 AST* make_ast_switch(Token t, AST* if_statement);
+AST* make_ast_fallthrough(Token t);
 
 AST* make_ast_break(Token t);
 AST* make_ast_continue(Token t);

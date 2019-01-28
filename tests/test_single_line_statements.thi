@@ -1,5 +1,6 @@
 main()
-    if add(0, 1) == 1 return 1
+    X :: 3
+    if add(0, 1) == X-2 return 1
     return 0
 
 add(a: s32, b: s32)

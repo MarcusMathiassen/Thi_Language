@@ -234,14 +234,14 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it)
             }
         }
 
-        // check for any AST_CASE inside
+        // check for any AST_IS inside
         List* stmts = node->If.then_block->Block.stmts;
         bool is_actually_a_switch = false;
 
         LIST_FOREACH(stmts) {
             maybe_convert_call_to_def(thi, ast, it);
             AST* stmt = (AST*)it->data;
-            if (stmt->kind == AST_CASE) {
+            if (stmt->kind == AST_IS) {
                 is_actually_a_switch = true;
                 break;
             }
@@ -252,7 +252,7 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it)
         if (is_actually_a_switch) {
             LIST_FOREACH(stmts) {
                 AST* stmt = (AST*)it->data;
-                if (stmt->kind != AST_CASE) {
+                if (stmt->kind != AST_IS) {
                     error("only 'case' statements are allowed inside an if switch");
                 }
             } 
@@ -499,7 +499,7 @@ void pass_type_inference(Thi* thi)
         warning("%s", ast_to_json(call));
         call->type = get_inferred_type_of_expr(thi, call);
         if (!call->type) {
-            call->type = make_type_void();
+            call->type = make_type_int(1,1); //NOTE(marcus) should this be void instead?
         }
     }
 

@@ -40,7 +40,14 @@ main()
         glClear(GL_COLOR_BUFFER_BIT)
         glfwPollEvents()
 
-        if glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS x += -0.001 
+        key := glfwGetKey(window, GLFW_KEY_LEFT)
+
+        f := glfwGetTime()
+
+        # This is a switch
+        if key
+            is GLFW_PRESS x += -0.001 
+
         if glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS  x +=  0.001 
         if glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS   y += -0.001 
         if glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS     y +=  0.001 

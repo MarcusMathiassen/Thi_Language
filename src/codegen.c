@@ -131,6 +131,7 @@ char* generate_code_from_ast(List* ast, char* entry);
 Value* codegen_expr(Codegen_Context* ctx, AST* expr)
 {
     switch (expr->kind) {
+    case AST_FALLTHROUGH: return NULL;
     case AST_LOAD: return NULL;
     case AST_LINK: return NULL;
     case AST_SWITCH: return codegen_switch(ctx, expr);
@@ -1198,6 +1199,8 @@ Value* codegen_switch(Codegen_Context* ctx, AST* expr)
     char* default_l = make_text_label(ctx);
     char* end_l     = make_text_label(ctx);
 
+    set_jump_labels(ctx, NULL, end_l);
+
     AST* cond         = expr->Switch.cond;
     AST* cases        = expr->Switch.cases;
     AST* default_case = expr->Switch.default_case;
@@ -1211,33 +1214,38 @@ Value* codegen_switch(Codegen_Context* ctx, AST* expr)
         char* l = make_text_label(ctx);
         list_append(labels, l);
 
-        AST* case_cond = c->Case.expr;
+        AST* case_cond = c->Is.expr;
         Value* v = codegen_expr(ctx, make_ast_binary(c->t, TOKEN_EQ_EQ, cond, case_cond));
 
         emit(ctx, "CMP AL, 1");
         emit(ctx, "JE %s", l);
     }
 
-    emit(ctx, "JMP %s", default_case ? default_l : end_l);
+    if (default_case) {
+        emit(ctx, "%s:", default_l);
+        codegen_expr(ctx, default_case);
+        emit(ctx, "JMP %s", end_l);
+    } else emit(ctx, "JMP %s", end_l);
 
     List_Node* label_it = labels->head; 
     LIST_FOREACH(cases->Block.stmts) {
 
         AST* c = (AST*)it->data;
+
         char* l = (char*)label_it->data;
         emit(ctx, "%s:", l);
-        codegen_expr(ctx, c->Case.body);
-        emit(ctx, "JMP %s", end_l);
+        codegen_expr(ctx, c->Is.body);
+
+        if (!c->Is.has_fallthrough) {
+            emit(ctx, "JMP %s", end_l);
+        }
 
         label_it = label_it->next;
     }
 
-    if (default_case) {
-        emit(ctx, "%s:", default_l);
-        codegen_expr(ctx, default_case);
-    }
-
     emit(ctx, "%s:", end_l);
+
+    restore_jump_labels(ctx);
 
     return NULL;
 }

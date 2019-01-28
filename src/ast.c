@@ -17,8 +17,9 @@
 char* ast_kind_to_str(AST_Kind kind)
 {
     switch (kind) {
+    case AST_FALLTHROUGH: return "AST_FALLTHROUGH";
     case AST_SWITCH: return "AST_SWITCH";
-    case AST_CASE: return "AST_CASE";
+    case AST_IS: return "AST_IS";
     case AST_SIZEOF: return "AST_SIZEOF";
     case AST_EXTERN: return "AST_EXTERN";
     case AST_LOAD: return "AST_LOAD";
@@ -56,8 +57,11 @@ char* ast_to_str(AST* expr)
 {
     if (!expr) return "NULL";
     switch (expr->kind) {
-    case AST_SWITCH: return strf("if %s %s else %s", ast_to_str(expr->Switch.cond), ast_to_str(expr->Switch.cases), ast_to_str(expr->Switch.default_case));
-    case AST_CASE: return strf("case %s %s", ast_to_str(expr->Case.expr), ast_to_str(expr->Case.body));
+    case AST_FALLTHROUGH: return "fallthrough";
+    case AST_SWITCH:
+        return strf("if %s %s else %s", ast_to_str(expr->Switch.cond), ast_to_str(expr->Switch.cases),
+            ast_to_str(expr->Switch.default_case));
+    case AST_IS: return strf("is %s %s", ast_to_str(expr->Is.expr), ast_to_str(expr->Is.body));
     case AST_SIZEOF: return strf("sizeof %s", type_to_str(expr->Sizeof.type));
     case AST_EXTERN: return strf("extern %s", type_to_str(expr->Extern.type));
     case AST_LOAD: return strf("load %s", expr->Load.str);
@@ -176,10 +180,12 @@ char* ast_to_json(AST* expr)
     char* result = NULL;
     switch (expr->kind) {
     case AST_SWITCH: {
-        result = strf("{\"%s\": {\"cond\":%s, \"cases\", \"default\"}}", ast_kind_to_str(expr->kind), ast_to_json(expr->Switch.cond), ast_to_json(expr->Switch.cases), ast_to_json(expr->Switch.default_case));
+        result = strf("{\"%s\": {\"cond\":%s, \"cases\", \"default\"}}", ast_kind_to_str(expr->kind),
+            ast_to_json(expr->Switch.cond), ast_to_json(expr->Switch.cases), ast_to_json(expr->Switch.default_case));
     } break;
-    case AST_CASE: {
-        result = strf("{\"%s\": {\"case\": %s, \"body\": %s}}", ast_kind_to_str(expr->kind), ast_to_json(expr->Case.expr), ast_to_json(expr->Case.body));
+    case AST_IS: {
+        result = strf("{\"%s\": {\"case\": %s, \"body\": %s, \"has_fallthrough\": %s}}", ast_kind_to_str(expr->kind),
+            ast_to_json(expr->Is.expr), ast_to_json(expr->Is.body), expr->Is.has_fallthrough ? "true" : "false");
     } break;
     case AST_SIZEOF: {
         result = strf("{\"%s\": {\"sizeof\": %s}}", ast_kind_to_str(expr->kind), type_to_str(expr->Sizeof.type));
@@ -195,6 +201,9 @@ char* ast_to_json(AST* expr)
     } break;
     case AST_CONTINUE: {
         result = strf("{\"%s\": {%s}}", ast_kind_to_str(expr->kind), "continue");
+    } break;
+    case AST_FALLTHROUGH: {
+        result = strf("{\"%s\": {%s}}", ast_kind_to_str(expr->kind), "fallthrough");
     } break;
     case AST_BREAK: {
         result = strf("{\"%s\": {%s}}", ast_kind_to_str(expr->kind), "break");
@@ -493,6 +502,8 @@ AST* try_fold(AST* e)
         case TOKEN_HAT: value = (lhs_v ^ rhs_v); break;
         case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
         case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
+        case TOKEN_QUESTION_MARK: return e;
+        case TOKEN_COLON: return e;
         default: error("constant_fold_expr binary %s not implemented", token_kind_to_str(op));
         }
         info("folded %s into %lld", ast_to_str(e), value);
@@ -562,19 +573,22 @@ AST* make_ast_unary(Token t, Token_Kind op, AST* operand)
     return e;
 }
 
-AST* make_ast_switch(Token t, AST* if_statement) {
-    AST* e = make_ast(AST_SWITCH, t);
-    e->Switch.cond = if_statement->If.cond;
-    e->Switch.cases = if_statement->If.then_block;
+AST* make_ast_switch(Token t, AST* if_statement)
+{
+    AST* e                 = make_ast(AST_SWITCH, t);
+    e->Switch.cond         = if_statement->If.cond;
+    e->Switch.cases        = if_statement->If.then_block;
     e->Switch.default_case = if_statement->If.else_block;
-    return e;   
+    return e;
 }
 
-AST* make_ast_case(Token t, AST* expr, AST* body) {
-    AST* e = make_ast(AST_CASE, t);
-    e->Case.expr = expr;
-    e->Case.body = body;
-    return e;   
+AST* make_ast_is(Token t, AST* expr, AST* body, bool has_fallthrough)
+{
+    AST* e       = make_ast(AST_IS, t);
+    e->Is.expr = expr;
+    e->Is.body = body;
+    e->Is.has_fallthrough = has_fallthrough;
+    return e;
 }
 
 AST* make_ast_block(Token t, List* stmts)
@@ -591,6 +605,12 @@ AST* make_ast_call(Token t, char* callee, List* args)
     AST* e         = make_ast(AST_CALL, t);
     e->Call.callee = callee;
     e->Call.args   = args;
+    return e;
+}
+
+AST* make_ast_fallthrough(Token t)
+{
+    AST* e = make_ast(AST_FALLTHROUGH, t);
     return e;
 }
 

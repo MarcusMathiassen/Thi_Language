@@ -35,8 +35,6 @@ main()
 struct vec2 
     x: f32
     y: f32
-    add(a: f32, b: f32)
-        return a + b
 
 compile(source: u8*)
     puts(source)
