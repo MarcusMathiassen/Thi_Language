@@ -210,7 +210,7 @@ _main:
 	sub rsp, 32; 24 alloc, 8 padding
 .begin:
 	call _glfwInit
-	cmp rax, 0
+	cmp al, 0
 	sete al
 	cmp al, 0
 	je .l1
@@ -221,64 +221,64 @@ _main:
 	jmp .l1
 .l0:
 .l1:
-	mov rax, 2
+	mov eax, 2
 	push rax
-	mov rax, 139266
-	push rax
-	pop rdi
-	pop rsi
-	call _glfwWindowHint
-	mov rax, 1
-	push rax
-	mov rax, 139267
+	mov eax, 139266
 	push rax
 	pop rdi
 	pop rsi
 	call _glfwWindowHint
-	mov rax, 4
+	mov eax, 1
 	push rax
-	mov rax, 135181
-	push rax
-	pop rdi
-	pop rsi
-	call _glfwWindowHint
-	mov rax, 8
-	push rax
-	mov rax, 135169
+	mov eax, 139267
 	push rax
 	pop rdi
 	pop rsi
 	call _glfwWindowHint
-	mov rax, 8
+	mov eax, 4
 	push rax
-	mov rax, 135170
-	push rax
-	pop rdi
-	pop rsi
-	call _glfwWindowHint
-	mov rax, 8
-	push rax
-	mov rax, 135171
+	mov eax, 135181
 	push rax
 	pop rdi
 	pop rsi
 	call _glfwWindowHint
-	mov rax, 8
+	mov eax, 8
 	push rax
-	mov rax, 135172
+	mov eax, 135169
 	push rax
 	pop rdi
 	pop rsi
 	call _glfwWindowHint
-	mov rax, 0
+	mov eax, 8
 	push rax
-	mov rax, 0
+	mov eax, 135170
+	push rax
+	pop rdi
+	pop rsi
+	call _glfwWindowHint
+	mov eax, 8
+	push rax
+	mov eax, 135171
+	push rax
+	pop rdi
+	pop rsi
+	call _glfwWindowHint
+	mov eax, 8
+	push rax
+	mov eax, 135172
+	push rax
+	pop rdi
+	pop rsi
+	call _glfwWindowHint
+	mov eax, 0
+	push rax
+	mov eax, 0
 	push rax
 	mov rax, d1; string_ref
 	push rax
-	mov rax, 480
+	mov eax, 480
 	push rax
-	mov rax, 640
+	mov eax, 640
 	push rax
 	pop rdi
 	pop rsi
@@ -296,7 +296,7 @@ _main:
 	call _glfwMakeContextCurrent
 	call _glfwInit
 	push rax
-	mov rax, 0
+	mov eax, 0
 	pop rcx
 	cmp rcx, rax
 	setne al
@@ -330,7 +330,7 @@ _main:
 	movss xmm3, [rsp]
 	add rsp, 8
 	call _glClearColor
-	mov rax, 36281
+	mov eax, 36281
 	push rax
 	pop rdi
 	call _glEnable
@@ -355,13 +355,13 @@ _main:
 	movss xmm0, [rsp]
 	add rsp, 8
 	movss [rbp-20], xmm0; store
-	mov rax, 1
+	mov eax, 1
 	push rax
-	mov rax, [rbp-24]; load
+	mov eax, [rbp-24]; load
 	pop rax
-	mov [rbp-24], rax; store
+	mov [rbp-24], eax; store
 .l4:
-	mov rax, [rbp-24]; load
+	mov eax, [rbp-24]; load
 	cmp al, 0
 	je .l5
 	mov rax, [rbp-8]; load
@@ -370,15 +370,15 @@ _main:
 	call _glfwWindowShouldClose
 	cmp al, 0
 	je .l7
-	mov rax, 0
+	mov eax, 0
 	push rax
-	mov rax, [rbp-24]; load
+	mov eax, [rbp-24]; load
 	pop rax
-	mov [rbp-24], rax; store
+	mov [rbp-24], eax; store
 	jmp .l7
 .l6:
 .l7:
-	mov rax, 256
+	mov eax, 256
 	push rax
 	mov rax, [rbp-8]; load
 	push rax
@@ -386,26 +386,26 @@ _main:
 	pop rsi
 	call _glfwGetKey
 	push rax
-	mov rax, 1
+	mov eax, 1
 	pop rcx
 	cmp rcx, rax
 	sete al
 	cmp al, 0
 	je .l9
-	mov rax, 0
+	mov eax, 0
 	push rax
-	mov rax, [rbp-24]; load
+	mov eax, [rbp-24]; load
 	pop rax
-	mov [rbp-24], rax; store
+	mov [rbp-24], eax; store
 	jmp .l9
 .l8:
 .l9:
-	mov rax, 16384
+	mov eax, 16384
 	push rax
 	pop rdi
 	call _glClear
 	call _glfwPollEvents
-	mov rax, 263
+	mov eax, 263
 	push rax
 	mov rax, [rbp-8]; load
 	push rax
@@ -413,9 +413,9 @@ _main:
 	pop rsi
 	call _glfwGetKey
 	push rax
-	mov rax, [rbp-28]; load
+	mov eax, [rbp-28]; load
 	pop rax
-	mov [rbp-28], rax; store
+	mov [rbp-28], eax; store
 	call _glfwGetTime
 	sub rsp, 8
 	movss [rsp], xmm0
@@ -423,9 +423,9 @@ _main:
 	movss xmm0, [rsp]
 	add rsp, 8
 	movsd [rbp-36], xmm0; store
-	mov rax, [rbp-28]; load
+	mov eax, [rbp-28]; load
 	push rax
-	mov rax, 1
+	mov eax, 1
 	pop rcx
 	cmp rcx, rax
 	sete al
@@ -451,7 +451,7 @@ _main:
 	movss [rbp-12], xmm0; store
 	jmp .l11
 .l11:
-	mov rax, 262
+	mov eax, 262
 	push rax
 	mov rax, [rbp-8]; load
 	push rax
@@ -459,7 +459,7 @@ _main:
 	pop rsi
 	call _glfwGetKey
 	push rax
-	mov rax, 1
+	mov eax, 1
 	pop rcx
 	cmp rcx, rax
 	sete al
@@ -481,7 +481,7 @@ _main:
 	jmp .l14
 .l13:
 .l14:
-	mov rax, 264
+	mov eax, 264
 	push rax
 	mov rax, [rbp-8]; load
 	push rax
@@ -489,7 +489,7 @@ _main:
 	pop rsi
 	call _glfwGetKey
 	push rax
-	mov rax, 1
+	mov eax, 1
 	pop rcx
 	cmp rcx, rax
 	sete al
@@ -514,7 +514,7 @@ _main:
 	jmp .l16
 .l15:
 .l16:
-	mov rax, 265
+	mov eax, 265
 	push rax
 	mov rax, [rbp-8]; load
 	push rax
@@ -522,7 +522,7 @@ _main:
 	pop rsi
 	call _glfwGetKey
 	push rax
-	mov rax, 1
+	mov eax, 1
 	pop rcx
 	cmp rcx, rax
 	sete al
@@ -544,7 +544,7 @@ _main:
 	jmp .l18
 .l17:
 .l18:
-	mov rax, 88
+	mov eax, 88
 	push rax
 	mov rax, [rbp-8]; load
 	push rax
@@ -552,7 +552,7 @@ _main:
 	pop rsi
 	call _glfwGetKey
 	push rax
-	mov rax, 1
+	mov eax, 1
 	pop rcx
 	cmp rcx, rax
 	sete al
@@ -574,7 +574,7 @@ _main:
 	jmp .l20
 .l19:
 .l20:
-	mov rax, 90
+	mov eax, 90
 	push rax
 	mov rax, [rbp-8]; load
 	push rax
@@ -582,7 +582,7 @@ _main:
 	pop rsi
 	call _glfwGetKey
 	push rax
-	mov rax, 1
+	mov eax, 1
 	pop rcx
 	cmp rcx, rax
 	sete al
@@ -633,7 +633,7 @@ _main:
 	call _glfwTerminate
 	jmp .l23
 .l23:
-	mov rax, 1
+	mov eax, 1
 	jmp .end
 .end:
 	add rsp, 32; 24 alloc, 8 padding
@@ -644,10 +644,10 @@ _draw_triangle:
 	mov rbp, rsp
 	sub rsp, 16; 12 alloc, 4 padding
 .begin:
-	movss [rbp-4], xmm0; store
-	movss [rbp-8], xmm1; store
-	movss [rbp-12], xmm2; store
-	mov rax, 4
+	movss [rbp-4], xmm0; store_r
+	movss [rbp-8], xmm1; store_r
+	movss [rbp-12], xmm2; store_r
+	mov eax, 4
 	push rax
 	pop rdi
 	call _glBegin
@@ -827,7 +827,7 @@ _sqrt:
 	mov rbp, rsp
 	sub rsp, 32; 32 alloc, 0 padding
 .begin:
-	movsd [rbp-8], xmm0; store
+	movsd [rbp-8], xmm0; store_r
 	movss xmm0, [rel d32]; float_ref
 	sub rsp, 8
 	movss [rsp], xmm0
@@ -849,15 +849,15 @@ _sqrt:
 	movss xmm0, [rsp]
 	add rsp, 8
 	movsd [rbp-32], xmm0; store
-	mov rax, 0
+	mov eax, 0
 	push rax
-	mov rax, [rbp-36]; load
+	mov eax, [rbp-36]; load
 	pop rax
-	mov [rbp-36], rax; store
+	mov [rbp-36], eax; store
 .l0:
-	mov rax, [rbp-36]; load
+	mov eax, [rbp-36]; load
 	push rax
-	mov rax, 1000
+	mov eax, 1000
 	pop rcx
 	cmp rcx, rax
 	setl al
@@ -921,15 +921,15 @@ _sqrt:
 	movsd [rbp-16], xmm0; store
 .l8:
 .l1:
-	mov rax, 1
+	mov eax, 1
 	push rax
-	mov rax, [rbp-36]; load
+	mov eax, [rbp-36]; load
 	pop rcx
 	add rax, rcx
 	push rax
-	mov rax, [rbp-36]; load
+	mov eax, [rbp-36]; load
 	pop rax
-	mov [rbp-36], rax; store
+	mov [rbp-36], eax; store
 	jmp .l0
 .l2:
 .l10:

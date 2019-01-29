@@ -132,7 +132,6 @@ int main(int argc, char** argv)
 
     thi.ast = ast;
 
-
     pass_initilize_all_enums(&thi);
 
     // pass_initilize_all_enums MUST BE RUN BEFORE THIS
@@ -143,7 +142,6 @@ int main(int argc, char** argv)
     pass_give_all_identifiers_a_type(&thi);
 
     pass_resolve_subscripts(&thi);
-
 
     // pass_type_checker(&thi);
     warning("Typechecker disabled");
@@ -226,30 +224,23 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it)
     AST* node = (AST*)it->data;
     switch (node->kind) {
     case AST_WHILE: {
-        LIST_FOREACH(node->While.then_block->Block.stmts) {
-            maybe_convert_call_to_def(thi, ast, it);
-        }
+        LIST_FOREACH(node->While.then_block->Block.stmts) { maybe_convert_call_to_def(thi, ast, it); }
     } break;
     case AST_FOR: {
-        LIST_FOREACH(node->For.then_block->Block.stmts) {
-            maybe_convert_call_to_def(thi, ast, it);
-        }
+        LIST_FOREACH(node->For.then_block->Block.stmts) { maybe_convert_call_to_def(thi, ast, it); }
     } break;
     case AST_IF: {
-        LIST_FOREACH(node->If.then_block->Block.stmts) {
-            maybe_convert_call_to_def(thi, ast, it);
-        }
-        if (node->If.else_block) {   
-            LIST_FOREACH(node->If.else_block->Block.stmts) {
-                maybe_convert_call_to_def(thi, ast, it);
-            }
+        LIST_FOREACH(node->If.then_block->Block.stmts) { maybe_convert_call_to_def(thi, ast, it); }
+        if (node->If.else_block) {
+            LIST_FOREACH(node->If.else_block->Block.stmts) { maybe_convert_call_to_def(thi, ast, it); }
         }
 
         // check for any AST_IS inside
-        List* stmts = node->If.then_block->Block.stmts;
-        bool is_actually_a_switch = false;
+        List* stmts                = node->If.then_block->Block.stmts;
+        bool  is_actually_a_switch = false;
 
-        LIST_FOREACH(stmts) {
+        LIST_FOREACH(stmts)
+        {
             maybe_convert_call_to_def(thi, ast, it);
             AST* stmt = (AST*)it->data;
             if (stmt->kind == AST_IS) {
@@ -259,14 +250,15 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it)
         }
 
         // Go through it again and make sure every statement
-        // is a case 
+        // is a case
         if (is_actually_a_switch) {
-            LIST_FOREACH(stmts) {
+            LIST_FOREACH(stmts)
+            {
                 AST* stmt = (AST*)it->data;
                 if (stmt->kind != AST_IS) {
                     error("only 'case' statements are allowed inside an if switch");
                 }
-            } 
+            }
             // Transform this if into a switch
             it->data = make_ast_switch(node->t, node);
         }
@@ -282,11 +274,9 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it)
 
                 AST* body = (AST*)it->next->data;
 
-                LIST_FOREACH(body->Block.stmts) {
-                    maybe_convert_call_to_def(thi, ast, it);
-                }
+                LIST_FOREACH(body->Block.stmts) { maybe_convert_call_to_def(thi, ast, it); }
 
-                it->data  = make_ast_function(node->t, type, body);
+                it->data = make_ast_function(node->t, type, body);
                 list_remove(ast, it->next);
             }
         }
@@ -338,16 +328,13 @@ void add_all_definitions(Thi* thi, Parsed_File* pf)
         ast_ref_list_append(&thi->calls, pf->calls.data[i]);
     }
     for (s64 i = 0; i < pf->externs.count; ++i) {
-        AST*  node = pf->externs.data[i];
         ast_ref_list_append(&thi->externs, pf->externs.data[i]);
     }
     for (s64 i = 0; i < pf->structs.count; ++i) {
-        AST* node = pf->structs.data[i];
-        ast_ref_list_append(&thi->structs, node);
+        ast_ref_list_append(&thi->structs, pf->structs.data[i]);
     }
     for (s64 i = 0; i < pf->enums.count; ++i) {
-        AST* node = pf->enums.data[i];
-        ast_ref_list_append(&thi->enums, node);
+        ast_ref_list_append(&thi->enums, pf->enums.data[i]);
     }
     for (s64 i = 0; i < pf->variables_in_need_of_type_inference.count; ++i) {
         ast_ref_list_append(&thi->variables_in_need_of_type_inference, pf->variables_in_need_of_type_inference.data[i]);
@@ -498,18 +485,19 @@ void pass_initilize_all_enums(Thi* thi)
     for (s64 i = 0; i < thi->enums.count; ++i) {
         AST* e = thi->enums.data[i];
 
-        LIST_FOREACH(e->Enum.type->Enum.members) {
+        LIST_FOREACH(e->Enum.type->Enum.members)
+        {
             AST* m = (AST*)it->data;
-            // Turn idents into constant decls 
+            // Turn idents into constant decls
             switch (m->kind) {
-                case AST_IDENT:
-                    it->data = make_ast_constant_decl(m->t, m->Ident.name, make_ast_int(m->t, counter));
-                    // ast_ref_list_append(&thi->constants, it->data);
-                    break;
-                case AST_CONSTANT_DECL:
-                    assert(m->Constant_Decl.value->kind == AST_INT);
-                    counter = m->Constant_Decl.value->Int.val;
-                    break;
+            case AST_IDENT:
+                it->data = make_ast_constant_decl(m->t, m->Ident.name, make_ast_int(m->t, counter));
+                // ast_ref_list_append(&thi->constants, it->data);
+                break;
+            case AST_CONSTANT_DECL:
+                assert(m->Constant_Decl.value->kind == AST_INT);
+                counter = m->Constant_Decl.value->Int.val;
+                break;
             }
             counter += 1;
             warning("%s", ast_to_json(m));
@@ -517,7 +505,7 @@ void pass_initilize_all_enums(Thi* thi)
     }
 
     for (s64 i = 0; i < thi->field_access.count; ++i) {
-        AST* b = thi->field_access.data[i];
+        AST* b   = thi->field_access.data[i];
         AST* lhs = b->Binary.lhs;
         AST* rhs = b->Binary.rhs;
 
@@ -527,7 +515,7 @@ void pass_initilize_all_enums(Thi* thi)
         LIST_FOREACH(e->Enum.members)
         {
             char* access_member_name = rhs->Ident.name;
-            AST* mem = (AST*)it->data;
+            AST*  mem                = (AST*)it->data;
             if (strcmp(access_member_name, mem->Constant_Decl.name) == 0) {
                 *b = *make_ast_int(mem->t, mem->Constant_Decl.value->Int.val);
                 break;
@@ -535,7 +523,7 @@ void pass_initilize_all_enums(Thi* thi)
         }
     }
 
-    pop_timer(thi);   
+    pop_timer(thi);
 }
 void pass_resolve_subscripts(Thi* thi)
 {
@@ -553,7 +541,7 @@ void pass_resolve_subscripts(Thi* thi)
     //     *it = *sub;
     // }
 
-    pop_timer(thi);   
+    pop_timer(thi);
 }
 void pass_give_all_identifiers_a_type(Thi* thi)
 {
@@ -580,7 +568,7 @@ void pass_type_inference(Thi* thi)
         warning("%s", ast_to_json(call));
         call->type = get_inferred_type_of_expr(thi, call);
         if (!call->type) {
-            call->type = make_type_int(1,1); //NOTE(marcus) should this be void instead?
+            call->type = make_type_int(1, 1); // NOTE(marcus) should this be void instead?
         }
     }
 

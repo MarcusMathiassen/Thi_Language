@@ -360,7 +360,7 @@ char* get_result_reg(Type* type)
     case TYPE_ARRAY: // return get_reg(RCX);
     case TYPE_STRUCT: // fallthrough
     case TYPE_ENUM: // fallthrough
-    case TYPE_INT: return get_reg(RAX); // return get_reg(get_rax_reg_of_byte_size(bytes));
+    case TYPE_INT: return get_reg(get_rax_reg_of_byte_size(bytes));
     default: error("get_result_reg unhandled case: %s", type_kind_to_str(type->kind));
     }
     return NULL;
@@ -506,7 +506,6 @@ void emit_cast(Codegen_Context* ctx, Value* variable, Type* desired_type)
     assert(variable);
     assert(desired_type);
 
-    s64   variable_size = get_size_of_value(variable);
     char* reg           = get_result_reg(variable->type);
 
     switch (variable->type->kind) {
@@ -531,7 +530,7 @@ void emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg)
     s64   stack_pos = get_stack_pos_of_variable(variable);
     char* reg_c     = get_reg(reg);
     char* mov_op    = get_move_op(variable->type);
-    emit(ctx, "%s [rbp-%lld], %s; store", mov_op, stack_pos, reg_c);
+    emit(ctx, "%s [rbp-%lld], %s; store_r", mov_op, stack_pos, reg_c);
 }
 
 void emit_store(Codegen_Context* ctx, Value* variable)
@@ -549,7 +548,7 @@ void emit_load(Codegen_Context* ctx, Value* variable)
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     s64 stack_pos = get_stack_pos_of_variable(variable);
-    s64 size      = get_size_of_value(variable);
+    // s64 :size      = get_size_of_value(variable);
     // char* mov_size  = get_op_size(size);
     char* reg    = get_result_reg(variable->type);
     char* mov_op = get_move_op(variable->type);
@@ -578,7 +577,7 @@ Value* codegen_unary(Codegen_Context* ctx, AST* expr)
     }
 
     Value* operand_val  = codegen_expr(ctx, operand);
-    s64    operand_size = get_size_of_value(operand_val);
+    // s64    operand_size = get_size_of_value(operand_val);
 
     char*  reg    = get_result_reg(operand_val->type);
     Value* result = operand_val;
@@ -999,7 +998,8 @@ Value* codegen_float(Codegen_Context* ctx, AST* expr)
     char*  db_op  = get_db_op(val->type);
     emit_data(ctx, "%s: %s %f", flabel, db_op, expr->Float.val);
     char* mov_op = get_move_op(val->type);
-    emit(ctx, "%s xmm0, [rel %s]; float_ref", mov_op, flabel);
+    char*  reg    = get_result_reg(val->type);
+    emit(ctx, "%s %s, [rel %s]; float_ref", mov_op, reg, flabel);
     return val;
 }
 
@@ -1066,7 +1066,9 @@ Value* codegen_string(Codegen_Context* ctx, AST* expr)
     char* slabel = make_data_label(ctx);
     char* db_op  = get_db_op(t);
     emit_data(ctx, "%s: %s `%s`, 0 ", slabel, db_op, val);
-    emit(ctx, "mov rax, %s; string_ref", slabel);
+    char* mov_op = get_move_op(t);
+    char*  reg    = get_result_reg(t);
+    emit(ctx, "%s %s, %s; string_ref", mov_op, reg, slabel);
     return make_value_string(val, t);
 }
 
@@ -1240,7 +1242,7 @@ Value* codegen_switch(Codegen_Context* ctx, AST* expr)
         list_append(labels, l);
 
         AST*   case_cond = c->Is.expr;
-        Value* v         = codegen_expr(ctx, make_ast_binary(c->t, TOKEN_EQ_EQ, cond, case_cond));
+        codegen_expr(ctx, make_ast_binary(c->t, TOKEN_EQ_EQ, cond, case_cond));
 
         emit(ctx, "cmp al, 1");
         emit(ctx, "je %s", l);
