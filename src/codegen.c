@@ -284,6 +284,17 @@ void push_type(Codegen_Context* ctx, Type* type)
     }
 }
 
+void pop_type_2(Codegen_Context* ctx, Type* type)
+{
+    assert(type);
+    switch (type->kind) {
+    case TYPE_ARRAY: // fallthrough
+    case TYPE_POINTER: // pop(ctx, RCX); break;
+    case TYPE_INT: pop(ctx, RCX); break;
+    case TYPE_FLOAT: pop(ctx, XMM1); break;
+    default: error("pop_type_2 pop_type %s", type_to_str(type));
+    }
+}
 void pop_type(Codegen_Context* ctx, Type* type)
 {
     assert(type);
@@ -349,7 +360,7 @@ char* get_result_reg(Type* type)
     case TYPE_ARRAY: // return get_reg(RCX);
     case TYPE_STRUCT: // fallthrough
     case TYPE_ENUM: // fallthrough
-    case TYPE_INT: return get_reg(get_rax_reg_of_byte_size(bytes));
+    case TYPE_INT: return get_reg(RAX); // return get_reg(get_rax_reg_of_byte_size(bytes));
     default: error("get_result_reg unhandled case: %s", type_kind_to_str(type->kind));
     }
     return NULL;
@@ -496,7 +507,7 @@ void emit_cast(Codegen_Context* ctx, Value* variable, Type* desired_type)
     assert(desired_type);
 
     s64   variable_size = get_size_of_value(variable);
-    char* reg           = get_reg(get_rax_reg_of_byte_size(variable_size));
+    char* reg           = get_result_reg(variable->type);
 
     switch (variable->type->kind) {
     case TYPE_INT: {
@@ -537,11 +548,11 @@ void emit_load(Codegen_Context* ctx, Value* variable)
 {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
-    s64   stack_pos = get_stack_pos_of_variable(variable);
-    s64   size      = get_size_of_value(variable);
+    s64 stack_pos = get_stack_pos_of_variable(variable);
+    s64 size      = get_size_of_value(variable);
     // char* mov_size  = get_op_size(size);
-    char* reg       = get_result_reg(variable->type);
-    char* mov_op    = get_move_op(variable->type);
+    char* reg    = get_result_reg(variable->type);
+    char* mov_op = get_move_op(variable->type);
     emit(ctx, "%s %s, [rbp-%lld]; load", mov_op, reg, stack_pos);
 }
 
@@ -575,11 +586,11 @@ Value* codegen_unary(Codegen_Context* ctx, AST* expr)
     switch (op) {
     case THI_SYNTAX_ADDRESS: {
         s64 stack_pos = get_stack_pos_of_variable(operand_val);
-        emit(ctx, "lea rax, [rsp-%lld]; addrsof", stack_pos);
+        emit(ctx, "lea rax, [rbp-%lld]; addrsof", stack_pos);
     } break;
     case THI_SYNTAX_POINTER: {
-        Type* t        = operand_val->type->Array.type;
-        char* reg      = get_result_reg(t);
+        Type* t   = operand_val->type->Array.type;
+        char* reg = get_result_reg(t);
         // char* mov_size = get_op_size(get_size_of_type(t));
         emit(ctx, "mov %s, [rax]; deref", reg);
     } break;
@@ -596,7 +607,7 @@ Value* codegen_unary(Codegen_Context* ctx, AST* expr)
     } break;
     case TOKEN_MINUS: {
         switch (operand_val->type->kind) {
-        case TYPE_INT: emit(ctx, "NEG %s", reg); break;
+        case TYPE_INT: emit(ctx, "neg %s", reg); break;
         case TYPE_FLOAT: {
             emit(ctx, "movd ecx, xmm0");
             emit(ctx, "xor ecx, 2147483648");
@@ -996,9 +1007,10 @@ Value* codegen_int(Codegen_Context* ctx, AST* expr)
 {
     DEBUG_START;
     assert(expr->kind == AST_INT);
-    Value* val   = make_value_int(DEFAULT_INT_BYTE_SIZE, make_type_int(DEFAULT_INT_BYTE_SIZE, 0), expr->Int.val);
-    s32    reg_n = get_rax_reg_of_byte_size(DEFAULT_INT_BYTE_SIZE);
-    emit(ctx, "mov %s, %d", get_reg(reg_n), val->Int.value);
+    Value* val    = make_value_int(DEFAULT_INT_BYTE_SIZE, make_type_int(DEFAULT_INT_BYTE_SIZE, 0), expr->Int.val);
+    char*  reg    = get_result_reg(val->type);
+    char*  mov_op = get_move_op(val->type);
+    emit(ctx, "%s %s, %d", mov_op, reg, val->Int.value);
     return val;
 }
 
@@ -1037,9 +1049,10 @@ Value* codegen_subscript(Codegen_Context* ctx, AST* expr)
     Value* variable = codegen_expr(ctx, load); // ADDRESS OF 'C' is in 'RAX'
     s64    size     = get_size_of_underlying_type(variable->type);
 
-    sub = make_ast_binary(expr->t, TOKEN_ASTERISK, make_ast_int(expr->t, size), sub);
-    sub = make_ast_binary(expr->t, TOKEN_PLUS, load, sub);
-    sub = make_ast_unary(expr->t, THI_SYNTAX_POINTER, sub);
+    sub  = make_ast_binary(expr->t, TOKEN_ASTERISK, make_ast_int(expr->t, size), sub);
+    load = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, load);
+    sub  = make_ast_binary(expr->t, TOKEN_PLUS, load, sub);
+    sub  = make_ast_unary(expr->t, THI_SYNTAX_POINTER, sub);
 
     return codegen_expr(ctx, sub);
 }
@@ -1118,8 +1131,8 @@ Value* codegen_for(Codegen_Context* ctx, AST* expr)
     codegen_expr(ctx, init);
     emit(ctx, "%s:", begin_l);
     codegen_expr(ctx, cond);
-    emit(ctx, "CMP AL, 0");
-    emit(ctx, "JE %s", end_l);
+    emit(ctx, "cmp al, 0");
+    emit(ctx, "je %s", end_l);
 
     set_jump_labels(ctx, mid_l, end_l);
     codegen_expr(ctx, then_block);
@@ -1127,7 +1140,7 @@ Value* codegen_for(Codegen_Context* ctx, AST* expr)
 
     emit(ctx, "%s:", mid_l);
     codegen_expr(ctx, step);
-    emit(ctx, "JMP %s", begin_l);
+    emit(ctx, "jmp %s", begin_l);
     emit(ctx, "%s:", end_l);
 
     return NULL;
@@ -1147,13 +1160,13 @@ Value* codegen_while(Codegen_Context* ctx, AST* expr)
     emit(ctx, "%s:", begin_l);
     codegen_expr(ctx, cond);
     emit(ctx, "cmp al, 0");
-    emit(ctx, "JE %s", end_l);
+    emit(ctx, "je %s", end_l);
 
     set_jump_labels(ctx, begin_l, end_l);
     codegen_expr(ctx, then_block);
     restore_jump_labels(ctx);
 
-    emit(ctx, "JMP %s", begin_l);
+    emit(ctx, "jmp %s", begin_l);
     emit(ctx, "%s:", end_l);
 
     return NULL;

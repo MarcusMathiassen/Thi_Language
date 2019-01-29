@@ -542,16 +542,16 @@ void pass_resolve_subscripts(Thi* thi)
     info("pass_resolve_subscripts");
     push_timer(thi, "pass_resolve_subscripts");
 
-    for (s64 i = 0; i < thi->subscripts.count; ++i) {
-        AST* it = thi->subscripts.data[i];
-        AST* load = it->Subscript.load;
-        AST* sub = it->Subscript.sub;
+    // for (s64 i = 0; i < thi->subscripts.count; ++i) {
+    //     AST* it = thi->subscripts.data[i];
+    //     AST* load = it->Subscript.load;
+    //     AST* sub = it->Subscript.sub;
 
-        sub = make_ast_binary(it->t, TOKEN_ASTERISK, make_ast_int(it->t, 4), sub);
-        sub = make_ast_binary(it->t, TOKEN_PLUS, load, sub);
-        sub = make_ast_unary(it->t, THI_SYNTAX_POINTER, sub);
-        *it = *sub;
-    }
+    //     sub = make_ast_binary(it->t, TOKEN_ASTERISK, make_ast_int(it->t, 4), sub);
+    //     sub = make_ast_binary(it->t, TOKEN_PLUS, load, sub);
+    //     sub = make_ast_unary(it->t, THI_SYNTAX_POINTER, sub);
+    //     *it = *sub;
+    // }
 
     pop_timer(thi);   
 }
