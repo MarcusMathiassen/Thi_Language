@@ -314,7 +314,7 @@ void pop(Codegen_Context* ctx, int reg)
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
     char* r = get_reg(reg);
     if (reg >= XMM0 && reg <= XMM7) {
-        emit(ctx, "movss %s, dword [rsp]", r);
+        emit(ctx, "movss %s, [rsp]", r);
         emit(ctx, "add rsp, 8");
     } else {
         emit(ctx, "pop %s", r);
@@ -530,11 +530,7 @@ void emit_store(Codegen_Context* ctx, Value* variable)
     s64   stack_pos = get_stack_pos_of_variable(variable);
     char* reg       = get_result_reg(variable->type);
     char* mov_op    = get_move_op(variable->type);
-    if (variable->type->kind == TYPE_ARRAY) {
-        emit(ctx, "mov [rax], rcx; store");
-    } else {
-        emit(ctx, "%s [rbp-%lld], %s; store", mov_op, stack_pos, reg);
-    }
+    emit(ctx, "%s [rbp-%lld], %s; store", mov_op, stack_pos, reg);
 }
 
 void emit_load(Codegen_Context* ctx, Value* variable)
@@ -546,11 +542,7 @@ void emit_load(Codegen_Context* ctx, Value* variable)
     // char* mov_size  = get_op_size(size);
     char* reg       = get_result_reg(variable->type);
     char* mov_op    = get_move_op(variable->type);
-    // if (variable->type->kind == TYPE_ARRAY) {
-        // emit(ctx, "lea rax, [rbp-%lld]; load", stack_pos);
-    // } else {
-        emit(ctx, "%s %s, [rbp-%lld]; load", mov_op, reg, stack_pos);
-    // }
+    emit(ctx, "%s %s, [rbp-%lld]; load", mov_op, reg, stack_pos);
 }
 
 Value* codegen_unary(Codegen_Context* ctx, AST* expr)
@@ -635,6 +627,7 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
         case TYPE_STRUCT: error("codegen field access on structs not implemented");
         }
     }
+
     case THI_SYNTAX_ASSIGNMENT: {
         Value* rhs_v = codegen_expr(ctx, rhs);
         push_type(ctx, rhs_v->type);
@@ -643,6 +636,7 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
         emit_store(ctx, variable);
         return variable;
     }
+
     case TOKEN_PLUS: {
         Value* rhs_v = codegen_expr(ctx, rhs);
         if (rhs_v->type->kind == TYPE_FLOAT) {
@@ -800,9 +794,9 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
             emit(ctx, "cmp rcx, rax");
         }
         switch (op) {
-        case TOKEN_LT: lhs_v->type->kind == TYPE_FLOAT ? emit(ctx, "SETB AL") : emit(ctx, "SETL AL"); break;
+        case TOKEN_LT: lhs_v->type->kind == TYPE_FLOAT ? emit(ctx, "setb al") : emit(ctx, "setl al"); break;
         case TOKEN_GT: emit(ctx, "setg al"); break;
-        case TOKEN_LT_EQ: lhs_v->type->kind == TYPE_FLOAT ? emit(ctx, "SETNA AL") : emit(ctx, "SETLE AL"); break;
+        case TOKEN_LT_EQ: lhs_v->type->kind == TYPE_FLOAT ? emit(ctx, "setna al") : emit(ctx, "setle al"); break;
         case TOKEN_GT_EQ: emit(ctx, "setge al"); break;
         case TOKEN_EQ_EQ: emit(ctx, "sete al"); break;
         case TOKEN_BANG_EQ: emit(ctx, "setne al"); break;

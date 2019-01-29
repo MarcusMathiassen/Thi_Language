@@ -321,13 +321,13 @@ _main:
 	movss xmm0, [rel d6]; float_ref
 	sub rsp, 8
 	movss [rsp], xmm0
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
-	movss xmm2, dword [rsp]
+	movss xmm2, [rsp]
 	add rsp, 8
-	movss xmm3, dword [rsp]
+	movss xmm3, [rsp]
 	add rsp, 8
 	call _glClearColor
 	mov eax, 36281
@@ -338,21 +338,21 @@ _main:
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-12]; load
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
 	movss [rbp-12], xmm0; store
 	movss xmm0, [rel d8]; float_ref
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-16]; load
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
 	movss [rbp-16], xmm0; store
 	movss xmm0, [rel d9]; float_ref
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-20]; load
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
 	movss [rbp-20], xmm0; store
 	mov eax, 1
@@ -420,7 +420,7 @@ _main:
 	sub rsp, 8
 	movss [rsp], xmm0
 	movsd xmm0, [rbp-36]; load
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
 	movsd [rbp-36], xmm0; store
 	mov eax, [rbp-28]; load
@@ -440,13 +440,13 @@ _main:
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-12]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	addss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-12]; load
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
 	movss [rbp-12], xmm0; store
 	jmp .l11
@@ -469,13 +469,13 @@ _main:
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-12]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	addss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-12]; load
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
 	movss [rbp-12], xmm0; store
 	jmp .l14
@@ -502,13 +502,13 @@ _main:
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-16]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	addss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-16]; load
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
 	movss [rbp-16], xmm0; store
 	jmp .l16
@@ -532,13 +532,13 @@ _main:
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-16]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	addss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-16]; load
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
 	movss [rbp-16], xmm0; store
 	jmp .l18
@@ -562,13 +562,13 @@ _main:
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-20]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	addss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-20]; load
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
 	movss [rbp-20], xmm0; store
 	jmp .l20
@@ -595,13 +595,13 @@ _main:
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-20]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	addss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-20]; load
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
 	movss [rbp-20], xmm0; store
 	jmp .l22
@@ -616,11 +616,11 @@ _main:
 	movss xmm0, [rbp-12]; load
 	sub rsp, 8
 	movss [rsp], xmm0
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
-	movss xmm2, dword [rsp]
+	movss xmm2, [rsp]
 	add rsp, 8
 	call _draw_triangle
 	mov rax, [rbp-8]; load
@@ -660,11 +660,11 @@ _draw_triangle:
 	movss xmm0, [rel d18]; float_ref
 	sub rsp, 8
 	movss [rsp], xmm0
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
-	movss xmm2, dword [rsp]
+	movss xmm2, [rsp]
 	add rsp, 8
 	call _glColor3f
 	movss xmm0, [rel d19]; float_ref
@@ -674,13 +674,13 @@ _draw_triangle:
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-12]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	mulss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-8]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	addss xmm0, xmm1
 	sub rsp, 8
@@ -692,20 +692,20 @@ _draw_triangle:
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-12]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	mulss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-4]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	addss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	call _glVertex2f
 	movss xmm0, [rel d21]; float_ref
@@ -717,24 +717,24 @@ _draw_triangle:
 	movss xmm0, [rel d23]; float_ref
 	sub rsp, 8
 	movss [rsp], xmm0
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
-	movss xmm2, dword [rsp]
+	movss xmm2, [rsp]
 	add rsp, 8
 	call _glColor3f
 	movss xmm0, [rel d24]; float_ref
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-12]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	mulss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-8]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	addss xmm0, xmm1
 	sub rsp, 8
@@ -743,20 +743,20 @@ _draw_triangle:
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-12]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	mulss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-4]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	addss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	call _glVertex2f
 	movss xmm0, [rel d26]; float_ref
@@ -768,31 +768,31 @@ _draw_triangle:
 	movss xmm0, [rel d28]; float_ref
 	sub rsp, 8
 	movss [rsp], xmm0
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
-	movss xmm2, dword [rsp]
+	movss xmm2, [rsp]
 	add rsp, 8
 	call _glColor3f
 	movss xmm0, [rel d29]; float_ref
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-12]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	mulss xmm0, xmm1
 	movss xmm0, [rel d30]; float_ref
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-12]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	mulss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-8]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	subss xmm0, xmm1
 	sub rsp, 8
@@ -801,20 +801,20 @@ _draw_triangle:
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-12]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	mulss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
 	movss xmm0, [rbp-4]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	addss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	call _glVertex2f
 	call _glEnd
@@ -832,21 +832,21 @@ _sqrt:
 	sub rsp, 8
 	movss [rsp], xmm0
 	movsd xmm0, [rbp-16]; load
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
 	movsd [rbp-16], xmm0; store
 	movss xmm0, [rel d33]; float_ref
 	sub rsp, 8
 	movss [rsp], xmm0
 	movsd xmm0, [rbp-24]; load
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
 	movsd [rbp-24], xmm0; store
 	movss xmm0, [rel d34]; float_ref
 	sub rsp, 8
 	movss [rsp], xmm0
 	movsd xmm0, [rbp-32]; load
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
 	movsd [rbp-32], xmm0; store
 	mov eax, 0
@@ -860,20 +860,20 @@ _sqrt:
 	mov eax, 1000
 	pop rcx
 	cmp rcx, rax
-	SETL AL
+	setl al
 	CMP AL, 0
 	JE .l2
 	movsd xmm0, [rbp-32]; load
 	sub rsp, 8
 	movss [rsp], xmm0
 	movsd xmm0, [rbp-32]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	mulsd xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
 	movsd xmm0, [rbp-8]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	ucomisd xmm1, xmm0
 	sete al
@@ -891,13 +891,13 @@ _sqrt:
 	sub rsp, 8
 	movss [rsp], xmm0
 	movsd xmm0, [rbp-32]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	mulsd xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
 	movsd xmm0, [rbp-8]; load
-	movss xmm1, dword [rsp]
+	movss xmm1, [rsp]
 	add rsp, 8
 	ucomisd xmm1, xmm0
 	setg al
@@ -907,7 +907,7 @@ _sqrt:
 	sub rsp, 8
 	movss [rsp], xmm0
 	movsd xmm0, [rbp-24]; load
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
 	movsd [rbp-24], xmm0; store
 	jmp .l8
@@ -916,7 +916,7 @@ _sqrt:
 	sub rsp, 8
 	movss [rsp], xmm0
 	movsd xmm0, [rbp-16]; load
-	movss xmm0, dword [rsp]
+	movss xmm0, [rsp]
 	add rsp, 8
 	movsd [rbp-16], xmm0; store
 .l8:
