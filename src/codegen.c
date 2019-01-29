@@ -543,14 +543,14 @@ void emit_load(Codegen_Context* ctx, Value* variable)
     assert(variable->kind == VALUE_VARIABLE);
     s64   stack_pos = get_stack_pos_of_variable(variable);
     s64   size      = get_size_of_value(variable);
-    char* mov_size  = get_op_size(size);
+    // char* mov_size  = get_op_size(size);
     char* reg       = get_result_reg(variable->type);
     char* mov_op    = get_move_op(variable->type);
-    if (variable->type->kind == TYPE_ARRAY) {
-        emit(ctx, "lea rax, [rbp-%lld]; load", stack_pos);
-    } else {
-        emit(ctx, "%s %s, %s [rbp-%lld]; load", mov_op, reg, mov_size, stack_pos);
-    }
+    // if (variable->type->kind == TYPE_ARRAY) {
+        // emit(ctx, "lea rax, [rbp-%lld]; load", stack_pos);
+    // } else {
+        emit(ctx, "%s %s, [rbp-%lld]; load", mov_op, reg, stack_pos);
+    // }
 }
 
 Value* codegen_unary(Codegen_Context* ctx, AST* expr)
@@ -588,12 +588,8 @@ Value* codegen_unary(Codegen_Context* ctx, AST* expr)
     case THI_SYNTAX_POINTER: {
         Type* t        = operand_val->type->Array.type;
         char* reg      = get_result_reg(t);
-        char* mov_size = get_op_size(get_size_of_type(t));
-        switch (t->kind) {
-        case TYPE_ARRAY:
-        case TYPE_POINTER: emit(ctx, "lea rax, [rax]; deref"); break;
-        default: emit(ctx, "mov %s, %s [rax]; deref", reg, mov_size); break;
-        }
+        // char* mov_size = get_op_size(get_size_of_type(t));
+        emit(ctx, "mov %s, [rax]; deref", reg);
     } break;
     case TOKEN_BANG: {
         emit(ctx, "cmp %s, 0", reg);
@@ -642,16 +638,9 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
     case THI_SYNTAX_ASSIGNMENT: {
         Value* rhs_v = codegen_expr(ctx, rhs);
         push_type(ctx, rhs_v->type);
-        push(ctx, RAX);
-        Value* variable = NULL;
-        if (lhs->kind == AST_UNARY) {
-            variable = codegen_expr(ctx, lhs->Unary.operand);
-        } else {
-            variable = codegen_expr(ctx, lhs);
-        }
-        pop(ctx, RCX);
+        Value* variable = codegen_expr(ctx, lhs);
+        pop_type(ctx, rhs_v->type);
         emit_store(ctx, variable);
-        pop(ctx, RAX);
         return variable;
     }
     case TOKEN_PLUS: {
@@ -1003,10 +992,9 @@ Value* codegen_float(Codegen_Context* ctx, AST* expr)
     Value* val    = make_value_float(make_type_float(DEFAULT_FLOAT_BYTE_SIZE), expr->Float.val);
     char*  flabel = make_data_label(ctx);
     char*  db_op  = get_db_op(val->type);
-    emit_data(ctx, "%s %s %f", flabel, db_op, expr->Float.val);
-    emit(ctx, "mov rax, %s; float_ref", flabel);
+    emit_data(ctx, "%s: %s %f", flabel, db_op, expr->Float.val);
     char* mov_op = get_move_op(val->type);
-    emit(ctx, "%s xmm0, [rax]; float_ref", mov_op);
+    emit(ctx, "%s xmm0, [rel %s]; float_ref", mov_op, flabel);
     return val;
 }
 
@@ -1070,7 +1058,7 @@ Value* codegen_string(Codegen_Context* ctx, AST* expr)
     Type* t      = make_type_pointer(make_type_int(8, 1));
     char* slabel = make_data_label(ctx);
     char* db_op  = get_db_op(t);
-    emit_data(ctx, "%s %s `%s`, 0 ", slabel, db_op, val);
+    emit_data(ctx, "%s: %s `%s`, 0 ", slabel, db_op, val);
     emit(ctx, "mov rax, %s; string_ref", slabel);
     return make_value_string(val, t);
 }
