@@ -18,7 +18,9 @@ n :: 3
 
 DEFAULT_SIZE_OF_OBJECTS :: 3
 
-main()
+main(argc: int, argv: char**)
+
+    puts(argv[2])
     v: vec2
 
     get()

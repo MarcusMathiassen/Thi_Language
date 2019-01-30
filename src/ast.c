@@ -199,6 +199,9 @@ char* ast_to_json(AST* expr)
     case AST_LINK: {
         result = strf("{\"%s\": {\"link\": %s}}", ast_kind_to_str(expr->kind), expr->Link.str);
     } break;
+    case AST_SUBSCRIPT: {
+        result = strf("{\"%s\": {\"load\": %s, \"sub\": %s}}", ast_kind_to_str(expr->kind), ast_to_json(expr->Subscript.load), ast_to_json(expr->Subscript.sub));
+    } break;
     case AST_CONTINUE: {
         result = strf("{\"%s\": {%s}}", ast_kind_to_str(expr->kind), "continue");
     } break;
