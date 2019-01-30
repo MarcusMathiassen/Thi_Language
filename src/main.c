@@ -536,6 +536,7 @@ void pass_resolve_subscripts(Thi* thi)
     //     AST* sub = it->Subscript.sub;
 
     //     sub = make_ast_binary(it->t, TOKEN_ASTERISK, make_ast_int(it->t, 4), sub);
+    //     load = make_ast_unary(it->t, THI_SYNTAX_ADDRESS, load);
     //     sub = make_ast_binary(it->t, TOKEN_PLUS, load, sub);
     //     sub = make_ast_unary(it->t, THI_SYNTAX_POINTER, sub);
     //     *it = *sub;

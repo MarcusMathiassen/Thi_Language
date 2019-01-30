@@ -1,5 +1,5 @@
 main() 
     a: s32[10]
-    a[2] = 4
-    return a[2]
+    a[5] = 4
+    return a[5] - 3
     

@@ -287,9 +287,12 @@ _main:
 	pop r8
 	call _glfwCreateWindow
 	push rax
+	push rax
 	mov rax, [rbp-8]; load
+	lea rax, [rbp-8]
+	pop rcx
+	mov [rax], rcx; store
 	pop rax
-	mov [rbp-8], rax; store
 	mov rax, [rbp-8]; load
 	push rax
 	pop rdi
@@ -337,29 +340,43 @@ _main:
 	movss xmm0, [rel d7]; float_ref
 	sub rsp, 8
 	movss [rsp], xmm0
+	sub rsp, 8
+	movss [rsp], xmm0
 	movss xmm0, [rbp-12]; load
+	movss xmm1, [rsp]
+	add rsp, 8
+	movss [rbp-12], xmm1; store
 	movss xmm0, [rsp]
 	add rsp, 8
-	movss [rbp-12], xmm0; store
 	movss xmm0, [rel d8]; float_ref
 	sub rsp, 8
 	movss [rsp], xmm0
+	sub rsp, 8
+	movss [rsp], xmm0
 	movss xmm0, [rbp-16]; load
+	movss xmm1, [rsp]
+	add rsp, 8
+	movss [rbp-16], xmm1; store
 	movss xmm0, [rsp]
 	add rsp, 8
-	movss [rbp-16], xmm0; store
 	movss xmm0, [rel d9]; float_ref
 	sub rsp, 8
 	movss [rsp], xmm0
+	sub rsp, 8
+	movss [rsp], xmm0
 	movss xmm0, [rbp-20]; load
+	movss xmm1, [rsp]
+	add rsp, 8
+	movss [rbp-20], xmm1; store
 	movss xmm0, [rsp]
 	add rsp, 8
-	movss [rbp-20], xmm0; store
 	mov eax, 1
 	push rax
+	push rax
 	mov eax, [rbp-24]; load
+	pop rcx
+	mov [rbp-24], ecx; store
 	pop rax
-	mov [rbp-24], eax; store
 .l4:
 	mov eax, [rbp-24]; load
 	cmp al, 0
@@ -372,9 +389,11 @@ _main:
 	je .l7
 	mov eax, 0
 	push rax
+	push rax
 	mov eax, [rbp-24]; load
+	pop rcx
+	mov [rbp-24], ecx; store
 	pop rax
-	mov [rbp-24], eax; store
 	jmp .l7
 .l6:
 .l7:
@@ -394,9 +413,11 @@ _main:
 	je .l9
 	mov eax, 0
 	push rax
+	push rax
 	mov eax, [rbp-24]; load
+	pop rcx
+	mov [rbp-24], ecx; store
 	pop rax
-	mov [rbp-24], eax; store
 	jmp .l9
 .l8:
 .l9:
@@ -413,16 +434,22 @@ _main:
 	pop rsi
 	call _glfwGetKey
 	push rax
+	push rax
 	mov eax, [rbp-28]; load
+	pop rcx
+	mov [rbp-28], ecx; store
 	pop rax
-	mov [rbp-28], eax; store
 	call _glfwGetTime
 	sub rsp, 8
 	movss [rsp], xmm0
+	sub rsp, 8
+	movss [rsp], xmm0
 	movsd xmm0, [rbp-36]; load
+	movss xmm1, [rsp]
+	add rsp, 8
+	movsd [rbp-36], xmm1; store
 	movss xmm0, [rsp]
 	add rsp, 8
-	movsd [rbp-36], xmm0; store
 	mov eax, [rbp-28]; load
 	push rax
 	mov eax, 1
@@ -445,10 +472,14 @@ _main:
 	addss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
+	sub rsp, 8
+	movss [rsp], xmm0
 	movss xmm0, [rbp-12]; load
+	movss xmm1, [rsp]
+	add rsp, 8
+	movss [rbp-12], xmm1; store
 	movss xmm0, [rsp]
 	add rsp, 8
-	movss [rbp-12], xmm0; store
 	jmp .l11
 .l11:
 	mov eax, 262
@@ -474,10 +505,14 @@ _main:
 	addss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
+	sub rsp, 8
+	movss [rsp], xmm0
 	movss xmm0, [rbp-12]; load
+	movss xmm1, [rsp]
+	add rsp, 8
+	movss [rbp-12], xmm1; store
 	movss xmm0, [rsp]
 	add rsp, 8
-	movss [rbp-12], xmm0; store
 	jmp .l14
 .l13:
 .l14:
@@ -507,10 +542,14 @@ _main:
 	addss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
+	sub rsp, 8
+	movss [rsp], xmm0
 	movss xmm0, [rbp-16]; load
+	movss xmm1, [rsp]
+	add rsp, 8
+	movss [rbp-16], xmm1; store
 	movss xmm0, [rsp]
 	add rsp, 8
-	movss [rbp-16], xmm0; store
 	jmp .l16
 .l15:
 .l16:
@@ -537,10 +576,14 @@ _main:
 	addss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
+	sub rsp, 8
+	movss [rsp], xmm0
 	movss xmm0, [rbp-16]; load
+	movss xmm1, [rsp]
+	add rsp, 8
+	movss [rbp-16], xmm1; store
 	movss xmm0, [rsp]
 	add rsp, 8
-	movss [rbp-16], xmm0; store
 	jmp .l18
 .l17:
 .l18:
@@ -567,10 +610,14 @@ _main:
 	addss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
+	sub rsp, 8
+	movss [rsp], xmm0
 	movss xmm0, [rbp-20]; load
+	movss xmm1, [rsp]
+	add rsp, 8
+	movss [rbp-20], xmm1; store
 	movss xmm0, [rsp]
 	add rsp, 8
-	movss [rbp-20], xmm0; store
 	jmp .l20
 .l19:
 .l20:
@@ -600,10 +647,14 @@ _main:
 	addss xmm0, xmm1
 	sub rsp, 8
 	movss [rsp], xmm0
+	sub rsp, 8
+	movss [rsp], xmm0
 	movss xmm0, [rbp-20]; load
+	movss xmm1, [rsp]
+	add rsp, 8
+	movss [rbp-20], xmm1; store
 	movss xmm0, [rsp]
 	add rsp, 8
-	movss [rbp-20], xmm0; store
 	jmp .l22
 .l21:
 .l22:
@@ -831,29 +882,43 @@ _sqrt:
 	movss xmm0, [rel d32]; float_ref
 	sub rsp, 8
 	movss [rsp], xmm0
+	sub rsp, 8
+	movss [rsp], xmm0
 	movsd xmm0, [rbp-16]; load
+	movss xmm1, [rsp]
+	add rsp, 8
+	movsd [rbp-16], xmm1; store
 	movss xmm0, [rsp]
 	add rsp, 8
-	movsd [rbp-16], xmm0; store
 	movss xmm0, [rel d33]; float_ref
 	sub rsp, 8
 	movss [rsp], xmm0
+	sub rsp, 8
+	movss [rsp], xmm0
 	movsd xmm0, [rbp-24]; load
+	movss xmm1, [rsp]
+	add rsp, 8
+	movsd [rbp-24], xmm1; store
 	movss xmm0, [rsp]
 	add rsp, 8
-	movsd [rbp-24], xmm0; store
 	movss xmm0, [rel d34]; float_ref
 	sub rsp, 8
 	movss [rsp], xmm0
+	sub rsp, 8
+	movss [rsp], xmm0
 	movsd xmm0, [rbp-32]; load
+	movss xmm1, [rsp]
+	add rsp, 8
+	movsd [rbp-32], xmm1; store
 	movss xmm0, [rsp]
 	add rsp, 8
-	movsd [rbp-32], xmm0; store
 	mov eax, 0
 	push rax
+	push rax
 	mov eax, [rbp-36]; load
+	pop rcx
+	mov [rbp-36], ecx; store
 	pop rax
-	mov [rbp-36], eax; store
 .l0:
 	mov eax, [rbp-36]; load
 	push rax
@@ -906,19 +971,27 @@ _sqrt:
 	movsd xmm0, [rbp-32]; load
 	sub rsp, 8
 	movss [rsp], xmm0
+	sub rsp, 8
+	movss [rsp], xmm0
 	movsd xmm0, [rbp-24]; load
+	movss xmm1, [rsp]
+	add rsp, 8
+	movsd [rbp-24], xmm1; store
 	movss xmm0, [rsp]
 	add rsp, 8
-	movsd [rbp-24], xmm0; store
 	jmp .l8
 .l7:
 	movsd xmm0, [rbp-32]; load
 	sub rsp, 8
 	movss [rsp], xmm0
+	sub rsp, 8
+	movss [rsp], xmm0
 	movsd xmm0, [rbp-16]; load
+	movss xmm1, [rsp]
+	add rsp, 8
+	movsd [rbp-16], xmm1; store
 	movss xmm0, [rsp]
 	add rsp, 8
-	movsd [rbp-16], xmm0; store
 .l8:
 .l1:
 	mov eax, 1
@@ -927,9 +1000,11 @@ _sqrt:
 	pop rcx
 	add rax, rcx
 	push rax
+	push rax
 	mov eax, [rbp-36]; load
+	pop rcx
+	mov [rbp-36], ecx; store
 	pop rax
-	mov [rbp-36], eax; store
 	jmp .l0
 .l2:
 .l10:

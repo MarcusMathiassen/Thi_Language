@@ -90,27 +90,28 @@ char* reg[TOTAL_REG_COUNT] = {
     "xmm15",
 };
 
-int   get_num_registers() { return TOTAL_REG_COUNT; }
-char* get_reg(int reg_n) { return reg[reg_n]; }
+s8   get_num_registers() { return TOTAL_REG_COUNT; }
+char* get_reg(s8 reg_n) { return reg[reg_n]; }
 char* get_reg_fitting_value(Value* value)
 {
     s64 size  = get_size_of_value(value);
-    s64 reg_n = get_rax_reg_of_byte_size(size);
+    s64 reg_n = get_rax_reg_of_byte_size(size, 'a');
     return reg[reg_n];
 }
 
-int get_rax_reg_of_byte_size(u8 bytes)
+s8 get_rax_reg_of_byte_size(u8 bytes, char c)
 {
     switch (bytes) {
-    case 1: return AL;
-    case 2: return AX;
-    case 4: return EAX;
-    case 8: return RAX;
+    case 1: return c == 'a' ? AL: CL;
+    case 2: return c == 'a' ? AX: CX;
+    case 4: return c == 'a' ? EAX: ECX;
+    case 8: return c == 'a' ? RAX: RCX;
+    default: return c == 'a' ? RAX: RCX;
     }
-    return RAX;
+    return -1;
 }
 
-int get_parameter_reg(s8 i, s8 size)
+s8 get_parameter_reg(s8 i, s8 size)
 {
     switch (i) {
     case 0:
@@ -160,7 +161,78 @@ int get_parameter_reg(s8 i, s8 size)
     return -1; // to silence warning
 };
 
-int get_reg_as_another_size(int reg, s8 size)
+s8 get_size_of_reg(s8 reg)
+{
+    if (reg >= XMM_REG_START) return 8;
+    switch (reg) {
+    case RAX: return 8;
+    case EAX: return 4;
+    case AX: return 2;
+    case AL: return 1;
+    case RCX: return 8;
+    case ECX: return 4;
+    case CX: return 2;
+    case CL: return 1;
+    case RDX: return 8;
+    case EDX: return 4;
+    case DX: return 2;
+    case DL: return 1;
+    case RBX: return 8;
+    case EBX: return 4;
+    case BX: return 2;
+    case BL: return 1;
+    case RSP: return 8;
+    case ESP: return 4;
+    case SP: return 2;
+    case SPL: return 1;
+    case RBP: return 8;
+    case EBP: return 4;
+    case BP: return 2;
+    case BPL: return 1;
+    case RSI: return 8;
+    case ESI: return 4;
+    case SI: return 2;
+    case SIL: return 1;
+    case RDI: return 8;
+    case EDI: return 4;
+    case DI: return 2;
+    case DIL: return 1;
+    case R8: return 8;
+    case R8D: return 4;
+    case R8W: return 2;
+    case R8B: return 1;
+    case R9: return 8;
+    case R9D: return 4;
+    case R9W: return 2;
+    case R9B: return 1;
+    case R10: return 8;
+    case R10D: return 4;
+    case R10W: return 2;
+    case R10B: return 1;
+    case R11: return 8;
+    case R11D: return 4;
+    case R11W: return 2;
+    case R11B: return 1;
+    case R12: return 8;
+    case R12D: return 4;
+    case R12W: return 2;
+    case R12B: return 1;
+    case R13: return 8;
+    case R13D: return 4;
+    case R13W: return 2;
+    case R13B: return 1;
+    case R14: return 8;
+    case R14D: return 4;
+    case R14W: return 2;
+    case R14B: return 1;
+    case R15: return 8;
+    case R15D: return 4;
+    case R15W: return 2;
+    case R15B: return 1;
+    }
+    return 0;
+}
+s8 get_reg_as_another_size(s8 reg, s8 size)
 {
     switch (reg) {
     case RAX:
@@ -335,7 +407,7 @@ int get_reg_as_another_size(int reg, s8 size)
     return -1; // to silence warning
 }
 
-int get_push_or_popable_reg(int reg)
+s8 get_push_or_popable_reg(s8 reg)
 {
     switch (reg) {
     case R10:
