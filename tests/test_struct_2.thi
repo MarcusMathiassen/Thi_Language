@@ -11,5 +11,8 @@ struct foo
 main()
     a: bar
     b: foo
-    return 1
+
+    b.b.a = 3
+
+    return b.b.a - b.b.a + 1
 

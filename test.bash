@@ -36,7 +36,7 @@ do
 
     if [ -f $name ]; then
         # Run it
-        ./${name} "Hello" "Hei"
+        ./${name} ./tests/test_basic_setup.thi
         res=$?
         ((num_tests_compiled_successfully++))
         passing_test_files+=" $tf"

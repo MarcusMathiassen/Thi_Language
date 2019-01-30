@@ -547,6 +547,7 @@ AST* parse_function_call(Parser_Context* pctx, char* ident)
     while (!tok_is(pctx, TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(pctx, TOKEN_COMMA);
         AST* arg = parse_expression(pctx);
+        warning("%s", ast_to_json(arg));
         list_append(args, arg);
         has_multiple_arguments = true;
     }
@@ -662,7 +663,7 @@ AST* read_field_access(Parser_Context* pctx, AST* expr)
     char* field_name = pctx->curr_tok.value;
     eat_kind(pctx, TOKEN_IDENTIFIER);
     AST* field = make_ast_field_access(pctx->curr_tok, expr, field_name);
-    ast_ref_list_append(&pctx->field_access, field);
+    // ast_ref_list_append(&pctx->field_access, field);
     return field;
 }
 

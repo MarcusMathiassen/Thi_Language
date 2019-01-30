@@ -6,4 +6,4 @@ main()
     p: Person
     p.age = 65
     i := 0
-    return p.age
+    return p.age - 64

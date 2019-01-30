@@ -502,7 +502,8 @@ skip:
         case KEY_FALLTHROUGH: token.kind = TOKEN_FALLTHROUGH; break;
         }
     } break;
-    case TOKEN_STRING: ++c; break; // we skip the last '"'
+    case TOKEN_CHAR: ++c; break; // we skip the last '
+    case TOKEN_STRING: ++c; break; // we skip the last "
     }
 
     lctx->stream = c;

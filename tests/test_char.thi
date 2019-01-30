@@ -1,33 +1,20 @@
 extern putchar (s32)  s32
-extern malloc (s64)  u8*
-extern atoi (u8*)  s32
-extern exit (s32)  u8*
-extern system (u8*)  s32
 
 EOF :: -1
 
 puts(c: u8*)
     i := 0
-    while *(c+sizeof(char)*i)
-        if putchar(*(c+sizeof(char)*i)) == EOF
-            return EOF
+    while c[i]
+        if putchar(c[i]) == EOF return EOF
         i += 1
-    if putchar('\n') == EOF
-        return EOF
-    return 1
+    if putchar('\n') == EOF return EOF
 
 main() 
-
     a: u8* = "65"
-    #putchar(a[0])
-    #putchar('\n')
+
     puts("Hello")
     puts("Titthei")
     puts("Tit thei")
-    puts(*a)
-    putchar(atoi(a))
-    putchar('\n')
-    putchar(atoi(a) + 32)
-    putchar('\n')
+    puts(a)
 
     return 1

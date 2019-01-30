@@ -1,0 +1,65 @@
+load "includes/cstdio"
+load "includes/cstdlib"
+
+main(argc: int, argv: char**)
+
+    if argc < 2 
+        puts("too few arguments.")
+        exit(0)
+
+
+    source_file:char* = argv[1]
+
+    content: char*
+    content = get_file_content(source_file)
+    puts(content)
+
+    return 1
+
+
+get_file_content(filename: char*)
+
+    buffer: char*
+    string_size: s64
+    read_size: s64
+    handler := fopen(filename, "r")
+
+    if handler
+
+        # Seek the last byte of the file
+        fseek(handler, 0, SEEK_END)
+
+        # Offset from the first to the last byte, or in other words, filesize
+        string_size = ftell(handler)
+
+        # go back to the start of the file
+        rewind(handler)
+
+        # Allocate a string that can hold it all
+        buffer = malloc(string_size + 1)
+
+        # Read it all in one operation
+        read_size = fread(buffer, 1, string_size, handler)
+
+        # fread doesn't set it so put a \0 in the last position
+        # and buffer is now officially a string
+        buffer[string_size] = 0
+
+        if string_size != read_size
+            # Something went wrong, throw away the memory and set
+            # the buffer to NULL
+            free(buffer)
+            buffer = NULL
+
+        # Always remember to close the file.
+        fclose(handler)
+
+    return buffer
+
+write_to_file(filename: char*, buffer: char* )
+    f := fopen(filename, "w")
+    if !f
+        puts("Error opening file!")
+        exit(1)
+    fputs(buffer, f)
+    fclose(f)
