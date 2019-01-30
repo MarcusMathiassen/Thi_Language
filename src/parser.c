@@ -641,11 +641,6 @@ AST* parse_binary(Parser_Context* pctx, s8 expr_prec, AST* lhs)
 
         // Merge LHS/rhs.
         lhs = make_ast_binary(pctx->curr_tok, binary_op_token, lhs, rhs);
-
-        // We do something special for dot operators
-        if (binary_op_token == TOKEN_DOT) {
-            ast_ref_list_append(&pctx->field_access, lhs);
-        }
     }
 
     return expr;
@@ -661,6 +656,16 @@ AST* read_subscript_expr(Parser_Context* pctx, AST* expr)
     return sub;
 }
 
+AST* read_field_access(Parser_Context* pctx, AST* expr)
+{
+    eat_kind(pctx, TOKEN_DOT);
+    char* field_name = pctx->curr_tok.value;
+    eat_kind(pctx, TOKEN_IDENTIFIER);
+    AST* field = make_ast_field_access(pctx->curr_tok, expr, field_name);
+    ast_ref_list_append(&pctx->field_access, field);
+    return field;
+}
+
 AST* parse_postfix_tail(Parser_Context* pctx, AST* primary_expr)
 {
     DEBUG_START;
@@ -668,6 +673,10 @@ AST* parse_postfix_tail(Parser_Context* pctx, AST* primary_expr)
     while (1) {
         if (tok_is(pctx, TOKEN_OPEN_BRACKET)) {
             primary_expr = read_subscript_expr(pctx, primary_expr);
+            continue;
+        }
+        if (tok_is(pctx, TOKEN_DOT)) {
+            primary_expr = read_field_access(pctx, primary_expr);
             continue;
         }
         return primary_expr;

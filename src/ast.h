@@ -31,6 +31,7 @@ enum AST_Kind {
     AST_BINARY,
     AST_GROUPING,
     AST_SUBSCRIPT,
+    AST_FIELD_ACCESS,
 
     AST_CAST,
 
@@ -164,6 +165,11 @@ struct AST {
         } Subscript;
 
         struct {
+            AST* load;
+            char* field;
+        } Field_Access;
+
+        struct {
             AST* cond;
             AST* then_block;
             AST* else_block;
@@ -228,6 +234,7 @@ AST* make_ast_grouping(Token t, AST* expr);
 AST* make_ast_variable_decl(Token t, char* name, Type* type, AST* value);
 AST* make_ast_constant_decl(Token t, char* name, AST* value);
 AST* make_ast_subscript(Token t, AST* load, AST* sub);
+AST* make_ast_field_access(Token t, AST* load, char* field);
 AST* make_ast_if(Token t, AST* cond, AST* then_block, AST* else_block);
 AST* make_ast_for(Token t, AST* init, AST* cond, AST* step, AST* then_block);
 AST* make_ast_while(Token t, AST* cond, AST* then_block);

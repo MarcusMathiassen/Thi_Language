@@ -509,18 +509,18 @@ void pass_initilize_all_enums(Thi* thi)
         AST* lhs = b->Binary.lhs;
         AST* rhs = b->Binary.rhs;
 
-        assert(lhs->kind == AST_IDENT);
-        assert(rhs->kind == AST_IDENT);
-        Type* e = get_symbol(thi, lhs->Ident.name);
-        LIST_FOREACH(e->Enum.members)
-        {
-            char* access_member_name = rhs->Ident.name;
-            AST*  mem                = (AST*)it->data;
-            if (strcmp(access_member_name, mem->Constant_Decl.name) == 0) {
-                *b = *make_ast_int(mem->t, mem->Constant_Decl.value->Int.val);
-                break;
-            }
-        }
+        // assert(lhs->kind == AST_IDENT);
+        // assert(rhs->kind == AST_IDENT);
+        // Type* e = get_symbol(thi, lhs->Ident.name);
+        // LIST_FOREACH(e->Enum.members)
+        // {
+        //     char* access_member_name = rhs->Ident.name;
+        //     AST*  mem                = (AST*)it->data;
+        //     if (strcmp(access_member_name, mem->Constant_Decl.name) == 0) {
+        //         *b = *make_ast_int(mem->t, mem->Constant_Decl.value->Int.val);
+        //         break;
+        //     }
+        // }
     }
 
     pop_timer(thi);

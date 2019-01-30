@@ -3,5 +3,7 @@ struct int2
     y: s32
 
 main()
-    my_vec: int2
-    return 1
+    v: int2
+    v.x = 3
+    v.y = 5
+    return v.x + v.y

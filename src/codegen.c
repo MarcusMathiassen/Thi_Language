@@ -115,6 +115,7 @@ Value* codegen_int(Codegen_Context* ctx, AST* expr);
 Value* codegen_block(Codegen_Context* ctx, AST* expr);
 Value* codegen_macro(Codegen_Context* ctx, AST* expr);
 Value* codegen_ident(Codegen_Context* ctx, AST* expr);
+Value* codegen_field_access(Codegen_Context* ctx, AST* expr);
 Value* codegen_subscript(Codegen_Context* ctx, AST* expr);
 Value* codegen_subscript_no_deref(Codegen_Context* ctx, AST* expr);
 Value* codegen_string(Codegen_Context* ctx, AST* expr);
@@ -162,6 +163,7 @@ Value* codegen_expr(Codegen_Context* ctx, AST* expr)
     case AST_BLOCK: return codegen_block(ctx, expr);
     case AST_GROUPING: return codegen_expr(ctx, expr->Grouping.expr);
     case AST_SUBSCRIPT: return codegen_subscript(ctx, expr);
+    case AST_FIELD_ACCESS: return codegen_field_access(ctx, expr);
     case AST_IF: return codegen_if(ctx, expr);
     case AST_FOR: return codegen_for(ctx, expr);
     case AST_WHILE: return codegen_while(ctx, expr);
@@ -688,7 +690,10 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
         Value* variable = get_variable(ctx, lhs->Ident.name);
         assert(variable->kind == VALUE_VARIABLE);
         switch (variable->type->kind) {
-        case TYPE_STRUCT: error("codegen field access on structs not implemented");
+        case TYPE_STRUCT: 
+            // Value* lhs_v = codegen_expr(lhs);
+            error("codegen field access on structs not implemented");
+            break;
         }
     }
 
@@ -1119,6 +1124,45 @@ Value* codegen_subscript_no_deref(Codegen_Context* ctx, AST* expr)
     sub  = make_ast_binary(expr->t, TOKEN_PLUS, load, sub);
 
     return codegen_expr(ctx, sub);
+}
+
+Value* codegen_field_access(Codegen_Context* ctx, AST* expr)
+{
+    DEBUG_START;
+    assert(expr->kind == AST_FIELD_ACCESS);
+    AST* load = expr->Field_Access.load;
+    char* field_name = expr->Field_Access.field;
+
+    Value* variable = codegen_expr(ctx, load); // ADDRESS OF 'C' is in 'RAX'
+
+    assert(variable->type->kind == TYPE_STRUCT);
+
+    // Get the offset to the member
+    s64 accum = 0;
+    Type* t = NULL;
+    LIST_FOREACH(variable->type->Struct.members) {
+        AST* mem = (AST*)it->data;
+        warning("%lld, %s", accum, ast_to_json(mem));
+        assert(mem->type);
+        accum += get_size_of_type(mem->type);
+        assert(field_name);
+        assert(mem->Variable_Decl.name);
+        if (strcmp(field_name, mem->Variable_Decl.name) == 0) {
+            t = mem->type;
+            break;
+        }
+    }
+
+
+    warning("%s", type_to_str(t));
+
+    s64 stack_pos = get_stack_pos_of_variable(variable);
+    Value* v = make_value_variable("x", t, stack_pos + accum);
+
+    // emit(ctx, "mov rax, [rbp-%lld]", stack_pos - accum);
+    Value* var = make_value_variable(field_name, t, stack_pos-accum);
+    emit_load(ctx, var);
+    return var;
 }
 
 Value* codegen_subscript(Codegen_Context* ctx, AST* expr)

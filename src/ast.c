@@ -17,6 +17,7 @@
 char* ast_kind_to_str(AST_Kind kind)
 {
     switch (kind) {
+    case AST_FIELD_ACCESS: return "AST_FIELD_ACCESS";
     case AST_FALLTHROUGH: return "AST_FALLTHROUGH";
     case AST_SWITCH: return "AST_SWITCH";
     case AST_IS: return "AST_IS";
@@ -76,6 +77,9 @@ char* ast_to_str(AST* expr)
         } else {
             return strf("return");
         }
+    }
+    case AST_FIELD_ACCESS: {
+        return strf("%s.%s", ast_to_str(expr->Field_Access.load), expr->Field_Access.field);
     }
     case AST_NOTE: {
         return strf("$%s", ast_to_str(expr->Note.expr));
@@ -187,6 +191,10 @@ char* ast_to_json(AST* expr)
         result = strf("{\"%s\": {\"case\": %s, \"body\": %s, \"has_fallthrough\": %s}}", ast_kind_to_str(expr->kind),
             ast_to_json(expr->Is.expr), ast_to_json(expr->Is.body), expr->Is.has_fallthrough ? "true" : "false");
     } break;
+    case AST_FIELD_ACCESS: {
+        result = strf("{\"%s\": {\"load\": %s, \"field\": %s}}", ast_kind_to_str(expr->kind),
+            ast_to_json(expr->Field_Access.load), expr->Field_Access.field);
+    } break;
     case AST_SIZEOF: {
         result = strf("{\"%s\": {\"sizeof\": %s}}", ast_kind_to_str(expr->kind), type_to_str(expr->Sizeof.type));
     } break;
@@ -200,7 +208,8 @@ char* ast_to_json(AST* expr)
         result = strf("{\"%s\": {\"link\": %s}}", ast_kind_to_str(expr->kind), expr->Link.str);
     } break;
     case AST_SUBSCRIPT: {
-        result = strf("{\"%s\": {\"load\": %s, \"sub\": %s}}", ast_kind_to_str(expr->kind), ast_to_json(expr->Subscript.load), ast_to_json(expr->Subscript.sub));
+        result = strf("{\"%s\": {\"load\": %s, \"sub\": %s}}", ast_kind_to_str(expr->kind),
+            ast_to_json(expr->Subscript.load), ast_to_json(expr->Subscript.sub));
     } break;
     case AST_CONTINUE: {
         result = strf("{\"%s\": {%s}}", ast_kind_to_str(expr->kind), "continue");
@@ -381,6 +390,16 @@ AST* make_ast_sizeof(Token t, Type* type)
     AST* e         = make_ast(AST_SIZEOF, t);
     e->type        = type;
     e->Sizeof.type = type;
+    return e;
+}
+
+AST* make_ast_field_access(Token t, AST* load, char* field) 
+{
+    assert(load);
+    assert(field);
+    AST* e                = make_ast(AST_FIELD_ACCESS, t);
+    e->Field_Access.load  = load;
+    e->Field_Access.field = field;
     return e;
 }
 
@@ -587,9 +606,9 @@ AST* make_ast_switch(Token t, AST* if_statement)
 
 AST* make_ast_is(Token t, AST* expr, AST* body, bool has_fallthrough)
 {
-    AST* e       = make_ast(AST_IS, t);
-    e->Is.expr = expr;
-    e->Is.body = body;
+    AST* e                = make_ast(AST_IS, t);
+    e->Is.expr            = expr;
+    e->Is.body            = body;
     e->Is.has_fallthrough = has_fallthrough;
     return e;
 }
