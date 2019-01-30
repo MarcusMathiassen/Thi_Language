@@ -175,7 +175,11 @@ char* type_to_str(Type* type)
             }
             arg_index += 1;
         }
-        append_string(&str, ")");
+        if (type->Function.has_var_arg) {
+            append_string(&str, ", ...)");
+        } else {
+            append_string(&str, ")");
+        }
         if (type->Function.ret_type) append_string_f(&str, " %s", type_to_str(type->Function.ret_type));
         return str.c_str;
     }
@@ -291,7 +295,7 @@ Type* make_type_struct(char* name, List* members)
     return t;
 }
 
-Type* make_type_function(char* name, List* args, Type* ret_type)
+Type* make_type_function(char* name, List* args, Type* ret_type, bool has_var_arg)
 {
     assert(name);
     Type* t              = make_type(TYPE_FUNCTION);
@@ -299,5 +303,6 @@ Type* make_type_function(char* name, List* args, Type* ret_type)
     t->Function.name     = name;
     t->Function.args     = args;
     t->Function.ret_type = ret_type;
+    t->Function.has_var_arg = has_var_arg;
     return t;
 }

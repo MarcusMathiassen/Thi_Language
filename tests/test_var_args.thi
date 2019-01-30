@@ -1,0 +1,5 @@
+extern printf(u8*, ...) s32
+
+main()
+    printf("%f\n", 3.0)
+    return 1

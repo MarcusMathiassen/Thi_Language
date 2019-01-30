@@ -37,7 +37,7 @@ extern putchar(s32) s32
 extern fgets(u8*, s32, void*) u8*
 extern fputs(u8*, void*) s32
 extern puts(u8*) s32
-# extern printf(u8*, ...) s32
+extern printf(u8*, ...) s32
 # extern fprintf(void*, u8*, ...) s32
 # extern sprintf(u8*, u8*, ...) s32
 # extern snprintf(u8*, u32, u8*, ...) s32

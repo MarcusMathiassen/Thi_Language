@@ -1,0 +1,20 @@
+
+
+
+struct vec3
+    x: s32
+    y: s32
+    z: s32
+
+
+get(v: vec3)
+    return v.x
+
+main()
+    v: vec3
+    v.x = 3
+    return get(v)
+
+
+
+

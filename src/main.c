@@ -269,7 +269,17 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it)
             if (next_expr->kind == AST_BLOCK) {
                 char* func_name = node->Call.callee;
                 List* args      = node->Call.args;
-                Type* type      = make_type_function(func_name, args, NULL);
+
+                bool has_var_args = false;
+                LIST_FOREACH(args) {
+                    AST* d = (AST*)it->data;
+                    if (d->kind == AST_VAR_ARGS) {
+                        has_var_args = true;
+                        break;
+                    }
+                }
+
+                Type* type      = make_type_function(func_name, args, NULL, has_var_args);
                 add_symbol(thi, func_name, type);
 
                 AST* body = (AST*)it->next->data;

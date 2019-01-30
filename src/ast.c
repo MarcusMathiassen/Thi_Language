@@ -17,6 +17,7 @@
 char* ast_kind_to_str(AST_Kind kind)
 {
     switch (kind) {
+    case AST_VAR_ARGS: return "AST_VAR_ARGS";
     case AST_FIELD_ACCESS: return "AST_FIELD_ACCESS";
     case AST_FALLTHROUGH: return "AST_FALLTHROUGH";
     case AST_SWITCH: return "AST_SWITCH";
@@ -58,6 +59,7 @@ char* ast_to_str(AST* expr)
 {
     if (!expr) return "NULL";
     switch (expr->kind) {
+    case AST_VAR_ARGS: return "...";
     case AST_FALLTHROUGH: return "fallthrough";
     case AST_SWITCH:
         return strf("if %s %s else %s", ast_to_str(expr->Switch.cond), ast_to_str(expr->Switch.cases),
@@ -203,6 +205,9 @@ char* ast_to_json(AST* expr)
     } break;
     case AST_LOAD: {
         result = strf("{\"%s\": {\"load\": %s}}", ast_kind_to_str(expr->kind), expr->Load.str);
+    } break;
+    case AST_VAR_ARGS: {
+        result = strf("{\"%s\": {\"var_args\": ...}}", ast_kind_to_str(expr->kind));
     } break;
     case AST_LINK: {
         result = strf("{\"%s\": {\"link\": %s}}", ast_kind_to_str(expr->kind), expr->Link.str);
@@ -393,7 +398,7 @@ AST* make_ast_sizeof(Token t, Type* type)
     return e;
 }
 
-AST* make_ast_field_access(Token t, AST* load, char* field) 
+AST* make_ast_field_access(Token t, AST* load, char* field)
 {
     assert(load);
     assert(field);
@@ -629,6 +634,13 @@ AST* make_ast_call(Token t, char* callee, List* args)
     e->Call.args   = args;
     return e;
 }
+
+AST* make_ast_var_args(Token t)
+{
+    AST* e = make_ast(AST_VAR_ARGS, t);
+    return e;
+}
+
 
 AST* make_ast_fallthrough(Token t)
 {

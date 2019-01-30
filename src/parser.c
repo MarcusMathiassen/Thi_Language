@@ -265,6 +265,7 @@ AST* parse_primary(Parser_Context* pctx)
 {
     DEBUG_START;
     switch (pctx->curr_tok.kind) {
+    case TOKEN_DOT_DOT_DOT: eat(pctx); return make_ast_var_args(pctx->curr_tok);
     case TOKEN_TRUE: eat(pctx); return make_ast_int(pctx->curr_tok, 1);
     case TOKEN_FALSE: eat(pctx); return make_ast_int(pctx->curr_tok, 0);
     case TOKEN_SIZEOF: return parse_sizeof(pctx);
@@ -810,14 +811,21 @@ Type* parse_extern_function_signature(Parser_Context* pctx, char* func_name)
 {
     DEBUG_START;
     eat_kind(pctx, TOKEN_OPEN_PAREN);
+    bool has_var_args = false;
     List* args                   = make_list();
     bool  has_multiple_arguments = false;
     while (!tok_is(pctx, TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(pctx, TOKEN_COMMA);
-        Type* type             = get_type(pctx);
-        AST*  expr             = make_ast_variable_decl(pctx->curr_tok, NULL, type, NULL);
+        if (tok_is(pctx, TOKEN_DOT_DOT_DOT)) {
+            // var args
+            eat(pctx);
+            has_var_args = true;
+        } else {
+            Type* type             = get_type(pctx);
+            AST*  expr             = make_ast_variable_decl(pctx->curr_tok, NULL, type, NULL);
+            list_append(args, expr);
+        }
         has_multiple_arguments = true;
-        list_append(args, expr);
     }
     eat_kind(pctx, TOKEN_CLOSE_PAREN);
 
@@ -826,25 +834,32 @@ Type* parse_extern_function_signature(Parser_Context* pctx, char* func_name)
         ret_type = get_type(pctx);
     }
 
-    return make_type_function(func_name, args, ret_type);
+    return make_type_function(func_name, args, ret_type, has_var_args);
 }
 
 Type* parse_function_signature(Parser_Context* pctx, char* func_name)
 {
     DEBUG_START;
     eat_kind(pctx, TOKEN_OPEN_PAREN);
+    bool has_var_args = false;
     List* args                   = make_list();
     bool  has_multiple_arguments = false;
     while (!tok_is(pctx, TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(pctx, TOKEN_COMMA);
-        char* ident = pctx->curr_tok.value;
-        eat_kind(pctx, TOKEN_IDENTIFIER);
-        AST* expr              = parse_variable_decl(pctx, ident);
+        if (tok_is(pctx, TOKEN_DOT_DOT_DOT)) {
+            // var args
+            eat(pctx);
+            has_var_args = true;
+        } else { 
+            char* ident = pctx->curr_tok.value;
+            eat_kind(pctx, TOKEN_IDENTIFIER);
+            AST* expr              = parse_variable_decl(pctx, ident);
+            list_append(args, expr);
+        }
         has_multiple_arguments = true;
-        list_append(args, expr);
     }
     eat_kind(pctx, TOKEN_CLOSE_PAREN);
-    return make_type_function(func_name, args, NULL);
+    return make_type_function(func_name, args, NULL, has_var_args);
 }
 
 Type* get_type(Parser_Context* pctx)

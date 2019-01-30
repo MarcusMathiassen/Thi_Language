@@ -29,7 +29,7 @@ Type* make_type_pointer(Type* pointee);
 Type* make_type_array(Type* type, s32 size);
 Type* make_type_struct(char* name, List* members);
 Type* make_type_enum(char* name, List* members);
-Type* make_type_function(char* name, List* args, Type* ret_type);
+Type* make_type_function(char* name, List* args, Type* ret_type, bool has_var_arg);
 
 s64 type_function_get_arg_count(Type* type);
 s64 type_array_get_count(Type* type);
@@ -92,6 +92,7 @@ struct Type {
             char* name;
             List* args;
             Type* ret_type;
+            bool has_var_arg;
         } Function;
     };
 };

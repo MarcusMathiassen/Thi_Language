@@ -1,4 +1,4 @@
-link "-lglfw"
+link "-lglfw3"
 link "-framework OpenGL"
 link "-framework CoreVideo"
 link "-framework IOKit"

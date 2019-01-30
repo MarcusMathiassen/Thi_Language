@@ -16,6 +16,7 @@ enum AST_Kind {
 
     AST_IS,
     AST_FALLTHROUGH,
+    AST_VAR_ARGS,
 
     AST_EXTERN,
     AST_LOAD,
@@ -217,6 +218,7 @@ struct AST {
 AST* make_ast_extern(Token t, Type* type);
 AST* make_ast_load(Token t, char* str);
 AST* make_ast_link(Token t, char* str);
+AST* make_ast_var_args(Token t);
 
 AST* make_ast_note(Token t, AST* expr);
 AST* make_ast_int(Token t, s64 value);

@@ -9,14 +9,19 @@ std=c99
 $compiler $src -std=$std $olvl $flags -o $output # -g -fsanitize=address -fno-omit-frame-pointer
  
 if [ $? == 0 ]; then
-    ./test.bash
+    # ./test.bash
+    ./test.bash ./tests/test_subscript_access_2.thi
     # ./test.bash ./tests/test_char.thi
     # ./test.bash ./tests/test_file.thi
     # ./test.bash ./tests/test_field_access.thi
     # ./test.bash ./tests/test_struct.thi
+    # ./test.bash ./tests/test_array.thi
     # ./test.bash ./tests/test_struct_2.thi
     # ./test.bash ./tests/test_basic_array.thi
     # ./test.bash ./tests/test_pointer.thi
+    # ./test.bash ./tests/test_var_args.thi
+    # ./test.bash ./tests/test_advanced_pointer.thi
+    # ./test.bash ./tests/test_function_call_struct.thi
     # ./test.bash ./tests/test_window.thi
     # ./test.bash ./tests/test_math.thi
     # ./test.bash ./tests/test_switch.thi

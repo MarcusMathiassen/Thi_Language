@@ -21,6 +21,7 @@ extern _putchar
 extern _fgets
 extern _fputs
 extern _puts
+extern _printf
 extern _perror
 extern _glClear
 extern _glClearColor
@@ -241,6 +242,7 @@ _main:
 	push rax
 	pop rdi
 	pop rsi
+	mov rax, 2
 	call _glfwWindowHint
 	mov eax, 8
 	push rax
@@ -262,6 +264,7 @@ _main:
 	push rax
 	pop rdi
 	pop rsi
+	mov rax, 2
 	call _glfwWindowHint
 	mov eax, 8
 	push rax
@@ -296,6 +299,7 @@ _main:
 	mov rax, [rbp-8]; load
 	push rax
 	pop rdi
+	mov rax, 1
 	call _glfwMakeContextCurrent
 	call _glfwInit
 	push rax
@@ -424,7 +428,9 @@ _main:
 	mov eax, 16384
 	push rax
 	pop rdi
+	mov rax, 1
 	call _glClear
+	mov rax, 0
 	call _glfwPollEvents
 	mov eax, 263
 	push rax
@@ -681,6 +687,7 @@ _main:
 	jmp .l4
 .l5:
 .l24:
+	mov rax, 0
 	call _glfwTerminate
 	jmp .l23
 .l23:
@@ -758,6 +765,7 @@ _draw_triangle:
 	add rsp, 8
 	movss xmm1, [rsp]
 	add rsp, 8
+	mov rax, 2
 	call _glVertex2f
 	movss xmm0, [rel d21]; float_ref
 	sub rsp, 8
@@ -774,6 +782,7 @@ _draw_triangle:
 	add rsp, 8
 	movss xmm2, [rsp]
 	add rsp, 8
+	mov rax, 3
 	call _glColor3f
 	movss xmm0, [rel d24]; float_ref
 	sub rsp, 8
@@ -825,6 +834,7 @@ _draw_triangle:
 	add rsp, 8
 	movss xmm2, [rsp]
 	add rsp, 8
+	mov rax, 3
 	call _glColor3f
 	movss xmm0, [rel d29]; float_ref
 	sub rsp, 8
@@ -867,6 +877,7 @@ _draw_triangle:
 	add rsp, 8
 	movss xmm1, [rsp]
 	add rsp, 8
+	mov rax, 2
 	call _glVertex2f
 	call _glEnd
 .end:

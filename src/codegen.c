@@ -284,6 +284,8 @@ void push_type(Codegen_Context* ctx, Type* type)
     switch (type->kind) {
     case TYPE_ARRAY: // fallthrough
     case TYPE_POINTER: // fallthrough
+    case TYPE_STRUCT: // fallthrough
+    case TYPE_ENUM: // fallthrough
     case TYPE_INT: push(ctx, RAX); break;
     case TYPE_FLOAT: push(ctx, XMM0); break;
     default: error("Unhandled push_type %s", type_to_str(type));
@@ -295,7 +297,9 @@ void pop_type_2(Codegen_Context* ctx, Type* type)
     assert(type);
     switch (type->kind) {
     case TYPE_ARRAY: // fallthrough
-    case TYPE_POINTER: // pop(ctx, RCX); break;
+    case TYPE_POINTER: // fallthrough
+    case TYPE_STRUCT: // fallthrough
+    case TYPE_ENUM: // fallthrough
     case TYPE_INT: pop(ctx, RCX); break;
     case TYPE_FLOAT: pop(ctx, XMM1); break;
     default: error("pop_type_2 pop_type %s", type_to_str(type));
@@ -306,7 +310,9 @@ void pop_type(Codegen_Context* ctx, Type* type)
     assert(type);
     switch (type->kind) {
     case TYPE_ARRAY: // fallthrough
-    case TYPE_POINTER: // pop(ctx, RCX); break;
+    case TYPE_POINTER: // fallthrough
+    case TYPE_STRUCT: // fallthrough
+    case TYPE_ENUM: // fallthrough
     case TYPE_INT: pop(ctx, RAX); break;
     case TYPE_FLOAT: pop(ctx, XMM0); break;
     default: error("Unhandled pop_type %s", type_to_str(type));
@@ -570,15 +576,9 @@ void emit_store(Codegen_Context* ctx, Value* variable)
 
     switch (variable->type->kind) {
     case TYPE_STRUCT:
-    case TYPE_ARRAY:
-        emit(ctx, "%s [rax], %s; store", mov_op, reg); 
-        break;
-    case TYPE_POINTER: 
-        emit(ctx, "%s [rax], %s; store", mov_op, reg); 
-        break;
-    default: 
-        emit(ctx, "%s [rbp-%lld], %s; store", mov_op, stack_pos, reg); 
-        break;
+    case TYPE_ARRAY: emit(ctx, "%s [rax], %s; store", mov_op, reg); break;
+    case TYPE_POINTER: emit(ctx, "%s [rax], %s; store", mov_op, reg); break;
+    default: emit(ctx, "%s [rbp-%lld], %s; store", mov_op, stack_pos, reg); break;
     }
 }
 
@@ -593,14 +593,9 @@ void emit_load(Codegen_Context* ctx, Value* variable)
     char* mov_op = get_move_op(variable->type);
     switch (variable->type->kind) {
     case TYPE_STRUCT:
-    case TYPE_ARRAY:
-        emit(ctx, "lea rax, [rbp-%lld]; load_lea", stack_pos);
-        break;
-    default: 
-        emit(ctx, "%s %s, [rbp-%lld]; load", mov_op, reg, stack_pos);
-        break;
+    case TYPE_ARRAY: emit(ctx, "lea rax, [rbp-%lld]; load_lea", stack_pos); break;
+    default: emit(ctx, "%s %s, [rbp-%lld]; load", mov_op, reg, stack_pos); break;
     }
-
 }
 
 Value* codegen_unary(Codegen_Context* ctx, AST* expr)
@@ -633,14 +628,10 @@ Value* codegen_unary(Codegen_Context* ctx, AST* expr)
     switch (op) {
     case THI_SYNTAX_ADDRESS: {
         s64 stack_pos = get_stack_pos_of_variable(operand_val);
-        switch(operand_val->type->kind) {
-            case TYPE_POINTER:
-            case TYPE_ARRAY:
-                emit(ctx, "lea rax, [rax]; addrsof", stack_pos);
-                break;
-            default:
-                emit(ctx, "lea rax, [rbp-%lld]; addrsof", stack_pos);
-             break;
+        switch (operand_val->type->kind) {
+        case TYPE_POINTER:
+        case TYPE_ARRAY: emit(ctx, "lea rax, [rax]; addrsof", stack_pos); break;
+        default: emit(ctx, "lea rax, [rbp-%lld]; addrsof", stack_pos); break;
         }
     } break;
     case THI_SYNTAX_POINTER: {
@@ -690,7 +681,7 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr)
         Value* variable = get_variable(ctx, lhs->Ident.name);
         assert(variable->kind == VALUE_VARIABLE);
         switch (variable->type->kind) {
-        case TYPE_STRUCT: 
+        case TYPE_STRUCT:
             // Value* lhs_v = codegen_expr(lhs);
             error("codegen field access on structs not implemented");
             break;
@@ -1009,24 +1000,32 @@ Value* codegen_call(Codegen_Context* ctx, AST* expr)
 
     assert(ret_type);
 
-    List* arg_values        = make_list();
-    s8    int_arg_counter   = 0;
-    s8    float_arg_counter = 0;
+    List* values  = make_list();
+    List* ints    = make_list();
+    List* floats  = make_list();
+    List* structs = make_list();
+
+    s8 total             = 0;
+    s8 int_arg_counter   = 0;
+    s8 float_arg_counter = 0;
+    s8 other_counter     = 0;
 
     LIST_FOREACH_REVERSE(args)
     {
         AST*   arg = (AST*)it->data;
         Value* v   = codegen_expr(ctx, arg);
         push_type(ctx, v->type);
-        list_append(arg_values, v);
+        list_append(values, v);
+        total += 1;
     }
 
-    LIST_FOREACH(arg_values)
+    LIST_FOREACH(values)
     {
         Value* v = (Value*)it->data;
         switch (v->type->kind) {
-        case TYPE_ARRAY: // fallthrough
-        case TYPE_POINTER: // fallthrough
+        case TYPE_POINTER:
+        case TYPE_ARRAY:
+        case TYPE_ENUM:
         case TYPE_INT: {
             switch (int_arg_counter) {
             case 0: pop(ctx, RDI); break;
@@ -1039,6 +1038,7 @@ Value* codegen_call(Codegen_Context* ctx, AST* expr)
             int_arg_counter += 1;
         } break;
         case TYPE_FLOAT: {
+
             switch (float_arg_counter) {
             case 0: pop(ctx, XMM0); break;
             case 1: pop(ctx, XMM1); break;
@@ -1051,9 +1051,16 @@ Value* codegen_call(Codegen_Context* ctx, AST* expr)
             }
             float_arg_counter += 1;
         } break;
-        case TYPE_STRUCT: error("undhandled");
+        case TYPE_STRUCT: {
+            pop(ctx, RAX);
+        } break;
         }
     }
+
+    if (expr->type->Function.has_var_arg) {
+        emit(ctx, "mov rax, %lld", total);
+    }
+
     emit(ctx, "call _%s", callee);
 
     return make_value_call(callee, ret_type);
@@ -1130,7 +1137,7 @@ Value* codegen_field_access(Codegen_Context* ctx, AST* expr)
 {
     DEBUG_START;
     assert(expr->kind == AST_FIELD_ACCESS);
-    AST* load = expr->Field_Access.load;
+    AST*  load       = expr->Field_Access.load;
     char* field_name = expr->Field_Access.field;
 
     Value* variable = codegen_expr(ctx, load); // ADDRESS OF 'C' is in 'RAX'
@@ -1138,9 +1145,10 @@ Value* codegen_field_access(Codegen_Context* ctx, AST* expr)
     assert(variable->type->kind == TYPE_STRUCT);
 
     // Get the offset to the member
-    s64 accum = 0;
-    Type* t = NULL;
-    LIST_FOREACH(variable->type->Struct.members) {
+    s64   accum = 0;
+    Type* t     = NULL;
+    LIST_FOREACH(variable->type->Struct.members)
+    {
         AST* mem = (AST*)it->data;
         warning("%lld, %s", accum, ast_to_json(mem));
         assert(mem->type);
@@ -1153,14 +1161,13 @@ Value* codegen_field_access(Codegen_Context* ctx, AST* expr)
         }
     }
 
-
     warning("%s", type_to_str(t));
 
-    s64 stack_pos = get_stack_pos_of_variable(variable);
-    Value* v = make_value_variable("x", t, stack_pos + accum);
+    s64    stack_pos = get_stack_pos_of_variable(variable);
+    Value* v         = make_value_variable("x", t, stack_pos + accum);
 
     // emit(ctx, "mov rax, [rbp-%lld]", stack_pos - accum);
-    Value* var = make_value_variable(field_name, t, stack_pos-accum);
+    Value* var = make_value_variable(field_name, t, stack_pos - accum);
     emit_load(ctx, var);
     return var;
 }
@@ -1175,10 +1182,10 @@ Value* codegen_subscript(Codegen_Context* ctx, AST* expr)
     Value* variable = codegen_expr(ctx, load); // ADDRESS OF 'C' is in 'RAX'
     s64    size     = get_size_of_underlying_type(variable->type);
 
-    sub  = make_ast_binary(expr->t, TOKEN_ASTERISK, make_ast_int(expr->t, size), sub);
+    sub = make_ast_binary(expr->t, TOKEN_ASTERISK, make_ast_int(expr->t, size), sub);
     // load = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, load);
-    sub  = make_ast_binary(expr->t, TOKEN_PLUS, load, sub);
-    sub  = make_ast_unary(expr->t, THI_SYNTAX_POINTER, sub);
+    sub = make_ast_binary(expr->t, TOKEN_PLUS, load, sub);
+    sub = make_ast_unary(expr->t, THI_SYNTAX_POINTER, sub);
 
     return codegen_expr(ctx, sub);
 }
@@ -1482,9 +1489,9 @@ Value* codegen_function(Codegen_Context* ctx, AST* expr)
     reset_stack(ctx);
 
     List* args              = func_type->Function.args;
-    s64   i                 = 0;
     s8    int_arg_counter   = 0;
     s8    float_arg_counter = 0;
+    s8    rest              = 0;
 
     LIST_FOREACH(args)
     {
@@ -1514,12 +1521,16 @@ Value* codegen_function(Codegen_Context* ctx, AST* expr)
             }
             float_arg_counter += 1;
         } break;
-        case TYPE_STRUCT: error("undhandled");
+        case TYPE_STRUCT: {
+            rest += 8;
+            continue;
+        } break;
         }
 
         emit_store_r(ctx, v, param_reg);
-        i += 1;
     }
+
+    // emit(ctx, "add rsp, %lld; rest", rest);
 
     codegen_expr(ctx, func_body);
 
