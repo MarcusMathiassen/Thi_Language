@@ -19,7 +19,10 @@
 //                              codegen.c
 //------------------------------------------------------------------------------
 
-#define DEBUG_START info("%s: %s", __func__, wrap_with_colored_parens(ast_to_str(expr)));
+#define DEBUG_START \
+    info("%s: %s", __func__, wrap_with_colored_parens(ast_to_str(expr))); \
+    assert(ctx); \
+    assert(expr);
 
 typedef struct {
     AST*   current_function;
@@ -959,7 +962,6 @@ Value* codegen_constant_decl(Codegen_Context* ctx, AST* expr)
 {
     DEBUG_START;
     // assert(0);
-    // assert(expr);
     // assert(expr->kind == AST_CONSTANT_DECL);
     // char* name            = expr->Constant_Decl.name;
     // AST*  assignment_expr = expr->Constant_Decl.value;
@@ -970,11 +972,13 @@ Value* codegen_constant_decl(Codegen_Context* ctx, AST* expr)
 Value* codegen_variable_decl(Codegen_Context* ctx, AST* expr)
 {
     DEBUG_START;
-    assert(expr);
     assert(expr->kind == AST_VARIABLE_DECL);
     char* name            = expr->Variable_Decl.name;
     Type* type            = expr->Variable_Decl.type;
     AST*  assignment_expr = expr->Variable_Decl.value;
+
+    assert(name);
+    assert(type);
 
     ctx->expected_type = type;
 
