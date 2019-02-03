@@ -4,8 +4,8 @@
         touch main.thi
 
         # this is a comment
-        def main () -> s32
-            ret 1
+        main()
+            return 1
 
         $ thi main.thi
 # Syntax
