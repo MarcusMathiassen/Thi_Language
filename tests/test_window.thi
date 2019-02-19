@@ -2,7 +2,7 @@ load "includes/cstdio"
 load "includes/opengl"
 load "includes/glew"
 load "includes/glfw"
-load "includes/math"
+load "includes/cmath"
 
 main()
     if !glfwInit() puts("GLFW init failed.")
@@ -31,7 +31,7 @@ main()
     scale := 1.0
 
     running := true
-
+    
     while running
 
         if glfwWindowShouldClose(window)  running = false
@@ -41,8 +41,6 @@ main()
         glfwPollEvents()
 
         key := glfwGetKey(window, GLFW_KEY_LEFT)
-
-        f := glfwGetTime()
 
         # This is a switch
         if key

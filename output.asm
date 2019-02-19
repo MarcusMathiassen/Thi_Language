@@ -167,6 +167,27 @@ extern _glfwSetTime
 extern _glfwGetTimerValue
 extern _glfwGetTimerFrequency
 extern _glfwGetRequiredInstanceExtensions
+extern _acos
+extern _asin
+extern _atan
+extern _atan2
+extern _cos
+extern _cosh
+extern _sin
+extern _sinh
+extern _tanh
+extern _exp
+extern _frexp
+extern _ldexp
+extern _log
+extern _log10
+extern _modf
+extern _pow
+extern _sqrt
+extern _ceil
+extern _fabs
+extern _floor
+extern _fmod
 section .data
 	d0: dq `GLFW init failed.`, 0 
 	d1: dq `Hello Triangle`, 0 
@@ -200,9 +221,6 @@ section .data
 	d29: dd 0.500000
 	d30: dd 0.500000
 	d31: dd 0.500000
-	d32: dd 0.000000
-	d33: dd 0.000000
-	d34: dd 0.000000
 global _main
 section .text
 _main:
@@ -445,17 +463,6 @@ _main:
 	pop rcx
 	mov [rbp-28], ecx; store
 	pop rax
-	call _glfwGetTime
-	sub rsp, 8
-	movss [rsp], xmm0
-	sub rsp, 8
-	movss [rsp], xmm0
-	movsd xmm0, [rbp-36]; load
-	movss xmm1, [rsp]
-	add rsp, 8
-	movsd [rbp-36], xmm1; store
-	movss xmm0, [rsp]
-	add rsp, 8
 	mov eax, [rbp-28]; load
 	push rax
 	mov eax, 1
@@ -679,10 +686,12 @@ _main:
 	add rsp, 8
 	movss xmm2, [rsp]
 	add rsp, 8
+	mov rax, 3
 	call _draw_triangle
 	mov rax, [rbp-8]; load
 	push rax
 	pop rdi
+	mov rax, 1
 	call _glfwSwapBuffers
 	jmp .l4
 .l5:
@@ -724,6 +733,7 @@ _draw_triangle:
 	add rsp, 8
 	movss xmm2, [rsp]
 	add rsp, 8
+	mov rax, 3
 	call _glColor3f
 	movss xmm0, [rel d19]; float_ref
 	movd ecx, xmm0
@@ -877,153 +887,9 @@ _draw_triangle:
 	add rsp, 8
 	movss xmm1, [rsp]
 	add rsp, 8
-	mov rax, 2
 	call _glVertex2f
 	call _glEnd
 .end:
 	add rsp, 16; 12 alloc, 4 padding
-	leave
-	ret
-_sqrt:
-	push rbp
-	mov rbp, rsp
-	sub rsp, 32; 32 alloc, 0 padding
-.begin:
-	movsd [rbp-8], xmm0; store_r
-	movss xmm0, [rel d32]; float_ref
-	sub rsp, 8
-	movss [rsp], xmm0
-	sub rsp, 8
-	movss [rsp], xmm0
-	movsd xmm0, [rbp-16]; load
-	movss xmm1, [rsp]
-	add rsp, 8
-	movsd [rbp-16], xmm1; store
-	movss xmm0, [rsp]
-	add rsp, 8
-	movss xmm0, [rel d33]; float_ref
-	sub rsp, 8
-	movss [rsp], xmm0
-	sub rsp, 8
-	movss [rsp], xmm0
-	movsd xmm0, [rbp-24]; load
-	movss xmm1, [rsp]
-	add rsp, 8
-	movsd [rbp-24], xmm1; store
-	movss xmm0, [rsp]
-	add rsp, 8
-	movss xmm0, [rel d34]; float_ref
-	sub rsp, 8
-	movss [rsp], xmm0
-	sub rsp, 8
-	movss [rsp], xmm0
-	movsd xmm0, [rbp-32]; load
-	movss xmm1, [rsp]
-	add rsp, 8
-	movsd [rbp-32], xmm1; store
-	movss xmm0, [rsp]
-	add rsp, 8
-	mov eax, 0
-	push rax
-	push rax
-	mov eax, [rbp-36]; load
-	pop rcx
-	mov [rbp-36], ecx; store
-	pop rax
-.l0:
-	mov eax, [rbp-36]; load
-	push rax
-	mov eax, 1000
-	pop rcx
-	cmp rcx, rax
-	setl al
-	cmp al, 0
-	je .l2
-	movsd xmm0, [rbp-32]; load
-	sub rsp, 8
-	movss [rsp], xmm0
-	movsd xmm0, [rbp-32]; load
-	movss xmm1, [rsp]
-	add rsp, 8
-	mulsd xmm0, xmm1
-	sub rsp, 8
-	movss [rsp], xmm0
-	movsd xmm0, [rbp-8]; load
-	movss xmm1, [rsp]
-	add rsp, 8
-	ucomisd xmm1, xmm0
-	sete al
-	cmp al, 0
-	je .l4
-.l6:
-	jmp .l5
-.l5:
-	movsd xmm0, [rbp-32]; load
-	jmp .end
-	jmp .l4
-.l3:
-.l4:
-	movsd xmm0, [rbp-32]; load
-	sub rsp, 8
-	movss [rsp], xmm0
-	movsd xmm0, [rbp-32]; load
-	movss xmm1, [rsp]
-	add rsp, 8
-	mulsd xmm0, xmm1
-	sub rsp, 8
-	movss [rsp], xmm0
-	movsd xmm0, [rbp-8]; load
-	movss xmm1, [rsp]
-	add rsp, 8
-	ucomisd xmm1, xmm0
-	setg al
-	cmp al, 0
-	je .l7
-	movsd xmm0, [rbp-32]; load
-	sub rsp, 8
-	movss [rsp], xmm0
-	sub rsp, 8
-	movss [rsp], xmm0
-	movsd xmm0, [rbp-24]; load
-	movss xmm1, [rsp]
-	add rsp, 8
-	movsd [rbp-24], xmm1; store
-	movss xmm0, [rsp]
-	add rsp, 8
-	jmp .l8
-.l7:
-	movsd xmm0, [rbp-32]; load
-	sub rsp, 8
-	movss [rsp], xmm0
-	sub rsp, 8
-	movss [rsp], xmm0
-	movsd xmm0, [rbp-16]; load
-	movss xmm1, [rsp]
-	add rsp, 8
-	movsd [rbp-16], xmm1; store
-	movss xmm0, [rsp]
-	add rsp, 8
-.l8:
-.l1:
-	mov eax, 1
-	push rax
-	mov eax, [rbp-36]; load
-	pop rcx
-	add rax, rcx
-	push rax
-	push rax
-	mov eax, [rbp-36]; load
-	pop rcx
-	mov [rbp-36], ecx; store
-	pop rax
-	jmp .l0
-.l2:
-.l10:
-	jmp .l9
-.l9:
-	movsd xmm0, [rbp-32]; load
-	jmp .end
-.end:
-	add rsp, 32; 32 alloc, 0 padding
 	leave
 	ret

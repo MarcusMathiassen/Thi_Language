@@ -24,6 +24,8 @@
     assert(ctx); \
     assert(expr);
 
+#define UNREACHABLE error("%s:%s:%s unreachable.", __func__, __FILE__, __LINE__);
+
 typedef struct {
     AST*   current_function;
     Type*  expected_type;
@@ -357,8 +359,10 @@ char* get_op_size(s8 bytes)
     case 2: return "word";
     case 4: return "dword";
     case 8: return "qword";
+    default: return "qword";
     }
-    return "qword";
+    UNREACHABLE;
+    return NULL;
 }
 
 char* get_result_reg_2(Type* type)
@@ -377,10 +381,12 @@ char* get_result_reg_2(Type* type)
     case TYPE_ENUM: // fallthrough
     case TYPE_VOID: // fallthrough
     case TYPE_INT: return get_reg(get_rax_reg_of_byte_size(bytes, 'c'));
-    default: error("get_result_reg unhandled case: %s", type_kind_to_str(type->kind));
     }
+    error("get_result_reg unhandled case: %s", type_kind_to_str(type->kind));
+    UNREACHABLE;
     return NULL;
 }
+
 char* get_result_reg(Type* type)
 {
     assert(type);
@@ -399,6 +405,8 @@ char* get_result_reg(Type* type)
     case TYPE_INT: return get_reg(get_rax_reg_of_byte_size(bytes, 'a'));
     default: error("get_result_reg unhandled case: %s", type_kind_to_str(type->kind));
     }
+
+    UNREACHABLE;
     return NULL;
 }
 
@@ -412,6 +420,7 @@ char* get_db_op(Type* type)
     case 4: return "dd";
     case 8: return "dq";
     }
+    UNREACHABLE;
     return NULL;
 }
 char* get_move_op(Type* type)
@@ -429,8 +438,9 @@ char* get_move_op(Type* type)
     case TYPE_STRUCT: // fallthrough
     case TYPE_ENUM: // fallthrough
     case TYPE_INT: return "mov";
-    default: error("get_move_op unhandled case: %s", type_kind_to_str(type->kind));
     }
+    error("get_move_op unhandled case: %s", type_kind_to_str(type->kind));
+    UNREACHABLE;
     return NULL;
 }
 

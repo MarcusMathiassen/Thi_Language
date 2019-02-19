@@ -1,0 +1,21 @@
+extern acos(f32) f32
+extern asin(f32) f32
+extern atan(f32) f32
+extern atan2(f32, f32) f32
+extern cos(f32) f32
+extern cosh(f32) f32
+extern sin(f32) f32
+extern sinh(f32) f32
+extern tanh(f32) f32
+extern exp(f32) f32
+extern frexp(f32, s32*) f32
+extern ldexp(f32, s32) f32
+extern log(f32) f32
+extern log10(f32) f32
+extern modf(f32, f32*) f32
+extern pow(f32, f32) f32
+extern sqrt(f32) f32
+extern ceil(f32) f32
+extern fabs(f32) f32
+extern floor(f32) f32
+extern fmod(f32, f32) f32
