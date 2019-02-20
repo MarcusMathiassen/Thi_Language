@@ -6,4 +6,3 @@ main()
     array: Foo[5]
     array[4].i[5] = 1
     return array[4].i[5]
-
