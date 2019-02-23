@@ -271,7 +271,8 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it)
                 List* args      = node->Call.args;
 
                 bool has_var_args = false;
-                LIST_FOREACH(args) {
+                LIST_FOREACH(args)
+                {
                     AST* d = (AST*)it->data;
                     if (d->kind == AST_VAR_ARGS) {
                         has_var_args = true;
@@ -279,7 +280,7 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it)
                     }
                 }
 
-                Type* type      = make_type_function(func_name, args, NULL, has_var_args);
+                Type* type = make_type_function(func_name, args, NULL, has_var_args);
                 add_symbol(thi, func_name, type);
 
                 AST* body = (AST*)it->next->data;

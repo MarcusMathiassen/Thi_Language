@@ -641,7 +641,6 @@ AST* make_ast_var_args(Token t)
     return e;
 }
 
-
 AST* make_ast_fallthrough(Token t)
 {
     AST* e = make_ast(AST_FALLTHROUGH, t);

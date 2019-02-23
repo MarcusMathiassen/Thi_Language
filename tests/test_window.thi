@@ -31,10 +31,10 @@ main()
     scale := 1.0
 
     running := true
-    
+
     while running
 
-        if glfwWindowShouldClose(window)  running = false
+        if glfwWindowShouldClose(window) running = false
         if glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS  running = false
 
         glClear(GL_COLOR_BUFFER_BIT)

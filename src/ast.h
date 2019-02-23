@@ -166,7 +166,7 @@ struct AST {
         } Subscript;
 
         struct {
-            AST* load;
+            AST*  load;
             char* field;
         } Field_Access;
 

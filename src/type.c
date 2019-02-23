@@ -298,11 +298,11 @@ Type* make_type_struct(char* name, List* members)
 Type* make_type_function(char* name, List* args, Type* ret_type, bool has_var_arg)
 {
     assert(name);
-    Type* t              = make_type(TYPE_FUNCTION);
-    t->name              = name;
-    t->Function.name     = name;
-    t->Function.args     = args;
-    t->Function.ret_type = ret_type;
+    Type* t                 = make_type(TYPE_FUNCTION);
+    t->name                 = name;
+    t->Function.name        = name;
+    t->Function.args        = args;
+    t->Function.ret_type    = ret_type;
     t->Function.has_var_arg = has_var_arg;
     return t;
 }

@@ -92,7 +92,7 @@ struct Type {
             char* name;
             List* args;
             Type* ret_type;
-            bool has_var_arg;
+            bool  has_var_arg;
         } Function;
     };
 };

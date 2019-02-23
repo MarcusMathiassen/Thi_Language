@@ -90,7 +90,7 @@ char* reg[TOTAL_REG_COUNT] = {
     "xmm15",
 };
 
-s8   get_num_registers() { return TOTAL_REG_COUNT; }
+s8    get_num_registers() { return TOTAL_REG_COUNT; }
 char* get_reg(s8 reg_n) { return reg[reg_n]; }
 char* get_reg_fitting_value(Value* value)
 {
@@ -102,11 +102,11 @@ char* get_reg_fitting_value(Value* value)
 s8 get_rax_reg_of_byte_size(u8 bytes, char c)
 {
     switch (bytes) {
-    case 1: return c == 'a' ? AL: CL;
-    case 2: return c == 'a' ? AX: CX;
-    case 4: return c == 'a' ? EAX: ECX;
-    case 8: return c == 'a' ? RAX: RCX;
-    default: return c == 'a' ? RAX: RCX;
+    case 1: return c == 'a' ? AL : CL;
+    case 2: return c == 'a' ? AX : CX;
+    case 4: return c == 'a' ? EAX : ECX;
+    case 8: return c == 'a' ? RAX : RCX;
+    default: return c == 'a' ? RAX : RCX;
     }
     return -1;
 }

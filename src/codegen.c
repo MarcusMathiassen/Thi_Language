@@ -19,9 +19,9 @@
 //                              codegen.c
 //------------------------------------------------------------------------------
 
-#define DEBUG_START \
-    info("%s: %s", __func__, wrap_with_colored_parens(ast_to_str(expr))); \
-    assert(ctx); \
+#define DEBUG_START                                                                                                    \
+    info("%s: %s", __func__, wrap_with_colored_parens(ast_to_str(expr)));                                              \
+    assert(ctx);                                                                                                       \
     assert(expr);
 
 #define UNREACHABLE error("%s:%s:%s unreachable.", __func__, __FILE__, __LINE__);

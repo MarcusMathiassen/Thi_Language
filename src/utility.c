@@ -103,7 +103,7 @@ char* remove_file_extension(char* filename)
         continue;
     char* str = xmalloc(len - i + 1);
     memcpy(str, filename, len - i);
-    str[len-i] = 0;
+    str[len - i] = 0;
     return str;
 }
 

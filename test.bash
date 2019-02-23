@@ -8,7 +8,6 @@ RGB_WHITE='\033[38;2;190;190;190;m'
 YELLOW='\033[1;31m'
 NC='\033[0m' # No Color
 
-
 test_files=$@
 if [ ${#test_files} == 0 ]; then
     test_files="./tests/*.thi"

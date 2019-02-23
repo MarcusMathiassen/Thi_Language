@@ -195,7 +195,7 @@ Token get_token(Lexer_Context* lctx)
         // Skip whitespace
 
         bool has_newline = false;
-skip:
+    skip:
         while (*c == ' ' || *c == '\n' || *c == '\r' || *c == '\t') {
             if (*c == '\n') {
                 has_newline = true;

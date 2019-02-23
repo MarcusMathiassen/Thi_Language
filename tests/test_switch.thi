@@ -7,7 +7,7 @@ enum Kind
     String
 
 main()
-    i: Kind = Kind.Int
+    i: Kind = .Int
 
     if i == .Float
         puts("Its a float!")

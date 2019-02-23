@@ -9,7 +9,7 @@ std=c99
 $compiler $src -std=$std $olvl $flags -o $output # -g -fsanitize=address -fno-omit-frame-pointer
  
 if [ $? == 0 ]; then
-    ./test.bash
+    # ./test.bash
     # ./test.bash ./tests/test_subscript_access.thi
     # ./test.bash ./tests/test_subscript_access_2.thi
     # ./test.bash ./tests/test_char.thi
@@ -25,7 +25,7 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_function_call_struct.thi
     # ./test.bash ./tests/test_window.thi
     # ./test.bash ./tests/test_math.thi
-    # ./test.bash ./tests/test_switch.thi
+    ./test.bash ./tests/test_switch.thi
     # ./test.bash ./tests/test_no_main.thi
     # ./test.bash ./tests/test_ternary.thi
     # ./test.bash ./tests/test_float_GT.thi
