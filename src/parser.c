@@ -73,6 +73,7 @@ Token_Kind unary_ops[UNARY_OP_COUNT] = {
 //------------------------------------------------------------------------------
 
 typedef struct {
+
     Token_Array tokens;
     s64         token_index;
 
@@ -265,8 +266,8 @@ AST* parse_primary(Parser_Context* ctx) {
     case TOKEN_IDENTIFIER: return parse_identifier(ctx);
     case TOKEN_DOLLAR_SIGN: return parse_note(ctx);
     case TOKEN_FLOAT: return parse_float(ctx);
-    case TOKEN_CHAR: // FALLTHROUGH
-    case TOKEN_HEX:  // FALLTHROUGH
+    case TOKEN_CHAR: // fallthrough
+    case TOKEN_HEX:  // fallthrough
     case TOKEN_INTEGER: return parse_integer(ctx);
     case TOKEN_STRING: return parse_string(ctx);
     case TOKEN_OPEN_PAREN: return parse_parens(ctx);

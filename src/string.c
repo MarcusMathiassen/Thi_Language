@@ -3,14 +3,13 @@
 #include "list.h"
 #include "typedefs.h"
 #include "utility.h" // xmalloc, xrealloc
-#include <assert.h> // assert
-#include <stdarg.h> // va_list, va_start, va_end
-#include <stdio.h> // printf, vprintf
-#include <stdlib.h> // free
-#include <string.h> // memcpy
+#include <assert.h>  // assert
+#include <stdarg.h>  // va_list, va_start, va_end
+#include <stdio.h>   // printf, vprintf
+#include <stdlib.h>  // free
+#include <string.h>  // memcpy
 
-string make_string(char* str)
-{
+string make_string(char* str) {
     assert(str);
     string s;
     s64    str_len = strlen(str);
@@ -21,8 +20,7 @@ string make_string(char* str)
     return s;
 }
 
-string make_string_f(char* fmt, ...)
-{
+string make_string_f(char* fmt, ...) {
     assert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -40,8 +38,7 @@ string make_string_f(char* fmt, ...)
     return s;
 }
 
-void append_string(string* s, char* str)
-{
+void append_string(string* s, char* str) {
     assert(s);
     assert(str);
     s64 str_len = strlen(str);
@@ -52,8 +49,7 @@ void append_string(string* s, char* str)
     s->c_str[s->len] = 0;
 }
 
-void append_string_f(string* s, char* fmt, ...)
-{
+void append_string_f(string* s, char* fmt, ...) {
     assert(s);
     assert(fmt);
     va_list args;
@@ -78,8 +74,7 @@ void free_string(string* s) { free(s->c_str); }
 //                               Tests
 //------------------------------------------------------------------------------
 
-void string_tests(void)
-{
+void string_tests(void) {
     // string test
     string s = make_string("Hello");
     assert(s.len == 5);
@@ -89,8 +84,6 @@ void string_tests(void)
     assert(strcmp(s.c_str, "Hello, Marcus Mathiasssen.") == 0);
     append_string(&s, " It's nice to see you again. How are you?");
     assert(s.len == 67);
-    assert(strcmp(s.c_str,
-               "Hello, Marcus Mathiasssen. It's nice to see you "
-               "again. How are you?")
-        == 0);
+    assert(strcmp(s.c_str, "Hello, Marcus Mathiasssen. It's nice to see you "
+                           "again. How are you?") == 0);
 }

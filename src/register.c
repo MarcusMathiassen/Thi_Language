@@ -2,105 +2,27 @@
 #include "utility.h" // error
 
 char* reg[TOTAL_REG_COUNT] = {
-    "rax",
-    "eax",
-    "ax",
-    "al",
-    "ah",
-    "rcx",
-    "ecx",
-    "cx",
-    "cl",
-    "ch",
-    "rdx",
-    "edx",
-    "dx",
-    "dl",
-    "dh",
-    "rbx",
-    "ebx",
-    "bx",
-    "bl",
-    "bh",
+    "rax",  "eax",  "ax",   "al",   "ah",   "rcx",  "ecx",   "cx",    "cl",    "ch",    "rdx",   "edx",
+    "dx",   "dl",   "dh",   "rbx",  "ebx",  "bx",   "bl",    "bh",
 
-    "rsp",
-    "esp",
-    "sp",
-    "spl",
-    "rbp",
-    "ebp",
-    "bp",
-    "bpl",
-    "rsi",
-    "esi",
-    "si",
-    "sil",
-    "rdi",
-    "edi",
-    "di",
-    "dil",
+    "rsp",  "esp",  "sp",   "spl",  "rbp",  "ebp",  "bp",    "bpl",   "rsi",   "esi",   "si",    "sil",
+    "rdi",  "edi",  "di",   "dil",
 
-    "r8",
-    "r8d",
-    "r8w",
-    "r8b",
-    "r9",
-    "r9d",
-    "r9w",
-    "r9b",
-    "r10",
-    "r10d",
-    "r10w",
-    "r10b",
-    "r11",
-    "r11d",
-    "r11w",
-    "r11b",
-    "r12",
-    "r12d",
-    "r12w",
-    "r12b",
-    "r13",
-    "r13d",
-    "r13w",
-    "r13b",
-    "r14",
-    "r14d",
-    "r14w",
-    "r14b",
-    "r15",
-    "r15d",
-    "r15w",
-    "r15b",
-    "xmm0",
-    "xmm1",
-    "xmm2",
-    "xmm3",
-    "xmm4",
-    "xmm5",
-    "xmm6",
-    "xmm7",
-    "xmm8",
-    "xmm9",
-    "xmm10",
-    "xmm11",
-    "xmm12",
-    "xmm13",
-    "xmm14",
-    "xmm15",
+    "r8",   "r8d",  "r8w",  "r8b",  "r9",   "r9d",  "r9w",   "r9b",   "r10",   "r10d",  "r10w",  "r10b",
+    "r11",  "r11d", "r11w", "r11b", "r12",  "r12d", "r12w",  "r12b",  "r13",   "r13d",  "r13w",  "r13b",
+    "r14",  "r14d", "r14w", "r14b", "r15",  "r15d", "r15w",  "r15b",  "xmm0",  "xmm1",  "xmm2",  "xmm3",
+    "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9", "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15",
 };
 
 s8    get_num_registers() { return TOTAL_REG_COUNT; }
 char* get_reg(s8 reg_n) { return reg[reg_n]; }
-char* get_reg_fitting_value(Value* value)
-{
+char* get_reg_fitting_value(Value* value) {
     s64 size  = get_size_of_value(value);
     s64 reg_n = get_rax_reg_of_byte_size(size, 'a');
     return reg[reg_n];
 }
 
-s8 get_rax_reg_of_byte_size(u8 bytes, char c)
-{
+s8 get_rax_reg_of_byte_size(u8 bytes, char c) {
     switch (bytes) {
     case 1: return c == 'a' ? AL : CL;
     case 2: return c == 'a' ? AX : CX;
@@ -111,8 +33,7 @@ s8 get_rax_reg_of_byte_size(u8 bytes, char c)
     return -1;
 }
 
-s8 get_parameter_reg(s8 i, s8 size)
-{
+s8 get_parameter_reg(s8 i, s8 size) {
     switch (i) {
     case 0:
         switch (size) {
@@ -161,8 +82,7 @@ s8 get_parameter_reg(s8 i, s8 size)
     return -1; // to silence warning
 };
 
-s8 get_size_of_reg(s8 reg)
-{
+s8 get_size_of_reg(s8 reg) {
     if (reg >= XMM_REG_START) return 8;
     switch (reg) {
     case RAX: return 8;
@@ -232,8 +152,7 @@ s8 get_size_of_reg(s8 reg)
     }
     return 0;
 }
-s8 get_reg_as_another_size(s8 reg, s8 size)
-{
+s8 get_reg_as_another_size(s8 reg, s8 size) {
     switch (reg) {
     case RAX:
     case EAX:
@@ -407,8 +326,7 @@ s8 get_reg_as_another_size(s8 reg, s8 size)
     return -1; // to silence warning
 }
 
-s8 get_push_or_popable_reg(s8 reg)
-{
+s8 get_push_or_popable_reg(s8 reg) {
     switch (reg) {
     case R10:
     case R10B:

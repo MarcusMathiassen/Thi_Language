@@ -3,8 +3,8 @@
 #include "constants.h"
 #include "typedefs.h"
 #include "utility.h" // info, warning, xmalloc, xrealloc
-#include <ctype.h> // isalnum, isdigit
-#include <string.h> // strncmp
+#include <ctype.h>   // isalnum, isdigit
+#include <string.h>  // strncmp
 
 //------------------------------------------------------------------------------
 //                              lexer.c
@@ -81,31 +81,11 @@ char* intern(Intern_Array* intern_array, char* str);
 //------------------------------------------------------------------------------
 
 char* STATIC_KEYWORDS_ARRAY[KEY_COUNT] = {
-    "link",
-    "type",
-    "true",
-    "false",
-    "defer",
-    "extern",
-    "load",
-    "cast",
-    "sizeof",
-    "if",
-    "else",
-    "for",
-    "while",
-    "return",
-    "struct",
-    "enum",
-    "break",
-    "continue",
-    "as",
-    "is",
-    "fallthrough",
+    "link", "type",  "true",   "false",  "defer", "extern", "load",     "cast", "sizeof", "if",          "else",
+    "for",  "while", "return", "struct", "enum",  "break",  "continue", "as",   "is",     "fallthrough",
 };
 
-Lexed_File generate_tokens_from_source(char* source)
-{
+Lexed_File generate_tokens_from_source(char* source) {
     Lexer_Context lctx;
     lctx.stream                     = source;
     lctx.position_of_newline        = source;
@@ -169,8 +149,7 @@ Lexed_File generate_tokens_from_source(char* source)
 #define CASE_SINGLE_TOKEN(c1, t_kind)                                                                                  \
     case c1: token.kind = t_kind; ++c;
 
-Token get_token(Lexer_Context* lctx)
-{
+Token get_token(Lexer_Context* lctx) {
     char* c = lctx->stream;
 
     Token token;
@@ -188,7 +167,7 @@ Token get_token(Lexer_Context* lctx)
         lctx->comment_count += 1;
         token.kind = TOKEN_COMMENT;
     } break;
-    case ' ': /* fallthrough */
+    case ' ':  /* fallthrough */
     case '\n': /* fallthrough */
     case '\r': /* fallthrough */
     case '\t': {
@@ -502,7 +481,7 @@ Token get_token(Lexer_Context* lctx)
         case KEY_FALLTHROUGH: token.kind = TOKEN_FALLTHROUGH; break;
         }
     } break;
-    case TOKEN_CHAR: ++c; break; // we skip the last '
+    case TOKEN_CHAR: ++c; break;   // we skip the last '
     case TOKEN_STRING: ++c; break; // we skip the last "
     }
 
@@ -511,8 +490,7 @@ Token get_token(Lexer_Context* lctx)
     return token;
 }
 
-char* token_kind_to_str(Token_Kind kind)
-{
+char* token_kind_to_str(Token_Kind kind) {
     switch (kind) {
     case TOKEN_UNKNOWN: return "unknown";
     case TOKEN_EOF: return "eof";
@@ -612,14 +590,12 @@ char* token_kind_to_str(Token_Kind kind)
     return "";
 }
 
-char* token_to_str(Token token)
-{
+char* token_to_str(Token token) {
     return strf("%s :: %s %lld:%lld", token.value, token_kind_to_str(token.kind), token.line_pos, token.col_pos);
 }
 
 void print_token(Token token) { info("%s %s", token_kind_to_str(token.kind), token.value); }
-void print_tokens(Token_Array tokens)
-{
+void print_tokens(Token_Array tokens) {
     info("Printing tokens..");
     for (s64 i = 0; i < tokens.count; i += 1) {
         print_token(tokens.data[i]);
@@ -629,8 +605,7 @@ void print_tokens(Token_Array tokens)
 bool is_valid_identifier(u8 c) { return isalnum(c) || c == '_'; }
 bool is_valid_digit(u8 c) { return isdigit(c) || c == '.' || c == '_' || c == 'e' || c == 'x'; }
 
-Token_Array make_token_array()
-{
+Token_Array make_token_array() {
     Token_Array l;
     l.count     = 0;
     l.allocated = TOKEN_ARRAY_STARTING_ALLOC;
@@ -638,8 +613,7 @@ Token_Array make_token_array()
     return l;
 }
 
-void token_array_append(Token_Array* l, Token t)
-{
+void token_array_append(Token_Array* l, Token t) {
     if (l->count >= l->allocated) {
         l->allocated *= 2;
         l->data = xrealloc(l->data, l->allocated * sizeof(Token));
@@ -648,8 +622,7 @@ void token_array_append(Token_Array* l, Token t)
     l->count += 1;
 }
 
-Intern_Array make_intern_array()
-{
+Intern_Array make_intern_array() {
     Intern_Array l;
     l.count     = 0;
     l.allocated = INTERN_ARRAY_STARTING_ALLOC;
@@ -657,8 +630,7 @@ Intern_Array make_intern_array()
     return l;
 }
 
-void intern_array_append(Intern_Array* l, Intern intern)
-{
+void intern_array_append(Intern_Array* l, Intern intern) {
     if (l->count >= l->allocated) {
         l->allocated *= 2;
         l->data = xrealloc(l->data, l->allocated * sizeof(Intern));
@@ -668,8 +640,7 @@ void intern_array_append(Intern_Array* l, Intern intern)
 }
 
 char* intern(Intern_Array* interns, char* str) { return intern_range(interns, str, str + strlen(str)); }
-char* intern_range(Intern_Array* interns, char* start, char* end)
-{
+char* intern_range(Intern_Array* interns, char* start, char* end) {
     s64 len = end - start;
 
     for (s64 i = 0; i < interns->count; ++i) {

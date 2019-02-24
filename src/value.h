@@ -1,9 +1,9 @@
 #ifndef VALUES_H
 #define VALUES_H
 
-#include "list.h" // list
+#include "list.h"   // list
 #include "string.h" // string
-#include "type.h" // Type
+#include "type.h"   // Type
 
 typedef struct Value    Value;
 typedef enum Value_Kind Value_Kind;

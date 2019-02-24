@@ -1,10 +1,10 @@
 #ifndef PARSER_H
 #define PARSER_H
-#include "ast.h" // AST_Ref_List
+#include "ast.h"   // AST_Ref_List
 #include "lexer.h" // Token_Array
-#include "list.h" // List
-#include "map.h" // Map
-#include "type.h" // Type_Ref_List
+#include "list.h"  // List
+#include "map.h"   // Map
+#include "type.h"  // Type_Ref_List
 typedef struct {
     List*         ast;
     Type_Ref_List unresolved_types;

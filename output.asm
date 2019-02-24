@@ -103,7 +103,6 @@ _main:
 	push rax
 	pop rdi
 	call _puts
-	jmp .l3
 .l6:
 	mov rax, d2; string_ref
 	push rax

@@ -14,7 +14,9 @@ main()
 
     if i 
         is .Int fallthrough
-        is 1 puts("Hello")
+        is 1
+            puts("Hello") 
+            fallthrough
         is .String puts("are")
         is 3 puts("you?")
         is 4 return 4

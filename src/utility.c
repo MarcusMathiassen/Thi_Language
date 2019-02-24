@@ -2,18 +2,17 @@
 #include "constants.h"
 #include <assert.h> // assert
 #include <stdarg.h> // va_list, va_start, va_end
-#include <stdio.h> // printf, vprintf
+#include <stdio.h>  // printf, vprintf
 #include <stdlib.h> // malloc, realloc, calloc
 #include <string.h> // memcpy
-#include <time.h> // timeval
+#include <time.h>   // timeval
 #include <unistd.h>
 
 //------------------------------------------------------------------------------
 //                               Printing Functions
 //------------------------------------------------------------------------------
 
-void info(char* fmt, ...)
-{
+void info(char* fmt, ...) {
 #ifndef NDEBUG
     assert(fmt);
     va_list args;
@@ -25,8 +24,7 @@ void info(char* fmt, ...)
 #endif
 }
 
-void warning(char* fmt, ...)
-{
+void warning(char* fmt, ...) {
     assert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -36,8 +34,7 @@ void warning(char* fmt, ...)
     va_end(args);
 }
 
-void success(char* fmt, ...)
-{
+void success(char* fmt, ...) {
     assert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -47,8 +44,7 @@ void success(char* fmt, ...)
     va_end(args);
 }
 
-void error(char* fmt, ...)
-{
+void error(char* fmt, ...) {
     assert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -63,8 +59,7 @@ void error(char* fmt, ...)
 //                               File Utility Functions
 //------------------------------------------------------------------------------
 
-char* get_file_path_from_directory(char* dir, char* filename)
-{
+char* get_file_path_from_directory(char* dir, char* filename) {
     assert(dir);
     assert(filename);
     u8  strbuf[1000];
@@ -72,7 +67,7 @@ char* get_file_path_from_directory(char* dir, char* filename)
     s64 f_len = strlen(filename);
     s64 len   = d_len + f_len;
     assert(len < 1000);
-    memcpy(strbuf, dir, d_len); // copy dir into strbuf
+    memcpy(strbuf, dir, d_len);              // copy dir into strbuf
     memcpy(strbuf + d_len, filename, f_len); // append filename
     char* str = xmalloc(len + 1);
     memcpy(str, strbuf, len);
@@ -80,8 +75,7 @@ char* get_file_path_from_directory(char* dir, char* filename)
     return str;
 }
 
-char* get_file_extension(char* filename)
-{
+char* get_file_extension(char* filename) {
     assert(filename);
     s64 len = strlen(filename);
     s64 i   = 0;
@@ -94,8 +88,7 @@ char* get_file_extension(char* filename)
     return str;
 }
 
-char* remove_file_extension(char* filename)
-{
+char* remove_file_extension(char* filename) {
     assert(filename);
     s64 len = strlen(filename);
     s64 i   = 0;
@@ -107,8 +100,7 @@ char* remove_file_extension(char* filename)
     return str;
 }
 
-char* get_file_directory(char* filename)
-{
+char* get_file_directory(char* filename) {
     assert(filename);
     s64 len = strlen(filename);
     while (filename[--len] != '/')
@@ -119,8 +111,7 @@ char* get_file_directory(char* filename)
     str[len] = 0;
     return str;
 }
-char* get_file_name(char* filename)
-{
+char* get_file_name(char* filename) {
     assert(filename);
     s64 len = strlen(filename);
     s64 i   = 0;
@@ -132,8 +123,7 @@ char* get_file_name(char* filename)
     str[i] = 0;
     return str;
 }
-void write_to_file(char* filename, char* buffer)
-{
+void write_to_file(char* filename, char* buffer) {
     assert(filename);
     assert(buffer);
     FILE* f = fopen(filename, "w");
@@ -145,8 +135,7 @@ void write_to_file(char* filename, char* buffer)
     fclose(f);
 }
 
-char* get_file_content(char* filename)
-{
+char* get_file_content(char* filename) {
     assert(filename);
     char* buffer = NULL;
     s64   string_size, read_size;
@@ -188,8 +177,7 @@ char* get_file_content(char* filename)
 //                               General Purpose
 //------------------------------------------------------------------------------
 
-void* _malloc(s64 bytes, char* file, s32 line)
-{
+void* _malloc(s64 bytes, char* file, s32 line) {
     assert(bytes != 0);
     // info("malloc(%lld) called. file: %s line: %s", bytes, file, line);
     void* alloc = malloc(bytes);
@@ -197,8 +185,7 @@ void* _malloc(s64 bytes, char* file, s32 line)
     return alloc;
 }
 
-void* _calloc(s64 size, s64 bytes, char* file, s32 line)
-{
+void* _calloc(s64 size, s64 bytes, char* file, s32 line) {
     assert(size != 0);
     assert(bytes != 0);
     // info("calloc(%lld, %lld) called. file: %s line: %s", size, bytes, file, line);
@@ -207,8 +194,7 @@ void* _calloc(s64 size, s64 bytes, char* file, s32 line)
     return alloc;
 }
 
-void* _realloc(void* ptr, s64 bytes, char* file, s32 line)
-{
+void* _realloc(void* ptr, s64 bytes, char* file, s32 line) {
     assert(ptr);
     assert(bytes != 0);
     // info("realloc(%lld, %lld) called. file: %s line: %s", (int)ptr, bytes, file, line);
@@ -217,8 +203,7 @@ void* _realloc(void* ptr, s64 bytes, char* file, s32 line)
     return alloc;
 }
 
-char* strf(char* fmt, ...)
-{
+char* strf(char* fmt, ...) {
     assert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -245,23 +230,19 @@ char* colors[6] = {
 };
 int   counter      = 0;
 int   colors_count = 6;
-char* get_previous_color(void)
-{
+char* get_previous_color(void) {
     if (counter == 0) counter = 6;
     return colors[--counter];
 }
-char* get_next_color(void)
-{
+char* get_next_color(void) {
     if (counter == colors_count) counter = 0;
     return colors[counter++];
 }
-char* wrap_with_colored_parens(char* str)
-{
+char* wrap_with_colored_parens(char* str) {
     char* current_color = get_next_color();
     return strf("%s(\033[00m%s%s)\033[00m", current_color, str, current_color);
 }
-char* give_unique_color(char* str)
-{
+char* give_unique_color(char* str) {
     char* current_color = get_next_color();
     return strf("%s%s\033[00m", current_color, str);
 }
@@ -287,8 +268,7 @@ linux, compile with: gcc -o testo test.c -lrt
 #include <mach/mach.h>
 #endif
 
-f64 get_time(void)
-{
+f64 get_time(void) {
     f64             ms;
     time_t          s;
     struct timespec ts;
@@ -316,8 +296,7 @@ f64 get_time(void)
 //------------------------------------------------------------------------------
 //                               Tests
 //------------------------------------------------------------------------------
-void utility_tests(void)
-{
+void utility_tests(void) {
     // These leak memory.
 
     // get_file_directory

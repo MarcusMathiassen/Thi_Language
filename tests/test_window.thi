@@ -26,6 +26,8 @@ main()
 
     glEnable(GL_FRAMEBUFFER_SRGB)
 
+    shorten_filenames_in_error_messages := false
+
     x := 0.0
     y := 0.0
     scale := 1.0

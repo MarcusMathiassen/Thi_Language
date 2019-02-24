@@ -1,12 +1,12 @@
 #include "type.h"
 
-#include "ast.h" // AST*
+#include "ast.h"       // AST*
 #include "constants.h" // TYPE_LIST_STARTING_ALLOC
-#include "string.h" // strf, append_string, string
-#include "utility.h" // error
-#include <assert.h> // assert
-#include <stdlib.h> // xmalloc
-#include <string.h> // strcmp
+#include "string.h"    // strf, append_string, string
+#include "utility.h"   // error
+#include <assert.h>    // assert
+#include <stdlib.h>    // xmalloc
+#include <string.h>    // strcmp
 
 //------------------------------------------------------------------------------
 //                               type.c
@@ -16,8 +16,7 @@
 //                               Public
 //------------------------------------------------------------------------------
 
-char* type_kind_to_str(Type_Kind kind)
-{
+char* type_kind_to_str(Type_Kind kind) {
     switch (kind) {
     case TYPE_UNRESOLVED: return "TYPE_UNRESOLVED";
     case TYPE_VOID: return "TYPE_VOID";
@@ -34,8 +33,7 @@ char* type_kind_to_str(Type_Kind kind)
     return "";
 }
 
-s64 get_size_of_underlying_type(Type* type)
-{
+s64 get_size_of_underlying_type(Type* type) {
     switch (type->kind) {
     case TYPE_POINTER: return get_size_of_type(type->Pointer.pointee);
     case TYPE_ARRAY: return get_size_of_type(type->Array.type);
@@ -44,8 +42,7 @@ s64 get_size_of_underlying_type(Type* type)
     return 0;
 }
 
-char* get_type_name(Type* type)
-{
+char* get_type_name(Type* type) {
     switch (type->kind) {
     case TYPE_VOID: return "void";
     case TYPE_UNRESOLVED: return type->Unresolved.name;
@@ -64,8 +61,7 @@ char* get_type_name(Type* type)
     return NULL;
 }
 
-s64 get_size_of_type(Type* type)
-{
+s64 get_size_of_type(Type* type) {
     switch (type->kind) {
     case TYPE_UNRESOLVED: return 0;
     case TYPE_VOID: return 0;
@@ -77,8 +73,7 @@ s64 get_size_of_type(Type* type)
     case TYPE_STRUCT: {
         s64 accum_size = 0;
         if (type->Struct.members) {
-            LIST_FOREACH(type->Struct.members)
-            {
+            LIST_FOREACH(type->Struct.members) {
                 AST* mem = (AST*)it->data;
                 if (mem->kind != AST_FUNCTION) accum_size += get_size_of_type(mem->Variable_Decl.type);
             }
@@ -88,8 +83,7 @@ s64 get_size_of_type(Type* type)
     case TYPE_ENUM: return 8;
     case TYPE_FUNCTION: {
         s64 accum_size = 0;
-        LIST_FOREACH(type->Function.args)
-        {
+        LIST_FOREACH(type->Function.args) {
             AST* arg = (AST*)it->data;
             accum_size += get_size_of_type(arg->Variable_Decl.type);
         }
@@ -100,13 +94,11 @@ s64 get_size_of_type(Type* type)
     return 0;
 }
 
-s64 get_offset_in_struct_to_field(Type* type, char* name)
-{
+s64 get_offset_in_struct_to_field(Type* type, char* name) {
     assert(type);
     assert(type->kind == TYPE_STRUCT);
     s64 accum_size = 0;
-    LIST_FOREACH(type->Struct.members)
-    {
+    LIST_FOREACH(type->Struct.members) {
         AST* mem = (AST*)it->data;
         if (strcmp(name, mem->Variable_Decl.name) == 0) {
             return accum_size;
@@ -117,22 +109,19 @@ s64 get_offset_in_struct_to_field(Type* type, char* name)
     return -1;
 }
 
-s64 type_function_get_arg_count(Type* type)
-{
+s64 type_function_get_arg_count(Type* type) {
     assert(type);
     assert(type->kind == TYPE_FUNCTION);
     return type->Function.args->count;
 }
 
-s64 type_array_get_count(Type* type)
-{
+s64 type_array_get_count(Type* type) {
     assert(type);
     assert(type->kind == TYPE_ARRAY);
     return type->Array.size;
 }
 
-char* type_to_str(Type* type)
-{
+char* type_to_str(Type* type) {
     if (!type) return "";
     switch (type->kind) {
     case TYPE_VOID: return "void";
@@ -144,8 +133,7 @@ char* type_to_str(Type* type)
     case TYPE_STRING: return strf("\"\", %d", type->String.len);
     case TYPE_STRUCT: {
         char* s = strf("%s\n", type->Struct.name);
-        LIST_FOREACH(type->Struct.members)
-        {
+        LIST_FOREACH(type->Struct.members) {
             AST* mem = (AST*)it->data;
             s        = strf("%s\t%s", s, strf("%s\n", ast_to_str(mem)));
         }
@@ -154,8 +142,7 @@ char* type_to_str(Type* type)
 
     case TYPE_ENUM: {
         char* s = strf("%s\n", type->Enum.name);
-        LIST_FOREACH(type->Enum.members)
-        {
+        LIST_FOREACH(type->Enum.members) {
             AST* mem = (AST*)it->data;
             s = strf("%s\t%s", s, strf("%s %s\n", mem->Constant_Decl.name, ast_to_str(mem->Constant_Decl.value)));
         }
@@ -167,8 +154,7 @@ char* type_to_str(Type* type)
         s64    arg_count = type->Function.args->count;
         s64    arg_index = 0;
         append_string(&str, "(");
-        LIST_FOREACH(type->Function.args)
-        {
+        LIST_FOREACH(type->Function.args) {
             append_string(&str, ast_to_str(it->data));
             if (arg_index != arg_count - 1) {
                 append_string(&str, ", ");
@@ -188,8 +174,7 @@ char* type_to_str(Type* type)
     return NULL;
 }
 
-Type_Ref_List make_type_ref_list()
-{
+Type_Ref_List make_type_ref_list() {
     Type_Ref_List l;
     l.count     = 0;
     l.allocated = TYPE_REF_LIST_STARTING_ALLOC;
@@ -197,8 +182,7 @@ Type_Ref_List make_type_ref_list()
     return l;
 }
 
-void type_ref_list_append(Type_Ref_List* l, Type* t)
-{
+void type_ref_list_append(Type_Ref_List* l, Type* t) {
     if (l->count >= l->allocated) {
         l->allocated *= 2;
         l->data = xrealloc(l->data, l->allocated * sizeof(Type*));
@@ -211,29 +195,25 @@ void type_ref_list_append(Type_Ref_List* l, Type* t)
 //                               Type Maker Functions
 //------------------------------------------------------------------------------
 
-Type* make_type(Type_Kind kind)
-{
+Type* make_type(Type_Kind kind) {
     Type* t = xmalloc(sizeof(Type));
     t->kind = kind;
     return t;
 }
 
-Type* make_type_void()
-{
+Type* make_type_void() {
     Type* t = make_type(TYPE_VOID);
     return t;
 }
 
-Type* make_type_unresolved(char* name)
-{
+Type* make_type_unresolved(char* name) {
     assert(name);
     Type* t            = make_type(TYPE_UNRESOLVED);
     t->Unresolved.name = name;
     return t;
 }
 
-Type* make_type_array(Type* type, s32 size)
-{
+Type* make_type_array(Type* type, s32 size) {
     assert(type);
     assert(size > 0);
     Type* t       = make_type(TYPE_ARRAY);
@@ -242,8 +222,7 @@ Type* make_type_array(Type* type, s32 size)
     return t;
 }
 
-Type* make_type_int(s8 bytes, bool is_unsigned)
-{
+Type* make_type_int(s8 bytes, bool is_unsigned) {
     assert(bytes > 0 && bytes < 9);
     assert(is_unsigned == 1 || is_unsigned == 0);
     Type* t            = make_type(TYPE_INT);
@@ -252,31 +231,27 @@ Type* make_type_int(s8 bytes, bool is_unsigned)
     return t;
 }
 
-Type* make_type_float(s8 bytes)
-{
+Type* make_type_float(s8 bytes) {
     assert(bytes > 0 && bytes < 9);
     Type* t        = make_type(TYPE_FLOAT);
     t->Float.bytes = bytes;
     return t;
 }
 
-Type* make_type_string(s64 len)
-{
+Type* make_type_string(s64 len) {
     assert(len);
     Type* t       = make_type(TYPE_STRING);
     t->String.len = len;
     return t;
 }
 
-Type* make_type_pointer(Type* pointee)
-{
+Type* make_type_pointer(Type* pointee) {
     Type* t            = make_type(TYPE_POINTER);
     t->Pointer.pointee = pointee;
     return t;
 }
 
-Type* make_type_enum(char* name, List* members)
-{
+Type* make_type_enum(char* name, List* members) {
     assert(name);
     Type* t         = make_type(TYPE_ENUM);
     t->name         = name;
@@ -285,8 +260,7 @@ Type* make_type_enum(char* name, List* members)
     return t;
 }
 
-Type* make_type_struct(char* name, List* members)
-{
+Type* make_type_struct(char* name, List* members) {
     assert(name);
     Type* t           = make_type(TYPE_STRUCT);
     t->name           = name;
@@ -295,8 +269,7 @@ Type* make_type_struct(char* name, List* members)
     return t;
 }
 
-Type* make_type_function(char* name, List* args, Type* ret_type, bool has_var_arg)
-{
+Type* make_type_function(char* name, List* args, Type* ret_type, bool has_var_arg) {
     assert(name);
     Type* t                 = make_type(TYPE_FUNCTION);
     t->name                 = name;

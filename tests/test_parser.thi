@@ -1,6 +1,11 @@
+# Dependencies:
+#   function name mangling
+#   struct methods
+
 struct Parser
     
     lexer := Lexer()
+
     curr := Token()
     prev := Token()
     next := Token()
@@ -26,7 +31,7 @@ struct Parser
             if stmt ast.append(stmt)
         return ast
 
-    Parser.parsePrimary()
+    parsePrimary()
         if curr.kind
             is .True return parseTrue()
             is .False return parseFalse()

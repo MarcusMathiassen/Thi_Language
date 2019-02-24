@@ -1,21 +1,21 @@
-#include "ast.h" // AST
+#include "ast.h"     // AST
 #include "codegen.h" // generate_code_from_ast
 #include "constants.h"
-#include "lexer.h" // generate_tokens_from_source, print_tokens
-#include "list.h" // list_tests
-#include "map.h" // map
+#include "lexer.h"  // generate_tokens_from_source, print_tokens
+#include "list.h"   // list_tests
+#include "map.h"    // map
 #include "parser.h" // generate_ast_from_tokens
-#include "stack.h" // stack_tests
+#include "stack.h"  // stack_tests
 #include "string.h" // strcmp
-#include "thi.h" // Thi
-#include "type.h" // Type
+#include "thi.h"    // Thi
+#include "type.h"   // Type
 #include "typedefs.h"
 #include "utility.h" // get_file_content, success, info, get_time
-#include "value.h" // Value
-#include <assert.h> // assert
-#include <stdio.h> // sprintf
-#include <stdlib.h> // free
-#include <string.h> // strcmp
+#include "value.h"   // Value
+#include <assert.h>  // assert
+#include <stdio.h>   // sprintf
+#include <stdlib.h>  // free
+#include <string.h>  // strcmp
 #include <sys/ioctl.h>
 #include <unistd.h>
 
@@ -37,8 +37,7 @@ void  linking_stage(Thi* thi, char* exec_name);
 void  pass_general(Thi* thi);
 void  maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it);
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     // Argument validation
     if (argc < 2) error("too few arguments.");
 
@@ -123,8 +122,7 @@ int main(int argc, char** argv)
     add_symbol(&thi, "f64", make_type_float(8));
 
     // Parse
-    LIST_FOREACH(get_load_list(&thi))
-    {
+    LIST_FOREACH(get_load_list(&thi)) {
         char* file  = strf("%s%s", get_current_directory(&thi), it->data);
         List* ast_l = parse(&thi, file);
         list_append_content_of(ast, ast_l);
@@ -177,8 +175,7 @@ int main(int argc, char** argv)
     info("resolved %lld types", thi.unresolved_types.count);
     info("type inferred %lld variables", thi.variables_in_need_of_type_inference.count);
     info("checked calls %lld", thi.calls.count);
-    LIST_FOREACH(get_timers(&thi))
-    {
+    LIST_FOREACH(get_timers(&thi)) {
         Timer* tm      = (Timer*)it->data;
         s64    len     = strlen(tm->desc);
         char*  ms      = strf("%f seconds", tm->ms / 1e3);
@@ -191,8 +188,7 @@ int main(int argc, char** argv)
     return 0;
 }
 
-void assemble(Thi* thi, char* asm_file, char* exec_name)
-{
+void assemble(Thi* thi, char* asm_file, char* exec_name) {
     string comp_call = make_string_f("nasm -f macho64 -g %s -o %s.o", asm_file, exec_name);
     push_timer(thi, "Assembler");
     system(comp_call.c_str);
@@ -200,13 +196,11 @@ void assemble(Thi* thi, char* asm_file, char* exec_name)
     pop_timer(thi);
 }
 
-void linking_stage(Thi* thi, char* exec_name)
-{
+void linking_stage(Thi* thi, char* exec_name) {
     // char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _%s", exec_name, exec_name, exec_name);
     char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _main", exec_name, exec_name);
     List* links     = get_link_list(thi);
-    LIST_FOREACH(links)
-    {
+    LIST_FOREACH(links) {
         char* l   = (char*)it->data;
         link_call = strf("%s %s", link_call, l);
     }
@@ -219,8 +213,7 @@ void linking_stage(Thi* thi, char* exec_name)
     system(strf("rm %s.o", exec_name));
 }
 
-void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it)
-{
+void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it) {
     AST* node = (AST*)it->data;
     switch (node->kind) {
     case AST_WHILE: {
@@ -239,8 +232,7 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it)
         List* stmts                = node->If.then_block->Block.stmts;
         bool  is_actually_a_switch = false;
 
-        LIST_FOREACH(stmts)
-        {
+        LIST_FOREACH(stmts) {
             maybe_convert_call_to_def(thi, ast, it);
             AST* stmt = (AST*)it->data;
             if (stmt->kind == AST_IS) {
@@ -252,8 +244,7 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it)
         // Go through it again and make sure every statement
         // is a case
         if (is_actually_a_switch) {
-            LIST_FOREACH(stmts)
-            {
+            LIST_FOREACH(stmts) {
                 AST* stmt = (AST*)it->data;
                 if (stmt->kind != AST_IS) {
                     error("only 'case' statements are allowed inside an if switch");
@@ -271,8 +262,7 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it)
                 List* args      = node->Call.args;
 
                 bool has_var_args = false;
-                LIST_FOREACH(args)
-                {
+                LIST_FOREACH(args) {
                     AST* d = (AST*)it->data;
                     if (d->kind == AST_VAR_ARGS) {
                         has_var_args = true;
@@ -295,8 +285,7 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it)
     }
 }
 
-List* parse(Thi* thi, char* source_file)
-{
+List* parse(Thi* thi, char* source_file) {
     char* last_file = get_source_file(thi);
     char* last_dir  = get_current_directory(thi);
     char* dir       = get_file_directory(source_file);
@@ -330,8 +319,7 @@ List* parse(Thi* thi, char* source_file)
     return ast;
 }
 
-void add_all_definitions(Thi* thi, Parsed_File* pf)
-{
+void add_all_definitions(Thi* thi, Parsed_File* pf) {
     for (s64 i = 0; i < pf->unresolved_types.count; ++i) {
         type_ref_list_append(&thi->unresolved_types, pf->unresolved_types.data[i]);
     }
@@ -372,15 +360,13 @@ void add_all_definitions(Thi* thi, Parsed_File* pf)
     }
 }
 
-Type* get_inferred_type_of_expr(Thi* thi, AST* expr)
-{
+Type* get_inferred_type_of_expr(Thi* thi, AST* expr) {
     if (!expr) return NULL;
     switch (expr->kind) {
     case AST_FUNCTION: return get_inferred_type_of_expr(thi, expr->Function.body);
     case AST_BLOCK: {
         Type* type = NULL;
-        LIST_FOREACH(expr->Block.stmts)
-        {
+        LIST_FOREACH(expr->Block.stmts) {
             AST* stmt = (AST*)it->data;
             if (stmt->kind == AST_RETURN) {
                 type = get_inferred_type_of_expr(thi, stmt);
@@ -405,8 +391,7 @@ Type* get_inferred_type_of_expr(Thi* thi, AST* expr)
     return NULL;
 }
 
-void pass_type_checker(Thi* thi)
-{
+void pass_type_checker(Thi* thi) {
     info("pass_type_checker");
     push_timer(thi, "pass_type_checker");
 
@@ -424,6 +409,7 @@ void pass_type_checker(Thi* thi)
 
         // The args must be of equal length.
         if (call_args->count != func_args->count) {
+
             // Make a nice error message
             char* callee         = call->Call.callee;
             s64   expected_count = func_args->count;
@@ -431,16 +417,15 @@ void pass_type_checker(Thi* thi)
             s64   line           = call->t.line_pos;
             s64   pos            = call->t.col_pos;
 
-            char* str
-                = strf("function call '%s' expected %lld arguments. Got %lld.", callee, expected_count, got_count);
+            char* str =
+                strf("function call '%s' expected %lld arguments. Got %lld.", callee, expected_count, got_count);
             error("[TYPE_CHECKER %lld:%lld]: %s", line, pos, str);
         }
 
         // And each callers arguments type must match
         // with the callees arguments type.
         List_Node* it2 = func_args->head;
-        LIST_FOREACH(call_args)
-        {
+        LIST_FOREACH(call_args) {
             AST* call_arg = (AST*)it->data;
             AST* func_arg = (AST*)it2->data;
 
@@ -459,7 +444,7 @@ void pass_type_checker(Thi* thi)
                 error("[TYPE_CHECKER %lld:%lld]: %s", line, pos, str);
             }
 
-            // NOTE(marcus) I dont really like this..
+            // NOTE(marcus) This is just asking for trouble.
             it2 = it2->next;
         }
     }
@@ -467,8 +452,7 @@ void pass_type_checker(Thi* thi)
     pop_timer(thi);
 }
 
-void pass_progate_identifiers_to_constants(Thi* thi)
-{
+void pass_progate_identifiers_to_constants(Thi* thi) {
     info("pass_progate_identifiers_to_constants");
     push_timer(thi, "pass_progate_identifiers_to_constants");
 
@@ -487,8 +471,7 @@ void pass_progate_identifiers_to_constants(Thi* thi)
     pop_timer(thi);
 }
 
-void pass_initilize_all_enums(Thi* thi)
-{
+void pass_initilize_all_enums(Thi* thi) {
     info("pass_initilize_all_enums");
     push_timer(thi, "pass_initilize_all_enums");
 
@@ -496,8 +479,7 @@ void pass_initilize_all_enums(Thi* thi)
     for (s64 i = 0; i < thi->enums.count; ++i) {
         AST* e = thi->enums.data[i];
 
-        LIST_FOREACH(e->Enum.type->Enum.members)
-        {
+        LIST_FOREACH(e->Enum.type->Enum.members) {
             AST* m = (AST*)it->data;
             // Turn idents into constant decls
             switch (m->kind) {
@@ -523,8 +505,7 @@ void pass_initilize_all_enums(Thi* thi)
         assert(lhs->kind == AST_IDENT);
         assert(rhs->kind == AST_IDENT);
         Type* e = get_symbol(thi, lhs->Ident.name);
-        LIST_FOREACH(e->Enum.members)
-        {
+        LIST_FOREACH(e->Enum.members) {
             char* access_member_name = rhs->Ident.name;
             AST*  mem                = (AST*)it->data;
             if (strcmp(access_member_name, mem->Constant_Decl.name) == 0) {
@@ -536,8 +517,7 @@ void pass_initilize_all_enums(Thi* thi)
 
     pop_timer(thi);
 }
-void pass_resolve_subscripts(Thi* thi)
-{
+void pass_resolve_subscripts(Thi* thi) {
     info("pass_resolve_subscripts");
     push_timer(thi, "pass_resolve_subscripts");
 
@@ -555,8 +535,8 @@ void pass_resolve_subscripts(Thi* thi)
 
     pop_timer(thi);
 }
-void pass_give_all_identifiers_a_type(Thi* thi)
-{
+
+void pass_give_all_identifiers_a_type(Thi* thi) {
     info("pass_give_all_identifiers_a_type");
     push_timer(thi, "pass_give_all_identifiers_a_type");
 
@@ -570,8 +550,7 @@ void pass_give_all_identifiers_a_type(Thi* thi)
     pop_timer(thi);
 }
 
-void pass_type_inference(Thi* thi)
-{
+void pass_type_inference(Thi* thi) {
     info("pass_type_inference");
     push_timer(thi, "pass_type_inference");
 
@@ -593,8 +572,7 @@ void pass_type_inference(Thi* thi)
     pop_timer(thi);
 }
 
-void pass_resolve_all_unresolved_types(Thi* thi)
-{
+void pass_resolve_all_unresolved_types(Thi* thi) {
     info("pass_resolve_all_unresolved_types %lld", thi->unresolved_types.count);
     push_timer(thi, "pass_resolve_all_unresolved_types");
     for (s64 i = 0; i < thi->unresolved_types.count; ++i) {
