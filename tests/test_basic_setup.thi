@@ -11,30 +11,37 @@ get()
     i := "Hello"
     return
 
-
 m :: n * 3
 n :: 3
-
 
 DEFAULT_SIZE_OF_OBJECTS :: 3
 
 main(argc: int, argv: char**)
 
-    puts(argv[2])
-    v: vec2
+    v: v2
 
     get()
-    d: vec2
+    d: v2
 
     k: s64
     l: s64
 
+    # This isa comment
+
+
+    # width  :: 255
+    # height :: 255
+
+    # end :: 3
+    # for i := 0, i < end, i += 1
+    #     puts("Hi")
+
     compile("Hello")
 
     puts("this is a test")
-    return DEFAULT_SIZE_OF_OBJECTS * 3 - 8
+    return DEFAULT_SIZE_OF_OBJECTS * 3 - m + 1
 
-struct vec2 
+struct v2
     x: f32
     y: f32
 

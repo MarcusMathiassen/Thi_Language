@@ -1,14 +1,15 @@
 #include "ast.h"     // AST
 #include "codegen.h" // generate_code_from_ast
 #include "constants.h"
-#include "lexer.h"  // generate_tokens_from_source, print_tokens
-#include "list.h"   // list_tests
-#include "map.h"    // map
-#include "parser.h" // generate_ast_from_tokens
-#include "stack.h"  // stack_tests
-#include "string.h" // strcmp
-#include "thi.h"    // Thi
-#include "type.h"   // Type
+#include "lexer.h"        // generate_tokens_from_source, print_tokens
+#include "list.h"         // list_tests
+#include "map.h"          // map
+#include "parser.h"       // generate_ast_from_tokens
+#include "stack.h"        // stack_tests
+#include "string.h"       // strcmp
+#include "thi.h"          // Thi
+#include "type.h"         // Type
+#include "type_checker.h" // type_checker
 #include "typedefs.h"
 #include "utility.h" // get_file_content, success, info, get_time
 #include "value.h"   // Value
@@ -129,6 +130,8 @@ int main(int argc, char** argv) {
     }
 
     thi.ast = ast;
+
+    type_checker(thi.ast);
 
     pass_initilize_all_enums(&thi);
 

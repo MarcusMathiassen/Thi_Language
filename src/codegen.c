@@ -195,7 +195,7 @@ char* generate_code_from_ast(List* ast, char* entry) {
         // ctx.section_text.c_str);
         = strf("%s%sglobal _main\n%s", ctx.section_extern.c_str, ctx.section_data.c_str, ctx.section_text.c_str);
 
-    info("%s", output);
+    // info("%s", output);
 
     return output;
 }
@@ -1364,6 +1364,7 @@ Value* codegen_switch(Codegen_Context* ctx, AST* expr) {
 
     return NULL;
 }
+
 Value* codegen_cast(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_CAST);
