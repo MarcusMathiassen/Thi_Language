@@ -161,6 +161,10 @@ AST* parse_sizeof(Parser_Context* ctx);
 AST* parse_cast(Parser_Context* ctx);
 AST* parse_enum(Parser_Context* ctx);
 AST* parse_struct(Parser_Context* ctx);
+AST* parse_comma_delim_list(Parser_Context* ctx);
+
+AST* parse_prefix(Parser_Context* ctx);
+AST* parse_postfix(Parser_Context* ctx);
 
 //------------------------------------------------------------------------------
 //                               Helpers
@@ -565,6 +569,11 @@ AST* parse_variable_decl(Parser_Context* ctx, char* ident) {
     if (variable_needs_type_inference) {
         ast_ref_list_append(&ctx->variables_in_need_of_type_inference, var_decl);
     }
+
+    if (tok_is(ctx, TOKEN_COMMA)) {
+        warning("%s", ctx->curr_tok.value);
+    }
+
     return var_decl;
 }
 
@@ -643,8 +652,20 @@ AST* parse_postfix_tail(Parser_Context* ctx, AST* primary_expr) {
             primary_expr = read_field_access(ctx, primary_expr);
             continue;
         }
+        // if (tok_is(ctx, TOKEN_COMMA)) {
+        //     warning("first %s", ast_to_str(primary_expr));
+        //     eat(ctx);
+        //     warning("second %s", ctx->curr_tok.value);
+        //     // primary_expr = read_field_access(ctx, primary_expr);
+        //     continue;
+        // }
         return primary_expr;
     }
+}
+
+AST* parse_prefix(Parser_Context* ctx) {
+    DEBUG_START;
+    return parse_unary(ctx);
 }
 
 AST* parse_postfix(Parser_Context* ctx) {
@@ -679,7 +700,6 @@ AST* parse_unary(Parser_Context* ctx) {
             }
         }
     }
-
     // If the current token is not an operator, it must be a primary expression.
     return unary ? unary : parse_postfix(ctx);
 }
@@ -698,11 +718,8 @@ AST* parse_note(Parser_Context* ctx) {
 
 AST* parse_expression(Parser_Context* ctx) {
     DEBUG_START;
-    AST* lhs  = parse_unary(ctx);
-    AST* expr = NULL;
-    if (lhs) {
-        expr = parse_binary(ctx, 0, lhs);
-    }
+    AST* lhs  = parse_prefix(ctx);
+    AST* expr = lhs ? parse_binary(ctx, 0, lhs) : NULL;
     return expr;
 }
 
@@ -711,6 +728,7 @@ AST* parse_float(Parser_Context* ctx) {
     AST* res = make_ast_float(ctx->curr_tok, get_float(ctx));
     return res;
 }
+
 AST* parse_integer(Parser_Context* ctx) {
     DEBUG_START;
     AST* res = make_ast_int(ctx->curr_tok, get_integer(ctx));
@@ -719,11 +737,9 @@ AST* parse_integer(Parser_Context* ctx) {
 
 AST* parse_parens(Parser_Context* ctx) {
     DEBUG_START;
-
     eat_kind(ctx, TOKEN_OPEN_PAREN);
     AST* expr = parse_expression(ctx);
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
-
     return make_ast_grouping(ctx->curr_tok, expr);
 }
 

@@ -26,6 +26,11 @@ thi_executable=./thi
 
 for tf in $test_files
 do
+    if [ ! -f ${tf} ]; then
+        echo -e "${RGB_GRAY}[TEST] ${NC}${RED} ${tf} does not exist. ${NC}"
+        continue
+    fi
+
     # Compile the file
     $thi_executable -f $tf -v -d
     ((test_counter++))

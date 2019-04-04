@@ -13,15 +13,12 @@ typedef struct AST_Ref_List AST_Ref_List;
 typedef enum AST_Kind       AST_Kind;
 
 enum AST_Kind {
-
     AST_IS,
     AST_FALLTHROUGH,
     AST_VAR_ARGS,
-
     AST_EXTERN,
     AST_LOAD,
     AST_LINK,
-
     AST_NOTE,
     AST_INT,
     AST_FLOAT,
@@ -33,30 +30,22 @@ enum AST_Kind {
     AST_GROUPING,
     AST_SUBSCRIPT,
     AST_FIELD_ACCESS,
-
     AST_CAST,
-
     AST_BLOCK,
     AST_STRUCT,
     AST_ENUM,
     AST_FUNCTION,
-
     AST_VARIABLE_DECL,
     AST_CONSTANT_DECL,
-
     AST_IF,
     AST_FOR,
     AST_WHILE,
     AST_RETURN,
     AST_DEFER,
-
     AST_BREAK,
     AST_CONTINUE,
-
     AST_SIZEOF,
-
     AST_SWITCH,
-
     AST_COUNT
 };
 
@@ -219,7 +208,6 @@ AST* make_ast_extern(Token t, Type* type);
 AST* make_ast_load(Token t, char* str);
 AST* make_ast_link(Token t, char* str);
 AST* make_ast_var_args(Token t);
-
 AST* make_ast_note(Token t, AST* expr);
 AST* make_ast_int(Token t, s64 value);
 AST* make_ast_float(Token t, f64 value);
@@ -247,7 +235,6 @@ AST* make_ast_sizeof(Token t, Type* type);
 AST* make_ast_is(Token t, AST* expr, AST* body, bool has_fallthrough);
 AST* make_ast_switch(Token t, AST* if_statement);
 AST* make_ast_fallthrough(Token t);
-
 AST* make_ast_break(Token t);
 AST* make_ast_continue(Token t);
 

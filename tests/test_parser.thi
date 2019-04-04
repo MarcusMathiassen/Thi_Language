@@ -2,6 +2,16 @@
 #   function name mangling
 #   struct methods
 
+main()
+    parser: Parser
+    return 1
+    
+compile(source)        
+    tokens := makeTokens(source)
+    ast    := makeAST(tokens)
+    code   := makeX64(ast)
+    return code
+    
 struct Parser
     
     lexer := Lexer()
@@ -47,6 +57,3 @@ struct Parser
             is .OpenParen return parseParen()
         else error("Invalid primary token '%s'", curr.str())
         return nil
-
-main()
-    return 1

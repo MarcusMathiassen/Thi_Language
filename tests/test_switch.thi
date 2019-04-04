@@ -1,12 +1,23 @@
 
 extern puts(u8*) s32
 
+struct Person
+    name: u8*
+    age: s8
+
 enum Kind
     Int
     Float
     String
 
+enum Choices
+    Diamond
+    Hearts
+    Joker
+
 main()
+
+    p: Person
     i: Kind = .Int
 
     if i == .Float

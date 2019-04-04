@@ -144,7 +144,7 @@ char* type_to_str(Type* type) {
         char* s = strf("%s\n", type->Enum.name);
         LIST_FOREACH(type->Enum.members) {
             AST* mem = (AST*)it->data;
-            s = strf("%s\t%s", s, strf("%s %s\n", mem->Constant_Decl.name, ast_to_str(mem->Constant_Decl.value)));
+            s        = strf("%s\t%s", s, strf("%s\n", ast_to_str(mem)));
         }
         return s;
     };

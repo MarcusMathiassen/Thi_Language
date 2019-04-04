@@ -32,7 +32,6 @@ typedef enum {
     KEY_AS,
     KEY_IS,
     KEY_FALLTHROUGH,
-
     KEY_COUNT
 } Keyword_Kind;
 
