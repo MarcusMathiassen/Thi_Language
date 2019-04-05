@@ -23,19 +23,19 @@ main()
     if i == .Float
         puts("Its a float!")
 
-    if i 
+    if i
         is .Int fallthrough
         is 1
-            puts("Hello") 
+            puts("Hello")
             fallthrough
         is .String puts("are")
         is 3 puts("you?")
         is 4 return 4
         is 5 return 5
-        is 6 
+        is 6
             k := 5.0
             return 6
-    else 
+    else
         return 7
 
     return 1
