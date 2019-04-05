@@ -1,8 +1,8 @@
 # How to compile
 Just run the build script in the root folder.
-There are no dependencies. Not yet tested on Windows but should compile file on latest macOS
+There are no dependencies. Not yet tested on Windows but should compile file on latest macOS.
 
-# Basic example
+## Program:
         extern puts (u8*)  s32
         main()
             defer
@@ -12,7 +12,7 @@ There are no dependencies. Not yet tested on Windows but should compile file on 
             defer puts("2nd")
             puts("1st")
             
-Output:
+## Output:
 
         1st
         2nd
