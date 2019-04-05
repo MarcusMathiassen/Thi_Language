@@ -20,7 +20,7 @@
 //------------------------------------------------------------------------------
 
 #define DEBUG_START                                                                                                    \
-    info("%s: %s", __func__, wrap_with_colored_parens(ast_to_str(expr)));                                              \
+    info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(expr)));                                       \
     assert(ctx);                                                                                                       \
     assert(expr);
 
@@ -139,8 +139,6 @@ Value* codegen_cast(Codegen_Context* ctx, AST* expr);
 Value* codegen_switch(Codegen_Context* ctx, AST* expr);
 Value* codegen_expr(Codegen_Context* ctx, AST* expr);
 
-char* generate_code_from_ast(List* ast, char* entry);
-
 void emit_jmp(Codegen_Context* ctx, char* label);
 
 // @Hotpath
@@ -181,7 +179,7 @@ Value* codegen_expr(Codegen_Context* ctx, AST* expr) {
     return NULL;
 }
 
-char* generate_code_from_ast(List* ast, char* entry) {
+char* generate_code_from_ast(List* ast) {
     info("Generating code from ast");
 
     Codegen_Context ctx = make_codegen_context();
@@ -190,12 +188,10 @@ char* generate_code_from_ast(List* ast, char* entry) {
     emit_no_tab(&ctx, "section .text");
     LIST_FOREACH(ast) { codegen_expr(&ctx, (AST*)it->data); }
 
-    char* output
-        // = strf("%s%sglobal _%s\n%s", ctx.section_extern.c_str, ctx.section_data.c_str, entry,
-        // ctx.section_text.c_str);
-        = strf("%s%sglobal _main\n%s", ctx.section_extern.c_str, ctx.section_data.c_str, ctx.section_text.c_str);
+    char* output =
+        strf("%s%sglobal _main\n%s", ctx.section_extern.c_str, ctx.section_data.c_str, ctx.section_text.c_str);
 
-    // info("%s", output);
+    info("%s", output);
 
     return output;
 }
@@ -976,15 +972,15 @@ Value* codegen_call(Codegen_Context* ctx, AST* expr) {
 
     assert(ret_type);
 
-    List* values  = make_list();
-    List* ints    = make_list();
-    List* floats  = make_list();
-    List* structs = make_list();
+    List* values = make_list();
+    // List* ints   = make_list();
+    // List* floats  = make_list();
+    // List* structs = make_list();
 
     s8 total             = 0;
     s8 int_arg_counter   = 0;
     s8 float_arg_counter = 0;
-    s8 other_counter     = 0;
+    // s8 other_counter     = 0;
 
     LIST_FOREACH_REVERSE(args) {
         AST*   arg = (AST*)it->data;
@@ -1129,8 +1125,8 @@ Value* codegen_field_access(Codegen_Context* ctx, AST* expr) {
 
     warning("%s", type_to_str(t));
 
-    s64    stack_pos = get_stack_pos_of_variable(variable);
-    Value* v         = make_value_variable("x", t, stack_pos + accum);
+    s64 stack_pos = get_stack_pos_of_variable(variable);
+    // Value* v         = make_value_variable("x", t, stack_pos + accum);
 
     // emit(ctx, "mov rax, [rbp-%lld]", stack_pos - accum);
     Value* var = make_value_variable(field_name, t, stack_pos - accum);

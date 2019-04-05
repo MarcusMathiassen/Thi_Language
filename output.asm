@@ -1,87 +1,84 @@
-extern _puts
 section .data
-	d0: dq `Hello`, 0 
-	d1: dq `Hello`, 0 
-	d2: dq `this is a test`, 0 
 global _main
 section .text
-_get:
+_fib:
 	push rbp
 	mov rbp, rsp
-	sub rsp, 16; 8 alloc, 8 padding
+	sub rsp, 16; 4 alloc, 12 padding
 .begin:
-	mov rax, d0; string_ref
+	mov [rbp-4], edi; store_r
+	mov eax, [rbp-4]; load
 	push rax
-	push rax
-	mov rax, [rbp-8]; load
-	lea rax, [rbp-8]
+	mov eax, 0
 	pop rcx
-	mov [rax], rcx; store
-	pop rax
-.l1:
-	jmp .l0
-.l0:
+	cmp rcx, rax
+	sete al
+	push rax
+	mov eax, [rbp-4]; load
+	push rax
+	mov eax, 1
+	pop rcx
+	cmp rcx, rax
+	sete al
+	pop rcx
+	or al, cl
+	setne al
+	cmp al, 0
+	je .l0
+.l3:
+	jmp .l2
+.l2:
+	mov eax, [rbp-4]; load
 	jmp .end
+	jmp .l1
+.l0:
+.l5:
+	jmp .l4
+.l4:
+	mov eax, 2
+	push rax
+	mov eax, [rbp-4]; load
+	pop rcx
+	sub rax, rcx
+	push rax
+	pop rdi
+	mov rax, 1
+	call _fib
+	push rax
+	mov eax, 1
+	push rax
+	mov eax, [rbp-4]; load
+	pop rcx
+	sub rax, rcx
+	push rax
+	pop rdi
+	mov rax, 1
+	call _fib
+	pop rcx
+	add rax, rcx
+	jmp .end
+.l1:
 .end:
-	add rsp, 16; 8 alloc, 8 padding
+	add rsp, 16; 4 alloc, 12 padding
 	leave
 	ret
 _main:
 	push rbp
 	mov rbp, rsp
-	sub rsp, 48; 44 alloc, 4 padding
 .begin:
-	mov [rbp-4], edi; store_r
-	mov [rbp-12], rsi; store_r
-	mov rax, 0
-	call _get
-	mov rax, d1; string_ref
-	push rax
-	pop rdi
-	mov rax, 1
-	call _compile
-	mov rax, d2; string_ref
-	push rax
-	pop rdi
-	mov rax, 1
-	call _puts
 .l1:
 	jmp .l0
 .l0:
-	mov eax, 1
+	mov eax, 54
 	push rax
-	mov eax, 3
-	push rax
-	mov eax, 3
-	pop rcx
-	imul rax, rcx
-	push rax
-	mov eax, 3
-	push rax
-	mov eax, 3
-	pop rcx
-	imul rax, rcx
-	pop rcx
-	sub rax, rcx
-	pop rcx
-	add rax, rcx
-	jmp .end
-.end:
-	add rsp, 48; 44 alloc, 4 padding
-	leave
-	ret
-_compile:
-	push rbp
-	mov rbp, rsp
-	sub rsp, 16; 8 alloc, 8 padding
-.begin:
-	mov [rbp-8], rdi; store_r
-	mov rax, [rbp-8]; load
+	mov eax, 10
 	push rax
 	pop rdi
 	mov rax, 1
-	call _puts
+	call _fib
+	pop rcx
+	sub rax, rcx
+	jmp .end
 .end:
-	add rsp, 16; 8 alloc, 8 padding
 	leave
 	ret

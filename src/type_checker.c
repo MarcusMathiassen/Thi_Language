@@ -5,7 +5,7 @@
 #include <assert.h> // assert
 
 #define DEBUG_START                                                                                                    \
-    info("%s: %s", give_unique_color(__func__), wrap_with_colored_parens(ast_to_str(expr)));                           \
+    info("%s: %s", give_unique_color((char*)__func__), wrap_with_colored_parens(ast_to_str(expr)));                    \
     assert(expr);
 
 Type* type_check_expr(AST* expr);
@@ -74,7 +74,7 @@ Type* type_check_expr(AST* expr) {
     case AST_BREAK: return type_check_break(expr);
     case AST_CONTINUE: return type_check_continue(expr);
     case AST_CAST: return type_check_cast(expr);
-    default: error("Unhandled %s case for kind '%s'", give_unique_color(__func__), ast_kind_to_str(expr->kind));
+    default: error("Unhandled %s case for kind '%s'", give_unique_color((char*)__func__), ast_kind_to_str(expr->kind));
     }
     return NULL;
 }

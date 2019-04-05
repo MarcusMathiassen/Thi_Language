@@ -3,13 +3,12 @@ main()
 
 
 foo(a: s32)
-    return a * 3 
+    return a * 3
 
 
-cat (a: s32) 
+cat (a: s32)
     return a - 3
 
 
 bar (a: s32, b: s32)
     return a - b
-

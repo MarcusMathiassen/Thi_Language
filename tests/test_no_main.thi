@@ -8,7 +8,7 @@ main()
 
     system("echo Hello there")
 
-    X :: 0
+    X :: 1
     if add(0, 1) == X puts("fewfwefwe")
 
     return add(0, 1)

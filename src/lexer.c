@@ -101,7 +101,9 @@ Lexed_File generate_tokens_from_source(char* source) {
 
     Token_Array tokens = make_token_array();
 
-    for (;;) {
+    f64 start_time = get_time();
+
+    while (true) {
         Token token = get_token(&lctx);
 
         if (lctx.current_indentation_level > lctx.previous_indentation_level) {
@@ -113,6 +115,7 @@ Lexed_File generate_tokens_from_source(char* source) {
             lctx.previous_indentation_level = lctx.current_indentation_level;
             token_array_append(&tokens, t);
         }
+
         while (lctx.current_indentation_level < lctx.previous_indentation_level) {
             Token t;
             t.kind     = TOKEN_BLOCK_END;
@@ -135,6 +138,7 @@ Lexed_File generate_tokens_from_source(char* source) {
     lf.tokens   = tokens;
     lf.lines    = lctx.line_count;
     lf.comments = lctx.comment_count;
+    lf.seconds  = (get_time() - start_time) / 1e3;
 
     info("lexed %lld lines, %lld comments", lctx.line_count, lctx.comment_count);
 

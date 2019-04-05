@@ -1,4 +1,3 @@
-main() 
+main()
     i := 0x1
     return i
-

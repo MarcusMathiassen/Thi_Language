@@ -1,5 +1,4 @@
 load "includes/bar"
 load "includes/foo"
-main() 
+main()
     return bar(1)
-

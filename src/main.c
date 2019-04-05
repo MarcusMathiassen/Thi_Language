@@ -97,6 +97,14 @@ int main(int argc, char** argv) {
         error("%s is not a .thi file.", source_file);
     }
 
+#ifdef BENCH_LEXER
+    char*      source = get_file_content(source_file);
+    Lexed_File lf     = generate_tokens_from_source(source);
+    info("Tokens %lld lines %lld comments %lld\n in %f seconds. %f lines/sec", lf.tokens.count, lf.lines, lf.comments,
+         lf.seconds, lf.lines / lf.seconds);
+    exit(1);
+#endif
+
     List* ast = make_list();
 
     add_load(&thi, name);
@@ -131,7 +139,7 @@ int main(int argc, char** argv) {
 
     thi.ast = ast;
 
-    type_checker(thi.ast);
+    // type_checker(thi.ast);
 
     pass_initilize_all_enums(&thi);
 
@@ -149,7 +157,7 @@ int main(int argc, char** argv) {
 
     // Codegen
     push_timer(&thi, "Codegen");
-    char* output = generate_code_from_ast(ast, exec_name);
+    char* output = generate_code_from_ast(ast);
     pop_timer(&thi);
 
     // Write to file

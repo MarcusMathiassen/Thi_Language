@@ -124,6 +124,7 @@ typedef struct {
     Token_Array tokens;
     s64         lines;
     s64         comments;
+    f64         seconds;
 } Lexed_File;
 
 void       print_tokens(Token_Array token_array);
