@@ -1,57 +1,22 @@
-# Thi_Language
+# How to compile
+Just run the build script in the root folder.
+There are no dependencies. Not yet tested on Windows but should compile file on latest macOS.
 
-# Basic example
-        touch main.thi
-
-        # this is a comment
+## Program:
+        extern puts (u8*)  s32
         main()
-            return 1
+            defer
+                puts("4th")
+            defer
+                puts("3rd")
+            defer puts("2nd")
+            puts("1st")
+            
+## Output:
 
-        $ thi main.thi
-# Syntax
-    Constant variable def <=>        <ident> :: <expr>
-    Function def <=> def <ident> (<variable_decl>..) -> <ret_type>
-    Variable decl <=>                <ident> : <type>
-    Variable decl with assignmen <=> <ident> : <type> = <expr>
-    Variable decl type inf <=>       <ident> := <expr>
+        1st
+        2nd
+        3rd
+        4th
 
-    Control flow
-    if <=> if <cond>
-    for <=> for <init>, <cond>, <inc>
-    while <=> while <cond>
-
-# Not actually a readme but a todo scratchpad
-- [x] integer literals
-- [x] string literals
-- [x] char literals
-- [x] functions
-- [x] function calls
-- [x] multiple compilation files using 'load'
-- [x] C stdlib interop
-
-- [x] 'link' for adding linking options for the linker
-
-- [x] variables
-
-- [x] s32
-- [x] char
-- [x] pointer
-
-- [ ] subscript access
-
-- [x] structs
-- [ ] field access
-
-- [x] enums
-
-- [x] if
-- [x] for
-- [x] 'do' lets you do single line statements 
-- [x] defer
-- [x] while
-- [x] break
-- [x] return
-- [x] continue
-
-- [x] switch
-- [x] case
+More examples can be found in the 'tests' folder.
