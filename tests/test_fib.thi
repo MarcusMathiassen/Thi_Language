@@ -6,7 +6,3 @@ fib(n: s32)
 
 main()
     return fib(10) - 54
-
-
-TokenKind
-    Velure:
