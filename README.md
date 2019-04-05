@@ -18,3 +18,5 @@ There are no dependencies. Not yet tested on Windows but should compile file on 
         2nd
         3rd
         4th
+
+More examples can be found in the 'tests' folder.
