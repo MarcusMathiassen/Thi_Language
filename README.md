@@ -1,12 +1,12 @@
 # Thi_Language
 
 # Basic example
-load "includes/cstdio"
-load "includes/cstdlib"
-load "includes/opengl"
-load "includes/glew"
-load "includes/glfw"
-load "includes/cmath"
+        load "includes/cstdio"
+        load "includes/cstdlib"
+        load "includes/opengl"
+        load "includes/glew"
+        load "includes/glfw"
+        load "includes/cmath"
 
         enum Theme
             dark
