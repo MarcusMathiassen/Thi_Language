@@ -5,15 +5,15 @@
 main()
     parser: Parser
     return 1
-    
-compile(source)        
+
+compile(source: char*)
     tokens := makeTokens(source)
     ast    := makeAST(tokens)
     code   := makeX64(ast)
     return code
-    
+
 struct Parser
-    
+
     lexer := Lexer()
 
     curr := Token()
