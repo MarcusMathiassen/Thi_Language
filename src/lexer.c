@@ -3,6 +3,7 @@
 #include "constants.h"
 #include "typedefs.h"
 #include "utility.h" // info, warning, xmalloc, xrealloc
+#include <assert.h>  // assert
 #include <ctype.h>   // isalnum, isdigit
 #include <string.h>  // strncmp
 
@@ -83,6 +84,31 @@ char* STATIC_KEYWORDS_ARRAY[KEY_COUNT] = {
     "link", "type",  "true",   "false",  "defer", "extern", "load",     "cast", "sizeof", "if",          "else",
     "for",  "while", "return", "struct", "enum",  "break",  "continue", "as",   "is",     "fallthrough",
 };
+
+void lexer_test(void) {
+    char*      source = "struct v2\n    x: f32\n    y: f32\n    core()\n        return 1\n";
+    Lexed_File lf     = generate_tokens_from_source(source);
+    info(source);
+    print_tokens(lf.tokens);
+    assert(lf.tokens.data[0].kind == TOKEN_STRUCT);       // struct
+    assert(lf.tokens.data[1].kind == TOKEN_IDENTIFIER);   // v2
+    assert(lf.tokens.data[2].kind == TOKEN_BLOCK_START);  //
+    assert(lf.tokens.data[3].kind == TOKEN_IDENTIFIER);   // x
+    assert(lf.tokens.data[4].kind == TOKEN_COLON);        // :
+    assert(lf.tokens.data[5].kind == TOKEN_IDENTIFIER);   // f32
+    assert(lf.tokens.data[6].kind == TOKEN_IDENTIFIER);   // y
+    assert(lf.tokens.data[7].kind == TOKEN_COLON);        // :
+    assert(lf.tokens.data[8].kind == TOKEN_IDENTIFIER);   // f32
+    assert(lf.tokens.data[9].kind == TOKEN_IDENTIFIER);   // core
+    assert(lf.tokens.data[10].kind == TOKEN_OPEN_PAREN);  // (
+    assert(lf.tokens.data[11].kind == TOKEN_CLOSE_PAREN); // )
+    assert(lf.tokens.data[12].kind == TOKEN_BLOCK_START); //
+    assert(lf.tokens.data[13].kind == TOKEN_RETURN);      // return
+    assert(lf.tokens.data[14].kind == TOKEN_INTEGER);     // 1
+    assert(lf.tokens.data[15].kind == TOKEN_BLOCK_END);   //
+    assert(lf.tokens.data[16].kind == TOKEN_BLOCK_END);   //
+    assert(lf.tokens.data[17].kind == TOKEN_EOF);         //
+}
 
 Lexed_File generate_tokens_from_source(char* source) {
     Lexer_Context lctx;

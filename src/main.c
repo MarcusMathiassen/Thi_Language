@@ -48,6 +48,8 @@ int main(int argc, char** argv) {
     list_tests();
     stack_tests();
 
+    lexer_test();
+
     Thi thi = make_thi();
 
     s32 opt;

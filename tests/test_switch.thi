@@ -5,11 +5,6 @@ struct Person
     name: u8*
     age: s8
 
-enum Kind
-    Int
-    Float
-    String
-
 enum Choices
     Diamond
     Hearts

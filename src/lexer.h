@@ -132,6 +132,7 @@ void       print_token(Token token);
 char*      token_to_str(Token token);
 char*      token_kind_to_str(Token_Kind kind);
 Lexed_File generate_tokens_from_source(char* source);
+void       lexer_test(void);
 
 #define THI_SYNTAX_POINTER TOKEN_ASTERISK
 #define THI_SYNTAX_ADDRESS TOKEN_AND
