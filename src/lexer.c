@@ -281,6 +281,8 @@ Token get_token(Lexer_Context* lctx) {
 
         CASE_SINGLE_TOKEN('|', TOKEN_PIPE);
         switch (*c) {
+            CASE_SINGLE_TOKEN('>', TOKEN_PIPE_GT);
+            break;
             CASE_SINGLE_TOKEN('|', TOKEN_PIPE_PIPE);
             break;
             CASE_SINGLE_TOKEN('=', TOKEN_PIPE_EQ);
@@ -614,6 +616,7 @@ char* token_kind_to_str(Token_Kind kind) {
     case TOKEN_BWSLASH: return "TOKEN_BWSLASH";
     case TOKEN_HASH: return "TOKEN_HASH";
     case TOKEN_EQ: return "TOKEN_EQ";
+    case TOKEN_PIPE_GT: return "TOKEN_PIPE_GT";
     default: warning("Unhandled token kind.");
     }
     return "";

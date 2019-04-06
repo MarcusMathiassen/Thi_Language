@@ -198,7 +198,7 @@ char* ast_to_json(AST* expr) {
         result = strf("{\"%s\": {\"sizeof\": %s}}", ast_kind_to_str(expr->kind), type_to_str(expr->Sizeof.type));
     } break;
     case AST_EXTERN: {
-        result = strf("{\"%s\": {\"extern\": %s}}", ast_kind_to_str(expr->kind), type_to_str(expr->Extern.type));
+        result = strf("{\"%s\": {\"extern\": \"%s\"}}", ast_kind_to_str(expr->kind), type_to_str(expr->Extern.type));
     } break;
     case AST_LOAD: {
         result = strf("{\"%s\": {\"load\": %s}}", ast_kind_to_str(expr->kind), expr->Load.str);
@@ -245,7 +245,7 @@ char* ast_to_json(AST* expr) {
                       token_kind_to_str(expr->Unary.op), ast_to_json(expr->Unary.operand));
     } break;
     case AST_BINARY: {
-        result = strf("{\"%s\": {\"op\": \"%s\", \"lhs\": %s, \"rhs\": %s}}", ast_kind_to_str(expr->kind),
+        result = strf("{\"%s\": {\"op\": %s, \"lhs\": %s, \"rhs\": %s}}", ast_kind_to_str(expr->kind),
                       token_kind_to_str(expr->Binary.op), ast_to_json(expr->Binary.lhs), ast_to_json(expr->Binary.rhs));
     } break;
     case AST_RETURN: {
@@ -328,7 +328,7 @@ AST* get_arg_from_func(Type* func_t, s64 arg_index) {
 }
 
 void print_ast(List* ast) {
-    info("Printing AST..");
+    warning("Printing AST..");
     LIST_FOREACH(ast) {
         AST*  expr = it->data;
         char* str  = strf("%s", wrap_with_colored_parens(ast_to_str(expr)));
@@ -337,6 +337,7 @@ void print_ast(List* ast) {
 }
 
 void print_ast_json(List* ast) {
+    warning("Printing AST as JSON..");
     string json      = make_string("{\"AST\": [");
     s64    ast_count = ast->count;
     s64    counter   = 0;

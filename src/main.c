@@ -242,27 +242,30 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it) {
         }
 
         // check for any AST_IS inside
-        List* stmts                = node->If.then_block->Block.stmts;
-        bool  is_actually_a_switch = false;
+        List* stmts                             = node->If.then_block->Block.stmts;
+        bool  if_statement_is_actually_a_switch = false;
 
         LIST_FOREACH(stmts) {
             maybe_convert_call_to_def(thi, ast, it);
             AST* stmt = (AST*)it->data;
             if (stmt->kind == AST_IS) {
-                is_actually_a_switch = true;
+                if_statement_is_actually_a_switch = true;
                 break;
             }
         }
 
         // Go through it again and make sure every statement
         // is a case
-        if (is_actually_a_switch) {
+        if (if_statement_is_actually_a_switch) {
+
+            // Find all NON switchy things and post and error
             LIST_FOREACH(stmts) {
                 AST* stmt = (AST*)it->data;
                 if (stmt->kind != AST_IS) {
-                    error("only 'case' statements are allowed inside an if switch");
+                    error("%s\nonly 'case' statements are allowed inside an if switch", ast_to_str(stmt));
                 }
             }
+
             // Transform this if into a switch
             it->data = make_ast_switch(node->t, node);
         }

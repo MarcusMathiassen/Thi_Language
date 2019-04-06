@@ -105,6 +105,7 @@ typedef enum {
     TOKEN_BWSLASH,
     TOKEN_HASH,
     TOKEN_EQ,
+    TOKEN_PIPE_GT,
 } Token_Kind;
 
 typedef struct {
