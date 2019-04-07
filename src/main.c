@@ -282,6 +282,7 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it) {
                 LIST_FOREACH(args) {
                     AST* d = (AST*)it->data;
                     if (d->kind == AST_VAR_ARGS) {
+                        error("found var args %s", ast_to_str(d));
                         has_var_args = true;
                         break;
                     }

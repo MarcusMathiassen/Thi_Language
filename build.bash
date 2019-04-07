@@ -12,7 +12,7 @@ $compiler $src -std=$std $olvl $flags -o $output -g -fsanitize=address -fno-omit
 
 if [ $? == 0 ]; then
     # ./test.bash
-    ./test.bash ./tests/test_pointer.thi
+    # ./test.bash ./tests/test_pointer.thi
     # ./test.bash ./tests/test_var_args.thi
     # ./test.bash ./tests/test_basic_setup.thi
     # ./test.bash ./tests/test_window.thi
@@ -63,7 +63,7 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_math_plus.thi
     # ./test.bash ./tests/test_plus_equal.thi
     # ./test.bash ./tests/test_math.thi
-    # ./test.bash ./tests/test_window.thi
+    ./test.bash ./tests/test_window.thi
     # ./test.bash ./tests/test_basic_setup.thi
     # ./test.bash ./tests/test_char.thi
     # ./test.bash ./tests/test_defer.thi

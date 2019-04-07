@@ -805,17 +805,17 @@ Value* codegen_return(Codegen_Context* ctx, AST* expr) {
 
     AST* ret_expr = expr->Return.expr;
 
-    char* label  = make_text_label(ctx);
-    char* label2 = make_text_label(ctx);
+    // char* label  = make_text_label(ctx);
+    // char* label2 = make_text_label(ctx);
 
-    emit(ctx, "%s:", label2);
-    List* defers = ctx->current_function->Function.defers;
-    LIST_FOREACH_REVERSE(defers) {
-        AST* defer_expr = (AST*)it->data;
-        codegen_expr(ctx, defer_expr);
-    }
-    emit(ctx, "jmp %s", label);
-    emit(ctx, "%s:", label);
+    // emit(ctx, "%s:", label2);
+    // List* defers = ctx->current_function->Function.defers;
+    // LIST_FOREACH_REVERSE(defers) {
+    //     AST* defer_expr = (AST*)it->data;
+    //     codegen_expr(ctx, defer_expr);
+    // }
+    // emit(ctx, "jmp %s", label);
+    // emit(ctx, "%s:", label);
     if (ret_expr) {
         codegen_expr(ctx, ret_expr);
     }
@@ -1003,9 +1003,22 @@ Value* codegen_function(Codegen_Context* ctx, AST* expr) {
 
     // emit(ctx, "add rsp, %lld; rest", rest);
 
-    codegen_expr(ctx, func_body);
+    push_scope(ctx);
+    List*  stmts = func_body->Block.stmts;
+    Value* last  = NULL;
+    LIST_FOREACH(stmts) {
+        AST* stmt = (AST*)it->data;
+        last      = codegen_expr(ctx, stmt);
+    }
 
     emit(ctx, "%s:", DEFAULT_FUNCTION_END_LABEL_NAME);
+
+    List* defers = ctx->current_function->Function.defers;
+    LIST_FOREACH_REVERSE(defers) {
+        AST* defer_expr = (AST*)it->data;
+        codegen_expr(ctx, defer_expr);
+    }
+    pop_scope(ctx);
 
     if (stack_allocated + padding)
         emit(ctx, "add rsp, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);

@@ -78,7 +78,7 @@ main()
 
         w: s32
         h: s32
-        glfwGetFramebufferSize(window, &w, &h)
+        # glfwGetFramebufferSize(window, &w, &h)
         printf("framebuffer size: %dx%d\n", w, h)
 
 
@@ -94,10 +94,10 @@ main()
 
 drawTriangle(x: f32, y: f32, s: f32)
     glBegin(GL_TRIANGLES)
+    defer glEnd()
     glColor3f(1.0, 0.0, 0.0)
     glVertex2f(x + -0.5 *s, y + -0.5*s )
     glColor3f(0.0, 1.0, 0.0)
     glVertex2f(x + 0.0*s, y + 0.5*s)
     glColor3f(0.0, 0.0, 1.0)
     glVertex2f(x + 0.5*s, y -0.5*s)
-    glEnd()
