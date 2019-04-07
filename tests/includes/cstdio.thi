@@ -28,7 +28,7 @@ extern rewind(void*)
 extern fread(void*, u32, u32, void*) u32
 extern fwrite(void*, u32, u32, void*) u32
 extern fgetc(void*) s32
-#extern getc(void*) s32
+extern getc(void*) s32
 extern getchar(void) s32
 extern ungetc(s32, void*) s32
 extern fputc(s32, void*) s32
@@ -38,16 +38,16 @@ extern fgets(u8*, s32, void*) u8*
 extern fputs(u8*, void*) s32
 extern puts(u8*) s32
 extern printf(u8*, ...) s32
-# extern fprintf(void*, u8*, ...) s32
-# extern sprintf(u8*, u8*, ...) s32
-# extern snprintf(u8*, u32, u8*, ...) s32
+extern fprintf(void*, u8*, ...) s32
+extern sprintf(u8*, u8*, ...) s32
+extern snprintf(u8*, u32, u8*, ...) s32
 # extern vprintf(u8*, __isoc_va_list) s32
 # extern vfprintf(void*, u8*, __isoc_va_list) s32
 # extern vsprintf(u8*, u8*, __isoc_va_list) s32
 # extern vsnprintf(u8*, u32, u8*, __isoc_va_list) s32
-# extern scanf(u8*, ...) s32
-# extern fscanf(void*, u8*, ...) s32
-# extern sscanf(u8*, u8*, ...) s32
+extern scanf(u8*, ...) s32
+extern fscanf(void*, u8*, ...) s32
+extern sscanf(u8*, u8*, ...) s32
 # extern vscanf(u8*, __isoc_va_list) s32
 # extern vfscanf(void*, u8*, __isoc_va_list) s32
 # extern vsscanf(u8*, u8*, __isoc_va_list) s32

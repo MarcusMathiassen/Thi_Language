@@ -6,4 +6,5 @@ flags=-lSystem #\ -lglew\ -lglfw3\ -framework\ OpenGL\ -framework\ CoreVideo\ -f
 ld -macosx_version_min 10.14 -o output output.o -e _main $flags
 ./output
 echo $?
-rm ./output
+# rm ./output
+rm ./output.o

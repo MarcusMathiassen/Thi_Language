@@ -28,6 +28,7 @@ char* type_kind_to_str(Type_Kind kind) {
     case TYPE_ENUM: return "TYPE_ENUM";
     case TYPE_STRUCT: return "TYPE_STRUCT";
     case TYPE_FUNCTION: return "TYPE_FUNCTION";
+    case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
     default: warning("not implemented type_kind_to_str kind %d", kind);
     }
     return "";
@@ -57,12 +58,14 @@ char* get_type_name(Type* type) {
     case TYPE_STRUCT: return type->Struct.name;
     case TYPE_ENUM: return type->Enum.name;
     case TYPE_FUNCTION: return type->Function.name;
+    case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
     }
     return NULL;
 }
 
 s64 get_size_of_type(Type* type) {
     switch (type->kind) {
+    case TYPE_VAR_ARGS: return 0;
     case TYPE_UNRESOLVED: return 0;
     case TYPE_VOID: return 0;
     case TYPE_INT: return type->Int.bytes;
@@ -124,6 +127,7 @@ s64 type_array_get_count(Type* type) {
 char* type_to_str(Type* type) {
     if (!type) return "";
     switch (type->kind) {
+    case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
     case TYPE_VOID: return "void";
     case TYPE_UNRESOLVED: return strf("PLACEHOLDER(%s)", type->Unresolved.name);
     case TYPE_ARRAY: return strf("%s[%d]", type_to_str(type->Array.type), type->Array.size);
@@ -277,5 +281,9 @@ Type* make_type_function(char* name, List* args, Type* ret_type, bool has_var_ar
     t->Function.args        = args;
     t->Function.ret_type    = ret_type;
     t->Function.has_var_arg = has_var_arg;
+    return t;
+}
+Type* make_type_var_args() {
+    Type* t = make_type(TYPE_VAR_ARGS);
     return t;
 }

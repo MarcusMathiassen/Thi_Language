@@ -9,7 +9,7 @@ main()
 compile(source: char*)
     tokens := makeTokens(source)
     ast    := makeAST(tokens)
-    code   := makeX64(ast)
+    code   := makeX64(aast)
     return code
 
 struct Parser

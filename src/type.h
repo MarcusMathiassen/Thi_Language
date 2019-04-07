@@ -30,6 +30,7 @@ Type* make_type_array(Type* type, s32 size);
 Type* make_type_struct(char* name, List* members);
 Type* make_type_enum(char* name, List* members);
 Type* make_type_function(char* name, List* args, Type* ret_type, bool has_var_arg);
+Type* make_type_var_args();
 
 s64 type_function_get_arg_count(Type* type);
 s64 type_array_get_count(Type* type);
@@ -47,6 +48,8 @@ enum Type_Kind {
     TYPE_ENUM,
     TYPE_STRUCT,
     TYPE_FUNCTION,
+
+    TYPE_VAR_ARGS,
 
     TYPE_COUNT,
 };
@@ -94,6 +97,8 @@ struct Type {
             Type* ret_type;
             bool  has_var_arg;
         } Function;
+        struct {
+        } Var_Args;
     };
 };
 

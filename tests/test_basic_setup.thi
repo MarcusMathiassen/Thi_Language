@@ -1,4 +1,4 @@
-extern puts(u8*) s32
+load "includes/cstdio"
 
 enum TokenKind
     Ident :: 0
@@ -38,6 +38,10 @@ main(argc: int, argv: char**)
         puts("Hi")
 
     compile("Hello")
+
+    name := "Marcus"
+    age := 24
+    printf("Your name is %s. You are %d years old.\n", name, age)
 
     puts("this is a test")
     return DEFAULT_SIZE_OF_OBJECTS * 3 - m + 1

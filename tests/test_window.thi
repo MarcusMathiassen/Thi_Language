@@ -6,12 +6,13 @@ load "includes/glfw"
 load "includes/cmath"
 
 enum Theme
-    dark
     light
+    dark
 
 main()
     if !glfwInit() puts("GLFW init failed.")
     defer glfwTerminate()
+    defer puts("Closing..")
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1)
@@ -27,25 +28,7 @@ main()
 
     if glfwInit() != GLEW_OK puts("GLEW init failed.")
 
-    r := 0.0
-    g := 0.0
-    b := 0.0
-
-    mode: Theme = .dark
-
-    if mode
-
-        is .dark
-            r = 30.0/255.0
-            g = 30.0/255.0
-            b = 30.0/255.0
-
-        is .light
-            r = 245.0/255.0
-            g = 245.0/255.0
-            b = 245.0/255.0
-
-    glClearColor(r, g, b, 1.0)
+    mode: Theme = .light
 
     shorten_filenames_in_error_messages : bool = false
     warnings_is_errors := false
@@ -56,8 +39,23 @@ main()
 
     running := true
 
-
     while running
+
+        r := 0.0
+        g := 0.0
+        b := 0.0
+
+        if mode
+            is 1
+                r = 30.0/255.0
+                g = 30.0/255.0
+                b = 30.0/255.0
+            is 0
+                r = 245.0/255.0
+                g = 245.0/255.0
+                b = 245.0/255.0
+
+        glClearColor(r, g, b, 1.0)
 
         if glfwWindowShouldClose(window) running = false
         if glfwGetKey(window, GLFW_KEY_ESCAPE) is GLFW_PRESS  running = false
@@ -77,6 +75,10 @@ main()
         if glfwGetKey(window, GLFW_KEY_X) is GLFW_PRESS scale +=  0.01
         if glfwGetKey(window, GLFW_KEY_Z) is GLFW_PRESS scale +=  -0.01
 
+        printf("mode: %s\n", !mode ? "light" : "dark")
+
+        if glfwGetKey(window, GLFW_KEY_Q) is GLFW_PRESS mode = mode ^ 1
+
         drawTriangle(x, y, scale)
 
         glfwSwapBuffers(window)
@@ -84,7 +86,7 @@ main()
     return 1
 
 drawTriangle(x: f32, y: f32, s: f32)
-    glBegin(GL_TRIANGLES)
+    glBegin(GL_LINE_LOOP)
     glColor3f(1.0, 0.0, 0.0)
     glVertex2f(x + -0.5 *s, y + -0.5*s )
     glColor3f(0.0, 1.0, 0.0)

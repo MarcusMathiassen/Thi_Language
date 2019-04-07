@@ -1,35 +1,13 @@
-extern malloc(u64)  void*
+load "includes/cstdio"
+load "includes/cstdlib"
 
 change(a:s32*)
     a[0] = 7
 
 main()
     a: s32
+    printf("num before %d\n", a)
     change(&a)
+    printf("num after %d\n", a)
+
     return a - 6
-
-
-#change:                                 # @change
-#        push    rbp
-#        mov     rbp, rsp
-#        mov     qword ptr [rbp - 8], rdi
-#        mov     rdi, qword ptr [rbp - 8]
-#        mov     dword ptr [rdi], 7
-#        pop     rbp
-#        ret
-#main:                                   # @main
-#        push    rbp
-#        mov     rbp, rsp
-#        sub     rsp, 16
-#        mov     dword ptr [rbp - 4], 0
-#        mov     dword ptr [rbp - 8], edi
-#        mov     edi, 4
-#        call    malloc
-#        mov     qword ptr [rbp - 16], rax
-#        mov     rdi, qword ptr [rbp - 16]
-#        call    change
-#        mov     rax, qword ptr [rbp - 16]
-#        mov     eax, dword ptr [rax]
-#        add     rsp, 16
-#        pop     rbp
-#        ret
