@@ -1,13 +1,12 @@
-load "includes/cstdio"
-load "includes/cstdlib"
+extern printf(u8*, ...) s32
 
-change(a:s32*)
-    a[0] = 7
+glfwGetFramebufferSize(width: s32*, height: s32*)
+    width[0] = 640
+    height[0] = 480
 
 main()
-    a: s32
-    printf("num before %d\n", a)
-    change(&a)
-    printf("num after %d\n", a)
-
-    return a - 6
+    w: s32
+    h: s32
+    glfwGetFramebufferSize(&w, &h)
+    printf("framebuffer size: %dx%d\n", w, h)
+    return w - h - 159

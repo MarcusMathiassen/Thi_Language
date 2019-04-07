@@ -75,6 +75,13 @@ main()
         if glfwGetKey(window, GLFW_KEY_X) is GLFW_PRESS scale +=  0.01
         if glfwGetKey(window, GLFW_KEY_Z) is GLFW_PRESS scale +=  -0.01
 
+
+        w: s32
+        h: s32
+        glfwGetFramebufferSize(window, &w, &h)
+        printf("framebuffer size: %dx%d\n", w, h)
+
+
         printf("mode: %s\n", !mode ? "light" : "dark")
 
         if glfwGetKey(window, GLFW_KEY_Q) is GLFW_PRESS mode = mode ^ 1
@@ -86,7 +93,7 @@ main()
     return 1
 
 drawTriangle(x: f32, y: f32, s: f32)
-    glBegin(GL_LINE_LOOP)
+    glBegin(GL_TRIANGLES)
     glColor3f(1.0, 0.0, 0.0)
     glVertex2f(x + -0.5 *s, y + -0.5*s )
     glColor3f(0.0, 1.0, 0.0)

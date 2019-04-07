@@ -1010,7 +1010,7 @@ Value* codegen_function(Codegen_Context* ctx, AST* expr) {
     if (stack_allocated + padding)
         emit(ctx, "add rsp, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);
 
-    emit(ctx, "pop rbp");
+    emit(ctx, "leave");
     emit(ctx, "ret");
 
     reset_text_label_counter(ctx);

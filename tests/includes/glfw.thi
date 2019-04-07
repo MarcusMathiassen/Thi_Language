@@ -15,14 +15,14 @@ struct GLFWvidmode
     refresh_rate: s32
 
 
-struct GLFWgammaramp 
+struct GLFWgammaramp
     red:    u16*
     green:  u16*
     blue:   u16*
     size:   u32
 
 
-struct GLFWimage 
+struct GLFWimage
     width:  s32
     height: s32
     pixels: u8*
@@ -100,8 +100,8 @@ extern glfwGetCursorPos        (void*, f64*, f64*)
 extern glfwSetCursorPos        (void*, f64, f64)
 
 extern glfwCreateCursor          (GLFWimage*, s32, s32)
-extern glfwDestroyCursor         (void) 
-extern glfwSetCursor             (void*, void) 
+extern glfwDestroyCursor         (void)
+extern glfwSetCursor             (void*, void)
 extern glfwCreateStandardCursor  (s32)
 
 extern glfwGetJoystickAxes     (s32, s32*)  f32*
@@ -126,7 +126,7 @@ extern glfwGetRequiredInstanceExtensions   (u32*)  s8*
 # extern glfwSetFramebufferSizeCallback  (void*, Framebuffer_Size_Proc)   Framebuffer_Size_Proc
 # extern glfwSetDropCallback             (void*, Drop_Proc)   Drop_Proc
 # extern glfwSetMonitorCallback          (void*, Monitor_Proc)   Monitor_Proc
-# 
+#
 # extern glfwSetKeyCallback          (void*, Key_Proc)   Key_Proc
 # extern glfwSetMouseButtonCallback  (void*, Mouse_Button_Proc)   Mouse_Button_Proc
 # extern glfwSetCursorPosCallback    (void*, Cursor_Pos_Proc)   Cursor_Pos_Proc
@@ -135,7 +135,7 @@ extern glfwGetRequiredInstanceExtensions   (u32*)  s8*
 # extern glfwSetCharModsCallback     (void*, Char_Mods_Proc)   Char_Mods_Proc
 # extern glfwSetCursorEnterCallback  (void*, Cursor_Enter_Proc)   Cursor_Enter_Proc
 # extern glfwSetJoystickCallback     (void*, Joystick_Proc)   Joystick_Proc
-# 
+#
 # extern glfwSetErrorCallback  (Error_Proc)   Error_Proc
 
 GLFW_VERSION_MAJOR            :: 3

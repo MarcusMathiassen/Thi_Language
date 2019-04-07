@@ -395,14 +395,20 @@ void emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg) {
 void emit_store(Codegen_Context* ctx, Value* variable) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
-    s64   stack_pos = get_stack_pos_of_variable(variable);
-    char* reg       = get_result_reg_2(variable->type);
-    char* mov_op    = get_move_op(variable->type);
+    s64 stack_pos = get_stack_pos_of_variable(variable);
+
+    char* reg = get_result_reg_2(variable->type);
+
+    char* mov_op = get_move_op(variable->type);
 
     switch (variable->type->kind) {
     case TYPE_STRUCT:
     case TYPE_ARRAY: emit(ctx, "%s [rax], %s; store", mov_op, reg); break;
-    case TYPE_POINTER: emit(ctx, "%s [rax], %s; store", mov_op, reg); break;
+    case TYPE_POINTER: {
+        reg = get_result_reg_2(variable->type->Pointer.pointee);
+        emit(ctx, "%s [rax], %s; store", mov_op, reg);
+        break;
+    }
     default: emit(ctx, "%s [rbp-%lld], %s; store", mov_op, stack_pos, reg); break;
     }
 }
