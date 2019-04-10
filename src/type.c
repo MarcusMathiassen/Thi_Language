@@ -43,9 +43,17 @@ s64 get_size_of_underlying_type(Type* type) {
     return 0;
 }
 
+bool is_same_type(Type* a, Type* b) {
+    char* an = get_type_name(a);
+    char* bn = get_type_name(b);
+    warning("%s %s", an, bn);
+    return strcmp(an, bn) == 0;
+}
+
 char* get_type_name(Type* type) {
+    if (!type) return "---";
     switch (type->kind) {
-    default: error("unhandled case: %s, %s, %s", type_kind_to_str(type->kind), __func__, __LINE__);
+    default: error("unhandled case: %s", type_kind_to_str(type->kind));
     case TYPE_VOID: return "void";
     case TYPE_UNRESOLVED: return type->Unresolved.name;
     case TYPE_POINTER: {

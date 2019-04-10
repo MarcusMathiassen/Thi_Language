@@ -147,12 +147,12 @@ Type* type_check_note(Typer_Context* ctx, AST* expr) {
 }
 Type* type_check_int(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
-    if (!expr->type) warning("AST_INT was not given a type on creation. Creating one now..");
-    expr->type = make_type_int(DEFAULT_INT_BYTE_SIZE, false);
+    expr->type = (Type*)map_get(ctx->symbol_table, DEFAULT_INT_TYPE_AS_STRING);
     return NULL;
 }
 Type* type_check_float(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
+    expr->type = (Type*)map_get(ctx->symbol_table, DEFAULT_FLOAT_TYPE_AS_STRING);
     return NULL;
 }
 Type* type_check_string(Typer_Context* ctx, AST* expr) {
@@ -172,7 +172,6 @@ Type* type_check_call(Typer_Context* ctx, AST* expr) {
 
     Type* func_t = (Type*)map_get(ctx->symbol_table, callee);
 
-    warning(type_to_str(func_t->Function.ret_type));
     expr->type = func_t->Function.ret_type;
 
     assert(callee);
@@ -210,7 +209,6 @@ Type* type_check_variable_decl(Typer_Context* ctx, AST* expr) {
         }
     }
     expr->type = type;
-    warning("VARIABLEDECL ::::::: %s", ast_to_str(expr));
     return NULL;
 }
 Type* type_check_constant_decl(Typer_Context* ctx, AST* expr) {
@@ -225,6 +223,7 @@ Type* type_check_block(Typer_Context* ctx, AST* expr) {
         AST* stmt = (AST*)it->data;
         type_check_expr(ctx, stmt);
     }
+    ctx->active_block = NULL;
     return NULL;
 }
 Type* type_check_subscript(Typer_Context* ctx, AST* expr) {
@@ -251,7 +250,14 @@ Type* type_check_return(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
     AST* ret_expr = expr->Return.expr;
     type_check_expr(ctx, ret_expr);
-    expr->type              = ret_expr->type;
+    expr->type = ret_expr->type;
+
+    // If the ctx->active_block->type is something different
+    assert(ctx->active_block);
+    if (ctx->active_block->type && !is_same_type(ctx->active_block->type, expr->type)) {
+        error("Block: %s has differing return types. You can only return one type from a function.",
+              ast_to_str(ctx->active_block));
+    }
     ctx->active_block->type = expr->type;
     return NULL;
 }

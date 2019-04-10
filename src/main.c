@@ -134,18 +134,19 @@ int main(int argc, char** argv) {
 
     thi.ast = ast;
 
+    pass_resolve_all_unresolved_types(&thi);
     type_checker(thi.symbol_map, thi.ast);
 
-    pass_initilize_all_enums(&thi);
+    // pass_initilize_all_enums(&thi);
 
     // pass_initilize_all_enums MUST BE RUN BEFORE THIS
-    pass_progate_identifiers_to_constants(&thi);
+    // pass_progate_identifiers_to_constants(&thi);
 
-    pass_resolve_all_unresolved_types(&thi);
-    pass_type_inference(&thi);
-    pass_give_all_identifiers_a_type(&thi);
+    // pass_resolve_all_unresolved_types(&thi);
+    // pass_type_inference(&thi);
+    // pass_give_all_identifiers_a_type(&thi);
 
-    pass_resolve_subscripts(&thi);
+    // pass_resolve_subscripts(&thi);
 
     // pass_type_checker(&thi);
     warning("Typechecker disabled");
