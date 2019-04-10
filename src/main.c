@@ -137,6 +137,9 @@ int main(int argc, char** argv) {
     pass_resolve_all_unresolved_types(&thi);
     type_checker(thi.symbol_map, thi.ast);
 
+    char* json = full_ast_to_json(thi.ast);
+    write_to_file("ast.json", json);
+
     // pass_initilize_all_enums(&thi);
 
     // pass_initilize_all_enums MUST BE RUN BEFORE THIS

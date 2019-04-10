@@ -55,7 +55,7 @@ void type_checker(Map* symbol_table, List* ast) {
         type_check_expr(&ctx, (AST*)it->data);
     }
     print_ast(ast);
-    error("Type Checker DEBUG ,,, ,, ,,, ,,");
+    // error("Type Checker DEBUG ,,, ,, ,,, ,,");
 }
 
 Type* type_check_expr(Typer_Context* ctx, AST* expr) {
