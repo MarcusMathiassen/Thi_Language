@@ -176,7 +176,6 @@ AST* parse_identifier(Parser_Context* ctx) {
     eat_kind(ctx, TOKEN_IDENTIFIER);
 
     switch (ctx->curr_tok.kind) {
-    default: error("unhandled case: %s, %s, %s", token_kind_to_str(ctx->curr_tok.kind), __func__, __LINE__);
     case TOKEN_COLON: // fallthrough
     case TOKEN_COLON_EQ: return parse_variable_decl(ctx, ident);
     case TOKEN_COLON_COLON: return parse_constant_decl(ctx, ident);

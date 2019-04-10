@@ -162,6 +162,8 @@ Type* type_check_string(Typer_Context* ctx, AST* expr) {
 }
 Type* type_check_ident(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
+    expr->type = (Type*)map_get(ctx->symbol_table, expr->Ident.name);
+    warning("identifier: %s type: %s", ast_to_str(expr), type_to_str(expr->type));
     return NULL;
 }
 Type* type_check_call(Typer_Context* ctx, AST* expr) {
@@ -186,6 +188,14 @@ Type* type_check_unary(Typer_Context* ctx, AST* expr) {
 }
 Type* type_check_binary(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
+    AST* lhs = expr->Binary.lhs;
+    AST* rhs = expr->Binary.rhs;
+    type_check_expr(ctx, lhs);
+    type_check_expr(ctx, rhs);
+
+    // We assume they are the same type
+    expr->type = lhs->type;
+
     return NULL;
 }
 Type* type_check_variable_decl(Typer_Context* ctx, AST* expr) {
@@ -248,16 +258,12 @@ Type* type_check_while(Typer_Context* ctx, AST* expr) {
 }
 Type* type_check_return(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
+
     AST* ret_expr = expr->Return.expr;
     type_check_expr(ctx, ret_expr);
     expr->type = ret_expr->type;
 
-    // If the ctx->active_block->type is something different
     assert(ctx->active_block);
-    if (ctx->active_block->type && !is_same_type(ctx->active_block->type, expr->type)) {
-        error("Block: %s has differing return types. You can only return one type from a function.",
-              ast_to_str(ctx->active_block));
-    }
     ctx->active_block->type = expr->type;
     return NULL;
 }

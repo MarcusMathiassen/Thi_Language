@@ -11,6 +11,8 @@ get()
 
 main(argc: s32, argv: char**)
     i : s32
+
+    i += 1
     # w: s32* = (malloc(4))
     # h: s32
     # glfwGetFramebufferSize(w, &h)
