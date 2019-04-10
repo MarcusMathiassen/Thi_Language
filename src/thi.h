@@ -23,6 +23,8 @@ typedef struct {
     s64 lines;
     s64 comments;
 
+    List* ast_int_passes;
+
     Type_Ref_List unresolved_types;
     AST_Ref_List  calls;
     AST_Ref_List  variables_in_need_of_type_inference;

@@ -45,6 +45,7 @@ s64 get_size_of_underlying_type(Type* type) {
 
 char* get_type_name(Type* type) {
     switch (type->kind) {
+    default: error("unhandled case: %s, %s, %s", type_kind_to_str(type->kind), __func__, __LINE__);
     case TYPE_VOID: return "void";
     case TYPE_UNRESOLVED: return type->Unresolved.name;
     case TYPE_POINTER: {
@@ -125,7 +126,7 @@ s64 type_array_get_count(Type* type) {
 }
 
 char* type_to_str(Type* type) {
-    if (!type) return "";
+    if (!type) return "---";
     switch (type->kind) {
     case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
     case TYPE_VOID: return "void";

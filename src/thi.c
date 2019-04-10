@@ -22,6 +22,8 @@ Thi make_thi() {
     thi.source_file             = make_string("");
     thi.current_directory       = make_string("");
 
+    thi.ast_int_passes = make_list();
+
     thi.ast                                 = make_list();
     thi.links                               = make_list();
     thi.loads                               = make_list();

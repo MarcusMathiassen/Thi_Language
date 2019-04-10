@@ -76,6 +76,8 @@ struct Value {
     };
 };
 
+char* value_kind_to_str(Value_Kind kind);
+
 Value* make_value_load_inst(Value* variable, s64 offset);
 Value* make_value_store_inst(Value* variable, s64 offset);
 Value* make_value_int(u8 bytes, Type* type, s64 value);

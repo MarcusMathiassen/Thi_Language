@@ -23,12 +23,12 @@ main()
     glfwWindowHint(GLFW_BLUE_BITS, 8)
     glfwWindowHint(GLFW_ALPHA_BITS, 8)
 
-    window := glfwCreateWindow(640, 480, "Hello Triangle", 0, 0)
+    window := glfwCreateWindow(300, 300, "Hello Triangle", NULL, NULL)
     glfwMakeContextCurrent(window)
 
     if glfwInit() != GLEW_OK puts("GLEW init failed.")
 
-    mode: Theme = .light
+    mode: Theme = .dark
 
     shorten_filenames_in_error_messages : bool = false
     warnings_is_errors := false

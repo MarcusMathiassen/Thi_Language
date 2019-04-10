@@ -479,8 +479,7 @@ Token get_token(Lexer_Context* lctx) {
     }
 
     token.value = intern_range(&lctx->interns, token.value, c);
-    switch (token.kind) {
-    case TOKEN_IDENTIFIER: {
+    if (token.kind == TOKEN_IDENTIFIER) {
         s64 i = 0;
         while (i < KEY_COUNT) {
             if (token.value == lctx->keywords[i]) {
@@ -511,9 +510,8 @@ Token get_token(Lexer_Context* lctx) {
         case KEY_IS: token.kind = TOKEN_IS; break;
         case KEY_FALLTHROUGH: token.kind = TOKEN_FALLTHROUGH; break;
         }
-    } break;
-    case TOKEN_CHAR: ++c; break;   // we skip the last '
-    case TOKEN_STRING: ++c; break; // we skip the last "
+    } else if (token.kind == TOKEN_CHAR || token.kind == TOKEN_STRING) {
+        ++c; // we skip the last '
     }
 
     lctx->stream = c;

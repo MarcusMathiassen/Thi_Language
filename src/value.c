@@ -15,6 +15,21 @@
 //                               Public
 //------------------------------------------------------------------------------
 
+char* value_kind_to_str(Value_Kind kind) {
+    switch (kind) {
+    case VALUE_INT: return "VALUE_INT";
+    case VALUE_FLOAT: return "VALUE_FLOAT";
+    case VALUE_POINTER: return "VALUE_POINTER";
+    case VALUE_STRING: return "VALUE_STRING";
+    case VALUE_VARIABLE: return "VALUE_VARIABLE";
+    case VALUE_CALL: return "VALUE_CALL";
+    case VALUE_FUNCTION: return "VALUE_FUNCTION";
+    case VALUE_STRUCT: return "VALUE_STRUCT";
+    case VALUE_LOAD_INST: return "VALUE_LOAD_INST";
+    case VALUE_STORE_INST: return "VALUE_STORE_INST";
+    }
+}
+
 s64 get_size_of_value(Value* value) {
     assert(value);
     switch (value->kind) {
@@ -131,6 +146,7 @@ Value* make_value_struct(Type* type) {
 
 s64 get_stack_pos_of_variable(Value* variable) {
     switch (variable->kind) {
+    default: error("unhandled case: %s, %s, %s", value_kind_to_str(variable->kind), __func__, __LINE__);
     case VALUE_LOAD_INST: return get_stack_pos_of_variable(variable->LoadInst.variable);
     case VALUE_VARIABLE: return variable->Variable.stack_pos;
     }

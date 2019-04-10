@@ -200,6 +200,7 @@ char* get_result_reg_2(Type* type) {
     assert(type);
     s64 bytes = get_size_of_type(type);
     switch (type->kind) {
+    default: error("get_result_reg unhandled case: %s", type_kind_to_str(type->kind));
     case TYPE_FLOAT:
         switch (bytes) {
         case 4: return "xmm1";
@@ -212,7 +213,6 @@ char* get_result_reg_2(Type* type) {
     case TYPE_VOID:    // fallthrough
     case TYPE_INT: return get_reg(get_rax_reg_of_byte_size(bytes, 'c'));
     }
-    error("get_result_reg unhandled case: %s", type_kind_to_str(type->kind));
     UNREACHABLE;
     return NULL;
 }
@@ -255,6 +255,7 @@ char* get_move_op(Type* type) {
     assert(type);
     s64 bytes = get_size_of_type(type);
     switch (type->kind) {
+    default: error("get_move_op unhandled case: %s", type_kind_to_str(type->kind));
     case TYPE_FLOAT:
         switch (bytes) {
         case 4: return "movss";
@@ -266,7 +267,6 @@ char* get_move_op(Type* type) {
     case TYPE_ENUM:    // fallthrough
     case TYPE_INT: return "mov";
     }
-    error("get_move_op unhandled case: %s", type_kind_to_str(type->kind));
     UNREACHABLE;
     return NULL;
 }
@@ -369,14 +369,15 @@ void emit_cast(Codegen_Context* ctx, Value* variable, Type* desired_type) {
     char* reg = get_result_reg(variable->type);
 
     switch (variable->type->kind) {
+    default: error("unexpected type case in emit_cast");
     case TYPE_INT: {
-        switch (desired_type->kind) {
-        case TYPE_INT: emit_cast_int_to_int(ctx, reg, desired_type); break;
+        if (desired_type->kind == TYPE_INT) {
+            emit_cast_int_to_int(ctx, reg, desired_type);
         }
     } break;
     case TYPE_FLOAT: {
-        switch (desired_type->kind) {
-        case TYPE_INT: emit_cast_float_to_int(ctx, reg, desired_type); break;
+        if (desired_type->kind == TYPE_INT) {
+            emit_cast_float_to_int(ctx, reg, desired_type);
         }
     } break;
     }
@@ -487,9 +488,11 @@ char* emit_save_result(Codegen_Context* ctx, Value* value) {
 char* get_instr(Token_Kind op, Type* type) {
     char* inst = NULL;
     switch (type->kind) {
+    default: error("unhandled case: %s, %s", __func__, __LINE__);
     case TYPE_INT: {
         bool usig = type->Int.is_unsigned;
         switch (op) {
+        default: error("unhandled case: %s, %s", __func__, __LINE__);
         case TOKEN_PLUS: inst = "add"; break;
         case TOKEN_MINUS: inst = "sub"; break;
         case TOKEN_ASTERISK: inst = "imul"; break;
@@ -499,6 +502,7 @@ char* get_instr(Token_Kind op, Type* type) {
     case TYPE_FLOAT: {
         s64 size = get_size_of_type(type);
         switch (op) {
+        default: error("unhandled case: %s, %s", __func__, __LINE__);
         case TOKEN_PLUS: inst = (size == 8 ? "addsd" : "addss"); break;
         case TOKEN_MINUS: inst = (size == 8 ? "subsd" : "subss"); break;
         case TOKEN_ASTERISK: inst = (size == 8 ? "mulsd" : "mulss"); break;
@@ -661,6 +665,7 @@ s64 get_all_alloca_in_block(AST* block) {
     LIST_FOREACH(stmts) {
         AST* stmt = (AST*)it->data;
         switch (stmt->kind) {
+        default: break;
         case AST_VARIABLE_DECL: sum += get_size_of_type(stmt->Variable_Decl.type); break;
         case AST_BLOCK: sum += get_all_alloca_in_block(stmt); break;
         }

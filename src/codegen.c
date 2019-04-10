@@ -155,13 +155,16 @@ Value* codegen_unary(Codegen_Context* ctx, AST* expr) {
     case TOKEN_DOT: {
     } break;
     case TOKEN_MINUS: {
-        switch (operand_val->type->kind) {
-        case TYPE_INT: emit(ctx, "neg %s", reg); break;
-        case TYPE_FLOAT: {
+        Type_Kind tk = operand_val->type->kind;
+        if (tk == TYPE_INT) {
+            emit(ctx, "neg %s", reg);
+            break;
+        } else if (TYPE_FLOAT) {
             emit(ctx, "movd ecx, xmm0");
             emit(ctx, "xor ecx, 2147483648");
             emit(ctx, "movd xmm0, ecx");
-        } break;
+        } else {
+            error("UNHANLED MINUS TYPE for TOKEN_MINUS CODEGEN");
         }
         break;
     }
@@ -178,16 +181,16 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr) {
     AST*       rhs = expr->Binary.rhs;
 
     switch (op) {
+    default: error("unexpected binary token case in codegen binary");
     // Field access
     case TOKEN_DOT: {
         Value* variable = get_variable(ctx, lhs->Ident.name);
         assert(variable->kind == VALUE_VARIABLE);
-        switch (variable->type->kind) {
-        case TYPE_STRUCT:
+        if (variable->type->kind) {
             // Value* lhs_v = codegen_expr(lhs);
             error("codegen field access on structs not implemented");
-            break;
         }
+        break;
     }
 
     case THI_SYNTAX_ASSIGNMENT: {
@@ -373,6 +376,7 @@ Value* codegen_binary(Codegen_Context* ctx, AST* expr) {
         case TOKEN_GT_EQ: emit(ctx, "setge al"); break;
         case TOKEN_EQ_EQ: emit(ctx, "sete al"); break;
         case TOKEN_BANG_EQ: emit(ctx, "setne al"); break;
+        default: error("UNHANDLED BANG_EQ CODEGEN_BINARY");
         }
         return lhs_v;
     } break;
@@ -521,6 +525,7 @@ Value* codegen_call(Codegen_Context* ctx, AST* expr) {
     LIST_FOREACH(values) {
         Value* v = (Value*)it->data;
         switch (v->type->kind) {
+        default: error("unexpected type case in codegen_call");
         case TYPE_POINTER:
         case TYPE_ARRAY:
         case TYPE_ENUM:
@@ -973,6 +978,7 @@ Value* codegen_function(Codegen_Context* ctx, AST* expr) {
         s8 param_reg = -1;
 
         switch (v->type->kind) {
+        default: error("unexpected type case in codegen_function");
         case TYPE_ARRAY:   // fallthrough
         case TYPE_POINTER: // fallthrough
         case TYPE_INT: {
@@ -1020,8 +1026,9 @@ Value* codegen_function(Codegen_Context* ctx, AST* expr) {
     }
     pop_scope(ctx);
 
-    if (stack_allocated + padding)
+    if (stack_allocated + padding) {
         emit(ctx, "add rsp, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);
+    }
 
     emit(ctx, "leave");
     emit(ctx, "ret");
@@ -1029,6 +1036,5 @@ Value* codegen_function(Codegen_Context* ctx, AST* expr) {
     reset_text_label_counter(ctx);
 
     pop_scope(ctx);
-
     return NULL;
 }

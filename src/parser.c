@@ -9,7 +9,6 @@
 #include "typedefs.h" // s32 , s64, etc.
 #include "utility.h"  // info, error, warning, success, strf, get_file_content
 #include <assert.h>   // assert
-#include <ctype.h>    // atoll
 #include <stdarg.h>   // va_list, va_start, va_end
 #include <stdio.h>    // printf, vprintf
 #include <stdlib.h>   // xmalloc
@@ -177,6 +176,7 @@ AST* parse_identifier(Parser_Context* ctx) {
     eat_kind(ctx, TOKEN_IDENTIFIER);
 
     switch (ctx->curr_tok.kind) {
+    default: error("unhandled case: %s, %s, %s", token_kind_to_str(ctx->curr_tok.kind), __func__, __LINE__);
     case TOKEN_COLON: // fallthrough
     case TOKEN_COLON_EQ: return parse_variable_decl(ctx, ident);
     case TOKEN_COLON_COLON: return parse_constant_decl(ctx, ident);
@@ -195,8 +195,8 @@ AST* parse_expression_identifier(Parser_Context* ctx) {
     char* ident = ctx->curr_tok.value;
     eat_kind(ctx, TOKEN_IDENTIFIER);
 
-    switch (ctx->curr_tok.kind) {
-    case TOKEN_OPEN_PAREN: return parse_function_call(ctx, ident);
+    if (ctx->curr_tok.kind == TOKEN_OPEN_PAREN) {
+        return parse_function_call(ctx, ident);
     }
 
     AST* i = make_ast_ident(ctx->curr_tok, ident);
@@ -439,6 +439,7 @@ AST* parse_variable_decl(Parser_Context* ctx, char* ident) {
     bool variable_needs_type_inference = false;
 
     switch (ctx->curr_tok.kind) {
+    default: error("unhandled case: %s, %s, %s", token_kind_to_str(ctx->curr_tok.kind), __func__, __LINE__);
     case TOKEN_COLON: {
         eat_kind(ctx, TOKEN_COLON);
         variable_type = get_type(ctx);
@@ -696,14 +697,18 @@ Type* parse_extern_function_signature(Parser_Context* ctx, char* func_name) {
 
 Type* parse_function_signature(Parser_Context* ctx, char* func_name) {
     DEBUG_START;
+
     eat_kind(ctx, TOKEN_OPEN_PAREN);
+
     bool  has_var_args           = false;
     List* args                   = make_list();
     bool  has_multiple_arguments = false;
+
     while (!tok_is(ctx, TOKEN_CLOSE_PAREN)) {
+
         if (has_multiple_arguments) eat_kind(ctx, TOKEN_COMMA);
+
         if (tok_is(ctx, TOKEN_DOT_DOT_DOT)) {
-            // var args
             eat(ctx);
             has_var_args = true;
         } else {
@@ -712,8 +717,11 @@ Type* parse_function_signature(Parser_Context* ctx, char* func_name) {
             AST* expr = parse_variable_decl(ctx, ident);
             list_append(args, expr);
         }
+
         has_multiple_arguments = true;
     }
+
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
+
     return make_type_function(func_name, args, NULL, has_var_args);
 }

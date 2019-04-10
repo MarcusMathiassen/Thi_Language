@@ -1,12 +1,18 @@
-extern printf(u8*, ...) s32
+# extern printf(u8*, ...) s32
+# extern malloc(u64) u8*
 
-glfwGetFramebufferSize(width: s32*, height: s32*)
-    width[0] = 640
-    height[0] = 480
+# glfwGetFramebufferSize(width: s32*, height: s32*)
+#     width[0] = 640
+#     height[0] = 480
 
-main()
-    w: s32
-    h: s32
-    glfwGetFramebufferSize(&w, &h)
-    printf("framebuffer size: %dx%d\n", w, h)
-    return w - h - 159
+get()
+    return 0.0
+
+main(argc: s32, argv: char**)
+    i := get()
+    # w: s32* = (malloc(4))
+    # h: s32
+    # glfwGetFramebufferSize(w, &h)
+    # printf("framebuffer size: %dx%d\n", w[0], h)
+    # return w[0] - h - 159
+    return 0

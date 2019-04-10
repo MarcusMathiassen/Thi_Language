@@ -55,7 +55,7 @@ char* ast_kind_to_str(AST_Kind kind) {
 }
 
 char* ast_to_str(AST* expr) {
-    if (!expr) return "NULL";
+    if (!expr) return "---";
     switch (expr->kind) {
     case AST_VAR_ARGS: return "...";
     case AST_FALLTHROUGH: return "fallthrough";
@@ -63,20 +63,16 @@ char* ast_to_str(AST* expr) {
         return strf("if %s %s else %s", ast_to_str(expr->Switch.cond), ast_to_str(expr->Switch.cases),
                     ast_to_str(expr->Switch.default_case));
     case AST_IS: return strf("is %s %s", ast_to_str(expr->Is.expr), ast_to_str(expr->Is.body));
-    case AST_SIZEOF: return strf("sizeof %s", type_to_str(expr->Sizeof.type));
-    case AST_EXTERN: return strf("extern %s", type_to_str(expr->Extern.type));
+    case AST_SIZEOF: return strf("sizeof %s", type_to_str(expr->type));
+    case AST_EXTERN: return strf("extern %s", type_to_str(expr->type));
     case AST_LOAD: return strf("load %s", expr->Load.str);
     case AST_LINK: return strf("link %s", expr->Link.str);
     case AST_DEFER: return strf("defer %s", ast_to_str(expr->Defer.expr));
     case AST_BREAK: return "break";
     case AST_CONTINUE: return "continue";
-    case AST_CAST: return strf("cast(%s, %s)", type_to_str(expr->Cast.type), ast_to_str(expr->Cast.expr));
+    case AST_CAST: return strf("cast(%s, %s)", type_to_str(expr->type), ast_to_str(expr->Cast.expr));
     case AST_RETURN: {
-        if (expr->Return.expr) {
-            return strf("return %s", ast_to_str(expr->Return.expr));
-        } else {
-            return strf("return");
-        }
+        return strf("return %s", ast_to_str(expr->Return.expr));
     }
     case AST_FIELD_ACCESS: {
         return strf("%s.%s", ast_to_str(expr->Field_Access.load), expr->Field_Access.field);
@@ -104,20 +100,8 @@ char* ast_to_str(AST* expr) {
                     ast_to_str(expr->Binary.rhs));
     }
     case AST_VARIABLE_DECL: {
-        if (expr->Variable_Decl.value) {
-            if (expr->Variable_Decl.name) {
-                return strf("%s: %s = %s", expr->Variable_Decl.name, type_to_str(expr->Variable_Decl.type),
-                            ast_to_str(expr->Variable_Decl.value));
-            } else {
-                return strf("%s", type_to_str(expr->Variable_Decl.type));
-            }
-        } else {
-            if (expr->Variable_Decl.name) {
-                return strf("%s: %s", expr->Variable_Decl.name, type_to_str(expr->Variable_Decl.type));
-            } else {
-                return strf("%s", type_to_str(expr->Variable_Decl.type));
-            }
-        }
+        return strf("%s: %s = %s", expr->Variable_Decl.name, type_to_str(expr->type),
+                    ast_to_str(expr->Variable_Decl.value));
     }
     case AST_CONSTANT_DECL: {
         return strf("%s :: %s", expr->Constant_Decl.name, ast_to_str(expr->Constant_Decl.value));
@@ -132,13 +116,13 @@ char* ast_to_str(AST* expr) {
         return str.c_str;
     }
     case AST_STRUCT: {
-        return strf("%s", type_to_str(expr->Struct.type));
+        return strf("%s", type_to_str(expr->type));
     }
     case AST_ENUM: {
-        return strf("%s", type_to_str(expr->Enum.type));
+        return strf("%s", type_to_str(expr->type));
     }
     case AST_FUNCTION: {
-        string str = make_string_f("%s %s", type_to_str(expr->Function.type), ast_to_str(expr->Function.body));
+        string str = make_string_f("%s %s", type_to_str(expr->type), ast_to_str(expr->Function.body));
         return str.c_str;
     }
     case AST_GROUPING: return strf("(%s)", ast_to_str(expr->Grouping.expr));
@@ -195,10 +179,10 @@ char* ast_to_json(AST* expr) {
                       ast_to_json(expr->Field_Access.load), expr->Field_Access.field);
     } break;
     case AST_SIZEOF: {
-        result = strf("{\"%s\": {\"sizeof\": %s}}", ast_kind_to_str(expr->kind), type_to_str(expr->Sizeof.type));
+        result = strf("{\"%s\": {\"sizeof\": %s}}", ast_kind_to_str(expr->kind), type_to_str(expr->type));
     } break;
     case AST_EXTERN: {
-        result = strf("{\"%s\": {\"extern\": \"%s\"}}", ast_kind_to_str(expr->kind), type_to_str(expr->Extern.type));
+        result = strf("{\"%s\": {\"extern\": \"%s\"}}", ast_kind_to_str(expr->kind), type_to_str(expr->type));
     } break;
     case AST_LOAD: {
         result = strf("{\"%s\": {\"load\": %s}}", ast_kind_to_str(expr->kind), expr->Load.str);
@@ -253,8 +237,7 @@ char* ast_to_json(AST* expr) {
     } break;
     case AST_VARIABLE_DECL: {
         result = strf("{\"%s\": {\"name\": \"%s\", \"type\": \"%s\", \"value\": %s}}", ast_kind_to_str(expr->kind),
-                      expr->Variable_Decl.name, type_to_str(expr->Variable_Decl.type),
-                      ast_to_json(expr->Variable_Decl.value));
+                      expr->Variable_Decl.name, type_to_str(expr->type), ast_to_json(expr->Variable_Decl.value));
     } break;
     case AST_CONSTANT_DECL: {
         result = strf("{\"%s\": {\"name\": \"%s\", \"value\": \"%s\"}}", ast_kind_to_str(expr->kind),
@@ -274,13 +257,13 @@ char* ast_to_json(AST* expr) {
     } break;
     case AST_FUNCTION: {
         result = strf("{\"%s\": {\"type\": \"%s\", \"body\": %s }}", ast_kind_to_str(expr->kind),
-                      type_to_str(expr->Function.type), ast_to_json(expr->Function.body));
+                      type_to_str(expr->type), ast_to_json(expr->Function.body));
     } break;
     case AST_STRUCT: {
-        result = strf("{\"%s\": {\"type\": \"%s\"}}", ast_kind_to_str(expr->kind), type_to_str(expr->Struct.type));
+        result = strf("{\"%s\": {\"type\": \"%s\"}}", ast_kind_to_str(expr->kind), type_to_str(expr->type));
     } break;
     case AST_ENUM: {
-        result = strf("{\"%s\": {\"type\": \"%s\"}}", ast_kind_to_str(expr->kind), type_to_str(expr->Enum.type));
+        result = strf("{\"%s\": {\"type\": \"%s\"}}", ast_kind_to_str(expr->kind), type_to_str(expr->type));
     } break;
     case AST_GROUPING: {
         result = strf("{\"%s\": {\"expr\": %s}}", ast_kind_to_str(expr->kind), ast_to_json(expr->Grouping.expr));

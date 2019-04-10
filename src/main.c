@@ -100,14 +100,6 @@ int main(int argc, char** argv) {
         error("%s is not a .thi file.", source_file);
     }
 
-#ifdef BENCH_LEXER
-    char*      source = get_file_content(source_file);
-    Lexed_File lf     = generate_tokens_from_source(source);
-    info("Tokens %lld lines %lld comments %lld\n in %f seconds. %f lines/sec", lf.tokens.count, lf.lines, lf.comments,
-         lf.seconds, lf.lines / lf.seconds);
-    exit(1);
-#endif
-
     List* ast = make_list();
 
     add_load(&thi, name);
@@ -142,7 +134,7 @@ int main(int argc, char** argv) {
 
     thi.ast = ast;
 
-    // type_checker(thi.ast);
+    type_checker(thi.symbol_map, thi.ast);
 
     pass_initilize_all_enums(&thi);
 
@@ -230,6 +222,7 @@ void linking_stage(Thi* thi, char* exec_name) {
 void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it) {
     AST* node = (AST*)it->data;
     switch (node->kind) {
+    default: break; // error("unhandled case: %s", ast_kind_to_str(node->kind));
     case AST_WHILE: {
         LIST_FOREACH(node->While.then_block->Block.stmts) { maybe_convert_call_to_def(thi, ast, it); }
     } break;
@@ -501,6 +494,7 @@ void pass_initilize_all_enums(Thi* thi) {
             AST* m = (AST*)it->data;
             // Turn idents into constant decls
             switch (m->kind) {
+            default: error("unhandled case: %s, %s, %s", ast_kind_to_str(m->kind), __func__, __LINE__);
             case AST_IDENT:
                 it->data = make_ast_constant_decl(m->t, m->Ident.name, make_ast_int(m->t, counter));
                 // ast_ref_list_append(&thi->constants, it->data);
