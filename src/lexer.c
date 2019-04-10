@@ -636,8 +636,12 @@ void print_tokens(Token_Array tokens) {
     }
 }
 
-bool is_valid_identifier(u8 c) { return isalnum(c) || c == '_'; }
-bool is_valid_digit(u8 c) { return isdigit(c) || c == '.' || c == '_' || c == 'e' || c == 'x'; }
+bool is_valid_identifier(u8 c) {
+    return isalnum(c) || c == '_';
+}
+bool is_valid_digit(u8 c) {
+    return isdigit(c) || c == '.' || c == '_' || c == 'e' || c == 'x';
+}
 
 Token_Array make_token_array() {
     Token_Array l;
@@ -673,7 +677,9 @@ void intern_array_append(Intern_Array* l, Intern intern) {
     l->count += 1;
 }
 
-char* intern(Intern_Array* interns, char* str) { return intern_range(interns, str, str + strlen(str)); }
+char* intern(Intern_Array* interns, char* str) {
+    return intern_range(interns, str, str + strlen(str));
+}
 char* intern_range(Intern_Array* interns, char* start, char* end) {
     s64 len = end - start;
 

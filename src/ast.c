@@ -56,6 +56,7 @@ char* ast_kind_to_str(AST_Kind kind) {
 
 char* ast_to_str(AST* expr) {
     if (!expr) return "---";
+    warning("%s", ast_kind_to_str(expr->kind));
     switch (expr->kind) {
     case AST_VAR_ARGS: return "...";
     case AST_FALLTHROUGH: return "fallthrough";
@@ -162,6 +163,7 @@ char* ast_to_str(AST* expr) {
 
 char* ast_to_json(AST* expr) {
     if (!expr) return "\"NULL\"";
+    warning("%s", ast_kind_to_str(expr->kind));
     char* result = NULL;
     switch (expr->kind) {
     case AST_SWITCH: {

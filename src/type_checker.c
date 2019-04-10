@@ -54,7 +54,7 @@ void type_checker(Map* symbol_table, List* ast) {
     LIST_FOREACH(ast) {
         type_check_expr(&ctx, (AST*)it->data);
     }
-    print_ast(ast);
+    // print_ast(ast);
     // error("Type Checker DEBUG ,,, ,, ,,, ,,");
 }
 
@@ -298,7 +298,7 @@ Type* type_check_return(Typer_Context* ctx, AST* expr) {
     expr->type = ret_expr->type;
 
     assert(ctx->active_function);
-    ctx->active_function->type = expr->type;
+    ctx->active_function->Function.type->Function.ret_type = expr->type;
     return NULL;
 }
 Type* type_check_defer(Typer_Context* ctx, AST* expr) {

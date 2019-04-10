@@ -1,23 +1,6 @@
+#get()
+    #return 53
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-main()
-
-    m :: 3
-    i : s32 = 43 + (3 / m)
+main(argc: int, argv: char**)
+    i := 53
     return 0
