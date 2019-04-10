@@ -93,7 +93,9 @@ char* generate_code_from_ast(List* ast) {
 
     append_string(&ctx.section_data, "section .data\n");
     emit_no_tab(&ctx, "section .text");
-    LIST_FOREACH(ast) { codegen_expr(&ctx, (AST*)it->data); }
+    LIST_FOREACH(ast) {
+        codegen_expr(&ctx, (AST*)it->data);
+    }
 
     char* output =
         strf("%s%sglobal _main\n%s", ctx.section_extern.c_str, ctx.section_data.c_str, ctx.section_text.c_str);

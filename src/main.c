@@ -225,15 +225,23 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it) {
     switch (node->kind) {
     default: break; // error("unhandled case: %s", ast_kind_to_str(node->kind));
     case AST_WHILE: {
-        LIST_FOREACH(node->While.then_block->Block.stmts) { maybe_convert_call_to_def(thi, ast, it); }
+        LIST_FOREACH(node->While.then_block->Block.stmts) {
+            maybe_convert_call_to_def(thi, ast, it);
+        }
     } break;
     case AST_FOR: {
-        LIST_FOREACH(node->For.then_block->Block.stmts) { maybe_convert_call_to_def(thi, ast, it); }
+        LIST_FOREACH(node->For.then_block->Block.stmts) {
+            maybe_convert_call_to_def(thi, ast, it);
+        }
     } break;
     case AST_IF: {
-        LIST_FOREACH(node->If.then_block->Block.stmts) { maybe_convert_call_to_def(thi, ast, it); }
+        LIST_FOREACH(node->If.then_block->Block.stmts) {
+            maybe_convert_call_to_def(thi, ast, it);
+        }
         if (node->If.else_block) {
-            LIST_FOREACH(node->If.else_block->Block.stmts) { maybe_convert_call_to_def(thi, ast, it); }
+            LIST_FOREACH(node->If.else_block->Block.stmts) {
+                maybe_convert_call_to_def(thi, ast, it);
+            }
         }
 
         // check for any AST_IS inside
@@ -287,7 +295,9 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it) {
 
                 AST* body = (AST*)it->next->data;
 
-                LIST_FOREACH(body->Block.stmts) { maybe_convert_call_to_def(thi, ast, it); }
+                LIST_FOREACH(body->Block.stmts) {
+                    maybe_convert_call_to_def(thi, ast, it);
+                }
 
                 it->data = make_ast_function(node->t, type, body);
                 list_remove(ast, it->next);
@@ -313,7 +323,9 @@ List* parse(Thi* thi, char* source_file) {
     List*       ast    = pf.ast;
 
     // Find all definitions
-    LIST_FOREACH(ast) { maybe_convert_call_to_def(thi, ast, it); }
+    LIST_FOREACH(ast) {
+        maybe_convert_call_to_def(thi, ast, it);
+    }
 
     add_all_definitions(thi, &pf);
 
@@ -362,8 +374,12 @@ void add_all_definitions(Thi* thi, Parsed_File* pf) {
     for (s64 i = 0; i < pf->subscripts.count; ++i) {
         ast_ref_list_append(&thi->subscripts, pf->subscripts.data[i]);
     }
-    LIST_FOREACH(pf->links) { add_link(thi, it->data); }
-    LIST_FOREACH(pf->loads) { add_load(thi, it->data); }
+    LIST_FOREACH(pf->links) {
+        add_link(thi, it->data);
+    }
+    LIST_FOREACH(pf->loads) {
+        add_load(thi, it->data);
+    }
 
     s64 count = pf->symbols->size;
     for (s64 i = 0; i < count; ++i) {

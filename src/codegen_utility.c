@@ -333,7 +333,9 @@ void add_variable(Codegen_Context* ctx, Value* variable) {
     list_append(top->local_variables, variable);
 }
 
-int align(int n, s32 m) { return (m - (n % m)) % m; }
+int align(int n, s32 m) {
+    return (m - (n % m)) % m;
+}
 
 void emit_cast_float_to_int(Codegen_Context* ctx, char* reg, Type* type) {
     assert(type->kind == TYPE_INT);
@@ -433,13 +435,17 @@ void set_break_label(Codegen_Context* ctx, char* break_l) {
     ctx->obreak = ctx->lbreak;
     ctx->lbreak = break_l;
 }
-void restore_break_label(Codegen_Context* ctx) { ctx->lbreak = ctx->obreak; }
+void restore_break_label(Codegen_Context* ctx) {
+    ctx->lbreak = ctx->obreak;
+}
 
 void set_continue_label(Codegen_Context* ctx, char* continue_l) {
     ctx->ocontinue = ctx->lcontinue;
     ctx->lcontinue = continue_l;
 }
-void restore_continue_label(Codegen_Context* ctx) { ctx->lcontinue = ctx->ocontinue; }
+void restore_continue_label(Codegen_Context* ctx) {
+    ctx->lcontinue = ctx->ocontinue;
+}
 
 void set_jump_labels(Codegen_Context* ctx, char* continue_l, char* break_l) {
     set_continue_label(ctx, continue_l);
@@ -473,9 +479,15 @@ char* make_data_label(Codegen_Context* ctx) {
     return l;
 }
 
-void reset_text_label_counter(Codegen_Context* ctx) { ctx->text_label_counter = 0; }
-void reset_stack(Codegen_Context* ctx) { ctx->stack_index = 0; }
-void set_current_function_expr(Codegen_Context* ctx, AST* func_expr) { ctx->current_function = func_expr; }
+void reset_text_label_counter(Codegen_Context* ctx) {
+    ctx->text_label_counter = 0;
+}
+void reset_stack(Codegen_Context* ctx) {
+    ctx->stack_index = 0;
+}
+void set_current_function_expr(Codegen_Context* ctx, AST* func_expr) {
+    ctx->current_function = func_expr;
+}
 
 char* emit_save_result(Codegen_Context* ctx, Value* value) {
     char* mov_op     = get_move_op(value->type);
@@ -646,10 +658,18 @@ void emit_pop(Codegen_Context* ctx, s8 reg) {
     assert(ctx->stack_index >= 0);
 }
 
-bool is_reg8(s8 reg) { return (get_size_of_reg(reg) == 1) && (reg < XMM_REG_START); }
-bool is_reg16(s8 reg) { return (get_size_of_reg(reg) == 2) && (reg < XMM_REG_START); }
-bool is_reg32(s8 reg) { return (get_size_of_reg(reg) == 4) && (reg < XMM_REG_START); }
-bool is_reg64(s8 reg) { return (get_size_of_reg(reg) == 8) && (reg < XMM_REG_START); }
+bool is_reg8(s8 reg) {
+    return (get_size_of_reg(reg) == 1) && (reg < XMM_REG_START);
+}
+bool is_reg16(s8 reg) {
+    return (get_size_of_reg(reg) == 2) && (reg < XMM_REG_START);
+}
+bool is_reg32(s8 reg) {
+    return (get_size_of_reg(reg) == 4) && (reg < XMM_REG_START);
+}
+bool is_reg64(s8 reg) {
+    return (get_size_of_reg(reg) == 8) && (reg < XMM_REG_START);
+}
 
 void emit_lea_reg64_mem(Codegen_Context* ctx, s8 reg64, char* mem) {
     assert(ctx);

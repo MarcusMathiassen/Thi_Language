@@ -116,10 +116,10 @@ char* ast_to_str(AST* expr) {
         return str.c_str;
     }
     case AST_STRUCT: {
-        return strf("%s", type_to_str(expr->type));
+        return type_to_str(expr->Struct.type);
     }
     case AST_ENUM: {
-        return strf("%s", type_to_str(expr->type));
+        return type_to_str(expr->Enum.type);
     }
     case AST_FUNCTION: {
         string str = make_string_f("%s %s", type_to_str(expr->type), ast_to_str(expr->Function.body));
