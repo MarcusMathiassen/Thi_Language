@@ -4,6 +4,7 @@
 #include "type.h"
 #include "utility.h"
 #include <assert.h> // assert
+#include <string.h> // strcmp
 
 #define DEBUG_START                                                                                                    \
     info("%s: %s", give_unique_color((char*)__func__), wrap_with_colored_parens(ast_to_str(expr)));                    \
@@ -168,7 +169,7 @@ Type* type_check_string(Typer_Context* ctx, AST* expr) {
 Type* type_check_ident(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
     expr->type = (Type*)map_get(ctx->symbol_table, expr->Ident.name);
-    warning("identifier: %s type: %s", ast_to_str(expr), type_to_str(expr->type));
+    // warning("identifier: %s type: %s", ast_to_str(expr), type_to_str(expr->type));
     return NULL;
 }
 Type* type_check_call(Typer_Context* ctx, AST* expr) {

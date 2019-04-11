@@ -135,7 +135,7 @@ int main(int argc, char** argv) {
     thi.ast = ast;
 
     pass_resolve_all_unresolved_types(&thi);
-    // type_checker(thi.symbol_map, thi.ast);
+    type_checker(thi.symbol_map, thi.ast);
 
     char* json = full_ast_to_json(thi.ast);
     write_to_file("ast.json", json);

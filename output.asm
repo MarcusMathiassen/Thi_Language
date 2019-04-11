@@ -6,14 +6,14 @@ _main:
 	mov rbp, rsp
 	sub rsp, 16; 4 alloc, 12 padding
 .begin:
-	mov eax, 46
+	mov eax, 0
 	push rax
 	push rax
 	mov eax, [rbp-4]; load
 	pop rcx
 	mov [rbp-4], ecx; store
 	pop rax
-	mov eax, 0
+	mov eax, 1
 	jmp .end
 .end:
 	add rsp, 16; 4 alloc, 12 padding

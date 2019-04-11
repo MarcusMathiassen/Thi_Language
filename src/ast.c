@@ -161,88 +161,98 @@ char* ast_to_str(AST* expr) {
     return NULL;
 }
 
+char* ast_json_prelude(AST* expr) {
+    return strf("\"token\": {\"kind\": \"%s\", \"value\": \"%s\"}, \"type\": %s, \"%s\"",
+    token_kind_to_str(expr->t.kind),
+    expr->t.value,
+    type_to_json(expr->type),
+    ast_kind_to_str(expr->kind));
+}
+
 char* ast_to_json(AST* expr) {
     if (!expr) return "\"NULL\"";
     warning("%s", ast_kind_to_str(expr->kind));
     char* result = NULL;
     switch (expr->kind) {
     case AST_SWITCH: {
-        result = strf("{\"%s\":{\"cond\":%s,\"cases\",\"default\"}}", ast_kind_to_str(expr->kind),
-                      ast_to_json(expr->Switch.cond), ast_to_json(expr->Switch.cases),
-                      ast_to_json(expr->Switch.default_case));
+        result = strf("{%s:{\"cond\":%s,\"cases\",\"default\"}}",
+        ast_json_prelude(expr),
+        ast_to_json(expr->Switch.cond),
+        ast_to_json(expr->Switch.cases),
+        ast_to_json(expr->Switch.default_case));
     } break;
     case AST_IS: {
         result =
-            strf("{\"%s\":{\"case\":%s,\"body\":%s,\"has_fallthrough\":%s}}", ast_kind_to_str(expr->kind),
+            strf("{%s:{\"case\":%s,\"body\":%s,\"has_fallthrough\":%s}}", ast_json_prelude(expr),
                  ast_to_json(expr->Is.expr), ast_to_json(expr->Is.body), expr->Is.has_fallthrough ? "true" : "false");
     } break;
     case AST_FIELD_ACCESS: {
-        result = strf("{\"%s\":{\"load\":%s,\"field\":%s}}", ast_kind_to_str(expr->kind),
+        result = strf("{%s:{\"load\":%s,\"field\":%s}}", ast_json_prelude(expr),
                       ast_to_json(expr->Field_Access.load), expr->Field_Access.field);
     } break;
     case AST_SIZEOF: {
-        result = strf("{\"%s\": {\"sizeof\": %s}}", ast_kind_to_str(expr->kind), type_to_str(expr->type));
+        result = strf("{%s:{\"sizeof\": %s}}", ast_json_prelude(expr), type_to_json(expr->type));
     } break;
     case AST_EXTERN: {
-        result = strf("{\"%s\": {\"extern\": \"%s\"}}", ast_kind_to_str(expr->kind), type_to_str(expr->type));
+        result = strf("{%s:{\"extern\": %s}}", ast_json_prelude(expr), type_to_json(expr->type));
     } break;
     case AST_LOAD: {
-        result = strf("{\"%s\": {\"load\": %s}}", ast_kind_to_str(expr->kind), expr->Load.str);
+        result = strf("{%s:{\"load\": %s}}", ast_json_prelude(expr), expr->Load.str);
     } break;
     case AST_VAR_ARGS: {
-        result = strf("{\"%s\": {\"var_args\": ...}}", ast_kind_to_str(expr->kind));
+        result = strf("{%s:{\"var_args\": ...}}", ast_json_prelude(expr));
     } break;
     case AST_LINK: {
-        result = strf("{\"%s\": {\"link\": %s}}", ast_kind_to_str(expr->kind), expr->Link.str);
+        result = strf("{%s:{\"link\": %s}}", ast_json_prelude(expr), expr->Link.str);
     } break;
     case AST_SUBSCRIPT: {
-        result = strf("{\"%s\": {\"load\": %s, \"sub\": %s}}", ast_kind_to_str(expr->kind),
+        result = strf("{%s:{\"load\": %s, \"sub\": %s}}", ast_json_prelude(expr),
                       ast_to_json(expr->Subscript.load), ast_to_json(expr->Subscript.sub));
     } break;
     case AST_CONTINUE: {
-        result = strf("{\"%s\": {%s}}", ast_kind_to_str(expr->kind), "continue");
+        result = strf("{%s:{%s}}", ast_json_prelude(expr), "continue");
     } break;
     case AST_FALLTHROUGH: {
-        result = strf("{\"%s\": {%s}}", ast_kind_to_str(expr->kind), "fallthrough");
+        result = strf("{%s:{%s}}", ast_json_prelude(expr), "fallthrough");
     } break;
     case AST_BREAK: {
-        result = strf("{\"%s\": {%s}}", ast_kind_to_str(expr->kind), "break");
+        result = strf("{%s:{%s}}", ast_json_prelude(expr), "break");
     } break;
     case AST_DEFER: {
-        result = strf("{\"%s\": {\"expr\": %s}}", ast_kind_to_str(expr->kind), ast_to_json(expr->Defer.expr));
+        result = strf("{%s:{\"expr\": %s}}", ast_json_prelude(expr), ast_to_json(expr->Defer.expr));
     } break;
     case AST_NOTE: {
-        result = strf("{\"%s\": {\"note\":\"%s\"}}", ast_kind_to_str(expr->kind), ast_to_json(expr->Note.expr));
+        result = strf("{%s:{\"note\":\"%s\"}}", ast_json_prelude(expr), ast_to_json(expr->Note.expr));
     } break;
     case AST_INT: {
-        result = strf("{\"%s\": {\"value\": %lld}}", ast_kind_to_str(expr->kind), expr->Int.val);
+        result = strf("{%s:{\"value\": %lld}}", ast_json_prelude(expr), expr->Int.val);
     } break;
     case AST_STRING: {
-        result = strf("{\"%s\": {\"value\": \"%s\"}}", ast_kind_to_str(expr->kind), expr->String.val);
+        result = strf("{%s:{\"value\": \"%s\"}}", ast_json_prelude(expr), expr->String.val);
     } break;
     case AST_FLOAT: {
-        result = strf("{\"%s\": {\"value\": %f}}", ast_kind_to_str(expr->kind), expr->Float.val);
+        result = strf("{%s:{\"value\": %f}}", ast_json_prelude(expr), expr->Float.val);
     } break;
     case AST_IDENT: {
-        result = strf("{\"%s\": {\"ident\": \"%s\"}}", ast_kind_to_str(expr->kind), expr->Ident.name);
+        result = strf("{%s:{\"ident\": \"%s\"}}", ast_json_prelude(expr), expr->Ident.name);
     } break;
     case AST_UNARY: {
-        result = strf("{\"%s\": {\"op\": \"%s\", \"expr\": \"%s\"}}", ast_kind_to_str(expr->kind),
+        result = strf("{%s:{\"op\": \"%s\", \"expr\": \"%s\"}}", ast_json_prelude(expr),
                       token_kind_to_str(expr->Unary.op), ast_to_json(expr->Unary.operand));
     } break;
     case AST_BINARY: {
-        result = strf("{\"%s\": {\"op\": \"%s\", \"lhs\": %s, \"rhs\": %s}}", ast_kind_to_str(expr->kind),
+        result = strf("{%s:{\"op\": \"%s\", \"lhs\": %s, \"rhs\": %s}}", ast_json_prelude(expr),
                       token_kind_to_str(expr->Binary.op), ast_to_json(expr->Binary.lhs), ast_to_json(expr->Binary.rhs));
     } break;
     case AST_RETURN: {
-        result = strf("{\"%s\": {\"expr\": %s}}", ast_kind_to_str(expr->kind), ast_to_json(expr->Return.expr));
+        result = strf("{%s:{\"expr\": %s}}", ast_json_prelude(expr), ast_to_json(expr->Return.expr));
     } break;
     case AST_VARIABLE_DECL: {
-        result = strf("{\"%s\": {\"name\": \"%s\", \"type\": \"%s\", \"value\": %s}}", ast_kind_to_str(expr->kind),
-                      expr->Variable_Decl.name, type_to_str(expr->type), ast_to_json(expr->Variable_Decl.value));
+        result = strf("{%s:{\"name\": \"%s\", \"type\": %s, \"value\": %s}}", ast_json_prelude(expr),
+                      expr->Variable_Decl.name, type_to_json(expr->type), ast_to_json(expr->Variable_Decl.value));
     } break;
     case AST_CONSTANT_DECL: {
-        result = strf("{\"%s\": {\"name\": \"%s\", \"value\": %s}}", ast_kind_to_str(expr->kind),
+        result = strf("{%s:{\"name\": \"%s\", \"value\": %s}}", ast_json_prelude(expr),
                       expr->Constant_Decl.name, ast_to_json(expr->Constant_Decl.value));
     } break;
     case AST_BLOCK: {
@@ -258,34 +268,34 @@ char* ast_to_json(AST* expr) {
         result = str.c_str;
     } break;
     case AST_FUNCTION: {
-        result = strf("{\"%s\": {\"type\": \"%s\", \"body\": %s }}", ast_kind_to_str(expr->kind),
-                      type_to_str(expr->type), ast_to_json(expr->Function.body));
+        result = strf("{%s:{\"type\": %s, \"body\": %s }}", ast_json_prelude(expr),
+                      type_to_json(expr->type), ast_to_json(expr->Function.body));
     } break;
     case AST_STRUCT: {
-        result = strf("{\"%s\": {\"type\": \"%s\"}}", ast_kind_to_str(expr->kind), type_to_str(expr->Struct.type));
+        result = strf("{%s:{\"type\": %s}}", ast_json_prelude(expr), type_to_str(expr->Struct.type));
     } break;
     case AST_ENUM: {
-        result = strf("{\"%s\": {\"type\": \"%s\"}}", ast_kind_to_str(expr->kind), type_to_str(expr->Enum.type));
+        result = strf("{%s:{\"type\": %s}}", ast_json_prelude(expr), type_to_str(expr->Enum.type));
     } break;
     case AST_GROUPING: {
-        result = strf("{\"%s\": {\"expr\": %s}}", ast_kind_to_str(expr->kind), ast_to_json(expr->Grouping.expr));
+        result = strf("{%s:{\"expr\": %s}}", ast_json_prelude(expr), ast_to_json(expr->Grouping.expr));
     } break;
     case AST_WHILE: {
-        result = strf("{\"%s\": {\"cond\": %s, \"then_block\": %s}}", ast_kind_to_str(expr->kind),
+        result = strf("{%s:{\"cond\": %s, \"then_block\": %s}}", ast_json_prelude(expr),
                       ast_to_json(expr->While.cond), ast_to_json(expr->While.then_block));
     } break;
     case AST_FOR: {
-        result = strf("{\"%s\": {\"init\": %s, \"cond\": %s, \"step\": %s, \"then_block\": %s }}",
-                      ast_kind_to_str(expr->kind), ast_to_json(expr->For.init), ast_to_json(expr->For.cond),
+        result = strf("{%s:{\"init\": %s, \"cond\": %s, \"step\": %s, \"then_block\": %s }}",
+                      ast_json_prelude(expr), ast_to_json(expr->For.init), ast_to_json(expr->For.cond),
                       ast_to_json(expr->For.step), ast_to_json(expr->For.then_block));
     } break;
     case AST_IF: {
-        result = strf("{\"%s\": {\"cond\": %s, \"then_block\": %s, \"else_block\": %s }}", ast_kind_to_str(expr->kind),
+        result = strf("{%s:{\"cond\": %s, \"then_block\": %s, \"else_block\": %s }}", ast_json_prelude(expr),
                       ast_to_json(expr->If.cond), ast_to_json(expr->If.then_block), ast_to_json(expr->If.else_block));
     } break;
     case AST_CALL: {
         string str = make_string("");
-        append_string_f(&str, "{\"%s\": {\"callee\": \"%s\", ", ast_kind_to_str(expr->kind), expr->Call.callee);
+        append_string_f(&str, "{%s:{\"callee\": \"%s\", ", ast_json_prelude(expr), expr->Call.callee);
         append_string(&str, "\"args\": [");
         s64 arg_count = expr->Call.args->count;
         s64 counter   = 0;
@@ -297,7 +307,7 @@ char* ast_to_json(AST* expr) {
         append_string(&str, "]}}");
         result = str.c_str;
     } break;
-    default: warning("%s: unhandled case %s", __func__, ast_kind_to_str(expr->kind));
+    default: warning("%s: unhandled case %s", __func__, ast_json_prelude(expr));
     }
     assert(result);
     return result;
@@ -322,7 +332,7 @@ void print_ast(List* ast) {
 }
 
 char* full_ast_to_json(List* ast) {
-    success("Printing AST as JSON..");
+    success("full_ast_to_json..");
     string json      = make_string("{\"AST\": [");
     s64    ast_count = ast->count;
     s64    counter   = 0;
@@ -336,7 +346,7 @@ char* full_ast_to_json(List* ast) {
 }
 
 void print_ast_json(List* ast) {
-    success("Printing AST as JSON..");
+    success("print_ast_json..");
     string json      = make_string("{\"AST\": [");
     s64    ast_count = ast->count;
     s64    counter   = 0;

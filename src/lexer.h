@@ -131,6 +131,7 @@ typedef struct {
 void       print_tokens(Token_Array token_array);
 void       print_token(Token token);
 char*      token_to_str(Token token);
+char*      token_to_json(Token token);
 char*      token_kind_to_str(Token_Kind kind);
 Lexed_File generate_tokens_from_source(char* source);
 void       lexer_test(void);

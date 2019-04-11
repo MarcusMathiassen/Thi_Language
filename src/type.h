@@ -20,6 +20,7 @@ s64   get_size_of_type(Type* Type);
 char* get_type_name(Type* Type);
 
 char* type_to_str(Type* type);
+char* type_to_json(Type* type);
 char* type_kind_to_str(Type_Kind kind);
 
 Type* make_type_unresolved(char* name);
@@ -66,6 +67,8 @@ struct Type {
     Type_Kind kind;
     union {
         struct {
+        } Var_Args;
+        struct {
             char* name;
         } Unresolved;
         struct {
@@ -99,8 +102,6 @@ struct Type {
             Type* ret_type;
             bool  has_var_arg;
         } Function;
-        struct {
-        } Var_Args;
     };
 };
 

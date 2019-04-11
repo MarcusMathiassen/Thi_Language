@@ -1,6 +1,4 @@
-#get()
-    #return 53
 
-main(argc: int, argv: char**)
-    i := 53
-    return 0
+main()
+    i: s32
+    return i + 3

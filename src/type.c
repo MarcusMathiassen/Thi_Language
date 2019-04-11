@@ -31,6 +31,7 @@ char* type_kind_to_str(Type_Kind kind) {
     case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
     default: warning("not implemented type_kind_to_str kind %d", kind);
     }
+    error("xxx");
     return "";
 }
 
@@ -186,57 +187,85 @@ char* type_to_str(Type* type) {
 
 char* type_to_json(Type* type) {
     if (!type) return "---";
+    // error("type_to_json got null");
     warning("type_to_json: %s", type_kind_to_str(type->kind));
     char* result = NULL;
     switch (type->kind) {
     case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
     case TYPE_VOID: return "void";
-    case TYPE_UNRESOLVED: return strf("PLACEHOLDER(%s)", type->Unresolved.name);
-    case TYPE_ARRAY: return strf("%s[%d]", type_to_json(type->Array.type), type->Array.size);
+    case TYPE_UNRESOLVED: {
+        result = strf("{\"%s\": {\"name\": \"%s\"}}", type_kind_to_str(type->kind), type->Unresolved.name);
+    } break;
+    case TYPE_ARRAY: {
+        result = strf("{\"%s\": {\"type\": %s, \"size\": %d}}", type_kind_to_str(type->kind),
+                      type_to_json(type->Array.type), type->Array.size);
+    } break;
     case TYPE_INT: {
-        result = strf("{\"%s\": {\"bytes\": %s, \"is_signed\":\"%s\"}}", type_kind_to_str(type->kind), type->Int.bytes,
+        result = strf("{\"%s\": {\"bytes\": %d, \"is_signed\":%s}}", type_kind_to_str(type->kind), type->Int.bytes,
                       type->Int.is_unsigned ? "true" : "false");
     } break;
-    case TYPE_POINTER: return strf("%s*", type_to_json(type->Pointer.pointee));
-    case TYPE_FLOAT: return strf("f%d", type->Float.bytes * 8);
-    case TYPE_STRING: return strf("\"\", %d", type->String.len);
+    case TYPE_POINTER: {
+        result = strf("{\"%s\": {\"pointee\": %s}}", type_kind_to_str(type->kind), type_to_json(type->Pointer.pointee));
+    } break;
+    case TYPE_FLOAT: {
+        result = strf("{\"%s\": {\"bytes\": %d}}", type_kind_to_str(type->kind), type->Float.bytes);
+    } break;
+    case TYPE_STRING: {
+        result = strf("{\"%s\": {\"len\": %d}}", type_kind_to_str(type->kind), type->String.len);
+    } break;
     case TYPE_STRUCT: {
-        char* s = strf("%s\n", type->Struct.name);
+        string str = make_string("");
+        append_string_f(&str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Struct.name);
+        append_string(&str, "\"args\": [");
+        s64 arg_count = type->Struct.members->count;
+        s64 counter   = 0;
         LIST_FOREACH(type->Struct.members) {
-            AST* mem = (AST*)it->data;
-            s        = strf("%s\t%s", s, strf("%s\n", ast_to_str(mem)));
+            append_string(&str, ast_to_json(it->data));
+            if (counter != arg_count - 1) append_string(&str, ",");
+            counter += 1;
         }
-        return s;
-    };
+        append_string(&str, "]}}");
+        result = str.c_str;
+    } break;
 
     case TYPE_ENUM: {
-        char* s = strf("%s\n", type->Enum.name);
+        string str = make_string("");
+        append_string_f(&str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Enum.name);
+        append_string(&str, "\"args\": [");
+        s64 arg_count = type->Enum.members->count;
+        s64 counter   = 0;
         LIST_FOREACH(type->Enum.members) {
-            AST* mem = (AST*)it->data;
-            s        = strf("%s\t%s", s, strf("%s\n", ast_to_str(mem)));
+            append_string(&str, ast_to_json(it->data));
+            if (counter != arg_count - 1) append_string(&str, ",");
+            counter += 1;
         }
-        return s;
+        append_string(&str, "]}}");
+        result = str.c_str;
     };
 
     case TYPE_FUNCTION: {
-        string str       = make_string(type->Function.name);
-        s64    arg_count = type->Function.args->count;
-        s64    arg_index = 0;
-        append_string(&str, "(");
+
+        string str = make_string("");
+        append_string_f(&str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Enum.name);
+        append_string(&str, "\"args\": [");
+        s64 arg_count = type->Function.args->count;
+        s64 counter   = 0;
         LIST_FOREACH(type->Function.args) {
-            append_string(&str, ast_to_str(it->data));
-            if (arg_index != arg_count - 1) {
-                append_string(&str, ", ");
-            }
-            arg_index += 1;
+            append_string(&str, ast_to_json(it->data));
+            if (counter != arg_count - 1) append_string(&str, ",");
+            counter += 1;
         }
-        append_string(&str, ")");
-        if (type->Function.ret_type) append_string_f(&str, " %s", type_to_json(type->Function.ret_type));
-        return str.c_str;
+        append_string(&str, "]}}");
+        warning("BEGIN");
+        // warning("%s", type_to_json(type->Function.ret_type));
+        warning("ED");
+        // append_string_f(&str, strf("], \"ret_type\":%s}}", type_to_json(type->Function.ret_type)));
+        result = str.c_str;
     }
     default: warning("type_to_json not implemented kind %d", type_kind_to_str(type->kind));
     }
-    return NULL;
+    assert(result);
+    return result;
 }
 
 Type_Ref_List make_type_ref_list() {
