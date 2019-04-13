@@ -680,6 +680,7 @@ void intern_array_append(Intern_Array* l, Intern intern) {
 char* intern(Intern_Array* interns, char* str) {
     return intern_range(interns, str, str + strlen(str));
 }
+
 char* intern_range(Intern_Array* interns, char* start, char* end) {
     s64 len = end - start;
 
