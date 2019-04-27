@@ -186,7 +186,7 @@ char* type_to_str(Type* type) {
 }
 
 char* type_to_json(Type* type) {
-    if (!type) return "---";
+    if (!type) return "\"---\"";
     // error("type_to_json got null");
     warning("type_to_json: %s", type_kind_to_str(type->kind));
     char* result = NULL;
@@ -255,11 +255,11 @@ char* type_to_json(Type* type) {
             if (counter != arg_count - 1) append_string(&str, ",");
             counter += 1;
         }
-        append_string(&str, "]}}");
-        warning("BEGIN");
+        // append_string(&str, "]}}");
+        // warning("BEGIN");
         // warning("%s", type_to_json(type->Function.ret_type));
-        warning("ED");
-        // append_string_f(&str, strf("], \"ret_type\":%s}}", type_to_json(type->Function.ret_type)));
+        // warning("ED");
+        append_string(&str, strf("], \"ret_type\":%s}}", type_to_json(type->Function.ret_type)));
         result = str.c_str;
     }
     default: warning("type_to_json not implemented kind %d", type_kind_to_str(type->kind));

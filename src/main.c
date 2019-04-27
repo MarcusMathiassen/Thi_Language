@@ -48,7 +48,6 @@ int main(int argc, char** argv) {
     map_tests();
     list_tests();
     stack_tests();
-
     lexer_test();
 
     Thi thi = make_thi();

@@ -6,7 +6,7 @@ src=./src/*.c
 flags=-Wall\ -Wextra\ -Wno-switch\ -Wno-unused-function # -Werror #-DNDEBUG
 std=c99
 
-$compiler $src -std=$std $olvl $flags -o $output -g -fsanitize=address -fno-omit-frame-pointer
+$compiler $src -std=$std $olvl $flags -o $output # -g -fsanitize=address -fno-omit-frame-pointer
 
 test_files=$@
 if [ ${#test_files} == 0 ]; then
@@ -15,9 +15,9 @@ fi
 
 if [ $? == 0 ]; then
     # ./test.bash
-    ./test.bash ./tests/test_pointer.thi
+    # ./test.bash ./tests/test_pointer.thi
     # ./test.bash ./tests/test_var_args.thi
-    # ./test.bash ./tests/test_basic_setup.thi
+    ./test.bash ./tests/test_basic_setup.thi
     # ./test.bash ./tests/test_window.thi
     # ./test.bash ./tests/test_advanced_pointer.thi
     # ./test.bash ./tests/test_subscript_access.thi

@@ -6,6 +6,9 @@
 #include <assert.h> // assert
 #include <string.h> // strcmp
 
+#define UNFINISHED                                                                                                     \
+    error("[UNFINISHED] %s: %s", give_unique_color((char*)__func__), wrap_with_colored_parens(ast_to_str(expr)));
+
 #define DEBUG_START                                                                                                    \
     info("%s: %s", give_unique_color((char*)__func__), wrap_with_colored_parens(ast_to_str(expr)));                    \
     assert(expr);
@@ -116,14 +119,17 @@ Type* type_check_switch(Typer_Context* ctx, AST* expr) {
 }
 Type* type_check_extern(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
+    UNFINISHED;
     return NULL;
 }
 Type* type_check_struct(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
+    UNFINISHED;
     return NULL;
 }
 Type* type_check_enum(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
+    UNFINISHED;
     return NULL;
 }
 Type* type_check_function(Typer_Context* ctx, AST* expr) {
@@ -153,24 +159,27 @@ Type* type_check_note(Typer_Context* ctx, AST* expr) {
 }
 Type* type_check_int(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
-    expr->type = (Type*)map_get(ctx->symbol_table, DEFAULT_INT_TYPE_AS_STRING);
-    return NULL;
+    Type* t    = (Type*)map_get(ctx->symbol_table, DEFAULT_INT_TYPE_AS_STRING);
+    expr->type = t;
+    return t;
 }
 Type* type_check_float(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
-    expr->type = (Type*)map_get(ctx->symbol_table, DEFAULT_FLOAT_TYPE_AS_STRING);
-    return NULL;
+    Type* t    = (Type*)map_get(ctx->symbol_table, DEFAULT_FLOAT_TYPE_AS_STRING);
+    expr->type = t;
+    return t;
 }
 Type* type_check_string(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
-    Type* t = make_type_pointer(make_type_int(8, 1));
+    Type* t    = make_type_pointer(make_type_int(8, 1));
+    expr->type = t;
     return t;
 }
 Type* type_check_ident(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
-    expr->type = (Type*)map_get(ctx->symbol_table, expr->Ident.name);
-    // warning("identifier: %s type: %s", ast_to_str(expr), type_to_str(expr->type));
-    return NULL;
+    Type* t    = (Type*)map_get(ctx->symbol_table, expr->Ident.name);
+    expr->type = t;
+    return t;
 }
 Type* type_check_call(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
@@ -180,13 +189,15 @@ Type* type_check_call(Typer_Context* ctx, AST* expr) {
 
     Type* func_t = (Type*)map_get(ctx->symbol_table, callee);
 
-    expr->type = func_t->Function.ret_type;
+    expr->type = func_t;
 
-    assert(callee);
+    // temp
+    /* Typecheck the args */
     assert(args);
+
     assert(ret_type);
 
-    return NULL;
+    return func_t;
 }
 Type* type_check_unary(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
@@ -253,7 +264,10 @@ Type* type_check_variable_decl(Typer_Context* ctx, AST* expr) {
 }
 Type* type_check_constant_decl(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
-    return NULL;
+    AST* assigned_value = expr->Constant_Decl.value;
+    type_check_expr(ctx, assigned_value);
+    expr->type = assigned_value->type;
+    return expr->type;
 }
 Type* type_check_block(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
@@ -266,10 +280,12 @@ Type* type_check_block(Typer_Context* ctx, AST* expr) {
 }
 Type* type_check_subscript(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
+    UNFINISHED;
     return NULL;
 }
 Type* type_check_field_access(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
+    UNFINISHED;
     return NULL;
 }
 Type* type_check_if(Typer_Context* ctx, AST* expr) {
@@ -285,10 +301,12 @@ Type* type_check_if(Typer_Context* ctx, AST* expr) {
 }
 Type* type_check_for(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
+    UNFINISHED;
     return NULL;
 }
 Type* type_check_while(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
+    UNFINISHED;
     return NULL;
 }
 Type* type_check_return(Typer_Context* ctx, AST* expr) {
@@ -304,18 +322,22 @@ Type* type_check_return(Typer_Context* ctx, AST* expr) {
 }
 Type* type_check_defer(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
+    UNFINISHED;
     return NULL;
 }
 Type* type_check_break(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
+    UNFINISHED;
     return NULL;
 }
 Type* type_check_continue(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
+    UNFINISHED;
     return NULL;
 }
 Type* type_check_cast(Typer_Context* ctx, AST* expr) {
     DEBUG_START;
+    UNFINISHED;
     return NULL;
 }
 

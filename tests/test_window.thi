@@ -9,6 +9,8 @@ enum Theme
     light
     dark
 
+DEFAULT_WINDOW_TITLE :: "Hello Triangle"
+
 main()
     if !glfwInit() puts("GLFW init failed.")
     defer glfwTerminate()
@@ -23,7 +25,7 @@ main()
     glfwWindowHint(GLFW_BLUE_BITS, 8)
     glfwWindowHint(GLFW_ALPHA_BITS, 8)
 
-    window := glfwCreateWindow(300, 300, "Hello Triangle", NULL, NULL)
+    window := glfwCreateWindow(300, 300, DEFAULT_WINDOW_TITLE, NULL, NULL)
     glfwMakeContextCurrent(window)
 
     if glfwInit() != GLEW_OK puts("GLEW init failed.")

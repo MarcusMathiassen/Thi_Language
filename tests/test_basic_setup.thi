@@ -1,50 +1,52 @@
-load "includes/cstdio"
+# load "includes/cstdio"
 
-enum TokenKind
-    Ident :: 0
-    Load :: 1
-    Int :: 2
+# enum TokenKind
+#     Ident :: 0
+#     Load :: 1
+#     Int :: 2
 
-struct v2
-    x: f32
-    y: f32
+# struct v2
+#     x: f32
+#     y: f32
 
-get()
-    i := "Hello"
-    return
+# get()
+#     i := "Hello"
+#     return
 
-m :: n * 3
-n :: 3
+# m :: n * 3
+# n :: 3
 
-DEFAULT_SIZE_OF_OBJECTS :: 3
+# DEFAULT_SIZE_OF_OBJECTS :: 3
 
 main(argc: int, argv: char**)
 
-    v: v2
+    # v: v2
 
-    get()
-    d: v2
+    # get()
+    # d: v2
 
-    k: s64
-    l: s64
+    # k: s64
+    # l: s64
 
-    # This is a comment
+    # # This is a comment
 
-    width  :: 255
-    height :: 255
+    # width  :: 255
+    # height :: 255
 
-    end :: 3
-    for i := 0, i < end, i += 1
-        puts("Hi")
+    # end :: 3
+    # for i := 0, i < end, i += 1
+    #     puts("Hi")
 
-    compile("Hello")
+    # compile("Hello")
 
-    name := "Marcus"
-    age := 24
-    printf("Your name is %s. You are %d years old.\n", name, age)
+    # name := "Marcus"
+    # age := 24
+    # printf("Your name is %s. You are %d years old.\n", name, age)
 
-    puts("this is a test")
-    return DEFAULT_SIZE_OF_OBJECTS * 3 - m + 1
+    # puts("this is a test")
+    # return DEFAULT_SIZE_OF_OBJECTS * 3 - m + 1
 
-compile(source: u8*)
-    puts(source)
+    return 1
+
+# compile(source: u8*)
+    # puts(source)
