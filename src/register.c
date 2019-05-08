@@ -14,8 +14,12 @@ char* reg[TOTAL_REG_COUNT] = {
     "xmm4", "xmm5", "xmm6", "xmm7", "xmm8", "xmm9", "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15",
 };
 
-s8    get_num_registers() { return TOTAL_REG_COUNT; }
-char* get_reg(s8 reg_n) { return reg[reg_n]; }
+s8 get_num_registers() {
+    return TOTAL_REG_COUNT;
+}
+char* get_reg(s8 reg_n) {
+    return reg[reg_n];
+}
 char* get_reg_fitting_value(Value* value) {
     s64 size  = get_size_of_value(value);
     s64 reg_n = get_rax_reg_of_byte_size(size, 'a');
