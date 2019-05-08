@@ -14,6 +14,87 @@
 //                               Public
 //------------------------------------------------------------------------------
 
+void ast_visit(void* ctx, AST* expr) {
+    if (!expr) return;
+    switch (expr->kind) {
+    case AST_SIZEOF: break;
+    case AST_FALLTHROUGH: break;
+    case AST_LOAD: break;
+    case AST_LINK: break;
+    case AST_EXTERN: break;
+    case AST_INT: break;
+    case AST_FLOAT: break;
+    case AST_STRING: break;
+    case AST_IDENT: break;
+    case AST_STRUCT: break;
+    case AST_ENUM: break;
+    case AST_SWITCH:
+        ast_visit(ctx, expr->Switch.cond);
+        ast_visit(ctx, expr->Switch.cases);
+        ast_visit(ctx, expr->Switch.default_case);
+        break;
+    case AST_FUNCTION:
+        ast_visit(ctx, expr->Function.body);
+        LIST_FOREACH(expr->Function.defers) {
+            ast_visit(ctx, it->data);
+            break;
+        }
+        break;
+    case AST_NOTE: ast_visit(ctx, expr->Note.expr); break;
+    case AST_CALL: LIST_FOREACH(expr->Call.args) { ast_visit(ctx, it->data);
+        }
+        break;
+    case AST_UNARY: ast_visit(ctx, expr->Unary.operand); break;
+    case AST_BINARY:
+        ast_visit(ctx, expr->Binary.lhs);
+        ast_visit(ctx, expr->Binary.rhs);
+        break;
+    case AST_VARIABLE_DECL: ast_visit(ctx, expr->Variable_Decl.value); break;
+    case AST_CONSTANT_DECL: ast_visit(ctx, expr->Constant_Decl.value); break;
+    case AST_BLOCK: LIST_FOREACH(expr->Block.stmts) { ast_visit(ctx, it->data);
+        }
+        break;
+    case AST_GROUPING: ast_visit(ctx, expr->Grouping.expr); break;
+    case AST_SUBSCRIPT:
+        ast_visit(ctx, expr->Subscript.load);
+        ast_visit(ctx, expr->Subscript.sub);
+        break;
+    case AST_FIELD_ACCESS: ast_visit(ctx, expr->Field_Access.load); break;
+    case AST_IF:
+        ast_visit(ctx, expr->If.cond);
+        ast_visit(ctx, expr->If.else_block);
+        ast_visit(ctx, expr->If.then_block);
+        break;
+    case AST_FOR:
+        ast_visit(ctx, expr->For.init);
+        ast_visit(ctx, expr->For.cond);
+        ast_visit(ctx, expr->For.step);
+        ast_visit(ctx, expr->For.then_block);
+        break;
+    case AST_WHILE:
+        ast_visit(ctx, expr->While.cond);
+        ast_visit(ctx, expr->While.then_block);
+        break;
+    case AST_RETURN: ast_visit(ctx, expr->Return.expr); break;
+    case AST_DEFER: ast_visit(ctx, expr->Defer.expr); break;
+    case AST_BREAK: ast_visit(ctx, expr->Break.expr); break;
+    case AST_CONTINUE: ast_visit(ctx, expr->Continue.expr); break;
+    case AST_CAST: ast_visit(ctx, expr->Cast.expr); break;
+    case AST_IS:
+        ast_visit(ctx, expr->Is.expr);
+        ast_visit(ctx, expr->Is.body);
+        break;
+    default: error("Unhandled %s case for kind '%s'", give_unique_color((char*)__func__), ast_kind_to_str(expr->kind));
+    }
+
+    success("%s", ast_to_str(expr));
+    // List* passes = ctx->passes_for(expr->kind);
+    // LIST_FOREACH(passes) {
+    //     void (*pass)(void*, AST*) = it->data;
+    //     (*pass)(ctx, expr);
+    // }
+}
+
 char* ast_kind_to_str(AST_Kind kind) {
     switch (kind) {
     case AST_VAR_ARGS: return "AST_VAR_ARGS";
@@ -56,7 +137,7 @@ char* ast_kind_to_str(AST_Kind kind) {
 
 char* ast_to_str(AST* expr) {
     if (!expr) return "---";
-    warning("%s", ast_kind_to_str(expr->kind));
+    // warning("%s", ast_kind_to_str(expr->kind));
     switch (expr->kind) {
     case AST_VAR_ARGS: return "...";
     case AST_FALLTHROUGH: return "fallthrough";
@@ -170,7 +251,7 @@ char* ast_json_prelude(AST* expr) {
 
 char* ast_to_json(AST* expr) {
     if (!expr) return "\"NULL\"";
-    warning("%s", ast_kind_to_str(expr->kind));
+    // warning("%s", ast_kind_to_str(expr->kind));
     char* result = NULL;
     switch (expr->kind) {
     case AST_SWITCH: {

@@ -65,17 +65,22 @@ void type_checker(Map* symbol_table, List* ast) {
 void visit_expr(void* ctx, AST* expr) {
     if (!expr) return;
     switch (expr->kind) {
+    case AST_SIZEOF: break;
     case AST_FALLTHROUGH: break;
     case AST_LOAD: break;
     case AST_LINK: break;
     case AST_EXTERN: break;
+    case AST_INT: break;
+    case AST_FLOAT: break;
+    case AST_STRING: break;
+    case AST_IDENT: break;
+    case AST_STRUCT: break;
+    case AST_ENUM: break;
     case AST_SWITCH:
         visit_expr(ctx, expr->Switch.cond);
         visit_expr(ctx, expr->Switch.cases);
         visit_expr(ctx, expr->Switch.default_case);
         break;
-    case AST_STRUCT: return visit_struct(ctx, expr);
-    case AST_ENUM: return visit_enum(ctx, expr);
     case AST_FUNCTION:
         visit_expr(ctx, expr->Function.body);
         LIST_FOREACH(expr->Function.defers) {
@@ -84,38 +89,45 @@ void visit_expr(void* ctx, AST* expr) {
         }
         break;
     case AST_NOTE: visit_expr(ctx, expr->Note.expr); break;
-    case AST_INT: return visit_int(ctx, expr);
-    case AST_FLOAT: return visit_float(ctx, expr);
-    case AST_STRING: return visit_string(ctx, expr);
-    case AST_IDENT: return visit_ident(ctx, expr);
-    case AST_CALL: return visit_call(ctx, expr);
-    case AST_UNARY: return visit_unary(ctx, expr);
+    case AST_CALL: LIST_FOREACH(expr->Call.args) { visit_expr(ctx, it->data);
+        }
+        break;
+    case AST_UNARY: visit_expr(ctx, expr->Unary.operand); break;
     case AST_BINARY:
         visit_expr(ctx, expr->Binary.lhs);
         visit_expr(ctx, expr->Binary.rhs);
         break;
     case AST_VARIABLE_DECL: visit_expr(ctx, expr->Variable_Decl.value); break;
     case AST_CONSTANT_DECL: visit_expr(ctx, expr->Constant_Decl.value); break;
-    case AST_BLOCK:
-        LIST_FOREACH(expr->Block.stmts) {
-            visit_expr(ctx, it->data);
-            break;
+    case AST_BLOCK: LIST_FOREACH(expr->Block.stmts) { visit_expr(ctx, it->data);
         }
+        break;
     case AST_GROUPING: visit_expr(ctx, expr->Grouping.expr); break;
-    case AST_SUBSCRIPT: return visit_subscript(ctx, expr);
-    case AST_FIELD_ACCESS: return visit_field_access(ctx, expr);
+    case AST_SUBSCRIPT:
+        visit_expr(ctx, expr->Subscript.load);
+        visit_expr(ctx, expr->Subscript.sub);
+        break;
+    case AST_FIELD_ACCESS: visit_expr(ctx, expr->Field_Access.load); break;
     case AST_IF:
         visit_expr(ctx, expr->If.cond);
         visit_expr(ctx, expr->If.else_block);
         visit_expr(ctx, expr->If.then_block);
         break;
-    case AST_FOR: return visit_for(ctx, expr);
-    case AST_WHILE: return visit_while(ctx, expr);
-    case AST_RETURN: return visit_return(ctx, expr);
-    case AST_DEFER: return visit_defer(ctx, expr);
-    case AST_BREAK: return visit_break(ctx, expr);
-    case AST_CONTINUE: return visit_continue(ctx, expr);
-    case AST_CAST: return visit_cast(ctx, expr);
+    case AST_FOR:
+        visit_expr(ctx, expr->For.init);
+        visit_expr(ctx, expr->For.cond);
+        visit_expr(ctx, expr->For.step);
+        visit_expr(ctx, expr->For.then_block);
+        break;
+    case AST_WHILE:
+        visit_expr(ctx, expr->While.cond);
+        visit_expr(ctx, expr->While.then_block);
+        break;
+    case AST_RETURN: visit_expr(ctx, expr->Return.expr); break;
+    case AST_DEFER: visit_expr(ctx, expr->Defer.expr); break;
+    case AST_BREAK: visit_expr(ctx, expr->Break.expr); break;
+    case AST_CONTINUE: visit_expr(ctx, expr->Continue.expr); break;
+    case AST_CAST: visit_expr(ctx, expr->Cast.expr); break;
     case AST_IS:
         visit_expr(ctx, expr->Is.expr);
         visit_expr(ctx, expr->Is.body);
@@ -123,11 +135,12 @@ void visit_expr(void* ctx, AST* expr) {
     default: error("Unhandled %s case for kind '%s'", give_unique_color((char*)__func__), ast_kind_to_str(expr->kind));
     }
 
-    List* passes = ctx->passes_for(expr->kind);
-    LIST_FOREACH(passes) {
-        void (*pass)(void*, AST*) = it->data;
-        (*pass)(ctx, expr);
-    }
+    info("%s", ast_to_str(expr));
+    // List* passes = ctx->passes_for(expr->kind);
+    // LIST_FOREACH(passes) {
+    //     void (*pass)(void*, AST*) = it->data;
+    //     (*pass)(ctx, expr);
+    // }
 }
 
 Type* type_check_expr(Typer_Context* ctx, AST* expr) {

@@ -139,6 +139,11 @@ int main(int argc, char** argv) {
     char* json = full_ast_to_json(thi.ast);
     write_to_file("ast.json", json);
 
+    success("PR");
+    LIST_FOREACH(ast) {
+        ast_visit(NULL, it->data);
+    }
+
     // pass_initilize_all_enums(&thi);
 
     // pass_initilize_all_enums MUST BE RUN BEFORE THIS
