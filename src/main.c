@@ -40,12 +40,15 @@ void  pass_general(Thi* thi);
 void  maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it);
 
 void check_for_unresolved_types(void* ctx, AST* expr) {
-    if (expr->type && expr->type->kind == TYPE_UNRESOLVED)
+    if (expr->type && expr->type->kind == TYPE_UNRESOLVED) {
         warning("[check_for_unresolved_types]: unresolved type found for expr: %s", ast_to_str(expr));
+    }
 }
 
 void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* expr) {
-    if (!expr->type) warning("[make_sure_all_nodes_have_a_valid_type]: missing type for expr: %s", ast_to_str(expr));
+    if (!expr->type) {
+        warning("[make_sure_all_nodes_have_a_valid_type]: missing type for expr: %s", ast_to_str(expr));
+    }
 }
 
 int main(int argc, char** argv) {
