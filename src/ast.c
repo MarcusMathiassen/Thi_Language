@@ -14,7 +14,7 @@
 //                               Public
 //------------------------------------------------------------------------------
 
-void ast_visit(void* ctx, AST* expr) {
+void ast_visit(void* (*ctx)(AST*), AST* expr) {
     if (!expr) return;
     switch (expr->kind) {
     case AST_SIZEOF: break;
