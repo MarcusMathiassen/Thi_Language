@@ -39,6 +39,13 @@ void  linking_stage(Thi* thi, char* exec_name);
 void  pass_general(Thi* thi);
 void  maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it);
 
+void print(void* ctx, AST* expr) {
+    Thi* thi = (Thi*)ctx;
+    if (expr->kind == AST_INT) {
+        success("%s %s", thi->input_file, ast_to_str(expr));
+    }
+}
+
 int main(int argc, char** argv) {
     // Argument validation
     if (argc < 2) error("too few arguments.");
@@ -141,7 +148,7 @@ int main(int argc, char** argv) {
 
     success("PR");
     LIST_FOREACH(ast) {
-        ast_visit(NULL, it->data);
+        ast_visit(print, &thi, it->data);
     }
 
     // pass_initilize_all_enums(&thi);

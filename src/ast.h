@@ -244,7 +244,7 @@ void  print_ast(List* ast);
 void  print_ast_json(List* ast);
 char* full_ast_to_json(List* ast);
 
-void ast_visit(void* ctx, AST* expr);
+void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr);
 
 char* ast_to_json(AST* expr);
 char* ast_to_str(AST* expr);
