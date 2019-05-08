@@ -94,6 +94,7 @@ Parsed_File generate_ast_from_tokens(Token_Array tokens) {
     ctx.tokens         = tokens;
 
     eat(&ctx);
+
     while (!tok_is(&ctx, TOKEN_EOF)) {
         AST* stmt = parse_statement(&ctx);
         if (stmt) {
