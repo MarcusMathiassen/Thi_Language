@@ -39,11 +39,13 @@ void  linking_stage(Thi* thi, char* exec_name);
 void  pass_general(Thi* thi);
 void  maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it);
 
-void print(void* ctx, AST* expr) {
-    Thi* thi = (Thi*)ctx;
-    if (expr->kind == AST_INT) {
-        success("%s %s", thi->input_file, ast_to_str(expr));
-    }
+void check_for_unresolved_types(void* ctx, AST* expr) {
+    if (expr->type && expr->type->kind == TYPE_UNRESOLVED)
+        warning("[check_for_unresolved_types]: unresolved type found for expr: %s", ast_to_str(expr));
+}
+
+void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* expr) {
+    if (!expr->type) warning("[make_sure_all_nodes_have_a_valid_type]: missing type for expr: %s", ast_to_str(expr));
 }
 
 int main(int argc, char** argv) {
@@ -146,9 +148,12 @@ int main(int argc, char** argv) {
     char* json = full_ast_to_json(thi.ast);
     write_to_file("ast.json", json);
 
-    success("PR");
     LIST_FOREACH(ast) {
-        ast_visit(print, &thi, it->data);
+        ast_visit(check_for_unresolved_types, NULL, it->data);
+    }
+
+    LIST_FOREACH(ast) {
+        ast_visit(make_sure_all_nodes_have_a_valid_type, NULL, it->data);
     }
 
     // pass_initilize_all_enums(&thi);
