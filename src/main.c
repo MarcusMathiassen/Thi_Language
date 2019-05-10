@@ -142,6 +142,7 @@ int main(int argc, char** argv) {
     add_symbol(&thi, "f32", make_type_float(4));
     add_symbol(&thi, "f64", make_type_float(8));
 
+
     // Parse
     LIST_FOREACH(get_load_list(&thi)) {
         char* file  = strf("%s%s", get_current_directory(&thi), it->data);

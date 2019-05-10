@@ -20,7 +20,6 @@ typedef struct {
     List*         loads;
     List*         links;
     Map*          symbols;
-
 } Parsed_File;
 
 Parsed_File generate_ast_from_tokens(Token_Array tokens);
