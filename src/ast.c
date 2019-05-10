@@ -88,7 +88,8 @@ void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr) {
         break;
     default: error("Unhandled %s case for kind '%s'", give_unique_color((char*)__func__), ast_kind_to_str(expr->kind));
     }
-    if (func) (*func)(ctx, expr);
+    assert(func);
+    (*func)(ctx, expr);
 }
 
 char* ast_kind_to_str(AST_Kind kind) {
@@ -560,64 +561,6 @@ AST* make_ast_function(Token t, Type* func_t, AST* body) {
     return e;
 }
 
-AST* try_fold(AST* e) {
-    Token_Kind op  = e->Binary.op;
-    AST*       lhs = e->Binary.lhs;
-    AST*       rhs = e->Binary.rhs;
-    if (lhs->kind == AST_GROUPING) lhs = lhs->Grouping.expr;
-    if (rhs->kind == AST_GROUPING) rhs = rhs->Grouping.expr;
-    if (lhs->kind == AST_INT && rhs->kind == AST_INT) {
-        s64 lhs_v = lhs->Int.val;
-        s64 rhs_v = rhs->Int.val;
-        s64 value = 0;
-        switch (op) {
-        case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
-        case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
-        case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
-        case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
-        case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
-        case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
-        case TOKEN_AND: value = (lhs_v & rhs_v); break;
-        case TOKEN_PIPE: value = (lhs_v | rhs_v); break;
-        case TOKEN_LT: value = (lhs_v < rhs_v); break;
-        case TOKEN_GT: value = (lhs_v > rhs_v); break;
-        case TOKEN_GT_GT: value = (lhs_v >> rhs_v); break;
-        case TOKEN_LT_LT: value = (lhs_v << rhs_v); break;
-        case TOKEN_PERCENT: value = (lhs_v % rhs_v); break;
-        case TOKEN_HAT: value = (lhs_v ^ rhs_v); break;
-        case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
-        case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
-        case TOKEN_QUESTION_MARK: return e;
-        case TOKEN_COLON: return e;
-        default: error("constant_fold_expr binary %s not implemented", token_kind_to_str(op));
-        }
-        info("folded %s into %lld", ast_to_str(e), value);
-
-        return make_ast_int(e->t, value);
-    } else if (lhs->kind == AST_FLOAT && rhs->kind == AST_FLOAT) {
-        f64 lhs_v = lhs->Float.val;
-        f64 rhs_v = rhs->Float.val;
-        f64 value = 0.0;
-        switch (op) {
-        case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
-        case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
-        case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
-        case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
-        case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
-        case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
-        case TOKEN_LT: value = (lhs_v < rhs_v); break;
-        case TOKEN_GT: value = (lhs_v > rhs_v); break;
-        case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
-        case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
-        default: error("constant_fold_expr binary %s not implemented", token_kind_to_str(op));
-        }
-        info("folded %s into %lld", ast_to_str(e), value);
-
-        return make_ast_float(e->t, value);
-    }
-    return e;
-}
-
 AST* make_ast_binary(Token t, Token_Kind op, AST* lhs, AST* rhs) {
     assert(op != TOKEN_UNKNOWN);
     assert(lhs);
@@ -627,7 +570,6 @@ AST* make_ast_binary(Token t, Token_Kind op, AST* lhs, AST* rhs) {
     e->Binary.op  = op;
     e->Binary.lhs = lhs;
     e->Binary.rhs = rhs;
-    e             = try_fold(e);
     return e;
 }
 
@@ -637,22 +579,6 @@ AST* make_ast_unary(Token t, Token_Kind op, AST* operand) {
     AST* e           = make_ast(AST_UNARY, t);
     e->Unary.op      = op;
     e->Unary.operand = operand;
-
-    if (operand->kind == AST_INT) {
-        Token_Kind op     = e->Unary.op;
-        s64        oper_v = operand->Int.val;
-        s64        value  = 0;
-        switch (op) {
-        case TOKEN_BANG: value = !oper_v; break;
-        case TOKEN_PLUS: value = oper_v; break;
-        case TOKEN_TILDE: value = ~oper_v; break;
-        case TOKEN_MINUS: value = -oper_v; break;
-        default: error("constant_fold_expr unary %s not implemented", token_kind_to_str(op));
-        }
-        info("folded %s into %lld", ast_to_str(e), value);
-        e = make_ast_int(t, value);
-    }
-
     return e;
 }
 

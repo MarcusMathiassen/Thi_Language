@@ -63,21 +63,104 @@ void get_all_variables(void* list, AST* expr) {
     }
 }
 
+void constant_fold(void* ctx, AST* e) {
+
+    Token t = e->t;
+
+    switch (e->kind) {
+    case AST_BINARY: {
+        Token_Kind op  = e->Binary.op;
+        AST*       lhs = e->Binary.lhs;
+        AST*       rhs = e->Binary.rhs;
+        if (lhs->kind == AST_GROUPING) lhs = lhs->Grouping.expr;
+        if (rhs->kind == AST_GROUPING) rhs = rhs->Grouping.expr;
+        if (lhs->kind == AST_INT && rhs->kind == AST_INT) {
+            s64 lhs_v = lhs->Int.val;
+            s64 rhs_v = rhs->Int.val;
+            s64 value = 0;
+            switch (op) {
+            case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
+            case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
+            case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
+            case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
+            case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
+            case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
+            case TOKEN_AND: value = (lhs_v & rhs_v); break;
+            case TOKEN_PIPE: value = (lhs_v | rhs_v); break;
+            case TOKEN_LT: value = (lhs_v < rhs_v); break;
+            case TOKEN_GT: value = (lhs_v > rhs_v); break;
+            case TOKEN_GT_GT: value = (lhs_v >> rhs_v); break;
+            case TOKEN_LT_LT: value = (lhs_v << rhs_v); break;
+            case TOKEN_PERCENT: value = (lhs_v % rhs_v); break;
+            case TOKEN_HAT: value = (lhs_v ^ rhs_v); break;
+            case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
+            case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
+            case TOKEN_QUESTION_MARK: return;
+            case TOKEN_COLON: return;
+            default: error("constant_fold binary %s not implemented", token_kind_to_str(op));
+            }
+            info("folded %s into %lld", ast_to_str(e), value);
+
+            *e = *make_ast_int(e->t, value);
+
+        } else if (lhs->kind == AST_FLOAT && rhs->kind == AST_FLOAT) {
+            f64 lhs_v = lhs->Float.val;
+            f64 rhs_v = rhs->Float.val;
+            f64 value = 0.0;
+            switch (op) {
+            case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
+            case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
+            case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
+            case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
+            case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
+            case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
+            case TOKEN_LT: value = (lhs_v < rhs_v); break;
+            case TOKEN_GT: value = (lhs_v > rhs_v); break;
+            case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
+            case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
+            default: error("constant_fold binary %s not implemented", token_kind_to_str(op));
+            }
+            info("folded %s into %lld", ast_to_str(e), value);
+
+            *e = *make_ast_float(e->t, value);
+        }
+    } break;
+    case AST_UNARY: {
+        Token_Kind op      = e->Unary.op;
+        AST*       operand = e->Unary.operand;
+        if (operand->kind == AST_INT) {
+            Token_Kind op     = e->Unary.op;
+            s64        oper_v = operand->Int.val;
+            s64        value  = 0;
+            switch (op) {
+            case TOKEN_BANG: value = !oper_v; break;
+            case TOKEN_PLUS: value = oper_v; break;
+            case TOKEN_TILDE: value = ~oper_v; break;
+            case TOKEN_MINUS: value = -oper_v; break;
+            default: error("constant_fold_expr unary %s not implemented", token_kind_to_str(op));
+            }
+            info("folded %s into %lld", ast_to_str(e), value);
+            *e = *make_ast_int(t, value);
+        }
+    } break;
+    }
+}
+
 typedef struct {
     AST_Kind kind;
-    void*    data;
-} ast_find_all_query;
+    void*    list;
+} AST_FindAll_Query;
 
 void ast_query(void* query, AST* expr) {
-    ast_find_all_query* q = query;
+    AST_FindAll_Query* q = query;
     if (expr->kind == q->kind) {
-        list_append((List*)q->data, expr);
+        list_append((List*)q->list, expr);
     }
 }
 
 List* ast_find_all_of_kind(AST_Kind kind, AST* ast) {
-    List*              list  = make_list();
-    ast_find_all_query query = {kind, list};
+    List*             list  = make_list();
+    AST_FindAll_Query query = {kind, list};
     ast_visit(ast_query, &query, ast);
     return list;
 }
@@ -188,10 +271,6 @@ int main(int argc, char** argv) {
         ast_visit(check_for_unresolved_types, NULL, it->data);
     }
 
-    LIST_FOREACH(ast) {
-        ast_visit(make_sure_all_nodes_have_a_valid_type, NULL, it->data);
-    }
-
     type_checker(thi.symbol_map, thi.ast);
 
     // Gather all variables found. ALL of them.
@@ -215,22 +294,39 @@ int main(int argc, char** argv) {
     }
 
     //
-    // PASS: turn identifiers who qualify into constants
+    // PASS: Constant propogation.
+    //       References to constant variables are replaced by their constant value.
     //
     List* idents         = ast_find_all_of_kind(AST_IDENT, ast->head->data);
     List* constant_decls = ast_find_all_of_kind(AST_CONSTANT_DECL, ast->head->data);
+    info("idents %d", idents->count);
     LIST_FOREACH(idents) {
         AST* ident = it->data;
+        success("%s", ast_to_str(ident));
         LIST_FOREACH(constant_decls) {
             AST* const_decl = it->data;
             if (strcmp(ident->Ident.name, const_decl->Constant_Decl.name) == 0) {
                 info("%s turned into %s", ast_to_str(ident), ast_to_str(const_decl->Constant_Decl.value));
-                *ident = *const_decl->Constant_Decl.value;
+                *ident      = *const_decl->Constant_Decl.value;
+                ident->type = const_decl->type;
+                info("%s after  %s", ast_to_str(ident), ast_to_str(const_decl->Constant_Decl.value));
                 break;
             }
         }
     }
     //
+
+    LIST_FOREACH(ast) {
+        ast_visit(constant_fold, NULL, it->data);
+    }
+
+    LIST_FOREACH(ast) {
+        ast_visit(check_for_unresolved_types, NULL, it->data);
+    }
+
+    LIST_FOREACH(ast) {
+        ast_visit(make_sure_all_nodes_have_a_valid_type, NULL, it->data);
+    }
 
     // pass_initilize_all_enums(&thi);
 
