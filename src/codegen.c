@@ -543,7 +543,6 @@ Value* codegen_call(Codegen_Context* ctx, AST* expr) {
             int_arg_counter += 1;
         } break;
         case TYPE_FLOAT: {
-
             switch (float_arg_counter) {
             case 0: pop(ctx, XMM0); break;
             case 1: pop(ctx, XMM1); break;
@@ -853,7 +852,6 @@ Value* codegen_switch(Codegen_Context* ctx, AST* expr) {
 
     List* labels = make_list();
     LIST_FOREACH(cases->Block.stmts) {
-
         AST* c = (AST*)it->data;
 
         char* l = make_text_label(ctx);
@@ -875,7 +873,6 @@ Value* codegen_switch(Codegen_Context* ctx, AST* expr) {
 
     List_Node* label_it = labels->head;
     LIST_FOREACH(cases->Block.stmts) {
-
         AST* c = (AST*)it->data;
 
         char* l = (char*)label_it->data;

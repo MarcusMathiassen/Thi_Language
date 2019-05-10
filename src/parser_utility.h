@@ -9,7 +9,6 @@
 #include "typedefs.h"
 
 typedef struct {
-
     Token_Array tokens;
     s64         token_index;
 

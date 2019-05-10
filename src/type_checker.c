@@ -147,7 +147,8 @@ Type* type_check_function(Typer_Context* ctx, AST* expr) {
     }
 
     type_check_expr(ctx, func_body);
-    func_type->Function.ret_type = func_body->type;
+
+    expr->type->Function.ret_type = expr->type->Function.ret_type;
 
     ctx->active_function = NULL;
 

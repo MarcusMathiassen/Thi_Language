@@ -35,9 +35,11 @@ void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr) {
         break;
     case AST_FUNCTION:
         ast_visit(func, ctx, expr->Function.body);
+        LIST_FOREACH(expr->Function.type->Function.args) {
+            ast_visit(func, ctx, it->data);
+        }
         LIST_FOREACH(expr->Function.defers) {
             ast_visit(func, ctx, it->data);
-            break;
         }
         break;
     case AST_NOTE: ast_visit(func, ctx, expr->Note.expr); break;

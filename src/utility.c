@@ -246,7 +246,9 @@ char* give_unique_color(char* str) {
     char* current_color = get_next_color();
     return strf("%s%s\033[00m", current_color, str);
 }
-char* get_unique_color(void) { return get_next_color(); }
+char* get_unique_color(void) {
+    return get_next_color();
+}
 //
 
 //------------------------------------------------------------------------------

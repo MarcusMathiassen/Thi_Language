@@ -40,19 +40,33 @@ Thi make_thi() {
     return thi;
 }
 
-char* get_output_name(Thi* thi) { return thi->output_name.c_str; }
-void  set_output_name(Thi* thi, char* name) { thi->output_name = make_string(name); }
+char* get_output_name(Thi* thi) {
+    return thi->output_name.c_str;
+}
+void set_output_name(Thi* thi, char* name) {
+    thi->output_name = make_string(name);
+}
 
 void set_source_file(Thi* thi, char* file_name) {
     thi->previous_file = thi->source_file.c_str;
     thi->source_file   = make_string(file_name);
 }
-char* get_source_file(Thi* thi) { return thi->source_file.c_str; }
-char* get_previous_source_file(Thi* thi) { return thi->previous_file; }
-void  set_current_directory(Thi* thi, char* dir_name) { thi->current_directory = make_string(dir_name); }
-char* get_current_directory(Thi* thi) { return thi->current_directory.c_str; }
+char* get_source_file(Thi* thi) {
+    return thi->source_file.c_str;
+}
+char* get_previous_source_file(Thi* thi) {
+    return thi->previous_file;
+}
+void set_current_directory(Thi* thi, char* dir_name) {
+    thi->current_directory = make_string(dir_name);
+}
+char* get_current_directory(Thi* thi) {
+    return thi->current_directory.c_str;
+}
 
-List* get_load_list(Thi* thi) { return thi->loads; }
+List* get_load_list(Thi* thi) {
+    return thi->loads;
+}
 
 void add_load(Thi* thi, char* loaded_file) {
     assert(loaded_file);
@@ -78,7 +92,9 @@ void add_link(Thi* thi, char* library_name) {
     info("added link: '%s'", give_unique_color(library_name));
 }
 
-List* get_link_list(Thi* thi) { return thi->links; }
+List* get_link_list(Thi* thi) {
+    return thi->links;
+}
 
 void print_symbol_map(Thi* thi) {
     s64 count = thi->symbol_map->size;
@@ -108,7 +124,9 @@ Type* get_symbol(Thi* thi, char* name) {
     return t;
 }
 
-List* get_timers(Thi* thi) { return thi->timer_list; }
+List* get_timers(Thi* thi) {
+    return thi->timer_list;
+}
 
 void push_timer(Thi* thi, char* desc) {
     assert(desc);

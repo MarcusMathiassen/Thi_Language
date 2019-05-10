@@ -107,7 +107,6 @@ struct AST {
         struct {
             Type* type;
         } Struct;
-
         struct {
             Type* type;
         } Enum;

@@ -68,7 +68,9 @@ void append_string_f(string* s, char* fmt, ...) {
     free(str);
 }
 
-void free_string(string* s) { free(s->c_str); }
+void free_string(string* s) {
+    free(s->c_str);
+}
 
 //------------------------------------------------------------------------------
 //                               Tests

@@ -506,7 +506,7 @@ AST* parse_binary(Parser_Context* ctx, s8 expr_prec, AST* lhs) {
             }
         }
 
-        // Merge LHS/rhs.
+        // Merge lhs/rhs.
         lhs = make_ast_binary(ctx->curr_tok, binary_op_token, lhs, rhs);
     }
 
@@ -534,7 +534,7 @@ AST* read_field_access(Parser_Context* ctx, AST* expr) {
 AST* parse_postfix_tail(Parser_Context* ctx, AST* primary_expr) {
     DEBUG_START;
     if (!primary_expr) return NULL;
-    while (1) {
+    for (;;) {
         if (tok_is(ctx, TOKEN_OPEN_BRACKET)) {
             primary_expr = read_subscript_expr(ctx, primary_expr);
             continue;
@@ -705,7 +705,6 @@ Type* parse_function_signature(Parser_Context* ctx, char* func_name) {
     bool  has_multiple_arguments = false;
 
     while (!tok_is(ctx, TOKEN_CLOSE_PAREN)) {
-
         if (has_multiple_arguments) eat_kind(ctx, TOKEN_COMMA);
 
         if (tok_is(ctx, TOKEN_DOT_DOT_DOT)) {

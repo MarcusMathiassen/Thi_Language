@@ -135,8 +135,8 @@ s64 type_array_get_count(Type* type) {
 }
 
 char* type_to_str(Type* type) {
-    if (!type) return "---";
-    warning("type_to_str: %s", type_kind_to_str(type->kind));
+    if (!type) return "NULL";
+    // warning("type_to_str: %s", type_kind_to_str(type->kind));
     switch (type->kind) {
     case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
     case TYPE_VOID: return "void";
@@ -188,7 +188,7 @@ char* type_to_str(Type* type) {
 char* type_to_json(Type* type) {
     if (!type) return "\"---\"";
     // error("type_to_json got null");
-    warning("type_to_json: %s", type_kind_to_str(type->kind));
+    // warning("type_to_json: %s", type_kind_to_str(type->kind));
     char* result = NULL;
     switch (type->kind) {
     case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
@@ -244,7 +244,6 @@ char* type_to_json(Type* type) {
     };
 
     case TYPE_FUNCTION: {
-
         string str = make_string("");
         append_string_f(&str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Enum.name);
         append_string(&str, "\"args\": [");

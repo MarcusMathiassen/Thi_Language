@@ -10,7 +10,9 @@ Stack* make_stack() {
     return s;
 }
 
-void stack_init(Stack* stack) { stack->head = NULL; }
+void stack_init(Stack* stack) {
+    stack->head = NULL;
+}
 void stack_free(Stack* stack) {
     while (stack_pop(stack) != NULL) {
     }
@@ -61,4 +63,6 @@ void* stack_pop(Stack* stack) {
     return popped;
 }
 
-void* stack_peek(Stack* stack) { return stack->head->data; }
+void* stack_peek(Stack* stack) {
+    return stack->head->data;
+}

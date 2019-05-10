@@ -13,7 +13,9 @@ List* make_list(void) {
 }
 
 void list_free(List* l) {
-    LIST_FOREACH(l) { free(it->prev); }
+    LIST_FOREACH(l) {
+        free(it->prev);
+    }
 }
 
 typedef struct {
@@ -63,28 +65,38 @@ void list_tests(void) {
     list_free(list);
 }
 
-bool list_empty(List* list) { return (list->head == NULL && list->tail == NULL); }
+bool list_empty(List* list) {
+    return (list->head == NULL && list->tail == NULL);
+}
 
 void list_prepend_content_of_in_reverse(List* list, List* other_list) {
     assert(list);
     assert(other_list);
-    LIST_FOREACH_REVERSE(other_list) { list_prepend(list, it->data); }
+    LIST_FOREACH_REVERSE(other_list) {
+        list_prepend(list, it->data);
+    }
 }
 void list_prepend_content_of(List* list, List* other_list) {
     assert(list);
     assert(other_list);
-    LIST_FOREACH(other_list) { list_prepend(list, it->data); }
+    LIST_FOREACH(other_list) {
+        list_prepend(list, it->data);
+    }
 }
 
 void list_append_content_of_in_reverse(List* list, List* other_list) {
     assert(list);
     assert(other_list);
-    LIST_FOREACH_REVERSE(other_list) { list_append(list, it->data); }
+    LIST_FOREACH_REVERSE(other_list) {
+        list_append(list, it->data);
+    }
 }
 void list_append_content_of(List* list, List* other_list) {
     assert(list);
     assert(other_list);
-    LIST_FOREACH(other_list) { list_append(list, it->data); }
+    LIST_FOREACH(other_list) {
+        list_append(list, it->data);
+    }
 }
 
 void* list_remove_at(List* list, s64 index) {

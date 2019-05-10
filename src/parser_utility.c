@@ -191,7 +191,9 @@ bool next_tok_is_on_same_line(Parser_Context* ctx) {
     s64   l2 = t2.line_pos;
     return l1 == l2;
 }
-bool tok_is(Parser_Context* ctx, Token_Kind kind) { return ctx->curr_tok.kind == kind; }
+bool tok_is(Parser_Context* ctx, Token_Kind kind) {
+    return ctx->curr_tok.kind == kind;
+}
 
 void eat(Parser_Context* ctx) {
     ctx->prev_tok = ctx->curr_tok;
@@ -211,5 +213,9 @@ void set_if_statement(Parser_Context* ctx, AST* if_statement) {
     ctx->olast_if_statement = ctx->llast_if_statement;
     ctx->llast_if_statement = if_statement;
 }
-void restore_if_statement(Parser_Context* ctx) { ctx->llast_if_statement = ctx->olast_if_statement; }
-void set_dangling_else(Parser_Context* ctx, AST* else_block) { ctx->llast_if_statement->If.else_block = else_block; }
+void restore_if_statement(Parser_Context* ctx) {
+    ctx->llast_if_statement = ctx->olast_if_statement;
+}
+void set_dangling_else(Parser_Context* ctx, AST* else_block) {
+    ctx->llast_if_statement->If.else_block = else_block;
+}

@@ -1,4 +1,4 @@
-#include "ast.h"     // AST
+#include "ast.h"     // AST, AST_Kind
 #include "codegen.h" // generate_code_from_ast
 #include "constants.h"
 #include "lexer.h"        // generate_tokens_from_source, print_tokens
@@ -47,7 +47,13 @@ void check_for_unresolved_types(void* ctx, AST* expr) {
 
 void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* expr) {
     if (!expr->type) {
-        warning("[make_sure_all_nodes_have_a_valid_type]: missing type for expr: %s", ast_to_str(expr));
+        warning("[make_sure_all_nodes_ have_a_valid_type]: missing type for expr: %s", ast_to_str(expr));
+    }
+}
+
+void get_all_variables(void* list, AST* expr) {
+    if (expr->kind == AST_VARIABLE_DECL) {
+        list_append((List*)list, expr);
     }
 }
 
@@ -159,6 +165,17 @@ int main(int argc, char** argv) {
         ast_visit(make_sure_all_nodes_have_a_valid_type, NULL, it->data);
     }
 
+    // Gather all variables found. ALL of them.
+    List* variable_list = make_list();
+    LIST_FOREACH(ast) {
+        ast_visit(get_all_variables, variable_list, it->data);
+    }
+    success("variables found: %d", variable_list->count);
+    LIST_FOREACH(variable_list) {
+        AST* expr = (AST*)it->data;
+        success("%s", ast_to_str(expr));
+    }
+
     // pass_initilize_all_enums(&thi);
 
     // pass_initilize_all_enums MUST BE RUN BEFORE THIS
@@ -166,6 +183,7 @@ int main(int argc, char** argv) {
 
     // pass_resolve_all_unresolved_types(&thi);
     // pass_type_inference(&thi);
+
     // pass_give_all_identifiers_a_type(&thi);
 
     // pass_resolve_subscripts(&thi);
@@ -281,7 +299,6 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it) {
         // Go through it again and make sure every statement
         // is a case
         if (if_statement_is_actually_a_switch) {
-
             // Find all NON switchy things and post and error
             LIST_FOREACH(stmts) {
                 AST* stmt = (AST*)it->data;
@@ -458,7 +475,6 @@ void pass_type_checker(Thi* thi) {
 
         // The args must be of equal length.
         if (call_args->count != func_args->count) {
-
             // Make a nice error message
             char* callee         = call->Call.callee;
             s64   expected_count = func_args->count;
