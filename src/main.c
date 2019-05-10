@@ -57,6 +57,18 @@ void get_all_variables(void* list, AST* expr) {
     }
 }
 
+typedef struct {
+    AST_Kind kind;
+    void*    data;
+} ast_find_all_query;
+
+void ast_find_all(void* query, AST* expr) {
+    ast_find_all_query* q = query;
+    if (expr->kind == q->kind) {
+        list_append((List*)q->data, expr);
+    }
+}
+
 int main(int argc, char** argv) {
     // Argument validation
     if (argc < 2) error("too few arguments.");
@@ -142,7 +154,6 @@ int main(int argc, char** argv) {
     add_symbol(&thi, "f32", make_type_float(4));
     add_symbol(&thi, "f64", make_type_float(8));
 
-
     // Parse
     LIST_FOREACH(get_load_list(&thi)) {
         char* file  = strf("%s%s", get_current_directory(&thi), it->data);
@@ -168,14 +179,29 @@ int main(int argc, char** argv) {
 
     // Gather all variables found. ALL of them.
     List* variable_list = make_list();
-    LIST_FOREACH(ast) {
-        ast_visit(get_all_variables, variable_list, it->data);
-    }
+    ast_visit(ast_find_all, {AST_VARIABLE_DECL, variable_list}, ast->head->data);
     success("variables found: %d", variable_list->count);
     LIST_FOREACH(variable_list) {
         AST* expr = (AST*)it->data;
         success("%s", ast_to_str(expr));
     }
+
+    // PASS: turn identifiers who qualify into constants
+    //
+    // List* idents         = ast_find_all_of_kind(AST_IDENT, ast);
+    // List* constant_decls = ast_find_all_of_kind(AST_CONSTANT_DECL, ast);
+    // LIST_FOREACH(idents) {
+    //     AST* ident = it->data;
+    //     LIST_FOREACH(constant_decls) {
+    //         AST* const_decl = it->data;
+    //         if (strcmp(ident->Ident.name, const_decl->Constant_Decl.name) == 0) {
+    //             info("%s turned into %s", ast_to_str(ident), ast_to_str(const_decl->Constant_Decl.value));
+    //             *ident = *const_decl->Constant_Decl.value;
+    //             break;
+    //         }
+    //     }
+    // }
+    //
 
     // pass_initilize_all_enums(&thi);
 
