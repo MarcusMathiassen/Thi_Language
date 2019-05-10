@@ -201,7 +201,6 @@ AST* parse_expression_identifier(Parser_Context* ctx) {
 
     AST* i = make_ast_ident(ctx->curr_tok, ident);
     ast_ref_list_append(&ctx->identifiers, i);
-
     return i;
 }
 

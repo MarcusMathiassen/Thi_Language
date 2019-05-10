@@ -1,4 +1,6 @@
 main(argc: int, argv: char**)
-    i : int = 0
-    x : float = 53.3
-    return 1
+    n :: m
+    m :: 3
+
+    x := 3
+    return 1 + m - n

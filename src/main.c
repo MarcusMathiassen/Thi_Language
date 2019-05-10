@@ -51,6 +51,12 @@ void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* expr) {
     }
 }
 
+void pass_resolve_unresolved_types(void* thi, AST* expr) {
+    if (expr->type && expr->type->kind == TYPE_UNRESOLVED) {
+        *expr->type = *get_symbol(thi, get_type_name(expr->type));
+    }
+}
+
 void get_all_variables(void* list, AST* expr) {
     if (expr->kind == AST_VARIABLE_DECL) {
         list_append((List*)list, expr);
@@ -62,11 +68,18 @@ typedef struct {
     void*    data;
 } ast_find_all_query;
 
-void ast_find_all(void* query, AST* expr) {
+void ast_query(void* query, AST* expr) {
     ast_find_all_query* q = query;
     if (expr->kind == q->kind) {
         list_append((List*)q->data, expr);
     }
+}
+
+List* ast_find_all_of_kind(AST_Kind kind, AST* ast) {
+    List*              list  = make_list();
+    ast_find_all_query query = {kind, list};
+    ast_visit(ast_query, &query, ast);
+    return list;
 }
 
 int main(int argc, char** argv) {
@@ -163,11 +176,13 @@ int main(int argc, char** argv) {
 
     thi.ast = ast;
 
-    pass_resolve_all_unresolved_types(&thi);
-    type_checker(thi.symbol_map, thi.ast);
-
-    char* json = full_ast_to_json(thi.ast);
-    write_to_file("ast.json", json);
+    //
+    // PASS: resolve all unresolved types
+    //
+    LIST_FOREACH(ast) {
+        ast_visit(pass_resolve_unresolved_types, &thi, it->data);
+    }
+    //
 
     LIST_FOREACH(ast) {
         ast_visit(check_for_unresolved_types, NULL, it->data);
@@ -177,30 +192,44 @@ int main(int argc, char** argv) {
         ast_visit(make_sure_all_nodes_have_a_valid_type, NULL, it->data);
     }
 
+    type_checker(thi.symbol_map, thi.ast);
+
     // Gather all variables found. ALL of them.
-    List* variable_list = make_list();
-    ast_visit(ast_find_all, {AST_VARIABLE_DECL, variable_list}, ast->head->data);
+    List* variable_list = ast_find_all_of_kind(AST_VARIABLE_DECL, ast->head->data);
     success("variables found: %d", variable_list->count);
     LIST_FOREACH(variable_list) {
         AST* expr = (AST*)it->data;
         success("%s", ast_to_str(expr));
     }
 
+    //
+    // PASS: give type-inferred variables a type
+    //
+    List* var_decls = ast_find_all_of_kind(AST_VARIABLE_DECL, ast->head->data);
+    LIST_FOREACH(var_decls) {
+        AST* var = it->data;
+        if (var->Variable_Decl.type == NULL) {
+            var->type               = get_inferred_type_of_expr(&thi, var->Variable_Decl.value);
+            var->Variable_Decl.type = var->type;
+        }
+    }
+
+    //
     // PASS: turn identifiers who qualify into constants
     //
-    // List* idents         = ast_find_all_of_kind(AST_IDENT, ast);
-    // List* constant_decls = ast_find_all_of_kind(AST_CONSTANT_DECL, ast);
-    // LIST_FOREACH(idents) {
-    //     AST* ident = it->data;
-    //     LIST_FOREACH(constant_decls) {
-    //         AST* const_decl = it->data;
-    //         if (strcmp(ident->Ident.name, const_decl->Constant_Decl.name) == 0) {
-    //             info("%s turned into %s", ast_to_str(ident), ast_to_str(const_decl->Constant_Decl.value));
-    //             *ident = *const_decl->Constant_Decl.value;
-    //             break;
-    //         }
-    //     }
-    // }
+    List* idents         = ast_find_all_of_kind(AST_IDENT, ast->head->data);
+    List* constant_decls = ast_find_all_of_kind(AST_CONSTANT_DECL, ast->head->data);
+    LIST_FOREACH(idents) {
+        AST* ident = it->data;
+        LIST_FOREACH(constant_decls) {
+            AST* const_decl = it->data;
+            if (strcmp(ident->Ident.name, const_decl->Constant_Decl.name) == 0) {
+                info("%s turned into %s", ast_to_str(ident), ast_to_str(const_decl->Constant_Decl.value));
+                *ident = *const_decl->Constant_Decl.value;
+                break;
+            }
+        }
+    }
     //
 
     // pass_initilize_all_enums(&thi);
@@ -216,6 +245,9 @@ int main(int argc, char** argv) {
     // pass_resolve_subscripts(&thi);
 
     // pass_type_checker(&thi);
+
+    char* json = full_ast_to_json(thi.ast);
+    write_to_file("ast.json", json);
 
     // Codegen
     push_timer(&thi, "Codegen");
