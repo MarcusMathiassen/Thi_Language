@@ -277,9 +277,6 @@ int main(int argc, char** argv) {
 
     info("--- Compiler timings ---");
     info("lines %lld comments %lld", thi.lines, thi.comments);
-    info("resolved %lld types", thi.unresolved_types.count);
-    info("type inferred %lld variables", thi.variables_in_need_of_type_inference.count);
-    info("checked calls %lld", thi.calls.count);
     LIST_FOREACH(get_timers(&thi)) {
         Timer* tm      = (Timer*)it->data;
         s64    len     = strlen(tm->desc);
