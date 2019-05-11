@@ -255,6 +255,7 @@ int main(int argc, char **argv) {
         char *file  = strf("%s%s", get_current_directory(&thi), it->data);
         List *ast_l = parse(&thi, file);
         list_append_content_of(ast, ast_l);
+        warning("finished parsing %s", file);
     }
 
     thi.ast = ast;
