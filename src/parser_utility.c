@@ -5,7 +5,7 @@
 #include <stdlib.h> // xmalloc
 
 #define DEBUG_START                                                                                                    \
-    info("%s: %s", __func__, token_to_str(ctx->curr_tok));                                                             \
+    // info("%s: %s", __func__, token_to_str(ctx->curr_tok));                                                             \
     assert(ctx);
 
 #define BIN_OP_COUNT 35

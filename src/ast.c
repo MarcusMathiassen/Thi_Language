@@ -203,9 +203,7 @@ char *ast_to_str(AST *expr) {
         return type_to_str(expr->Enum.type);
     }
     case AST_FUNCTION: {
-        warning("hello1");
         string str = make_string_f("%s %s", type_to_str(expr->type), ast_to_str(expr->Function.body));
-        warning("hello2");
         return str.c_str;
     }
     case AST_GROUPING: return strf("(%s)", ast_to_str(expr->Grouping.expr));

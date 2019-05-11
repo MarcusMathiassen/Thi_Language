@@ -18,8 +18,8 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_order_independance.thi
     # ./test.bash ./tests/test_pointer.thi
     # ./test.bash ./tests/test_var_args.thi
-    ./test.bash ./tests/test_basic_setup.thi
-    # ./test.bash ./tests/test_window.thi
+    # ./test.bash ./tests/test_basic_setup.thi
+    ./test.bash ./tests/test_window.thi
     # ./test.bash ./tests/test_advanced_pointer.thi
     # ./test.bash ./tests/test_subscript_access.thi
     # ./test.bash ./tests/test_subscript_access_2.thi

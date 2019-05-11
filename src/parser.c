@@ -18,7 +18,7 @@
 //------------------------------------------------------------------------------
 
 #define DEBUG_START                                                                                                    \
-    info("%s: %s", __func__, token_to_str(ctx->curr_tok));                                                             \
+    // info("%s: %s", __func__, token_to_str(ctx->curr_tok));                                                             \
     assert(ctx);
 
 #define UNARY_OP_COUNT 7
@@ -409,7 +409,7 @@ AST *parse_function_call(Parser_Context *ctx, char *ident) {
     while (!tok_is(ctx, TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(ctx, TOKEN_COMMA);
         AST *arg = parse_expression(ctx);
-        warning("%s", ast_to_json(arg));
+        // warning("%s", ast_to_json(arg));
         list_append(args, arg);
         has_multiple_arguments = true;
     }
@@ -461,7 +461,7 @@ AST *parse_variable_decl(Parser_Context *ctx, char *ident) {
     }
 
     if (tok_is(ctx, TOKEN_COMMA)) {
-        warning("%s", ctx->curr_tok.value);
+        // warning("%s", ctx->curr_tok.value);
     }
 
     return var_decl;

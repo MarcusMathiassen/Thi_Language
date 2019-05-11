@@ -5,10 +5,6 @@ load "includes/glew"
 load "includes/glfw"
 load "includes/cmath"
 
-enum Theme
-    light
-    dark
-
 DEFAULT_WINDOW_TITLE :: "Hello Triangle"
 
 main()
@@ -30,8 +26,6 @@ main()
 
     if glfwInit() != GLEW_OK puts("GLEW init failed.")
 
-    mode: Theme = .dark
-
     shorten_filenames_in_error_messages : bool = false
     warnings_is_errors := false
 
@@ -46,16 +40,6 @@ main()
         r := 0.0
         g := 0.0
         b := 0.0
-
-        if mode
-            is 1
-                r = 30.0/255.0
-                g = 30.0/255.0
-                b = 30.0/255.0
-            is 0
-                r = 245.0/255.0
-                g = 245.0/255.0
-                b = 245.0/255.0
 
         glClearColor(r, g, b, 1.0)
 
@@ -82,11 +66,6 @@ main()
         h: s32
         # glfwGetFramebufferSize(window, &w, &h)
         printf("framebuffer size: %dx%d\n", w, h)
-
-
-        printf("mode: %s\n", !mode ? "light" : "dark")
-
-        if glfwGetKey(window, GLFW_KEY_Q) is GLFW_PRESS mode = mode ^ 1
 
         drawTriangle(x, y, scale)
 

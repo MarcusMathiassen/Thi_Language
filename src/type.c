@@ -135,7 +135,7 @@ s64 type_array_get_count(Type *type) {
 }
 
 char *type_to_str(Type *type) {
-    if (!type) return "NULL";
+    if (!type) return "---";
     // warning("type_to_str: %s", type_kind_to_str(type->kind));
     switch (type->kind) {
     case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";

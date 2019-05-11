@@ -298,32 +298,30 @@ int main(int argc, char **argv) {
     //      Constant propogation.
     //       References to constant variables are replaced by their constant value.
     //
-    // List* idents         = ast_find_all_of_kind(AST_IDENT, ast->head->data);
-    // List* constant_decls = ast_find_all_of_kind(AST_CONSTANT_DECL, ast->head->data);
-    // info("idents %d", idents->count);
-    // LIST_FOREACH(idents) {
-    //     AST* ident = it->data;
-    //     success("%s", ast_to_str(ident));
-    //     LIST_FOREACH(constant_decls) {
-    //         AST* const_decl = it->data;
-    //         if (strcmp(ident->Ident.name, const_decl->Constant_Decl.name) == 0) {
-    //             info("%s turned into %s", ast_to_str(ident), ast_to_str(const_decl->Constant_Decl.value));
-    //             *ident      = *const_decl->Constant_Decl.value;
-    //             ident->type = const_decl->type;
-    //             info("%s after  %s", ast_to_str(ident), ast_to_str(const_decl->Constant_Decl.value));
-    //             break;
-    //         }
-    //     }
-    // }
+    List* idents         = ast_find_all_of_kind(AST_IDENT, ast->head->data);
+    List* constant_decls = ast_find_all_of_kind(AST_CONSTANT_DECL, ast->head->data);
+    info("idents %d", idents->count);
+    LIST_FOREACH(idents) {
+        AST* ident = it->data;
+        success("%s", ast_to_str(ident));
+        LIST_FOREACH(constant_decls) {
+            AST* const_decl = it->data;
+            if (strcmp(ident->Ident.name, const_decl->Constant_Decl.name) == 0) {
+                info("%s turned into %s", ast_to_str(ident), ast_to_str(const_decl->Constant_Decl.value));
+                *ident      = *const_decl->Constant_Decl.value;
+                ident->type = const_decl->type;
+                info("%s after  %s", ast_to_str(ident), ast_to_str(const_decl->Constant_Decl.value));
+                break;
+            }
+        }
+    }
     //
 
     //
-    //  Optimization Pass:
-    //      Constant folding
-    //
-    // LIST_FOREACH(ast) {
-    //     ast_visit(constant_fold, NULL, it->data);
-    // }
+    //  Optimization Pass: Constant folding
+    LIST_FOREACH(ast) {
+        ast_visit(constant_fold, NULL, it->data);
+    }
 
     LIST_FOREACH(ast) {
         ast_visit(check_for_unresolved_types, NULL, it->data);
@@ -524,7 +522,7 @@ List *parse(Thi *thi, char *source_file) {
 
     add_all_definitions(thi, &pf);
 
-    print_ast(ast);
+    // print_ast(ast);
 
     pop_timer(thi);
 
