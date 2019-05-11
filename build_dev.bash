@@ -15,6 +15,7 @@ fi
 
 if [ $? == 0 ]; then
     # ./test.bash
+    # ./test.bash ./tests/test_order_independance.thi
     # ./test.bash ./tests/test_pointer.thi
     # ./test.bash ./tests/test_var_args.thi
     ./test.bash ./tests/test_basic_setup.thi

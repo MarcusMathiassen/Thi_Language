@@ -110,13 +110,13 @@ typedef enum {
 
 typedef struct {
     Token_Kind kind;
-    char*      value;
+    char *     value;
     s64        line_pos;
     s64        col_pos;
 } Token;
 
 typedef struct {
-    Token* data;
+    Token *data;
     s64    count;
     s64    allocated;
 } Token_Array;
@@ -130,10 +130,10 @@ typedef struct {
 
 void       print_tokens(Token_Array token_array);
 void       print_token(Token token);
-char*      token_to_str(Token token);
-char*      token_to_json(Token token);
-char*      token_kind_to_str(Token_Kind kind);
-Lexed_File generate_tokens_from_source(char* source);
+char *     token_to_str(Token token);
+char *     token_to_json(Token token);
+char *     token_kind_to_str(Token_Kind kind);
+Lexed_File generate_tokens_from_source(char *source);
 void       lexer_test(void);
 
 #define THI_SYNTAX_POINTER TOKEN_ASTERISK

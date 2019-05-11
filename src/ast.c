@@ -14,14 +14,16 @@
 //                               Public
 //------------------------------------------------------------------------------
 
-void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr) {
+void ast_visit(void (*func)(void *, AST *), void *ctx, AST *expr) {
     if (!expr) return;
     switch (expr->kind) {
     case AST_SIZEOF: break;
     case AST_FALLTHROUGH: break;
     case AST_LOAD: break;
     case AST_LINK: break;
-    case AST_EXTERN: break;
+    case AST_EXTERN: LIST_FOREACH(expr->Extern.type->Function.args) { ast_visit(func, ctx, it->data);
+        }
+        break;
     case AST_INT: break;
     case AST_FLOAT: break;
     case AST_STRING: break;
@@ -86,13 +88,13 @@ void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr) {
         ast_visit(func, ctx, expr->Is.expr);
         ast_visit(func, ctx, expr->Is.body);
         break;
-    default: error("Unhandled %s case for kind '%s'", give_unique_color((char*)__func__), ast_kind_to_str(expr->kind));
+    default: error("Unhandled %s case for kind '%s'", give_unique_color((char *)__func__), ast_kind_to_str(expr->kind));
     }
     assert(func);
     (*func)(ctx, expr);
 }
 
-char* ast_kind_to_str(AST_Kind kind) {
+char *ast_kind_to_str(AST_Kind kind) {
     switch (kind) {
     case AST_VAR_ARGS: return "AST_VAR_ARGS";
     case AST_FIELD_ACCESS: return "AST_FIELD_ACCESS";
@@ -132,7 +134,7 @@ char* ast_kind_to_str(AST_Kind kind) {
     return NULL;
 }
 
-char* ast_to_str(AST* expr) {
+char *ast_to_str(AST *expr) {
     if (!expr) return "---";
     // warning("%s", ast_kind_to_str(expr->kind));
     switch (expr->kind) {
@@ -188,7 +190,7 @@ char* ast_to_str(AST* expr) {
     case AST_BLOCK: {
         string str = make_string("{");
         LIST_FOREACH(expr->Block.stmts) {
-            AST* stmt = (AST*)it->data;
+            AST *stmt = (AST *)it->data;
             append_string_f(&str, "%s\n", ast_to_str(stmt));
         }
         append_string(&str, "}");
@@ -229,7 +231,7 @@ char* ast_to_str(AST* expr) {
         s64    index = 0;
         append_string(&str, "(");
         LIST_FOREACH(expr->Call.args) {
-            AST* arg = (AST*)it->data;
+            AST *arg = (AST *)it->data;
             append_string(&str, ast_to_str(arg));
             if (index++ != count - 1) append_string(&str, ", ");
         }
@@ -241,15 +243,15 @@ char* ast_to_str(AST* expr) {
     return NULL;
 }
 
-char* ast_json_prelude(AST* expr) {
+char *ast_json_prelude(AST *expr) {
     return strf("\"token\": {\"kind\": \"%s\", \"value\": \"%s\"}, \"type\": %s, \"%s\"",
                 token_kind_to_str(expr->t.kind), expr->t.value, type_to_json(expr->type), ast_kind_to_str(expr->kind));
 }
 
-char* ast_to_json(AST* expr) {
+char *ast_to_json(AST *expr) {
     if (!expr) return "\"NULL\"";
     // warning("%s", ast_kind_to_str(expr->kind));
-    char* result = NULL;
+    char *result = NULL;
     switch (expr->kind) {
     case AST_SWITCH: {
         result =
@@ -388,25 +390,25 @@ char* ast_to_json(AST* expr) {
     return result;
 }
 
-AST* get_arg_from_func(Type* func_t, s64 arg_index) {
+AST *get_arg_from_func(Type *func_t, s64 arg_index) {
     assert(func_t);
     assert(func_t->kind == TYPE_FUNCTION);
     assert(arg_index >= 0 && arg_index <= type_function_get_arg_count(func_t));
-    AST* expr = (AST*)list_at(func_t->Function.args, arg_index);
+    AST *expr = (AST *)list_at(func_t->Function.args, arg_index);
     assert(expr);
     return expr;
 }
 
-void print_ast(List* ast) {
+void print_ast(List *ast) {
     warning("Printing AST..");
     LIST_FOREACH(ast) {
-        AST*  expr = it->data;
-        char* str  = strf("%s", wrap_with_colored_parens(ast_to_str(expr)));
+        AST * expr = it->data;
+        char *str  = strf("%s", wrap_with_colored_parens(ast_to_str(expr)));
         info("%s", str);
     }
 }
 
-char* full_ast_to_json(List* ast) {
+char *full_ast_to_json(List *ast) {
     success("full_ast_to_json..");
     string json      = make_string("{\"AST\": [");
     s64    ast_count = ast->count;
@@ -420,7 +422,7 @@ char* full_ast_to_json(List* ast) {
     return json.c_str;
 }
 
-void print_ast_json(List* ast) {
+void print_ast_json(List *ast) {
     success("print_ast_json..");
     string json      = make_string("{\"AST\": [");
     s64    ast_count = ast->count;
@@ -438,14 +440,14 @@ AST_Ref_List make_ast_ref_list() {
     AST_Ref_List l;
     l.count     = 0;
     l.allocated = AST_REF_LIST_STARTING_ALLOC;
-    l.data      = xmalloc(l.allocated * sizeof(AST*));
+    l.data      = xmalloc(l.allocated * sizeof(AST *));
     return l;
 }
 
-void ast_ref_list_append(AST_Ref_List* l, AST* a) {
+void ast_ref_list_append(AST_Ref_List *l, AST *a) {
     if (l->count >= l->allocated) {
         l->allocated *= 2;
-        l->data = xrealloc(l->data, l->allocated * sizeof(AST*));
+        l->data = xrealloc(l->data, l->allocated * sizeof(AST *));
     }
     l->data[l->count] = a;
     l->count += 1;
@@ -455,105 +457,105 @@ void ast_ref_list_append(AST_Ref_List* l, AST* a) {
 //                               AST* Maker Functions
 //------------------------------------------------------------------------------
 
-AST* make_ast(AST_Kind kind, Token t) {
-    AST* e  = xmalloc(sizeof(AST));
+AST *make_ast(AST_Kind kind, Token t) {
+    AST *e  = xmalloc(sizeof(AST));
     e->kind = kind;
     e->t    = t;
     return e;
 }
 
-AST* make_ast_sizeof(Token t, Type* type) {
+AST *make_ast_sizeof(Token t, Type *type) {
     assert(type);
-    AST* e         = make_ast(AST_SIZEOF, t);
+    AST *e         = make_ast(AST_SIZEOF, t);
     e->type        = type;
     e->Sizeof.type = type;
     return e;
 }
 
-AST* make_ast_field_access(Token t, AST* load, char* field) {
+AST *make_ast_field_access(Token t, AST *load, char *field) {
     assert(load);
     assert(field);
-    AST* e                = make_ast(AST_FIELD_ACCESS, t);
+    AST *e                = make_ast(AST_FIELD_ACCESS, t);
     e->Field_Access.load  = load;
     e->Field_Access.field = field;
     return e;
 }
 
-AST* make_ast_extern(Token t, Type* type) {
+AST *make_ast_extern(Token t, Type *type) {
     assert(type);
-    AST* e         = make_ast(AST_EXTERN, t);
+    AST *e         = make_ast(AST_EXTERN, t);
     e->type        = type;
     e->Extern.type = type;
     return e;
 }
 
-AST* make_ast_load(Token t, char* str) {
+AST *make_ast_load(Token t, char *str) {
     assert(str);
-    AST* e      = make_ast(AST_LOAD, t);
+    AST *e      = make_ast(AST_LOAD, t);
     e->Load.str = str;
     return e;
 }
 
-AST* make_ast_link(Token t, char* str) {
+AST *make_ast_link(Token t, char *str) {
     assert(str);
-    AST* e      = make_ast(AST_LINK, t);
+    AST *e      = make_ast(AST_LINK, t);
     e->Link.str = str;
     return e;
 }
 
-AST* make_ast_note(Token t, AST* expr) {
+AST *make_ast_note(Token t, AST *expr) {
     assert(expr);
-    AST* e       = make_ast(AST_NOTE, t);
+    AST *e       = make_ast(AST_NOTE, t);
     e->Note.expr = expr;
     return e;
 }
 
-AST* make_ast_int(Token t, s64 value) {
-    AST* e     = make_ast(AST_INT, t);
+AST *make_ast_int(Token t, s64 value) {
+    AST *e     = make_ast(AST_INT, t);
     e->type    = make_type_int(DEFAULT_INT_BYTE_SIZE, 0);
     e->Int.val = value;
     return e;
 }
 
-AST* make_ast_float(Token t, f64 value) {
-    AST* e       = make_ast(AST_FLOAT, t);
+AST *make_ast_float(Token t, f64 value) {
+    AST *e       = make_ast(AST_FLOAT, t);
     e->type      = make_type_float(DEFAULT_FLOAT_BYTE_SIZE);
     e->Float.val = value;
     return e;
 }
 
-AST* make_ast_string(Token t, char* value) {
-    AST* e        = make_ast(AST_STRING, t);
+AST *make_ast_string(Token t, char *value) {
+    AST *e        = make_ast(AST_STRING, t);
     e->type       = make_type_pointer(make_type_int(1, 1));
     e->String.val = value;
     return e;
 }
 
-AST* make_ast_ident(Token t, char* ident) {
+AST *make_ast_ident(Token t, char *ident) {
     assert(ident);
-    AST* e        = make_ast(AST_IDENT, t);
+    AST *e        = make_ast(AST_IDENT, t);
     e->Ident.name = ident;
     return e;
 }
 
-AST* make_ast_struct(Token t, Type* struct_t) {
+AST *make_ast_struct(Token t, Type *struct_t) {
     assert(struct_t);
-    AST* e         = make_ast(AST_STRUCT, t);
+    AST *e         = make_ast(AST_STRUCT, t);
     e->Struct.type = struct_t;
     return e;
 }
 
-AST* make_ast_enum(Token t, Type* enum_t) {
+AST *make_ast_enum(Token t, Type *enum_t) {
     assert(enum_t);
-    AST* e       = make_ast(AST_ENUM, t);
+    AST *e       = make_ast(AST_ENUM, t);
     e->Enum.type = enum_t;
     return e;
 }
 
-AST* make_ast_function(Token t, Type* func_t, AST* body) {
+AST *make_ast_function(Token t, Type *func_t, AST *body) {
     assert(func_t);
     assert(func_t->kind == TYPE_FUNCTION);
-    AST* e             = make_ast(AST_FUNCTION, t);
+    AST *e             = make_ast(AST_FUNCTION, t);
     e->type            = func_t;
     e->Function.type   = func_t;
     e->Function.body   = body;
@@ -561,11 +563,11 @@ AST* make_ast_function(Token t, Type* func_t, AST* body) {
     return e;
 }
 
-AST* make_ast_binary(Token t, Token_Kind op, AST* lhs, AST* rhs) {
+AST *make_ast_binary(Token t, Token_Kind op, AST *lhs, AST *rhs) {
     assert(op != TOKEN_UNKNOWN);
     assert(lhs);
     assert(rhs);
-    AST* e        = make_ast(AST_BINARY, t);
+    AST *e        = make_ast(AST_BINARY, t);
     e->t          = t;
     e->Binary.op  = op;
     e->Binary.lhs = lhs;
@@ -573,67 +575,67 @@ AST* make_ast_binary(Token t, Token_Kind op, AST* lhs, AST* rhs) {
     return e;
 }
 
-AST* make_ast_unary(Token t, Token_Kind op, AST* operand) {
+AST *make_ast_unary(Token t, Token_Kind op, AST *operand) {
     assert(op != TOKEN_UNKNOWN);
     assert(operand);
-    AST* e           = make_ast(AST_UNARY, t);
+    AST *e           = make_ast(AST_UNARY, t);
     e->Unary.op      = op;
     e->Unary.operand = operand;
     return e;
 }
 
-AST* make_ast_switch(Token t, AST* if_statement) {
-    AST* e                 = make_ast(AST_SWITCH, t);
+AST *make_ast_switch(Token t, AST *if_statement) {
+    AST *e                 = make_ast(AST_SWITCH, t);
     e->Switch.cond         = if_statement->If.cond;
     e->Switch.cases        = if_statement->If.then_block;
     e->Switch.default_case = if_statement->If.else_block;
     return e;
 }
 
-AST* make_ast_is(Token t, AST* expr, AST* body, bool has_fallthrough) {
-    AST* e                = make_ast(AST_IS, t);
+AST *make_ast_is(Token t, AST *expr, AST *body, bool has_fallthrough) {
+    AST *e                = make_ast(AST_IS, t);
     e->Is.expr            = expr;
     e->Is.body            = body;
     e->Is.has_fallthrough = has_fallthrough;
     return e;
 }
 
-AST* make_ast_block(Token t, List* stmts) {
-    AST* e         = make_ast(AST_BLOCK, t);
+AST *make_ast_block(Token t, List *stmts) {
+    AST *e         = make_ast(AST_BLOCK, t);
     e->Block.stmts = stmts;
     return e;
 }
 
-AST* make_ast_call(Token t, char* callee, List* args) {
+AST *make_ast_call(Token t, char *callee, List *args) {
     assert(callee);
     assert(args);
-    AST* e         = make_ast(AST_CALL, t);
+    AST *e         = make_ast(AST_CALL, t);
     e->Call.callee = callee;
     e->Call.args   = args;
     return e;
 }
 
-AST* make_ast_var_args(Token t) {
-    AST* e = make_ast(AST_VAR_ARGS, t);
+AST *make_ast_var_args(Token t) {
+    AST *e = make_ast(AST_VAR_ARGS, t);
     return e;
 }
 
-AST* make_ast_fallthrough(Token t) {
-    AST* e = make_ast(AST_FALLTHROUGH, t);
+AST *make_ast_fallthrough(Token t) {
+    AST *e = make_ast(AST_FALLTHROUGH, t);
     return e;
 }
 
-AST* make_ast_grouping(Token t, AST* expr) {
+AST *make_ast_grouping(Token t, AST *expr) {
     assert(expr);
-    AST* e           = make_ast(AST_GROUPING, t);
+    AST *e           = make_ast(AST_GROUPING, t);
     e->Grouping.expr = expr;
     return e;
 }
 
-AST* make_ast_variable_decl(Token t, char* name, Type* type, AST* value) {
+AST *make_ast_variable_decl(Token t, char *name, Type *type, AST *value) {
     // 'value' and 'name' can be NULL
     // assert(type);
-    AST* e                 = make_ast(AST_VARIABLE_DECL, t);
+    AST *e                 = make_ast(AST_VARIABLE_DECL, t);
     e->Variable_Decl.name  = name;
     e->type                = type;
     e->Variable_Decl.type  = type;
@@ -641,40 +643,40 @@ AST* make_ast_variable_decl(Token t, char* name, Type* type, AST* value) {
     return e;
 }
 
-AST* make_ast_constant_decl(Token t, char* name, AST* value) {
+AST *make_ast_constant_decl(Token t, char *name, AST *value) {
     assert(name);
     assert(value);
-    AST* e                 = make_ast(AST_CONSTANT_DECL, t);
+    AST *e                 = make_ast(AST_CONSTANT_DECL, t);
     e->Constant_Decl.name  = name;
     e->Constant_Decl.value = value;
     return e;
 }
 
-AST* make_ast_subscript(Token t, AST* load, AST* sub) {
+AST *make_ast_subscript(Token t, AST *load, AST *sub) {
     assert(load);
     assert(sub);
-    AST* e            = make_ast(AST_SUBSCRIPT, t);
+    AST *e            = make_ast(AST_SUBSCRIPT, t);
     e->Subscript.load = load;
     e->Subscript.sub  = sub;
     return e;
 }
 
-AST* make_ast_if(Token t, AST* cond, AST* then_block, AST* else_block) {
+AST *make_ast_if(Token t, AST *cond, AST *then_block, AST *else_block) {
     assert(cond);
     assert(then_block);
-    AST* e           = make_ast(AST_IF, t);
+    AST *e           = make_ast(AST_IF, t);
     e->If.cond       = cond;
     e->If.then_block = then_block;
     e->If.else_block = else_block;
     return e;
 }
 
-AST* make_ast_for(Token t, AST* init, AST* cond, AST* step, AST* then_block) {
+AST *make_ast_for(Token t, AST *init, AST *cond, AST *step, AST *then_block) {
     assert(init);
     assert(cond);
     assert(step);
     assert(then_block);
-    AST* e            = make_ast(AST_FOR, t);
+    AST *e            = make_ast(AST_FOR, t);
     e->For.init       = init;
     e->For.cond       = cond;
     e->For.step       = step;
@@ -682,43 +684,43 @@ AST* make_ast_for(Token t, AST* init, AST* cond, AST* step, AST* then_block) {
     return e;
 }
 
-AST* make_ast_while(Token t, AST* cond, AST* then_block) {
+AST *make_ast_while(Token t, AST *cond, AST *then_block) {
     assert(cond);
     assert(then_block);
-    AST* e              = make_ast(AST_WHILE, t);
+    AST *e              = make_ast(AST_WHILE, t);
     e->While.cond       = cond;
     e->While.then_block = then_block;
     return e;
 }
 
-AST* make_ast_return(Token t, AST* expr) {
+AST *make_ast_return(Token t, AST *expr) {
     // assert(expr);
-    AST* e         = make_ast(AST_RETURN, t);
+    AST *e         = make_ast(AST_RETURN, t);
     e->Return.expr = expr;
     return e;
 }
 
-AST* make_ast_defer(Token t, AST* expr) {
+AST *make_ast_defer(Token t, AST *expr) {
     assert(expr);
-    AST* e        = make_ast(AST_DEFER, t);
+    AST *e        = make_ast(AST_DEFER, t);
     e->Defer.expr = expr;
     return e;
 }
 
-AST* make_ast_break(Token t) {
-    AST* e = make_ast(AST_BREAK, t);
+AST *make_ast_break(Token t) {
+    AST *e = make_ast(AST_BREAK, t);
     return e;
 }
 
-AST* make_ast_continue(Token t) {
-    AST* e = make_ast(AST_CONTINUE, t);
+AST *make_ast_continue(Token t) {
+    AST *e = make_ast(AST_CONTINUE, t);
     return e;
 }
 
-AST* make_ast_cast(Token t, AST* expr, Type* type) {
+AST *make_ast_cast(Token t, AST *expr, Type *type) {
     assert(expr);
     assert(type);
-    AST* e       = make_ast(AST_CAST, t);
+    AST *e       = make_ast(AST_CAST, t);
     e->type      = type;
     e->Cast.type = type;
     e->Cast.expr = expr;

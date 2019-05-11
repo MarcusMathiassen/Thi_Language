@@ -1,3 +1,10 @@
-main(argc: int, argv: char**)
-    n :: 3
-    return 1 + n - n
+load "includes/cstdio"
+
+
+main()
+    print("Hello, how are you?")
+    return 1
+
+
+print(name: u8*)
+    printf("%s\n", name)

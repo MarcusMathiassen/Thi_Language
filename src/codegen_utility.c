@@ -43,12 +43,12 @@ Codegen_Context make_codegen_context() {
     return ctx;
 }
 
-void emit_no_tab(Codegen_Context* ctx, char* fmt, ...) {
+void emit_no_tab(Codegen_Context *ctx, char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
     va_end(args);
-    char* str = xmalloc(str_len);
+    char *str = xmalloc(str_len);
 
     va_start(args, fmt);
     vsnprintf(str, str_len, fmt, args);
@@ -59,12 +59,12 @@ void emit_no_tab(Codegen_Context* ctx, char* fmt, ...) {
     free(str);
 }
 
-void emit_extern(Codegen_Context* ctx, char* fmt, ...) {
+void emit_extern(Codegen_Context *ctx, char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
     va_end(args);
-    char* str = xmalloc(str_len);
+    char *str = xmalloc(str_len);
 
     va_start(args, fmt);
     vsnprintf(str, str_len, fmt, args);
@@ -75,12 +75,12 @@ void emit_extern(Codegen_Context* ctx, char* fmt, ...) {
     free(str);
 }
 
-void emit_data(Codegen_Context* ctx, char* fmt, ...) {
+void emit_data(Codegen_Context *ctx, char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
     va_end(args);
-    char* str = xmalloc(str_len);
+    char *str = xmalloc(str_len);
 
     va_start(args, fmt);
     vsnprintf(str, str_len, fmt, args);
@@ -91,12 +91,12 @@ void emit_data(Codegen_Context* ctx, char* fmt, ...) {
     free(str);
 }
 
-void emit(Codegen_Context* ctx, char* fmt, ...) {
+void emit(Codegen_Context *ctx, char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
     va_end(args);
-    char* str = xmalloc(str_len);
+    char *str = xmalloc(str_len);
 
     va_start(args, fmt);
     vsnprintf(str, str_len, fmt, args);
@@ -120,7 +120,7 @@ void emit(Codegen_Context* ctx, char* fmt, ...) {
     free(str);
 }
 
-void push_type(Codegen_Context* ctx, Type* type) {
+void push_type(Codegen_Context *ctx, Type *type) {
     assert(type);
     switch (type->kind) {
     case TYPE_ARRAY:   // fallthrough
@@ -133,7 +133,7 @@ void push_type(Codegen_Context* ctx, Type* type) {
     }
 }
 
-void pop_type_2(Codegen_Context* ctx, Type* type) {
+void pop_type_2(Codegen_Context *ctx, Type *type) {
     assert(type);
     switch (type->kind) {
     case TYPE_ARRAY:   // fallthrough
@@ -145,7 +145,7 @@ void pop_type_2(Codegen_Context* ctx, Type* type) {
     default: error("pop_type_2 pop_type %s", type_to_str(type));
     }
 }
-void pop_type(Codegen_Context* ctx, Type* type) {
+void pop_type(Codegen_Context *ctx, Type *type) {
     assert(type);
     switch (type->kind) {
     case TYPE_ARRAY:   // fallthrough
@@ -158,9 +158,9 @@ void pop_type(Codegen_Context* ctx, Type* type) {
     }
 }
 
-void push(Codegen_Context* ctx, int reg) {
+void push(Codegen_Context *ctx, int reg) {
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
-    char* r = get_reg(reg);
+    char *r = get_reg(reg);
     if (reg >= XMM0 && reg <= XMM7) {
         emit(ctx, "sub rsp, 8");
         emit(ctx, "movsd [rsp], %s", r);
@@ -170,9 +170,9 @@ void push(Codegen_Context* ctx, int reg) {
     ctx->stack_index += 8;
 }
 
-void pop(Codegen_Context* ctx, int reg) {
+void pop(Codegen_Context *ctx, int reg) {
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
-    char* r = get_reg(reg);
+    char *r = get_reg(reg);
     if (reg >= XMM0 && reg <= XMM7) {
         emit(ctx, "movsd %s, [rsp]", r);
         emit(ctx, "add rsp, 8");
@@ -183,7 +183,7 @@ void pop(Codegen_Context* ctx, int reg) {
     assert(ctx->stack_index >= 0);
 }
 
-char* get_op_size(s8 bytes) {
+char *get_op_size(s8 bytes) {
     assert(bytes >= 0);
     switch (bytes) {
     case 1: return "byte";
@@ -196,7 +196,7 @@ char* get_op_size(s8 bytes) {
     return NULL;
 }
 
-char* get_result_reg_2(Type* type) {
+char *get_result_reg_2(Type *type) {
     assert(type);
     s64 bytes = get_size_of_type(type);
     switch (type->kind) {
@@ -217,7 +217,7 @@ char* get_result_reg_2(Type* type) {
     return NULL;
 }
 
-char* get_result_reg(Type* type) {
+char *get_result_reg(Type *type) {
     assert(type);
     s64 bytes = get_size_of_type(type);
     switch (type->kind) {
@@ -239,7 +239,7 @@ char* get_result_reg(Type* type) {
     return NULL;
 }
 
-char* get_db_op(Type* type) {
+char *get_db_op(Type *type) {
     assert(type);
     s64 bytes = get_size_of_type(type);
     switch (bytes) {
@@ -251,7 +251,7 @@ char* get_db_op(Type* type) {
     UNREACHABLE;
     return NULL;
 }
-char* get_move_op(Type* type) {
+char *get_move_op(Type *type) {
     assert(type);
     s64 bytes = get_size_of_type(type);
     switch (type->kind) {
@@ -271,7 +271,7 @@ char* get_move_op(Type* type) {
     return NULL;
 }
 
-void alloc_variable(Codegen_Context* ctx, Value* variable) {
+void alloc_variable(Codegen_Context *ctx, Value *variable) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     s64 size = get_size_of_value(variable);
@@ -280,7 +280,7 @@ void alloc_variable(Codegen_Context* ctx, Value* variable) {
     ctx->stack_index += size;
 }
 
-void dealloc_variable(Codegen_Context* ctx, Value* variable) {
+void dealloc_variable(Codegen_Context *ctx, Value *variable) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     s64 size = get_size_of_value(variable);
@@ -290,46 +290,46 @@ void dealloc_variable(Codegen_Context* ctx, Value* variable) {
     assert(ctx->stack_index >= 0);
 }
 
-void push_scope(Codegen_Context* ctx) {
-    Scope* new_scope = make_scope();
+void push_scope(Codegen_Context *ctx) {
+    Scope *new_scope = make_scope();
     stack_push(ctx->scope_stack, new_scope);
 }
 
-void pop_scope(Codegen_Context* ctx) {
-    Scope* scope = (Scope*)stack_pop(ctx->scope_stack);
+void pop_scope(Codegen_Context *ctx) {
+    Scope *scope = (Scope *)stack_pop(ctx->scope_stack);
     LIST_FOREACH(scope->local_variables) {
-        Value* v = (Value*)it->data;
+        Value *v = (Value *)it->data;
         dealloc_variable(ctx, v);
     }
 }
 
-Value* get_variable_in_scope(Scope* scope, char* name) {
+Value *get_variable_in_scope(Scope *scope, char *name) {
     assert(scope);
     assert(name);
     LIST_FOREACH(scope->local_variables) {
-        Value* v = (Value*)it->data;
+        Value *v = (Value *)it->data;
         if (v->Variable.name == name) return v;
     }
     return NULL;
 }
 
-Value* get_variable(Codegen_Context* ctx, char* name) {
+Value *get_variable(Codegen_Context *ctx, char *name) {
     assert(name);
     STACK_FOREACH(ctx->scope_stack) {
-        Scope* scope = (Scope*)it->data;
-        Value* res   = get_variable_in_scope(scope, name);
+        Scope *scope = (Scope *)it->data;
+        Value *res   = get_variable_in_scope(scope, name);
         if (res) return res;
     }
     error("no variable with name '%s'", name);
     return NULL;
 }
 
-void add_variable(Codegen_Context* ctx, Value* variable) {
+void add_variable(Codegen_Context *ctx, Value *variable) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     alloc_variable(ctx, variable);
     info("Adding variable: '%s' to scope", variable->Variable.name);
-    Scope* top = (Scope*)stack_peek(ctx->scope_stack);
+    Scope *top = (Scope *)stack_peek(ctx->scope_stack);
     list_append(top->local_variables, variable);
 }
 
@@ -337,7 +337,7 @@ int align(int n, s32 m) {
     return (m - (n % m)) % m;
 }
 
-void emit_cast_float_to_int(Codegen_Context* ctx, char* reg, Type* type) {
+void emit_cast_float_to_int(Codegen_Context *ctx, char *reg, Type *type) {
     assert(type->kind == TYPE_INT);
     bool usig      = type->Int.is_unsigned;
     s8   type_size = get_size_of_type(type);
@@ -350,7 +350,7 @@ void emit_cast_float_to_int(Codegen_Context* ctx, char* reg, Type* type) {
     }
 }
 
-void emit_cast_int_to_int(Codegen_Context* ctx, char* reg, Type* type) {
+void emit_cast_int_to_int(Codegen_Context *ctx, char *reg, Type *type) {
     assert(type->kind == TYPE_INT);
     bool usig      = type->Int.is_unsigned;
     s8   type_size = get_size_of_type(type);
@@ -364,11 +364,11 @@ void emit_cast_int_to_int(Codegen_Context* ctx, char* reg, Type* type) {
     }
 }
 
-void emit_cast(Codegen_Context* ctx, Value* variable, Type* desired_type) {
+void emit_cast(Codegen_Context *ctx, Value *variable, Type *desired_type) {
     assert(variable);
     assert(desired_type);
 
-    char* reg = get_result_reg(variable->type);
+    char *reg = get_result_reg(variable->type);
 
     switch (variable->type->kind) {
     default: error("unexpected type case in emit_cast");
@@ -385,24 +385,24 @@ void emit_cast(Codegen_Context* ctx, Value* variable, Type* desired_type) {
     }
 }
 
-void emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg) {
+void emit_store_r(Codegen_Context *ctx, Value *variable, s64 reg) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
     s64   stack_pos = get_stack_pos_of_variable(variable);
-    char* reg_c     = get_reg(reg);
-    char* mov_op    = get_move_op(variable->type);
+    char *reg_c     = get_reg(reg);
+    char *mov_op    = get_move_op(variable->type);
     emit(ctx, "%s [rbp-%lld], %s; store_r", mov_op, stack_pos, reg_c);
 }
 
-void emit_store(Codegen_Context* ctx, Value* variable) {
+void emit_store(Codegen_Context *ctx, Value *variable) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     s64 stack_pos = get_stack_pos_of_variable(variable);
 
-    char* reg = get_result_reg_2(variable->type);
+    char *reg = get_result_reg_2(variable->type);
 
-    char* mov_op = get_move_op(variable->type);
+    char *mov_op = get_move_op(variable->type);
 
     switch (variable->type->kind) {
     case TYPE_STRUCT:
@@ -416,14 +416,14 @@ void emit_store(Codegen_Context* ctx, Value* variable) {
     }
 }
 
-void emit_load(Codegen_Context* ctx, Value* variable) {
+void emit_load(Codegen_Context *ctx, Value *variable) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     s64 stack_pos = get_stack_pos_of_variable(variable);
     // s64 size      = get_size_of_value(variable);
     // char* mov_size  = get_op_size(size);
-    char* reg    = get_result_reg(variable->type);
-    char* mov_op = get_move_op(variable->type);
+    char *reg    = get_result_reg(variable->type);
+    char *mov_op = get_move_op(variable->type);
     switch (variable->type->kind) {
     case TYPE_STRUCT:
     case TYPE_ARRAY: emit(ctx, "lea rax, [rbp-%lld]; load_lea", stack_pos); break;
@@ -431,74 +431,74 @@ void emit_load(Codegen_Context* ctx, Value* variable) {
     }
 }
 
-void set_break_label(Codegen_Context* ctx, char* break_l) {
+void set_break_label(Codegen_Context *ctx, char *break_l) {
     ctx->obreak = ctx->lbreak;
     ctx->lbreak = break_l;
 }
-void restore_break_label(Codegen_Context* ctx) {
+void restore_break_label(Codegen_Context *ctx) {
     ctx->lbreak = ctx->obreak;
 }
 
-void set_continue_label(Codegen_Context* ctx, char* continue_l) {
+void set_continue_label(Codegen_Context *ctx, char *continue_l) {
     ctx->ocontinue = ctx->lcontinue;
     ctx->lcontinue = continue_l;
 }
-void restore_continue_label(Codegen_Context* ctx) {
+void restore_continue_label(Codegen_Context *ctx) {
     ctx->lcontinue = ctx->ocontinue;
 }
 
-void set_jump_labels(Codegen_Context* ctx, char* continue_l, char* break_l) {
+void set_jump_labels(Codegen_Context *ctx, char *continue_l, char *break_l) {
     set_continue_label(ctx, continue_l);
     set_break_label(ctx, break_l);
 }
 
-void restore_jump_labels(Codegen_Context* ctx) {
+void restore_jump_labels(Codegen_Context *ctx) {
     restore_continue_label(ctx);
     restore_break_label(ctx);
 }
 
-void set_temp_labels(Codegen_Context* ctx, char* l0, char* l1) {
+void set_temp_labels(Codegen_Context *ctx, char *l0, char *l1) {
     ctx->o0 = ctx->l0;
     ctx->o1 = ctx->l1;
     ctx->l0 = l0;
     ctx->l1 = l1;
 }
-void restore_temp_labels(Codegen_Context* ctx) {
+void restore_temp_labels(Codegen_Context *ctx) {
     ctx->l0 = ctx->o0;
     ctx->l1 = ctx->o1;
 }
-char* make_text_label(Codegen_Context* ctx) {
-    char* l = strf(".l%d", ctx->text_label_counter);
+char *make_text_label(Codegen_Context *ctx) {
+    char *l = strf(".l%d", ctx->text_label_counter);
     ctx->text_label_counter += 1;
     return l;
 }
 
-char* make_data_label(Codegen_Context* ctx) {
-    char* l = strf("d%d", ctx->data_label_counter);
+char *make_data_label(Codegen_Context *ctx) {
+    char *l = strf("d%d", ctx->data_label_counter);
     ctx->data_label_counter += 1;
     return l;
 }
 
-void reset_text_label_counter(Codegen_Context* ctx) {
+void reset_text_label_counter(Codegen_Context *ctx) {
     ctx->text_label_counter = 0;
 }
-void reset_stack(Codegen_Context* ctx) {
+void reset_stack(Codegen_Context *ctx) {
     ctx->stack_index = 0;
 }
-void set_current_function_expr(Codegen_Context* ctx, AST* func_expr) {
+void set_current_function_expr(Codegen_Context *ctx, AST *func_expr) {
     ctx->current_function = func_expr;
 }
 
-char* emit_save_result(Codegen_Context* ctx, Value* value) {
-    char* mov_op     = get_move_op(value->type);
-    char* reg        = get_next_available_reg_fitting(ctx, value->type);
-    char* result_reg = get_result_reg(value->type);
+char *emit_save_result(Codegen_Context *ctx, Value *value) {
+    char *mov_op     = get_move_op(value->type);
+    char *reg        = get_next_available_reg_fitting(ctx, value->type);
+    char *result_reg = get_result_reg(value->type);
     emit(ctx, "%s %s, %s", mov_op, reg, result_reg);
     return reg;
 }
 
-char* get_instr(Token_Kind op, Type* type) {
-    char* inst = NULL;
+char *get_instr(Token_Kind op, Type *type) {
+    char *inst = NULL;
     switch (type->kind) {
     default: error("unhandled case: %s, %s", __func__, __LINE__);
     case TYPE_INT: {
@@ -525,7 +525,7 @@ char* get_instr(Token_Kind op, Type* type) {
     return inst;
 }
 
-char* get_next_available_reg_fitting(Codegen_Context* ctx, Type* type) {
+char *get_next_available_reg_fitting(Codegen_Context *ctx, Type *type) {
     s64 size = get_size_of_type(type);
     s8  r    = -1;
     switch (type->kind) {
@@ -538,7 +538,7 @@ char* get_next_available_reg_fitting(Codegen_Context* ctx, Type* type) {
     return get_reg(r);
 }
 
-s8 get_next_available_xmm_reg_fitting(Codegen_Context* ctx) {
+s8 get_next_available_xmm_reg_fitting(Codegen_Context *ctx) {
     s8 res = -1;
     switch (ctx->next_available_xmm_reg_counter) {
     case 0: res = XMM8; break;
@@ -556,7 +556,7 @@ s8 get_next_available_xmm_reg_fitting(Codegen_Context* ctx) {
     return res;
 }
 
-s8 get_next_available_rax_reg_fitting(Codegen_Context* ctx, s64 size) {
+s8 get_next_available_rax_reg_fitting(Codegen_Context *ctx, s64 size) {
     s8 res = -1;
     switch (ctx->next_available_rax_reg_counter) {
     case 0:
@@ -618,22 +618,22 @@ s8 get_next_available_rax_reg_fitting(Codegen_Context* ctx, s64 size) {
 //                             instructions
 //------------------------------------------------------------------------------
 
-void emit_jmp(Codegen_Context* ctx, char* label) {
+void emit_jmp(Codegen_Context *ctx, char *label) {
     assert(ctx);
     assert(label);
     emit(ctx, "jmp %s", label);
 }
 
-void emit_je(Codegen_Context* ctx, char* label) {
+void emit_je(Codegen_Context *ctx, char *label) {
     assert(ctx);
     assert(label);
     emit(ctx, "je %s", label);
 }
 
-void emit_push(Codegen_Context* ctx, s8 reg) {
+void emit_push(Codegen_Context *ctx, s8 reg) {
     assert(ctx);
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
-    char* r = get_reg(reg);
+    char *r = get_reg(reg);
     if (reg >= XMM0 && reg <= XMM7) {
         emit(ctx, "sub rsp, 8");
         emit(ctx, "movsd [rsp], %s", r);
@@ -643,10 +643,10 @@ void emit_push(Codegen_Context* ctx, s8 reg) {
     ctx->stack_index += 8;
 }
 
-void emit_pop(Codegen_Context* ctx, s8 reg) {
+void emit_pop(Codegen_Context *ctx, s8 reg) {
     assert(ctx);
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
-    char* r = get_reg(reg);
+    char *r = get_reg(reg);
     if (reg >= XMM0 && reg <= XMM7) {
         emit(ctx, "movsd %s, [rsp]", r);
         emit(ctx, "add rsp, 8");
@@ -671,19 +671,19 @@ bool is_reg64(s8 reg) {
     return (get_size_of_reg(reg) == 8) && (reg < XMM_REG_START);
 }
 
-void emit_lea_reg64_mem(Codegen_Context* ctx, s8 reg64, char* mem) {
+void emit_lea_reg64_mem(Codegen_Context *ctx, s8 reg64, char *mem) {
     assert(ctx);
     assert(is_reg64(reg64));
     assert(mem);
-    char* r = get_reg(reg64);
+    char *r = get_reg(reg64);
     emit(ctx, "lea %s, %s", r, mem);
 }
 
-s64 get_all_alloca_in_block(AST* block) {
+s64 get_all_alloca_in_block(AST *block) {
     s64   sum   = 0;
-    List* stmts = block->Block.stmts;
+    List *stmts = block->Block.stmts;
     LIST_FOREACH(stmts) {
-        AST* stmt = (AST*)it->data;
+        AST *stmt = (AST *)it->data;
         switch (stmt->kind) {
         default: break;
         case AST_VARIABLE_DECL: sum += get_size_of_type(stmt->Variable_Decl.type); break;

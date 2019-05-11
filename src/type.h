@@ -12,31 +12,31 @@ typedef struct Type    Type;
 typedef struct Arg     Arg;
 typedef enum Type_Kind Type_Kind;
 
-bool is_same_type(Type* a, Type* b);
+bool is_same_type(Type *a, Type *b);
 
-s64   get_offset_in_struct_to_field(Type* type, char* name);
-s64   get_size_of_underlying_type(Type* type);
-s64   get_size_of_type(Type* Type);
-char* get_type_name(Type* Type);
+s64   get_offset_in_struct_to_field(Type *type, char *name);
+s64   get_size_of_underlying_type(Type *type);
+s64   get_size_of_type(Type *Type);
+char *get_type_name(Type *Type);
 
-char* type_to_str(Type* type);
-char* type_to_json(Type* type);
-char* type_kind_to_str(Type_Kind kind);
+char *type_to_str(Type *type);
+char *type_to_json(Type *type);
+char *type_kind_to_str(Type_Kind kind);
 
-Type* make_type_unresolved(char* name);
-Type* make_type_void();
-Type* make_type_int(s8 bytes, bool is_unsigned);
-Type* make_type_float(s8 bytes);
-Type* make_type_string(s64 len);
-Type* make_type_pointer(Type* pointee);
-Type* make_type_array(Type* type, s32 size);
-Type* make_type_struct(char* name, List* members);
-Type* make_type_enum(char* name, List* members);
-Type* make_type_function(char* name, List* args, Type* ret_type, bool has_var_arg);
-Type* make_type_var_args();
+Type *make_type_unresolved(char *name);
+Type *make_type_void();
+Type *make_type_int(s8 bytes, bool is_unsigned);
+Type *make_type_float(s8 bytes);
+Type *make_type_string(s64 len);
+Type *make_type_pointer(Type *pointee);
+Type *make_type_array(Type *type, s32 size);
+Type *make_type_struct(char *name, List *members);
+Type *make_type_enum(char *name, List *members);
+Type *make_type_function(char *name, List *args, Type *ret_type, bool has_var_arg);
+Type *make_type_var_args();
 
-s64 type_function_get_arg_count(Type* type);
-s64 type_array_get_count(Type* type);
+s64 type_function_get_arg_count(Type *type);
+s64 type_array_get_count(Type *type);
 
 enum Type_Kind {
     TYPE_UNRESOLVED,
@@ -58,18 +58,18 @@ enum Type_Kind {
 };
 
 struct Arg {
-    char* name;
-    Type* type;
+    char *name;
+    Type *type;
 };
 
 struct Type {
-    char*     name;
+    char *    name;
     Type_Kind kind;
     union {
         struct {
         } Var_Args;
         struct {
-            char* name;
+            char *name;
         } Unresolved;
         struct {
             s8 bytes;
@@ -82,36 +82,36 @@ struct Type {
             s64 len;
         } String;
         struct {
-            Type* pointee;
+            Type *pointee;
         } Pointer;
         struct {
-            Type* type;
+            Type *type;
             s32   size;
         } Array;
         struct {
-            char* name;
-            List* members;
+            char *name;
+            List *members;
         } Enum;
         struct {
-            char* name;
-            List* members;
+            char *name;
+            List *members;
         } Struct;
         struct {
-            char* name;
-            List* args;
-            Type* ret_type;
+            char *name;
+            List *args;
+            Type *ret_type;
             bool  has_var_arg;
         } Function;
     };
 };
 
 typedef struct {
-    Type** data;
+    Type **data;
     s64    count;
     s64    allocated;
 } Type_Ref_List;
 
 Type_Ref_List make_type_ref_list();
-void          type_ref_list_append(Type_Ref_List* l, Type* t);
+void          type_ref_list_append(Type_Ref_List *l, Type *t);
 
 #endif
