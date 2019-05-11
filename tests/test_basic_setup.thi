@@ -1,5 +1,5 @@
 load "includes/cstdio"
-
+link "glfw"
 
 main()
     print("Hello, how are you?")
