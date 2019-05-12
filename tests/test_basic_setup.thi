@@ -1,9 +1,15 @@
 load "includes/cstdio"
 
+enum Mode
+    dark :: 0
+    light :: 1
+
 main()
-    print("Hello, how are you?")
-    return 1
+    i := 1 + 2
+    printf("'i' has the value of %d\n", i)
 
+    if Mode.light
+        is Mode.light return 30
+        is Mode.dark return 20
 
-print(name: u8*)
-    printf("%s\n", name)
+    return Mode.light

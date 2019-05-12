@@ -1012,16 +1012,14 @@ Value *codegen_function(Codegen_Context *ctx, AST *expr) {
     List * stmts = func_body->Block.stmts;
     Value *last  = NULL;
     LIST_FOREACH(stmts) {
-        AST *stmt = (AST *)it->data;
-        last      = codegen_expr(ctx, stmt);
+        last = codegen_expr(ctx, it->data);
     }
 
     emit(ctx, "%s:", DEFAULT_FUNCTION_END_LABEL_NAME);
 
     List *defers = ctx->current_function->Function.defers;
     LIST_FOREACH_REVERSE(defers) {
-        AST *defer_expr = (AST *)it->data;
-        codegen_expr(ctx, defer_expr);
+        codegen_expr(ctx, it->data);
     }
     pop_scope(ctx);
 

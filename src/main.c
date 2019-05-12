@@ -41,19 +41,17 @@ void  maybe_convert_call_to_def(Thi *thi, List *ast, List_Node *it);
 
 void check_for_unresolved_types(void *ctx, AST *expr) {
     if (expr->type && expr->type->kind == TYPE_UNRESOLVED) {
-        warning("[check_for_unresolved_types]: unresolved type found for expr: %s", ast_to_str(expr));
+        error("[check_for_unresolved_types]: unresolved type found for expr: %s", ast_to_str(expr));
     }
 }
 
 void make_sure_all_nodes_have_a_valid_type(void *ctx, AST *expr) {
-    if (!expr->type) {
-        warning("[make_sure_all_nodes_ have_a_valid_type]: missing type for expr: %s", ast_to_str(expr));
+    switch (expr->kind) {
+    case AST_LOAD: return;
+    case AST_LINK: return;
     }
-}
-
-void pass_resolve_unresolved_types(void *thi, AST *expr) {
-    if (expr->type && expr->type->kind == TYPE_UNRESOLVED) {
-        *expr->type = *get_symbol(thi, get_type_name(expr->type));
+    if (!expr->type) {
+        warning("[make_sure_all_nodes_have_a_valid_type]: missing type for expr: %s", ast_to_str(expr));
     }
 }
 
@@ -62,7 +60,6 @@ void get_all_variables(void *list, AST *expr) {
         list_append((List *)list, expr);
     }
 }
-
 void constant_fold(void *ctx, AST *e) {
 
     Token t = e->t;
@@ -100,9 +97,7 @@ void constant_fold(void *ctx, AST *e) {
             default: error("constant_fold binary %s not implemented", token_kind_to_str(op));
             }
             info("folded %s into %lld", ast_to_str(e), value);
-
             *e = *make_ast_int(e->t, value);
-
         } else if (lhs->kind == AST_FLOAT && rhs->kind == AST_FLOAT) {
             f64 lhs_v = lhs->Float.val;
             f64 rhs_v = rhs->Float.val;
@@ -121,7 +116,6 @@ void constant_fold(void *ctx, AST *e) {
             default: error("constant_fold binary %s not implemented", token_kind_to_str(op));
             }
             info("folded %s into %lld", ast_to_str(e), value);
-
             *e = *make_ast_float(e->t, value);
         }
     } break;
@@ -252,7 +246,8 @@ int main(int argc, char **argv) {
 
     // Parse
     LIST_FOREACH(get_load_list(&thi)) {
-        char *file  = strf("%s%s", get_current_directory(&thi), it->data);
+        char *file = strf("%s%s", get_current_directory(&thi), it->data);
+        warning("Started parsing %s", file);
         List *ast_l = parse(&thi, file);
         list_append_content_of(ast, ast_l);
         warning("finished parsing %s", file);
@@ -260,18 +255,15 @@ int main(int argc, char **argv) {
 
     thi.ast = ast;
 
+    warning("Running passes");
+
     //
     // PASS: resolve all unresolved types
     //
-    LIST_FOREACH(ast) {
-        ast_visit(pass_resolve_unresolved_types, &thi, it->data);
-    }
+    warning("started PASS: resolve all unresolved types");
+    pass_resolve_all_unresolved_types(&thi);
+    warning("finished PASS: resolve all unresolved types");
     //
-
-    LIST_FOREACH(ast) {
-        ast_visit(check_for_unresolved_types, NULL, it->data);
-    }
-
     // Gather all variables found. ALL of them.
     List *variable_list = ast_find_all_of_kind(AST_VARIABLE_DECL, ast->head->data);
     success("variables found: %d", variable_list->count);
@@ -291,6 +283,7 @@ int main(int argc, char **argv) {
             var->Variable_Decl.type = var->type;
         }
     }
+    warning("PASS: give type-inferred variables a type");
 
     type_checker(thi.symbol_map, thi.ast);
 
@@ -299,14 +292,14 @@ int main(int argc, char **argv) {
     //      Constant propogation.
     //       References to constant variables are replaced by their constant value.
     //
-    List* idents         = ast_find_all_of_kind(AST_IDENT, ast->head->data);
-    List* constant_decls = ast_find_all_of_kind(AST_CONSTANT_DECL, ast->head->data);
+    List *idents         = ast_find_all_of_kind(AST_IDENT, ast->head->data);
+    List *constant_decls = ast_find_all_of_kind(AST_CONSTANT_DECL, ast->head->data);
     info("idents %d", idents->count);
     LIST_FOREACH(idents) {
-        AST* ident = it->data;
+        AST *ident = it->data;
         success("%s", ast_to_str(ident));
         LIST_FOREACH(constant_decls) {
-            AST* const_decl = it->data;
+            AST *const_decl = it->data;
             if (strcmp(ident->Ident.name, const_decl->Constant_Decl.name) == 0) {
                 info("%s turned into %s", ast_to_str(ident), ast_to_str(const_decl->Constant_Decl.value));
                 *ident      = *const_decl->Constant_Decl.value;
@@ -335,10 +328,10 @@ int main(int argc, char **argv) {
     // pass_initilize_all_enums(&thi);
 
     // pass_initilize_all_enums MUST BE RUN BEFORE THIS
-    // pass_progate_identifiers_to_constants(&thi);
+    pass_progate_identifiers_to_constants(&thi);
 
     // pass_resolve_all_unresolved_types(&thi);
-    // pass_type_inference(&thi);
+    pass_type_inference(&thi);
 
     // pass_give_all_identifiers_a_type(&thi);
 

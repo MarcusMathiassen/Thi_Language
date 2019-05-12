@@ -7,6 +7,10 @@ load "includes/cmath"
 
 DEFAULT_WINDOW_TITLE :: "Hello Triangle"
 
+enum Mode
+    light :: 0
+    dark :: 1
+
 main()
     if !glfwInit() puts("GLFW init failed.")
     defer glfwTerminate()
@@ -21,7 +25,7 @@ main()
     glfwWindowHint(GLFW_BLUE_BITS, 8)
     glfwWindowHint(GLFW_ALPHA_BITS, 8)
 
-    window := glfwCreateWindow(300, 300, DEFAULT_WINDOW_TITLE, NULL, NULL)
+    window := glfwCreateWindow(640, 480, DEFAULT_WINDOW_TITLE, NULL, NULL)
     glfwMakeContextCurrent(window)
 
     if glfwInit() != GLEW_OK puts("GLEW init failed.")
@@ -35,11 +39,26 @@ main()
 
     running := true
 
+
+    mode := Mode.dark
+
     while running
 
-        r := 0.0
+        r := 1.0
         g := 0.0
-        b := 0.0
+        b := 1.0
+
+        if glfwGetKey(window, GLFW_KEY_M) is GLFW_PRESS mode = (mode == Mode.light ? Mode.dark : Mode.light)
+
+        if mode
+            is Mode.dark
+                r = 0.0
+                g = 0.0
+                b = 0.0
+            is Mode.light
+                r = 1.0
+                g = 1.0
+                b = 1.0
 
         glClearColor(r, g, b, 1.0)
 
@@ -61,16 +80,20 @@ main()
         if glfwGetKey(window, GLFW_KEY_X) is GLFW_PRESS scale +=  0.01
         if glfwGetKey(window, GLFW_KEY_Z) is GLFW_PRESS scale +=  -0.01
 
+        w: int
+        h: int
+        #glfwGetFramebufferSize(window, &w, &h)
+        #printf("framebuffer size: %dx%d\n", w, h)
 
-        w: s32
-        h: s32
-        # glfwGetFramebufferSize(window, &w, &h)
-        printf("framebuffer size: %dx%d\n", w, h)
-
-        drawTriangle(x, y, scale)
+        drawTriangle(x * 0.01, y * 0.01, scale)
 
         glfwSwapBuffers(window)
 
+    # There is a big at the moment with defer.
+    # It's running after the 'return' statement.
+    #
+    # Overwriting 'RAX' so we just get what ever
+    #  is in 'RAX' when all defers have run.
     return 1
 
 drawTriangle(x: f32, y: f32, s: f32)
