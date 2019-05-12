@@ -8,7 +8,9 @@ main()
     i := 1 + 2
     printf("'i' has the value of %d\n", i)
 
-    if Mode.light
+    mode := Mode.light
+
+    if mode
         is Mode.light return 30
         is Mode.dark return 20
 
