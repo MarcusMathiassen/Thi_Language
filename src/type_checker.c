@@ -277,7 +277,8 @@ Type *type_check_block(Typer_Context *ctx, AST *expr) {
 }
 Type *type_check_subscript(Typer_Context *ctx, AST *expr) {
     DEBUG_START;
-    UNFINISHED;
+    type_check_expr(ctx, expr->Subscript.load);
+    type_check_expr(ctx, expr->Subscript.sub);
     return NULL;
 }
 Type *type_check_field_access(Typer_Context *ctx, AST *expr) {

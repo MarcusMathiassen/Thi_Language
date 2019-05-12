@@ -1,19 +1,34 @@
-load "includes/cstdio"
+#load "includes/cstdio"
+#load "includes/cstdlib"
 
 enum Mode
     dark :: 0
     light :: 1
 
+struct v2
+    x: s32
+    y: s32
+
 main()
 
     i := 1 + 2
 
-    printf("'i' has the value of %d\n", i)
+    #printf("'i' has the value of %d\n", i)
 
     mode := Mode.light
 
     if mode
         is Mode.light fallthrough
-        is Mode.dark puts("Dark!")
+        is Mode.dark fallthrough
 
-    return 1
+
+    #ptr: s64* = malloc(4)
+
+    v: v2
+
+    #ptr[0] = 1
+    #ptr[1] = 2
+    #ptr[2] = 3
+
+    #return ptr[0] + ptr[1] + ptr[2]
+    return v
