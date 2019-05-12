@@ -5,13 +5,15 @@ enum Mode
     light :: 1
 
 main()
+
     i := 1 + 2
+
     printf("'i' has the value of %d\n", i)
 
     mode := Mode.light
 
     if mode
-        is Mode.light return 30
-        is Mode.dark return 20
+        is Mode.light fallthrough
+        is Mode.dark puts("Dark!")
 
-    return Mode.light
+    return 1

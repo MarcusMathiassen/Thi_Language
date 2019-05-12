@@ -32,6 +32,7 @@ extern _sscanf
 extern _perror
 section .data
 	d0: dq `'i' has the value of %d\n`, 0 
+	d1: dq `Dark!`, 0 
 global _main
 section .text
 _main:
@@ -78,12 +79,11 @@ _main:
 	je .l3
 	jmp .l1
 .l2:
-	mov eax, 30
-	jmp .end
-	jmp .l1
 .l3:
-	mov eax, 20
-	jmp .end
+	mov rax, d1; string_ref
+	push rax
+	pop rdi
+	call _puts
 	jmp .l1
 .l1:
 	mov eax, 1
