@@ -8,11 +8,11 @@
 //------------------------------------------------------------------------------
 //                               ast.h
 //------------------------------------------------------------------------------
+
 typedef struct AST          AST;
 typedef struct AST_Ref_List AST_Ref_List;
-typedef enum AST_Kind       AST_Kind;
 
-enum AST_Kind {
+typedef enum {
     AST_IS,
     AST_FALLTHROUGH,
     AST_VAR_ARGS,
@@ -47,7 +47,7 @@ enum AST_Kind {
     AST_SIZEOF,
     AST_SWITCH,
     AST_COUNT
-};
+} AST_Kind;
 
 //------------------------------------------------------------------------------
 //                                  AST Structures

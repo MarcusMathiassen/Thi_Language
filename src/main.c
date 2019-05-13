@@ -256,14 +256,14 @@ int main(int argc, char** argv) {
 
     thi.ast = ast;
 
-    warning("Running passes");
+    info("Running passes");
 
     //
     // PASS: resolve all unresolved types
     //
-    warning("started PASS: resolve all unresolved types");
+    info("started PASS: resolve all unresolved types");
     pass_resolve_all_unresolved_types(&thi);
-    warning("finished PASS: resolve all unresolved types");
+    info("finished PASS: resolve all unresolved types");
     //
     // Gather all variables found. ALL of them.
     List* variable_list = ast_find_all_of_kind(AST_VARIABLE_DECL, ast->head->data);
@@ -298,7 +298,7 @@ int main(int argc, char** argv) {
             var->Variable_Decl.type = var->type;
         }
     }
-    warning("PASS: give type-inferred variables a type");
+    info("PASS: give type-inferred variables a type");
 
     type_checker(thi.symbol_map, thi.ast);
 

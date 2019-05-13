@@ -5,10 +5,9 @@
 #include "string.h" // string
 #include "type.h"   // Type
 
-typedef struct Value    Value;
-typedef enum Value_Kind Value_Kind;
+typedef struct Value Value;
 
-enum Value_Kind {
+typedef enum {
     VALUE_INT,
     VALUE_FLOAT,
     VALUE_POINTER,
@@ -19,60 +18,48 @@ enum Value_Kind {
     VALUE_STRUCT,
     VALUE_LOAD_INST,
     VALUE_STORE_INST,
-};
+} Value_Kind;
 
 //------------------------------------------------------------------------------
 //                          Value Structures
 //------------------------------------------------------------------------------
 
-typedef struct {
-    char* name;
-    s64   stack_pos;
-} Value_Variable;
-
-typedef struct {
-    char* name;
-    s64   stack_allocated;
-} Value_Function;
-
-typedef struct {
-} Value_Struct;
-typedef struct {
-    f64 value;
-} Value_Float;
-typedef struct {
-    u8  bytes;
-    s64 value;
-} Value_Int;
-typedef struct {
-    char* value;
-    s64   len;
-} Value_String;
-typedef struct {
-    char* callee;
-} Value_Call;
-typedef struct {
-    Value* variable;
-    s64    offset;
-} Value_LoadInst;
-typedef struct {
-    Value* variable;
-    s64    offset;
-} Value_StoreInst;
-
 struct Value {
     Value_Kind kind;
     Type*      type;
     union {
-        Value_Int       Int;
-        Value_Float     Float;
-        Value_String    String;
-        Value_Variable  Variable;
-        Value_Call      Call;
-        Value_Struct    Struct;
-        Value_Function  Function;
-        Value_LoadInst  LoadInst;
-        Value_StoreInst StoreInst;
+        struct {
+            char* name;
+            s64   stack_pos;
+        } Variable;
+        struct {
+            char* name;
+            s64   stack_allocated;
+        } Function;
+        struct {
+        } Struct;
+        struct {
+            f64 value;
+        } Float;
+        struct {
+            u8  bytes;
+            s64 value;
+        } Int;
+        struct {
+            char* value;
+            s64   len;
+        } String;
+        struct {
+            char* callee;
+        } Call;
+        struct {
+            Value* variable;
+            s64    offset;
+        } LoadInst;
+        struct {
+            Value* variable;
+            s64    offset;
+        } StoreInst;
     };
 };
 
