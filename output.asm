@@ -5,7 +5,7 @@ _main:
 	push rbp
 	mov rbp, rsp
 .begin:
-	mov eax, 1
+	mov eax, 8
 	jmp .end
 .end:
 	leave

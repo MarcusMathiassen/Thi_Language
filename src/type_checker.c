@@ -21,6 +21,7 @@ typedef struct {
 
 Type* type_check_expr(Typer_Context* ctx, AST* expr);
 
+Type* type_check_sizeof(Typer_Context* ctx, AST* expr);
 Type* type_check_switch(Typer_Context* ctx, AST* expr);
 Type* type_check_extern(Typer_Context* ctx, AST* expr);
 Type* type_check_struct(Typer_Context* ctx, AST* expr);
@@ -68,6 +69,7 @@ Type* type_check_expr(Typer_Context* ctx, AST* expr) {
     case AST_FALLTHROUGH: return NULL;
     case AST_LOAD: return NULL;
     case AST_LINK: return NULL;
+    case AST_SIZEOF: return type_check_sizeof(ctx, expr);
     case AST_SWITCH: return type_check_switch(ctx, expr);
     case AST_EXTERN: return type_check_extern(ctx, expr);
     case AST_STRUCT: return type_check_struct(ctx, expr);
@@ -98,6 +100,11 @@ Type* type_check_expr(Typer_Context* ctx, AST* expr) {
     case AST_IS: return type_check_is(ctx, expr);
     default: error("Unhandled %s case for kind '%s'", give_unique_color((char*)__func__), ast_to_str(expr));
     }
+    return NULL;
+}
+Type* type_check_sizeof(Typer_Context* ctx, AST* expr) {
+    DEBUG_START;
+    expr->type = expr->Sizeof.type;
     return NULL;
 }
 Type* type_check_switch(Typer_Context* ctx, AST* expr) {

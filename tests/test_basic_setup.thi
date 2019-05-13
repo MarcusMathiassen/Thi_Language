@@ -9,8 +9,7 @@ struct v2
     x: s32
     y: s32
 
-main()
-
+main(argc: int, argv: char**)
     #i := 1 + 2
 
     #printf("'i' has the value of %d\n", i)
@@ -31,4 +30,4 @@ main()
     #ptr[2] = 3
 
     #return ptr[0] + ptr[1] + ptr[2]
-    return v
+    return 1
