@@ -60,6 +60,7 @@ void get_all_variables(void *list, AST *expr) {
         list_append((List *)list, expr);
     }
 }
+
 void constant_fold(void *ctx, AST *e) {
 
     Token t = e->t;
@@ -272,6 +273,20 @@ int main(int argc, char **argv) {
         success("%s", ast_to_str(expr));
     }
 
+
+    //
+    //  PASS: resolve all sizeof calls
+    //
+    List *sizeofs = ast_find_all_of_kind(AST_SIZEOF, ast->head->data);
+    LIST_FOREACH(sizeofs) {
+        AST *var = it->data;
+
+        // Get the size of the type
+        s64 size = get_size_of_type(var->Sizeof.type);
+
+        // Transform the node into a constant value
+        *var = *make_ast_int(var->t, size);
+    }
     //
     // PASS: give type-inferred variables a type
     //
@@ -796,3 +811,4 @@ void pass_resolve_all_unresolved_types(Thi *thi) {
     }
     pop_timer(thi);
 }
+

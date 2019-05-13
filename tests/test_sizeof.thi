@@ -1,2 +1,2 @@
 main()
-    return sizeof(s64) - 1
+    return sizeof(s32) * 4 
