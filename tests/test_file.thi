@@ -7,15 +7,11 @@ main(argc: int, argv: char**)
         puts("too few arguments.")
         exit(0)
 
-
-    source_file:char* = argv[1]
-
-    content: char*
-    content = get_file_content(source_file)
+    source_file := argv[1]
+    content := get_file_content(source_file)
     puts(content)
 
     return 1
-
 
 get_file_content(filename: char*)
 
