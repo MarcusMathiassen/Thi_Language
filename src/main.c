@@ -269,7 +269,7 @@ int main(int argc, char **argv) {
     List *variable_list = ast_find_all_of_kind(AST_VARIABLE_DECL, ast->head->data);
     success("variables found: %d", variable_list->count);
     LIST_FOREACH(variable_list) {
-        AST *expr = (AST *)it->data;
+        AST *expr = it->data;
         success("%s", ast_to_str(expr));
     }
 

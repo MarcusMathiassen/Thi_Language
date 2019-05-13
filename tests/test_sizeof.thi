@@ -1,2 +1,2 @@
 main()
-    return sizeof(s32) * 4 
+    return sizeof(s32) * 4 - 15
