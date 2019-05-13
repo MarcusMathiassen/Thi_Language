@@ -15,7 +15,7 @@
 //                               Public
 //------------------------------------------------------------------------------
 
-char *value_kind_to_str(Value_Kind kind) {
+char* value_kind_to_str(Value_Kind kind) {
     switch (kind) {
     case VALUE_INT: return "VALUE_INT";
     case VALUE_FLOAT: return "VALUE_FLOAT";
@@ -30,7 +30,7 @@ char *value_kind_to_str(Value_Kind kind) {
     }
 }
 
-s64 get_size_of_value(Value *value) {
+s64 get_size_of_value(Value* value) {
     assert(value);
     switch (value->kind) {
     case VALUE_FLOAT: return get_size_of_type(value->type);
@@ -51,91 +51,91 @@ s64 get_size_of_value(Value *value) {
 //                               Value Maker Functions
 //------------------------------------------------------------------------------
 
-Value *make_value(Value_Kind kind) {
-    Value *v = xmalloc(sizeof(Value));
+Value* make_value(Value_Kind kind) {
+    Value* v = xmalloc(sizeof(Value));
     v->kind  = kind;
     return v;
 }
 
-Value *make_value_load_inst(Value *variable, s64 offset) {
+Value* make_value_load_inst(Value* variable, s64 offset) {
     assert(variable);
-    Value *v             = make_value(VALUE_LOAD_INST);
+    Value* v             = make_value(VALUE_LOAD_INST);
     v->LoadInst.variable = variable;
     v->type              = NULL;
     v->LoadInst.offset   = offset;
     return v;
 }
 
-Value *make_value_store_inst(Value *variable, s64 offset) {
+Value* make_value_store_inst(Value* variable, s64 offset) {
     assert(variable);
-    Value *v              = make_value(VALUE_STORE_INST);
+    Value* v              = make_value(VALUE_STORE_INST);
     v->StoreInst.variable = variable;
     v->type               = NULL;
     v->StoreInst.offset   = offset;
     return v;
 }
 
-Value *make_value_int(u8 bytes, Type *type, s64 value) {
+Value* make_value_int(u8 bytes, Type* type, s64 value) {
     assert(bytes > 0 && bytes < 9);
     assert(type);
-    Value *v     = make_value(VALUE_INT);
+    Value* v     = make_value(VALUE_INT);
     v->type      = type;
     v->Int.bytes = bytes;
     v->Int.value = value;
     return v;
 }
 
-Value *make_value_float(Type *type, f64 value) {
+Value* make_value_float(Type* type, f64 value) {
     assert(type);
-    Value *v       = make_value(VALUE_FLOAT);
+    Value* v       = make_value(VALUE_FLOAT);
     v->type        = type;
     v->Float.value = value;
     return v;
 }
 
-Value *make_value_string(char *value, Type *type) {
+Value* make_value_string(char* value, Type* type) {
     assert(value);
     assert(type);
-    Value *v        = make_value(VALUE_STRING);
+    Value* v        = make_value(VALUE_STRING);
     v->type         = type;
     v->String.value = value;
     v->String.len   = strlen(value);
     return v;
 }
 
-Value *make_value_variable(char *name, Type *type, s64 stack_pos) {
+Value* make_value_variable(char* name, Type* type, s64 stack_pos) {
     assert(name);
     assert(type);
     assert(stack_pos >= 0);
-    Value *v              = make_value(VALUE_VARIABLE);
+    Value* v              = make_value(VALUE_VARIABLE);
     v->Variable.name      = name;
     v->type               = type;
     v->Variable.stack_pos = stack_pos;
     return v;
 }
 
-Value *make_value_call(char *callee, Type *type) {
+Value* make_value_call(char* callee, Type* type) {
     assert(callee);
     assert(type);
-    Value *v       = make_value(VALUE_CALL);
+    Value* v       = make_value(VALUE_CALL);
     v->type        = type;
     v->Call.callee = callee;
     return v;
 }
-Value *make_value_function(Type *type) {
+Value* make_value_function(Type* type) {
     assert(type);
     assert(type->kind == TYPE_FUNCTION);
 
-    Value *v                    = make_value(VALUE_FUNCTION);
+    Value* v                    = make_value(VALUE_FUNCTION);
     v->type                     = type;
     v->Function.name            = type->Function.name;
     v->Function.stack_allocated = 0;
     return v;
 }
-Value *make_value_struct(Type *type) {
+Value* make_value_struct(Type* type) {
     assert(type);
     assert(type->kind == TYPE_STRUCT);
-    Value *v = make_value(VALUE_STRUCT);
+    Value* v = make_value(VALUE_STRUCT);
     v->type  = type;
     return v;
 }
@@ -144,7 +144,7 @@ Value *make_value_struct(Type *type) {
 //                               Value Helper Functions
 //------------------------------------------------------------------------------
 
-s64 get_stack_pos_of_variable(Value *variable) {
+s64 get_stack_pos_of_variable(Value* variable) {
     switch (variable->kind) {
     default: error("unhandled case: %s, %s, %s", value_kind_to_str(variable->kind), __func__, __LINE__);
     case VALUE_LOAD_INST: return get_stack_pos_of_variable(variable->LoadInst.variable);
@@ -157,8 +157,8 @@ s64 get_stack_pos_of_variable(Value *variable) {
 //                               Scope
 //------------------------------------------------------------------------------
 
-Scope *make_scope() {
-    Scope *s           = xmalloc(sizeof(Scope));
+Scope* make_scope() {
+    Scope* s           = xmalloc(sizeof(Scope));
     s->local_variables = make_list();
     return s;
 }

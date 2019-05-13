@@ -1,7 +1,7 @@
 #include "register.h"
 #include "utility.h" // error
 
-char *reg[TOTAL_REG_COUNT] = {
+char* reg[TOTAL_REG_COUNT] = {
     "rax",  "eax",  "ax",   "al",   "ah",   "rcx",  "ecx",   "cx",    "cl",    "ch",    "rdx",   "edx",
     "dx",   "dl",   "dh",   "rbx",  "ebx",  "bx",   "bl",    "bh",
 
@@ -17,10 +17,10 @@ char *reg[TOTAL_REG_COUNT] = {
 s8 get_num_registers() {
     return TOTAL_REG_COUNT;
 }
-char *get_reg(s8 reg_n) {
+char* get_reg(s8 reg_n) {
     return reg[reg_n];
 }
-char *get_reg_fitting_value(Value *value) {
+char* get_reg_fitting_value(Value* value) {
     s64 size  = get_size_of_value(value);
     s64 reg_n = get_rax_reg_of_byte_size(size, 'a');
     return reg[reg_n];

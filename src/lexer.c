@@ -38,55 +38,55 @@ typedef enum {
 
 typedef struct {
     s64   len;
-    char *str;
+    char* str;
 } Intern;
 
 typedef struct {
-    Intern *data;
+    Intern* data;
     s64     count;
     s64     allocated;
 } Intern_Array;
 
 typedef struct {
-    char *       stream;
-    char *       position_of_newline;
-    char *       start_of_line;
+    char*        stream;
+    char*        position_of_newline;
+    char*        start_of_line;
     s64          line_count;
     s64          comment_count;
     s64          previous_indentation_level;
     s64          current_indentation_level;
     Intern_Array interns;
-    char *       keywords[KEY_COUNT];
+    char*        keywords[KEY_COUNT];
 } Lexer_Context;
 
 //------------------------------------------------------------------------------
 //                               Lexer Functions
 //------------------------------------------------------------------------------
 
-Token        get_token(Lexer_Context *lctx);
+Token        get_token(Lexer_Context* lctx);
 bool         is_valid_digit(u8 c);
 bool         is_valid_identifier(u8 c);
-int          get_keyword_index(char *identifier);
-Token_Kind   get_identifier_kind(char *identifier);
-void         token_array_append(Token_Array *l, Token t);
+int          get_keyword_index(char* identifier);
+Token_Kind   get_identifier_kind(char* identifier);
+void         token_array_append(Token_Array* l, Token t);
 Token_Array  make_token_array();
 Intern_Array make_intern_array();
 
-void  intern_array_append(Intern_Array *l, Intern intern);
-char *intern_range(Intern_Array *intern_array, char *start, char *end);
-char *intern(Intern_Array *intern_array, char *str);
+void  intern_array_append(Intern_Array* l, Intern intern);
+char* intern_range(Intern_Array* intern_array, char* start, char* end);
+char* intern(Intern_Array* intern_array, char* str);
 
 //------------------------------------------------------------------------------
 //                               Public
 //------------------------------------------------------------------------------
 
-char *STATIC_KEYWORDS_ARRAY[KEY_COUNT] = {
+char* STATIC_KEYWORDS_ARRAY[KEY_COUNT] = {
     "link", "type",  "true",   "false",  "defer", "extern", "load",     "cast", "sizeof", "if",          "else",
     "for",  "while", "return", "struct", "enum",  "break",  "continue", "as",   "is",     "fallthrough",
 };
 
 void lexer_test(void) {
-    char *     source = "struct v2\n    x: f32\n    y: f32\n    core()\n        return 1\n";
+    char*      source = "struct v2\n    x: f32\n    y: f32\n    core()\n        return 1\n";
     Lexed_File lf     = generate_tokens_from_source(source);
     info(source);
     print_tokens(lf.tokens);
@@ -110,7 +110,7 @@ void lexer_test(void) {
     assert(lf.tokens.data[17].kind == TOKEN_EOF);         //
 }
 
-Lexed_File generate_tokens_from_source(char *source) {
+Lexed_File generate_tokens_from_source(char* source) {
     Lexer_Context lctx;
     lctx.stream                     = source;
     lctx.position_of_newline        = source;
@@ -178,8 +178,8 @@ Lexed_File generate_tokens_from_source(char *source) {
 #define CASE_SINGLE_TOKEN(c1, t_kind)                                                                                  \
     case c1: token.kind = t_kind; ++c;
 
-Token get_token(Lexer_Context *lctx) {
-    char *c = lctx->stream;
+Token get_token(Lexer_Context* lctx) {
+    char* c = lctx->stream;
 
     Token token;
     token.kind     = TOKEN_UNKNOWN;
@@ -519,7 +519,7 @@ Token get_token(Lexer_Context *lctx) {
     return token;
 }
 
-char *token_kind_to_str(Token_Kind kind) {
+char* token_kind_to_str(Token_Kind kind) {
     switch (kind) {
     case TOKEN_UNKNOWN: return "TOKEN_UNKNOWN";
     case TOKEN_EOF: return "TOKEN_EOF";
@@ -621,7 +621,7 @@ char *token_kind_to_str(Token_Kind kind) {
     return "";
 }
 
-char *token_to_str(Token token) {
+char* token_to_str(Token token) {
     return strf("%s :: %s %lld:%lld", token.value, token_kind_to_str(token.kind), token.line_pos, token.col_pos);
 }
 void print_token(Token token) {
@@ -652,7 +652,7 @@ Token_Array make_token_array() {
     return l;
 }
 
-void token_array_append(Token_Array *l, Token t) {
+void token_array_append(Token_Array* l, Token t) {
     if (l->count >= l->allocated) {
         l->allocated *= 2;
         l->data = xrealloc(l->data, l->allocated * sizeof(Token));
@@ -669,7 +669,7 @@ Intern_Array make_intern_array() {
     return l;
 }
 
-void intern_array_append(Intern_Array *l, Intern intern) {
+void intern_array_append(Intern_Array* l, Intern intern) {
     if (l->count >= l->allocated) {
         l->allocated *= 2;
         l->data = xrealloc(l->data, l->allocated * sizeof(Intern));
@@ -678,11 +678,11 @@ void intern_array_append(Intern_Array *l, Intern intern) {
     l->count += 1;
 }
 
-char *intern(Intern_Array *interns, char *str) {
+char* intern(Intern_Array* interns, char* str) {
     return intern_range(interns, str, str + strlen(str));
 }
 
-char *intern_range(Intern_Array *interns, char *start, char *end) {
+char* intern_range(Intern_Array* interns, char* start, char* end) {
     s64 len = end - start;
 
     for (s64 i = 0; i < interns->count; ++i) {
@@ -691,7 +691,7 @@ char *intern_range(Intern_Array *interns, char *start, char *end) {
             return intern.str;
         }
     }
-    char *str = xmalloc(len + 1);
+    char* str = xmalloc(len + 1);
     memcpy(str, start, len);
     str[len] = 0;
 

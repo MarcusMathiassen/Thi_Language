@@ -13,43 +13,43 @@
 #include <string.h>  // strcmp
 
 #define DEBUG_START                                                                                                    \
-    info("%s: %s", (char *)__func__, wrap_with_colored_parens(ast_to_str(expr)));                                      \
+    info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(expr)));                                       \
     assert(ctx);                                                                                                       \
     assert(expr);
 
-Value *codegen_sizeof(Codegen_Context *ctx, AST *expr);
-Value *codegen_extern(Codegen_Context *ctx, AST *expr);
-Value *codegen_unary(Codegen_Context *ctx, AST *expr);
-Value *codegen_binary(Codegen_Context *ctx, AST *expr);
-Value *codegen_variable_decl(Codegen_Context *ctx, AST *expr);
-Value *codegen_constant_decl(Codegen_Context *ctx, AST *expr);
-Value *codegen_call(Codegen_Context *ctx, AST *expr);
-Value *codegen_float(Codegen_Context *ctx, AST *expr);
-Value *codegen_int(Codegen_Context *ctx, AST *expr);
-Value *codegen_block(Codegen_Context *ctx, AST *expr);
-Value *codegen_macro(Codegen_Context *ctx, AST *expr);
-Value *codegen_ident(Codegen_Context *ctx, AST *expr);
-Value *codegen_field_access(Codegen_Context *ctx, AST *expr);
-Value *codegen_subscript(Codegen_Context *ctx, AST *expr);
-Value *codegen_subscript_no_deref(Codegen_Context *ctx, AST *expr);
-Value *codegen_string(Codegen_Context *ctx, AST *expr);
-Value *codegen_note(Codegen_Context *ctx, AST *expr);
-Value *codegen_if(Codegen_Context *ctx, AST *expr);
-Value *codegen_for(Codegen_Context *ctx, AST *expr);
-Value *codegen_while(Codegen_Context *ctx, AST *expr);
-Value *codegen_defer(Codegen_Context *ctx, AST *expr);
-Value *codegen_return(Codegen_Context *ctx, AST *expr);
-Value *codegen_break(Codegen_Context *ctx, AST *expr);
-Value *codegen_continue(Codegen_Context *ctx, AST *expr);
-Value *codegen_struct(Codegen_Context *ctx, AST *expr);
-Value *codegen_enum(Codegen_Context *ctx, AST *expr);
-Value *codegen_function(Codegen_Context *ctx, AST *expr);
-Value *codegen_cast(Codegen_Context *ctx, AST *expr);
-Value *codegen_switch(Codegen_Context *ctx, AST *expr);
-Value *codegen_expr(Codegen_Context *ctx, AST *expr);
+Value* codegen_sizeof(Codegen_Context* ctx, AST* expr);
+Value* codegen_extern(Codegen_Context* ctx, AST* expr);
+Value* codegen_unary(Codegen_Context* ctx, AST* expr);
+Value* codegen_binary(Codegen_Context* ctx, AST* expr);
+Value* codegen_variable_decl(Codegen_Context* ctx, AST* expr);
+Value* codegen_constant_decl(Codegen_Context* ctx, AST* expr);
+Value* codegen_call(Codegen_Context* ctx, AST* expr);
+Value* codegen_float(Codegen_Context* ctx, AST* expr);
+Value* codegen_int(Codegen_Context* ctx, AST* expr);
+Value* codegen_block(Codegen_Context* ctx, AST* expr);
+Value* codegen_macro(Codegen_Context* ctx, AST* expr);
+Value* codegen_ident(Codegen_Context* ctx, AST* expr);
+Value* codegen_field_access(Codegen_Context* ctx, AST* expr);
+Value* codegen_subscript(Codegen_Context* ctx, AST* expr);
+Value* codegen_subscript_no_deref(Codegen_Context* ctx, AST* expr);
+Value* codegen_string(Codegen_Context* ctx, AST* expr);
+Value* codegen_note(Codegen_Context* ctx, AST* expr);
+Value* codegen_if(Codegen_Context* ctx, AST* expr);
+Value* codegen_for(Codegen_Context* ctx, AST* expr);
+Value* codegen_while(Codegen_Context* ctx, AST* expr);
+Value* codegen_defer(Codegen_Context* ctx, AST* expr);
+Value* codegen_return(Codegen_Context* ctx, AST* expr);
+Value* codegen_break(Codegen_Context* ctx, AST* expr);
+Value* codegen_continue(Codegen_Context* ctx, AST* expr);
+Value* codegen_struct(Codegen_Context* ctx, AST* expr);
+Value* codegen_enum(Codegen_Context* ctx, AST* expr);
+Value* codegen_function(Codegen_Context* ctx, AST* expr);
+Value* codegen_cast(Codegen_Context* ctx, AST* expr);
+Value* codegen_switch(Codegen_Context* ctx, AST* expr);
+Value* codegen_expr(Codegen_Context* ctx, AST* expr);
 
 // @Hotpath
-Value *codegen_expr(Codegen_Context *ctx, AST *expr) {
+Value* codegen_expr(Codegen_Context* ctx, AST* expr) {
     switch (expr->kind) {
     case AST_FALLTHROUGH: return NULL;
     case AST_LOAD: return NULL;
@@ -86,7 +86,7 @@ Value *codegen_expr(Codegen_Context *ctx, AST *expr) {
     return NULL;
 }
 
-char *generate_code_from_ast(List *ast) {
+char* generate_code_from_ast(List* ast) {
     info("Generating code from ast");
 
     Codegen_Context ctx = make_codegen_context();
@@ -94,10 +94,10 @@ char *generate_code_from_ast(List *ast) {
     append_string(&ctx.section_data, "section .data\n");
     emit_no_tab(&ctx, "section .text");
     LIST_FOREACH(ast) {
-        codegen_expr(&ctx, (AST *)it->data);
+        codegen_expr(&ctx, (AST*)it->data);
     }
 
-    char *output =
+    char* output =
         strf("%s%sglobal _main\n%s", ctx.section_extern.c_str, ctx.section_data.c_str, ctx.section_text.c_str);
 
     info("%s", output);
@@ -105,30 +105,30 @@ char *generate_code_from_ast(List *ast) {
     return output;
 }
 
-Value *codegen_unary(Codegen_Context *ctx, AST *expr) {
+Value* codegen_unary(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     Token_Kind op      = expr->Unary.op;
-    AST *      operand = expr->Unary.operand;
+    AST*       operand = expr->Unary.operand;
 
     if (op == TOKEN_DOT) {
         // This is an enum accessor
         // Find the enum member
         assert(ctx->expected_type);
-        Type *enum_type = ctx->expected_type;
+        Type* enum_type = ctx->expected_type;
         assert(operand->kind == AST_IDENT);
         LIST_FOREACH(enum_type->Enum.members) {
-            AST *mem = (AST *)it->data;
+            AST* mem = (AST*)it->data;
             if (strcmp(operand->Ident.name, mem->Constant_Decl.name) == 0) {
                 return codegen_expr(ctx, make_ast_int(mem->t, mem->Constant_Decl.value->Int.val));
             }
         }
     }
 
-    Value *operand_val = codegen_expr(ctx, operand);
+    Value* operand_val = codegen_expr(ctx, operand);
     // s64    operand_size = get_size_of_value(operand_val);
 
-    char * reg    = get_result_reg(operand_val->type);
-    Value *result = operand_val;
+    char*  reg    = get_result_reg(operand_val->type);
+    Value* result = operand_val;
 
     switch (op) {
     case THI_SYNTAX_ADDRESS: {
@@ -140,8 +140,8 @@ Value *codegen_unary(Codegen_Context *ctx, AST *expr) {
         }
     } break;
     case THI_SYNTAX_POINTER: {
-        Type *t   = operand_val->type->Array.type;
-        char *reg = get_result_reg(t);
+        Type* t   = operand_val->type->Array.type;
+        char* reg = get_result_reg(t);
         // char* mov_size = get_op_size(get_size_of_type(t));
         emit(ctx, "mov %s, [rax]; deref", reg);
     } break;
@@ -175,18 +175,18 @@ Value *codegen_unary(Codegen_Context *ctx, AST *expr) {
     return result;
 }
 
-Value *codegen_binary(Codegen_Context *ctx, AST *expr) {
+Value* codegen_binary(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
 
     Token_Kind op  = expr->Binary.op;
-    AST *      lhs = expr->Binary.lhs;
-    AST *      rhs = expr->Binary.rhs;
+    AST*       lhs = expr->Binary.lhs;
+    AST*       rhs = expr->Binary.rhs;
 
     switch (op) {
     default: error("unexpected binary token case in codegen binary");
     // Field access
     case TOKEN_DOT: {
-        Value *variable = get_variable(ctx, lhs->Ident.name);
+        Value* variable = get_variable(ctx, lhs->Ident.name);
         assert(variable->kind == VALUE_VARIABLE);
         if (variable->type->kind) {
             // Value* lhs_v = codegen_expr(lhs);
@@ -196,10 +196,10 @@ Value *codegen_binary(Codegen_Context *ctx, AST *expr) {
     }
 
     case THI_SYNTAX_ASSIGNMENT: {
-        Value *rhs_v = codegen_expr(ctx, rhs);
+        Value* rhs_v = codegen_expr(ctx, rhs);
         push_type(ctx, rhs_v->type);
         push_type(ctx, rhs_v->type);
-        Value *variable = NULL;
+        Value* variable = NULL;
         if (lhs->kind == AST_SUBSCRIPT) {
             variable = codegen_subscript_no_deref(ctx, lhs);
         } else {
@@ -216,44 +216,44 @@ Value *codegen_binary(Codegen_Context *ctx, AST *expr) {
     }
 
     case TOKEN_PLUS: {
-        Value *rhs_v = codegen_expr(ctx, rhs);
+        Value* rhs_v = codegen_expr(ctx, rhs);
         if (rhs_v->type->kind == TYPE_FLOAT) {
-            char *inst = get_instr(op, rhs_v->type);
+            char* inst = get_instr(op, rhs_v->type);
             push(ctx, XMM0);
-            Value *lhs_v = codegen_expr(ctx, lhs);
+            Value* lhs_v = codegen_expr(ctx, lhs);
             pop(ctx, XMM1);
             emit(ctx, "%s xmm0, xmm1", inst);
             return lhs_v;
         } else {
             push(ctx, RAX);
-            Value *lhs_v = codegen_expr(ctx, lhs);
+            Value* lhs_v = codegen_expr(ctx, lhs);
             pop(ctx, RCX);
             emit(ctx, "add rax, rcx");
             return lhs_v;
         }
     }
     case TOKEN_MINUS: {
-        Value *rhs_v = codegen_expr(ctx, rhs);
+        Value* rhs_v = codegen_expr(ctx, rhs);
         if (rhs_v->type->kind == TYPE_FLOAT) {
-            Value *rhs_v = codegen_expr(ctx, rhs);
-            char * inst  = get_instr(op, rhs_v->type);
+            Value* rhs_v = codegen_expr(ctx, rhs);
+            char*  inst  = get_instr(op, rhs_v->type);
             push(ctx, XMM0);
-            Value *lhs_v = codegen_expr(ctx, lhs);
+            Value* lhs_v = codegen_expr(ctx, lhs);
             pop(ctx, XMM1);
             emit(ctx, "%s xmm0, xmm1", inst);
             return lhs_v;
         } else {
             push(ctx, RAX);
-            Value *lhs_v = codegen_expr(ctx, lhs);
+            Value* lhs_v = codegen_expr(ctx, lhs);
             pop(ctx, RCX);
             emit(ctx, "sub rax, rcx");
             return lhs_v;
         }
     }
     case TOKEN_ASTERISK: {
-        Value *lhs_v = codegen_expr(ctx, lhs);
+        Value* lhs_v = codegen_expr(ctx, lhs);
         if (lhs_v->type->kind == TYPE_FLOAT) {
-            char *inst = get_instr(op, lhs_v->type);
+            char* inst = get_instr(op, lhs_v->type);
             push(ctx, XMM0);
             codegen_expr(ctx, rhs);
             pop(ctx, XMM1);
@@ -268,16 +268,16 @@ Value *codegen_binary(Codegen_Context *ctx, AST *expr) {
         }
     }
     case TOKEN_FWSLASH: {
-        Value *rhs_v = codegen_expr(ctx, rhs);
+        Value* rhs_v = codegen_expr(ctx, rhs);
         if (rhs_v->type->kind == TYPE_FLOAT) {
-            char *inst = get_instr(op, rhs_v->type);
+            char* inst = get_instr(op, rhs_v->type);
             push(ctx, XMM0);
             codegen_expr(ctx, lhs);
             pop(ctx, XMM1);
             emit(ctx, "%s xmm1", inst);
             return rhs_v;
         } else {
-            char *inst = get_instr(op, rhs_v->type);
+            char* inst = get_instr(op, rhs_v->type);
             push(ctx, RAX);
             codegen_expr(ctx, lhs);
             pop(ctx, RCX);
@@ -289,12 +289,12 @@ Value *codegen_binary(Codegen_Context *ctx, AST *expr) {
 
     case TOKEN_PERCENT: {
         expr            = make_ast_binary(expr->t, TOKEN_FWSLASH, lhs, rhs);
-        Value *variable = codegen_expr(ctx, expr);
+        Value* variable = codegen_expr(ctx, expr);
         emit(ctx, "mov rax, rdx");
         return variable;
     }
     case TOKEN_PIPE: {
-        Value *lhs_v = codegen_expr(ctx, lhs);
+        Value* lhs_v = codegen_expr(ctx, lhs);
         push(ctx, RAX);
         codegen_expr(ctx, rhs);
         pop(ctx, RCX);
@@ -302,7 +302,7 @@ Value *codegen_binary(Codegen_Context *ctx, AST *expr) {
         return lhs_v;
     }
     case TOKEN_AND: {
-        Value *lhs_v = codegen_expr(ctx, lhs);
+        Value* lhs_v = codegen_expr(ctx, lhs);
         push(ctx, RAX);
         codegen_expr(ctx, rhs);
         pop(ctx, RCX);
@@ -310,7 +310,7 @@ Value *codegen_binary(Codegen_Context *ctx, AST *expr) {
         return lhs_v;
     }
     case TOKEN_HAT: {
-        Value *lhs_v = codegen_expr(ctx, lhs);
+        Value* lhs_v = codegen_expr(ctx, lhs);
         push(ctx, RAX);
         codegen_expr(ctx, rhs);
         pop(ctx, RCX);
@@ -318,19 +318,19 @@ Value *codegen_binary(Codegen_Context *ctx, AST *expr) {
         return lhs_v;
     }
     case TOKEN_LT_LT: {
-        Value *lhs_v = codegen_expr(ctx, lhs);
+        Value* lhs_v = codegen_expr(ctx, lhs);
         assert(rhs->kind == AST_INT);
         emit(ctx, "shl al, %lld", rhs->Int.val);
         return lhs_v;
     }
     case TOKEN_GT_GT: {
-        Value *lhs_v = codegen_expr(ctx, lhs);
+        Value* lhs_v = codegen_expr(ctx, lhs);
         assert(rhs->kind == AST_INT);
         emit(ctx, "shr al, %lld", rhs->Int.val);
         return lhs_v;
     }
     case TOKEN_AND_AND: {
-        Value *lhs_v = codegen_expr(ctx, lhs);
+        Value* lhs_v = codegen_expr(ctx, lhs);
         push(ctx, RAX);
         codegen_expr(ctx, rhs);
         pop(ctx, RCX);
@@ -344,7 +344,7 @@ Value *codegen_binary(Codegen_Context *ctx, AST *expr) {
 
     case TOKEN_PIPE_PIPE: {
         expr     = make_ast_binary(expr->t, TOKEN_PIPE, lhs, rhs);
-        Value *v = codegen_expr(ctx, expr);
+        Value* v = codegen_expr(ctx, expr);
         emit(ctx, "setne al");
         return v;
     }
@@ -355,7 +355,7 @@ Value *codegen_binary(Codegen_Context *ctx, AST *expr) {
     case TOKEN_GT_EQ: // FALLTHROUGH
     case TOKEN_EQ_EQ: // FALLTHROUGH
     case TOKEN_BANG_EQ: {
-        Value *lhs_v = codegen_expr(ctx, lhs);
+        Value* lhs_v = codegen_expr(ctx, lhs);
         if (lhs_v->type->kind == TYPE_FLOAT) {
             push(ctx, XMM0);
             codegen_expr(ctx, rhs);
@@ -386,73 +386,73 @@ Value *codegen_binary(Codegen_Context *ctx, AST *expr) {
     case TOKEN_LT_LT_EQ: {
         rhs             = make_ast_binary(expr->t, TOKEN_LT_LT, lhs, rhs);
         expr            = make_ast_unary(expr->t, TOKEN_EQ, rhs);
-        Value *variable = codegen_expr(ctx, expr);
+        Value* variable = codegen_expr(ctx, expr);
         return variable;
     }
     case TOKEN_GT_GT_EQ: {
         rhs             = make_ast_binary(expr->t, TOKEN_GT_GT, lhs, rhs);
         expr            = make_ast_unary(expr->t, TOKEN_EQ, rhs);
-        Value *variable = codegen_expr(ctx, expr);
+        Value* variable = codegen_expr(ctx, expr);
         return variable;
     }
     case TOKEN_PLUS_EQ: {
         rhs             = make_ast_binary(expr->t, TOKEN_PLUS, lhs, rhs);
         expr            = make_ast_binary(expr->t, TOKEN_EQ, lhs, rhs);
-        Value *variable = codegen_expr(ctx, expr);
+        Value* variable = codegen_expr(ctx, expr);
         return variable;
     }
     case TOKEN_MINUS_EQ: {
         rhs             = make_ast_binary(expr->t, TOKEN_MINUS, lhs, rhs);
         expr            = make_ast_binary(expr->t, TOKEN_EQ, lhs, rhs);
-        Value *variable = codegen_expr(ctx, expr);
+        Value* variable = codegen_expr(ctx, expr);
         return variable;
     }
     case TOKEN_ASTERISK_EQ: {
         rhs             = make_ast_binary(expr->t, TOKEN_ASTERISK, lhs, rhs);
         expr            = make_ast_binary(expr->t, TOKEN_EQ, lhs, rhs);
-        Value *variable = codegen_expr(ctx, expr);
+        Value* variable = codegen_expr(ctx, expr);
         return variable;
     }
     case TOKEN_FWSLASH_EQ: {
         rhs             = make_ast_binary(expr->t, TOKEN_FWSLASH, lhs, rhs);
         expr            = make_ast_binary(expr->t, TOKEN_EQ, lhs, rhs);
-        Value *variable = codegen_expr(ctx, expr);
+        Value* variable = codegen_expr(ctx, expr);
         return variable;
     }
     case TOKEN_PERCENT_EQ: {
         rhs             = make_ast_binary(expr->t, TOKEN_PERCENT, lhs, rhs);
         expr            = make_ast_binary(expr->t, TOKEN_EQ, lhs, rhs);
-        Value *variable = codegen_expr(ctx, expr);
+        Value* variable = codegen_expr(ctx, expr);
         return variable;
     }
     case TOKEN_PIPE_EQ: {
         rhs             = make_ast_binary(expr->t, TOKEN_PIPE, lhs, rhs);
         expr            = make_ast_binary(expr->t, TOKEN_EQ, lhs, rhs);
-        Value *variable = codegen_expr(ctx, expr);
+        Value* variable = codegen_expr(ctx, expr);
         return variable;
     }
     case TOKEN_HAT_EQ: {
         rhs             = make_ast_binary(expr->t, TOKEN_HAT, lhs, rhs);
         expr            = make_ast_binary(expr->t, TOKEN_EQ, lhs, rhs);
-        Value *variable = codegen_expr(ctx, expr);
+        Value* variable = codegen_expr(ctx, expr);
         return variable;
     }
     case TOKEN_QUESTION_MARK: {
-        char *l0 = make_text_label(ctx);
-        char *l1 = make_text_label(ctx);
+        char* l0 = make_text_label(ctx);
+        char* l1 = make_text_label(ctx);
         set_temp_labels(ctx, l0, l1);
-        Value *lhs_v = codegen_expr(ctx, lhs);
-        char * reg   = get_result_reg(lhs_v->type);
+        Value* lhs_v = codegen_expr(ctx, lhs);
+        char*  reg   = get_result_reg(lhs_v->type);
         emit(ctx, "cmp %s, 0", reg);
         emit(ctx, "je %s", l0);
-        Value *rhs_v = codegen_expr(ctx, rhs);
+        Value* rhs_v = codegen_expr(ctx, rhs);
         emit(ctx, "jmp %s", l1);
         return rhs_v;
     }
     case TOKEN_COLON: {
         codegen_expr(ctx, lhs); // '?' part
         emit(ctx, "%s:", ctx->l0);
-        Value *rhs_v = codegen_expr(ctx, rhs);
+        Value* rhs_v = codegen_expr(ctx, rhs);
         emit(ctx, "%s:", ctx->l1);
         restore_temp_labels(ctx);
         return rhs_v;
@@ -463,7 +463,7 @@ Value *codegen_binary(Codegen_Context *ctx, AST *expr) {
     return NULL;
 }
 
-Value *codegen_constant_decl(Codegen_Context *ctx, AST *expr) {
+Value* codegen_constant_decl(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     // assert(0);
     // assert(expr->kind == AST_CONSTANT_DECL);
@@ -473,12 +473,12 @@ Value *codegen_constant_decl(Codegen_Context *ctx, AST *expr) {
     return NULL;
 }
 
-Value *codegen_variable_decl(Codegen_Context *ctx, AST *expr) {
+Value* codegen_variable_decl(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_VARIABLE_DECL);
-    char *name            = expr->Variable_Decl.name;
-    Type *type            = expr->Variable_Decl.type;
-    AST * assignment_expr = expr->Variable_Decl.value;
+    char* name            = expr->Variable_Decl.name;
+    Type* type            = expr->Variable_Decl.type;
+    AST*  assignment_expr = expr->Variable_Decl.value;
 
     assert(name);
     assert(type);
@@ -488,7 +488,7 @@ Value *codegen_variable_decl(Codegen_Context *ctx, AST *expr) {
     s64 type_size = get_size_of_type(type);
     s64 stack_pos = type_size + ctx->stack_index;
 
-    Value *variable = make_value_variable(name, type, stack_pos);
+    Value* variable = make_value_variable(name, type, stack_pos);
     add_variable(ctx, variable);
 
     if (assignment_expr)
@@ -498,15 +498,15 @@ Value *codegen_variable_decl(Codegen_Context *ctx, AST *expr) {
     return variable;
 }
 
-Value *codegen_call(Codegen_Context *ctx, AST *expr) {
+Value* codegen_call(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
-    char *callee   = expr->Call.callee;
-    List *args     = expr->Call.args;
-    Type *ret_type = expr->type;
+    char* callee   = expr->Call.callee;
+    List* args     = expr->Call.args;
+    Type* ret_type = expr->type;
 
     assert(ret_type);
 
-    List *values = make_list();
+    List* values = make_list();
     // List* ints   = make_list();
     // List* floats  = make_list();
     // List* structs = make_list();
@@ -517,15 +517,15 @@ Value *codegen_call(Codegen_Context *ctx, AST *expr) {
     // s8 other_counter     = 0;
 
     LIST_FOREACH_REVERSE(args) {
-        AST *  arg = (AST *)it->data;
-        Value *v   = codegen_expr(ctx, arg);
+        AST*   arg = (AST*)it->data;
+        Value* v   = codegen_expr(ctx, arg);
         push_type(ctx, v->type);
         list_append(values, v);
         total += 1;
     }
 
     LIST_FOREACH(values) {
-        Value *v = (Value *)it->data;
+        Value* v = (Value*)it->data;
         switch (v->type->kind) {
         default: error("unexpected type case in codegen_call");
         case TYPE_POINTER:
@@ -570,58 +570,58 @@ Value *codegen_call(Codegen_Context *ctx, AST *expr) {
     return make_value_call(callee, ret_type);
 }
 
-Value *codegen_float(Codegen_Context *ctx, AST *expr) {
+Value* codegen_float(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_FLOAT);
-    Value *val    = make_value_float(make_type_float(DEFAULT_FLOAT_BYTE_SIZE), expr->Float.val);
-    char * flabel = make_data_label(ctx);
-    char * db_op  = get_db_op(val->type);
+    Value* val    = make_value_float(make_type_float(DEFAULT_FLOAT_BYTE_SIZE), expr->Float.val);
+    char*  flabel = make_data_label(ctx);
+    char*  db_op  = get_db_op(val->type);
     emit_data(ctx, "%s: %s %f", flabel, db_op, expr->Float.val);
-    char *mov_op = get_move_op(val->type);
-    char *reg    = get_result_reg(val->type);
+    char* mov_op = get_move_op(val->type);
+    char* reg    = get_result_reg(val->type);
     emit(ctx, "%s %s, [rel %s]; float_ref", mov_op, reg, flabel);
     return val;
 }
 
-Value *codegen_int(Codegen_Context *ctx, AST *expr) {
+Value* codegen_int(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_INT);
-    Value *val    = make_value_int(DEFAULT_INT_BYTE_SIZE, make_type_int(DEFAULT_INT_BYTE_SIZE, 0), expr->Int.val);
-    char * reg    = get_result_reg(val->type);
-    char * mov_op = get_move_op(val->type);
+    Value* val    = make_value_int(DEFAULT_INT_BYTE_SIZE, make_type_int(DEFAULT_INT_BYTE_SIZE, 0), expr->Int.val);
+    char*  reg    = get_result_reg(val->type);
+    char*  mov_op = get_move_op(val->type);
     emit(ctx, "%s %s, %d", mov_op, reg, val->Int.value);
     return val;
 }
 
-Value *codegen_block(Codegen_Context *ctx, AST *expr) {
+Value* codegen_block(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     push_scope(ctx);
-    List * stmts = expr->Block.stmts;
-    Value *last  = NULL;
+    List*  stmts = expr->Block.stmts;
+    Value* last  = NULL;
     LIST_FOREACH(stmts) {
-        AST *stmt = (AST *)it->data;
+        AST* stmt = (AST*)it->data;
         last      = codegen_expr(ctx, stmt);
     }
     pop_scope(ctx);
     return last;
 }
 
-Value *codegen_ident(Codegen_Context *ctx, AST *expr) {
+Value* codegen_ident(Codegen_Context* ctx, AST* expr) {
     assert(expr->kind == AST_IDENT);
     DEBUG_START;
-    char * name = expr->Ident.name;
-    Value *var  = get_variable(ctx, name);
+    char*  name = expr->Ident.name;
+    Value* var  = get_variable(ctx, name);
     emit_load(ctx, var);
     return var;
 }
 
-Value *codegen_subscript_no_deref(Codegen_Context *ctx, AST *expr) {
+Value* codegen_subscript_no_deref(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_SUBSCRIPT);
-    AST *load = expr->Subscript.load;
-    AST *sub  = expr->Subscript.sub;
+    AST* load = expr->Subscript.load;
+    AST* sub  = expr->Subscript.sub;
 
-    Value *variable = codegen_expr(ctx, load); // ADDRESS OF 'C' is in 'RAX'
+    Value* variable = codegen_expr(ctx, load); // ADDRESS OF 'C' is in 'RAX'
     s64    size     = get_size_of_underlying_type(variable->type);
 
     sub  = make_ast_binary(expr->t, TOKEN_ASTERISK, make_ast_int(expr->t, size), sub);
@@ -631,21 +631,21 @@ Value *codegen_subscript_no_deref(Codegen_Context *ctx, AST *expr) {
     return codegen_expr(ctx, sub);
 }
 
-Value *codegen_field_access(Codegen_Context *ctx, AST *expr) {
+Value* codegen_field_access(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_FIELD_ACCESS);
-    AST * load       = expr->Field_Access.load;
-    char *field_name = expr->Field_Access.field;
+    AST*  load       = expr->Field_Access.load;
+    char* field_name = expr->Field_Access.field;
 
-    Value *variable = codegen_expr(ctx, load); // ADDRESS OF 'C' is in 'RAX'
+    Value* variable = codegen_expr(ctx, load); // ADDRESS OF 'C' is in 'RAX'
 
     assert(variable->type->kind == TYPE_STRUCT);
 
     // Get the offset to the member
     s64   accum = 0;
-    Type *t     = NULL;
+    Type* t     = NULL;
     LIST_FOREACH(variable->type->Struct.members) {
-        AST *mem = (AST *)it->data;
+        AST* mem = (AST*)it->data;
         warning("%lld, %s", accum, ast_to_json(mem));
         assert(mem->type);
         accum += get_size_of_type(mem->type);
@@ -663,18 +663,18 @@ Value *codegen_field_access(Codegen_Context *ctx, AST *expr) {
     // Value* v         = make_value_variable("x", t, stack_pos + accum);
 
     // emit(ctx, "mov rax, [rbp-%lld]", stack_pos - accum);
-    Value *var = make_value_variable(field_name, t, stack_pos - accum);
+    Value* var = make_value_variable(field_name, t, stack_pos - accum);
     emit_load(ctx, var);
     return var;
 }
 
-Value *codegen_subscript(Codegen_Context *ctx, AST *expr) {
+Value* codegen_subscript(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_SUBSCRIPT);
-    AST *load = expr->Subscript.load;
-    AST *sub  = expr->Subscript.sub;
+    AST* load = expr->Subscript.load;
+    AST* sub  = expr->Subscript.sub;
 
-    Value *variable = codegen_expr(ctx, load); // ADDRESS OF 'C' is in 'RAX'
+    Value* variable = codegen_expr(ctx, load); // ADDRESS OF 'C' is in 'RAX'
     s64    size     = get_size_of_underlying_type(variable->type);
 
     sub = make_ast_binary(expr->t, TOKEN_ASTERISK, make_ast_int(expr->t, size), sub);
@@ -685,47 +685,47 @@ Value *codegen_subscript(Codegen_Context *ctx, AST *expr) {
     return codegen_expr(ctx, sub);
 }
 
-Value *codegen_string(Codegen_Context *ctx, AST *expr) {
+Value* codegen_string(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_STRING);
-    char *val    = expr->String.val;
-    Type *t      = make_type_pointer(make_type_int(8, 1));
-    char *slabel = make_data_label(ctx);
-    char *db_op  = get_db_op(t);
+    char* val    = expr->String.val;
+    Type* t      = make_type_pointer(make_type_int(8, 1));
+    char* slabel = make_data_label(ctx);
+    char* db_op  = get_db_op(t);
     emit_data(ctx, "%s: %s `%s`, 0 ", slabel, db_op, val);
-    char *mov_op = get_move_op(t);
-    char *reg    = get_result_reg(t);
+    char* mov_op = get_move_op(t);
+    char* reg    = get_result_reg(t);
     emit(ctx, "%s %s, %s; string_ref", mov_op, reg, slabel);
     return make_value_string(val, t);
 }
 
-Value *codegen_note(Codegen_Context *ctx, AST *expr) {
+Value* codegen_note(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_NOTE);
-    AST *int_expr = expr->Note.expr;
+    AST* int_expr = expr->Note.expr;
     assert(int_expr->kind == AST_INT);
     s32 integer_value = int_expr->Int.val;
     if (integer_value < 1) error("note parameters start at 1.");
 
-    AST *  arg  = get_arg_from_func(ctx->current_function->Function.type, integer_value - 1);
-    char * name = arg->Variable_Decl.name;
-    Value *var  = get_variable(ctx, name);
+    AST*   arg  = get_arg_from_func(ctx->current_function->Function.type, integer_value - 1);
+    char*  name = arg->Variable_Decl.name;
+    Value* var  = get_variable(ctx, name);
 
     emit_load(ctx, var);
 
     return var;
 }
 
-Value *codegen_if(Codegen_Context *ctx, AST *expr) {
+Value* codegen_if(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_IF);
 
-    char *else_l = make_text_label(ctx);
-    char *end_l  = make_text_label(ctx);
+    char* else_l = make_text_label(ctx);
+    char* end_l  = make_text_label(ctx);
 
-    AST *cond       = expr->If.cond;
-    AST *then_block = expr->If.then_block;
-    AST *else_block = expr->If.else_block;
+    AST* cond       = expr->If.cond;
+    AST* then_block = expr->If.then_block;
+    AST* else_block = expr->If.else_block;
 
     codegen_expr(ctx, cond);
     emit(ctx, "cmp al, 0");
@@ -741,18 +741,18 @@ Value *codegen_if(Codegen_Context *ctx, AST *expr) {
     return NULL;
 }
 
-Value *codegen_for(Codegen_Context *ctx, AST *expr) {
+Value* codegen_for(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_FOR);
 
-    char *begin_l = make_text_label(ctx);
-    char *mid_l   = make_text_label(ctx);
-    char *end_l   = make_text_label(ctx);
+    char* begin_l = make_text_label(ctx);
+    char* mid_l   = make_text_label(ctx);
+    char* end_l   = make_text_label(ctx);
 
-    AST *init       = expr->For.init;
-    AST *cond       = expr->For.cond;
-    AST *step       = expr->For.step;
-    AST *then_block = expr->For.then_block;
+    AST* init       = expr->For.init;
+    AST* cond       = expr->For.cond;
+    AST* step       = expr->For.step;
+    AST* then_block = expr->For.then_block;
 
     codegen_expr(ctx, init);
     emit(ctx, "%s:", begin_l);
@@ -772,15 +772,15 @@ Value *codegen_for(Codegen_Context *ctx, AST *expr) {
     return NULL;
 }
 
-Value *codegen_while(Codegen_Context *ctx, AST *expr) {
+Value* codegen_while(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_WHILE);
 
-    char *begin_l = make_text_label(ctx);
-    char *end_l   = make_text_label(ctx);
+    char* begin_l = make_text_label(ctx);
+    char* end_l   = make_text_label(ctx);
 
-    AST *cond       = expr->While.cond;
-    AST *then_block = expr->While.then_block;
+    AST* cond       = expr->While.cond;
+    AST* then_block = expr->While.then_block;
 
     emit(ctx, "%s:", begin_l);
     codegen_expr(ctx, cond);
@@ -797,19 +797,19 @@ Value *codegen_while(Codegen_Context *ctx, AST *expr) {
     return NULL;
 }
 
-Value *codegen_defer(Codegen_Context *ctx, AST *expr) {
+Value* codegen_defer(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_DEFER);
-    AST *defer_expr = expr->Defer.expr;
+    AST* defer_expr = expr->Defer.expr;
     list_append(ctx->current_function->Function.defers, defer_expr);
     return NULL;
 }
 
-Value *codegen_return(Codegen_Context *ctx, AST *expr) {
+Value* codegen_return(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_RETURN);
 
-    AST *ret_expr = expr->Return.expr;
+    AST* ret_expr = expr->Return.expr;
 
     // char* label  = make_text_label(ctx);
     // char* label2 = make_text_label(ctx);
@@ -830,34 +830,34 @@ Value *codegen_return(Codegen_Context *ctx, AST *expr) {
     return NULL;
 }
 
-Value *codegen_break(Codegen_Context *ctx, AST *expr) {
+Value* codegen_break(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_BREAK);
     emit(ctx, "jmp %s", ctx->lbreak);
     return NULL;
 }
 
-Value *codegen_switch(Codegen_Context *ctx, AST *expr) {
+Value* codegen_switch(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_SWITCH);
 
-    char *default_l = make_text_label(ctx);
-    char *end_l     = make_text_label(ctx);
+    char* default_l = make_text_label(ctx);
+    char* end_l     = make_text_label(ctx);
 
     set_break_label(ctx, end_l);
 
-    AST *cond         = expr->Switch.cond;
-    AST *cases        = expr->Switch.cases;
-    AST *default_case = expr->Switch.default_case;
+    AST* cond         = expr->Switch.cond;
+    AST* cases        = expr->Switch.cases;
+    AST* default_case = expr->Switch.default_case;
 
-    List *labels = make_list();
+    List* labels = make_list();
     LIST_FOREACH(cases->Block.stmts) {
-        AST *c = (AST *)it->data;
+        AST* c = (AST*)it->data;
 
-        char *l = make_text_label(ctx);
+        char* l = make_text_label(ctx);
         list_append(labels, l);
 
-        AST *case_cond = c->Is.expr;
+        AST* case_cond = c->Is.expr;
         codegen_expr(ctx, make_ast_binary(c->t, TOKEN_EQ_EQ, cond, case_cond));
 
         emit(ctx, "cmp al, 1");
@@ -871,11 +871,11 @@ Value *codegen_switch(Codegen_Context *ctx, AST *expr) {
     } else
         emit(ctx, "jmp %s", end_l);
 
-    List_Node *label_it = labels->head;
+    List_Node* label_it = labels->head;
     LIST_FOREACH(cases->Block.stmts) {
-        AST *c = (AST *)it->data;
+        AST* c = (AST*)it->data;
 
-        char *l = (char *)label_it->data;
+        char* l = (char*)label_it->data;
         emit(ctx, "%s:", l);
         codegen_expr(ctx, c->Is.body);
 
@@ -893,55 +893,55 @@ Value *codegen_switch(Codegen_Context *ctx, AST *expr) {
     return NULL;
 }
 
-Value *codegen_cast(Codegen_Context *ctx, AST *expr) {
+Value* codegen_cast(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_CAST);
-    AST *  e = expr->Cast.expr;
-    Type * t = expr->Cast.type;
-    Value *v = codegen_expr(ctx, e);
+    AST*   e = expr->Cast.expr;
+    Type*  t = expr->Cast.type;
+    Value* v = codegen_expr(ctx, e);
     emit_cast(ctx, v, t);
     return v;
 }
 
-Value *codegen_continue(Codegen_Context *ctx, AST *expr) {
+Value* codegen_continue(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_CONTINUE);
     emit(ctx, "jmp %s", ctx->lcontinue);
     return NULL;
 }
 
-Value *codegen_enum(Codegen_Context *ctx, AST *expr) {
+Value* codegen_enum(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_ENUM);
     warning("enum incomplete?");
     return NULL;
 }
 
-Value *codegen_extern(Codegen_Context *ctx, AST *expr) {
+Value* codegen_extern(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_EXTERN);
-    char *func_name = expr->Extern.type->Function.name;
+    char* func_name = expr->Extern.type->Function.name;
     emit_extern(ctx, func_name);
     return NULL;
 }
 
-Value *codegen_struct(Codegen_Context *ctx, AST *expr) {
+Value* codegen_struct(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_STRUCT);
     warning("struct incomplete?");
     return make_value_struct(expr->Struct.type);
 }
 
-Value *codegen_function(Codegen_Context *ctx, AST *expr) {
+Value* codegen_function(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr);
     assert(expr->kind == AST_FUNCTION);
 
     set_current_function_expr(ctx, expr);
 
-    char *func_name = expr->Function.type->Function.name;
-    Type *func_type = expr->Function.type;
-    AST * func_body = expr->Function.body;
+    char* func_name = expr->Function.type->Function.name;
+    Type* func_type = expr->Function.type;
+    AST*  func_body = expr->Function.body;
 
     push_scope(ctx);
 
@@ -964,14 +964,14 @@ Value *codegen_function(Codegen_Context *ctx, AST *expr) {
 
     reset_stack(ctx);
 
-    List *args              = func_type->Function.args;
+    List* args              = func_type->Function.args;
     s8    int_arg_counter   = 0;
     s8    float_arg_counter = 0;
     s8    rest              = 0;
 
     LIST_FOREACH(args) {
-        AST *  arg  = (AST *)it->data;
-        Value *v    = codegen_expr(ctx, arg);
+        AST*   arg  = (AST*)it->data;
+        Value* v    = codegen_expr(ctx, arg);
         s64    size = get_size_of_value(v);
 
         s8 param_reg = -1;
@@ -1009,15 +1009,15 @@ Value *codegen_function(Codegen_Context *ctx, AST *expr) {
     // emit(ctx, "add rsp, %lld; rest", rest);
 
     push_scope(ctx);
-    List * stmts = func_body->Block.stmts;
-    Value *last  = NULL;
+    List*  stmts = func_body->Block.stmts;
+    Value* last  = NULL;
     LIST_FOREACH(stmts) {
         last = codegen_expr(ctx, it->data);
     }
 
     emit(ctx, "%s:", DEFAULT_FUNCTION_END_LABEL_NAME);
 
-    List *defers = ctx->current_function->Function.defers;
+    List* defers = ctx->current_function->Function.defers;
     LIST_FOREACH_REVERSE(defers) {
         codegen_expr(ctx, it->data);
     }

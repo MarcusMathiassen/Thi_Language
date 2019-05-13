@@ -74,10 +74,10 @@ Parser_Context make_parser_context() {
     return ctx;
 }
 
-Type *get_type(Parser_Context *ctx) {
+Type* get_type(Parser_Context* ctx) {
     DEBUG_START;
 
-    char *type_name = ctx->curr_tok.value;
+    char* type_name = ctx->curr_tok.value;
 
     // // Check if var arg
     // if (tok_is(ctx, TOKEN_DOT_DOT_DOT)) {
@@ -87,7 +87,7 @@ Type *get_type(Parser_Context *ctx) {
 
     eat_kind(ctx, TOKEN_IDENTIFIER);
 
-    Type *type = map_get(ctx->symbols, type_name);
+    Type* type = map_get(ctx->symbols, type_name);
     if (!type) {
         type       = make_type_unresolved(type_name);
         type->name = type_name;
@@ -118,7 +118,7 @@ Type *get_type(Parser_Context *ctx) {
     return type;
 }
 
-s64 get_integer(Parser_Context *ctx) {
+s64 get_integer(Parser_Context* ctx) {
     DEBUG_START;
 
     s64 value = 0;
@@ -148,7 +148,7 @@ s64 get_integer(Parser_Context *ctx) {
     return value;
 }
 
-f64 get_float(Parser_Context *ctx) {
+f64 get_float(Parser_Context* ctx) {
     DEBUG_START;
 
     f64 value = atof(ctx->curr_tok.value);
@@ -157,21 +157,21 @@ f64 get_float(Parser_Context *ctx) {
     return value;
 }
 
-int get_tok_precedence(Parser_Context *ctx) {
+int get_tok_precedence(Parser_Context* ctx) {
     DEBUG_START;
     for (int i = 0; i < BIN_OP_COUNT; ++i)
         if (binop_precedence[i].kind == ctx->curr_tok.kind) return binop_precedence[i].p;
     return -1;
 }
 
-Token next_tok(Parser_Context *ctx) {
+Token next_tok(Parser_Context* ctx) {
     if (ctx->tokens.count < ctx->token_index + 1) {
         error("No next token. We're all out.");
     }
     return ctx->tokens.data[ctx->token_index];
 }
 
-Token_Kind next_tok_kind(Parser_Context *ctx) {
+Token_Kind next_tok_kind(Parser_Context* ctx) {
     if (ctx->tokens.count < ctx->token_index + 1) {
         error("No next token. We're all out.");
     }
@@ -179,29 +179,29 @@ Token_Kind next_tok_kind(Parser_Context *ctx) {
     return kind;
 }
 
-bool tok_is_on_same_line(Parser_Context *ctx) {
+bool tok_is_on_same_line(Parser_Context* ctx) {
     s64 l1 = ctx->curr_tok.line_pos;
     s64 l2 = ctx->prev_tok.line_pos;
     return l1 == l2;
 }
 
-bool next_tok_is_on_same_line(Parser_Context *ctx) {
+bool next_tok_is_on_same_line(Parser_Context* ctx) {
     Token t2 = next_tok(ctx);
     s64   l1 = ctx->curr_tok.line_pos;
     s64   l2 = t2.line_pos;
     return l1 == l2;
 }
-bool tok_is(Parser_Context *ctx, Token_Kind kind) {
+bool tok_is(Parser_Context* ctx, Token_Kind kind) {
     return ctx->curr_tok.kind == kind;
 }
 
-void eat(Parser_Context *ctx) {
+void eat(Parser_Context* ctx) {
     ctx->prev_tok = ctx->curr_tok;
     ctx->curr_tok = ctx->tokens.data[ctx->token_index];
     ctx->token_index += 1;
 }
 
-void eat_kind(Parser_Context *ctx, Token_Kind kind) {
+void eat_kind(Parser_Context* ctx, Token_Kind kind) {
     Token_Kind tk = ctx->curr_tok.kind;
     if (tk != kind) {
         error("Expected '%s' got '%s'", token_kind_to_str(kind), token_kind_to_str(tk));
@@ -209,13 +209,13 @@ void eat_kind(Parser_Context *ctx, Token_Kind kind) {
     eat(ctx);
 }
 
-void set_if_statement(Parser_Context *ctx, AST *if_statement) {
+void set_if_statement(Parser_Context* ctx, AST* if_statement) {
     ctx->olast_if_statement = ctx->llast_if_statement;
     ctx->llast_if_statement = if_statement;
 }
-void restore_if_statement(Parser_Context *ctx) {
+void restore_if_statement(Parser_Context* ctx) {
     ctx->llast_if_statement = ctx->olast_if_statement;
 }
-void set_dangling_else(Parser_Context *ctx, AST *else_block) {
+void set_dangling_else(Parser_Context* ctx, AST* else_block) {
     ctx->llast_if_statement->If.else_block = else_block;
 }

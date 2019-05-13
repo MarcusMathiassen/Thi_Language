@@ -26,12 +26,12 @@ enum Value_Kind {
 //------------------------------------------------------------------------------
 
 typedef struct {
-    char *name;
+    char* name;
     s64   stack_pos;
 } Value_Variable;
 
 typedef struct {
-    char *name;
+    char* name;
     s64   stack_allocated;
 } Value_Function;
 
@@ -45,24 +45,24 @@ typedef struct {
     s64 value;
 } Value_Int;
 typedef struct {
-    char *value;
+    char* value;
     s64   len;
 } Value_String;
 typedef struct {
-    char *callee;
+    char* callee;
 } Value_Call;
 typedef struct {
-    Value *variable;
+    Value* variable;
     s64    offset;
 } Value_LoadInst;
 typedef struct {
-    Value *variable;
+    Value* variable;
     s64    offset;
 } Value_StoreInst;
 
 struct Value {
     Value_Kind kind;
-    Type *     type;
+    Type*      type;
     union {
         Value_Int       Int;
         Value_Float     Float;
@@ -76,27 +76,27 @@ struct Value {
     };
 };
 
-char *value_kind_to_str(Value_Kind kind);
+char* value_kind_to_str(Value_Kind kind);
 
-Value *make_value_load_inst(Value *variable, s64 offset);
-Value *make_value_store_inst(Value *variable, s64 offset);
-Value *make_value_int(u8 bytes, Type *type, s64 value);
-Value *make_value_float(Type *type, f64 value);
-Value *make_value_string(char *value, Type *type);
-Value *make_value_variable(char *name, Type *type, s64 stack_pos);
-Value *make_value_call(char *callee, Type *type);
-Value *make_value_function(Type *type);
-Value *make_value_struct(Type *type);
+Value* make_value_load_inst(Value* variable, s64 offset);
+Value* make_value_store_inst(Value* variable, s64 offset);
+Value* make_value_int(u8 bytes, Type* type, s64 value);
+Value* make_value_float(Type* type, f64 value);
+Value* make_value_string(char* value, Type* type);
+Value* make_value_variable(char* name, Type* type, s64 stack_pos);
+Value* make_value_call(char* callee, Type* type);
+Value* make_value_function(Type* type);
+Value* make_value_struct(Type* type);
 
-s64 get_size_of_value(Value *value);
-s64 get_stack_pos_of_variable(Value *variable);
+s64 get_size_of_value(Value* value);
+s64 get_stack_pos_of_variable(Value* variable);
 
 //------------------------------------------------------------------------------
 //                               Scope
 //------------------------------------------------------------------------------
 typedef struct {
-    List *local_variables;
+    List* local_variables;
 } Scope;
-Scope *make_scope();
+Scope* make_scope();
 
 #endif

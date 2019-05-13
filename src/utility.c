@@ -12,7 +12,7 @@
 //                               Printing Functions
 //------------------------------------------------------------------------------
 
-void info(char *fmt, ...) {
+void info(char* fmt, ...) {
 #ifndef NDEBUG
     assert(fmt);
     va_list args;
@@ -24,7 +24,7 @@ void info(char *fmt, ...) {
 #endif
 }
 
-void warning(char *fmt, ...) {
+void warning(char* fmt, ...) {
     assert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -34,7 +34,7 @@ void warning(char *fmt, ...) {
     va_end(args);
 }
 
-void success(char *fmt, ...) {
+void success(char* fmt, ...) {
     assert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -44,7 +44,7 @@ void success(char *fmt, ...) {
     va_end(args);
 }
 
-void error(char *fmt, ...) {
+void error(char* fmt, ...) {
     assert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -59,7 +59,7 @@ void error(char *fmt, ...) {
 //                               File Utility Functions
 //------------------------------------------------------------------------------
 
-char *get_file_path_from_directory(char *dir, char *filename) {
+char* get_file_path_from_directory(char* dir, char* filename) {
     assert(dir);
     assert(filename);
     u8  strbuf[1000];
@@ -69,64 +69,64 @@ char *get_file_path_from_directory(char *dir, char *filename) {
     assert(len < 1000);
     memcpy(strbuf, dir, d_len);              // copy dir into strbuf
     memcpy(strbuf + d_len, filename, f_len); // append filename
-    char *str = xmalloc(len + 1);
+    char* str = xmalloc(len + 1);
     memcpy(str, strbuf, len);
     str[len] = 0;
     return str;
 }
 
-char *get_file_extension(char *filename) {
+char* get_file_extension(char* filename) {
     assert(filename);
     s64 len = strlen(filename);
     s64 i   = 0;
     while (filename[len - (++i)] != '.')
         continue;
     ++len; // skip the '.'
-    char *str = xmalloc(i + 1);
+    char* str = xmalloc(i + 1);
     memcpy(str, filename + len - i, i);
     str[i] = 0;
     return str;
 }
 
-char *remove_file_extension(char *filename) {
+char* remove_file_extension(char* filename) {
     assert(filename);
     s64 len = strlen(filename);
     s64 i   = 0;
     while (filename[len - (++i)] != '.')
         continue;
-    char *str = xmalloc(len - i + 1);
+    char* str = xmalloc(len - i + 1);
     memcpy(str, filename, len - i);
     str[len - i] = 0;
     return str;
 }
 
-char *get_file_directory(char *filename) {
+char* get_file_directory(char* filename) {
     assert(filename);
     s64 len = strlen(filename);
     while (filename[--len] != '/')
         continue;
     ++len; // we preserve the '/'
-    char *str = xmalloc(len + 1);
+    char* str = xmalloc(len + 1);
     memcpy(str, filename, len);
     str[len] = 0;
     return str;
 }
-char *get_file_name(char *filename) {
+char* get_file_name(char* filename) {
     assert(filename);
     s64 len = strlen(filename);
     s64 i   = 0;
     while (filename[len - (++i)] != '/')
         continue;
     ++len; // skip the '/'
-    char *str = xmalloc(i + 1);
+    char* str = xmalloc(i + 1);
     memcpy(str, filename + len - i, i);
     str[i] = 0;
     return str;
 }
-void write_to_file(char *filename, char *buffer) {
+void write_to_file(char* filename, char* buffer) {
     assert(filename);
     assert(buffer);
-    FILE *f = fopen(filename, "w");
+    FILE* f = fopen(filename, "w");
     if (!f) {
         printf("Error opening file!\n");
         exit(1);
@@ -135,11 +135,11 @@ void write_to_file(char *filename, char *buffer) {
     fclose(f);
 }
 
-char *get_file_content(char *filename) {
+char* get_file_content(char* filename) {
     assert(filename);
-    char *buffer = NULL;
+    char* buffer = NULL;
     s64   string_size, read_size;
-    FILE *handler = fopen(filename, "r");
+    FILE* handler = fopen(filename, "r");
 
     if (handler) {
         // Seek the last byte of the file
@@ -150,7 +150,7 @@ char *get_file_content(char *filename) {
         rewind(handler);
 
         // Allocate a string that can hold it all
-        buffer = (char *)xmalloc(sizeof(u8) * (string_size + 1));
+        buffer = (char*)xmalloc(sizeof(u8) * (string_size + 1));
 
         // Read it all in one operation
         read_size = fread(buffer, sizeof(u8), string_size, handler);
@@ -177,40 +177,40 @@ char *get_file_content(char *filename) {
 //                               General Purpose
 //------------------------------------------------------------------------------
 
-void *_malloc(s64 bytes, char *file, s32 line) {
+void* _malloc(s64 bytes, char* file, s32 line) {
     assert(bytes != 0);
     // info("malloc(%lld) called. file: %s line: %s", bytes, file, line);
-    void *alloc = malloc(bytes);
+    void* alloc = malloc(bytes);
     if (!alloc) error("malloc(%lld) failed. file: %s line: %s", bytes, file, line);
     return alloc;
 }
 
-void *_calloc(s64 size, s64 bytes, char *file, s32 line) {
+void* _calloc(s64 size, s64 bytes, char* file, s32 line) {
     assert(size != 0);
     assert(bytes != 0);
     // info("calloc(%lld, %lld) called. file: %s line: %s", size, bytes, file, line);
-    void *alloc = calloc(size, bytes);
+    void* alloc = calloc(size, bytes);
     if (!alloc) error("calloc(%lld, %lld) failed. file: %s line: %s", size, bytes, file, line);
     return alloc;
 }
 
-void *_realloc(void *ptr, s64 bytes, char *file, s32 line) {
+void* _realloc(void* ptr, s64 bytes, char* file, s32 line) {
     assert(ptr);
     assert(bytes != 0);
     // info("realloc(%lld, %lld) called. file: %s line: %s", (int)ptr, bytes, file, line);
-    void *alloc = realloc(ptr, bytes);
+    void* alloc = realloc(ptr, bytes);
     if (!alloc) error("realloc(%lld, %lld) failed. file: %s line: %s", ptr, bytes, file, line);
     return alloc;
 }
 
-char *strf(char *fmt, ...) {
+char* strf(char* fmt, ...) {
     assert(fmt);
     va_list args;
     va_start(args, fmt);
     s64 n = 1 + vsnprintf(0, 0, fmt, args);
     va_end(args);
 
-    char *str = xmalloc(n);
+    char* str = xmalloc(n);
 
     va_start(args, fmt);
     vsnprintf(str, n, fmt, args);
@@ -220,7 +220,7 @@ char *strf(char *fmt, ...) {
 }
 
 // Color Whell
-char *colors[6] = {
+char* colors[6] = {
     "\033[31m", // red
     "\033[32m", // green
     "\033[33m", // yellow
@@ -230,23 +230,23 @@ char *colors[6] = {
 };
 int   counter      = 0;
 int   colors_count = 6;
-char *get_previous_color(void) {
+char* get_previous_color(void) {
     if (counter == 0) counter = 6;
     return colors[--counter];
 }
-char *get_next_color(void) {
+char* get_next_color(void) {
     if (counter == colors_count) counter = 0;
     return colors[counter++];
 }
-char *wrap_with_colored_parens(char *str) {
-    char *current_color = get_next_color();
+char* wrap_with_colored_parens(char* str) {
+    char* current_color = get_next_color();
     return strf("%s(\033[00m%s%s)\033[00m", current_color, str, current_color);
 }
-char *give_unique_color(char *str) {
-    char *current_color = get_next_color();
+char* give_unique_color(char* str) {
+    char* current_color = get_next_color();
     return strf("%s%s\033[00m", current_color, str);
 }
-char *get_unique_color(void) {
+char* get_unique_color(void) {
     return get_next_color();
 }
 //

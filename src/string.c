@@ -9,7 +9,7 @@
 #include <stdlib.h>  // free
 #include <string.h>  // memcpy
 
-string make_string(char *str) {
+string make_string(char* str) {
     assert(str);
     string s;
     s64    str_len = strlen(str);
@@ -20,7 +20,7 @@ string make_string(char *str) {
     return s;
 }
 
-string make_string_f(char *fmt, ...) {
+string make_string_f(char* fmt, ...) {
     assert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -38,7 +38,7 @@ string make_string_f(char *fmt, ...) {
     return s;
 }
 
-void append_string(string *s, char *str) {
+void append_string(string* s, char* str) {
     assert(s);
     assert(str);
     s64 str_len = strlen(str);
@@ -49,7 +49,7 @@ void append_string(string *s, char *str) {
     s->c_str[s->len] = 0;
 }
 
-void append_string_f(string *s, char *fmt, ...) {
+void append_string_f(string* s, char* fmt, ...) {
     assert(s);
     assert(fmt);
     va_list args;
@@ -57,7 +57,7 @@ void append_string_f(string *s, char *fmt, ...) {
     s64 n = 1 + vsnprintf(0, 0, fmt, args);
     va_end(args);
 
-    char *str = xmalloc(n);
+    char* str = xmalloc(n);
 
     va_start(args, fmt);
     vsnprintf(str, n, fmt, args);
@@ -68,7 +68,7 @@ void append_string_f(string *s, char *fmt, ...) {
     free(str);
 }
 
-void free_string(string *s) {
+void free_string(string* s) {
     free(s->c_str);
 }
 
