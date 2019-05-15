@@ -126,9 +126,8 @@ Type* type_check_expr(Typer_Context* ctx, AST* expr) {
 }
 
 Type* type_check_sizeof(Typer_Context* ctx, AST* expr) {
-    Type* t    = type_check_expr(ctx, expr->Sizeof.expr);
-    expr->type = expr->Sizeof.expr->type;
-    return t;
+    type_check_expr(ctx, expr->Sizeof.expr);
+    return (Type*)map_get(ctx->symbol_table, DEFAULT_BIG_INT_TYPE_AS_STRING);
 }
 
 Type* type_check_switch(Typer_Context* ctx, AST* expr) {
@@ -197,12 +196,10 @@ Type* type_check_note(Typer_Context* ctx, AST* expr) {
 
 Type* type_check_int(Typer_Context* ctx, AST* expr) {
     return (Type*)map_get(ctx->symbol_table, DEFAULT_INT_TYPE_AS_STRING);
-    ;
 }
 
 Type* type_check_float(Typer_Context* ctx, AST* expr) {
     return (Type*)map_get(ctx->symbol_table, DEFAULT_FLOAT_TYPE_AS_STRING);
-    ;
 }
 Type* type_check_string(Typer_Context* ctx, AST* expr) {
     return make_type_pointer(make_type_int(8, 1));

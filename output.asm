@@ -8,7 +8,7 @@ _main:
 .begin:
 	mov [rbp-4], edi; store_r
 	mov [rbp-12], rsi; store_r
-	mov eax, 4
+	mov eax, 40
 	jmp .end
 .end:
 	add rsp, 32; 20 alloc, 12 padding

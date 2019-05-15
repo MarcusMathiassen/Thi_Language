@@ -68,8 +68,7 @@ void get_all_variables(void* list, AST* expr) {
 }
 
 void constant_fold(void* ctx, AST* e) {
-    Token t = e->t;
-
+    info("trying to constant fold: %s", ast_to_str(e));
     switch (e->kind) {
     case AST_BINARY: {
         Token_Kind op  = e->Binary.op;
@@ -126,20 +125,21 @@ void constant_fold(void* ctx, AST* e) {
             }
             // clang-format on
             info("folded %s into %lld", ast_to_str(e), value);
-            AST* constant_value = make_ast_int(t, value);
+            AST* constant_value = make_ast_int(e->t, value);
             ast_replace(e, constant_value);
         }
     } break;
     case AST_UNARY: {
+        info("UNARY %s", ast_to_str(e));
         Token_Kind op      = e->Unary.op;
         AST*       operand = e->Unary.operand;
+        if (operand->kind == AST_GROUPING) operand = operand->Grouping.expr;
         if (operand->kind == AST_INT) {
             Token_Kind op     = e->Unary.op;
             s64        oper_v = operand->Int.val;
             s64        value  = 0;
             // clang-format off
             switch (op) {
-            case TOKEN_SIZEOF:  value = get_size_of_type(operand->type); break;
             case TOKEN_BANG:    value = !oper_v; break;
             case TOKEN_PLUS:    value = oper_v;  break;
             case TOKEN_TILDE:   value = ~oper_v; break;
@@ -148,7 +148,7 @@ void constant_fold(void* ctx, AST* e) {
             }
             // clang-format on
             info("folded %s into %lld", ast_to_str(e), value);
-            AST* constant_value = make_ast_int(t, value);
+            AST* constant_value = make_ast_int(e->t, value);
             ast_replace(e, constant_value);
         }
     } break;
@@ -311,11 +311,9 @@ int main(int argc, char** argv) {
     success("sizeofs: %d", sizeofs->count);
     LIST_FOREACH(sizeofs) {
         AST* expr = it->data;
-        success("sizeof expr: %s", ast_to_str(expr));
-
+        
         // Get the size of the type
-        assert(expr->type);
-        s64 size = get_size_of_type(expr->type);
+        s64 size = get_size_of_type(expr->Sizeof.expr->type);
 
         // Transform the expr into a constant value
         AST* constant_value = make_ast_int(expr->t, size);

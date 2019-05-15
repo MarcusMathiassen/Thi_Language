@@ -3,7 +3,7 @@
 main(argc: int, argv: char**)
     v: v2
 
-    return sizeof 3
+    return sizeof v2 + sizeof(s32) * sizeof(s64)
 
 struct v2
     x: s32 = 0
