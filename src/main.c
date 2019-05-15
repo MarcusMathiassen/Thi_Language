@@ -48,6 +48,7 @@ void check_for_unresolved_types(void* ctx, AST* expr) {
 }
 
 void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* expr) {
+    info("%s: %s -> %s", ast_kind_to_str(expr->kind), wrap_with_colored_parens(ast_to_str(expr)),  give_unique_color(type_to_str(expr->type))); \
     switch (expr->kind) {
     case AST_LOAD: return;
     case AST_LINK: return;
@@ -125,7 +126,8 @@ void constant_fold(void* ctx, AST* e) {
             }
             // clang-format on
             info("folded %s into %lld", ast_to_str(e), value);
-            ast_replace(e, make_ast_float(e->t, value));
+            AST* constant_value = make_ast_int(t, value);
+            ast_replace(e, constant_value);
         }
     } break;
     case AST_UNARY: {
@@ -137,15 +139,17 @@ void constant_fold(void* ctx, AST* e) {
             s64        value  = 0;
             // clang-format off
             switch (op) {
+            case TOKEN_SIZEOF:  value = get_size_of_type(operand->type); break;
             case TOKEN_BANG:    value = !oper_v; break;
             case TOKEN_PLUS:    value = oper_v;  break;
             case TOKEN_TILDE:   value = ~oper_v; break;
             case TOKEN_MINUS:   value = -oper_v; break;
-            default: error("constant_fold_expr unary %s not implemented", token_kind_to_str(op));
+            default: error("constant_fold unary %s not implemented", token_kind_to_str(op));
             }
             // clang-format on
             info("folded %s into %lld", ast_to_str(e), value);
-            ast_replace(e, make_ast_int(t, value));
+            AST* constant_value = make_ast_int(t, value);
+            ast_replace(e, constant_value);
         }
     } break;
     }
@@ -228,7 +232,6 @@ int main(int argc, char** argv) {
 
     // Make sure it's actually a .thi file
     if (strcmp(ext, "thi") != 0) {
-        error("%s is not a .thi file.", source_file);
     }
 
     List* ast = make_list();
@@ -305,12 +308,14 @@ int main(int argc, char** argv) {
     //  PASS: resolve all sizeof calls
     //
     List* sizeofs = ast_find_all_of_kind(AST_SIZEOF, ast->head->data);
+    success("sizeofs: %d", sizeofs->count);
     LIST_FOREACH(sizeofs) {
         AST* expr = it->data;
+        success("sizeof expr: %s", ast_to_str(expr));
 
         // Get the size of the type
-        error("%s", ast_to_str(expr));
-        s64 size = get_size_of_type(expr->Sizeof.expr->type);
+        assert(expr->type);
+        s64 size = get_size_of_type(expr->type);
 
         // Transform the expr into a constant value
         AST* constant_value = make_ast_int(expr->t, size);
@@ -354,9 +359,11 @@ int main(int argc, char** argv) {
         ast_visit(check_for_unresolved_types, NULL, it->data);
     }
 
+    success("START: Make sure all nodes have a valid type");
     LIST_FOREACH(ast) {
         ast_visit(make_sure_all_nodes_have_a_valid_type, NULL, it->data);
     }
+    success("FINISHED: Make sure all nodes have a valid type");
 
     // pass_initilize_all_enums(&thi);
 
@@ -759,7 +766,7 @@ void pass_initilize_all_enums(Thi* thi) {
                 break;
             }
             counter += 1;
-            warning("%s", ast_to_json(m));
+            // warning("%s", ast_to_json(m));
         }
     }
 
@@ -821,7 +828,7 @@ void pass_type_inference(Thi* thi) {
 
     for (s64 i = 0; i < thi->calls.count; ++i) {
         AST* call = thi->calls.data[i];
-        warning("%s", ast_to_json(call));
+        // warning("%s", ast_to_json(call));
         call->type = get_inferred_type_of_expr(thi, call);
         if (!call->type) {
             call->type = make_type_int(

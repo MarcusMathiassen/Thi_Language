@@ -702,7 +702,7 @@ codegen_field_access(Codegen_Context* ctx, AST* expr) {
     Type* t     = NULL;
     LIST_FOREACH(variable->type->Struct.members) {
         AST* mem = (AST*)it->data;
-        warning("%lld, %s", accum, ast_to_json(mem));
+        // warning("%lld, %s", accum, ast_to_json(mem));
         assert(mem->type);
         accum += get_size_of_type(mem->type);
         assert(field_name);

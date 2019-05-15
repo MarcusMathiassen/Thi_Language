@@ -114,8 +114,8 @@ void lexer_test(void) {
     char* source =
         "struct v2\n    x: f32\n    y: f32\n    core()\n        return 1\n";
     Lexed_File lf = generate_tokens_from_source(source);
-    info(source);
-    print_tokens(lf.tokens);
+    // info(source);
+    // print_tokens(lf.tokens);
     assert(lf.tokens.data[0].kind == TOKEN_STRUCT);       // struct
     assert(lf.tokens.data[1].kind == TOKEN_IDENTIFIER);   // v2
     assert(lf.tokens.data[2].kind == TOKEN_BLOCK_START);  //
@@ -560,27 +560,27 @@ char* token_kind_to_str(Token_Kind kind) {
     case TOKEN_WHITESPACE:        return "TOKEN_WHITESPACE";
     case TOKEN_NEWLINE:           return "TOKEN_NEWLINE";
     case TOKEN_IDENTIFIER:        return "TOKEN_IDENTIFIER";
-    case TOKEN_IS:                return "TOKEN_IS";
-    case TOKEN_AS:                return "TOKEN_AS";
-    case TOKEN_CAST:              return "TOKEN_CAST";
-    case TOKEN_SIZEOF:            return "TOKEN_SIZEOF";
-    case TOKEN_LINK:              return "TOKEN_LINK";
-    case TOKEN_EXTERN:            return "TOKEN_EXTERN";
-    case TOKEN_LOAD:              return "TOKEN_LOAD";
-    case TOKEN_TRUE:              return "TOKEN_TRUE";
-    case TOKEN_FALSE:             return "TOKEN_FALSE";
-    case TOKEN_TYPE:              return "TOKEN_TYPE";
-    case TOKEN_FALLTHROUGH:       return "TOKEN_FALLTHROUGH";
-    case TOKEN_DEFER:             return "TOKEN_DEFER";
-    case TOKEN_IF:                return "TOKEN_IF";
-    case TOKEN_ELSE:              return "TOKEN_ELSE";
-    case TOKEN_FOR:               return "TOKEN_FOR";
-    case TOKEN_WHILE:             return "TOKEN_WHILE";
-    case TOKEN_RETURN:            return "TOKEN_RETURN";
-    case TOKEN_STRUCT:            return "TOKEN_STRUCT";
-    case TOKEN_ENUM:              return "TOKEN_ENUM";
-    case TOKEN_BREAK:             return "TOKEN_BREAK";
-    case TOKEN_CONTINUE:          return "TOKEN_CONTINUE";
+    case TOKEN_IS:                return "is";
+    case TOKEN_AS:                return "as";
+    case TOKEN_CAST:              return "cast";
+    case TOKEN_SIZEOF:            return "sizeof";
+    case TOKEN_LINK:              return "link";
+    case TOKEN_EXTERN:            return "extern";
+    case TOKEN_LOAD:              return "load";
+    case TOKEN_TRUE:              return "true";
+    case TOKEN_FALSE:             return "false";
+    case TOKEN_TYPE:              return "type";
+    case TOKEN_FALLTHROUGH:       return "fallthrough";
+    case TOKEN_DEFER:             return "defer";
+    case TOKEN_IF:                return "if";
+    case TOKEN_ELSE:              return "else";
+    case TOKEN_FOR:               return "for";
+    case TOKEN_WHILE:             return "while";
+    case TOKEN_RETURN:            return "return";
+    case TOKEN_STRUCT:            return "struct";
+    case TOKEN_ENUM:              return "enum";
+    case TOKEN_BREAK:             return "break";
+    case TOKEN_CONTINUE:          return "continue";
     case TOKEN_STRING:            return "TOKEN_STRING";
     case TOKEN_CHAR:              return "TOKEN_CHAR";
     case TOKEN_INTEGER:           return "TOKEN_INTEGER";

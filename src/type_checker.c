@@ -9,9 +9,17 @@
 #define UNFINISHED \
     error("[UNFINISHED] %s: %s", give_unique_color((char*)__func__), wrap_with_colored_parens(ast_to_str(expr)));
 
-#define DEBUG_START                                                                                 \
-    info("%s: %s", give_unique_color((char*)__func__), wrap_with_colored_parens(ast_to_str(expr))); \
+// #define DEBUG_START                                                                                            \
+//     info_no_newline("%s: %s", give_unique_color((char*)__func__), wrap_with_colored_parens(ast_to_str(expr))); \
+    // assert(expr);
+
+#define DEBUG_START                                                                                            \
+    // info_no_newline("%s: %s", give_unique_color(ast_kind_to_str(expr->kind)), wrap_with_colored_parens(ast_to_str(expr))); \
     assert(expr);
+
+#define DEBUG_END                                               \
+    // info(" -> %s", give_unique_color(type_to_str(expr->type))); \
+    // assert(expr->type);
 
 typedef struct
 {
@@ -67,6 +75,8 @@ void type_checker(Map* symbol_table, List* ast) {
 Type* type_check_expr(Typer_Context* ctx, AST* expr) {
     if (!expr) return NULL;
 
+    DEBUG_START;
+
     // This nodes type
     Type* t = NULL;
     // clang-format off
@@ -103,49 +113,63 @@ Type* type_check_expr(Typer_Context* ctx, AST* expr) {
     case AST_CONTINUE:       t = type_check_continue(ctx, expr);             break;
     case AST_CAST:           t = type_check_cast(ctx, expr);                 break;
     case AST_IS:             t = type_check_is(ctx, expr);                   break;
-        default:
+    default:
         error("Unhandled %s case for kind '%s'", give_unique_color((char*)__func__), ast_to_str(expr));
     }
     // clang-format on
-    return NULL;
+
+    expr->type = t;
+
+    DEBUG_END;
+
+    return t;
 }
 
 Type* type_check_sizeof(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
-    type_check_expr(ctx, expr->Sizeof.expr);
+    Type* t    = type_check_expr(ctx, expr->Sizeof.expr);
     expr->type = expr->Sizeof.expr->type;
-    return NULL;
+    return t;
 }
+
 Type* type_check_switch(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
-    type_check_expr(ctx, expr->Switch.cond);
-    type_check_expr(ctx, expr->Switch.cases);
-    type_check_expr(ctx, expr->Switch.default_case);
-    return NULL;
+
+    AST* cond         = expr->Switch.cond;
+    AST* cases        = expr->Switch.cases;
+    AST* default_case = expr->Switch.default_case;
+
+    // Make sure the resulting type is of type INT.
+    Type* cond_t = type_check_expr(ctx, cond);
+    if (cond_t->kind == TYPE_INT) {
+        error("%s is not a INT.", ast_to_str(cond), type_to_str(cond_t));
+    }
+
+    // A switches type is the same as its cases return type if any.
+    Type* a = type_check_expr(ctx, cases);
+    Type* b = type_check_expr(ctx, default_case);
+
+    if (!is_same_type(a, b)) {
+        error("[type_missmatch] %s != %s", type_to_str(a), type_to_str(b));
+    }
+
+    return a;
 }
+
 Type* type_check_extern(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
-    expr->type = expr->Extern.type;
-    return NULL;
+    return expr->Extern.type;
 }
 Type* type_check_struct(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
     LIST_FOREACH(expr->Struct.type->Struct.members) {
         type_check_expr(ctx, it->data);
     }
-    expr->type = expr->Struct.type;
-    return NULL;
+    return expr->Struct.type;
 }
 Type* type_check_enum(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
     LIST_FOREACH(expr->Enum.type->Enum.members) {
         type_check_expr(ctx, it->data);
     }
-    expr->type = expr->Enum.type;
-    return NULL;
+    return expr->Enum.type;
 }
 Type* type_check_function(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
 
     Type* func_type = expr->Function.type;
     AST*  func_body = expr->Function.body;
@@ -161,67 +185,50 @@ Type* type_check_function(Typer_Context* ctx, AST* expr) {
     type_check_expr(ctx, func_body);
 
     expr->type->Function.ret_type = expr->type->Function.ret_type;
+    func_body->type = expr->type->Function.ret_type;
 
     ctx->active_function = NULL;
 
-    return NULL;
+    return func_type;
 }
 Type* type_check_note(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
     return NULL;
 }
+
 Type* type_check_int(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
-    Type* t    = (Type*)map_get(ctx->symbol_table, DEFAULT_INT_TYPE_AS_STRING);
-    expr->type = t;
-    return t;
+    return (Type*)map_get(ctx->symbol_table, DEFAULT_INT_TYPE_AS_STRING);
+    ;
 }
+
 Type* type_check_float(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
-    Type* t    = (Type*)map_get(ctx->symbol_table, DEFAULT_FLOAT_TYPE_AS_STRING);
-    expr->type = t;
-    return t;
+    return (Type*)map_get(ctx->symbol_table, DEFAULT_FLOAT_TYPE_AS_STRING);
+    ;
 }
 Type* type_check_string(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
-    Type* t    = make_type_pointer(make_type_int(8, 1));
-    expr->type = t;
-    return t;
+    return make_type_pointer(make_type_int(8, 1));
 }
 Type* type_check_ident(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
-    Type* t    = (Type*)map_get(ctx->symbol_table, expr->Ident.name);
-    expr->type = t;
-    return t;
+    return (Type*)map_get(ctx->symbol_table, expr->Ident.name);
 }
 Type* type_check_call(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
     char* callee = expr->Call.callee;
     List* args   = expr->Call.args;
-
     Type* func_t = (Type*)map_get(ctx->symbol_table, callee);
-
     LIST_FOREACH(args) {
         type_check_expr(ctx, it->data);
     }
-
-    expr->type = func_t;
-
-    // temp
-    /* Typecheck the args */
-    assert(args);
-
     return func_t;
 }
 Type* type_check_unary(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
     Token_Kind op      = expr->Unary.op;
     AST*       operand = expr->Unary.operand;
 
+    Type* res = NULL;
     switch (op) {
     case TOKEN_DOT: {
         if (ctx->expected_type->kind == TYPE_ENUM) {
             Type* enum_t = ctx->expected_type;
+            res          = enum_t;
             assert(operand->kind == AST_IDENT);
             LIST_FOREACH(enum_t->Enum.members) {
                 AST* mem = (AST*)it->data;
@@ -232,25 +239,26 @@ Type* type_check_unary(Typer_Context* ctx, AST* expr) {
             }
         }
     } break;
-    default: type_check_expr(ctx, operand); break;
+    default: res = type_check_expr(ctx, operand); break;
     }
 
-    return NULL;
+    return res;
 }
 Type* type_check_binary(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
-    AST* lhs = expr->Binary.lhs;
-    AST* rhs = expr->Binary.rhs;
-    type_check_expr(ctx, lhs);
-    type_check_expr(ctx, rhs);
 
-    // We assume they are the same type
-    expr->type = lhs->type;
+    AST*  lhs = expr->Binary.lhs;
+    AST*  rhs = expr->Binary.rhs;
 
-    return NULL;
+    Type* a   = type_check_expr(ctx, lhs);
+    Type* b   = type_check_expr(ctx, rhs);
+
+    if (!is_same_type(a, b)) {
+        error("[type_missmatch] %s -> %s != %s ", ast_to_str(expr), type_to_str(a), type_to_str(b));
+    }
+
+    return lhs->type;
 }
 Type* type_check_variable_decl(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
     char* name            = expr->Variable_Decl.name;
     Type* type            = expr->Variable_Decl.type;
     AST*  assignment_expr = expr->Variable_Decl.value;
@@ -271,35 +279,27 @@ Type* type_check_variable_decl(Typer_Context* ctx, AST* expr) {
         }
     }
     ctx->expected_type = type;
-    expr->type         = type;
 
     map_set_overwrite(ctx->symbol_table, name, type);
 
-    return NULL;
+    return type;
 }
 Type* type_check_constant_decl(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
-    type_check_expr(ctx, expr->Constant_Decl.value);
-    expr->type = expr->Constant_Decl.value->type;
-    return NULL;
+    return type_check_expr(ctx, expr->Constant_Decl.value);
 }
 Type* type_check_block(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
     List* stmts = expr->Block.stmts;
     LIST_FOREACH(stmts) {
-        AST* stmt = (AST*)it->data;
-        type_check_expr(ctx, stmt);
+        type_check_expr(ctx, it->data);
     }
     return NULL;
 }
 Type* type_check_subscript(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
     type_check_expr(ctx, expr->Subscript.load);
     type_check_expr(ctx, expr->Subscript.sub);
     return NULL;
 }
 Type* type_check_field_access(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
     char* type_name  = expr->Field_Access.load->Ident.name;
     char* field_name = expr->Field_Access.field;
     warning("field: %s type: %s", field_name, type_name);
@@ -321,7 +321,6 @@ Type* type_check_field_access(Typer_Context* ctx, AST* expr) {
     return NULL;
 }
 Type* type_check_if(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
     AST* cond       = expr->If.cond;
     AST* then_block = expr->If.then_block;
     AST* else_block = expr->If.else_block;
@@ -332,7 +331,6 @@ Type* type_check_if(Typer_Context* ctx, AST* expr) {
     return NULL;
 }
 Type* type_check_for(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
     type_check_expr(ctx, expr->For.init);
     type_check_expr(ctx, expr->For.cond);
     type_check_expr(ctx, expr->For.step);
@@ -340,50 +338,37 @@ Type* type_check_for(Typer_Context* ctx, AST* expr) {
     return NULL;
 }
 Type* type_check_while(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
     type_check_expr(ctx, expr->While.cond);
     type_check_expr(ctx, expr->While.then_block);
     return NULL;
 }
+
 Type* type_check_return(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
-
     AST* ret_expr = expr->Return.expr;
-    type_check_expr(ctx, ret_expr);
-    expr->type = ret_expr->type;
-
+    Type *t = type_check_expr(ctx, ret_expr);
     assert(ctx->active_function);
-
-    ctx->active_function->Function.type->Function.ret_type = expr->type;
-    ctx->active_function->Function.body->type              = expr->type;
-    return NULL;
+    ctx->active_function->Function.type->Function.ret_type = t;
+    ctx->active_function->Function.body->type              = t;
+    return t;
 }
+
 Type* type_check_defer(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
-    type_check_expr(ctx, expr->Defer.expr);
-    return NULL;
+    return type_check_expr(ctx, expr->Defer.expr);;
 }
 Type* type_check_break(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
-    type_check_expr(ctx, expr->Break.expr);
-    return NULL;
+    return type_check_expr(ctx, expr->Break.expr);
 }
 Type* type_check_continue(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
-    type_check_expr(ctx, expr->Continue.expr);
-    return NULL;
+    return type_check_expr(ctx, expr->Continue.expr);;
 }
 Type* type_check_cast(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
     UNFINISHED;
     return NULL;
 }
 
 Type* type_check_is(Typer_Context* ctx, AST* expr) {
-    DEBUG_START;
     type_check_expr(ctx, expr->Is.body);
     type_check_expr(ctx, expr->Is.expr);
-    warning("BODY ::: %s", ast_to_str(expr->Is.body));
-    warning("EXPR ::: %s", ast_to_str(expr->Is.expr));
+    UNFINISHED;
     return NULL;
 }

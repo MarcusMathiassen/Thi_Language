@@ -187,7 +187,7 @@ char* ast_to_str(AST* expr) {
         string str = make_string("{");
         LIST_FOREACH(expr->Block.stmts) {
             AST* stmt = (AST*)it->data;
-            append_string_f(&str, "%s\n", ast_to_str(stmt));
+            append_string_f(&str, "%s; ", ast_to_str(stmt));
         }
         append_string(&str, "}");
         return str.c_str;

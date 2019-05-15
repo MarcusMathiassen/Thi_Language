@@ -8,6 +8,11 @@ void info(char* fmt, ...);
 void warning(char* fmt, ...);
 void success(char* fmt, ...);
 void error(char* fmt, ...);
+
+void info_no_newline(char* fmt, ...);
+void warning_no_newline(char* fmt, ...);
+void success_no_newline(char* fmt, ...);
+void error_no_newline(char* fmt, ...);
 //------------------------------------------------------------------------------
 //                               File Functions
 //------------------------------------------------------------------------------

@@ -21,7 +21,7 @@
     // info("%s: %s", __func__, token_to_str(ctx->curr_tok));                  \
     assert(ctx);
 
-#define UNARY_OP_COUNT 7
+#define UNARY_OP_COUNT 8
 Token_Kind unary_ops[UNARY_OP_COUNT] = {
     TOKEN_BANG,
     THI_SYNTAX_POINTER,
@@ -30,6 +30,7 @@ Token_Kind unary_ops[UNARY_OP_COUNT] = {
     TOKEN_MINUS,
     TOKEN_TILDE,
     TOKEN_DOT,
+    TOKEN_SIZEOF
 };
 
 //------------------------------------------------------------------------------
@@ -169,7 +170,7 @@ AST* parse_primary(Parser_Context* ctx) {
     case TOKEN_DOT_DOT_DOT: eat(ctx); return make_ast_var_args(ctx->curr_tok);
     case TOKEN_TRUE:        eat(ctx); return make_ast_int(ctx->curr_tok, 1);
     case TOKEN_FALSE:       eat(ctx); return make_ast_int(ctx->curr_tok, 0);
-    case TOKEN_SIZEOF:      return parse_sizeof(ctx);
+    // case TOKEN_SIZEOF:      return parse_sizeof(ctx);
     case TOKEN_CAST:        return parse_cast(ctx);
     case TOKEN_IDENTIFIER:  return parse_identifier(ctx);
     case TOKEN_DOLLAR_SIGN: return parse_note(ctx);
@@ -612,6 +613,7 @@ AST* parse_unary(Parser_Context* ctx) {
             }
         }
     }
+
     // If the current token is not an operator, it must be a primary expression.
     return unary ? unary : parse_postfix(ctx);
 }

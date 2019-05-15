@@ -1,9 +1,10 @@
 
+
 main(argc: int, argv: char**)
+    v: v2
 
-    struct v2
-        x: s32 = 0
-        y: s32 = 0
+    return sizeof 3
 
-    return sizeof(v2)
-
+struct v2
+    x: s32 = 0
+    y: s32 = 0

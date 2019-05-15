@@ -45,9 +45,8 @@ s64 get_size_of_underlying_type(Type* type) {
 }
 
 bool is_same_type(Type* a, Type* b) {
-    char* an = get_type_name(a);
-    char* bn = get_type_name(b);
-    warning("%s %s", an, bn);
+    char* an = type_to_str(a);
+    char* bn = type_to_str(b);
     return strcmp(an, bn) == 0;
 }
 
@@ -55,6 +54,7 @@ char* get_type_name(Type* type) {
     if (!type) return "---";
     switch (type->kind) {
     default: error("unhandled case: %s", type_kind_to_str(type->kind));
+    case TYPE_INT: return "int";
     case TYPE_VOID: return "void";
     case TYPE_UNRESOLVED: return type->Unresolved.name;
     case TYPE_POINTER: {
@@ -153,6 +153,7 @@ char* type_to_str(Type* type) {
     case TYPE_FLOAT: return strf("f%d", type->Float.bytes * 8);
     case TYPE_STRING: return strf("\"\", %d", type->String.len);
     case TYPE_STRUCT: {
+        return type->Struct.name; // TODO(marcus): should we do Simplified or Complex?
         char* s = strf("%s\n", type->Struct.name);
         LIST_FOREACH(type->Struct.members) {
             AST* mem = (AST*)it->data;
@@ -162,6 +163,7 @@ char* type_to_str(Type* type) {
     };
 
     case TYPE_ENUM: {
+        return type->Enum.name; // TODO(marcus): should we do Simplified or Complex?
         char* s = strf("%s\n", type->Enum.name);
         LIST_FOREACH(type->Enum.members) {
             AST* mem = (AST*)it->data;

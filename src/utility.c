@@ -55,6 +55,49 @@ void error(char* fmt, ...) {
     exit(1);
 }
 
+
+void info_no_newline(char* fmt, ...) {
+#ifndef NDEBUG
+    assert(fmt);
+    va_list args;
+    va_start(args, fmt);
+    printf("%s", RGB_GRAY);
+    vprintf(fmt, args);
+    printf(RESET);
+    va_end(args);
+#endif
+}
+
+void warning_no_newline(char* fmt, ...) {
+    assert(fmt);
+    va_list args;
+    va_start(args, fmt);
+    printf("%s", YELLOW);
+    vprintf(fmt, args);
+    printf(RESET);
+    va_end(args);
+}
+
+void success_no_newline(char* fmt, ...) {
+    assert(fmt);
+    va_list args;
+    va_start(args, fmt);
+    printf("%s", GREEN);
+    vprintf(fmt, args);
+    printf(RESET);
+    va_end(args);
+}
+
+void error_no_newline(char* fmt, ...) {
+    assert(fmt);
+    va_list args;
+    va_start(args, fmt);
+    printf("%s", RED);
+    vprintf(fmt, args);
+    printf(RESET);
+    va_end(args);
+    exit(1);
+}
 //------------------------------------------------------------------------------
 //                               File Utility Functions
 //------------------------------------------------------------------------------
