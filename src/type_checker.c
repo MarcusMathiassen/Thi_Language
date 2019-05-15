@@ -13,11 +13,11 @@
 //     info_no_newline("%s: %s", give_unique_color((char*)__func__), wrap_with_colored_parens(ast_to_str(expr))); \
     // assert(expr);
 
-#define DEBUG_START                                                                                            \
+#define DEBUG_START \
     // info_no_newline("%s: %s", give_unique_color(ast_kind_to_str(expr->kind)), wrap_with_colored_parens(ast_to_str(expr))); \
     assert(expr);
 
-#define DEBUG_END                                               \
+#define DEBUG_END \
     // info(" -> %s", give_unique_color(type_to_str(expr->type))); \
     // assert(expr->type);
 
@@ -190,7 +190,7 @@ Type* type_check_function(Typer_Context* ctx, AST* expr) {
     type_check_expr(ctx, func_body);
 
     expr->type->Function.ret_type = expr->type->Function.ret_type;
-    func_body->type = expr->type->Function.ret_type;
+    func_body->type               = expr->type->Function.ret_type;
 
     ctx->active_function = NULL;
 
@@ -249,11 +249,11 @@ Type* type_check_unary(Typer_Context* ctx, AST* expr) {
 }
 Type* type_check_binary(Typer_Context* ctx, AST* expr) {
 
-    AST*  lhs = expr->Binary.lhs;
-    AST*  rhs = expr->Binary.rhs;
+    AST* lhs = expr->Binary.lhs;
+    AST* rhs = expr->Binary.rhs;
 
-    Type* a   = type_check_expr(ctx, lhs);
-    Type* b   = type_check_expr(ctx, rhs);
+    Type* a = type_check_expr(ctx, lhs);
+    Type* b = type_check_expr(ctx, rhs);
 
     if (!is_same_type(a, b)) {
         error("[type_missmatch] %s -> %s != %s ", ast_to_str(expr), type_to_str(a), type_to_str(b));
@@ -304,12 +304,12 @@ Type* type_check_subscript(Typer_Context* ctx, AST* expr) {
 }
 
 char* get_name_of_member(AST* mem) {
-    switch(mem->kind) {
-        case AST_IDENT: return mem->Ident.name;
-        case AST_VARIABLE_DECL: return mem->Variable_Decl.name;
-        case AST_CONSTANT_DECL: return mem->Constant_Decl.name;
-        case AST_FUNCTION: return mem->Function.type->Function.name;
-        default: error("unhandled %s case %d", give_unique_color((char*)__func__), ast_kind_to_str(mem->kind));
+    switch (mem->kind) {
+    case AST_IDENT: return mem->Ident.name;
+    case AST_VARIABLE_DECL: return mem->Variable_Decl.name;
+    case AST_CONSTANT_DECL: return mem->Constant_Decl.name;
+    case AST_FUNCTION: return mem->Function.type->Function.name;
+    default: error("unhandled %s case %d", give_unique_color((char*)__func__), ast_kind_to_str(mem->kind));
     }
 }
 
@@ -323,39 +323,39 @@ Type* type_check_field_access(Typer_Context* ctx, AST* expr) {
     // Type* t = map_get(ctx->symbol_table, type_name);
 
     info("looking for %s in %s", field_name, type_to_str(t));
-    Type *res = NULL;
-    switch(t->kind) {
-        case TYPE_ENUM: {
-            LIST_FOREACH(t->Enum.members) {
-                AST* mem = it->data;
-                info_no_newline("on %s", ast_to_str(mem));
-                if (strcmp(mem->Constant_Decl.name, field_name) == 0) {
-                    info("found it!");
-                    ast_replace(expr, mem->Constant_Decl.value);
-                    res = mem->type;
-                    break;
-                }
+    Type* res = NULL;
+    switch (t->kind) {
+    case TYPE_ENUM: {
+        LIST_FOREACH(t->Enum.members) {
+            AST* mem = it->data;
+            info_no_newline("on %s", ast_to_str(mem));
+            if (strcmp(mem->Constant_Decl.name, field_name) == 0) {
+                info("found it!");
+                ast_replace(expr, mem->Constant_Decl.value);
+                res = mem->type;
+                break;
             }
-        } break;
-        case TYPE_STRUCT: {
-            LIST_FOREACH(t->Struct.members) {
-                AST* mem = it->data;
-                info_no_newline("on %s", ast_to_str(mem));
-                char* name = get_name_of_member(mem);
-                if (strcmp(name, field_name) == 0) {
-                    info("found it!");
-                    info("getting offset to '%s' in type '%s'", name, type_to_str(t));
-                    s64 offset = get_offset_in_struct_to_field(t, field_name);
+        }
+    } break;
+    case TYPE_STRUCT: {
+        LIST_FOREACH(t->Struct.members) {
+            AST* mem = it->data;
+            info_no_newline("on %s", ast_to_str(mem));
+            char* name = get_name_of_member(mem);
+            if (strcmp(name, field_name) == 0) {
+                info("found it!");
+                info("getting offset to '%s' in type '%s'", name, type_to_str(t));
+                s64 offset = get_offset_in_struct_to_field(t, field_name);
 
-                    AST* stack_ref = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, make_ast_ident(expr->t, type_name));
-                    expr = make_ast_binary(expr->t, TOKEN_PLUS, stack_ref, make_ast_int(expr->t, offset));
-                    expr = make_ast_unary(expr->t, THI_SYNTAX_POINTER, expr);
-//                turns it into this ->  *(&v + 0)
-                    res = mem->type;
-                    break;
-                }
+                AST* stack_ref = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, make_ast_ident(expr->t, type_name));
+                expr           = make_ast_binary(expr->t, TOKEN_PLUS, stack_ref, make_ast_int(expr->t, offset));
+                expr           = make_ast_unary(expr->t, THI_SYNTAX_POINTER, expr);
+                //                turns it into this ->  *(&v + 0)
+                res = mem->type;
+                break;
             }
-        } break;
+        }
+    } break;
     }
 
     return res;
@@ -366,9 +366,9 @@ Type* type_check_if(Typer_Context* ctx, AST* expr) {
     AST* else_block = expr->If.else_block;
     type_check_expr(ctx, cond);
     ctx->expected_type = cond->type;
-    type_check_expr(ctx, then_block);
+    Type* t            = type_check_expr(ctx, then_block);
     type_check_expr(ctx, else_block);
-    return NULL;
+    return cond->type;
 }
 Type* type_check_for(Typer_Context* ctx, AST* expr) {
     type_check_expr(ctx, expr->For.init);
@@ -384,8 +384,8 @@ Type* type_check_while(Typer_Context* ctx, AST* expr) {
 }
 
 Type* type_check_return(Typer_Context* ctx, AST* expr) {
-    AST* ret_expr = expr->Return.expr;
-    Type *t = type_check_expr(ctx, ret_expr);
+    AST*  ret_expr = expr->Return.expr;
+    Type* t        = type_check_expr(ctx, ret_expr);
     assert(ctx->active_function);
     ctx->active_function->Function.type->Function.ret_type = t;
     ctx->active_function->Function.body->type              = t;
@@ -393,17 +393,19 @@ Type* type_check_return(Typer_Context* ctx, AST* expr) {
 }
 
 Type* type_check_defer(Typer_Context* ctx, AST* expr) {
-    return type_check_expr(ctx, expr->Defer.expr);;
+    return type_check_expr(ctx, expr->Defer.expr);
+    ;
 }
 Type* type_check_break(Typer_Context* ctx, AST* expr) {
     return type_check_expr(ctx, expr->Break.expr);
 }
 Type* type_check_continue(Typer_Context* ctx, AST* expr) {
-    return type_check_expr(ctx, expr->Continue.expr);;
+    return type_check_expr(ctx, expr->Continue.expr);
+    ;
 }
 Type* type_check_as(Typer_Context* ctx, AST* expr) {
     type_check_expr(ctx, expr->As.expr);
-    Type *t = type_check_expr(ctx, expr->As.type_expr);
+    Type* t = type_check_expr(ctx, expr->As.type_expr);
     return t;
 }
 

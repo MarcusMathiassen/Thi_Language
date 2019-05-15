@@ -1,12 +1,25 @@
+load "includes/cstdio"
+extern strcmp(u8*, u8*) s32
 
-extern printf(u8*, ...) s32
+main(argc: int, argv: char**)
 
-main()
+    integer := 415
+    floating := 53.0
 
-    
-    integer: s32 = 415.0
-    floating: f32 = 53.0
+    v: v2
 
-    printf("%s\n", typeof integer)
+    printf("typeof argv = %s\n", typeof argv)
+    printf("typeof argc = %s\n", typeof argc)
+    printf("typeof int = %s\n", typeof int)
+    printf("typeof integer = %s\n", typeof integer)
+    printf("typeof floating = %s\n", typeof floating)
+    printf("typeof v2 = %s\n", typeof v2)
+    printf("typeof v = %s\n", typeof v)
+    printf("typeof v.x = %s\n", typeof v.x)
+    printf("typeof v.y = %s\n", typeof v.y)
 
     return 1
+
+struct v2
+    x: f32
+    y: f32
