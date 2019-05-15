@@ -166,10 +166,12 @@ void ast_query(void* query, AST* expr) {
     }
 }
 
-List* ast_find_all_of_kind(AST_Kind kind, AST* ast) {
+List* ast_find_all_of_kind(AST_Kind kind, List* ast) {
     List*             list  = make_list();
     AST_FindAll_Query query = {kind, list};
-    ast_visit(ast_query, &query, ast);
+    LIST_FOREACH(ast) {
+        ast_visit(ast_query, &query, it->data);
+    }
     return list;
 }
 
@@ -279,7 +281,7 @@ int main(int argc, char** argv) {
     //
     // Gather all variables found. ALL of them.
     List* variable_list =
-        ast_find_all_of_kind(AST_VARIABLE_DECL, ast->head->data);
+        ast_find_all_of_kind(AST_VARIABLE_DECL, ast);
     success("variables found: %d", variable_list->count);
     LIST_FOREACH(variable_list) {
         AST* expr = it->data;
@@ -289,7 +291,7 @@ int main(int argc, char** argv) {
     //
     // PASS: give type-inferred variables a type
     //
-    List* var_decls = ast_find_all_of_kind(AST_VARIABLE_DECL, ast->head->data);
+    List* var_decls = ast_find_all_of_kind(AST_VARIABLE_DECL, ast);
     LIST_FOREACH(var_decls) {
         AST* var = it->data;
         if (var->Variable_Decl.type == NULL) {
@@ -305,7 +307,7 @@ int main(int argc, char** argv) {
     //
     //  PASS: resolve all sizeof calls
     //
-    List* sizeofs = ast_find_all_of_kind(AST_SIZEOF, ast->head->data);
+    List* sizeofs = ast_find_all_of_kind(AST_SIZEOF, ast);
     success("sizeofs: %d", sizeofs->count);
     LIST_FOREACH(sizeofs) {
         AST* expr = it->data;
@@ -324,9 +326,9 @@ int main(int argc, char** argv) {
     //       References to constant variables are replaced by their constant
     //       value.
     //
-    List* idents = ast_find_all_of_kind(AST_IDENT, ast->head->data);
+    List* idents = ast_find_all_of_kind(AST_IDENT, ast);
     List* constant_decls =
-        ast_find_all_of_kind(AST_CONSTANT_DECL, ast->head->data);
+        ast_find_all_of_kind(AST_CONSTANT_DECL, ast);
     info("idents %d", idents->count);
     LIST_FOREACH(idents) {
         AST* ident = it->data;

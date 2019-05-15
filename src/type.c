@@ -232,6 +232,7 @@ char* type_to_json(Type* type) {
         result = strf("{\"%s\": {\"len\": %d}}", type_kind_to_str(type->kind), type->String.len);
     } break;
     case TYPE_STRUCT: {
+        return strf("{\"%s\": {\"name\": \"%s\"}}", type_kind_to_str(type->kind), type->Struct.name);
         string str = make_string("");
         append_string_f(&str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Struct.name);
         append_string(&str, "\"args\": [");
@@ -247,6 +248,7 @@ char* type_to_json(Type* type) {
     } break;
 
     case TYPE_ENUM: {
+        return strf("{\"%s\": {\"name\": \"%s\"}}", type_kind_to_str(type->kind), type->Enum.name);
         string str = make_string("");
         append_string_f(&str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Enum.name);
         append_string(&str, "\"args\": [");

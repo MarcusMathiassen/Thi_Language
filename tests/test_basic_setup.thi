@@ -1,10 +1,22 @@
+extern printf(u8*, ...) s32
 
-
-main(argc: int, argv: char**)
+main(argc: s32, argv: u8**)
     v: v2
 
-    return sizeof v2 * 3
+    printf("sizeof v == %d\n", sizeof v)
+    printf("sizeof v2 == %d\n", sizeof v2)
+    printf("sizeof int == %d\n", sizeof int)
+    printf("sizeof s32 == %d\n", sizeof s32)
+    printf("sizeof s64 == %d\n", sizeof s64)
+    printf("sizeof s64 * 13 / sizeof s64 == %d\n", sizeof s64 * 13 / sizeof s64)
+    printf("sizeof (argc) == %d\n", sizeof (argc))
+
+    return get(sizeof v)
+
 
 struct v2
     x: s32 = 0
     y: s32 = 0
+
+get(i: s64)
+    return i
