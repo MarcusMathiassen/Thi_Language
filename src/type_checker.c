@@ -296,38 +296,66 @@ Type* type_check_subscript(Typer_Context* ctx, AST* expr) {
     type_check_expr(ctx, expr->Subscript.sub);
     return NULL;
 }
+
+char* get_name_of_member(AST* mem) {
+    switch(mem->kind) {
+        case AST_IDENT: return mem->Ident.name;
+        case AST_VARIABLE_DECL: return mem->Variable_Decl.name;
+        case AST_CONSTANT_DECL: return mem->Constant_Decl.name;
+        case AST_FUNCTION: return mem->Function.type->Function.name;
+        default: error("unhandled %s case %d", give_unique_color((char*)__func__), ast_kind_to_str(mem->kind));
+    }
+}
+
 Type* type_check_field_access(Typer_Context* ctx, AST* expr) {
     char* type_name  = expr->Field_Access.load->Ident.name;
     char* field_name = expr->Field_Access.field;
-    warning("field: %s type: %s", field_name, type_name);
+    info("field: %s type: %s", field_name, type_name);
 
-    Type* t = map_get(ctx->symbol_table, type_name);
+    Type* t = type_check_expr(ctx, expr->Field_Access.load);
 
-    warning("looking for %s in %s", field_name, type_to_str(t));
+    // Type* t = map_get(ctx->symbol_table, type_name);
+
+    info("looking for %s in %s", field_name, type_to_str(t));
     Type *res = NULL;
     switch(t->kind) {
-        case AST_ENUM: {
+        case TYPE_ENUM: {
             LIST_FOREACH(t->Enum.members) {
                 AST* mem = it->data;
-                warning("on %s", ast_to_str(mem));
+                info_no_newline("on %s", ast_to_str(mem));
                 if (strcmp(mem->Constant_Decl.name, field_name) == 0) {
+                    info("found it!");
                     ast_replace(expr, mem->Constant_Decl.value);
                     res = mem->type;
+                    break;
                 }
             }
         } break;
-        case AST_STRUCT: {
+        case TYPE_STRUCT: {
             LIST_FOREACH(t->Struct.members) {
                 AST* mem = it->data;
-                warning("on %s", ast_to_str(mem));
-                // if (strcmp(mem->Variable_Decl.name, field_name) == 0) {
-                //     *expr      = *mem->Constant_Decl.value;
-                //     ast_replace(expr, mem->Constant_Decl.value);
-                //     res = mem->type;
-                // }
+                info_no_newline("on %s", ast_to_str(mem));
+                char* name = get_name_of_member(mem);
+                if (strcmp(name, field_name) == 0) {
+                    info("found it!");
+                    // ast_replace(expr, mem);
+
+                    // v.x == [STACK_POS(v) + OFFSET_TO_MEMBER(x)]
+                    info("getting offset to '%s' in type '%s'", name, type_to_str(t));
+                    s64 offset = get_offset_in_struct_to_field(t, field_name);
+  //                  *(&v + 0)
+                    AST* stack_ref = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, make_ast_ident(expr->t, type_name));
+                    expr = make_ast_binary(expr->t, TOKEN_PLUS, stack_ref, make_ast_int(expr->t, offset));
+                    expr = make_ast_unary(expr->t, THI_SYNTAX_POINTER, expr);
+                    // error("%s", ast_to_str(expr));
+                    res = mem->type;
+                    break;
+                }
             }
         } break;
     }
+
+
 
     return res;
 }

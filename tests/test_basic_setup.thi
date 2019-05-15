@@ -1,20 +1,27 @@
 extern printf(u8*, ...) s32
 
-main(argc: s32, argv: u8**) 
+main(argc: s32, argv: u8**)
+
     v: v2
 
-    printf("sizeof v == %d\n", sizeof v)
-    printf("sizeof v2 == %d\n", sizeof v2)
-    printf("sizeof int == %d\n", sizeof int)
-    printf("sizeof s32 == %d\n", sizeof s32)
-    printf("sizeof s64 == %d\n", sizeof s64)
-    printf("sizeof s64 * 13 / sizeof s64 == %d\n", sizeof s64 * 13 / sizeof s64)
-    printf("sizeof (argc) == %d\n", sizeof (argc))
+    v.x = 6
+    v.y = 56 
 
-    return square( sizeof v )
+    i := 3
 
-square(x: s64) => x * x
+    v.z.z = 43
+
+    printf("v.x = %d\n", v.x)
+    printf("v.y = %d\n", v.y)
+    printf("v.z.z = %d\n", v.z.z)
+
+
+    return v.x
 
 struct v2
-    x: s32
-    y: s32
+    x: s64
+    y: s64
+    z: child
+
+struct child
+    z: s64
