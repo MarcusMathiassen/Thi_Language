@@ -40,7 +40,7 @@ main()
     running := true
 
 
-    mode := Mode.dark
+    #mode := Mode.dark
 
     while running
 
@@ -48,17 +48,17 @@ main()
         g := 0.0
         b := 1.0
 
-        if glfwGetKey(window, GLFW_KEY_M) is GLFW_PRESS mode = (mode == Mode.light ? Mode.dark : Mode.light)
+        #if glfwGetKey(window, GLFW_KEY_M) is GLFW_PRESS mode = (mode == Mode.light ? Mode.dark : Mode.light)
 
-        if mode
-            is Mode.dark
-                r = 0.0
-                g = 0.0
-                b = 0.0
-            is Mode.light
-                r = 1.0
-                g = 1.0
-                b = 1.0
+        #if mode
+        #    is Mode.dark
+        #        r = 0.0
+        #        g = 0.0
+        #        b = 0.0
+        #    is Mode.light
+        #        r = 1.0
+        #        g = 1.0
+        #        b = 1.0
 
         glClearColor(r, g, b, 1.0)
 

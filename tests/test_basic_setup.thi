@@ -11,8 +11,10 @@ main(argc: s32, argv: u8**)
     printf("sizeof s64 * 13 / sizeof s64 == %d\n", sizeof s64 * 13 / sizeof s64)
     printf("sizeof (argc) == %d\n", sizeof (argc))
 
-    return get(sizeof v)
 
+    #v.x = 0    
+
+    return get(sizeof v)
 
 struct v2
     x: s32 = 0
@@ -20,3 +22,7 @@ struct v2
 
 get(i: s64)
     return i
+
+#constant_variable_decl ::= <ident> <expr>
+#         variable_decl ::= <ident> '=' <expr>
+#         function_decl ::= <ident> <param_list/type_list> <block>?

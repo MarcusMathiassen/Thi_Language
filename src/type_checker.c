@@ -303,19 +303,33 @@ Type* type_check_field_access(Typer_Context* ctx, AST* expr) {
 
     Type* t = map_get(ctx->symbol_table, type_name);
 
-    warning("looking for %s", field_name);
-
-    LIST_FOREACH(t->Enum.members) {
-        AST* mem = it->data;
-        warning("on %s", ast_to_str(mem));
-        type_check_expr(ctx, mem);
-        if (strcmp(mem->Constant_Decl.name, field_name) == 0) {
-            *expr      = *mem->Constant_Decl.value;
-            expr->type = mem->type;
-        }
+    warning("looking for %s in %s", field_name, type_to_str(t));
+    Type *res = NULL;
+    switch(t->kind) {
+        case AST_ENUM: {
+            LIST_FOREACH(t->Enum.members) {
+                AST* mem = it->data;
+                warning("on %s", ast_to_str(mem));
+                if (strcmp(mem->Constant_Decl.name, field_name) == 0) {
+                    ast_replace(expr, mem->Constant_Decl.value);
+                    res = mem->type;
+                }
+            }
+        } break;
+        case AST_STRUCT: {
+            LIST_FOREACH(t->Struct.members) {
+                AST* mem = it->data;
+                warning("on %s", ast_to_str(mem));
+                // if (strcmp(mem->Variable_Decl.name, field_name) == 0) {
+                //     *expr      = *mem->Constant_Decl.value;
+                //     ast_replace(expr, mem->Constant_Decl.value);
+                //     res = mem->type;
+                // }
+            }
+        } break;
     }
 
-    return NULL;
+    return res;
 }
 Type* type_check_if(Typer_Context* ctx, AST* expr) {
     AST* cond       = expr->If.cond;

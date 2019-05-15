@@ -313,6 +313,9 @@ int main(int argc, char** argv) {
         AST* expr = it->data;
 
         // Get the size of the type
+        // ..expr->type would give us the size of a 'sizeof' call
+        // ..which would be an integer of 8 bytes.
+        // ..so we get the size of the underlaying expression instead.
         s64 size = get_size_of_type(expr->Sizeof.expr->type);
 
         // Transform the expr into a constant value
