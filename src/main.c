@@ -68,7 +68,7 @@ void get_all_variables(void* list, AST* expr) {
 }
 
 void constant_fold(void* ctx, AST* e) {
-    info("trying to constant fold: %s", ast_to_str(e));
+    info_no_newline("trying to constant fold: %s", ast_to_str(e));
     switch (e->kind) {
     case AST_BINARY: {
         Token_Kind op  = e->Binary.op;
@@ -311,7 +311,7 @@ int main(int argc, char** argv) {
     success("sizeofs: %d", sizeofs->count);
     LIST_FOREACH(sizeofs) {
         AST* expr = it->data;
-        
+
         // Get the size of the type
         s64 size = get_size_of_type(expr->Sizeof.expr->type);
 
