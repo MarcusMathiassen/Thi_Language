@@ -16,7 +16,6 @@ main(argc: s32, argv: u8**)
     printf("v.z.z = %d\n", v.z.z)
     printf("v.z.z + v.x = %d\n", v.z.z + v.x)
 
-
     return v.x
 
 struct v2

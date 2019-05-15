@@ -3,6 +3,7 @@ section .data
 	d0: dq `v.x = %d\n`, 0 
 	d1: dq `v.y = %d\n`, 0 
 	d2: dq `v.z.z = %d\n`, 0 
+	d3: dq `v.z.z + v.x = %d\n`, 0 
 global _main
 section .text
 _main:
@@ -65,6 +66,20 @@ _main:
 	mov rax, [rbp-4]; load
 	push rax
 	mov rax, d2; string_ref
+	push rax
+	pop rdi
+	pop rsi
+	call _printf
+	lea rax, [rbp-36]; load_lea
+	mov rax, [rbp-28]; load
+	push rax
+	lea rax, [rbp-36]; load_lea
+	lea rax, [rbp-12]; load_lea
+	mov rax, [rbp-4]; load
+	pop rcx
+	add rax, rcx
+	push rax
+	mov rax, d3; string_ref
 	push rax
 	pop rdi
 	pop rsi
