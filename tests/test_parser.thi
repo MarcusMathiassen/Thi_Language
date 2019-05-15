@@ -2,7 +2,7 @@
 #   function name mangling
 #   struct methods
 
-main()
+main(argc: int, argc: char**)  
     parser: Parser
     return 1
 
@@ -35,6 +35,7 @@ struct Parser
     isNext(kind: TokenKind) return next.kind == kind
 
     generateAST()
+        eat()
         ast := makeList()
         while !isCurr(.eof)
             stmt := parseStatement()

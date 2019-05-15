@@ -5,7 +5,8 @@
 #include "list.h"  // List
 #include "map.h"   // Map
 #include "type.h"  // Type_Ref_List
-typedef struct {
+typedef struct
+{
     List*         ast;
     Type_Ref_List unresolved_types;
     AST_Ref_List  calls;
@@ -22,6 +23,7 @@ typedef struct {
     Map*          symbols;
 } Parsed_File;
 
-Parsed_File generate_ast_from_tokens(Token_Array tokens);
+Parsed_File
+generate_ast_from_tokens(Token_Array tokens);
 
 #endif

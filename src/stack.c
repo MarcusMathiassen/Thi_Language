@@ -4,7 +4,8 @@
 #include <assert.h>
 #include <stdlib.h> // free
 
-Stack* make_stack() {
+Stack*
+make_stack() {
     Stack* s = xmalloc(sizeof(Stack));
     stack_init(s);
     return s;
@@ -17,7 +18,8 @@ void stack_free(Stack* stack) {
     while (stack_pop(stack) != NULL) {
     }
 }
-typedef struct {
+typedef struct
+{
     s32   id;
     float val;
 } Test_Type;

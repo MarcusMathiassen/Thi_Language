@@ -181,25 +181,30 @@ void* _malloc(s64 bytes, char* file, s32 line) {
     assert(bytes != 0);
     // info("malloc(%lld) called. file: %s line: %s", bytes, file, line);
     void* alloc = malloc(bytes);
-    if (!alloc) error("malloc(%lld) failed. file: %s line: %s", bytes, file, line);
+    if (!alloc)
+        error("malloc(%lld) failed. file: %s line: %s", bytes, file, line);
     return alloc;
 }
 
 void* _calloc(s64 size, s64 bytes, char* file, s32 line) {
     assert(size != 0);
     assert(bytes != 0);
-    // info("calloc(%lld, %lld) called. file: %s line: %s", size, bytes, file, line);
+    // info("calloc(%lld, %lld) called. file: %s line: %s", size, bytes, file,
+    // line);
     void* alloc = calloc(size, bytes);
-    if (!alloc) error("calloc(%lld, %lld) failed. file: %s line: %s", size, bytes, file, line);
+    if (!alloc)
+        error("calloc(%lld, %lld) failed. file: %s line: %s", size, bytes, file, line);
     return alloc;
 }
 
 void* _realloc(void* ptr, s64 bytes, char* file, s32 line) {
     assert(ptr);
     assert(bytes != 0);
-    // info("realloc(%lld, %lld) called. file: %s line: %s", (int)ptr, bytes, file, line);
+    // info("realloc(%lld, %lld) called. file: %s line: %s", (int)ptr, bytes,
+    // file, line);
     void* alloc = realloc(ptr, bytes);
-    if (!alloc) error("realloc(%lld, %lld) failed. file: %s line: %s", ptr, bytes, file, line);
+    if (!alloc)
+        error("realloc(%lld, %lld) failed. file: %s line: %s", ptr, bytes, file, line);
     return alloc;
 }
 
@@ -311,9 +316,12 @@ void utility_tests(void) {
 
     // get_file_name
     assert(strcmp(get_file_name("./b/m.thi"), "m.thi") == 0);
-    assert(strcmp(get_file_name("./b/m/hergergerg.thi"), "hergergerg.thi") == 0);
+    assert(strcmp(get_file_name("./b/m/hergergerg.thi"), "hergergerg.thi") ==
+           0);
 
     // get_file_path_from_directory
-    assert(strcmp(get_file_path_from_directory("./b/", "test.thi"), "./b/test.thi") == 0);
-    assert(strcmp(get_file_path_from_directory("./b/b/", "test.thi"), "./b/b/test.thi") == 0);
+    assert(strcmp(get_file_path_from_directory("./b/", "test.thi"),
+                  "./b/test.thi") == 0);
+    assert(strcmp(get_file_path_from_directory("./b/b/", "test.thi"),
+                  "./b/b/test.thi") == 0);
 }

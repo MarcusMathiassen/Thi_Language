@@ -4,12 +4,13 @@
 #include <ctype.h>  // atoll
 #include <stdlib.h> // xmalloc
 
-#define DEBUG_START                                                                                                    \
+#define DEBUG_START \
     // info("%s: %s", __func__, token_to_str(ctx->curr_tok));                                                             \
     assert(ctx);
 
 #define BIN_OP_COUNT 35
-struct {
+struct
+{
     Token_Kind kind;
     s32        p;
 } binop_precedence[BIN_OP_COUNT] = {
@@ -47,10 +48,11 @@ struct {
     {TOKEN_PIPE_EQ, 2},       // |=
     {TOKEN_LT_LT_EQ, 2},      // <<=
     {TOKEN_GT_GT_EQ, 2},      // >>=
-    // {TOKEN_COMMA, 1},          // ,
+                              // {TOKEN_COMMA, 1},          // ,
 };
 
-Parser_Context make_parser_context() {
+Parser_Context
+make_parser_context() {
     Parser_Context ctx;
     ctx.token_index        = 0;
     ctx.curr_tok.kind      = TOKEN_UNKNOWN;
@@ -160,7 +162,8 @@ f64 get_float(Parser_Context* ctx) {
 int get_tok_precedence(Parser_Context* ctx) {
     DEBUG_START;
     for (int i = 0; i < BIN_OP_COUNT; ++i)
-        if (binop_precedence[i].kind == ctx->curr_tok.kind) return binop_precedence[i].p;
+        if (binop_precedence[i].kind == ctx->curr_tok.kind)
+            return binop_precedence[i].p;
     return -1;
 }
 
@@ -171,7 +174,8 @@ Token next_tok(Parser_Context* ctx) {
     return ctx->tokens.data[ctx->token_index];
 }
 
-Token_Kind next_tok_kind(Parser_Context* ctx) {
+Token_Kind
+next_tok_kind(Parser_Context* ctx) {
     if (ctx->tokens.count < ctx->token_index + 1) {
         error("No next token. We're all out.");
     }

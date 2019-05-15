@@ -108,33 +108,37 @@ typedef enum {
     TOKEN_PIPE_GT,
 } Token_Kind;
 
-typedef struct {
+typedef struct
+{
     Token_Kind kind;
     char*      value;
     s64        line_pos;
     s64        col_pos;
 } Token;
 
-typedef struct {
+typedef struct
+{
     Token* data;
     s64    count;
     s64    allocated;
 } Token_Array;
 
-typedef struct {
+typedef struct
+{
     Token_Array tokens;
     s64         lines;
     s64         comments;
     f64         seconds;
 } Lexed_File;
 
-void       print_tokens(Token_Array token_array);
-void       print_token(Token token);
-char*      token_to_str(Token token);
-char*      token_to_json(Token token);
-char*      token_kind_to_str(Token_Kind kind);
-Lexed_File generate_tokens_from_source(char* source);
-void       lexer_test(void);
+void  print_tokens(Token_Array token_array);
+void  print_token(Token token);
+char* token_to_str(Token token);
+char* token_to_json(Token token);
+char* token_kind_to_str(Token_Kind kind);
+Lexed_File
+generate_tokens_from_source(char* source);
+void lexer_test(void);
 
 #define THI_SYNTAX_POINTER TOKEN_ASTERISK
 #define THI_SYNTAX_ADDRESS TOKEN_AND

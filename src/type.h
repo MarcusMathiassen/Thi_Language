@@ -25,46 +25,51 @@ typedef enum {
     TYPE_COUNT,
 } Type_Kind;
 
-typedef struct Arg {
-    char* name;
-    Type* type;
-} Arg;
-
 struct Type {
     char*     name;
     Type_Kind kind;
     union {
-        struct {
+        struct
+        {
         } Var_Args;
-        struct {
+        struct
+        {
             char* name;
         } Unresolved;
-        struct {
+        struct
+        {
             s8 bytes;
             s8 is_unsigned;
         } Int;
-        struct {
+        struct
+        {
             s8 bytes;
         } Float;
-        struct {
+        struct
+        {
             s64 len;
         } String;
-        struct {
+        struct
+        {
             Type* pointee;
         } Pointer;
-        struct {
+        struct
+        {
             Type* type;
             s32   size;
         } Array;
-        struct {
+        struct
+        {
             char* name;
             List* members;
         } Enum;
-        struct {
+        struct
+        {
             char* name;
             List* members;
         } Struct;
-        struct {
+        struct
+        {
             char* name;
             List* args;
             Type* ret_type;
@@ -73,14 +78,16 @@ struct Type {
     };
 };
 
-typedef struct {
+typedef struct
+{
     Type** data;
     s64    count;
     s64    allocated;
 } Type_Ref_List;
 
-Type_Ref_List make_type_ref_list();
-void          type_ref_list_append(Type_Ref_List* l, Type* t);
+Type_Ref_List
+make_type_ref_list();
+void type_ref_list_append(Type_Ref_List* l, Type* t);
 
 bool is_same_type(Type* a, Type* b);
 
@@ -93,18 +100,19 @@ char* type_to_str(Type* type);
 char* type_to_json(Type* type);
 char* type_kind_to_str(Type_Kind kind);
 
-Type* make_type_unresolved(char* name);
-Type* make_type_void();
-Type* make_type_int(s8 bytes, bool is_unsigned);
-Type* make_type_float(s8 bytes);
-Type* make_type_string(s64 len);
-Type* make_type_pointer(Type* pointee);
-Type* make_type_array(Type* type, s32 size);
-Type* make_type_struct(char* name, List* members);
-Type* make_type_enum(char* name, List* members);
-Type* make_type_function(char* name, List* args, Type* ret_type, bool has_var_arg);
-Type* make_type_var_args();
-
+// clang-format off
+Type*   make_type_unresolved    (char* name);
+Type*   make_type_void          ();
+Type*   make_type_int           (s8 bytes, bool is_unsigned);
+Type*   make_type_float         (s8 bytes);
+Type*   make_type_string        (s64 len);
+Type*   make_type_pointer       (Type* pointee);
+Type*   make_type_array         (Type* type, s32 size);
+Type*   make_type_struct        (char* name, List* members);
+Type*   make_type_enum          (char* name, List* members);
+Type*   make_type_function      (char* name, List* args, Type* ret_type, bool has_var_arg);
+Type*   make_type_var_args      ();
+// clang-format on
 s64 type_function_get_arg_count(Type* type);
 s64 type_array_get_count(Type* type);
 

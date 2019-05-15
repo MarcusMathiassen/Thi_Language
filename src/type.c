@@ -82,13 +82,15 @@ s64 get_size_of_type(Type* type) {
     case TYPE_FLOAT: return type->Float.bytes;
     case TYPE_STRING: return type->String.len;
     case TYPE_POINTER: return 8;
-    case TYPE_ARRAY: return get_size_of_type(type->Array.type) * type->Array.size;
+    case TYPE_ARRAY:
+        return get_size_of_type(type->Array.type) * type->Array.size;
     case TYPE_STRUCT: {
         s64 accum_size = 0;
         if (type->Struct.members) {
             LIST_FOREACH(type->Struct.members) {
                 AST* mem = (AST*)it->data;
-                if (mem->kind != AST_FUNCTION) accum_size += get_size_of_type(mem->Variable_Decl.type);
+                if (mem->kind != AST_FUNCTION)
+                    accum_size += get_size_of_type(mem->Variable_Decl.type);
             }
         }
         return accum_size;
@@ -102,7 +104,9 @@ s64 get_size_of_type(Type* type) {
         }
         return accum_size;
     }
-    default: warning("get_size_of_type kind %s not implemented.", type_kind_to_str(type->kind));
+    default:
+        warning("get_size_of_type kind %s not implemented.",
+                type_kind_to_str(type->kind));
     }
     return 0;
 }
@@ -141,8 +145,10 @@ char* type_to_str(Type* type) {
     case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
     case TYPE_VOID: return "void";
     case TYPE_UNRESOLVED: return strf("PLACEHOLDER(%s)", type->Unresolved.name);
-    case TYPE_ARRAY: return strf("%s[%d]", type_to_str(type->Array.type), type->Array.size);
-    case TYPE_INT: return strf(type->Int.is_unsigned ? "u%d" : "s%d", type->Int.bytes * 8);
+    case TYPE_ARRAY:
+        return strf("%s[%d]", type_to_str(type->Array.type), type->Array.size);
+    case TYPE_INT:
+        return strf(type->Int.is_unsigned ? "u%d" : "s%d", type->Int.bytes * 8);
     case TYPE_POINTER: return strf("%s*", type_to_str(type->Pointer.pointee));
     case TYPE_FLOAT: return strf("f%d", type->Float.bytes * 8);
     case TYPE_STRING: return strf("\"\", %d", type->String.len);
@@ -177,10 +183,13 @@ char* type_to_str(Type* type) {
             arg_index += 1;
         }
         append_string(&str, ")");
-        if (type->Function.ret_type) append_string_f(&str, " %s", type_to_str(type->Function.ret_type));
+        if (type->Function.ret_type)
+            append_string_f(&str, " %s", type_to_str(type->Function.ret_type));
         return str.c_str;
     }
-    default: warning("type_to_str not implemented kind %d", type_kind_to_str(type->kind));
+    default:
+        warning("type_to_str not implemented kind %d",
+                type_kind_to_str(type->kind));
     }
     return NULL;
 }
@@ -194,18 +203,25 @@ char* type_to_json(Type* type) {
     case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
     case TYPE_VOID: return "void";
     case TYPE_UNRESOLVED: {
-        result = strf("{\"%s\": {\"name\": \"%s\"}}", type_kind_to_str(type->kind), type->Unresolved.name);
+        result = strf("{\"%s\": {\"name\": \"%s\"}}",
+                      type_kind_to_str(type->kind),
+                      type->Unresolved.name);
     } break;
     case TYPE_ARRAY: {
-        result = strf("{\"%s\": {\"type\": %s, \"size\": %d}}", type_kind_to_str(type->kind),
-                      type_to_json(type->Array.type), type->Array.size);
+        result = strf("{\"%s\": {\"type\": %s, \"size\": %d}}",
+                      type_kind_to_str(type->kind),
+                      type_to_json(type->Array.type),
+                      type->Array.size);
     } break;
     case TYPE_INT: {
-        result = strf("{\"%s\": {\"bytes\": %d, \"is_signed\":%s}}", type_kind_to_str(type->kind), type->Int.bytes,
+        result = strf("{\"%s\": {\"bytes\": %d, \"is_signed\":%s}}",
+                      type_kind_to_str(type->kind),
+                      type->Int.bytes,
                       type->Int.is_unsigned ? "true" : "false");
     } break;
     case TYPE_POINTER: {
-        result = strf("{\"%s\": {\"pointee\": %s}}", type_kind_to_str(type->kind), type_to_json(type->Pointer.pointee));
+        result =
+            strf("{\"%s\": {\"pointee\": %s}}", type_kind_to_str(type->kind), type_to_json(type->Pointer.pointee));
     } break;
     case TYPE_FLOAT: {
         result = strf("{\"%s\": {\"bytes\": %d}}", type_kind_to_str(type->kind), type->Float.bytes);
@@ -261,13 +277,16 @@ char* type_to_json(Type* type) {
         append_string(&str, strf("], \"ret_type\":%s}}", type_to_json(type->Function.ret_type)));
         result = str.c_str;
     }
-    default: warning("type_to_json not implemented kind %d", type_kind_to_str(type->kind));
+    default:
+        warning("type_to_json not implemented kind %d",
+                type_kind_to_str(type->kind));
     }
     assert(result);
     return result;
 }
 
-Type_Ref_List make_type_ref_list() {
+Type_Ref_List
+make_type_ref_list() {
     Type_Ref_List l;
     l.count     = 0;
     l.allocated = TYPE_REF_LIST_STARTING_ALLOC;

@@ -9,12 +9,14 @@
 #include "type.h"
 #include "typedefs.h"
 
-typedef struct {
+typedef struct
+{
     f64   ms;
     char* desc;
 } Timer;
 
-typedef struct {
+typedef struct
+{
     bool detailed_print;
     bool debug_mode;
     bool enable_constant_folding;

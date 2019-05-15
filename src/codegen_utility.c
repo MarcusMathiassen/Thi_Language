@@ -16,9 +16,11 @@
 #include <stdlib.h>  // free
 #include <string.h>  // strcmp
 
-#define UNREACHABLE error("%s:%s:%s unreachable.", __func__, __FILE__, __LINE__);
+#define UNREACHABLE \
+    error("%s:%s:%s unreachable.", __func__, __FILE__, __LINE__);
 
-Codegen_Context make_codegen_context() {
+Codegen_Context
+make_codegen_context() {
     Codegen_Context ctx;
     ctx.scope_stack                    = make_stack();
     ctx.current_function               = NULL;
@@ -200,7 +202,9 @@ char* get_result_reg_2(Type* type) {
     assert(type);
     s64 bytes = get_size_of_type(type);
     switch (type->kind) {
-    default: error("get_result_reg unhandled case: %s", type_kind_to_str(type->kind));
+    default:
+        error("get_result_reg unhandled case: %s",
+              type_kind_to_str(type->kind));
     case TYPE_FLOAT:
         switch (bytes) {
         case 4: return "xmm1";
@@ -232,7 +236,9 @@ char* get_result_reg(Type* type) {
     case TYPE_ENUM:    // fallthrough
     case TYPE_VOID:    // fallthrough
     case TYPE_INT: return get_reg(get_rax_reg_of_byte_size(bytes, 'a'));
-    default: error("get_result_reg unhandled case: %s", type_kind_to_str(type->kind));
+    default:
+        error("get_result_reg unhandled case: %s",
+              type_kind_to_str(type->kind));
     }
 
     UNREACHABLE;
@@ -255,7 +261,8 @@ char* get_move_op(Type* type) {
     assert(type);
     s64 bytes = get_size_of_type(type);
     switch (type->kind) {
-    default: error("get_move_op unhandled case: %s", type_kind_to_str(type->kind));
+    default:
+        error("get_move_op unhandled case: %s", type_kind_to_str(type->kind));
     case TYPE_FLOAT:
         switch (bytes) {
         case 4: return "movss";
@@ -275,7 +282,9 @@ void alloc_variable(Codegen_Context* ctx, Value* variable) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     s64 size = get_size_of_value(variable);
-    info("Allocating variable '%s', type '%s', size '%lld' ", variable->Variable.name, type_to_str(variable->type),
+    info("Allocating variable '%s', type '%s', size '%lld' ",
+         variable->Variable.name,
+         type_to_str(variable->type),
          size);
     ctx->stack_index += size;
 }
@@ -284,7 +293,9 @@ void dealloc_variable(Codegen_Context* ctx, Value* variable) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     s64 size = get_size_of_value(variable);
-    info("Deallocating variable '%s', type '%s', size '%lld' ", variable->Variable.name, type_to_str(variable->type),
+    info("Deallocating variable '%s', type '%s', size '%lld' ",
+         variable->Variable.name,
+         type_to_str(variable->type),
          size);
     ctx->stack_index -= size;
     assert(ctx->stack_index >= 0);
@@ -303,7 +314,8 @@ void pop_scope(Codegen_Context* ctx) {
     }
 }
 
-Value* get_variable_in_scope(Scope* scope, char* name) {
+Value*
+get_variable_in_scope(Scope* scope, char* name) {
     assert(scope);
     assert(name);
     LIST_FOREACH(scope->local_variables) {
@@ -313,7 +325,8 @@ Value* get_variable_in_scope(Scope* scope, char* name) {
     return NULL;
 }
 
-Value* get_variable(Codegen_Context* ctx, char* name) {
+Value*
+get_variable(Codegen_Context* ctx, char* name) {
     assert(name);
     STACK_FOREACH(ctx->scope_stack) {
         Scope* scope = (Scope*)it->data;
@@ -355,8 +368,14 @@ void emit_cast_int_to_int(Codegen_Context* ctx, char* reg, Type* type) {
     bool usig      = type->Int.is_unsigned;
     s8   type_size = get_size_of_type(type);
     switch (type_size) {
-    case 1: usig ? emit(ctx, "movzbq %s, al", reg) : emit(ctx, "movsbq %s, al", reg); break;
-    case 2: usig ? emit(ctx, "movzwq %s, ax", reg) : emit(ctx, "movswq %s, ax", reg); break;
+    case 1:
+        usig ? emit(ctx, "movzbq %s, al", reg)
+             : emit(ctx, "movsbq %s, al", reg);
+        break;
+    case 2:
+        usig ? emit(ctx, "movzwq %s, ax", reg)
+             : emit(ctx, "movswq %s, ax", reg);
+        break;
     case 4:
         usig ? emit(ctx, "mov %s, %s", reg, reg) : emit(ctx, "cltq");
         break;
@@ -412,7 +431,9 @@ void emit_store(Codegen_Context* ctx, Value* variable) {
         emit(ctx, "%s [rax], %s; store", mov_op, reg);
         break;
     }
-    default: emit(ctx, "%s [rbp-%lld], %s; store", mov_op, stack_pos, reg); break;
+    default:
+        emit(ctx, "%s [rbp-%lld], %s; store", mov_op, stack_pos, reg);
+        break;
     }
 }
 
@@ -426,8 +447,12 @@ void emit_load(Codegen_Context* ctx, Value* variable) {
     char* mov_op = get_move_op(variable->type);
     switch (variable->type->kind) {
     case TYPE_STRUCT:
-    case TYPE_ARRAY: emit(ctx, "lea rax, [rbp-%lld]; load_lea", stack_pos); break;
-    default: emit(ctx, "%s %s, [rbp-%lld]; load", mov_op, reg, stack_pos); break;
+    case TYPE_ARRAY:
+        emit(ctx, "lea rax, [rbp-%lld]; load_lea", stack_pos);
+        break;
+    default:
+        emit(ctx, "%s %s, [rbp-%lld]; load", mov_op, reg, stack_pos);
+        break;
     }
 }
 
@@ -551,7 +576,8 @@ s8 get_next_available_xmm_reg_fitting(Codegen_Context* ctx) {
     case 7: res = XMM15; break;
     }
 
-    if (ctx->next_available_xmm_reg_counter == 7) ctx->next_available_xmm_reg_counter = 0;
+    if (ctx->next_available_xmm_reg_counter == 7)
+        ctx->next_available_xmm_reg_counter = 0;
     ++ctx->next_available_xmm_reg_counter;
     return res;
 }
@@ -609,7 +635,8 @@ s8 get_next_available_rax_reg_fitting(Codegen_Context* ctx, s64 size) {
         break;
     }
 
-    if (ctx->next_available_rax_reg_counter == 5) ctx->next_available_rax_reg_counter = 0;
+    if (ctx->next_available_rax_reg_counter == 5)
+        ctx->next_available_rax_reg_counter = 0;
     ++ctx->next_available_rax_reg_counter;
     return res;
 }
@@ -686,7 +713,9 @@ s64 get_all_alloca_in_block(AST* block) {
         AST* stmt = (AST*)it->data;
         switch (stmt->kind) {
         default: break;
-        case AST_VARIABLE_DECL: sum += get_size_of_type(stmt->Variable_Decl.type); break;
+        case AST_VARIABLE_DECL:
+            sum += get_size_of_type(stmt->Variable_Decl.type);
+            break;
         case AST_BLOCK: sum += get_all_alloca_in_block(stmt); break;
         }
     }

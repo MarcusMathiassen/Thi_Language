@@ -22,8 +22,10 @@ struct List {
     s64        count;
 };
 
-#define LIST_FOREACH_REVERSE(list) for (List_Node* it = (list->tail); (it); (it) = (it)->prev)
-#define LIST_FOREACH(list) for (List_Node* it = (list->head); (it); (it) = (it)->next)
+#define LIST_FOREACH_REVERSE(list) \
+    for (List_Node* it = (list->tail); (it); (it) = (it)->prev)
+#define LIST_FOREACH(list) \
+    for (List_Node* it = (list->head); (it); (it) = (it)->next)
 
 List* make_list(void);
 void  list_free(List* l);

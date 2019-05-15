@@ -9,7 +9,8 @@
 #include <stdlib.h>  // free
 #include <string.h>  // memcpy
 
-string make_string(char* str) {
+string
+make_string(char* str) {
     assert(str);
     string s;
     s64    str_len = strlen(str);
@@ -20,7 +21,8 @@ string make_string(char* str) {
     return s;
 }
 
-string make_string_f(char* fmt, ...) {
+string
+make_string_f(char* fmt, ...) {
     assert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -86,6 +88,7 @@ void string_tests(void) {
     assert(strcmp(s.c_str, "Hello, Marcus Mathiasssen.") == 0);
     append_string(&s, " It's nice to see you again. How are you?");
     assert(s.len == 67);
-    assert(strcmp(s.c_str, "Hello, Marcus Mathiasssen. It's nice to see you "
-                           "again. How are you?") == 0);
+    assert(strcmp(s.c_str,
+                  "Hello, Marcus Mathiasssen. It's nice to see you "
+                  "again. How are you?") == 0);
 }

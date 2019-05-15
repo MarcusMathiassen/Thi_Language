@@ -7,7 +7,8 @@
 
 u32 hash_it(char* str);
 
-typedef struct {
+typedef struct
+{
     s32   id;
     float val;
 } Test_Type;

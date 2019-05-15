@@ -18,7 +18,8 @@ void list_free(List* l) {
     }
 }
 
-typedef struct {
+typedef struct
+{
     char* name;
     float val;
 } Test_Type;

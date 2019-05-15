@@ -1,33 +1,9 @@
-#load "includes/cstdio"
-#load "includes/cstdlib"
 
 main(argc: int, argv: char**)
-    #i := 1 + 2
 
-    #printf("'i' has the value of %d\n", i)
+    struct v2
+        x: s32 = 0
+        y: s32 = 0
 
-    #mode := Mode.light
-
-    #if mode
-    #    is Mode.light fallthrough
-    #    is Mode.dark fallthrough
-
-
-    #ptr: s64* = malloc(4)
-
-    v: v2
-
-    #ptr[0] = 1
-    #ptr[1] = 2
-    #ptr[2] = 3
-
-    #return ptr[0] + ptr[1] + ptr[2]
     return sizeof(v2)
 
-enum Mode
-    dark :: 0
-    light :: 1
-
-struct v2
-    x: s32 = 0
-    y: s32 = 0

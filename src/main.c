@@ -1,6 +1,6 @@
-#include "ast.h"     // AST, AST_Kind
-#include "codegen.h" // generate_code_from_ast
-#include "constants.h"
+#include "ast.h"          // AST, AST_Kind
+#include "codegen.h"      // generate_code_from_ast
+#include "constants.h"    // all constnats
 #include "lexer.h"        // generate_tokens_from_source, print_tokens
 #include "list.h"         // list_tests
 #include "map.h"          // map
@@ -10,15 +10,15 @@
 #include "thi.h"          // Thi
 #include "type.h"         // Type
 #include "type_checker.h" // type_checker
-#include "typedefs.h"
-#include "utility.h" // get_file_content, success, info, get_time
-#include "value.h"   // Value
-#include <assert.h>  // assert
-#include <stdio.h>   // sprintf
-#include <stdlib.h>  // free
-#include <string.h>  // strcmp
-#include <sys/ioctl.h>
-#include <unistd.h>
+#include "typedefs.h"     // u8, u16, s32, etc.
+#include "utility.h"      // get_file_content, success, info, get_time
+#include "value.h"        // Value
+#include <assert.h>       // assert
+#include <stdio.h>        // sprintf
+#include <stdlib.h>       // free
+#include <string.h>       // strcmp
+#include <sys/ioctl.h>    // NOTE(marcus): what do i use this for?
+#include <unistd.h>       // NOTE(marcus): what do i use this for?
 
 //------------------------------------------------------------------------------
 //                               Main Driver
@@ -41,7 +41,9 @@ void  maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it);
 
 void check_for_unresolved_types(void* ctx, AST* expr) {
     if (expr->type && expr->type->kind == TYPE_UNRESOLVED) {
-        error("[check_for_unresolved_types]: unresolved type found for expr: %s", ast_to_str(expr));
+        error(
+            "[check_for_unresolved_types]: unresolved type found for expr: %s",
+            ast_to_str(expr));
     }
 }
 
@@ -51,7 +53,10 @@ void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* expr) {
     case AST_LINK: return;
     }
     if (!expr->type) {
-        warning("[make_sure_all_nodes_have_a_valid_type]: missing type for expr: %s", ast_to_str(expr));
+        warning(
+            "[make_sure_all_nodes_have_a_valid_type]: missing type for "
+            "expr: %s",
+            ast_to_str(expr));
     }
 }
 
@@ -62,7 +67,6 @@ void get_all_variables(void* list, AST* expr) {
 }
 
 void constant_fold(void* ctx, AST* e) {
-
     Token t = e->t;
 
     switch (e->kind) {
@@ -76,46 +80,50 @@ void constant_fold(void* ctx, AST* e) {
             s64 lhs_v = lhs->Int.val;
             s64 rhs_v = rhs->Int.val;
             s64 value = 0;
+            // clang-format off
             switch (op) {
-            case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
-            case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
-            case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
-            case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
-            case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
-            case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
-            case TOKEN_AND: value = (lhs_v & rhs_v); break;
-            case TOKEN_PIPE: value = (lhs_v | rhs_v); break;
-            case TOKEN_LT: value = (lhs_v < rhs_v); break;
-            case TOKEN_GT: value = (lhs_v > rhs_v); break;
-            case TOKEN_GT_GT: value = (lhs_v >> rhs_v); break;
-            case TOKEN_LT_LT: value = (lhs_v << rhs_v); break;
-            case TOKEN_PERCENT: value = (lhs_v % rhs_v); break;
-            case TOKEN_HAT: value = (lhs_v ^ rhs_v); break;
-            case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
-            case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
+            case TOKEN_EQ_EQ:         value = (lhs_v == rhs_v); break;
+            case TOKEN_BANG_EQ:       value = (lhs_v != rhs_v); break;
+            case TOKEN_PLUS:          value = (lhs_v + rhs_v);  break;
+            case TOKEN_MINUS:         value = (lhs_v - rhs_v);  break;
+            case TOKEN_ASTERISK:      value = (lhs_v * rhs_v);  break;
+            case TOKEN_FWSLASH:       value = (lhs_v / rhs_v);  break;
+            case TOKEN_AND:           value = (lhs_v & rhs_v);  break;
+            case TOKEN_PIPE:          value = (lhs_v | rhs_v);  break;
+            case TOKEN_LT:            value = (lhs_v < rhs_v);  break;
+            case TOKEN_GT:            value = (lhs_v > rhs_v);  break;
+            case TOKEN_GT_GT:         value = (lhs_v >> rhs_v); break;
+            case TOKEN_LT_LT:         value = (lhs_v << rhs_v); break;
+            case TOKEN_PERCENT:       value = (lhs_v % rhs_v);  break;
+            case TOKEN_HAT:           value = (lhs_v ^ rhs_v);  break;
+            case TOKEN_AND_AND:       value = (lhs_v && rhs_v); break;
+            case TOKEN_PIPE_PIPE:     value = (lhs_v || rhs_v); break;
             case TOKEN_QUESTION_MARK: return;
-            case TOKEN_COLON: return;
+            case TOKEN_COLON:         return;
             default: error("constant_fold binary %s not implemented", token_kind_to_str(op));
             }
+            // clang-format on
             info("folded %s into %lld", ast_to_str(e), value);
             ast_replace(e, make_ast_int(e->t, value));
         } else if (lhs->kind == AST_FLOAT && rhs->kind == AST_FLOAT) {
             f64 lhs_v = lhs->Float.val;
             f64 rhs_v = rhs->Float.val;
             f64 value = 0.0;
+            // clang-format off
             switch (op) {
-            case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
-            case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
-            case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
-            case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
-            case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
-            case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
-            case TOKEN_LT: value = (lhs_v < rhs_v); break;
-            case TOKEN_GT: value = (lhs_v > rhs_v); break;
-            case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
+            case TOKEN_EQ_EQ:     value = (lhs_v == rhs_v); break;
+            case TOKEN_BANG_EQ:   value = (lhs_v != rhs_v); break;
+            case TOKEN_PLUS:      value = (lhs_v + rhs_v);  break;
+            case TOKEN_MINUS:     value = (lhs_v - rhs_v);  break;
+            case TOKEN_ASTERISK:  value = (lhs_v * rhs_v);  break;
+            case TOKEN_FWSLASH:   value = (lhs_v / rhs_v);  break;
+            case TOKEN_LT:        value = (lhs_v < rhs_v);  break;
+            case TOKEN_GT:        value = (lhs_v > rhs_v);  break;
+            case TOKEN_AND_AND:   value = (lhs_v && rhs_v); break;
             case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
             default: error("constant_fold binary %s not implemented", token_kind_to_str(op));
             }
+            // clang-format on
             info("folded %s into %lld", ast_to_str(e), value);
             ast_replace(e, make_ast_float(e->t, value));
         }
@@ -127,13 +135,15 @@ void constant_fold(void* ctx, AST* e) {
             Token_Kind op     = e->Unary.op;
             s64        oper_v = operand->Int.val;
             s64        value  = 0;
+            // clang-format off
             switch (op) {
-            case TOKEN_BANG: value = !oper_v; break;
-            case TOKEN_PLUS: value = oper_v; break;
-            case TOKEN_TILDE: value = ~oper_v; break;
-            case TOKEN_MINUS: value = -oper_v; break;
+            case TOKEN_BANG:    value = !oper_v; break;
+            case TOKEN_PLUS:    value = oper_v;  break;
+            case TOKEN_TILDE:   value = ~oper_v; break;
+            case TOKEN_MINUS:   value = -oper_v; break;
             default: error("constant_fold_expr unary %s not implemented", token_kind_to_str(op));
             }
+            // clang-format on
             info("folded %s into %lld", ast_to_str(e), value);
             ast_replace(e, make_ast_int(t, value));
         }
@@ -141,7 +151,8 @@ void constant_fold(void* ctx, AST* e) {
     }
 }
 
-typedef struct {
+typedef struct
+{
     AST_Kind kind;
     void*    list;
 } AST_FindAll_Query;
@@ -266,12 +277,29 @@ int main(int argc, char** argv) {
     info("finished PASS: resolve all unresolved types");
     //
     // Gather all variables found. ALL of them.
-    List* variable_list = ast_find_all_of_kind(AST_VARIABLE_DECL, ast->head->data);
+    List* variable_list =
+        ast_find_all_of_kind(AST_VARIABLE_DECL, ast->head->data);
     success("variables found: %d", variable_list->count);
     LIST_FOREACH(variable_list) {
         AST* expr = it->data;
         success("%s", ast_to_str(expr));
     }
+
+    //
+    // PASS: give type-inferred variables a type
+    //
+    List* var_decls = ast_find_all_of_kind(AST_VARIABLE_DECL, ast->head->data);
+    LIST_FOREACH(var_decls) {
+        AST* var = it->data;
+        if (var->Variable_Decl.type == NULL) {
+            var->type =
+                get_inferred_type_of_expr(&thi, var->Variable_Decl.value);
+            var->Variable_Decl.type = var->type;
+        }
+    }
+    info("PASS: give type-inferred variables a type");
+
+    type_checker(thi.symbol_map, thi.ast);
 
     //
     //  PASS: resolve all sizeof calls
@@ -281,41 +309,31 @@ int main(int argc, char** argv) {
         AST* expr = it->data;
 
         // Get the size of the type
-        s64 size = get_size_of_type(expr->Sizeof.type);
+        error("%s", ast_to_str(expr));
+        s64 size = get_size_of_type(expr->Sizeof.expr->type);
 
         // Transform the expr into a constant value
         AST* constant_value = make_ast_int(expr->t, size);
         ast_replace(expr, constant_value);
     }
-    //
-    // PASS: give type-inferred variables a type
-    //
-    List* var_decls = ast_find_all_of_kind(AST_VARIABLE_DECL, ast->head->data);
-    LIST_FOREACH(var_decls) {
-        AST* var = it->data;
-        if (var->Variable_Decl.type == NULL) {
-            var->type               = get_inferred_type_of_expr(&thi, var->Variable_Decl.value);
-            var->Variable_Decl.type = var->type;
-        }
-    }
-    info("PASS: give type-inferred variables a type");
-
-    type_checker(thi.symbol_map, thi.ast);
 
     //
     // Optimization Pass:
     //      Constant propogation.
-    //       References to constant variables are replaced by their constant value.
+    //       References to constant variables are replaced by their constant
+    //       value.
     //
-    List* idents         = ast_find_all_of_kind(AST_IDENT, ast->head->data);
-    List* constant_decls = ast_find_all_of_kind(AST_CONSTANT_DECL, ast->head->data);
+    List* idents = ast_find_all_of_kind(AST_IDENT, ast->head->data);
+    List* constant_decls =
+        ast_find_all_of_kind(AST_CONSTANT_DECL, ast->head->data);
     info("idents %d", idents->count);
     LIST_FOREACH(idents) {
         AST* ident = it->data;
         success("%s", ast_to_str(ident));
         LIST_FOREACH(constant_decls) {
             AST* const_decl = it->data;
-            if (strcmp(ident->Ident.name, const_decl->Constant_Decl.name) == 0) {
+            if (strcmp(ident->Ident.name, const_decl->Constant_Decl.name) ==
+                0) {
                 info("%s turned into %s", ast_to_str(ident), ast_to_str(const_decl->Constant_Decl.value));
                 *ident      = *const_decl->Constant_Decl.value;
                 ident->type = const_decl->type;
@@ -399,7 +417,8 @@ int main(int argc, char** argv) {
 }
 
 void assemble(Thi* thi, char* asm_file, char* exec_name) {
-    string comp_call = make_string_f("nasm -f macho64 -g %s -o %s.o", asm_file, exec_name);
+    string comp_call =
+        make_string_f("nasm -f macho64 -g %s -o %s.o", asm_file, exec_name);
     push_timer(thi, "Assembler");
     system(comp_call.c_str);
     free_string(&comp_call);
@@ -407,8 +426,11 @@ void assemble(Thi* thi, char* asm_file, char* exec_name) {
 }
 
 void linking_stage(Thi* thi, char* exec_name) {
-    // char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _%s", exec_name, exec_name, exec_name);
-    char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _main", exec_name, exec_name);
+    // char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _%s",
+    // exec_name, exec_name, exec_name);
+    char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _main",
+                           exec_name,
+                           exec_name);
     List* links     = get_link_list(thi);
     LIST_FOREACH(links) {
         char* l   = (char*)it->data;
@@ -467,7 +489,10 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it) {
             LIST_FOREACH(stmts) {
                 AST* stmt = (AST*)it->data;
                 if (stmt->kind != AST_IS) {
-                    error("%s\nonly 'case' statements are allowed inside an if switch", ast_to_str(stmt));
+                    error(
+                        "%s\nonly 'case' statements are allowed inside an if "
+                        "switch",
+                        ast_to_str(stmt));
                 }
             }
 
@@ -492,7 +517,8 @@ void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it) {
                     }
                 }
 
-                Type* type = make_type_function(func_name, args, NULL, has_var_args);
+                Type* type =
+                    make_type_function(func_name, args, NULL, has_var_args);
                 add_symbol(thi, func_name, type);
 
                 AST* body = (AST*)it->next->data;
@@ -547,7 +573,8 @@ List* parse(Thi* thi, char* source_file) {
 
 void add_all_definitions(Thi* thi, Parsed_File* pf) {
     for (s64 i = 0; i < pf->unresolved_types.count; ++i) {
-        type_ref_list_append(&thi->unresolved_types, pf->unresolved_types.data[i]);
+        type_ref_list_append(&thi->unresolved_types,
+                             pf->unresolved_types.data[i]);
     }
     for (s64 i = 0; i < pf->calls.count; ++i) {
         ast_ref_list_append(&thi->calls, pf->calls.data[i]);
@@ -562,7 +589,8 @@ void add_all_definitions(Thi* thi, Parsed_File* pf) {
         ast_ref_list_append(&thi->enums, pf->enums.data[i]);
     }
     for (s64 i = 0; i < pf->variables_in_need_of_type_inference.count; ++i) {
-        ast_ref_list_append(&thi->variables_in_need_of_type_inference, pf->variables_in_need_of_type_inference.data[i]);
+        ast_ref_list_append(&thi->variables_in_need_of_type_inference,
+                            pf->variables_in_need_of_type_inference.data[i]);
     }
     for (s64 i = 0; i < pf->constants.count; ++i) {
         ast_ref_list_append(&thi->constants, pf->constants.data[i]);
@@ -593,7 +621,8 @@ void add_all_definitions(Thi* thi, Parsed_File* pf) {
 Type* get_inferred_type_of_expr(Thi* thi, AST* expr) {
     if (!expr) return NULL;
     switch (expr->kind) {
-    case AST_FUNCTION: return get_inferred_type_of_expr(thi, expr->Function.body);
+    case AST_FUNCTION:
+        return get_inferred_type_of_expr(thi, expr->Function.body);
     case AST_BLOCK: {
         Type* type = NULL;
         LIST_FOREACH(expr->Block.stmts) {
@@ -604,7 +633,7 @@ Type* get_inferred_type_of_expr(Thi* thi, AST* expr) {
         }
     } break;
     case AST_RETURN: return get_inferred_type_of_expr(thi, expr->Return.expr);
-    case AST_SIZEOF: return expr->Sizeof.type;
+    case AST_SIZEOF: return get_inferred_type_of_expr(thi, expr->Sizeof.expr);
     case AST_CAST: return expr->Cast.type;
     case AST_NOTE: return get_inferred_type_of_expr(thi, expr->Note.expr);
     case AST_INT: return make_type_int(DEFAULT_INT_BYTE_SIZE, 0);
@@ -614,8 +643,10 @@ Type* get_inferred_type_of_expr(Thi* thi, AST* expr) {
     case AST_CALL: return get_symbol(thi, expr->Call.callee)->Function.ret_type;
     case AST_UNARY: return get_inferred_type_of_expr(thi, expr->Unary.operand);
     case AST_BINARY: return get_inferred_type_of_expr(thi, expr->Binary.rhs);
-    case AST_GROUPING: return get_inferred_type_of_expr(thi, expr->Grouping.expr);
-    case AST_SUBSCRIPT: return get_inferred_type_of_expr(thi, expr->Subscript.load);
+    case AST_GROUPING:
+        return get_inferred_type_of_expr(thi, expr->Grouping.expr);
+    case AST_SUBSCRIPT:
+        return get_inferred_type_of_expr(thi, expr->Subscript.load);
     default: error("%s has no type", ast_kind_to_str(expr->kind));
     }
     return NULL;
@@ -647,7 +678,10 @@ void pass_type_checker(Thi* thi) {
             s64   pos            = call->t.col_pos;
 
             char* str =
-                strf("function call '%s' expected %lld arguments. Got %lld.", callee, expected_count, got_count);
+                strf("function call '%s' expected %lld arguments. Got %lld.",
+                     callee,
+                     expected_count,
+                     got_count);
             error("[TYPE_CHECKER %lld:%lld]: %s", line, pos, str);
         }
 
@@ -689,7 +723,8 @@ void pass_progate_identifiers_to_constants(Thi* thi) {
         AST* ident = thi->identifiers.data[i];
         for (s64 j = 0; j < thi->constants.count; ++j) {
             AST* const_decl = thi->constants.data[j];
-            if (strcmp(ident->Ident.name, const_decl->Constant_Decl.name) == 0) {
+            if (strcmp(ident->Ident.name, const_decl->Constant_Decl.name) ==
+                0) {
                 info("%s turned into %s", ast_to_str(ident), ast_to_str(const_decl->Constant_Decl.value));
                 *ident = *const_decl->Constant_Decl.value;
                 break;
@@ -712,7 +747,8 @@ void pass_initilize_all_enums(Thi* thi) {
             AST* m = (AST*)it->data;
             // Turn idents into constant decls
             switch (m->kind) {
-            default: error("unhandled case: %s, %s, %s", ast_kind_to_str(m->kind), __func__, __LINE__);
+            default:
+                error("unhandled case: %s, %s, %s", ast_kind_to_str(m->kind), __func__, __LINE__);
             case AST_IDENT:
                 it->data = make_ast_constant_decl(m->t, m->Ident.name, make_ast_int(m->t, counter));
                 // ast_ref_list_append(&thi->constants, it->data);
@@ -756,11 +792,10 @@ void pass_resolve_subscripts(Thi* thi) {
     //     AST* load = it->Subscript.load;
     //     AST* sub = it->Subscript.sub;
 
-    //     sub = make_ast_binary(it->t, TOKEN_ASTERISK, make_ast_int(it->t, 4), sub);
-    //     load = make_ast_unary(it->t, THI_SYNTAX_ADDRESS, load);
-    //     sub = make_ast_binary(it->t, TOKEN_PLUS, load, sub);
-    //     sub = make_ast_unary(it->t, THI_SYNTAX_POINTER, sub);
-    //     *it = *sub;
+    //     sub = make_ast_binary(it->t, TOKEN_ASTERISK, make_ast_int(it->t, 4),
+    //     sub); load = make_ast_unary(it->t, THI_SYNTAX_ADDRESS, load); sub =
+    //     make_ast_binary(it->t, TOKEN_PLUS, load, sub); sub =
+    //     make_ast_unary(it->t, THI_SYNTAX_POINTER, sub); *it = *sub;
     // }
 
     pop_timer(thi);
@@ -789,14 +824,16 @@ void pass_type_inference(Thi* thi) {
         warning("%s", ast_to_json(call));
         call->type = get_inferred_type_of_expr(thi, call);
         if (!call->type) {
-            call->type = make_type_int(1, 1); // NOTE(marcus) should this be void instead?
+            call->type = make_type_int(
+                1, 1); // NOTE(marcus) should this be void instead?
         }
     }
 
     for (s64 i = 0; i < thi->variables_in_need_of_type_inference.count; ++i) {
-        AST* var_decl                = thi->variables_in_need_of_type_inference.data[i];
-        var_decl->Variable_Decl.type = get_inferred_type_of_expr(thi, var_decl->Variable_Decl.value);
-        var_decl->type               = var_decl->Variable_Decl.type;
+        AST* var_decl = thi->variables_in_need_of_type_inference.data[i];
+        var_decl->Variable_Decl.type =
+            get_inferred_type_of_expr(thi, var_decl->Variable_Decl.value);
+        var_decl->type = var_decl->Variable_Decl.type;
     }
 
     pop_timer(thi);
