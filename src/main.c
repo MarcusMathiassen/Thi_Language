@@ -642,7 +642,7 @@ Type* get_inferred_type_of_expr(Thi* thi, AST* expr) {
     } break;
     case AST_RETURN: return get_inferred_type_of_expr(thi, expr->Return.expr);
     case AST_SIZEOF: return get_inferred_type_of_expr(thi, expr->Sizeof.expr);
-    case AST_CAST: return expr->Cast.type;
+    case AST_AS: return get_inferred_type_of_expr(thi, expr->As.type_expr);
     case AST_NOTE: return get_inferred_type_of_expr(thi, expr->Note.expr);
     case AST_INT: return make_type_int(DEFAULT_INT_BYTE_SIZE, 0);
     case AST_FLOAT: return make_type_float(DEFAULT_FLOAT_BYTE_SIZE);

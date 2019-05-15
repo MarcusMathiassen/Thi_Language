@@ -90,7 +90,10 @@ void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr) {
     case AST_DEFER: ast_visit(func, ctx, expr->Defer.expr); break;
     case AST_BREAK: ast_visit(func, ctx, expr->Break.expr); break;
     case AST_CONTINUE: ast_visit(func, ctx, expr->Continue.expr); break;
-    case AST_CAST: ast_visit(func, ctx, expr->Cast.expr); break;
+    case AST_AS: 
+        ast_visit(func, ctx, expr->As.expr); 
+        ast_visit(func, ctx, expr->As.type_expr);
+        break;
     case AST_IS:
         ast_visit(func, ctx, expr->Is.expr);
         ast_visit(func, ctx, expr->Is.body);
@@ -136,7 +139,7 @@ char* ast_kind_to_str(AST_Kind kind) {
     case AST_DEFER:         return "AST_DEFER";
     case AST_BREAK:         return "AST_BREAK";
     case AST_CONTINUE:      return "AST_CONTINUE";
-    case AST_CAST:          return "AST_CAST";
+    case AST_AS:            return "AST_AS";
     default: warning("ast_kind_to_str unhandled case '%d'", kind);
     }
     // clang-format on
@@ -159,7 +162,7 @@ char* ast_to_str(AST* expr) {
     case AST_DEFER:             return strf("defer %s", ast_to_str(expr->Defer.expr));
     case AST_BREAK:             return "break";
     case AST_CONTINUE:          return "continue";
-    case AST_CAST:              return strf("cast(%s, %s)", type_to_str(expr->type), ast_to_str(expr->Cast.expr));
+    case AST_AS:                return strf("%s as %s)", ast_to_str(expr->As.expr), ast_to_str(expr->As.type_expr));
     case AST_RETURN:            return strf("return %s", ast_to_str(expr->Return.expr));
     case AST_FIELD_ACCESS:      return strf("%s.%s", ast_to_str(expr->Field_Access.load), expr->Field_Access.field);
     case AST_NOTE:              return strf("$%s", ast_to_str(expr->Note.expr));
@@ -230,6 +233,7 @@ char* ast_to_json(AST* expr) {
     case AST_IS:            result = strf("{%s:{\"case\":%s,\"body\":%s,\"has_fallthrough\":%s}}", ast_json_prelude(expr), ast_to_json(expr->Is.expr), ast_to_json(expr->Is.body), expr->Is.has_fallthrough ? "true" : "false");                                       break;
     case AST_FIELD_ACCESS:  result = strf("{%s:{\"load\":%s,\"field\":%s}}", ast_json_prelude(expr), ast_to_json(expr->Field_Access.load), expr->Field_Access.field);                                                                                                  break;
     case AST_SIZEOF:        result = strf("{%s:{\"sizeof\": %s}}", ast_json_prelude(expr), ast_to_json(expr->Sizeof.expr));                                                                                                                                            break;
+    case AST_AS:            result = strf("{%s:{\"expr\": %s, \"type_expr\":%s}}", ast_json_prelude(expr), ast_to_json(expr->As.expr), ast_to_json(expr->As.type_expr));                                                                                               break;
     case AST_EXTERN:        result = strf("{%s:{\"extern\": %s}}", ast_json_prelude(expr), type_to_json(expr->type));                                                                                                                                                  break;
     case AST_LOAD:          result = strf("{%s:{\"load\": \"%s\"}}", ast_json_prelude(expr), expr->Load.str);                                                                                                                                                          break;
     case AST_VAR_ARGS:      result = strf("{%s:{\"var_args\": ...}}", ast_json_prelude(expr));                                                                                                                                                                         break;
@@ -630,12 +634,11 @@ AST* make_ast_continue(Token t) {
     return e;
 }
 
-AST* make_ast_cast(Token t, AST* expr, Type* type) {
+AST* make_ast_as(Token t, AST* expr, AST* type_expr) {
     assert(expr);
-    assert(type);
-    AST* e       = make_ast(AST_CAST, t);
-    e->type      = type;
-    e->Cast.type = type;
-    e->Cast.expr = expr;
+    assert(type_expr);
+    AST* e       = make_ast(AST_AS, t);
+    e->As.expr = expr;
+    e->As.type_expr = type_expr;
     return e;
 }

@@ -56,7 +56,7 @@ Type* type_check_return(Typer_Context* ctx, AST* expr);
 Type* type_check_defer(Typer_Context* ctx, AST* expr);
 Type* type_check_break(Typer_Context* ctx, AST* expr);
 Type* type_check_continue(Typer_Context* ctx, AST* expr);
-Type* type_check_cast(Typer_Context* ctx, AST* expr);
+Type* type_check_as(Typer_Context* ctx, AST* expr);
 Type* type_check_is(Typer_Context* ctx, AST* expr);
 
 void type_checker(Map* symbol_table, List* ast) {
@@ -111,7 +111,7 @@ Type* type_check_expr(Typer_Context* ctx, AST* expr) {
     case AST_DEFER:          t = type_check_defer(ctx, expr);                break;
     case AST_BREAK:          t = type_check_break(ctx, expr);                break;
     case AST_CONTINUE:       t = type_check_continue(ctx, expr);             break;
-    case AST_CAST:           t = type_check_cast(ctx, expr);                 break;
+    case AST_AS:             t = type_check_as(ctx, expr);                   break;
     case AST_IS:             t = type_check_is(ctx, expr);                   break;
     default:
         error("Unhandled %s case for kind '%s'", give_unique_color((char*)__func__), ast_to_str(expr));
@@ -338,24 +338,19 @@ Type* type_check_field_access(Typer_Context* ctx, AST* expr) {
                 char* name = get_name_of_member(mem);
                 if (strcmp(name, field_name) == 0) {
                     info("found it!");
-                    // ast_replace(expr, mem);
-
-                    // v.x == [STACK_POS(v) + OFFSET_TO_MEMBER(x)]
                     info("getting offset to '%s' in type '%s'", name, type_to_str(t));
                     s64 offset = get_offset_in_struct_to_field(t, field_name);
-  //                  *(&v + 0)
+
                     AST* stack_ref = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, make_ast_ident(expr->t, type_name));
                     expr = make_ast_binary(expr->t, TOKEN_PLUS, stack_ref, make_ast_int(expr->t, offset));
                     expr = make_ast_unary(expr->t, THI_SYNTAX_POINTER, expr);
-                    // error("%s", ast_to_str(expr));
+//                turns it into this ->  *(&v + 0)
                     res = mem->type;
                     break;
                 }
             }
         } break;
     }
-
-
 
     return res;
 }
@@ -400,9 +395,10 @@ Type* type_check_break(Typer_Context* ctx, AST* expr) {
 Type* type_check_continue(Typer_Context* ctx, AST* expr) {
     return type_check_expr(ctx, expr->Continue.expr);;
 }
-Type* type_check_cast(Typer_Context* ctx, AST* expr) {
-    UNFINISHED;
-    return NULL;
+Type* type_check_as(Typer_Context* ctx, AST* expr) {
+    type_check_expr(ctx, expr->As.expr);
+    Type *t = type_check_expr(ctx, expr->As.type_expr);
+    return t;
 }
 
 Type* type_check_is(Typer_Context* ctx, AST* expr) {

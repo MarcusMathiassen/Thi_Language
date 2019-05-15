@@ -72,7 +72,6 @@ AST* parse_break                    (Parser_Context* ctx);
 AST* parse_continue                 (Parser_Context* ctx);
 AST* parse_string                   (Parser_Context* ctx);
 AST* parse_sizeof                   (Parser_Context* ctx);
-AST* parse_cast                     (Parser_Context* ctx);
 AST* parse_enum                     (Parser_Context* ctx);
 AST* parse_struct                   (Parser_Context* ctx);
 AST* parse_comma_delim_list         (Parser_Context* ctx);
@@ -171,7 +170,6 @@ AST* parse_primary(Parser_Context* ctx) {
     case TOKEN_TRUE:        eat(ctx); return make_ast_int(ctx->curr_tok, 1);
     case TOKEN_FALSE:       eat(ctx); return make_ast_int(ctx->curr_tok, 0);
     // case TOKEN_SIZEOF:      return parse_sizeof(ctx);
-    case TOKEN_CAST:        return parse_cast(ctx);
     case TOKEN_IDENTIFIER:  return parse_identifier(ctx);
     case TOKEN_DOLLAR_SIGN: return parse_note(ctx);
     case TOKEN_FLOAT:       return parse_float(ctx);
@@ -555,6 +553,12 @@ AST* parse_binary(Parser_Context* ctx, s8 expr_prec, AST* lhs) {
     return expr;
 }
 
+AST* read_as(Parser_Context* ctx, AST* expr) {
+    eat_kind(ctx, TOKEN_AS);
+    AST* type_expr = parse_expression(ctx);
+    return make_ast_as(ctx->curr_tok, expr, type_expr);
+}
+
 AST* read_subscript_expr(Parser_Context* ctx, AST* expr) {
     eat_kind(ctx, TOKEN_OPEN_BRACKET);
     AST* sub = parse_expression(ctx);
@@ -577,6 +581,10 @@ AST* parse_postfix_tail(Parser_Context* ctx, AST* primary_expr) {
     DEBUG_START;
     if (!primary_expr) return NULL;
     for (;;) {
+        if (tok_is(ctx, TOKEN_AS)) {
+            primary_expr = read_as(ctx, primary_expr);
+            continue;
+        }
         if (tok_is(ctx, TOKEN_OPEN_BRACKET)) {
             primary_expr = read_subscript_expr(ctx, primary_expr);
             continue;
@@ -605,17 +613,6 @@ AST* parse_postfix(Parser_Context* ctx) {
     DEBUG_START;
     AST* primary_expr = parse_primary(ctx);
     return parse_postfix_tail(ctx, primary_expr);
-}
-
-AST* parse_cast(Parser_Context* ctx) {
-    DEBUG_START;
-    eat_kind(ctx, TOKEN_CAST);
-    eat_kind(ctx, TOKEN_OPEN_PAREN);
-    Type* type = get_type(ctx);
-    eat_kind(ctx, TOKEN_COMMA);
-    AST* expr = parse_expression(ctx);
-    eat_kind(ctx, TOKEN_CLOSE_PAREN);
-    return make_ast_cast(ctx->curr_tok, expr, type);
 }
 
 AST* parse_unary(Parser_Context* ctx) {

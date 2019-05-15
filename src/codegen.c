@@ -72,7 +72,7 @@ codegen_enum(Codegen_Context* ctx, AST* expr);
 Value*
 codegen_function(Codegen_Context* ctx, AST* expr);
 Value*
-codegen_cast(Codegen_Context* ctx, AST* expr);
+codegen_as(Codegen_Context* ctx, AST* expr);
 Value*
 codegen_switch(Codegen_Context* ctx, AST* expr);
 Value*
@@ -111,7 +111,7 @@ codegen_expr(Codegen_Context* ctx, AST* expr) {
     case AST_DEFER: return codegen_defer(ctx, expr);
     case AST_BREAK: return codegen_break(ctx, expr);
     case AST_CONTINUE: return codegen_continue(ctx, expr);
-    case AST_CAST: return codegen_cast(ctx, expr);
+    case AST_AS: return codegen_as(ctx, expr);
     default:
         error("Unhandled codegen_expr case for kind '%s'",
               ast_kind_to_str(expr->kind));
@@ -961,11 +961,11 @@ codegen_switch(Codegen_Context* ctx, AST* expr) {
 }
 
 Value*
-codegen_cast(Codegen_Context* ctx, AST* expr) {
+codegen_as(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
-    assert(expr->kind == AST_CAST);
-    AST*   e = expr->Cast.expr;
-    Type*  t = expr->Cast.type;
+    assert(expr->kind == AST_AS);
+    AST*   e = expr->As.expr;
+    Type*  t = expr->As.type_expr->type;
     Value* v = codegen_expr(ctx, e);
     emit_cast(ctx, v, t);
     return v;

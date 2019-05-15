@@ -30,7 +30,7 @@ typedef enum {
     AST_GROUPING,
     AST_SUBSCRIPT,
     AST_FIELD_ACCESS,
-    AST_CAST,
+    AST_AS,
     AST_BLOCK,
     AST_STRUCT,
     AST_ENUM,
@@ -223,9 +223,9 @@ struct AST {
 
         struct
         {
-            Type* type;
-            AST*  expr;
-        } Cast;
+            AST* expr;
+            AST* type_expr;
+        } As;
 
         struct
         {
@@ -261,7 +261,7 @@ AST* make_ast_for           (Token t, AST* init, AST* cond, AST* step, AST* then
 AST* make_ast_while         (Token t, AST* cond, AST* then_block);
 AST* make_ast_return        (Token t, AST* expr);
 AST* make_ast_defer         (Token t, AST* expr);
-AST* make_ast_cast          (Token t, AST* expr, Type* type);
+AST* make_ast_as            (Token t, AST* expr, AST* type_expr);
 AST* make_ast_sizeof        (Token t, AST* expr);
 AST* make_ast_is            (Token t, AST* expr, AST* body, bool has_fallthrough);
 AST* make_ast_switch        (Token t, AST* if_statement);

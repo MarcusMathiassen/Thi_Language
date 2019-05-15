@@ -1,22 +1,30 @@
-extern printf(u8*, ...) s32
+load "includes/cstdlib"
+load "includes/cstdio"
 
 main(argc: s32, argv: u8**)
 
-    v: v2
+    #v: v2
 
-    v.x = 6
-    v.y = 56 
+    #v.x = 6
+    #v.y = 56
 
-    i := 3
+    #i := 3
 
-    v.z.z = 43
+    #v.z.z = 43
 
-    printf("v.x = %d\n", v.x)
-    printf("v.y = %d\n", v.y)
-    printf("v.z.z = %d\n", v.z.z)
-    printf("v.z.z + v.x = %d\n", v.z.z + v.x)
+    #printf("v.x = %d\n", v.x)
+    #printf("v.y = %d\n", v.y)
+    #printf("v.z.z = %d\n", v.z.z)
+    #printf("v.z.z + v.x = %d\n", v.z.z + v.x)
 
-    return v.x
+
+    #ptr : s64* = malloc(sizeof s64 * 10)
+    #printf("ptr =  %d\n", ptr)
+    #printf("&ptr =  %d\n", ptr)
+
+    k := 1.0 as f32
+
+    return sizeof k
 
 struct v2
     x: s64
@@ -25,3 +33,4 @@ struct v2
 
 struct child
     z: s64
+    w: s64
