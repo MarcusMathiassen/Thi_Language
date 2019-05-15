@@ -4,13 +4,13 @@ section .text
 _main:
 	push rbp
 	mov rbp, rsp
-	sub rsp, 32; 20 alloc, 12 padding
+	sub rsp, 32; 24 alloc, 8 padding
 .begin:
-	mov [rbp-4], edi; store_r
-	mov [rbp-12], rsi; store_r
-	mov eax, 40
+	mov [rbp-8], rdi; store_r
+	mov [rbp-16], rsi; store_r
+	mov rax, 24
 	jmp .end
 .end:
-	add rsp, 32; 20 alloc, 12 padding
+	add rsp, 32; 24 alloc, 8 padding
 	leave
 	ret

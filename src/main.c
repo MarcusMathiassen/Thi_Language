@@ -68,7 +68,6 @@ void get_all_variables(void* list, AST* expr) {
 }
 
 void constant_fold(void* ctx, AST* e) {
-    info_no_newline("trying to constant fold: %s", ast_to_str(e));
     switch (e->kind) {
     case AST_BINARY: {
         Token_Kind op  = e->Binary.op;
@@ -130,7 +129,6 @@ void constant_fold(void* ctx, AST* e) {
         }
     } break;
     case AST_UNARY: {
-        info("UNARY %s", ast_to_str(e));
         Token_Kind op      = e->Unary.op;
         AST*       operand = e->Unary.operand;
         if (operand->kind == AST_GROUPING) operand = operand->Grouping.expr;

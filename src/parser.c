@@ -606,7 +606,6 @@ AST* parse_unary(Parser_Context* ctx) {
         if (tok_is(ctx, unary_ops[i])) {
             Token_Kind op = ctx->curr_tok.kind;
             eat(ctx);
-
             AST* operand = parse_unary(ctx);
             if (operand) {
                 unary = make_ast_unary(ctx->curr_tok, op, operand);
@@ -614,10 +613,14 @@ AST* parse_unary(Parser_Context* ctx) {
         }
     }
 
-    if (unary && unary->Unary.op == TOKEN_SIZEOF) {
-        AST* node = make_ast_sizeof(unary->t, unary->Unary.operand);
-        info("replaced %s with %s", ast_to_str(unary), ast_to_str(node));
-        ast_replace(unary, node);
+    if (unary) {
+        switch(unary->Unary.op) {
+        case TOKEN_SIZEOF: {
+            AST* node = make_ast_sizeof(unary->t, unary->Unary.operand);
+            info("replaced %s with %s", ast_to_str(unary), ast_to_str(node));
+            ast_replace(unary, node);
+        } break;
+        }
     }
 
     // If the current token is not an operator, it must be a primary expression.
