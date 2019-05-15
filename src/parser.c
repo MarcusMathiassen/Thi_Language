@@ -432,6 +432,26 @@ AST* parse_function_call(Parser_Context* ctx, char* ident) {
         has_multiple_arguments = true;
     }
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
+
+    // Is it a function def? It is if..
+    if (tok_is_on_same_line(ctx) && tok_is(ctx, TOKEN_EQ_GT)) {
+        // since '=>' means single statement function and implicit return
+        // ..we only parse a SINGLE statement.
+        eat_kind(ctx, TOKEN_EQ_GT);
+        bool has_var_args = false;
+        LIST_FOREACH(args) {
+            AST* d = it->data;
+            if (d->kind == AST_VAR_ARGS) {
+                error("found var args %s", ast_to_str(d));
+                has_var_args = true;
+                break;
+            }
+        }
+        Type* type = make_type_function(ident, args, NULL, has_var_args);
+        map_set(ctx->symbols, ident, type);
+        return make_ast_function(ctx->curr_tok, type, parse_block(ctx));
+    }
+
     AST* call = make_ast_call(ctx->curr_tok, ident, args);
     ast_ref_list_append(&ctx->calls, call);
     return call;

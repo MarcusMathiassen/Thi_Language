@@ -68,20 +68,23 @@ _main:
 	mov rax, 8
 	push rax
 	pop rdi
-	call _get
+	call _square
 	jmp .end
 .end:
 	add rsp, 32; 20 alloc, 12 padding
 	leave
 	ret
-_get:
+_square:
 	push rbp
 	mov rbp, rsp
 	sub rsp, 16; 8 alloc, 8 padding
 .begin:
 	mov [rbp-8], rdi; store_r
 	mov rax, [rbp-8]; load
-	jmp .end
+	push rax
+	mov rax, [rbp-8]; load
+	pop rcx
+	imul rax, rcx
 .end:
 	add rsp, 16; 8 alloc, 8 padding
 	leave
