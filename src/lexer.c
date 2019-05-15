@@ -33,6 +33,7 @@ typedef enum {
     KEY_AS,
     KEY_IS,
     KEY_FALLTHROUGH,
+    KEY_TYPEOF,
     KEY_COUNT
 } Keyword_Kind;
 
@@ -108,6 +109,7 @@ char* STATIC_KEYWORDS_ARRAY[KEY_COUNT] = {
     "as",
     "is",
     "fallthrough",
+    "typeof",
 };
 
 void lexer_test(void) {
@@ -538,6 +540,7 @@ Token get_token(Lexer_Context* lctx) {
         case KEY_AS:          token.kind = TOKEN_AS;          break;
         case KEY_IS:          token.kind = TOKEN_IS;          break;
         case KEY_FALLTHROUGH: token.kind = TOKEN_FALLTHROUGH; break;
+        case KEY_TYPEOF:      token.kind = TOKEN_TYPEOF;      break;
         }
         // clang-format on
     } else if (token.kind == TOKEN_CHAR || token.kind == TOKEN_STRING) {
@@ -563,6 +566,7 @@ char* token_kind_to_str(Token_Kind kind) {
     case TOKEN_IS:                return "is";
     case TOKEN_AS:                return "as";
     case TOKEN_CAST:              return "cast";
+    case TOKEN_TYPEOF:            return "typeof";
     case TOKEN_SIZEOF:            return "sizeof";
     case TOKEN_LINK:              return "link";
     case TOKEN_EXTERN:            return "extern";

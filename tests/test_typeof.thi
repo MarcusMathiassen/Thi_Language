@@ -1,0 +1,12 @@
+
+extern printf(u8*, ...) s32
+
+main()
+
+    
+    integer: s32 = 415.0
+    floating: f32 = 53.0
+
+    printf("%s\n", typeof integer)
+
+    return 1

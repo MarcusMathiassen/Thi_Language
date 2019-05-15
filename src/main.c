@@ -54,7 +54,7 @@ void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* expr) {
     case AST_LINK: return;
     }
     if (!expr->type) {
-        warning(
+        error(
             "[make_sure_all_nodes_have_a_valid_type]: missing type for "
             "expr: %s",
             ast_to_str(expr));
@@ -322,6 +322,22 @@ int main(int argc, char** argv) {
         AST* constant_value = make_ast_int(expr->t, size);
         ast_replace(expr, constant_value);
     }
+
+    //
+    //  PASS: resolve all typeof calls
+    //
+    List* typeofs = ast_find_all_of_kind(AST_TYPEOF, ast);
+    success("typeofs: %d", typeofs->count);
+    LIST_FOREACH(typeofs) {
+        AST* expr = it->data;
+
+        Type *type = expr->type;
+
+        // Transform the expr into a stringfied version of the type
+        AST* string_value = make_ast_string(expr->t, type_to_str(type));
+        ast_replace(expr, string_value);
+    }
+
 
     //
     // Optimization Pass:

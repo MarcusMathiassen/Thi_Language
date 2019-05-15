@@ -22,7 +22,7 @@ main(argc: s32, argv: u8**)
     #printf("ptr =  %d\n", ptr)
     #printf("&ptr =  %d\n", ptr)
 
-    k := 1.0 as f32
+    k := 1.0 as s32
 
     return sizeof k
 

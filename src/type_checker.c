@@ -30,6 +30,7 @@ typedef struct
 
 Type* type_check_expr(Typer_Context* ctx, AST* expr);
 
+Type* type_check_typeof(Typer_Context* ctx, AST* expr);
 Type* type_check_sizeof(Typer_Context* ctx, AST* expr);
 Type* type_check_switch(Typer_Context* ctx, AST* expr);
 Type* type_check_extern(Typer_Context* ctx, AST* expr);
@@ -84,6 +85,7 @@ Type* type_check_expr(Typer_Context* ctx, AST* expr) {
     case AST_FALLTHROUGH:    t = NULL;                                       break;
     case AST_LOAD:           t = NULL;                                       break;
     case AST_LINK:           t = NULL;                                       break;
+    case AST_TYPEOF:         t = type_check_typeof(ctx, expr);               break;
     case AST_SIZEOF:         t = type_check_sizeof(ctx, expr);               break;
     case AST_SWITCH:         t = type_check_switch(ctx, expr);               break;
     case AST_EXTERN:         t = type_check_extern(ctx, expr);               break;
@@ -128,6 +130,10 @@ Type* type_check_expr(Typer_Context* ctx, AST* expr) {
 Type* type_check_sizeof(Typer_Context* ctx, AST* expr) {
     type_check_expr(ctx, expr->Sizeof.expr);
     return (Type*)map_get(ctx->symbol_table, DEFAULT_BIG_INT_TYPE_AS_STRING);
+}
+
+Type* type_check_typeof(Typer_Context* ctx, AST* expr) {
+    return type_check_expr(ctx, expr->Typeof.expr);
 }
 
 Type* type_check_switch(Typer_Context* ctx, AST* expr) {

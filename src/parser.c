@@ -21,7 +21,7 @@
     // info("%s: %s", __func__, token_to_str(ctx->curr_tok));                  \
     assert(ctx);
 
-#define UNARY_OP_COUNT 8
+#define UNARY_OP_COUNT 9
 Token_Kind unary_ops[UNARY_OP_COUNT] = {
     TOKEN_BANG,
     THI_SYNTAX_POINTER,
@@ -30,7 +30,8 @@ Token_Kind unary_ops[UNARY_OP_COUNT] = {
     TOKEN_MINUS,
     TOKEN_TILDE,
     TOKEN_DOT,
-    TOKEN_SIZEOF
+    TOKEN_SIZEOF,
+    TOKEN_TYPEOF,
 };
 
 //------------------------------------------------------------------------------
@@ -71,7 +72,6 @@ AST* parse_while                    (Parser_Context* ctx);
 AST* parse_break                    (Parser_Context* ctx);
 AST* parse_continue                 (Parser_Context* ctx);
 AST* parse_string                   (Parser_Context* ctx);
-AST* parse_sizeof                   (Parser_Context* ctx);
 AST* parse_enum                     (Parser_Context* ctx);
 AST* parse_struct                   (Parser_Context* ctx);
 AST* parse_comma_delim_list         (Parser_Context* ctx);
@@ -169,7 +169,6 @@ AST* parse_primary(Parser_Context* ctx) {
     case TOKEN_DOT_DOT_DOT: eat(ctx); return make_ast_var_args(ctx->curr_tok);
     case TOKEN_TRUE:        eat(ctx); return make_ast_int(ctx->curr_tok, 1);
     case TOKEN_FALSE:       eat(ctx); return make_ast_int(ctx->curr_tok, 0);
-    // case TOKEN_SIZEOF:      return parse_sizeof(ctx);
     case TOKEN_IDENTIFIER:  return parse_identifier(ctx);
     case TOKEN_DOLLAR_SIGN: return parse_note(ctx);
     case TOKEN_FLOAT:       return parse_float(ctx);
@@ -361,13 +360,6 @@ AST* parse_if(Parser_Context* ctx) {
         make_ast_if(ctx->curr_tok, cond, then_block, else_block);
     set_if_statement(ctx, if_statement);
     return if_statement;
-}
-
-AST* parse_sizeof(Parser_Context* ctx) {
-    DEBUG_START;
-    eat_kind(ctx, TOKEN_SIZEOF);
-    AST* expr = parse_expression(ctx);
-    return make_ast_sizeof(ctx->curr_tok, expr);
 }
 
 AST* parse_string(Parser_Context* ctx) {
@@ -634,6 +626,11 @@ AST* parse_unary(Parser_Context* ctx) {
         switch(unary->Unary.op) {
         case TOKEN_SIZEOF: {
             AST* node = make_ast_sizeof(unary->t, unary->Unary.operand);
+            info("replaced %s with %s", ast_to_str(unary), ast_to_str(node));
+            ast_replace(unary, node);
+        } break;
+        case TOKEN_TYPEOF: {
+            AST* node = make_ast_typeof(unary->t, unary->Unary.operand);
             info("replaced %s with %s", ast_to_str(unary), ast_to_str(node));
             ast_replace(unary, node);
         } break;

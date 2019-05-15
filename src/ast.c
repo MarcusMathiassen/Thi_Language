@@ -18,7 +18,8 @@
 void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr) {
     if (!expr) return;
     switch (expr->kind) {
-    case AST_SIZEOF: break;
+    case AST_TYPEOF: ast_visit(func, ctx, expr->Typeof.expr); break;
+    case AST_SIZEOF: ast_visit(func, ctx, expr->Sizeof.expr); break;
     case AST_FALLTHROUGH: break;
     case AST_LOAD: break;
     case AST_LINK: break;
@@ -112,6 +113,7 @@ char* ast_kind_to_str(AST_Kind kind) {
     case AST_FALLTHROUGH:   return "AST_FALLTHROUGH";
     case AST_SWITCH:        return "AST_SWITCH";
     case AST_IS:            return "AST_IS";
+    case AST_TYPEOF:        return "AST_TYPEOF";
     case AST_SIZEOF:        return "AST_SIZEOF";
     case AST_EXTERN:        return "AST_EXTERN";
     case AST_LOAD:          return "AST_LOAD";
@@ -155,6 +157,7 @@ char* ast_to_str(AST* expr) {
     case AST_SWITCH:            return strf("if %s %s else %s", ast_to_str(expr->Switch.cond), ast_to_str(expr->Switch.cases),
                     ast_to_str(expr->Switch.default_case));
     case AST_IS:                return strf("is %s %s", ast_to_str(expr->Is.expr), ast_to_str(expr->Is.body));
+    case AST_TYPEOF:            return strf("typeof %s", ast_to_str(expr->Typeof.expr));
     case AST_SIZEOF:            return strf("sizeof %s", ast_to_str(expr->Sizeof.expr));
     case AST_EXTERN:            return strf("extern %s", type_to_str(expr->type));
     case AST_LOAD:              return strf("load %s", expr->Load.str);
@@ -232,6 +235,7 @@ char* ast_to_json(AST* expr) {
     case AST_SWITCH:        result = strf("{%s:{\"cond\":%s,\"cases\":%s,\"default\":%s}}", ast_json_prelude(expr), ast_to_json(expr->Switch.cond), ast_to_json(expr->Switch.cases), ast_to_json(expr->Switch.default_case));                                          break;
     case AST_IS:            result = strf("{%s:{\"case\":%s,\"body\":%s,\"has_fallthrough\":%s}}", ast_json_prelude(expr), ast_to_json(expr->Is.expr), ast_to_json(expr->Is.body), expr->Is.has_fallthrough ? "true" : "false");                                       break;
     case AST_FIELD_ACCESS:  result = strf("{%s:{\"load\":%s,\"field\":%s}}", ast_json_prelude(expr), ast_to_json(expr->Field_Access.load), expr->Field_Access.field);                                                                                                  break;
+    case AST_TYPEOF:        result = strf("{%s:{\"typeof\": %s}}", ast_json_prelude(expr), ast_to_json(expr->Typeof.expr));                                                                                                                                            break;
     case AST_SIZEOF:        result = strf("{%s:{\"sizeof\": %s}}", ast_json_prelude(expr), ast_to_json(expr->Sizeof.expr));                                                                                                                                            break;
     case AST_AS:            result = strf("{%s:{\"expr\": %s, \"type_expr\":%s}}", ast_json_prelude(expr), ast_to_json(expr->As.expr), ast_to_json(expr->As.type_expr));                                                                                               break;
     case AST_EXTERN:        result = strf("{%s:{\"extern\": %s}}", ast_json_prelude(expr), type_to_json(expr->type));                                                                                                                                                  break;
@@ -379,6 +383,13 @@ AST* make_ast(AST_Kind kind, Token t) {
     e->kind = kind;
     e->t    = t;
     e->type = NULL;
+    return e;
+}
+
+AST* make_ast_typeof(Token t, AST* expr) {
+    assert(expr);
+    AST* e         = make_ast(AST_TYPEOF, t);
+    e->Typeof.expr = expr;
     return e;
 }
 

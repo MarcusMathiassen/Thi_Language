@@ -44,6 +44,7 @@ typedef enum {
     AST_DEFER,
     AST_BREAK,
     AST_CONTINUE,
+    AST_TYPEOF,
     AST_SIZEOF,
     AST_SWITCH,
     AST_COUNT
@@ -231,6 +232,10 @@ struct AST {
         {
             AST* expr;
         } Sizeof;
+        struct
+        {
+            AST* expr;
+        } Typeof;
     };
 };
 
@@ -263,6 +268,7 @@ AST* make_ast_return        (Token t, AST* expr);
 AST* make_ast_defer         (Token t, AST* expr);
 AST* make_ast_as            (Token t, AST* expr, AST* type_expr);
 AST* make_ast_sizeof        (Token t, AST* expr);
+AST* make_ast_typeof        (Token t, AST* expr);
 AST* make_ast_is            (Token t, AST* expr, AST* body, bool has_fallthrough);
 AST* make_ast_switch        (Token t, AST* if_statement);
 AST* make_ast_fallthrough   (Token t);
