@@ -32,10 +32,11 @@ void  pass_initilize_all_enums(Thi* thi);
 void  pass_resolve_subscripts(Thi* thi);
 void  pass_give_all_identifiers_a_type(Thi* thi);
 void  pass_type_checker(Thi* thi);
+
 List* parse(Thi* thi, char* source_file);
 void  assemble(Thi* thi, char* asm_file, char* exec_name);
 void  linking_stage(Thi* thi, char* exec_name);
-void  pass_general(Thi* thi);
+
 void  maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it);
 
 void print_expr(void* ctx, AST* expr) {
@@ -49,6 +50,7 @@ void check_for_unresolved_types(void* ctx, AST* expr) {
             ast_to_str(expr));
     }
 }
+
 void run_all_passes(void* thi, AST* expr) {
     List* visitors = thi_get_visitors_for_kind(thi, expr->kind);
     LIST_FOREACH(visitors) {

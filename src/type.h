@@ -99,6 +99,7 @@ char* get_type_name(Type* Type);
 char* type_to_str(Type* type);
 char* type_to_json(Type* type);
 char* type_kind_to_str(Type_Kind kind);
+void  type_replace(Type* a, Type* b);
 
 // clang-format off
 Type*   make_type_unresolved    (char* name);

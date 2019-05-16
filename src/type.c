@@ -17,44 +17,64 @@
 //------------------------------------------------------------------------------
 
 char* type_kind_to_str(Type_Kind kind) {
+    //clang-format off
     switch (kind) {
+    default: ERROR_UNHANDLED_KIND(strf("%d", kind));
     case TYPE_UNRESOLVED: return "TYPE_UNRESOLVED";
-    case TYPE_VOID: return "TYPE_VOID";
-    case TYPE_INT: return "TYPE_INT";
-    case TYPE_FLOAT: return "TYPE_FLOAT";
-    case TYPE_STRING: return "TYPE_STRING";
-    case TYPE_POINTER: return "TYPE_POINTER";
-    case TYPE_ARRAY: return "TYPE_ARRAY";
-    case TYPE_ENUM: return "TYPE_ENUM";
-    case TYPE_STRUCT: return "TYPE_STRUCT";
-    case TYPE_FUNCTION: return "TYPE_FUNCTION";
-    case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
-    default: warning("not implemented type_kind_to_str kind %d", kind);
+    case TYPE_VOID:       return "TYPE_VOID";
+    case TYPE_INT:        return "TYPE_INT";
+    case TYPE_FLOAT:      return "TYPE_FLOAT";
+    case TYPE_STRING:     return "TYPE_STRING";
+    case TYPE_POINTER:    return "TYPE_POINTER";
+    case TYPE_ARRAY:      return "TYPE_ARRAY";
+    case TYPE_ENUM:       return "TYPE_ENUM";
+    case TYPE_STRUCT:     return "TYPE_STRUCT";
+    case TYPE_FUNCTION:   return "TYPE_FUNCTION";
+    case TYPE_VAR_ARGS:   return "TYPE_VAR_ARGS";
+    case TYPE_COUNT:      return "TYPE_COUNT";
+    //clang-format on
     }
-    error("xxx");
-    return "";
+    UNREACHABLE;
+    return NULL;
+}
+
+void type_replace(Type* a, Type* b) {
+    assert(a);
+    assert(b);
+    *a = *b;
+    // MEM_LEAK
 }
 
 s64 get_size_of_underlying_type(Type* type) {
+    assert(type);
+    // clang-format off
     switch (type->kind) {
+    default:           return get_size_of_type(type);
     case TYPE_POINTER: return get_size_of_type(type->Pointer.pointee);
-    case TYPE_ARRAY: return get_size_of_type(type->Array.type);
-    default: return get_size_of_type(type);
+    case TYPE_ARRAY:   return get_size_of_type(type->Array.type);
     }
+    // clang-format on
+    UNREACHABLE;
     return 0;
 }
 
+
 Type* get_underlying_type(Type* type) {
+    assert(type);
+    // clang-format off
     switch (type->kind) {
+    default:           return type;
     case TYPE_POINTER: return type->Pointer.pointee;
-    case TYPE_ARRAY: return type->Array.type;
-    default: return type;
+    case TYPE_ARRAY:   return type->Array.type;
     }
-    error("get_underlying_type");
-    return 0;
+    // clang-format on
+    UNREACHABLE;
+    return NULL;
 }
 
 bool is_same_type(Type* a, Type* b) {
+    assert(a);
+    assert(b);
     char* an = type_to_str(a);
     char* bn = type_to_str(b);
     return strcmp(an, bn) == 0;
@@ -62,38 +82,43 @@ bool is_same_type(Type* a, Type* b) {
 
 char* get_type_name(Type* type) {
     if (!type) return "---";
+    // clang-format off
     switch (type->kind) {
-    default: error("unhandled case: %s", type_kind_to_str(type->kind));
-    case TYPE_INT: return "int";
-    case TYPE_VOID: return "void";
+    default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
+    case TYPE_INT:        return "int";
+    case TYPE_VOID:       return "void";
     case TYPE_UNRESOLVED: return type->Unresolved.name;
     case TYPE_POINTER: {
         Type* t = type->Pointer.pointee;
         while (t->kind == TYPE_POINTER) {
-            warning("%s", type_to_str(t));
             t = type->Pointer.pointee;
         }
         return get_type_name(t);
     }
-    case TYPE_STRUCT: return type->Struct.name;
-    case TYPE_ENUM: return type->Enum.name;
+    case TYPE_STRUCT:   return type->Struct.name;
+    case TYPE_ENUM:     return type->Enum.name;
     case TYPE_FUNCTION: return type->Function.name;
     case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
     }
+    // clang-format on
+    UNREACHABLE;
     return NULL;
 }
 
 s64 get_size_of_type(Type* type) {
+    assert(type);
+    // clang-format off
     switch (type->kind) {
-    case TYPE_VAR_ARGS: return 0;
+    default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
+    case TYPE_VAR_ARGS:   return 0;
     case TYPE_UNRESOLVED: return 0;
-    case TYPE_VOID: return 0;
-    case TYPE_INT: return type->Int.bytes;
-    case TYPE_FLOAT: return type->Float.bytes;
-    case TYPE_STRING: return type->String.len;
-    case TYPE_POINTER: return 8;
-    case TYPE_ARRAY:
-        return get_size_of_type(type->Array.type) * type->Array.size;
+    case TYPE_VOID:       return 0;
+    case TYPE_INT:        return type->Int.bytes;
+    case TYPE_FLOAT:      return type->Float.bytes;
+    case TYPE_STRING:     return type->String.len;
+    case TYPE_POINTER:    return 8;
+    case TYPE_ENUM:       return 8;
+    case TYPE_ARRAY:      return get_size_of_type(type->Array.type) * type->Array.size;
     case TYPE_STRUCT: {
         s64 accum_size = 0;
         if (type->Struct.members) {
@@ -105,7 +130,6 @@ s64 get_size_of_type(Type* type) {
         }
         return accum_size;
     }
-    case TYPE_ENUM: return 8;
     case TYPE_FUNCTION: {
         s64 accum_size = 0;
         LIST_FOREACH(type->Function.args) {
@@ -114,10 +138,9 @@ s64 get_size_of_type(Type* type) {
         }
         return accum_size;
     }
-    default:
-        warning("get_size_of_type kind %s not implemented.",
-                type_kind_to_str(type->kind));
     }
+    // clang-format on
+    UNREACHABLE;
     return 0;
 }
 
