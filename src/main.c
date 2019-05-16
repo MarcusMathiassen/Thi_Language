@@ -52,6 +52,7 @@ void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* expr) {
     switch (expr->kind) {
     case AST_LOAD: return;
     case AST_LINK: return;
+    default: break;
     }
     if (!expr->type) {
         error(
@@ -67,12 +68,12 @@ void get_all_variables(void* list, AST* expr) {
     }
 }
 
-void constant_fold(void* ctx, AST* e) {
-    switch (e->kind) {
+void constant_fold(void* ctx, AST* expr) {
+    switch (expr->kind) {
     case AST_BINARY: {
-        Token_Kind op  = e->Binary.op;
-        AST*       lhs = e->Binary.lhs;
-        AST*       rhs = e->Binary.rhs;
+        Token_Kind op  = expr->Binary.op;
+        AST*       lhs = expr->Binary.lhs;
+        AST*       rhs = expr->Binary.rhs;
         if (lhs->kind == AST_GROUPING) lhs = lhs->Grouping.expr;
         if (rhs->kind == AST_GROUPING) rhs = rhs->Grouping.expr;
         if (lhs->kind == AST_INT && rhs->kind == AST_INT) {
@@ -99,11 +100,11 @@ void constant_fold(void* ctx, AST* e) {
             case TOKEN_PIPE_PIPE:     value = (lhs_v || rhs_v); break;
             case TOKEN_QUESTION_MARK: return;
             case TOKEN_COLON:         return;
-            default: error("constant_fold binary %s not implemented", token_kind_to_str(op));
+            default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
             }
             // clang-format on
-            info("folded %s into %lld", ast_to_str(e), value);
-            ast_replace(e, make_ast_int(e->t, value));
+            info("folded %s into %lld", ast_to_str(expr), value);
+            ast_replace(expr, make_ast_int(expr->t, value));
         } else if (lhs->kind == AST_FLOAT && rhs->kind == AST_FLOAT) {
             f64 lhs_v = lhs->Float.val;
             f64 rhs_v = rhs->Float.val;
@@ -120,20 +121,19 @@ void constant_fold(void* ctx, AST* e) {
             case TOKEN_GT:        value = (lhs_v > rhs_v);  break;
             case TOKEN_AND_AND:   value = (lhs_v && rhs_v); break;
             case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
-            default: error("constant_fold binary %s not implemented", token_kind_to_str(op));
+            default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
             }
             // clang-format on
-            info("folded %s into %lld", ast_to_str(e), value);
-            AST* constant_value = make_ast_int(e->t, value);
-            ast_replace(e, constant_value);
+            info("folded %s into %lld", ast_to_str(expr), value);
+            AST* constant_value = make_ast_int(expr->t, value);
+            ast_replace(expr, constant_value);
         }
     } break;
     case AST_UNARY: {
-        Token_Kind op      = e->Unary.op;
-        AST*       operand = e->Unary.operand;
+        AST*       operand = expr->Unary.operand;
         if (operand->kind == AST_GROUPING) operand = operand->Grouping.expr;
         if (operand->kind == AST_INT) {
-            Token_Kind op     = e->Unary.op;
+            Token_Kind op     = expr->Unary.op;
             s64        oper_v = operand->Int.val;
             s64        value  = 0;
             // clang-format off
@@ -142,14 +142,15 @@ void constant_fold(void* ctx, AST* e) {
             case TOKEN_PLUS:    value = oper_v;  break;
             case TOKEN_TILDE:   value = ~oper_v; break;
             case TOKEN_MINUS:   value = -oper_v; break;
-            default: error("constant_fold unary %s not implemented", token_kind_to_str(op));
+            default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
             }
             // clang-format on
-            info("folded %s into %lld", ast_to_str(e), value);
-            AST* constant_value = make_ast_int(e->t, value);
-            ast_replace(e, constant_value);
+            info("folded %s into %lld", ast_to_str(expr), value);
+            AST* constant_value = make_ast_int(expr->t, value);
+            ast_replace(expr, constant_value);
         }
     } break;
+    default: break;
     }
 }
 
@@ -356,7 +357,7 @@ int main(int argc, char** argv) {
             if (strcmp(ident->Ident.name, const_decl->Constant_Decl.name) ==
                 0) {
                 info("%s turned into %s", ast_to_str(ident), ast_to_str(const_decl->Constant_Decl.value));
-                *ident      = *const_decl->Constant_Decl.value;
+                ast_replace(ident, const_decl->Constant_Decl.value);
                 ident->type = const_decl->type;
                 info("%s after  %s", ast_to_str(ident), ast_to_str(const_decl->Constant_Decl.value));
                 break;
@@ -365,11 +366,13 @@ int main(int argc, char** argv) {
     }
     //
 
+
     //
     //  Optimization Pass: Constant folding
     LIST_FOREACH(ast) {
         ast_visit(constant_fold, NULL, it->data);
     }
+    warning("#");
 
     LIST_FOREACH(ast) {
         ast_visit(check_for_unresolved_types, NULL, it->data);

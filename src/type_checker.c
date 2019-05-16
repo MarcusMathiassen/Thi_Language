@@ -115,8 +115,8 @@ Type* type_check_expr(Typer_Context* ctx, AST* expr) {
     case AST_CONTINUE:       t = type_check_continue(ctx, expr);             break;
     case AST_AS:             t = type_check_as(ctx, expr);                   break;
     case AST_IS:             t = type_check_is(ctx, expr);                   break;
-    default:
-        error("Unhandled %s case for kind '%s'", give_unique_color((char*)__func__), ast_to_str(expr));
+
+    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(expr->kind));
     }
     // clang-format on
 
@@ -320,7 +320,7 @@ Type* type_check_subscript(Typer_Context* ctx, AST* expr) {
     info_no_newline("transformed %s into ", give_unique_color(ast_to_str(expr)));
 
     // Get the size of the underlaying type
-    s64 u_size = get_size_of_type(t);
+    // s64 u_size = get_size_of_type(t);
 
     // Compute the offset
 
@@ -348,19 +348,23 @@ Type* type_check_subscript(Typer_Context* ctx, AST* expr) {
     // trfm -> *(&(array) + sub * sizeof(array[0]))
     // turns it into this ->  *(&v + 0)
 
-    info("%s -> %s %s ", give_unique_color(ast_to_str(expr)), type_to_str(t), ast_kind_to_str(expr));
+    info("%s -> %s %s ", give_unique_color(ast_to_str(expr)), type_to_str(t), ast_kind_to_str(expr->kind));
 
     return t;
 }
 
 char* get_name_of_member(AST* mem) {
+    char* result = NULL;
+    // clang-format off
     switch (mem->kind) {
-    case AST_IDENT: return mem->Ident.name;
-    case AST_VARIABLE_DECL: return mem->Variable_Decl.name;
-    case AST_CONSTANT_DECL: return mem->Constant_Decl.name;
-    case AST_FUNCTION: return mem->Function.type->Function.name;
-    default: error("unhandled %s case %d", give_unique_color((char*)__func__), ast_kind_to_str(mem->kind));
+    case AST_IDENT:             result = mem->Ident.name;                   break;
+    case AST_VARIABLE_DECL:     result = mem->Variable_Decl.name;           break;
+    case AST_CONSTANT_DECL:     result = mem->Constant_Decl.name;           break;
+    case AST_FUNCTION:          result = mem->Function.type->Function.name; break;
+    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(mem->kind));
+    // clang-format on
     }
+    return result;
 }
 
 Type* type_check_field_access(Typer_Context* ctx, AST* expr) {
@@ -419,6 +423,7 @@ Type* type_check_field_access(Typer_Context* ctx, AST* expr) {
             }
         }
     } break;
+    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(expr->kind))
     }
 
     // type_check_expr(ctx, expr);
@@ -431,7 +436,7 @@ Type* type_check_if(Typer_Context* ctx, AST* expr) {
     AST* else_block = expr->If.else_block;
     type_check_expr(ctx, cond);
     ctx->expected_type = cond->type;
-    Type* t            = type_check_expr(ctx, then_block);
+    type_check_expr(ctx, then_block);
     type_check_expr(ctx, else_block);
     return cond->type;
 }

@@ -21,7 +21,7 @@ struct Map {
     Map_Element* data;
 };
 
-Map*  make_map();
+Map*  make_map(void);
 void  map_tests(void);
 void* map_get(Map* map, char* key);
 void* map_set(Map* map, char* key, void* value);

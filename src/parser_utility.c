@@ -5,8 +5,8 @@
 #include <stdlib.h> // xmalloc
 
 #define DEBUG_START \
-    // info("%s: %s", __func__, token_to_str(ctx->curr_tok));                                                             \
-    assert(ctx);
+    assert(ctx); \
+    // info("%s: %s", __func__, token_to_str(ctx->curr_tok));                                                             
 
 #define BIN_OP_COUNT 35
 struct
@@ -115,6 +115,7 @@ Type* get_type(Parser_Context* ctx) {
             type = make_type_array(type, size);
         }
     } break;
+    default: break;
     }
 
     return type;
@@ -143,7 +144,7 @@ s64 get_integer(Parser_Context* ctx) {
     }
     case TOKEN_INTEGER: value = atoll(ctx->curr_tok.value); break;
     case TOKEN_HEX: value = strtoll(ctx->curr_tok.value, NULL, 0); break;
-    default: error("not an integer.");
+    default: ERROR_UNHANDLED_KIND(token_kind_to_str(ctx->curr_tok.kind));
     }
     eat(ctx);
 

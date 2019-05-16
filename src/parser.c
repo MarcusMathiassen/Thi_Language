@@ -18,8 +18,8 @@
 //------------------------------------------------------------------------------
 
 #define DEBUG_START \
-    // info("%s: %s", __func__, token_to_str(ctx->curr_tok));                  \
-    assert(ctx);
+    assert(ctx); \
+    // info("%s: %s", __func__, token_to_str(ctx->curr_tok));                 
 
 #define UNARY_OP_COUNT 9
 Token_Kind unary_ops[UNARY_OP_COUNT] = {
@@ -195,6 +195,7 @@ AST* parse_identifier(Parser_Context* ctx) {
     case TOKEN_COLON_EQ:    return parse_variable_decl(ctx, ident);
     case TOKEN_COLON_COLON: return parse_constant_decl(ctx, ident);
     case TOKEN_OPEN_PAREN:  return parse_function_call(ctx, ident);
+    default: break;
     }
     // clang-format on
 
@@ -634,6 +635,7 @@ AST* parse_unary(Parser_Context* ctx) {
             info("replaced %s with %s", ast_to_str(unary), ast_to_str(node));
             ast_replace(unary, node);
         } break;
+        default: break;
         }
     }
 

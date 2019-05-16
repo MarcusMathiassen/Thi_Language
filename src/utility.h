@@ -13,6 +13,7 @@ void info_no_newline(char* fmt, ...);
 void warning_no_newline(char* fmt, ...);
 void success_no_newline(char* fmt, ...);
 void error_no_newline(char* fmt, ...);
+
 //------------------------------------------------------------------------------
 //                               File Functions
 //------------------------------------------------------------------------------
@@ -46,4 +47,7 @@ f64 get_time(void);
 //                               Tests
 //------------------------------------------------------------------------------
 void utility_tests(void);
+
+#define ERROR_UNHANDLED_KIND(kind) error("[%s:%s:%s] Unhandled case '%s'", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), give_unique_color((char*)__LINE__), give_unique_color(kind));
+
 #endif

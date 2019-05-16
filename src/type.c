@@ -340,7 +340,7 @@ Type* make_type_unresolved(char* name) {
     return t;
 }
 
-Type* make_type_array(Type* type, s32 size) {
+Type* make_type_array(Type* type, s64 size) {
     assert(type);
     assert(size > 0);
     Type* t       = make_type(TYPE_ARRAY);

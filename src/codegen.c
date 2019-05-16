@@ -237,7 +237,7 @@ codegen_binary(Codegen_Context* ctx, AST* expr) {
         push_type(ctx, rhs_v->type);
         push_type(ctx, rhs_v->type);
         Value* variable = NULL;
-        error("%s %s", ast_kind_to_str(lhs), ast_to_str(lhs));
+        error("%s %s", ast_kind_to_str(lhs->kind), ast_to_str(lhs));
         if (lhs->kind == AST_SUBSCRIPT) {
             variable = codegen_subscript_no_deref(ctx, lhs);
         } else {

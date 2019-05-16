@@ -56,7 +56,7 @@ struct Type {
         struct
         {
             Type* type;
-            s32   size;
+            s64   size;
         } Array;
         struct
         {
@@ -107,7 +107,7 @@ Type*   make_type_int           (s8 bytes, bool is_unsigned);
 Type*   make_type_float         (s8 bytes);
 Type*   make_type_string        (s64 len);
 Type*   make_type_pointer       (Type* pointee);
-Type*   make_type_array         (Type* type, s32 size);
+Type*   make_type_array         (Type* type, s64 size);
 Type*   make_type_struct        (char* name, List* members);
 Type*   make_type_enum          (char* name, List* members);
 Type*   make_type_function      (char* name, List* args, Type* ret_type, bool has_var_arg);
