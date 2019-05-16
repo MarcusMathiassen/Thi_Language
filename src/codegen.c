@@ -82,6 +82,7 @@ codegen_expr(Codegen_Context* ctx, AST* expr);
 Value*
 codegen_expr(Codegen_Context* ctx, AST* expr) {
     switch (expr->kind) {
+    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(expr->kind));
     case AST_FALLTHROUGH: return NULL;
     case AST_LOAD: return NULL;
     case AST_LINK: return NULL;
@@ -112,10 +113,8 @@ codegen_expr(Codegen_Context* ctx, AST* expr) {
     case AST_BREAK: return codegen_break(ctx, expr);
     case AST_CONTINUE: return codegen_continue(ctx, expr);
     case AST_AS: return codegen_as(ctx, expr);
-    default:
-        error("Unhandled codegen_expr case for kind '%s'",
-              ast_kind_to_str(expr->kind));
     }
+    UNREACHABLE;
     return NULL;
 }
 
@@ -167,6 +166,7 @@ codegen_unary(Codegen_Context* ctx, AST* expr) {
     Value* result = operand_val;
 
     switch (op) {
+    default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
     case THI_SYNTAX_ADDRESS: {
         s64 stack_pos = get_stack_pos_of_variable(operand_val);
         switch (operand_val->type->kind) {
@@ -206,7 +206,6 @@ codegen_unary(Codegen_Context* ctx, AST* expr) {
         }
         break;
     }
-    default: error("unhandled unary case: %c", token_kind_to_str(op)); break;
     }
     return result;
 }
@@ -220,7 +219,7 @@ codegen_binary(Codegen_Context* ctx, AST* expr) {
     AST*       rhs = expr->Binary.rhs;
 
     switch (op) {
-    default: error("unexpected binary token case in codegen binary");
+    default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
     // Field access
     case TOKEN_DOT: {
         Value* variable = get_variable(ctx, lhs->Ident.name);
@@ -237,7 +236,7 @@ codegen_binary(Codegen_Context* ctx, AST* expr) {
         push_type(ctx, rhs_v->type);
         push_type(ctx, rhs_v->type);
         Value* variable = NULL;
-        error("%s %s", ast_kind_to_str(lhs->kind), ast_to_str(lhs));
+        info("%s %s", ast_kind_to_str(lhs->kind), ast_to_str(lhs));
         if (lhs->kind == AST_SUBSCRIPT) {
             variable = codegen_subscript_no_deref(ctx, lhs);
         } else {
@@ -503,7 +502,7 @@ codegen_binary(Codegen_Context* ctx, AST* expr) {
     }
     }
 
-    error("Codegen: Unhandled binary op %s", token_kind_to_str(op));
+    UNREACHABLE;
     return NULL;
 }
 
@@ -575,7 +574,7 @@ codegen_call(Codegen_Context* ctx, AST* expr) {
     LIST_FOREACH(values) {
         Value* v = (Value*)it->data;
         switch (v->type->kind) {
-        default: error("unexpected type case in codegen_call");
+        default: ERROR_UNHANDLED_KIND(type_kind_to_str(v->type->kind));
         case TYPE_POINTER:
         case TYPE_ARRAY:
         case TYPE_ENUM:
@@ -1043,7 +1042,7 @@ codegen_function(Codegen_Context* ctx, AST* expr) {
         s8 param_reg = -1;
 
         switch (v->type->kind) {
-        default: error("unexpected type case in codegen_function");
+        default: ERROR_UNHANDLED_KIND(ast_kind_to_str(arg->kind));
         case TYPE_ARRAY:   // fallthrough
         case TYPE_POINTER: // fallthrough
         case TYPE_INT: {

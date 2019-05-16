@@ -60,6 +60,10 @@ Type* type_check_continue(Typer_Context* ctx, AST* expr);
 Type* type_check_as(Typer_Context* ctx, AST* expr);
 Type* type_check_is(Typer_Context* ctx, AST* expr);
 
+static Type* get_symbol(Typer_Context* ctx, char* name) {
+    return (Type*)map_get(ctx->symbol_table, name);
+}
+
 void type_checker(Map* symbol_table, List* ast) {
     info("Type checking...");
 
@@ -69,8 +73,6 @@ void type_checker(Map* symbol_table, List* ast) {
     LIST_FOREACH(ast) {
         type_check_expr(&ctx, (AST*)it->data);
     }
-    // print_ast(ast);
-    // error("Type Checker DEBUG ,,, ,, ,,, ,,");
 }
 
 Type* type_check_expr(Typer_Context* ctx, AST* expr) {
@@ -129,7 +131,7 @@ Type* type_check_expr(Typer_Context* ctx, AST* expr) {
 
 Type* type_check_sizeof(Typer_Context* ctx, AST* expr) {
     type_check_expr(ctx, expr->Sizeof.expr);
-    return (Type*)map_get(ctx->symbol_table, DEFAULT_BIG_INT_TYPE_AS_STRING);
+    return get_symbol(ctx, DEFAULT_BIG_INT_TYPE_AS_STRING);
 }
 
 Type* type_check_typeof(Typer_Context* ctx, AST* expr) {
@@ -143,10 +145,10 @@ Type* type_check_switch(Typer_Context* ctx, AST* expr) {
     AST* default_case = expr->Switch.default_case;
 
     // Make sure the resulting type is of type INT.
-    Type* cond_t = type_check_expr(ctx, cond);
-    if (cond_t->kind == TYPE_INT) {
-        error("%s is not a INT.", ast_to_str(cond), type_to_str(cond_t));
-    }
+    type_check_expr(ctx, cond);
+    // if (cond_t->kind == TYPE_INT) {
+    // error("%s is not a INT.", ast_to_str(cond), type_to_str(cond_t));
+    // }
 
     // A switches type is the same as its cases return type if any.
     Type* a = type_check_expr(ctx, cases);
@@ -210,8 +212,10 @@ Type* type_check_float(Typer_Context* ctx, AST* expr) {
 Type* type_check_string(Typer_Context* ctx, AST* expr) {
     return make_type_pointer(make_type_int(8, 1));
 }
+
 Type* type_check_ident(Typer_Context* ctx, AST* expr) {
-    return (Type*)map_get(ctx->symbol_table, expr->Ident.name);
+    char* identifier = expr->Ident.name;
+    return get_symbol(ctx, identifier);
 }
 Type* type_check_call(Typer_Context* ctx, AST* expr) {
     char* callee = expr->Call.callee;
@@ -289,7 +293,8 @@ Type* type_check_variable_decl(Typer_Context* ctx, AST* expr) {
     return type;
 }
 Type* type_check_constant_decl(Typer_Context* ctx, AST* expr) {
-    return type_check_expr(ctx, expr->Constant_Decl.value);
+    AST* value = expr->Constant_Decl.value;
+    return type_check_expr(ctx, value);
 }
 Type* type_check_block(Typer_Context* ctx, AST* expr) {
     List* stmts = expr->Block.stmts;
@@ -362,7 +367,7 @@ char* get_name_of_member(AST* mem) {
     case AST_CONSTANT_DECL:     result = mem->Constant_Decl.name;           break;
     case AST_FUNCTION:          result = mem->Function.type->Function.name; break;
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(mem->kind));
-    // clang-format on
+        // clang-format on
     }
     return result;
 }
@@ -482,6 +487,6 @@ Type* type_check_as(Typer_Context* ctx, AST* expr) {
 Type* type_check_is(Typer_Context* ctx, AST* expr) {
     type_check_expr(ctx, expr->Is.body);
     type_check_expr(ctx, expr->Is.expr);
-    UNFINISHED;
+    // UNFINISHED;
     return NULL;
 }

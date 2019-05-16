@@ -4,58 +4,33 @@ section .text
 _main:
 	push rbp
 	mov rbp, rsp
-	sub rsp, 48; 40 alloc, 8 padding
+	sub rsp, 48; 32 alloc, 16 padding
 .begin:
-	mov rax, 1
-	push rax
-	push rax
-	
-; codegen_field_access
+	mov [rbp-8], rdi; store_r
+	mov [rbp-16], rsi; store_r
 	mov rax, 0
 	push rax
-	
-; codegen_subscript
-	mov rax, 40
 	push rax
-	mov rax, 4
+	mov rax, [rbp-32]; load
 	pop rcx
-	imul rax, rcx
-	push rax
-	lea rax, [rbp-40]; load_lea
-	lea rax, [rax]; addrsof
-	pop rcx
-	add rax, rcx
-	mov rax, [rax]; deref
-	lea rax, [rax]; addrsof
-	pop rcx
-	add rax, rcx
-	mov rax, [rax]; deref
-	pop rcx
-	mov [rax], rcx; store
+	mov [rbp-32], rcx; store
 	pop rax
-	
-; codegen_field_access
+	mov rax, [rbp-32]; load
+	push rax
 	mov rax, 0
-	push rax
-	
-; codegen_subscript
-	mov rax, 40
-	push rax
-	mov rax, 4
 	pop rcx
-	imul rax, rcx
-	push rax
-	lea rax, [rbp-40]; load_lea
-	lea rax, [rax]; addrsof
-	pop rcx
-	add rax, rcx
-	mov rax, [rax]; deref
-	lea rax, [rax]; addrsof
-	pop rcx
-	add rax, rcx
-	mov rax, [rax]; deref
+	cmp rcx, rax
+	sete al
+	cmp al, 0
+	je .l1
+	mov rax, 3
+	jmp .end
+	jmp .l1
+.l0:
+.l1:
+	mov rax, [rbp-24]; load
 	jmp .end
 .end:
-	add rsp, 48; 40 alloc, 8 padding
+	add rsp, 48; 32 alloc, 16 padding
 	leave
 	ret

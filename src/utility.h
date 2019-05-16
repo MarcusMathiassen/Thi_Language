@@ -49,5 +49,5 @@ f64 get_time(void);
 void utility_tests(void);
 
 #define ERROR_UNHANDLED_KIND(kind) error("[%s:%s:%s] Unhandled case '%s'", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), give_unique_color((char*)__LINE__), give_unique_color(kind));
-
+#define UNREACHABLE error("[%s:%s:%s] UNREACHABLE HIT", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), give_unique_color((char*)__LINE__));
 #endif

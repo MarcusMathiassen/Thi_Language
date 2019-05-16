@@ -213,6 +213,7 @@ char* type_to_json(Type* type) {
     // warning("type_to_json: %s", type_kind_to_str(type->kind));
     char* result = NULL;
     switch (type->kind) {
+    default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
     case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
     case TYPE_VOID: return "void";
     case TYPE_UNRESOLVED: {
@@ -292,9 +293,6 @@ char* type_to_json(Type* type) {
         append_string(&str, strf("], \"ret_type\":%s}}", type_to_json(type->Function.ret_type)));
         result = str.c_str;
     }
-    default:
-        warning("type_to_json not implemented kind %d",
-                type_kind_to_str(type->kind));
     }
     assert(result);
     return result;

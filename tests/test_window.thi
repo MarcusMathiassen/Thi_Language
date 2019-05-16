@@ -7,10 +7,6 @@ load "includes/cmath"
 
 DEFAULT_WINDOW_TITLE :: "Hello Triangle"
 
-enum Mode
-    light :: 0
-    dark :: 1
-
 main()
     if !glfwInit() puts("GLFW init failed.")
     defer glfwTerminate()
@@ -30,7 +26,7 @@ main()
 
     if glfwInit() != GLEW_OK puts("GLEW init failed.")
 
-    shorten_filenames_in_error_messages : bool = false
+    shorten_filenames_in_error_messages := false
     warnings_is_errors := false
 
     x := 0.0
@@ -38,9 +34,6 @@ main()
     scale := 1.0
 
     running := true
-
-
-    #mode := Mode.dark
 
     while running
 

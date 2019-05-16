@@ -31,7 +31,6 @@ void  pass_type_inference(Thi* thi);
 void  pass_initilize_all_enums(Thi* thi);
 void  pass_resolve_subscripts(Thi* thi);
 void  pass_give_all_identifiers_a_type(Thi* thi);
-void  pass_resolve_all_unresolved_types(Thi* thi);
 void  pass_type_checker(Thi* thi);
 List* parse(Thi* thi, char* source_file);
 void  assemble(Thi* thi, char* asm_file, char* exec_name);
@@ -49,11 +48,23 @@ void check_for_unresolved_types(void* ctx, AST* expr) {
 
 void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* expr) {
     info("%s: %s -> %s", ast_kind_to_str(expr->kind), wrap_with_colored_parens(ast_to_str(expr)), give_unique_color(type_to_str(expr->type)));
+    // clang-format off
     switch (expr->kind) {
-    case AST_LOAD: return;
-    case AST_LINK: return;
+    case AST_LOAD:        return;
+    case AST_LINK:        return;
+    case AST_BLOCK:       return;
+    case AST_WHILE:       return;
+    case AST_IF:          return;
+    case AST_FOR:         return;
+    case AST_SWITCH:      return;
+    case AST_IS:          return;
+    case AST_DEFER:       return;
+    case AST_BREAK:       return;
+    case AST_CONTINUE:    return;
+    case AST_FALLTHROUGH: return;
     default: break;
     }
+    // clang-format on
     if (!expr->type) {
         error(
             "[make_sure_all_nodes_have_a_valid_type]: missing type for "
@@ -65,6 +76,25 @@ void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* expr) {
 void get_all_variables(void* list, AST* expr) {
     if (expr->kind == AST_VARIABLE_DECL) {
         list_append((List*)list, expr);
+    }
+}
+
+void thi_run_pass(Thi* thi, char* pass_description, void (*visitor_func)(void*, AST*), void* visitor_func_arg) {
+    push_timer(thi, pass_description);
+    LIST_FOREACH(thi->ast) {
+        ast_visit(visitor_func, visitor_func_arg, it->data);
+    }
+    pop_timer(thi);
+}
+
+void visitor_resolve_unresolved_types(void* thi, AST* expr) {
+    if (!expr->type) return;
+    Type* placeholder_t = expr->type;
+    while (placeholder_t->kind == TYPE_POINTER) {
+        placeholder_t = placeholder_t->Pointer.pointee;
+    }
+    if (placeholder_t->kind == TYPE_UNRESOLVED) {
+        *placeholder_t = *get_symbol(thi, get_type_name(placeholder_t));
     }
 }
 
@@ -130,7 +160,7 @@ void constant_fold(void* ctx, AST* expr) {
         }
     } break;
     case AST_UNARY: {
-        AST*       operand = expr->Unary.operand;
+        AST* operand = expr->Unary.operand;
         if (operand->kind == AST_GROUPING) operand = operand->Grouping.expr;
         if (operand->kind == AST_INT) {
             Token_Kind op     = expr->Unary.op;
@@ -274,22 +304,6 @@ int main(int argc, char** argv) {
     info("Running passes");
 
     //
-    // PASS: resolve all unresolved types
-    //
-    info("started PASS: resolve all unresolved types");
-    pass_resolve_all_unresolved_types(&thi);
-    info("finished PASS: resolve all unresolved types");
-    //
-    // Gather all variables found. ALL of them.
-    List* variable_list =
-        ast_find_all_of_kind(AST_VARIABLE_DECL, ast);
-    success("variables found: %d", variable_list->count);
-    LIST_FOREACH(variable_list) {
-        AST* expr = it->data;
-        success("%s", ast_to_str(expr));
-    }
-
-    //
     // PASS: give type-inferred variables a type
     //
     List* var_decls = ast_find_all_of_kind(AST_VARIABLE_DECL, ast);
@@ -303,6 +317,11 @@ int main(int argc, char** argv) {
     }
     info("PASS: give type-inferred variables a type");
 
+    //
+    // PASS: resolve all unresolved types
+    //
+
+    thi_run_pass(&thi, "resolve_unresolved_types", visitor_resolve_unresolved_types, &thi);
     type_checker(thi.symbol_map, thi.ast);
 
     //
@@ -364,39 +383,16 @@ int main(int argc, char** argv) {
             }
         }
     }
-    //
 
+    //  Optimization passes
+    thi_run_pass(&thi, "constant_fold", constant_fold, NULL);
 
-    //
-    //  Optimization Pass: Constant folding
-    LIST_FOREACH(ast) {
-        ast_visit(constant_fold, NULL, it->data);
-    }
-    warning("#");
+    // Sanity checks
+    thi_run_pass(&thi, "check_for_unresolved_types", check_for_unresolved_types, NULL);
+    thi_run_pass(&thi, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);
 
-    LIST_FOREACH(ast) {
-        ast_visit(check_for_unresolved_types, NULL, it->data);
-    }
-
-    success("START: Make sure all nodes have a valid type");
-    LIST_FOREACH(ast) {
-        ast_visit(make_sure_all_nodes_have_a_valid_type, NULL, it->data);
-    }
-    success("FINISHED: Make sure all nodes have a valid type");
-
-    // pass_initilize_all_enums(&thi);
-
-    // pass_initilize_all_enums MUST BE RUN BEFORE THIS
     pass_progate_identifiers_to_constants(&thi);
-
-    // pass_resolve_all_unresolved_types(&thi);
     pass_type_inference(&thi);
-
-    // pass_give_all_identifiers_a_type(&thi);
-
-    // pass_resolve_subscripts(&thi);
-
-    // pass_type_checker(&thi);
 
     char* json = full_ast_to_json(ast);
     write_to_file("ast.json", json);
@@ -864,15 +860,5 @@ void pass_type_inference(Thi* thi) {
         var_decl->type = var_decl->Variable_Decl.type;
     }
 
-    pop_timer(thi);
-}
-
-void pass_resolve_all_unresolved_types(Thi* thi) {
-    info("pass_resolve_all_unresolved_types %lld", thi->unresolved_types.count);
-    push_timer(thi, "pass_resolve_all_unresolved_types");
-    for (s64 i = 0; i < thi->unresolved_types.count; ++i) {
-        Type* t = (Type*)(thi->unresolved_types.data[i]);
-        *t      = *get_symbol(thi, get_type_name(t));
-    }
     pop_timer(thi);
 }

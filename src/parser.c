@@ -18,8 +18,8 @@
 //------------------------------------------------------------------------------
 
 #define DEBUG_START \
-    assert(ctx); \
-    // info("%s: %s", __func__, token_to_str(ctx->curr_tok));                 
+    assert(ctx);    \
+    // info("%s: %s", __func__, token_to_str(ctx->curr_tok));
 
 #define UNARY_OP_COUNT 9
 Token_Kind unary_ops[UNARY_OP_COUNT] = {

@@ -1,6 +1,6 @@
 struct int2
-    x: s32
-    y: s32
+    x: int
+    y: int
 
 main()
     v: int2

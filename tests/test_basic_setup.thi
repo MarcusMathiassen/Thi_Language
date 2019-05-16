@@ -1,7 +1,7 @@
-load "includes/cstdlib"
-load "includes/cstdio"
+#load "includes/cstdlib"
+#load "includes/cstdio"
 
-main(argc: s32, argv: u8**)
+main(argc: int, argv: char**)
 
     #v: v2
 
@@ -22,15 +22,19 @@ main(argc: s32, argv: u8**)
     #printf("ptr =  %d\n", ptr)
     #printf("&ptr =  %d\n", ptr)
 
-    k := 1.0 as s32
+    k : u8*
 
-    return sizeof k
+    i := 0
 
-struct v2
-    x: s64
-    y: s64
-    z: child
+    if i == 0 return 3
 
-struct child
-    z: s64
-    w: s64
+    return k
+
+#struct v2
+#    x: s64
+#    y: s64
+#    z: child
+
+#struct child
+#    z: s64
+#    w: s64

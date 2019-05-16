@@ -16,9 +16,6 @@
 #include <stdlib.h>  // free
 #include <string.h>  // strcmp
 
-#define UNREACHABLE \
-    error("%s:%s:%s unreachable.", __func__, __FILE__, __LINE__);
-
 Codegen_Context
 make_codegen_context() {
     Codegen_Context ctx;

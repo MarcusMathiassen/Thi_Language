@@ -502,6 +502,7 @@ AST* make_ast_ident(Token t, char* ident) {
 AST* make_ast_struct(Token t, Type* struct_t) {
     assert(struct_t);
     AST* e         = make_ast(AST_STRUCT, t);
+    e->type = struct_t;
     e->Struct.type = struct_t;
     return e;
 }
@@ -509,6 +510,7 @@ AST* make_ast_struct(Token t, Type* struct_t) {
 AST* make_ast_enum(Token t, Type* enum_t) {
     assert(enum_t);
     AST* e       = make_ast(AST_ENUM, t);
+    e->type = enum_t;
     e->Enum.type = enum_t;
     return e;
 }

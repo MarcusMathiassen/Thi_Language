@@ -6,7 +6,7 @@ src=./src/*.c
 flags=-Wall\ -Wextra\ -Wno-unused-function\ -Wno-unused-parameter\ -Werror #-DNDEBUG
 std=c99
 
-$compiler $src -std=$std $olvl $flags -o $output #-g -fsanitize=address -fno-omit-frame-pointer
+$compiler $src -std=$std $olvl $flags -o $output -g -fsanitize=address -fno-omit-frame-pointer
 
 test_files=$@
 if [ ${#test_files} == 0 ]; then
@@ -15,17 +15,20 @@ fi
 
 if [ $? == 0 ]; then
     # ./test.bash
+    # ./test.bash ./tests/test_struct.thi
+    # ./test.bash ./tests/test_break.thi
+    # ./test.bash ./tests/test_while.thi
     # ./test.bash ./tests/test_order_independance.thi
     # ./test.bash ./tests/test_pointer.thi
     # ./test.bash ./tests/test_var_args.thi
-    # ./test.bash ./ tests/test_basic_setup.thi
+    ./test.bash ./ tests/test_basic_setup.thi
     # ./test.bash ./ tests/test_typeof.thi
     # ./test.bash ./ tests/test_sizeof.thi
     # ./test.bash ./ tests/test_sizeof_2.thi
     # ./test.bash ./tests/test_window.thi
     # ./test.bash ./tests/test_advanced_pointer.thi
     # ./test.bash ./tests/test_subscript_access.thi
-    ./test.bash ./tests/test_subscript_access_2.thi
+    # ./test.bash ./tests/test_subscript_access_2.thi
     # ./test.bash ./tests/test_char.thi
     # ./test.bash ./tests/test_file.thi
     # ./test.bash ./tests/test_field_access.thi
