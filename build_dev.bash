@@ -19,13 +19,13 @@ if [ $? == 0 ]; then
     # ./test.bash ./tests/test_pointer.thi
     # ./test.bash ./tests/test_var_args.thi
     # ./test.bash ./ tests/test_basic_setup.thi
-    ./test.bash ./ tests/test_typeof.thi
+    # ./test.bash ./ tests/test_typeof.thi
     # ./test.bash ./ tests/test_sizeof.thi
     # ./test.bash ./ tests/test_sizeof_2.thi
     # ./test.bash ./tests/test_window.thi
     # ./test.bash ./tests/test_advanced_pointer.thi
     # ./test.bash ./tests/test_subscript_access.thi
-    # ./test.bash ./tests/test_subscript_access_2.thi
+    ./test.bash ./tests/test_subscript_access_2.thi
     # ./test.bash ./tests/test_char.thi
     # ./test.bash ./tests/test_file.thi
     # ./test.bash ./tests/test_field_access.thi

@@ -396,8 +396,10 @@ int main(int argc, char** argv) {
 
     // pass_type_checker(&thi);
 
-    char* json = full_ast_to_json(thi.ast);
+    char* json = full_ast_to_json(ast);
     write_to_file("ast.json", json);
+
+    print_ast(ast);
 
     // Codegen
     push_timer(&thi, "Codegen");

@@ -44,6 +44,17 @@ s64 get_size_of_underlying_type(Type* type) {
     return 0;
 }
 
+Type* get_underlying_type(Type* type) {
+    switch (type->kind) {
+    case TYPE_POINTER: return type->Pointer.pointee;
+    case TYPE_ARRAY: return type->Array.type;
+    default: return type;
+    }
+    error("get_underlying_type");
+    return 0;
+}
+
+
 bool is_same_type(Type* a, Type* b) {
     char* an = type_to_str(a);
     char* bn = type_to_str(b);
@@ -193,6 +204,7 @@ char* type_to_str(Type* type) {
         warning("type_to_str not implemented kind %d",
                 type_kind_to_str(type->kind));
     }
+    assert(0 == 1);
     return NULL;
 }
 

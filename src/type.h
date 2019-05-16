@@ -93,6 +93,7 @@ bool is_same_type(Type* a, Type* b);
 
 s64   get_offset_in_struct_to_field(Type* type, char* name);
 s64   get_size_of_underlying_type(Type* type);
+Type* get_underlying_type(Type* type);
 s64   get_size_of_type(Type* Type);
 char* get_type_name(Type* Type);
 char* type_to_str(Type* type);

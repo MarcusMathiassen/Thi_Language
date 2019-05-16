@@ -14,7 +14,7 @@
     // assert(expr);
 
 #define DEBUG_START \
-    // info_no_newline("%s: %s", give_unique_color(ast_kind_to_str(expr->kind)), wrap_with_colored_parens(ast_to_str(expr))); \
+    info("%s: %s", give_unique_color(ast_kind_to_str(expr->kind)), wrap_with_colored_parens(ast_to_str(expr))); \
     assert(expr);
 
 #define DEBUG_END \
@@ -298,9 +298,46 @@ Type* type_check_block(Typer_Context* ctx, AST* expr) {
     return NULL;
 }
 Type* type_check_subscript(Typer_Context* ctx, AST* expr) {
-    type_check_expr(ctx, expr->Subscript.load);
-    type_check_expr(ctx, expr->Subscript.sub);
-    return NULL;
+
+    AST* load = expr->Subscript.load;
+    AST* sub = expr->Subscript.sub;
+
+    warning("load: %s", ast_to_str(load));
+    warning("sub: %s", ast_to_str(sub));
+
+    Type * t = type_check_expr(ctx, load);
+    type_check_expr(ctx, sub);
+
+    warning("type: %s", type_to_str(t));
+    warning("type size: %d", get_size_of_type(t));
+
+    t = get_underlying_type(t);
+
+    warning("array type: %s", type_to_str(t));
+    warning("array type size: %d", get_size_of_type(t));
+
+    info_no_newline("transformed %s into ", give_unique_color(ast_to_str(expr)));
+
+    // Get the size of the underlaying type
+    s64 u_size = get_size_of_type(t);
+
+    // Compute the offset
+    expr = make_ast_binary(expr->t, TOKEN_ASTERISK, sub, make_ast_int(expr->t, u_size));
+    // Get the memory location of the load
+    AST* stack_ref = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, load);
+    // Add the offset and memory address together
+    expr = make_ast_binary(expr->t, TOKEN_PLUS, stack_ref, expr);
+    // Load the resulting location by dereferencing the memory address
+    expr = make_ast_unary(expr->t, THI_SYNTAX_POINTER, expr); 
+
+    // ex. array: Foo[5]
+    //     array[4].i[5]
+    // trfm -> *(&(array) + sub * sizeof(array[0]))
+    // turns it into this ->  *(&v + 0)
+
+    info("%s -> %s", give_unique_color(ast_to_str(expr)), type_to_str(t));
+
+    return t;
 }
 
 char* get_name_of_member(AST* mem) {
@@ -357,6 +394,8 @@ Type* type_check_field_access(Typer_Context* ctx, AST* expr) {
         }
     } break;
     }
+
+    // type_check_expr(ctx, expr);
 
     return res;
 }

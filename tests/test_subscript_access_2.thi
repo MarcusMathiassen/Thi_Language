@@ -1,8 +1,7 @@
 struct Foo 
-    i: s32[5]
-
+    i: s64
 
 main()
     array: Foo[5]
-    array[4].i[5] = 1
-    return array[4].i[5]
+    array[4].i = 1
+    return 1
