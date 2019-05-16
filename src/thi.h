@@ -15,6 +15,19 @@ typedef struct
     char* desc;
 } Timer;
 
+typedef enum {
+    PASS_SAFE,
+    PASS_UNSAFE
+} PassKind;
+
+typedef struct {
+    char*    description;
+    AST_Kind kind;
+    PassKind passKind;
+    void (*visitor_func)(void*, AST*);
+    void* visitor_arg;
+} PassDescriptor;
+
 typedef struct
 {
     bool detailed_print;
@@ -25,7 +38,7 @@ typedef struct
     s64 lines;
     s64 comments;
 
-    List* ast_int_passes;
+    Map* all_passes_for_all_kinds;
 
     Type_Ref_List unresolved_types;
     AST_Ref_List  calls;
@@ -54,6 +67,8 @@ typedef struct
 } Thi;
 
 Thi   make_thi();
+List* thi_get_visitors_for_kind(Thi* thi, AST_Kind kind);
+void  thi_install_pass(Thi* thi, PassDescriptor passDesc);
 void  add_load(Thi* thi, char* loaded_file);
 void  add_link(Thi* thi, char* library_name);
 Type* add_symbol(Thi* thi, char* name, Type* type);

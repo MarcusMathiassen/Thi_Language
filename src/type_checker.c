@@ -267,31 +267,22 @@ Type* type_check_binary(Typer_Context* ctx, AST* expr) {
     return a;
 }
 Type* type_check_variable_decl(Typer_Context* ctx, AST* expr) {
-    char* name            = expr->Variable_Decl.name;
-    Type* type            = expr->Variable_Decl.type;
+    char* variable_name   = expr->Variable_Decl.name;
+    Type* variable_type   = expr->Variable_Decl.type;
     AST*  assignment_expr = expr->Variable_Decl.value;
-    assert(name);
 
-    // if the variable has no assigned type. We infer it based on the
-    // assignment expression.
-    if (!type) {
-        // It must have an assignment expression.
-        assert(assignment_expr);
-        type_check_expr(ctx, assignment_expr);
-        type = assignment_expr->type;
-    } else {
-        ctx->expected_type = type;
-        if (assignment_expr) {
-            type_check_expr(ctx, assignment_expr);
-            // assert(type->kind == assignment_expr->type->kind);
-        }
+    Type* assigned_type = type_check_expr(ctx, assignment_expr);
+
+    // Make sure the set type and assigned type is the same
+    if (variable_type && assigned_type && !is_same_type(variable_type, assigned_type)) {
+        error("[type_missmatch] %s -> %s != %s ", ast_to_str(expr), type_to_str(variable_type), type_to_str(assigned_type));
     }
-    ctx->expected_type = type;
-
-    map_set_overwrite(ctx->symbol_table, name, type);
-
-    return type;
+    variable_type = assigned_type ? assigned_type : variable_type;
+    ctx->expected_type = variable_type;
+    map_set_overwrite(ctx->symbol_table, variable_name, variable_type);
+    return variable_type;
 }
+
 Type* type_check_constant_decl(Typer_Context* ctx, AST* expr) {
     AST* value = expr->Constant_Decl.value;
     return type_check_expr(ctx, value);

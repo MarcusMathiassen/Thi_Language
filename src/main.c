@@ -38,11 +38,22 @@ void  linking_stage(Thi* thi, char* exec_name);
 void  pass_general(Thi* thi);
 void  maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it);
 
+void print_expr(void* ctx, AST* expr) {
+    info("%s", ast_to_str(expr));
+}
+
 void check_for_unresolved_types(void* ctx, AST* expr) {
     if (expr->type && expr->type->kind == TYPE_UNRESOLVED) {
         error(
             "[check_for_unresolved_types]: unresolved type found for expr: %s",
             ast_to_str(expr));
+    }
+}
+void run_all_passes(void* thi, AST* expr) {
+    List* visitors = thi_get_visitors_for_kind(thi, expr->kind);
+    LIST_FOREACH(visitors) {
+        PassDescriptor* passDesc = it->data;
+        (*passDesc->visitor_func)(passDesc->visitor_arg, expr);
     }
 }
 
@@ -206,6 +217,16 @@ List* ast_find_all_of_kind(AST_Kind kind, List* ast) {
     return list;
 }
 
+void resolve_sizeofs(void* arg, AST* expr) {
+    s64  size           = get_size_of_type(expr->Sizeof.expr->type);
+    AST* constant_value = make_ast_int(expr->t, size);
+    ast_replace(expr, constant_value);
+}
+void resolve_typeofs(void* arg, AST* expr) {
+    AST* string_value = make_ast_string(expr->t, type_to_str(expr->type));
+    ast_replace(expr, string_value);
+}
+
 int main(int argc, char** argv) {
     // Argument validation
     if (argc < 2) error("too few arguments.");
@@ -303,60 +324,36 @@ int main(int argc, char** argv) {
 
     info("Running passes");
 
-    //
-    // PASS: give type-inferred variables a type
-    //
-    List* var_decls = ast_find_all_of_kind(AST_VARIABLE_DECL, ast);
-    LIST_FOREACH(var_decls) {
-        AST* var = it->data;
-        if (var->Variable_Decl.type == NULL) {
-            var->type =
-                get_inferred_type_of_expr(&thi, var->Variable_Decl.value);
-            var->Variable_Decl.type = var->type;
-        }
-    }
-    info("PASS: give type-inferred variables a type");
+    // ex.
+    PassDescriptor passDesc;
+    passDesc.description  = "Print all nodes";
+    passDesc.kind         = AST_IDENT;
+    passDesc.passKind     = PASS_SAFE;
+    passDesc.visitor_func = print_expr;
+    passDesc.visitor_arg  = NULL;
+    thi_install_pass(&thi, passDesc);
+
+    passDesc.description  = "Resolve sizeofs";
+    passDesc.kind         = AST_SIZEOF;
+    passDesc.passKind     = PASS_UNSAFE;
+    passDesc.visitor_func = resolve_sizeofs;
+    passDesc.visitor_arg  = NULL;
+    thi_install_pass(&thi, passDesc);
+
+    passDesc.description  = "Resolve typeofs";
+    passDesc.kind         = AST_TYPEOF;
+    passDesc.passKind     = PASS_UNSAFE;
+    passDesc.visitor_func = resolve_typeofs;
+    passDesc.visitor_arg  = NULL;
+    thi_install_pass(&thi, passDesc);
 
     //
     // PASS: resolve all unresolved types
     //
-
     thi_run_pass(&thi, "resolve_unresolved_types", visitor_resolve_unresolved_types, &thi);
+
+    // Give every node a type and do some checking
     type_checker(thi.symbol_map, thi.ast);
-
-    //
-    //  PASS: resolve all sizeof calls
-    //
-    List* sizeofs = ast_find_all_of_kind(AST_SIZEOF, ast);
-    success("sizeofs: %d", sizeofs->count);
-    LIST_FOREACH(sizeofs) {
-        AST* expr = it->data;
-
-        // Get the size of the type
-        // ..expr->type would give us the size of a 'sizeof' call
-        // ..which would be an integer of 8 bytes.
-        // ..so we get the size of the underlaying expression instead.
-        s64 size = get_size_of_type(expr->Sizeof.expr->type);
-
-        // Transform the expr into a constant value
-        AST* constant_value = make_ast_int(expr->t, size);
-        ast_replace(expr, constant_value);
-    }
-
-    //
-    //  PASS: resolve all typeof calls
-    //
-    List* typeofs = ast_find_all_of_kind(AST_TYPEOF, ast);
-    success("typeofs: %d", typeofs->count);
-    LIST_FOREACH(typeofs) {
-        AST* expr = it->data;
-
-        Type* type = expr->type;
-
-        // Transform the expr into a stringfied version of the type
-        AST* string_value = make_ast_string(expr->t, type_to_str(type));
-        ast_replace(expr, string_value);
-    }
 
     //
     // Optimization Pass:
@@ -391,8 +388,13 @@ int main(int argc, char** argv) {
     thi_run_pass(&thi, "check_for_unresolved_types", check_for_unresolved_types, NULL);
     thi_run_pass(&thi, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);
 
-    pass_progate_identifiers_to_constants(&thi);
-    pass_type_inference(&thi);
+    // Run all passes
+    LIST_FOREACH(ast) {
+        ast_visit(run_all_passes, &thi, it->data);
+    }
+
+    // pass_progate_identifiers_to_constants(&thi);
+    // pass_type_inference(&thi);
 
     char* json = full_ast_to_json(ast);
     write_to_file("ast.json", json);
@@ -676,68 +678,6 @@ Type* get_inferred_type_of_expr(Thi* thi, AST* expr) {
     return NULL;
 }
 
-void pass_type_checker(Thi* thi) {
-    info("pass_type_checker");
-    push_timer(thi, "pass_type_checker");
-
-    // For all functions call..
-    for (s64 i = 0; i < thi->calls.count; ++i) {
-        // Get the caller and its args
-        AST*  call      = thi->calls.data[i];
-        List* call_args = call->Call.args;
-
-        warning("Typechecking: %s", ast_to_str(call));
-
-        // Get the callee function and its args
-        Type* callee_t  = get_symbol(thi, call->Call.callee);
-        List* func_args = callee_t->Function.args;
-
-        // The args must be of equal length.
-        if (call_args->count != func_args->count) {
-            // Make a nice error message
-            char* callee         = call->Call.callee;
-            s64   expected_count = func_args->count;
-            s64   got_count      = call_args->count;
-            s64   line           = call->t.line_pos;
-            s64   pos            = call->t.col_pos;
-
-            char* str =
-                strf("function call '%s' expected %lld arguments. Got %lld.",
-                     callee,
-                     expected_count,
-                     got_count);
-            error("[TYPE_CHECKER %lld:%lld]: %s", line, pos, str);
-        }
-
-        // And each callers arguments type must match
-        // with the callees arguments type.
-        List_Node* it2 = func_args->head;
-        LIST_FOREACH(call_args) {
-            AST* call_arg = (AST*)it->data;
-            AST* func_arg = (AST*)it2->data;
-
-            Type* t0 = call_arg->type;
-            Type* t1 = func_arg->type;
-
-            assert(t0);
-            assert(t1);
-
-            warning("%s %s", ast_to_str(call_arg), ast_to_str(func_arg));
-
-            if (t0->kind != t1->kind) {
-                s64   line = call->t.line_pos;
-                s64   pos  = call->t.col_pos;
-                char* str  = strf("type missmatch");
-                error("[TYPE_CHECKER %lld:%lld]: %s", line, pos, str);
-            }
-
-            // NOTE(marcus) This is just asking for trouble.
-            it2 = it2->next;
-        }
-    }
-
-    pop_timer(thi);
-}
 
 void pass_progate_identifiers_to_constants(Thi* thi) {
     info("pass_progate_identifiers_to_constants");

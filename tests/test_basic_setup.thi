@@ -22,13 +22,12 @@ main(argc: int, argv: char**)
     #printf("ptr =  %d\n", ptr)
     #printf("&ptr =  %d\n", ptr)
 
-    k : u8*
 
+    #i := 0
+
+    # if i == 0 return 3
     i := 0
-
-    if i == 0 return 3
-
-    return k
+    return sizeof int
 
 #struct v2
 #    x: s64

@@ -141,40 +141,41 @@ void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr) {
 char* ast_kind_to_str(AST_Kind kind) {
     // clang-format off
     switch (kind) {
-    case AST_VAR_ARGS:      return "AST_VAR_ARGS";
-    case AST_FIELD_ACCESS:  return "AST_FIELD_ACCESS";
-    case AST_FALLTHROUGH:   return "AST_FALLTHROUGH";
-    case AST_SWITCH:        return "AST_SWITCH";
-    case AST_IS:            return "AST_IS";
-    case AST_TYPEOF:        return "AST_TYPEOF";
-    case AST_SIZEOF:        return "AST_SIZEOF";
-    case AST_EXTERN:        return "AST_EXTERN";
-    case AST_LOAD:          return "AST_LOAD";
-    case AST_LINK:          return "AST_LINK";
-    case AST_NOTE:          return "AST_NOTE";
-    case AST_INT:           return "AST_INT";
-    case AST_FLOAT:         return "AST_FLOAT";
-    case AST_STRING:        return "AST_STRING";
-    case AST_IDENT:         return "AST_IDENT";
-    case AST_CALL:          return "AST_CALL";
-    case AST_UNARY:         return "AST_UNARY";
-    case AST_BINARY:        return "AST_BINARY";
+    case AST_IS: return "AST_IS";
+    case AST_FALLTHROUGH: return "AST_FALLTHROUGH";
+    case AST_VAR_ARGS: return "AST_VAR_ARGS";
+    case AST_EXTERN: return "AST_EXTERN";
+    case AST_LOAD: return "AST_LOAD";
+    case AST_LINK: return "AST_LINK";
+    case AST_NOTE: return "AST_NOTE";
+    case AST_INT: return "AST_INT";
+    case AST_FLOAT: return "AST_FLOAT";
+    case AST_STRING: return "AST_STRING";
+    case AST_IDENT: return "AST_IDENT";
+    case AST_CALL: return "AST_CALL";
+    case AST_UNARY: return "AST_UNARY";
+    case AST_BINARY: return "AST_BINARY";
+    case AST_GROUPING: return "AST_GROUPING";
+    case AST_SUBSCRIPT: return "AST_SUBSCRIPT";
+    case AST_FIELD_ACCESS: return "AST_FIELD_ACCESS";
+    case AST_AS: return "AST_AS";
+    case AST_BLOCK: return "AST_BLOCK";
+    case AST_STRUCT: return "AST_STRUCT";
+    case AST_ENUM: return "AST_ENUM";
+    case AST_FUNCTION: return "AST_FUNCTION";
     case AST_VARIABLE_DECL: return "AST_VARIABLE_DECL";
     case AST_CONSTANT_DECL: return "AST_CONSTANT_DECL";
-    case AST_FUNCTION:      return "AST_FUNCTION";
-    case AST_STRUCT:        return "AST_STRUCT";
-    case AST_ENUM:          return "AST_ENUM";
-    case AST_BLOCK:         return "AST_BLOCK";
-    case AST_GROUPING:      return "AST_GROUPING";
-    case AST_SUBSCRIPT:     return "AST_SUBSCRIPT";
-    case AST_IF:            return "AST_IF";
-    case AST_FOR:           return "AST_FOR";
-    case AST_WHILE:         return "AST_WHILE";
-    case AST_RETURN:        return "AST_RETURN";
-    case AST_DEFER:         return "AST_DEFER";
-    case AST_BREAK:         return "AST_BREAK";
-    case AST_CONTINUE:      return "AST_CONTINUE";
-    case AST_AS:            return "AST_AS";
+    case AST_IF: return "AST_IF";
+    case AST_FOR: return "AST_FOR";
+    case AST_WHILE: return "AST_WHILE";
+    case AST_RETURN: return "AST_RETURN";
+    case AST_DEFER: return "AST_DEFER";
+    case AST_BREAK: return "AST_BREAK";
+    case AST_CONTINUE: return "AST_CONTINUE";
+    case AST_TYPEOF: return "AST_TYPEOF";
+    case AST_SIZEOF: return "AST_SIZEOF";
+    case AST_SWITCH: return "AST_SWITCH";
+    case AST_COUNT: return "AST_COUNT";
     default: warning("ast_kind_to_str unhandled case '%d'", kind);
     }
     // clang-format on
@@ -502,7 +503,7 @@ AST* make_ast_ident(Token t, char* ident) {
 AST* make_ast_struct(Token t, Type* struct_t) {
     assert(struct_t);
     AST* e         = make_ast(AST_STRUCT, t);
-    e->type = struct_t;
+    e->type        = struct_t;
     e->Struct.type = struct_t;
     return e;
 }
@@ -510,7 +511,7 @@ AST* make_ast_struct(Token t, Type* struct_t) {
 AST* make_ast_enum(Token t, Type* enum_t) {
     assert(enum_t);
     AST* e       = make_ast(AST_ENUM, t);
-    e->type = enum_t;
+    e->type      = enum_t;
     e->Enum.type = enum_t;
     return e;
 }

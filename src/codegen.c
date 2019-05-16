@@ -521,14 +521,10 @@ Value*
 codegen_variable_decl(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_VARIABLE_DECL);
+
     char* name            = expr->Variable_Decl.name;
     Type* type            = expr->Variable_Decl.type;
     AST*  assignment_expr = expr->Variable_Decl.value;
-
-    assert(name);
-    assert(type);
-
-    ctx->expected_type = type;
 
     s64 type_size = get_size_of_type(type);
     s64 stack_pos = type_size + ctx->stack_index;
@@ -536,10 +532,9 @@ codegen_variable_decl(Codegen_Context* ctx, AST* expr) {
     Value* variable = make_value_variable(name, type, stack_pos);
     add_variable(ctx, variable);
 
-    if (assignment_expr)
-        if (type->kind != TYPE_ARRAY || type->kind != TYPE_POINTER ||
-            type->kind != TYPE_STRING)
-            codegen_expr(ctx, make_ast_binary(expr->t, TOKEN_EQ, make_ast_ident(expr->t, name), assignment_expr));
+    if (assignment_expr) {
+        codegen_expr(ctx, make_ast_binary(expr->t, TOKEN_EQ, make_ast_ident(expr->t, name), assignment_expr));
+    }
 
     return variable;
 }
