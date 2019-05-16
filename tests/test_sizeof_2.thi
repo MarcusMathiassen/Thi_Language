@@ -2,7 +2,7 @@
 #deps: struct
 
 main()
-    return sizeof(v2)
+    return sizeof(v2) - 7
 
 struct v2
     x: s32

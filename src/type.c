@@ -54,7 +54,6 @@ Type* get_underlying_type(Type* type) {
     return 0;
 }
 
-
 bool is_same_type(Type* a, Type* b) {
     char* an = type_to_str(a);
     char* bn = type_to_str(b);

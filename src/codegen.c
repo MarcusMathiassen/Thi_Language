@@ -140,6 +140,7 @@ char* generate_code_from_ast(List* ast) {
 Value*
 codegen_unary(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
+
     Token_Kind op      = expr->Unary.op;
     AST*       operand = expr->Unary.operand;
 
@@ -236,13 +237,14 @@ codegen_binary(Codegen_Context* ctx, AST* expr) {
         push_type(ctx, rhs_v->type);
         push_type(ctx, rhs_v->type);
         Value* variable = NULL;
+        error("%s %s", ast_kind_to_str(lhs), ast_to_str(lhs));
         if (lhs->kind == AST_SUBSCRIPT) {
             variable = codegen_subscript_no_deref(ctx, lhs);
         } else {
             variable = codegen_expr(ctx, lhs);
             if (variable->type->kind == TYPE_POINTER) {
                 s64 stack_pos = get_stack_pos_of_variable(variable);
-                emit(ctx, "lea rax, [rbp-%lld]", stack_pos);
+                emit(ctx, "lea rax, [rbp-%lld]; assign_not_subscri", stack_pos);
             }
         }
         pop_type_2(ctx, rhs_v->type);
@@ -673,16 +675,17 @@ Value*
 codegen_subscript_no_deref(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_SUBSCRIPT);
+
     AST* load = expr->Subscript.load;
     AST* sub  = expr->Subscript.sub;
 
-    Value* variable = codegen_expr(ctx, load); // ADDRESS OF 'C' is in 'RAX'
-    s64    size     = get_size_of_underlying_type(variable->type);
+    s64 size = get_size_of_type(load->type);
 
     sub  = make_ast_binary(expr->t, TOKEN_ASTERISK, make_ast_int(expr->t, size), sub);
     load = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, load);
     sub  = make_ast_binary(expr->t, TOKEN_PLUS, load, sub);
 
+    emit(ctx, "\n; codegen_subscript_no_deref");
     return codegen_expr(ctx, sub);
 }
 
@@ -690,55 +693,45 @@ Value*
 codegen_field_access(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_FIELD_ACCESS);
+
     AST*  load       = expr->Field_Access.load;
     char* field_name = expr->Field_Access.field;
 
-    Value* variable = codegen_expr(ctx, load); // ADDRESS OF 'C' is in 'RAX'
+    // Get the offset
+    s64  offset_size = get_offset_in_struct_to_field(load->type, field_name);
+    AST* offset      = make_ast_int(expr->t, offset_size);
 
-    assert(variable->type->kind == TYPE_STRUCT);
+    // Get the memory location of the load
+    AST* stack_ref = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, load);
 
-    // Get the offset to the member
-    s64   accum = 0;
-    Type* t     = NULL;
-    LIST_FOREACH(variable->type->Struct.members) {
-        AST* mem = (AST*)it->data;
-        // warning("%lld, %s", accum, ast_to_json(mem));
-        assert(mem->type);
-        accum += get_size_of_type(mem->type);
-        assert(field_name);
-        assert(mem->Variable_Decl.name);
-        if (strcmp(field_name, mem->Variable_Decl.name) == 0) {
-            t = mem->type;
-            break;
-        }
-    }
+    // Add the offset and memory location
+    expr = make_ast_binary(expr->t, TOKEN_PLUS, stack_ref, offset);
 
-    warning("%s", type_to_str(t));
+    // Load the resulting memory location
+    expr = make_ast_unary(expr->t, THI_SYNTAX_POINTER, expr);
 
-    s64 stack_pos = get_stack_pos_of_variable(variable);
-    // Value* v         = make_value_variable("x", t, stack_pos + accum);
-
-    // emit(ctx, "mov rax, [rbp-%lld]", stack_pos - accum);
-    Value* var = make_value_variable(field_name, t, stack_pos - accum);
-    emit_load(ctx, var);
-    return var;
+    emit(ctx, "\n; codegen_field_access");
+    success("codegen_field_access: %s", ast_to_str(expr));
+    return codegen_expr(ctx, expr);
 }
 
 Value*
 codegen_subscript(Codegen_Context* ctx, AST* expr) {
     DEBUG_START;
     assert(expr->kind == AST_SUBSCRIPT);
+
     AST* load = expr->Subscript.load;
     AST* sub  = expr->Subscript.sub;
 
-    Value* variable = codegen_expr(ctx, load); // ADDRESS OF 'C' is in 'RAX'
-    s64    size     = get_size_of_underlying_type(variable->type);
+    s64 size = get_size_of_type(load->type);
 
-    sub = make_ast_binary(expr->t, TOKEN_ASTERISK, make_ast_int(expr->t, size), sub);
-    // load = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, load);
-    sub = make_ast_binary(expr->t, TOKEN_PLUS, load, sub);
-    sub = make_ast_unary(expr->t, THI_SYNTAX_POINTER, sub);
+    sub  = make_ast_binary(expr->t, TOKEN_ASTERISK, make_ast_int(expr->t, size), sub);
+    load = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, load);
+    sub  = make_ast_binary(expr->t, TOKEN_PLUS, load, sub);
+    sub  = make_ast_unary(expr->t, THI_SYNTAX_POINTER, sub);
 
+    emit(ctx, "\n; codegen_subscript");
+    success("codegen_subscript: %s", ast_to_str(sub));
     return codegen_expr(ctx, sub);
 }
 

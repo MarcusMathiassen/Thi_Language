@@ -623,7 +623,7 @@ AST* parse_unary(Parser_Context* ctx) {
     }
 
     if (unary) {
-        switch(unary->Unary.op) {
+        switch (unary->Unary.op) {
         case TOKEN_SIZEOF: {
             AST* node = make_ast_sizeof(unary->t, unary->Unary.operand);
             info("replaced %s with %s", ast_to_str(unary), ast_to_str(node));

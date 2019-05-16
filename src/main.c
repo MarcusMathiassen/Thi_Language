@@ -48,7 +48,7 @@ void check_for_unresolved_types(void* ctx, AST* expr) {
 }
 
 void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* expr) {
-    info("%s: %s -> %s", ast_kind_to_str(expr->kind), wrap_with_colored_parens(ast_to_str(expr)),  give_unique_color(type_to_str(expr->type))); \
+    info("%s: %s -> %s", ast_kind_to_str(expr->kind), wrap_with_colored_parens(ast_to_str(expr)), give_unique_color(type_to_str(expr->type)));
     switch (expr->kind) {
     case AST_LOAD: return;
     case AST_LINK: return;
@@ -331,13 +331,12 @@ int main(int argc, char** argv) {
     LIST_FOREACH(typeofs) {
         AST* expr = it->data;
 
-        Type *type = expr->type;
+        Type* type = expr->type;
 
         // Transform the expr into a stringfied version of the type
         AST* string_value = make_ast_string(expr->t, type_to_str(type));
         ast_replace(expr, string_value);
     }
-
 
     //
     // Optimization Pass:

@@ -55,7 +55,6 @@ void error(char* fmt, ...) {
     exit(1);
 }
 
-
 void info_no_newline(char* fmt, ...) {
 #ifndef NDEBUG
     assert(fmt);

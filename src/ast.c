@@ -18,22 +18,35 @@
 void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr) {
     if (!expr) return;
     switch (expr->kind) {
-    case AST_TYPEOF: ast_visit(func, ctx, expr->Typeof.expr); break;
-    case AST_SIZEOF: ast_visit(func, ctx, expr->Sizeof.expr); break;
-    case AST_FALLTHROUGH: break;
-    case AST_LOAD: break;
-    case AST_LINK: break;
+    case AST_TYPEOF:
+        ast_visit(func, ctx, expr->Typeof.expr);
+        break;
+    case AST_SIZEOF:
+        ast_visit(func, ctx, expr->Sizeof.expr);
+        break;
+    case AST_FALLTHROUGH:
+        break;
+    case AST_LOAD:
+        break;
+    case AST_LINK:
+        break;
     case AST_EXTERN:
         LIST_FOREACH(expr->Extern.type->Function.args) {
             ast_visit(func, ctx, it->data);
         }
         break;
-    case AST_INT: break;
-    case AST_FLOAT: break;
-    case AST_STRING: break;
-    case AST_IDENT: break;
-    case AST_STRUCT: break;
-    case AST_ENUM: break;
+    case AST_INT:
+        break;
+    case AST_FLOAT:
+        break;
+    case AST_STRING:
+        break;
+    case AST_IDENT:
+        break;
+    case AST_STRUCT:
+        break;
+    case AST_ENUM:
+        break;
     case AST_SWITCH:
         ast_visit(func, ctx, expr->Switch.cond);
         ast_visit(func, ctx, expr->Switch.cases);
@@ -48,30 +61,42 @@ void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr) {
             ast_visit(func, ctx, it->data);
         }
         break;
-    case AST_NOTE: ast_visit(func, ctx, expr->Note.expr); break;
+    case AST_NOTE:
+        ast_visit(func, ctx, expr->Note.expr);
+        break;
     case AST_CALL:
         LIST_FOREACH(expr->Call.args) {
             ast_visit(func, ctx, it->data);
         }
         break;
-    case AST_UNARY: ast_visit(func, ctx, expr->Unary.operand); break;
+    case AST_UNARY:
+        ast_visit(func, ctx, expr->Unary.operand);
+        break;
     case AST_BINARY:
         ast_visit(func, ctx, expr->Binary.lhs);
         ast_visit(func, ctx, expr->Binary.rhs);
         break;
-    case AST_VARIABLE_DECL: ast_visit(func, ctx, expr->Variable_Decl.value); break;
-    case AST_CONSTANT_DECL: ast_visit(func, ctx, expr->Constant_Decl.value); break;
+    case AST_VARIABLE_DECL:
+        ast_visit(func, ctx, expr->Variable_Decl.value);
+        break;
+    case AST_CONSTANT_DECL:
+        ast_visit(func, ctx, expr->Constant_Decl.value);
+        break;
     case AST_BLOCK:
         LIST_FOREACH(expr->Block.stmts) {
             ast_visit(func, ctx, it->data);
         }
         break;
-    case AST_GROUPING: ast_visit(func, ctx, expr->Grouping.expr); break;
+    case AST_GROUPING:
+        ast_visit(func, ctx, expr->Grouping.expr);
+        break;
     case AST_SUBSCRIPT:
         ast_visit(func, ctx, expr->Subscript.load);
         ast_visit(func, ctx, expr->Subscript.sub);
         break;
-    case AST_FIELD_ACCESS: ast_visit(func, ctx, expr->Field_Access.load); break;
+    case AST_FIELD_ACCESS:
+        ast_visit(func, ctx, expr->Field_Access.load);
+        break;
     case AST_IF:
         ast_visit(func, ctx, expr->If.cond);
         ast_visit(func, ctx, expr->If.else_block);
@@ -87,12 +112,20 @@ void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr) {
         ast_visit(func, ctx, expr->While.cond);
         ast_visit(func, ctx, expr->While.then_block);
         break;
-    case AST_RETURN: ast_visit(func, ctx, expr->Return.expr); break;
-    case AST_DEFER: ast_visit(func, ctx, expr->Defer.expr); break;
-    case AST_BREAK: ast_visit(func, ctx, expr->Break.expr); break;
-    case AST_CONTINUE: ast_visit(func, ctx, expr->Continue.expr); break;
-    case AST_AS: 
-        ast_visit(func, ctx, expr->As.expr); 
+    case AST_RETURN:
+        ast_visit(func, ctx, expr->Return.expr);
+        break;
+    case AST_DEFER:
+        ast_visit(func, ctx, expr->Defer.expr);
+        break;
+    case AST_BREAK:
+        ast_visit(func, ctx, expr->Break.expr);
+        break;
+    case AST_CONTINUE:
+        ast_visit(func, ctx, expr->Continue.expr);
+        break;
+    case AST_AS:
+        ast_visit(func, ctx, expr->As.expr);
         ast_visit(func, ctx, expr->As.type_expr);
         break;
     case AST_IS:
@@ -648,8 +681,8 @@ AST* make_ast_continue(Token t) {
 AST* make_ast_as(Token t, AST* expr, AST* type_expr) {
     assert(expr);
     assert(type_expr);
-    AST* e       = make_ast(AST_AS, t);
-    e->As.expr = expr;
+    AST* e          = make_ast(AST_AS, t);
+    e->As.expr      = expr;
     e->As.type_expr = type_expr;
     return e;
 }

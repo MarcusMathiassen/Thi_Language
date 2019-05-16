@@ -13,7 +13,7 @@
 //     info_no_newline("%s: %s", give_unique_color((char*)__func__), wrap_with_colored_parens(ast_to_str(expr))); \
     // assert(expr);
 
-#define DEBUG_START \
+#define DEBUG_START                                                                                             \
     info("%s: %s", give_unique_color(ast_kind_to_str(expr->kind)), wrap_with_colored_parens(ast_to_str(expr))); \
     assert(expr);
 
@@ -256,10 +256,11 @@ Type* type_check_binary(Typer_Context* ctx, AST* expr) {
     Type* b = type_check_expr(ctx, rhs);
 
     if (!is_same_type(a, b)) {
-        error("[type_missmatch] %s -> %s != %s ", ast_to_str(expr), type_to_str(a), type_to_str(b));
+        // error("[type_missmatch] %s -> %s != %s ", ast_to_str(expr), type_to_str(a), type_to_str(b));
     }
 
-    return lhs->type;
+    // 'a' and 'b' are the same so just return any one of them
+    return a;
 }
 Type* type_check_variable_decl(Typer_Context* ctx, AST* expr) {
     char* name            = expr->Variable_Decl.name;
@@ -300,12 +301,12 @@ Type* type_check_block(Typer_Context* ctx, AST* expr) {
 Type* type_check_subscript(Typer_Context* ctx, AST* expr) {
 
     AST* load = expr->Subscript.load;
-    AST* sub = expr->Subscript.sub;
+    AST* sub  = expr->Subscript.sub;
 
     warning("load: %s", ast_to_str(load));
     warning("sub: %s", ast_to_str(sub));
 
-    Type * t = type_check_expr(ctx, load);
+    Type* t = type_check_expr(ctx, load);
     type_check_expr(ctx, sub);
 
     warning("type: %s", type_to_str(t));
@@ -322,20 +323,32 @@ Type* type_check_subscript(Typer_Context* ctx, AST* expr) {
     s64 u_size = get_size_of_type(t);
 
     // Compute the offset
-    expr = make_ast_binary(expr->t, TOKEN_ASTERISK, sub, make_ast_int(expr->t, u_size));
+
+    // AST* offset = make_ast_binary(expr->t, TOKEN_ASTERISK, sub, make_ast_int(expr->t, u_size));
+    // AST* pos = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, load);
+    // AST* result = make_ast_binary(expr->t, TOKEN_PLUS, pos, offset);
+    // result = make_ast_unary(expr->t, THI_SYNTAX_POINTER, result);
+
+    // expr = make_ast_binary(expr->t, TOKEN_ASTERISK, sub, make_ast_int(expr->t, u_size));
+    // ast_replace(expr, make_ast_binary(expr->t, TOKEN_ASTERISK, sub, make_ast_int(expr->t, u_size)));
     // Get the memory location of the load
-    AST* stack_ref = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, load);
+    // AST* stack_ref = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, load);
     // Add the offset and memory address together
-    expr = make_ast_binary(expr->t, TOKEN_PLUS, stack_ref, expr);
-    // Load the resulting location by dereferencing the memory address
-    expr = make_ast_unary(expr->t, THI_SYNTAX_POINTER, expr); 
+    // expr = make_ast_binary(expr->t, TOKEN_PLUS, stack_ref, expr);
+    // ast_replace(expr, make_ast_binary(expr->t, TOKEN_PLUS, stack_ref, expr));
+    // // Load the resulting location by dereferencing the memory address
+    // expr = make_ast_unary(expr->t, THI_SYNTAX_POINTER, expr);
+    // ast_replace(expr, make_ast_unary(expr->t, THI_SYNTAX_POINTER, expr));
+
+    // type_check_expr(ctx, result);
+    // ast_replace(expr, result);
 
     // ex. array: Foo[5]
     //     array[4].i[5]
     // trfm -> *(&(array) + sub * sizeof(array[0]))
     // turns it into this ->  *(&v + 0)
 
-    info("%s -> %s", give_unique_color(ast_to_str(expr)), type_to_str(t));
+    info("%s -> %s %s ", give_unique_color(ast_to_str(expr)), type_to_str(t), ast_kind_to_str(expr));
 
     return t;
 }
@@ -382,12 +395,25 @@ Type* type_check_field_access(Typer_Context* ctx, AST* expr) {
             if (strcmp(name, field_name) == 0) {
                 info("found it!");
                 info("getting offset to '%s' in type '%s'", name, type_to_str(t));
-                s64 offset = get_offset_in_struct_to_field(t, field_name);
 
-                AST* stack_ref = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, make_ast_ident(expr->t, type_name));
-                expr           = make_ast_binary(expr->t, TOKEN_PLUS, stack_ref, make_ast_int(expr->t, offset));
-                expr           = make_ast_unary(expr->t, THI_SYNTAX_POINTER, expr);
-                //                turns it into this ->  *(&v + 0)
+                // // Get the offset
+                // s64 offset_size = get_offset_in_struct_to_field(t, field_name);
+                // AST* offset = make_ast_int(expr->t, offset_size);
+
+                // // Get the memory location of the load
+                // AST* stack_ref = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, make_ast_ident(expr->t, type_name));
+
+                // AST *result;
+
+                // // Add the offset and memory location
+                // result = make_ast_binary(expr->t, TOKEN_PLUS, stack_ref, offset);
+
+                // // Load the resulting memory location
+                // result = make_ast_unary(expr->t, THI_SYNTAX_POINTER, expr);
+
+                // ast_replace(expr, result);
+
+                // turns it into this ->  *(&v + 0)
                 res = mem->type;
                 break;
             }
