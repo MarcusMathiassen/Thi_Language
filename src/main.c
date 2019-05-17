@@ -27,6 +27,21 @@
 void assemble(Thi* thi, char* asm_file, char* exec_name);
 void linking_stage(Thi* thi, char* exec_name);
 
+//------------------------------------------------------------------------------
+//                               Passes
+//------------------------------------------------------------------------------
+void resolve_sizeofs(void* arg, AST* expr) {
+    s64  size           = get_size_of_type(expr->Sizeof.expr->type);
+    AST* constant_value = make_ast_int(expr->t, size);
+    ast_replace(expr, constant_value);
+}
+void resolve_typeofs(void* arg, AST* expr) {
+    AST* string_value = make_ast_string(expr->t, type_to_str(expr->type));
+    ast_replace(expr, string_value);
+}
+void pass_add_symbol_of_kind(void* thi, AST* expr) {
+    add_symbol(thi, get_type_name(expr->type), expr->type);
+}
 void check_for_unresolved_types(void* ctx, AST* expr) {
     if (expr->type && expr->type->kind == TYPE_UNRESOLVED) {
         error(
@@ -70,18 +85,6 @@ void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* expr) {
     }
 }
 
-void get_all_variables(void* list, AST* expr) {
-    if (expr->kind == AST_VARIABLE_DECL) {
-        list_append((List*)list, expr);
-    }
-}
-
-void thi_run_pass(Thi* thi, char* pass_description, void (*visitor_func)(void*, AST*), void* visitor_func_arg) {
-    push_timer(thi, pass_description);
-    ast_visit(visitor_func, visitor_func_arg, thi->ast);
-    pop_timer(thi);
-}
-
 void visitor_resolve_unresolved_types(void* thi, AST* expr) {
     if (!expr->type) return;
     Type* placeholder_t = expr->type;
@@ -89,7 +92,7 @@ void visitor_resolve_unresolved_types(void* thi, AST* expr) {
         placeholder_t = placeholder_t->Pointer.pointee;
     }
     if (placeholder_t->kind == TYPE_UNRESOLVED) {
-        *placeholder_t = *get_symbol(thi, get_type_name(placeholder_t));
+        *placeholder_t = *get_symbol(thi, get_type_name(placeholder_t));;
     }
 }
 
@@ -199,14 +202,10 @@ List* ast_find_all_of_kind(AST_Kind kind, AST* ast) {
     return list;
 }
 
-void resolve_sizeofs(void* arg, AST* expr) {
-    s64  size           = get_size_of_type(expr->Sizeof.expr->type);
-    AST* constant_value = make_ast_int(expr->t, size);
-    ast_replace(expr, constant_value);
-}
-void resolve_typeofs(void* arg, AST* expr) {
-    AST* string_value = make_ast_string(expr->t, type_to_str(expr->type));
-    ast_replace(expr, string_value);
+void thi_run_pass(Thi* thi, char* pass_description, void (*visitor_func)(void*, AST*), void* visitor_func_arg) {
+    push_timer(thi, pass_description);
+    ast_visit(visitor_func, visitor_func_arg, thi->ast);
+    pop_timer(thi);
 }
 
 int main(int argc, char** argv) {
@@ -302,14 +301,25 @@ int main(int argc, char** argv) {
 
     info("Running passes");
 
-    PassDescriptor passDesc;
+    PassDescriptor passDesc; // We reuse this one
 
-    // passDesc.description  = "Collect all struct";
-    // passDesc.kind         = AST_STRUCT;
-    // passDesc.passKind     = PASS_UNSAFE;
-    // passDesc.visitor_func = resolve_sizeofs;
-    // passDesc.visitor_arg  = NULL;
-    // thi_install_pass(&thi, passDesc);
+    passDesc.description  = "Collect all struct";
+    passDesc.kind         = AST_STRUCT;
+    passDesc.passKind     = PASS_UNSAFE;
+    passDesc.visitor_func = pass_add_symbol_of_kind;
+    passDesc.visitor_arg  = &thi;
+    thi_install_pass(&thi, passDesc);
+    passDesc.description  = "Collect all enums";
+    passDesc.kind         = AST_ENUM;
+    thi_install_pass(&thi, passDesc);
+    passDesc.description  = "Collect all functions";
+    passDesc.kind         = AST_FUNCTION;
+    thi_install_pass(&thi, passDesc);
+
+    // Run all passes
+    ast_visit(run_all_passes, &thi, ast);
+    thi_remove_all_passes(&thi);
+    print_symbol_map(&thi);
 
     passDesc.description  = "Resolve sizeofs";
     passDesc.kind         = AST_SIZEOF;

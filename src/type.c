@@ -77,7 +77,6 @@ bool is_same_type(Type* a, Type* b) {
 
 char* get_type_name(Type* type) {
     if (!type) return "---";
-    UNCERTAIN_OF_CORRECTNESS;
     // clang-format off
     switch (type->kind) {
     default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
@@ -103,7 +102,6 @@ char* get_type_name(Type* type) {
 
 s64 get_size_of_type(Type* type) {
     assert(type);
-    UNCERTAIN_OF_CORRECTNESS;
     // clang-format off
     switch (type->kind) {
     default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));

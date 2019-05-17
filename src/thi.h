@@ -66,7 +66,8 @@ typedef struct
     string current_directory;
 } Thi;
 
-Thi   make_thi();
+Thi   make_thi(void);
+void  thi_remove_all_passes(Thi* thi);
 List* thi_get_visitors_for_kind(Thi* thi, AST_Kind kind);
 void  thi_install_pass(Thi* thi, PassDescriptor passDesc);
 void  add_load(Thi* thi, char* loaded_file);

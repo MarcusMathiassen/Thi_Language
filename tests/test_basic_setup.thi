@@ -1,3 +1,11 @@
+struct v2
+    x: f32
+    y: f32
+
+enum Mode
+    dark :: 9
+    light :: 1
+
 main()  
 
     if 1
