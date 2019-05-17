@@ -7,18 +7,6 @@ enum Mode
     light :: 1
 
 main()  
-
-    if 1
-        is 0
-            return 0
-    else return 3
-
-    #while comp1()
-    #    return 1
-
-    #for i := 0, i < 3, i += comp2() 
-    #    return 2
-
     return comp()
 
 comp() => return 1

@@ -39,8 +39,21 @@ void resolve_typeofs(void* arg, AST* expr) {
     AST* string_value = make_ast_string(expr->t, type_to_str(expr->type));
     ast_replace(expr, string_value);
 }
-void pass_add_symbol_of_kind(void* thi, AST* expr) {
-    add_symbol(thi, get_type_name(expr->type), expr->type);
+void pass_initilize_enums(void* thi, AST* expr) {
+    switch(expr->kind) {
+        default: break;
+        case AST_ENUM: {
+            
+        } break;
+    }
+}
+void pass_add_all_symbols(void* thi, AST* expr) {
+    switch(expr->kind) {
+        default: break;
+        case AST_ENUM: // fallthrough
+        case AST_STRUCT: // fallthrough
+        case AST_FUNCTION: add_symbol(thi, get_type_name(expr->type), expr->type); break;
+    }
 }
 void check_for_unresolved_types(void* ctx, AST* expr) {
     if (expr->type && expr->type->kind == TYPE_UNRESOLVED) {
@@ -301,26 +314,18 @@ int main(int argc, char** argv) {
 
     info("Running passes");
 
-    PassDescriptor passDesc; // We reuse this one
-
-    passDesc.description  = "Collect all struct";
-    passDesc.kind         = AST_STRUCT;
-    passDesc.passKind     = PASS_UNSAFE;
-    passDesc.visitor_func = pass_add_symbol_of_kind;
-    passDesc.visitor_arg  = &thi;
-    thi_install_pass(&thi, passDesc);
-    passDesc.description  = "Collect all enums";
-    passDesc.kind         = AST_ENUM;
-    thi_install_pass(&thi, passDesc);
-    passDesc.description  = "Collect all functions";
-    passDesc.kind         = AST_FUNCTION;
-    thi_install_pass(&thi, passDesc);
+    thi_run_pass(&thi, "pass_add_all_symbols", pass_add_all_symbols, &thi);
 
     // Run all passes
-    ast_visit(run_all_passes, &thi, ast);
-    thi_remove_all_passes(&thi);
     print_symbol_map(&thi);
 
+    //
+    // PASS: resolve all unresolved types
+    //
+    thi_run_pass(&thi, "resolve_unresolved_types", visitor_resolve_unresolved_types, &thi);
+    thi_run_pass(&thi, "pass_initilize_enums", pass_initilize_enums, &thi);
+
+    PassDescriptor passDesc; // We reuse this one
     passDesc.description  = "Resolve sizeofs";
     passDesc.kind         = AST_SIZEOF;
     passDesc.passKind     = PASS_UNSAFE;
@@ -334,11 +339,6 @@ int main(int argc, char** argv) {
     passDesc.visitor_func = resolve_typeofs;
     passDesc.visitor_arg  = NULL;
     thi_install_pass(&thi, passDesc);
-
-    //
-    // PASS: resolve all unresolved types
-    //
-    thi_run_pass(&thi, "resolve_unresolved_types", visitor_resolve_unresolved_types, &thi);
 
     // Give every node a type and do some checking
     type_checker(thi.symbol_map, ast);
