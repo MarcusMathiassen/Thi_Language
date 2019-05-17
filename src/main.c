@@ -304,12 +304,12 @@ int main(int argc, char** argv) {
 
     PassDescriptor passDesc;
 
-    passDesc.description  = "Collect all struct";
-    passDesc.kind         = AST_STRUCT;
-    passDesc.passKind     = PASS_UNSAFE;
-    passDesc.visitor_func = resolve_sizeofs;
-    passDesc.visitor_arg  = NULL;
-    thi_install_pass(&thi, passDesc);
+    // passDesc.description  = "Collect all struct";
+    // passDesc.kind         = AST_STRUCT;
+    // passDesc.passKind     = PASS_UNSAFE;
+    // passDesc.visitor_func = resolve_sizeofs;
+    // passDesc.visitor_arg  = NULL;
+    // thi_install_pass(&thi, passDesc);
 
     passDesc.description  = "Resolve sizeofs";
     passDesc.kind         = AST_SIZEOF;
