@@ -3,8 +3,10 @@ struct v2
     y: f32
 
 enum Mode
-    dark :: 9
-    light :: 1
+    dark :: 2
+    light
+    night :: 5
+    day
 
 main()  
     return comp()

@@ -40,19 +40,40 @@ void resolve_typeofs(void* arg, AST* expr) {
     ast_replace(expr, string_value);
 }
 void pass_initilize_enums(void* thi, AST* expr) {
-    switch(expr->kind) {
-        default: break;
-        case AST_ENUM: {
-            
-        } break;
+    switch (expr->kind) {
+    default: break;
+    case AST_ENUM: {
+
+        s64  counter = 0;
+        AST* e       = expr;
+        LIST_FOREACH(e->Enum.type->Enum.members) {
+            AST* m = it->data;
+            // Turn idents into constant decls
+            switch (m->kind) {
+            default:
+                error("unhandled case: %s, %s, %s", ast_kind_to_str(m->kind), __func__, __LINE__);
+            case AST_IDENT:
+                it->data = make_ast_constant_decl(m->t, m->Ident.name, make_ast_int(m->t, counter));
+                // ast_ref_list_append(&thi->constants, it->data);
+                break;
+            case AST_CONSTANT_DECL:
+                assert(m->Constant_Decl.value->kind == AST_INT);
+                counter = m->Constant_Decl.value->Int.val;
+                break;
+            }
+            counter += 1;
+            // warning("%s", ast_to_json(m));
+        }
+
+    } break;
     }
 }
 void pass_add_all_symbols(void* thi, AST* expr) {
-    switch(expr->kind) {
-        default: break;
-        case AST_ENUM: // fallthrough
-        case AST_STRUCT: // fallthrough
-        case AST_FUNCTION: add_symbol(thi, get_type_name(expr->type), expr->type); break;
+    switch (expr->kind) {
+    default: break;
+    case AST_ENUM:   // fallthrough
+    case AST_STRUCT: // fallthrough
+    case AST_FUNCTION: add_symbol(thi, get_type_name(expr->type), expr->type); break;
     }
 }
 void check_for_unresolved_types(void* ctx, AST* expr) {
@@ -75,17 +96,18 @@ void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* expr) {
     info("%s: %s -> %s", ast_kind_to_str(expr->kind), wrap_with_colored_parens(ast_to_str(expr)), give_unique_color(type_to_str(expr->type)));
     // clang-format off
     switch (expr->kind) {
-    case AST_LOAD:        return;
-    case AST_LINK:        return;
-    case AST_BLOCK:       return;
-    case AST_WHILE:       return;
-    case AST_IF:          return;
-    case AST_FOR:         return;
-    case AST_SWITCH:      return;
-    case AST_IS:          return;
-    case AST_DEFER:       return;
-    case AST_BREAK:       return;
-    case AST_CONTINUE:    return;
+    case AST_MODULE:      // fallthrough
+    case AST_LOAD:        // fallthrough
+    case AST_LINK:        // fallthrough
+    case AST_BLOCK:       // fallthrough
+    case AST_WHILE:       // fallthrough
+    case AST_IF:          // fallthrough
+    case AST_FOR:         // fallthrough
+    case AST_SWITCH:      // fallthrough
+    case AST_IS:          // fallthrough
+    case AST_DEFER:       // fallthrough
+    case AST_BREAK:       // fallthrough
+    case AST_CONTINUE:    // fallthrough
     case AST_FALLTHROUGH: return;
     default: break;
     }
@@ -105,7 +127,8 @@ void visitor_resolve_unresolved_types(void* thi, AST* expr) {
         placeholder_t = placeholder_t->Pointer.pointee;
     }
     if (placeholder_t->kind == TYPE_UNRESOLVED) {
-        *placeholder_t = *get_symbol(thi, get_type_name(placeholder_t));;
+        *placeholder_t = *get_symbol(thi, get_type_name(placeholder_t));
+        ;
     }
 }
 
