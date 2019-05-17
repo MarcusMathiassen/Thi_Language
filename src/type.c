@@ -5,19 +5,14 @@
 #include "string.h"    // strf, append_string, string
 #include "utility.h"   // error
 #include <assert.h>    // assert
-#include <stdlib.h>    // xmalloc
 #include <string.h>    // strcmp
 
 //------------------------------------------------------------------------------
 //                               type.c
 //------------------------------------------------------------------------------
 
-//------------------------------------------------------------------------------
-//                               Public
-//------------------------------------------------------------------------------
-
 char* type_kind_to_str(Type_Kind kind) {
-    //clang-format off
+    // clang-format off
     switch (kind) {
     default: ERROR_UNHANDLED_KIND(strf("%d", kind));
     case TYPE_UNRESOLVED: return "TYPE_UNRESOLVED";
@@ -32,8 +27,8 @@ char* type_kind_to_str(Type_Kind kind) {
     case TYPE_FUNCTION:   return "TYPE_FUNCTION";
     case TYPE_VAR_ARGS:   return "TYPE_VAR_ARGS";
     case TYPE_COUNT:      return "TYPE_COUNT";
-    //clang-format on
     }
+    // clang-format on
     UNREACHABLE;
     return NULL;
 }
@@ -41,25 +36,12 @@ char* type_kind_to_str(Type_Kind kind) {
 void type_replace(Type* a, Type* b) {
     assert(a);
     assert(b);
+    info("REPLACED %s WITH %s", give_unique_color(type_to_str(a)), give_unique_color(type_to_str(b)));
     *a = *b;
     // MEM_LEAK
 }
 
-s64 get_size_of_underlying_type(Type* type) {
-    assert(type);
-    // clang-format off
-    switch (type->kind) {
-    default:           return get_size_of_type(type);
-    case TYPE_POINTER: return get_size_of_type(type->Pointer.pointee);
-    case TYPE_ARRAY:   return get_size_of_type(type->Array.type);
-    }
-    // clang-format on
-    UNREACHABLE;
-    return 0;
-}
-
-
-Type* get_underlying_type(Type* type) {
+Type* get_underlying_type_if_any(Type* type) {
     assert(type);
     // clang-format off
     switch (type->kind) {
@@ -72,6 +54,19 @@ Type* get_underlying_type(Type* type) {
     return NULL;
 }
 
+s64 get_size_of_underlying_type_if_any(Type* type) {
+    assert(type);
+    // clang-format off
+    switch (type->kind) {
+    default:           return get_size_of_type(type);
+    case TYPE_POINTER: return get_size_of_type(type->Pointer.pointee);
+    case TYPE_ARRAY:   return get_size_of_type(type->Array.type);
+    }
+    // clang-format on
+    UNREACHABLE;
+    return 0;
+}
+
 bool is_same_type(Type* a, Type* b) {
     assert(a);
     assert(b);
@@ -82,6 +77,7 @@ bool is_same_type(Type* a, Type* b) {
 
 char* get_type_name(Type* type) {
     if (!type) return "---";
+    UNCERTAIN_OF_CORRECTNESS;
     // clang-format off
     switch (type->kind) {
     default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
@@ -107,6 +103,7 @@ char* get_type_name(Type* type) {
 
 s64 get_size_of_type(Type* type) {
     assert(type);
+    UNCERTAIN_OF_CORRECTNESS;
     // clang-format off
     switch (type->kind) {
     default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
@@ -149,7 +146,7 @@ s64 get_offset_in_struct_to_field(Type* type, char* name) {
     assert(type->kind == TYPE_STRUCT);
     s64 accum_size = 0;
     LIST_FOREACH(type->Struct.members) {
-        AST* mem = (AST*)it->data;
+        AST* mem = it->data;
         if (strcmp(name, mem->Variable_Decl.name) == 0) {
             return accum_size;
         }
@@ -394,6 +391,7 @@ Type* make_type_string(s64 len) {
 }
 
 Type* make_type_pointer(Type* pointee) {
+    assert(pointee);
     Type* t            = make_type(TYPE_POINTER);
     t->Pointer.pointee = pointee;
     return t;
@@ -401,6 +399,7 @@ Type* make_type_pointer(Type* pointee) {
 
 Type* make_type_enum(char* name, List* members) {
     assert(name);
+    assert(members);
     Type* t         = make_type(TYPE_ENUM);
     t->name         = name;
     t->Enum.name    = name;
@@ -410,6 +409,7 @@ Type* make_type_enum(char* name, List* members) {
 
 Type* make_type_struct(char* name, List* members) {
     assert(name);
+    assert(members);
     Type* t           = make_type(TYPE_STRUCT);
     t->name           = name;
     t->Struct.name    = name;

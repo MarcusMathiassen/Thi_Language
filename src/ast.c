@@ -1,4 +1,3 @@
-// clang-format on
 #include "ast.h"
 #include "constants.h"
 #include "lexer.h"   // token_kind_to_str,
@@ -10,14 +9,10 @@
 //------------------------------------------------------------------------------
 //                               ast.c
 //------------------------------------------------------------------------------
-
-//------------------------------------------------------------------------------
-//                               Public
-//------------------------------------------------------------------------------
-
 void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr) {
     if (!expr) return;
     switch (expr->kind) {
+    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(expr->kind));
     case AST_TYPEOF:
         ast_visit(func, ctx, expr->Typeof.expr);
         break;
@@ -132,7 +127,6 @@ void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr) {
         ast_visit(func, ctx, expr->Is.expr);
         ast_visit(func, ctx, expr->Is.body);
         break;
-    default: error("Unhandled %s case for kind '%s'", give_unique_color((char*)__func__), ast_kind_to_str(expr->kind));
     }
     assert(func);
     (*func)(ctx, expr);
@@ -141,44 +135,45 @@ void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr) {
 char* ast_kind_to_str(AST_Kind kind) {
     // clang-format off
     switch (kind) {
-    case AST_IS: return "AST_IS";
-    case AST_FALLTHROUGH: return "AST_FALLTHROUGH";
-    case AST_VAR_ARGS: return "AST_VAR_ARGS";
-    case AST_EXTERN: return "AST_EXTERN";
-    case AST_LOAD: return "AST_LOAD";
-    case AST_LINK: return "AST_LINK";
-    case AST_NOTE: return "AST_NOTE";
-    case AST_INT: return "AST_INT";
-    case AST_FLOAT: return "AST_FLOAT";
-    case AST_STRING: return "AST_STRING";
-    case AST_IDENT: return "AST_IDENT";
-    case AST_CALL: return "AST_CALL";
-    case AST_UNARY: return "AST_UNARY";
-    case AST_BINARY: return "AST_BINARY";
-    case AST_GROUPING: return "AST_GROUPING";
-    case AST_SUBSCRIPT: return "AST_SUBSCRIPT";
-    case AST_FIELD_ACCESS: return "AST_FIELD_ACCESS";
-    case AST_AS: return "AST_AS";
-    case AST_BLOCK: return "AST_BLOCK";
-    case AST_STRUCT: return "AST_STRUCT";
-    case AST_ENUM: return "AST_ENUM";
-    case AST_FUNCTION: return "AST_FUNCTION";
+    default:                ERROR_UNHANDLED_KIND(strf("%d", kind));
+    case AST_IS:            return "AST_IS";
+    case AST_FALLTHROUGH:   return "AST_FALLTHROUGH";
+    case AST_VAR_ARGS:      return "AST_VAR_ARGS";
+    case AST_EXTERN:        return "AST_EXTERN";
+    case AST_LOAD:          return "AST_LOAD";
+    case AST_LINK:          return "AST_LINK";
+    case AST_NOTE:          return "AST_NOTE";
+    case AST_INT:           return "AST_INT";
+    case AST_FLOAT:         return "AST_FLOAT";
+    case AST_STRING:        return "AST_STRING";
+    case AST_IDENT:         return "AST_IDENT";
+    case AST_CALL:          return "AST_CALL";
+    case AST_UNARY:         return "AST_UNARY";
+    case AST_BINARY:        return "AST_BINARY";
+    case AST_GROUPING:      return "AST_GROUPING";
+    case AST_SUBSCRIPT:     return "AST_SUBSCRIPT";
+    case AST_FIELD_ACCESS:  return "AST_FIELD_ACCESS";
+    case AST_AS:            return "AST_AS";
+    case AST_BLOCK:         return "AST_BLOCK";
+    case AST_STRUCT:        return "AST_STRUCT";
+    case AST_ENUM:          return "AST_ENUM";
+    case AST_FUNCTION:      return "AST_FUNCTION";
     case AST_VARIABLE_DECL: return "AST_VARIABLE_DECL";
     case AST_CONSTANT_DECL: return "AST_CONSTANT_DECL";
-    case AST_IF: return "AST_IF";
-    case AST_FOR: return "AST_FOR";
-    case AST_WHILE: return "AST_WHILE";
-    case AST_RETURN: return "AST_RETURN";
-    case AST_DEFER: return "AST_DEFER";
-    case AST_BREAK: return "AST_BREAK";
-    case AST_CONTINUE: return "AST_CONTINUE";
-    case AST_TYPEOF: return "AST_TYPEOF";
-    case AST_SIZEOF: return "AST_SIZEOF";
-    case AST_SWITCH: return "AST_SWITCH";
-    case AST_COUNT: return "AST_COUNT";
-    default: warning("ast_kind_to_str unhandled case '%d'", kind);
+    case AST_IF:            return "AST_IF";
+    case AST_FOR:           return "AST_FOR";
+    case AST_WHILE:         return "AST_WHILE";
+    case AST_RETURN:        return "AST_RETURN";
+    case AST_DEFER:         return "AST_DEFER";
+    case AST_BREAK:         return "AST_BREAK";
+    case AST_CONTINUE:      return "AST_CONTINUE";
+    case AST_TYPEOF:        return "AST_TYPEOF";
+    case AST_SIZEOF:        return "AST_SIZEOF";
+    case AST_SWITCH:        return "AST_SWITCH";
+    case AST_COUNT:         return "AST_COUNT";
     }
     // clang-format on
+    UNREACHABLE;
     return NULL;
 }
 
@@ -186,9 +181,10 @@ char* ast_to_str(AST* expr) {
     if (!expr) return "---";
     // clang-format off
     switch (expr->kind) {
+    default:                    ERROR_UNHANDLED_KIND(ast_kind_to_str(expr->kind));
     case AST_VAR_ARGS:          return "...";
     case AST_FALLTHROUGH:       return "fallthrough";
-    case AST_SWITCH:            return strf("if %s %s else %s", ast_to_str(expr->Switch.cond), ast_to_str(expr->Switch.cases),
+    case AST_SWITCH:            return strf("switch %s %s else %s", ast_to_str(expr->Switch.cond), ast_to_str(expr->Switch.cases),
                     ast_to_str(expr->Switch.default_case));
     case AST_IS:                return strf("is %s %s", ast_to_str(expr->Is.expr), ast_to_str(expr->Is.body));
     case AST_TYPEOF:            return strf("typeof %s", ast_to_str(expr->Typeof.expr));
@@ -245,9 +241,9 @@ char* ast_to_str(AST* expr) {
         append_string(&str, ")");
         return str.c_str;
     }
-    default: warning("%s: unhandled case %s", __func__, ast_kind_to_str(expr->kind));
     }
     // clang-format on
+    UNREACHABLE;
     return NULL;
 }
 
@@ -263,41 +259,41 @@ char* ast_json_prelude(AST* expr) {
 
 char* ast_to_json(AST* expr) {
     if (!expr) return "\"NULL\"";
-    char* result = NULL;
     // clang-format off
     switch (expr->kind) {
-    case AST_SWITCH:        result = strf("{%s:{\"cond\":%s,\"cases\":%s,\"default\":%s}}", ast_json_prelude(expr), ast_to_json(expr->Switch.cond), ast_to_json(expr->Switch.cases), ast_to_json(expr->Switch.default_case));                                          break;
-    case AST_IS:            result = strf("{%s:{\"case\":%s,\"body\":%s,\"has_fallthrough\":%s}}", ast_json_prelude(expr), ast_to_json(expr->Is.expr), ast_to_json(expr->Is.body), expr->Is.has_fallthrough ? "true" : "false");                                       break;
-    case AST_FIELD_ACCESS:  result = strf("{%s:{\"load\":%s,\"field\":\"%s\"}}", ast_json_prelude(expr), ast_to_json(expr->Field_Access.load), expr->Field_Access.field);                                                                                                  break;
-    case AST_TYPEOF:        result = strf("{%s:{\"typeof\": %s}}", ast_json_prelude(expr), ast_to_json(expr->Typeof.expr));                                                                                                                                            break;
-    case AST_SIZEOF:        result = strf("{%s:{\"sizeof\": %s}}", ast_json_prelude(expr), ast_to_json(expr->Sizeof.expr));                                                                                                                                            break;
-    case AST_AS:            result = strf("{%s:{\"expr\": %s, \"type_expr\":%s}}", ast_json_prelude(expr), ast_to_json(expr->As.expr), ast_to_json(expr->As.type_expr));                                                                                               break;
-    case AST_EXTERN:        result = strf("{%s:{\"extern\": %s}}", ast_json_prelude(expr), type_to_json(expr->type));                                                                                                                                                  break;
-    case AST_LOAD:          result = strf("{%s:{\"load\": \"%s\"}}", ast_json_prelude(expr), expr->Load.str);                                                                                                                                                          break;
-    case AST_VAR_ARGS:      result = strf("{%s:{\"var_args\": ...}}", ast_json_prelude(expr));                                                                                                                                                                         break;
-    case AST_LINK:          result = strf("{%s:{\"link\": \"%s\"}}", ast_json_prelude(expr), expr->Link.str);                                                                                                                                                          break;
-    case AST_SUBSCRIPT:     result = strf("{%s:{\"load\": %s, \"sub\": %s}}", ast_json_prelude(expr), ast_to_json(expr->Subscript.load), ast_to_json(expr->Subscript.sub));                                                                                            break;
-    case AST_CONTINUE:      result = strf("{%s:{%s}}", ast_json_prelude(expr), "\"continue\"");                                                                                                                                                                        break;
-    case AST_FALLTHROUGH:   result = strf("{%s: true}", ast_json_prelude(expr));                                                                                                                                                                                       break;
-    case AST_BREAK:         result = strf("{%s:{%s}}", ast_json_prelude(expr), "\"break\"");                                                                                                                                                                           break;
-    case AST_DEFER:         result = strf("{%s:{\"expr\": %s}}", ast_json_prelude(expr), ast_to_json(expr->Defer.expr));                                                                                                                                               break;
-    case AST_NOTE:          result = strf("{%s:{\"note\":\"%s\"}}", ast_json_prelude(expr), ast_to_json(expr->Note.expr));                                                                                                                                             break;
-    case AST_INT:           result = strf("{%s:{\"value\": %lld}}", ast_json_prelude(expr), expr->Int.val);                                                                                                                                                            break;
-    case AST_STRING:        result = strf("{%s:{\"value\": \"%s\"}}", ast_json_prelude(expr), expr->String.val);                                                                                                                                                       break;
-    case AST_FLOAT:         result = strf("{%s:{\"value\": %f}}", ast_json_prelude(expr), expr->Float.val);                                                                                                                                                            break;
-    case AST_IDENT:         result = strf("{%s:{\"ident\": \"%s\"}}", ast_json_prelude(expr), expr->Ident.name);                                                                                                                                                       break;
-    case AST_UNARY:         result = strf("{%s:{\"op\": \"%s\", \"expr\": \"%s\"}}", ast_json_prelude(expr), token_kind_to_str(expr->Unary.op), ast_to_json(expr->Unary.operand));                                                                                     break;
-    case AST_BINARY:        result = strf("{%s:{\"op\": \"%s\", \"lhs\": %s, \"rhs\": %s}}", ast_json_prelude(expr), token_kind_to_str(expr->Binary.op), ast_to_json(expr->Binary.lhs), ast_to_json(expr->Binary.rhs));                                                break;
-    case AST_RETURN:        result = strf("{%s:{\"expr\": %s}}", ast_json_prelude(expr), ast_to_json(expr->Return.expr));                                                                                                                                              break;
-    case AST_VARIABLE_DECL: result = strf("{%s:{\"name\": \"%s\", \"type\": %s, \"value\": %s}}", ast_json_prelude(expr), expr->Variable_Decl.name, type_to_json(expr->type), ast_to_json(expr->Variable_Decl.value));                                                 break;
-    case AST_CONSTANT_DECL: result = strf("{%s:{\"name\": \"%s\", \"value\": %s}}", ast_json_prelude(expr), expr->Constant_Decl.name, ast_to_json(expr->Constant_Decl.value));                                                                                         break;
-    case AST_FUNCTION:      result = strf("{%s:{\"type\": %s, \"body\": %s }}", ast_json_prelude(expr), type_to_json(expr->type), ast_to_json(expr->Function.body));                                                                                                   break;
-    case AST_STRUCT:        result = strf("{%s:{\"type\": %s}}", ast_json_prelude(expr), type_to_json(expr->Struct.type));                                                                                                                                             break;
-    case AST_ENUM:          result = strf("{%s:{\"type\": %s}}", ast_json_prelude(expr), type_to_json(expr->Enum.type));                                                                                                                                               break;
-    case AST_GROUPING:      result = strf("{%s:{\"expr\": %s}}", ast_json_prelude(expr), ast_to_json(expr->Grouping.expr));                                                                                                                                            break;
-    case AST_WHILE:         result = strf("{%s:{\"cond\": %s, \"then_block\": %s}}", ast_json_prelude(expr), ast_to_json(expr->While.cond), ast_to_json(expr->While.then_block));                                                                                      break;
-    case AST_FOR:           result = strf("{%s:{\"init\": %s, \"cond\": %s, \"step\": %s, ""\"then_block\": %s }}", ast_json_prelude(expr), ast_to_json(expr->For.init), ast_to_json(expr->For.cond), ast_to_json(expr->For.step), ast_to_json(expr->For.then_block)); break;
-    case AST_IF:            result = strf("{%s:{\"cond\": %s, \"then_block\": %s, \"else_block\": %s }}", ast_json_prelude(expr), ast_to_json(expr->If.cond), ast_to_json(expr->If.then_block), ast_to_json(expr->If.else_block));                                     break;
+    default:                ERROR_UNHANDLED_KIND(ast_kind_to_str(expr->kind));
+    case AST_SWITCH:        return strf("{%s:{\"cond\":%s,\"cases\":%s,\"default\":%s}}", ast_json_prelude(expr), ast_to_json(expr->Switch.cond), ast_to_json(expr->Switch.cases), ast_to_json(expr->Switch.default_case));
+    case AST_IS:            return strf("{%s:{\"case\":%s,\"body\":%s,\"has_fallthrough\":%s}}", ast_json_prelude(expr), ast_to_json(expr->Is.expr), ast_to_json(expr->Is.body), expr->Is.has_fallthrough ? "true" : "false");
+    case AST_FIELD_ACCESS:  return strf("{%s:{\"load\":%s,\"field\":\"%s\"}}", ast_json_prelude(expr), ast_to_json(expr->Field_Access.load), expr->Field_Access.field);
+    case AST_TYPEOF:        return strf("{%s:{\"typeof\": %s}}", ast_json_prelude(expr), ast_to_json(expr->Typeof.expr));
+    case AST_SIZEOF:        return strf("{%s:{\"sizeof\": %s}}", ast_json_prelude(expr), ast_to_json(expr->Sizeof.expr));
+    case AST_AS:            return strf("{%s:{\"expr\": %s, \"type_expr\":%s}}", ast_json_prelude(expr), ast_to_json(expr->As.expr), ast_to_json(expr->As.type_expr));
+    case AST_EXTERN:        return strf("{%s:{\"extern\": %s}}", ast_json_prelude(expr), type_to_json(expr->type));
+    case AST_LOAD:          return strf("{%s:{\"load\": \"%s\"}}", ast_json_prelude(expr), expr->Load.str);
+    case AST_VAR_ARGS:      return strf("{%s:{\"var_args\": ...}}", ast_json_prelude(expr));
+    case AST_LINK:          return strf("{%s:{\"link\": \"%s\"}}", ast_json_prelude(expr), expr->Link.str);
+    case AST_SUBSCRIPT:     return strf("{%s:{\"load\": %s, \"sub\": %s}}", ast_json_prelude(expr), ast_to_json(expr->Subscript.load), ast_to_json(expr->Subscript.sub));
+    case AST_CONTINUE:      return strf("{%s:{%s}}", ast_json_prelude(expr), "\"continue\"");
+    case AST_FALLTHROUGH:   return strf("{%s: true}", ast_json_prelude(expr));
+    case AST_BREAK:         return strf("{%s:{%s}}", ast_json_prelude(expr), "\"break\"");
+    case AST_DEFER:         return strf("{%s:{\"expr\": %s}}", ast_json_prelude(expr), ast_to_json(expr->Defer.expr));
+    case AST_NOTE:          return strf("{%s:{\"note\":\"%s\"}}", ast_json_prelude(expr), ast_to_json(expr->Note.expr));
+    case AST_INT:           return strf("{%s:{\"value\": %lld}}", ast_json_prelude(expr), expr->Int.val);
+    case AST_STRING:        return strf("{%s:{\"value\": \"%s\"}}", ast_json_prelude(expr), expr->String.val);
+    case AST_FLOAT:         return strf("{%s:{\"value\": %f}}", ast_json_prelude(expr), expr->Float.val);
+    case AST_IDENT:         return strf("{%s:{\"ident\": \"%s\"}}", ast_json_prelude(expr), expr->Ident.name);
+    case AST_UNARY:         return strf("{%s:{\"op\": \"%s\", \"expr\": \"%s\"}}", ast_json_prelude(expr), token_kind_to_str(expr->Unary.op), ast_to_json(expr->Unary.operand));
+    case AST_BINARY:        return strf("{%s:{\"op\": \"%s\", \"lhs\": %s, \"rhs\": %s}}", ast_json_prelude(expr), token_kind_to_str(expr->Binary.op), ast_to_json(expr->Binary.lhs), ast_to_json(expr->Binary.rhs));
+    case AST_RETURN:        return strf("{%s:{\"expr\": %s}}", ast_json_prelude(expr), ast_to_json(expr->Return.expr));
+    case AST_VARIABLE_DECL: return strf("{%s:{\"name\": \"%s\", \"type\": %s, \"value\": %s}}", ast_json_prelude(expr), expr->Variable_Decl.name, type_to_json(expr->type), ast_to_json(expr->Variable_Decl.value));
+    case AST_CONSTANT_DECL: return strf("{%s:{\"name\": \"%s\", \"value\": %s}}", ast_json_prelude(expr), expr->Constant_Decl.name, ast_to_json(expr->Constant_Decl.value));
+    case AST_FUNCTION:      return strf("{%s:{\"type\": %s, \"body\": %s }}", ast_json_prelude(expr), type_to_json(expr->type), ast_to_json(expr->Function.body));
+    case AST_STRUCT:        return strf("{%s:{\"type\": %s}}", ast_json_prelude(expr), type_to_json(expr->Struct.type));
+    case AST_ENUM:          return strf("{%s:{\"type\": %s}}", ast_json_prelude(expr), type_to_json(expr->Enum.type));
+    case AST_GROUPING:      return strf("{%s:{\"expr\": %s}}", ast_json_prelude(expr), ast_to_json(expr->Grouping.expr));
+    case AST_WHILE:         return strf("{%s:{\"cond\": %s, \"then_block\": %s}}", ast_json_prelude(expr), ast_to_json(expr->While.cond), ast_to_json(expr->While.then_block));
+    case AST_FOR:           return strf("{%s:{\"init\": %s, \"cond\": %s, \"step\": %s, ""\"then_block\": %s }}", ast_json_prelude(expr), ast_to_json(expr->For.init), ast_to_json(expr->For.cond), ast_to_json(expr->For.step), ast_to_json(expr->For.then_block));
+    case AST_IF:            return strf("{%s:{\"cond\": %s, \"then_block\": %s, \"else_block\": %s }}", ast_json_prelude(expr), ast_to_json(expr->If.cond), ast_to_json(expr->If.then_block), ast_to_json(expr->If.else_block));
     // clang-format on
     case AST_BLOCK: {
         s64    block_count = expr->Block.stmts->count;
@@ -309,7 +305,7 @@ char* ast_to_json(AST* expr) {
             counter += 1;
         }
         append_string(&str, "]}");
-        result = str.c_str;
+        return str.c_str;
     } break;
     case AST_CALL: {
         string str = make_string("");
@@ -323,12 +319,11 @@ char* ast_to_json(AST* expr) {
             counter += 1;
         }
         append_string(&str, "]}}");
-        result = str.c_str;
+        return str.c_str;
     } break;
-    default: warning("%s: unhandled case %s", __func__, ast_json_prelude(expr));
     }
-    assert(result);
-    return result;
+    UNREACHABLE;
+    return NULL;
 }
 
 AST* get_arg_from_func(Type* func_t, s64 arg_index) {
@@ -341,7 +336,7 @@ AST* get_arg_from_func(Type* func_t, s64 arg_index) {
 }
 
 void print_ast(List* ast) {
-    warning("Printing AST..");
+    info("Printing AST..");
     LIST_FOREACH(ast) {
         AST*  expr = it->data;
         char* str  = strf("%s", wrap_with_colored_parens(ast_to_str(expr)));
@@ -402,10 +397,9 @@ void ast_ref_list_append(AST_Ref_List* l, AST* a) {
 void ast_replace(AST* a, AST* b) {
     assert(a);
     assert(b);
-    // AST* temp = a; // uncomment this whenever we deside to free.
+    info("REPLACED %s WITH %s", give_unique_color(ast_to_str(a)), give_unique_color(ast_to_str(b)));
     *a = *b;
-    // TODO(marcus): Right now we never free. Need to figure it out.
-    // free(temp);
+    // CLEANUP
 }
 
 //------------------------------------------------------------------------------
@@ -628,6 +622,7 @@ AST* make_ast_subscript(Token t, AST* load, AST* sub) {
 AST* make_ast_if(Token t, AST* cond, AST* then_block, AST* else_block) {
     assert(cond);
     assert(then_block);
+    // assert(else_block); // else block is optional
     AST* e           = make_ast(AST_IF, t);
     e->If.cond       = cond;
     e->If.then_block = then_block;
@@ -658,7 +653,7 @@ AST* make_ast_while(Token t, AST* cond, AST* then_block) {
 }
 
 AST* make_ast_return(Token t, AST* expr) {
-    // assert(expr);
+    // assert(expr); // returns can be called with out an expression
     AST* e         = make_ast(AST_RETURN, t);
     e->Return.expr = expr;
     return e;

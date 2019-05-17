@@ -19,6 +19,10 @@ typedef double f64;
 
 typedef s8 bool;
 
+#define ERROR_UNHANDLED_KIND(kind) error("[%s:%s:%s] Unhandled case '%s'", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), give_unique_color((char*)__LINE__), give_unique_color(kind));
+#define UNREACHABLE error("[%s:%s:%s] UNREACHABLE HIT", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), give_unique_color((char*)__LINE__));
+#define UNCERTAIN_OF_CORRECTNESS warning("[%s:%s:%s] Uncertain of correctness", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), give_unique_color((char*)__LINE__));
+
 #define true 1
 #define false 0
 

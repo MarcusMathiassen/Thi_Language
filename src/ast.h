@@ -274,20 +274,18 @@ AST* make_ast_switch        (Token t, AST* if_statement);
 AST* make_ast_fallthrough   (Token t);
 AST* make_ast_break         (Token t);
 AST* make_ast_continue      (Token t);
+
+AST*  get_arg_from_func (Type* func_t, s64 arg_index);
+void  print_ast         (List* ast);
+void  print_ast_json    (List* ast);
+char* full_ast_to_json  (List* ast);
+void  ast_visit         (void (*func)(void*, AST*), void* ctx, AST* expr);
+void  ast_replace       (AST* a, AST* b);
+char* ast_to_json       (AST* expr);
+char* ast_to_str        (AST* expr);
+char* ast_kind_to_str   (AST_Kind kind);
 // clang-format on
 
-AST* get_arg_from_func(Type* func_t, s64 arg_index);
-
-void  print_ast(List* ast);
-void  print_ast_json(List* ast);
-char* full_ast_to_json(List* ast);
-
-void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr);
-void ast_replace(AST* a, AST* b);
-
-char* ast_to_json(AST* expr);
-char* ast_to_str(AST* expr);
-char* ast_kind_to_str(AST_Kind kind);
 
 struct AST_Ref_List {
     AST** data;

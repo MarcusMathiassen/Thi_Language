@@ -277,7 +277,7 @@ Type* type_check_variable_decl(Typer_Context* ctx, AST* expr) {
     if (variable_type && assigned_type && !is_same_type(variable_type, assigned_type)) {
         error("[type_missmatch] %s -> %s != %s ", ast_to_str(expr), type_to_str(variable_type), type_to_str(assigned_type));
     }
-    variable_type = assigned_type ? assigned_type : variable_type;
+    variable_type      = assigned_type ? assigned_type : variable_type;
     ctx->expected_type = variable_type;
     map_set_overwrite(ctx->symbol_table, variable_name, variable_type);
     return variable_type;
@@ -308,7 +308,7 @@ Type* type_check_subscript(Typer_Context* ctx, AST* expr) {
     warning("type: %s", type_to_str(t));
     warning("type size: %d", get_size_of_type(t));
 
-    t = get_underlying_type(t);
+    t = get_underlying_type_if_any(t);
 
     warning("array type: %s", type_to_str(t));
     warning("array type size: %d", get_size_of_type(t));

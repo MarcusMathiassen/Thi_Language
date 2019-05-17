@@ -1,39 +1,15 @@
-#load "includes/cstdlib"
-#load "includes/cstdio"
+main()  
 
-main(argc: int, argv: char**)
+    if 1
+        is 0
+            return 0
 
-    #v: v2
+    #while comp1()
+    #    return 1
 
-    #v.x = 6
-    #v.y = 56
+    #for i := 0, i < 3, i += comp2() 
+    #    return 2
 
-    #i := 3
+    return comp()
 
-    #v.z.z = 43
-
-    #printf("v.x = %d\n", v.x)
-    #printf("v.y = %d\n", v.y)
-    #printf("v.z.z = %d\n", v.z.z)
-    #printf("v.z.z + v.x = %d\n", v.z.z + v.x)
-
-
-    #ptr : s64* = malloc(sizeof s64 * 10)
-    #printf("ptr =  %d\n", ptr)
-    #printf("&ptr =  %d\n", ptr)
-
-
-    #i := 0
-
-    # if i == 0 return 3
-    i := 0
-    return sizeof int
-
-#struct v2
-#    x: s64
-#    y: s64
-#    z: child
-
-#struct child
-#    z: s64
-#    w: s64
+comp() => return 1

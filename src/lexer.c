@@ -73,11 +73,9 @@ bool  is_valid_identifier(u8 c);
 int   get_keyword_index(char* identifier);
 Token_Kind
 get_identifier_kind(char* identifier);
-void token_array_append(Token_Array* l, Token t);
-Token_Array
-make_token_array();
-Intern_Array
-make_intern_array();
+void         token_array_append(Token_Array* l, Token t);
+Token_Array  make_token_array();
+Intern_Array make_intern_array();
 
 void  intern_array_append(Intern_Array* l, Intern intern);
 char* intern_range(Intern_Array* intern_array, char* start, char* end);
@@ -302,7 +300,7 @@ Token get_token(Lexer_Context* lctx) {
         break;
         CASE_SINGLE_TOKEN('*', TOKEN_ASTERISK);
         switch (*c) {
-            CASE_SINGLE_TOKEN('/', TOKEN_ASTERISK_FWSLASH)
+            CASE_SINGLE_TOKEN('/', TOKEN_ASTERISK_FWSLASH);
             break;
             CASE_SINGLE_TOKEN('=', TOKEN_ASTERISK_EQ);
             break;
@@ -555,6 +553,7 @@ Token get_token(Lexer_Context* lctx) {
 char* token_kind_to_str(Token_Kind kind) {
     // clang-format off
     switch (kind) {
+    default: ERROR_UNHANDLED_KIND(strf("%d", kind));
     case TOKEN_UNKNOWN:           return "TOKEN_UNKNOWN";
     case TOKEN_EOF:               return "TOKEN_EOF";
     case TOKEN_COMMENT:           return "TOKEN_COMMENT";
@@ -650,10 +649,10 @@ char* token_kind_to_str(Token_Kind kind) {
     case TOKEN_HASH:              return "#";
     case TOKEN_EQ:                return "=";
     case TOKEN_PIPE_GT:           return "|>";
-    default: warning("Unhandled token kind.");
     }
     // clang-format on
-    return "";
+    UNREACHABLE;
+    return NULL;
 }
 
 char* token_to_str(Token token) {

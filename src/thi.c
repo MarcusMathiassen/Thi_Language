@@ -38,6 +38,7 @@ Thi make_thi() {
     thi.enums                               = make_ast_ref_list();
     thi.field_access                        = make_ast_ref_list();
 
+    // AST_Kind
     map_set(thi.all_passes_for_all_kinds, "AST_IS", make_list());
     map_set(thi.all_passes_for_all_kinds, "AST_FALLTHROUGH", make_list());
     map_set(thi.all_passes_for_all_kinds, "AST_VAR_ARGS", make_list());

@@ -29,10 +29,10 @@ struct Parser
         if curr.kind != kind error("expected % got %", kind.str(), curr.kind.str())
         eat()
 
-    sameLine() return prev.line == curr.line
-    nextSameLine() return curr.line == next.line
-    isCurr(kind: TokenKind) return curr.kind == kind
-    isNext(kind: TokenKind) return next.kind == kind
+    sameLine() => return prev.line == curr.line
+    nextSameLine() => return curr.line == next.line
+    isCurr(kind: TokenKind) => return curr.kind == kind
+    isNext(kind: TokenKind) => return next.kind == kind
 
     generateAST()
         eat()

@@ -24,20 +24,19 @@
 //                               Main Driver
 //------------------------------------------------------------------------------
 
-void  add_all_definitions(Thi* thi, Parsed_File* pf);
-Type* get_inferred_type_of_expr(Thi* thi, AST* expr);
-void  pass_progate_identifiers_to_constants(Thi* thi);
-void  pass_type_inference(Thi* thi);
-void  pass_initilize_all_enums(Thi* thi);
-void  pass_resolve_subscripts(Thi* thi);
-void  pass_give_all_identifiers_a_type(Thi* thi);
-void  pass_type_checker(Thi* thi);
+void add_all_definitions(Thi* thi, Parsed_File* pf);
+void pass_progate_identifiers_to_constants(Thi* thi);
+void pass_type_inference(Thi* thi);
+void pass_initilize_all_enums(Thi* thi);
+void pass_resolve_subscripts(Thi* thi);
+void pass_give_all_identifiers_a_type(Thi* thi);
+void pass_type_checker(Thi* thi);
 
 List* parse(Thi* thi, char* source_file);
 void  assemble(Thi* thi, char* asm_file, char* exec_name);
 void  linking_stage(Thi* thi, char* exec_name);
 
-void  maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it);
+void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it);
 
 void print_expr(void* ctx, AST* expr) {
     info("%s", ast_to_str(expr));
@@ -228,6 +227,40 @@ void resolve_typeofs(void* arg, AST* expr) {
     AST* string_value = make_ast_string(expr->t, type_to_str(expr->type));
     ast_replace(expr, string_value);
 }
+void maybe_convert_if_to_switch(void* arg, AST* expr) {
+
+    AST* then_block = expr->If.then_block;
+
+    // check for any AST_IS inside
+    List* stmts                             = then_block->Block.stmts;
+    bool  if_statement_is_actually_a_switch = false;
+
+    LIST_FOREACH(stmts) {
+        AST* stmt = it->data;
+        if (stmt->kind == AST_IS) {
+            if_statement_is_actually_a_switch = true;
+            break;
+        }
+    }
+
+    // Go through it again and make sure every statement
+    // is a case
+    if (if_statement_is_actually_a_switch) {
+        // Find all NON switchy things and post and error
+        LIST_FOREACH(stmts) {
+            AST* stmt = it->data;
+            if (stmt->kind != AST_IS) {
+                error(
+                    "%s\nonly 'case' statements are allowed inside an if "
+                    "switch",
+                    ast_to_str(stmt));
+            }
+        }
+
+        // Transform this if into a switch
+        ast_replace(expr, make_ast_switch(expr->t, expr));
+    }
+}
 
 int main(int argc, char** argv) {
     // Argument validation
@@ -349,6 +382,13 @@ int main(int argc, char** argv) {
     passDesc.visitor_arg  = NULL;
     thi_install_pass(&thi, passDesc);
 
+    passDesc.description  = "Maybe convert 'if' to 'switch'";
+    passDesc.kind         = AST_IF;
+    passDesc.passKind     = PASS_UNSAFE;
+    passDesc.visitor_func = maybe_convert_if_to_switch;
+    passDesc.visitor_arg  = NULL;
+    thi_install_pass(&thi, passDesc);
+
     //
     // PASS: resolve all unresolved types
     //
@@ -394,9 +434,6 @@ int main(int argc, char** argv) {
     LIST_FOREACH(ast) {
         ast_visit(run_all_passes, &thi, it->data);
     }
-
-    // pass_progate_identifiers_to_constants(&thi);
-    // pass_type_inference(&thi);
 
     char* json = full_ast_to_json(ast);
     write_to_file("ast.json", json);
@@ -473,96 +510,6 @@ void linking_stage(Thi* thi, char* exec_name) {
     system(strf("rm %s.o", exec_name));
 }
 
-void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it) {
-    AST* node = (AST*)it->data;
-    switch (node->kind) {
-    default: break; // error("unhandled case: %s", ast_kind_to_str(node->kind));
-    case AST_WHILE: {
-        LIST_FOREACH(node->While.then_block->Block.stmts) {
-            maybe_convert_call_to_def(thi, ast, it);
-        }
-    } break;
-    case AST_FOR: {
-        LIST_FOREACH(node->For.then_block->Block.stmts) {
-            maybe_convert_call_to_def(thi, ast, it);
-        }
-    } break;
-    case AST_IF: {
-        LIST_FOREACH(node->If.then_block->Block.stmts) {
-            maybe_convert_call_to_def(thi, ast, it);
-        }
-        if (node->If.else_block) {
-            LIST_FOREACH(node->If.else_block->Block.stmts) {
-                maybe_convert_call_to_def(thi, ast, it);
-            }
-        }
-
-        // check for any AST_IS inside
-        List* stmts                             = node->If.then_block->Block.stmts;
-        bool  if_statement_is_actually_a_switch = false;
-
-        LIST_FOREACH(stmts) {
-            maybe_convert_call_to_def(thi, ast, it);
-            AST* stmt = (AST*)it->data;
-            if (stmt->kind == AST_IS) {
-                if_statement_is_actually_a_switch = true;
-                break;
-            }
-        }
-
-        // Go through it again and make sure every statement
-        // is a case
-        if (if_statement_is_actually_a_switch) {
-            // Find all NON switchy things and post and error
-            LIST_FOREACH(stmts) {
-                AST* stmt = (AST*)it->data;
-                if (stmt->kind != AST_IS) {
-                    error(
-                        "%s\nonly 'case' statements are allowed inside an if "
-                        "switch",
-                        ast_to_str(stmt));
-                }
-            }
-
-            // Transform this if into a switch
-            it->data = make_ast_switch(node->t, node);
-        }
-    } break;
-    case AST_CALL: {
-        if (it->next) {
-            AST* next_expr = (AST*)it->next->data;
-            if (next_expr->kind == AST_BLOCK) {
-                char* func_name = node->Call.callee;
-                List* args      = node->Call.args;
-
-                bool has_var_args = false;
-                LIST_FOREACH(args) {
-                    AST* d = (AST*)it->data;
-                    if (d->kind == AST_VAR_ARGS) {
-                        error("found var args %s", ast_to_str(d));
-                        has_var_args = true;
-                        break;
-                    }
-                }
-
-                Type* type =
-                    make_type_function(func_name, args, NULL, has_var_args);
-                add_symbol(thi, func_name, type);
-
-                AST* body = (AST*)it->next->data;
-
-                LIST_FOREACH(body->Block.stmts) {
-                    maybe_convert_call_to_def(thi, ast, it);
-                }
-
-                it->data = make_ast_function(node->t, type, body);
-                list_remove(ast, it->next);
-            }
-        }
-    } break;
-    }
-}
-
 List* parse(Thi* thi, char* source_file) {
     char* last_file = get_source_file(thi);
     char* last_dir  = get_current_directory(thi);
@@ -577,11 +524,6 @@ List* parse(Thi* thi, char* source_file) {
     Lexed_File  lf     = generate_tokens_from_source(source);
     Parsed_File pf     = generate_ast_from_tokens(lf.tokens);
     List*       ast    = pf.ast;
-
-    // Find all definitions
-    LIST_FOREACH(ast) {
-        maybe_convert_call_to_def(thi, ast, it);
-    }
 
     add_all_definitions(thi, &pf);
 
@@ -644,163 +586,4 @@ void add_all_definitions(Thi* thi, Parsed_File* pf) {
         Type* type = pf->symbols->data[i].data;
         add_symbol(thi, type->name, type);
     }
-}
-
-Type* get_inferred_type_of_expr(Thi* thi, AST* expr) {
-    if (!expr) return NULL;
-    switch (expr->kind) {
-    case AST_FUNCTION:
-        return get_inferred_type_of_expr(thi, expr->Function.body);
-    case AST_BLOCK: {
-        Type* type = NULL;
-        LIST_FOREACH(expr->Block.stmts) {
-            AST* stmt = (AST*)it->data;
-            if (stmt->kind == AST_RETURN) {
-                type = get_inferred_type_of_expr(thi, stmt);
-            }
-        }
-    } break;
-    case AST_RETURN: return get_inferred_type_of_expr(thi, expr->Return.expr);
-    case AST_SIZEOF: return get_inferred_type_of_expr(thi, expr->Sizeof.expr);
-    case AST_AS: return get_inferred_type_of_expr(thi, expr->As.type_expr);
-    case AST_NOTE: return get_inferred_type_of_expr(thi, expr->Note.expr);
-    case AST_INT: return make_type_int(DEFAULT_INT_BYTE_SIZE, 0);
-    case AST_FLOAT: return make_type_float(DEFAULT_FLOAT_BYTE_SIZE);
-    case AST_STRING: return make_type_pointer(make_type_int(8, 1));
-    case AST_IDENT: return get_symbol(thi, expr->Ident.name);
-    case AST_CALL: return get_symbol(thi, expr->Call.callee)->Function.ret_type;
-    case AST_UNARY: return get_inferred_type_of_expr(thi, expr->Unary.operand);
-    case AST_BINARY: return get_inferred_type_of_expr(thi, expr->Binary.rhs);
-    case AST_GROUPING:
-        return get_inferred_type_of_expr(thi, expr->Grouping.expr);
-    case AST_SUBSCRIPT:
-        return get_inferred_type_of_expr(thi, expr->Subscript.load);
-    default: error("%s has no type", ast_kind_to_str(expr->kind));
-    }
-    return NULL;
-}
-
-
-void pass_progate_identifiers_to_constants(Thi* thi) {
-    info("pass_progate_identifiers_to_constants");
-    push_timer(thi, "pass_progate_identifiers_to_constants");
-
-    for (s64 i = 0; i < thi->identifiers.count; ++i) {
-        AST* ident = thi->identifiers.data[i];
-        for (s64 j = 0; j < thi->constants.count; ++j) {
-            AST* const_decl = thi->constants.data[j];
-            if (strcmp(ident->Ident.name, const_decl->Constant_Decl.name) ==
-                0) {
-                info("%s turned into %s", ast_to_str(ident), ast_to_str(const_decl->Constant_Decl.value));
-                *ident = *const_decl->Constant_Decl.value;
-                break;
-            }
-        }
-    }
-
-    pop_timer(thi);
-}
-
-void pass_initilize_all_enums(Thi* thi) {
-    info("pass_initilize_all_enums");
-    push_timer(thi, "pass_initilize_all_enums");
-
-    s64 counter = 0;
-    for (s64 i = 0; i < thi->enums.count; ++i) {
-        AST* e = thi->enums.data[i];
-
-        LIST_FOREACH(e->Enum.type->Enum.members) {
-            AST* m = (AST*)it->data;
-            // Turn idents into constant decls
-            switch (m->kind) {
-            default:
-                error("unhandled case: %s, %s, %s", ast_kind_to_str(m->kind), __func__, __LINE__);
-            case AST_IDENT:
-                it->data = make_ast_constant_decl(m->t, m->Ident.name, make_ast_int(m->t, counter));
-                // ast_ref_list_append(&thi->constants, it->data);
-                break;
-            case AST_CONSTANT_DECL:
-                assert(m->Constant_Decl.value->kind == AST_INT);
-                counter = m->Constant_Decl.value->Int.val;
-                break;
-            }
-            counter += 1;
-            // warning("%s", ast_to_json(m));
-        }
-    }
-
-    for (s64 i = 0; i < thi->field_access.count; ++i) {
-        AST* b   = thi->field_access.data[i];
-        AST* lhs = b->Binary.lhs;
-        AST* rhs = b->Binary.rhs;
-
-        assert(lhs->kind == AST_IDENT);
-        assert(rhs->kind == AST_IDENT);
-        Type* e = get_symbol(thi, lhs->Ident.name);
-        LIST_FOREACH(e->Enum.members) {
-            char* access_member_name = rhs->Ident.name;
-            AST*  mem                = (AST*)it->data;
-            if (strcmp(access_member_name, mem->Constant_Decl.name) == 0) {
-                *b = *make_ast_int(mem->t, mem->Constant_Decl.value->Int.val);
-                break;
-            }
-        }
-    }
-
-    pop_timer(thi);
-}
-void pass_resolve_subscripts(Thi* thi) {
-    info("pass_resolve_subscripts");
-    push_timer(thi, "pass_resolve_subscripts");
-
-    // for (s64 i = 0; i < thi->subscripts.count; ++i) {
-    //     AST* it = thi->subscripts.data[i];
-    //     AST* load = it->Subscript.load;
-    //     AST* sub = it->Subscript.sub;
-
-    //     sub = make_ast_binary(it->t, TOKEN_ASTERISK, make_ast_int(it->t, 4),
-    //     sub); load = make_ast_unary(it->t, THI_SYNTAX_ADDRESS, load); sub =
-    //     make_ast_binary(it->t, TOKEN_PLUS, load, sub); sub =
-    //     make_ast_unary(it->t, THI_SYNTAX_POINTER, sub); *it = *sub;
-    // }
-
-    pop_timer(thi);
-}
-
-void pass_give_all_identifiers_a_type(Thi* thi) {
-    info("pass_give_all_identifiers_a_type");
-    push_timer(thi, "pass_give_all_identifiers_a_type");
-
-    for (s64 i = 0; i < thi->identifiers.count; ++i) {
-        AST* ident = thi->identifiers.data[i];
-        if (ident->kind != AST_IDENT) continue;
-        ident->type = get_symbol(thi, ident->Ident.name);
-        warning("%s got type %s", ast_to_str(ident), type_to_str(ident->type));
-    }
-
-    pop_timer(thi);
-}
-
-void pass_type_inference(Thi* thi) {
-    info("pass_type_inference");
-    push_timer(thi, "pass_type_inference");
-
-    for (s64 i = 0; i < thi->calls.count; ++i) {
-        AST* call = thi->calls.data[i];
-        // warning("%s", ast_to_json(call));
-        call->type = get_inferred_type_of_expr(thi, call);
-        if (!call->type) {
-            call->type = make_type_int(
-                1, 1); // NOTE(marcus) should this be void instead?
-        }
-    }
-
-    for (s64 i = 0; i < thi->variables_in_need_of_type_inference.count; ++i) {
-        AST* var_decl = thi->variables_in_need_of_type_inference.data[i];
-        var_decl->Variable_Decl.type =
-            get_inferred_type_of_expr(thi, var_decl->Variable_Decl.value);
-        var_decl->type = var_decl->Variable_Decl.type;
-    }
-
-    pop_timer(thi);
 }
