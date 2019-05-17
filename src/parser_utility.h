@@ -10,23 +10,12 @@
 
 typedef struct
 {
-    Token_Array tokens;
-    s64         token_index;
+    Token* tokens;
 
-    Type_Ref_List unresolved_types;
-    AST_Ref_List  calls;
-    AST_Ref_List  variables_in_need_of_type_inference;
-    AST_Ref_List  constants;
-    AST_Ref_List  identifiers;
-    AST_Ref_List  structs;
-    AST_Ref_List  enums;
-    AST_Ref_List  externs;
-    AST_Ref_List  field_access;
-    AST_Ref_List  subscripts;
-    List*         loads;
-    List*         links;
+    char* file;
+    char* dir;
 
-    Map* symbols;
+    List* loads;
 
     Token curr_tok;
     Token prev_tok;
@@ -36,13 +25,12 @@ typedef struct
 
 } Parser_Context;
 
-Parser_Context
-make_parser_context();
-Type* get_type(Parser_Context* ctx);
-s64   get_integer(Parser_Context* ctx);
-f64   get_float(Parser_Context* ctx);
-int   get_tok_precedence(Parser_Context* ctx);
-Token next_tok(Parser_Context* ctx);
+Parser_Context make_parser_context(void);
+Type*          get_type(Parser_Context* ctx);
+s64            get_integer(Parser_Context* ctx);
+f64            get_float(Parser_Context* ctx);
+int            get_tok_precedence(Parser_Context* ctx);
+Token          next_tok(Parser_Context* ctx);
 Token_Kind
 next_tok_kind(Parser_Context* ctx);
 bool tok_is_on_same_line(Parser_Context* ctx);

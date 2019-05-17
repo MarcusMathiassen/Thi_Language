@@ -52,27 +52,13 @@ struct
 };
 
 Parser_Context
-make_parser_context() {
+make_parser_context(void) {
     Parser_Context ctx;
-    ctx.token_index        = 0;
+    ctx.tokens             = NULL;
     ctx.curr_tok.kind      = TOKEN_UNKNOWN;
     ctx.llast_if_statement = NULL;
     ctx.olast_if_statement = NULL;
-
-    ctx.unresolved_types                    = make_type_ref_list();
-    ctx.variables_in_need_of_type_inference = make_ast_ref_list();
-    ctx.calls                               = make_ast_ref_list();
-    ctx.constants                           = make_ast_ref_list();
-    ctx.identifiers                         = make_ast_ref_list();
-    ctx.structs                             = make_ast_ref_list();
-    ctx.enums                               = make_ast_ref_list();
-    ctx.externs                             = make_ast_ref_list();
-    ctx.field_access                        = make_ast_ref_list();
-    ctx.subscripts                          = make_ast_ref_list();
-    ctx.loads                               = make_list();
-    ctx.links                               = make_list();
-    ctx.symbols                             = make_map();
-
+    ctx.loads              = make_list();
     return ctx;
 }
 
@@ -89,11 +75,10 @@ Type* get_type(Parser_Context* ctx) {
 
     eat_kind(ctx, TOKEN_IDENTIFIER);
 
-    Type* type = map_get(ctx->symbols, type_name);
+    Type* type = NULL;
     if (!type) {
         type       = make_type_unresolved(type_name);
         type->name = type_name;
-        type_ref_list_append(&ctx->unresolved_types, type);
     }
     type->name = type_name;
 
@@ -153,10 +138,8 @@ s64 get_integer(Parser_Context* ctx) {
 
 f64 get_float(Parser_Context* ctx) {
     DEBUG_START;
-
     f64 value = atof(ctx->curr_tok.value);
     eat_kind(ctx, TOKEN_FLOAT);
-
     return value;
 }
 
@@ -169,18 +152,18 @@ int get_tok_precedence(Parser_Context* ctx) {
 }
 
 Token next_tok(Parser_Context* ctx) {
-    if (ctx->tokens.count < ctx->token_index + 1) {
-        error("No next token. We're all out.");
+    if (!ctx->tokens) {
+        Token token;
+        token.kind = TOKEN_EOF;
+        return token;
     }
-    return ctx->tokens.data[ctx->token_index];
+    return (*ctx->tokens);
 }
 
 Token_Kind
 next_tok_kind(Parser_Context* ctx) {
-    if (ctx->tokens.count < ctx->token_index + 1) {
-        error("No next token. We're all out.");
-    }
-    Token_Kind kind = ctx->tokens.data[ctx->token_index].kind;
+    if (!ctx->tokens) return TOKEN_EOF;
+    Token_Kind kind = (*ctx->tokens).kind;
     return kind;
 }
 
@@ -201,9 +184,14 @@ bool tok_is(Parser_Context* ctx, Token_Kind kind) {
 }
 
 void eat(Parser_Context* ctx) {
+    // Set the previous token
     ctx->prev_tok = ctx->curr_tok;
-    ctx->curr_tok = ctx->tokens.data[ctx->token_index];
-    ctx->token_index += 1;
+
+    // Get the current token
+    ctx->curr_tok = *ctx->tokens;
+
+    // Ready the next token
+    if (ctx->tokens) ++ctx->tokens;
 }
 
 void eat_kind(Parser_Context* ctx, Token_Kind kind) {

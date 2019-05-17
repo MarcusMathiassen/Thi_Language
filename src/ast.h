@@ -13,6 +13,7 @@ typedef struct AST          AST;
 typedef struct AST_Ref_List AST_Ref_List;
 
 typedef enum {
+    AST_MODULE,
     AST_IS,
     AST_FALLTHROUGH,
     AST_VAR_ARGS,
@@ -59,6 +60,11 @@ struct AST {
     Type*    type;
     Token    t;
     union {
+        struct
+        {
+            char* name;
+            AST* top_level;
+        } Module;
         struct
         {
             AST* cond;
@@ -240,6 +246,7 @@ struct AST {
 };
 
 // clang-format off
+AST* make_ast_module        (Token t, char* name, AST* top_level);
 AST* make_ast_extern        (Token t, Type* type);
 AST* make_ast_load          (Token t, char* str);
 AST* make_ast_link          (Token t, char* str);
@@ -276,9 +283,6 @@ AST* make_ast_break         (Token t);
 AST* make_ast_continue      (Token t);
 
 AST*  get_arg_from_func (Type* func_t, s64 arg_index);
-void  print_ast         (List* ast);
-void  print_ast_json    (List* ast);
-char* full_ast_to_json  (List* ast);
 void  ast_visit         (void (*func)(void*, AST*), void* ctx, AST* expr);
 void  ast_replace       (AST* a, AST* b);
 char* ast_to_json       (AST* expr);

@@ -83,6 +83,7 @@ Value*
 codegen_expr(Codegen_Context* ctx, AST* expr) {
     switch (expr->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(expr->kind));
+    case AST_MODULE: return codegen_expr(ctx, expr->Module.top_level);
     case AST_FALLTHROUGH: return NULL;
     case AST_LOAD: return NULL;
     case AST_LINK: return NULL;
@@ -118,16 +119,15 @@ codegen_expr(Codegen_Context* ctx, AST* expr) {
     return NULL;
 }
 
-char* generate_code_from_ast(List* ast) {
+char* generate_code_from_ast(AST* ast) {
     info("Generating code from ast");
 
     Codegen_Context ctx = make_codegen_context();
 
     append_string(&ctx.section_data, "section .data\n");
     emit_no_tab(&ctx, "section .text");
-    LIST_FOREACH(ast) {
-        codegen_expr(&ctx, (AST*)it->data);
-    }
+
+    codegen_expr(&ctx, ast);
 
     char* output = strf("%s%sglobal _main\n%s", ctx.section_extern.c_str, ctx.section_data.c_str, ctx.section_text.c_str);
 

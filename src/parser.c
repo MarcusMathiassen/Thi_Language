@@ -2,7 +2,6 @@
 #include "ast.h" // AST, ast_make_*
 #include "constants.h"
 #include "lexer.h" // Token, Token_Kind, generate_tokens_from_source, token_array_get_info_of
-#include "list.h"  // List
 #include "map.h"   // Map
 #include "parser_utility.h"
 #include "type.h"     // Type, make_typspec_*,
@@ -88,47 +87,55 @@ Type* parse_enum_signature             (Parser_Context* ctx, char* enum_name);
 Type* parse_struct_signature           (Parser_Context* ctx, char* struct_name);
 Type* parse_function_signature         (Parser_Context* ctx, char* func_name);
 Type* parse_extern_function_signature  (Parser_Context* ctx, char* func_name);
+List* generate_ast_from_tokens         (Token* tokens);
 // clang-format on
 
 //------------------------------------------------------------------------------
 //                               Public
 //------------------------------------------------------------------------------
 
-Parsed_File
-generate_ast_from_tokens(Token_Array tokens) {
-    info("Generating ast from tokens..");
+AST* parse(Parser_Context* ctx, char* file) {
 
-    List* ast = make_list();
+    // Save state to recover from later
+    char* last_file = ctx->file;
+    char* last_dir  = ctx->dir;
+
+    // Set the some state
+    ctx->file = file;
+    ctx->dir  = get_file_directory(file);
+
+    char*  source    = get_file_content(file);
+    Token* tokens    = generate_tokens_from_source(source);
+    List*  top_level = generate_ast_from_tokens(tokens);
+
+    AST* top_level_scope = make_ast_block(ctx->curr_tok, top_level);
+
+    // Wrap it all in a module
+    AST* ast = make_ast_module(ctx->curr_tok, file, top_level_scope);
+
+    // Recover state
+    ctx->file = last_file;
+    ctx->dir  = last_dir;
+
+    return ast;
+}
+
+List* generate_ast_from_tokens(Token* tokens) {
+    info("Generating ast from tokens..");
 
     Parser_Context ctx = make_parser_context();
     ctx.tokens         = tokens;
 
     eat(&ctx);
 
+    List* ast = make_list();
+
     while (!tok_is(&ctx, TOKEN_EOF)) {
         AST* stmt = parse_statement(&ctx);
-        if (stmt) {
-            list_append(ast, stmt);
-        }
+        if (stmt) list_append(ast, stmt);
     }
 
-    Parsed_File pf;
-    pf.ast              = ast;
-    pf.unresolved_types = ctx.unresolved_types;
-    pf.variables_in_need_of_type_inference =
-        ctx.variables_in_need_of_type_inference;
-    pf.externs      = ctx.externs;
-    pf.loads        = ctx.loads;
-    pf.links        = ctx.links;
-    pf.enums        = ctx.enums;
-    pf.structs      = ctx.structs;
-    pf.field_access = ctx.field_access;
-    pf.subscripts   = ctx.subscripts;
-    pf.calls        = ctx.calls;
-    pf.constants    = ctx.constants;
-    pf.identifiers  = ctx.identifiers;
-    pf.symbols      = ctx.symbols;
-    return pf;
+    return ast;
 }
 
 //------------------------------------------------------------------------------
@@ -200,8 +207,6 @@ AST* parse_identifier(Parser_Context* ctx) {
     // clang-format on
 
     AST* i = make_ast_ident(ctx->curr_tok, ident);
-    ast_ref_list_append(&ctx->identifiers, i);
-
     return i;
 }
 
@@ -216,8 +221,6 @@ AST* parse_expression_identifier(Parser_Context* ctx) {
     }
 
     AST* i = make_ast_ident(ctx->curr_tok, ident);
-    ast_ref_list_append(&ctx->identifiers, i);
-
     return i;
 }
 
@@ -228,8 +231,6 @@ AST* parse_struct(Parser_Context* ctx) {
     eat_kind(ctx, TOKEN_IDENTIFIER);
     Type* type = parse_struct_signature(ctx, ident);
     AST*  s    = make_ast_struct(ctx->curr_tok, type);
-    map_set(ctx->symbols, ident, type);
-    ast_ref_list_append(&ctx->structs, s);
     return s;
 }
 
@@ -240,8 +241,6 @@ AST* parse_enum(Parser_Context* ctx) {
     eat_kind(ctx, TOKEN_IDENTIFIER);
     Type* type = parse_enum_signature(ctx, ident);
     AST*  e    = make_ast_enum(ctx->curr_tok, type);
-    map_set(ctx->symbols, ident, type);
-    ast_ref_list_append(&ctx->enums, e);
     return e;
 }
 
@@ -250,8 +249,11 @@ AST* parse_load(Parser_Context* ctx) {
     eat_kind(ctx, TOKEN_LOAD);
     char* str = strf("%s.thi", ctx->curr_tok.value);
     eat_kind(ctx, TOKEN_STRING);
+
+    AST* ast = parse(ctx, str);
     list_append(ctx->loads, str);
-    return make_ast_load(ctx->curr_tok, str);
+
+    return ast;
 }
 
 AST* parse_link(Parser_Context* ctx) {
@@ -259,7 +261,6 @@ AST* parse_link(Parser_Context* ctx) {
     eat_kind(ctx, TOKEN_LINK);
     char* str = ctx->curr_tok.value;
     eat_kind(ctx, TOKEN_STRING);
-    list_append(ctx->links, str);
     return make_ast_link(ctx->curr_tok, str);
 }
 
@@ -270,8 +271,6 @@ AST* parse_extern(Parser_Context* ctx) {
     eat_kind(ctx, TOKEN_IDENTIFIER);
     Type* type = parse_extern_function_signature(ctx, ident);
     AST*  e    = make_ast_extern(ctx->curr_tok, type);
-    map_set(ctx->symbols, ident, type);
-    ast_ref_list_append(&ctx->externs, e);
     return e;
 }
 
@@ -347,6 +346,41 @@ AST* parse_dangling_else(Parser_Context* ctx) {
     return NULL;
 }
 
+void maybe_convert_if_to_switch(AST* expr) {
+
+    AST* then_block = expr->If.then_block;
+
+    // check for any AST_IS inside
+    List* stmts                             = then_block->Block.stmts;
+    bool  if_statement_is_actually_a_switch = false;
+
+    LIST_FOREACH(stmts) {
+        AST* stmt = it->data;
+        if (stmt->kind == AST_IS) {
+            if_statement_is_actually_a_switch = true;
+            break;
+        }
+    }
+
+    // Go through it again and make sure every statement
+    // is a case
+    if (if_statement_is_actually_a_switch) {
+        // Find all NON switchy things and post and error
+        LIST_FOREACH(stmts) {
+            AST* stmt = it->data;
+            if (stmt->kind != AST_IS) {
+                error(
+                    "%s\nonly 'case' statements are allowed inside an if "
+                    "switch",
+                    ast_to_str(stmt));
+            }
+        }
+
+        // Transform this if into a switch
+        ast_replace(expr, make_ast_switch(expr->t, expr));
+    }
+}
+
 AST* parse_if(Parser_Context* ctx) {
     DEBUG_START;
     eat_kind(ctx, TOKEN_IF);
@@ -357,9 +391,11 @@ AST* parse_if(Parser_Context* ctx) {
         eat_kind(ctx, TOKEN_ELSE);
         else_block = parse_block(ctx);
     }
-    AST* if_statement =
-        make_ast_if(ctx->curr_tok, cond, then_block, else_block);
+    AST* if_statement = make_ast_if(ctx->curr_tok, cond, then_block, else_block);
     set_if_statement(ctx, if_statement);
+
+    maybe_convert_if_to_switch(if_statement);
+
     return if_statement;
 }
 
@@ -440,7 +476,6 @@ AST* parse_function_call(Parser_Context* ctx, char* ident) {
             }
         }
         Type* type = make_type_function(ident, args, NULL, has_var_args);
-        map_set(ctx->symbols, ident, type);
         return make_ast_function(ctx->curr_tok, type, parse_block(ctx));
     }
     if (tok_is(ctx, TOKEN_BLOCK_START)) {
@@ -454,22 +489,17 @@ AST* parse_function_call(Parser_Context* ctx, char* ident) {
             }
         }
         Type* type = make_type_function(ident, args, NULL, has_var_args);
-        map_set(ctx->symbols, ident, type);
         info("converted call into def '%s'", ident);
         return make_ast_function(ctx->curr_tok, type, parse_block(ctx));
     }
-    AST* call = make_ast_call(ctx->curr_tok, ident, args);
-    ast_ref_list_append(&ctx->calls, call);
-    return call;
+    return make_ast_call(ctx->curr_tok, ident, args);
 }
 
 AST* parse_constant_decl(Parser_Context* ctx, char* ident) {
     DEBUG_START;
     eat_kind(ctx, TOKEN_COLON_COLON);
-    AST* value         = parse_expression(ctx);
-    AST* constant_decl = make_ast_constant_decl(ctx->curr_tok, ident, value);
-    ast_ref_list_append(&ctx->constants, constant_decl);
-    return constant_decl;
+    AST* value = parse_expression(ctx);
+    return make_ast_constant_decl(ctx->curr_tok, ident, value);
 }
 
 AST* parse_variable_decl(Parser_Context* ctx, char* ident) {
@@ -479,41 +509,24 @@ AST* parse_variable_decl(Parser_Context* ctx, char* ident) {
     Type* variable_type  = NULL;
     AST*  variable_value = NULL;
 
-    bool variable_needs_type_inference = false;
-
     switch (ctx->curr_tok.kind) {
-    default:
-        error("unhandled case: %s, %s, %s",
-              token_kind_to_str(ctx->curr_tok.kind),
-              __func__,
-              __LINE__);
-    case TOKEN_COLON: {
+    default: ERROR_UNHANDLED_KIND(token_kind_to_str(ctx->curr_tok.kind));
+    case TOKEN_COLON:
         eat_kind(ctx, TOKEN_COLON);
         variable_type = get_type(ctx);
         if (tok_is(ctx, TOKEN_EQ)) {
             eat_kind(ctx, TOKEN_EQ);
             variable_value = parse_expression(ctx);
         }
-    } break;
+        break;
 
-    case TOKEN_COLON_EQ: {
+    case TOKEN_COLON_EQ:
         eat_kind(ctx, TOKEN_COLON_EQ);
-        variable_value                = parse_expression(ctx);
-        variable_needs_type_inference = true;
-    } break;
+        variable_value = parse_expression(ctx);
+        break;
     }
 
-    AST* var_decl = make_ast_variable_decl(ctx->curr_tok, variable_name, variable_type, variable_value);
-    if (variable_needs_type_inference) {
-        ast_ref_list_append(&ctx->variables_in_need_of_type_inference,
-                            var_decl);
-    }
-
-    if (tok_is(ctx, TOKEN_COMMA)) {
-        // warning("%s", ctx->curr_tok.value);
-    }
-
-    return var_decl;
+    return make_ast_variable_decl(ctx->curr_tok, variable_name, variable_type, variable_value);
 }
 
 AST* parse_binary(Parser_Context* ctx, s8 expr_prec, AST* lhs) {
@@ -572,7 +585,6 @@ AST* read_subscript_expr(Parser_Context* ctx, AST* expr) {
     AST* sub = parse_expression(ctx);
     eat_kind(ctx, TOKEN_CLOSE_BRACKET);
     sub = make_ast_subscript(ctx->curr_tok, expr, sub);
-    ast_ref_list_append(&ctx->subscripts, sub);
     return sub;
 }
 
@@ -581,7 +593,6 @@ AST* read_field_access(Parser_Context* ctx, AST* expr) {
     char* field_name = ctx->curr_tok.value;
     eat_kind(ctx, TOKEN_IDENTIFIER);
     AST* field = make_ast_field_access(ctx->curr_tok, expr, field_name);
-    // ast_ref_list_append(&ctx->field_access, field);
     return field;
 }
 
@@ -601,13 +612,6 @@ AST* parse_postfix_tail(Parser_Context* ctx, AST* primary_expr) {
             primary_expr = read_field_access(ctx, primary_expr);
             continue;
         }
-        // if (tok_is(ctx, TOKEN_COMMA)) {
-        //     warning("first %s", ast_to_str(primary_expr));
-        //     eat(ctx);
-        //     warning("second %s", ctx->curr_tok.value);
-        //     // primary_expr = read_field_access(ctx, primary_expr);
-        //     continue;
-        // }
         return primary_expr;
     }
 }
@@ -642,12 +646,10 @@ AST* parse_unary(Parser_Context* ctx) {
         switch (unary->Unary.op) {
         case TOKEN_SIZEOF: {
             AST* node = make_ast_sizeof(unary->t, unary->Unary.operand);
-            info("replaced %s with %s", ast_to_str(unary), ast_to_str(node));
             ast_replace(unary, node);
         } break;
         case TOKEN_TYPEOF: {
             AST* node = make_ast_typeof(unary->t, unary->Unary.operand);
-            info("replaced %s with %s", ast_to_str(unary), ast_to_str(node));
             ast_replace(unary, node);
         } break;
         default: break;
@@ -664,9 +666,9 @@ AST* parse_note(Parser_Context* ctx) {
     AST* expr = NULL;
     // clang-format off
     switch (ctx->curr_tok.kind) {
+    default: ERROR_UNHANDLED_KIND(token_kind_to_str(ctx->curr_tok.kind));
     case TOKEN_HEX:         expr = parse_integer(ctx); break;
     case TOKEN_INTEGER:     expr = parse_integer(ctx); break;
-    default: error("unknown token when expecting a note");
     }
     // clang-format on
     return make_ast_note(ctx->curr_tok, expr);

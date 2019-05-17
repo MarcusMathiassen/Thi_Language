@@ -3,6 +3,7 @@ main()
     if 1
         is 0
             return 0
+    else return 3
 
     #while comp1()
     #    return 1

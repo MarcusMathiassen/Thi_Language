@@ -53,7 +53,7 @@ typedef struct
     List*         loads;
     List*         links;
 
-    List*  ast;
+    AST*  ast;
     Map*   symbol_map;
     Map*   macro_map;
     Stack* timer_stack;

@@ -24,7 +24,7 @@ Thi make_thi() {
 
     thi.all_passes_for_all_kinds = make_map();
 
-    thi.ast                                 = make_list();
+    thi.ast                                 = NULL;
     thi.links                               = make_list();
     thi.loads                               = make_list();
     thi.unresolved_types                    = make_type_ref_list();

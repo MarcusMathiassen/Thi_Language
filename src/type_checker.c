@@ -30,6 +30,7 @@ typedef struct
 
 Type* type_check_expr(Typer_Context* ctx, AST* expr);
 
+Type* type_check_module(Typer_Context* ctx, AST* expr);
 Type* type_check_typeof(Typer_Context* ctx, AST* expr);
 Type* type_check_sizeof(Typer_Context* ctx, AST* expr);
 Type* type_check_switch(Typer_Context* ctx, AST* expr);
@@ -64,15 +65,11 @@ static Type* get_symbol(Typer_Context* ctx, char* name) {
     return (Type*)map_get(ctx->symbol_table, name);
 }
 
-void type_checker(Map* symbol_table, List* ast) {
+void type_checker(Map* symbol_table, AST* ast) {
     info("Type checking...");
-
     Typer_Context ctx;
     ctx.symbol_table = symbol_table;
-
-    LIST_FOREACH(ast) {
-        type_check_expr(&ctx, (AST*)it->data);
-    }
+    type_check_expr(&ctx, ast);
 }
 
 Type* type_check_expr(Typer_Context* ctx, AST* expr) {
@@ -84,6 +81,7 @@ Type* type_check_expr(Typer_Context* ctx, AST* expr) {
     Type* t = NULL;
     // clang-format off
     switch (expr->kind) {
+    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(expr->kind));
     case AST_FALLTHROUGH:    t = NULL;                                       break;
     case AST_LOAD:           t = NULL;                                       break;
     case AST_LINK:           t = NULL;                                       break;
@@ -117,8 +115,7 @@ Type* type_check_expr(Typer_Context* ctx, AST* expr) {
     case AST_CONTINUE:       t = type_check_continue(ctx, expr);             break;
     case AST_AS:             t = type_check_as(ctx, expr);                   break;
     case AST_IS:             t = type_check_is(ctx, expr);                   break;
-
-    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(expr->kind));
+    case AST_MODULE:         t = type_check_module(ctx, expr);               break;
     }
     // clang-format on
 
@@ -132,6 +129,9 @@ Type* type_check_expr(Typer_Context* ctx, AST* expr) {
 Type* type_check_sizeof(Typer_Context* ctx, AST* expr) {
     type_check_expr(ctx, expr->Sizeof.expr);
     return get_symbol(ctx, DEFAULT_BIG_INT_TYPE_AS_STRING);
+}
+Type* type_check_module(Typer_Context* ctx, AST* expr) {
+    return type_check_expr(ctx, expr->Module.top_level);
 }
 
 Type* type_check_typeof(Typer_Context* ctx, AST* expr) {

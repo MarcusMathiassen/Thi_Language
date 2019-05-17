@@ -24,23 +24,8 @@
 //                               Main Driver
 //------------------------------------------------------------------------------
 
-void add_all_definitions(Thi* thi, Parsed_File* pf);
-void pass_progate_identifiers_to_constants(Thi* thi);
-void pass_type_inference(Thi* thi);
-void pass_initilize_all_enums(Thi* thi);
-void pass_resolve_subscripts(Thi* thi);
-void pass_give_all_identifiers_a_type(Thi* thi);
-void pass_type_checker(Thi* thi);
-
-List* parse(Thi* thi, char* source_file);
-void  assemble(Thi* thi, char* asm_file, char* exec_name);
-void  linking_stage(Thi* thi, char* exec_name);
-
-void maybe_convert_call_to_def(Thi* thi, List* ast, List_Node* it);
-
-void print_expr(void* ctx, AST* expr) {
-    info("%s", ast_to_str(expr));
-}
+void assemble(Thi* thi, char* asm_file, char* exec_name);
+void linking_stage(Thi* thi, char* exec_name);
 
 void check_for_unresolved_types(void* ctx, AST* expr) {
     if (expr->type && expr->type->kind == TYPE_UNRESOLVED) {
@@ -93,9 +78,7 @@ void get_all_variables(void* list, AST* expr) {
 
 void thi_run_pass(Thi* thi, char* pass_description, void (*visitor_func)(void*, AST*), void* visitor_func_arg) {
     push_timer(thi, pass_description);
-    LIST_FOREACH(thi->ast) {
-        ast_visit(visitor_func, visitor_func_arg, it->data);
-    }
+    ast_visit(visitor_func, visitor_func_arg, thi->ast);
     pop_timer(thi);
 }
 
@@ -209,12 +192,10 @@ void ast_query(void* query, AST* expr) {
     }
 }
 
-List* ast_find_all_of_kind(AST_Kind kind, List* ast) {
+List* ast_find_all_of_kind(AST_Kind kind, AST* ast) {
     List*             list  = make_list();
     AST_FindAll_Query query = {kind, list};
-    LIST_FOREACH(ast) {
-        ast_visit(ast_query, &query, it->data);
-    }
+    ast_visit(ast_query, &query, ast);
     return list;
 }
 
@@ -226,40 +207,6 @@ void resolve_sizeofs(void* arg, AST* expr) {
 void resolve_typeofs(void* arg, AST* expr) {
     AST* string_value = make_ast_string(expr->t, type_to_str(expr->type));
     ast_replace(expr, string_value);
-}
-void maybe_convert_if_to_switch(void* arg, AST* expr) {
-
-    AST* then_block = expr->If.then_block;
-
-    // check for any AST_IS inside
-    List* stmts                             = then_block->Block.stmts;
-    bool  if_statement_is_actually_a_switch = false;
-
-    LIST_FOREACH(stmts) {
-        AST* stmt = it->data;
-        if (stmt->kind == AST_IS) {
-            if_statement_is_actually_a_switch = true;
-            break;
-        }
-    }
-
-    // Go through it again and make sure every statement
-    // is a case
-    if (if_statement_is_actually_a_switch) {
-        // Find all NON switchy things and post and error
-        LIST_FOREACH(stmts) {
-            AST* stmt = it->data;
-            if (stmt->kind != AST_IS) {
-                error(
-                    "%s\nonly 'case' statements are allowed inside an if "
-                    "switch",
-                    ast_to_str(stmt));
-            }
-        }
-
-        // Transform this if into a switch
-        ast_replace(expr, make_ast_switch(expr->t, expr));
-    }
 }
 
 int main(int argc, char** argv) {
@@ -321,8 +268,6 @@ int main(int argc, char** argv) {
     if (strcmp(ext, "thi") != 0) {
     }
 
-    List* ast = make_list();
-
     add_load(&thi, name);
     add_link(&thi, "-lSystem");
 
@@ -347,24 +292,22 @@ int main(int argc, char** argv) {
     add_symbol(&thi, "f64", make_type_float(8));
 
     // Parse
-    LIST_FOREACH(get_load_list(&thi)) {
-        char* file = strf("%s%s", get_current_directory(&thi), it->data);
-        warning("Started parsing %s", file);
-        List* ast_l = parse(&thi, file);
-        list_append_content_of(ast, ast_l);
-        warning("finished parsing %s", file);
-    }
+    Parser_Context pctx = make_parser_context();
+    pctx.file           = source_file;
+    pctx.dir            = dir;
+    AST* ast            = parse(&pctx, source_file);
 
+    info(ast_to_str(ast));
     thi.ast = ast;
 
     info("Running passes");
 
-    // ex.
     PassDescriptor passDesc;
-    passDesc.description  = "Print all nodes";
-    passDesc.kind         = AST_IDENT;
-    passDesc.passKind     = PASS_SAFE;
-    passDesc.visitor_func = print_expr;
+
+    passDesc.description  = "Collect all struct";
+    passDesc.kind         = AST_STRUCT;
+    passDesc.passKind     = PASS_UNSAFE;
+    passDesc.visitor_func = resolve_sizeofs;
     passDesc.visitor_arg  = NULL;
     thi_install_pass(&thi, passDesc);
 
@@ -382,20 +325,13 @@ int main(int argc, char** argv) {
     passDesc.visitor_arg  = NULL;
     thi_install_pass(&thi, passDesc);
 
-    passDesc.description  = "Maybe convert 'if' to 'switch'";
-    passDesc.kind         = AST_IF;
-    passDesc.passKind     = PASS_UNSAFE;
-    passDesc.visitor_func = maybe_convert_if_to_switch;
-    passDesc.visitor_arg  = NULL;
-    thi_install_pass(&thi, passDesc);
-
     //
     // PASS: resolve all unresolved types
     //
     thi_run_pass(&thi, "resolve_unresolved_types", visitor_resolve_unresolved_types, &thi);
 
     // Give every node a type and do some checking
-    type_checker(thi.symbol_map, thi.ast);
+    type_checker(thi.symbol_map, ast);
 
     //
     // Optimization Pass:
@@ -431,14 +367,12 @@ int main(int argc, char** argv) {
     thi_run_pass(&thi, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);
 
     // Run all passes
-    LIST_FOREACH(ast) {
-        ast_visit(run_all_passes, &thi, it->data);
-    }
+    ast_visit(run_all_passes, &thi, ast);
 
-    char* json = full_ast_to_json(ast);
+    char* json = ast_to_json(ast);
     write_to_file("ast.json", json);
 
-    print_ast(ast);
+    info(ast_to_str(ast));
 
     // Codegen
     push_timer(&thi, "Codegen");
@@ -508,82 +442,4 @@ void linking_stage(Thi* thi, char* exec_name) {
 
     // Cleanup object files
     system(strf("rm %s.o", exec_name));
-}
-
-List* parse(Thi* thi, char* source_file) {
-    char* last_file = get_source_file(thi);
-    char* last_dir  = get_current_directory(thi);
-    char* dir       = get_file_directory(source_file);
-
-    set_source_file(thi, source_file);
-    set_current_directory(thi, dir);
-
-    push_timer(thi, source_file);
-
-    char*       source = get_file_content(source_file);
-    Lexed_File  lf     = generate_tokens_from_source(source);
-    Parsed_File pf     = generate_ast_from_tokens(lf.tokens);
-    List*       ast    = pf.ast;
-
-    add_all_definitions(thi, &pf);
-
-    // print_ast(ast);
-
-    pop_timer(thi);
-
-    set_source_file(thi, last_file);
-    set_current_directory(thi, last_dir);
-
-    // Update thi
-    thi->lines += lf.lines;
-    thi->comments += lf.comments;
-
-    return ast;
-}
-
-void add_all_definitions(Thi* thi, Parsed_File* pf) {
-    for (s64 i = 0; i < pf->unresolved_types.count; ++i) {
-        type_ref_list_append(&thi->unresolved_types,
-                             pf->unresolved_types.data[i]);
-    }
-    for (s64 i = 0; i < pf->calls.count; ++i) {
-        ast_ref_list_append(&thi->calls, pf->calls.data[i]);
-    }
-    for (s64 i = 0; i < pf->externs.count; ++i) {
-        ast_ref_list_append(&thi->externs, pf->externs.data[i]);
-    }
-    for (s64 i = 0; i < pf->structs.count; ++i) {
-        ast_ref_list_append(&thi->structs, pf->structs.data[i]);
-    }
-    for (s64 i = 0; i < pf->enums.count; ++i) {
-        ast_ref_list_append(&thi->enums, pf->enums.data[i]);
-    }
-    for (s64 i = 0; i < pf->variables_in_need_of_type_inference.count; ++i) {
-        ast_ref_list_append(&thi->variables_in_need_of_type_inference,
-                            pf->variables_in_need_of_type_inference.data[i]);
-    }
-    for (s64 i = 0; i < pf->constants.count; ++i) {
-        ast_ref_list_append(&thi->constants, pf->constants.data[i]);
-    }
-    for (s64 i = 0; i < pf->identifiers.count; ++i) {
-        ast_ref_list_append(&thi->identifiers, pf->identifiers.data[i]);
-    }
-    for (s64 i = 0; i < pf->field_access.count; ++i) {
-        ast_ref_list_append(&thi->field_access, pf->field_access.data[i]);
-    }
-    for (s64 i = 0; i < pf->subscripts.count; ++i) {
-        ast_ref_list_append(&thi->subscripts, pf->subscripts.data[i]);
-    }
-    LIST_FOREACH(pf->links) {
-        add_link(thi, it->data);
-    }
-    LIST_FOREACH(pf->loads) {
-        add_load(thi, it->data);
-    }
-
-    s64 count = pf->symbols->size;
-    for (s64 i = 0; i < count; ++i) {
-        Type* type = pf->symbols->data[i].data;
-        add_symbol(thi, type->name, type);
-    }
 }

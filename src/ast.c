@@ -13,6 +13,9 @@ void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr) {
     if (!expr) return;
     switch (expr->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(expr->kind));
+    case AST_MODULE:
+        ast_visit(func, ctx, expr->Module.top_level);
+        break;
     case AST_TYPEOF:
         ast_visit(func, ctx, expr->Typeof.expr);
         break;
@@ -136,6 +139,7 @@ char* ast_kind_to_str(AST_Kind kind) {
     // clang-format off
     switch (kind) {
     default:                ERROR_UNHANDLED_KIND(strf("%d", kind));
+    case AST_MODULE:        return "AST_MODULE";
     case AST_IS:            return "AST_IS";
     case AST_FALLTHROUGH:   return "AST_FALLTHROUGH";
     case AST_VAR_ARGS:      return "AST_VAR_ARGS";
@@ -182,6 +186,7 @@ char* ast_to_str(AST* expr) {
     // clang-format off
     switch (expr->kind) {
     default:                    ERROR_UNHANDLED_KIND(ast_kind_to_str(expr->kind));
+    case AST_MODULE:            return strf("module '%s'= %s", expr->Module.name, ast_to_str(expr->Module.top_level));
     case AST_VAR_ARGS:          return "...";
     case AST_FALLTHROUGH:       return "fallthrough";
     case AST_SWITCH:            return strf("switch %s %s else %s", ast_to_str(expr->Switch.cond), ast_to_str(expr->Switch.cases),
@@ -262,6 +267,7 @@ char* ast_to_json(AST* expr) {
     // clang-format off
     switch (expr->kind) {
     default:                ERROR_UNHANDLED_KIND(ast_kind_to_str(expr->kind));
+    case AST_MODULE:        return strf("{%s:{\"name\":\"%s\",\"top_level\":%s}}", ast_json_prelude(expr), expr->Module.name, ast_to_json(expr->Module.top_level));
     case AST_SWITCH:        return strf("{%s:{\"cond\":%s,\"cases\":%s,\"default\":%s}}", ast_json_prelude(expr), ast_to_json(expr->Switch.cond), ast_to_json(expr->Switch.cases), ast_to_json(expr->Switch.default_case));
     case AST_IS:            return strf("{%s:{\"case\":%s,\"body\":%s,\"has_fallthrough\":%s}}", ast_json_prelude(expr), ast_to_json(expr->Is.expr), ast_to_json(expr->Is.body), expr->Is.has_fallthrough ? "true" : "false");
     case AST_FIELD_ACCESS:  return strf("{%s:{\"load\":%s,\"field\":\"%s\"}}", ast_json_prelude(expr), ast_to_json(expr->Field_Access.load), expr->Field_Access.field);
@@ -335,43 +341,6 @@ AST* get_arg_from_func(Type* func_t, s64 arg_index) {
     return expr;
 }
 
-void print_ast(List* ast) {
-    info("Printing AST..");
-    LIST_FOREACH(ast) {
-        AST*  expr = it->data;
-        char* str  = strf("%s", wrap_with_colored_parens(ast_to_str(expr)));
-        info("%s", str);
-    }
-}
-
-char* full_ast_to_json(List* ast) {
-    success("full_ast_to_json..");
-    string json      = make_string("{\"AST\": [");
-    s64    ast_count = ast->count;
-    s64    counter   = 0;
-    LIST_FOREACH(ast) {
-        append_string(&json, ast_to_json(it->data));
-        if (counter != ast_count - 1) append_string(&json, ",");
-        counter += 1;
-    }
-    append_string(&json, "]}\n");
-    return json.c_str;
-}
-
-void print_ast_json(List* ast) {
-    success("print_ast_json..");
-    string json      = make_string("{\"AST\": [");
-    s64    ast_count = ast->count;
-    s64    counter   = 0;
-    LIST_FOREACH(ast) {
-        append_string(&json, ast_to_json(it->data));
-        if (counter != ast_count - 1) append_string(&json, ",");
-        counter += 1;
-    }
-    append_string(&json, "]}");
-    info(json.c_str);
-}
-
 AST_Ref_List
 make_ast_ref_list() {
     AST_Ref_List l;
@@ -418,6 +387,14 @@ AST* make_ast_typeof(Token t, AST* expr) {
     assert(expr);
     AST* e         = make_ast(AST_TYPEOF, t);
     e->Typeof.expr = expr;
+    return e;
+}
+
+AST* make_ast_module (Token t, char* name, AST* top_level) {
+    assert(name);
+    AST* e         = make_ast(AST_MODULE, t);
+    e->Module.name = name;
+    e->Module.top_level = top_level;
     return e;
 }
 

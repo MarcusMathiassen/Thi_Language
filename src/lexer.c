@@ -113,31 +113,30 @@ char* STATIC_KEYWORDS_ARRAY[KEY_COUNT] = {
 void lexer_test(void) {
     char* source =
         "struct v2\n    x: f32\n    y: f32\n    core()\n        return 1\n";
-    Lexed_File lf = generate_tokens_from_source(source);
+    Token* tokens = generate_tokens_from_source(source);
     // info(source);
     // print_tokens(lf.tokens);
-    assert(lf.tokens.data[0].kind == TOKEN_STRUCT);       // struct
-    assert(lf.tokens.data[1].kind == TOKEN_IDENTIFIER);   // v2
-    assert(lf.tokens.data[2].kind == TOKEN_BLOCK_START);  //
-    assert(lf.tokens.data[3].kind == TOKEN_IDENTIFIER);   // x
-    assert(lf.tokens.data[4].kind == TOKEN_COLON);        // :
-    assert(lf.tokens.data[5].kind == TOKEN_IDENTIFIER);   // f32
-    assert(lf.tokens.data[6].kind == TOKEN_IDENTIFIER);   // y
-    assert(lf.tokens.data[7].kind == TOKEN_COLON);        // :
-    assert(lf.tokens.data[8].kind == TOKEN_IDENTIFIER);   // f32
-    assert(lf.tokens.data[9].kind == TOKEN_IDENTIFIER);   // core
-    assert(lf.tokens.data[10].kind == TOKEN_OPEN_PAREN);  // (
-    assert(lf.tokens.data[11].kind == TOKEN_CLOSE_PAREN); // )
-    assert(lf.tokens.data[12].kind == TOKEN_BLOCK_START); //
-    assert(lf.tokens.data[13].kind == TOKEN_RETURN);      // return
-    assert(lf.tokens.data[14].kind == TOKEN_INTEGER);     // 1
-    assert(lf.tokens.data[15].kind == TOKEN_BLOCK_END);   //
-    assert(lf.tokens.data[16].kind == TOKEN_BLOCK_END);   //
-    assert(lf.tokens.data[17].kind == TOKEN_EOF);         //
+    assert(tokens[0].kind == TOKEN_STRUCT);       // struct
+    assert(tokens[1].kind == TOKEN_IDENTIFIER);   // v2
+    assert(tokens[2].kind == TOKEN_BLOCK_START);  //
+    assert(tokens[3].kind == TOKEN_IDENTIFIER);   // x
+    assert(tokens[4].kind == TOKEN_COLON);        // :
+    assert(tokens[5].kind == TOKEN_IDENTIFIER);   // f32
+    assert(tokens[6].kind == TOKEN_IDENTIFIER);   // y
+    assert(tokens[7].kind == TOKEN_COLON);        // :
+    assert(tokens[8].kind == TOKEN_IDENTIFIER);   // f32
+    assert(tokens[9].kind == TOKEN_IDENTIFIER);   // core
+    assert(tokens[10].kind == TOKEN_OPEN_PAREN);  // (
+    assert(tokens[11].kind == TOKEN_CLOSE_PAREN); // )
+    assert(tokens[12].kind == TOKEN_BLOCK_START); //
+    assert(tokens[13].kind == TOKEN_RETURN);      // return
+    assert(tokens[14].kind == TOKEN_INTEGER);     // 1
+    assert(tokens[15].kind == TOKEN_BLOCK_END);   //
+    assert(tokens[16].kind == TOKEN_BLOCK_END);   //
+    assert(tokens[17].kind == TOKEN_EOF);         //
 }
 
-Lexed_File
-generate_tokens_from_source(char* source) {
+Token* generate_tokens_from_source(char* source) {
     Lexer_Context lctx;
     lctx.stream                     = source;
     lctx.position_of_newline        = source;
@@ -153,8 +152,6 @@ generate_tokens_from_source(char* source) {
     }
 
     Token_Array tokens = make_token_array();
-
-    f64 start_time = get_time();
 
     while (true) {
         Token token = get_token(&lctx);
@@ -188,15 +185,7 @@ generate_tokens_from_source(char* source) {
         }
     }
 
-    Lexed_File lf;
-    lf.tokens   = tokens;
-    lf.lines    = lctx.line_count;
-    lf.comments = lctx.comment_count;
-    lf.seconds  = (get_time() - start_time) / 1e3;
-
-    info("lexed %lld lines, %lld comments", lctx.line_count, lctx.comment_count);
-
-    return lf;
+    return tokens.data;
 }
 
 //------------------------------------------------------------------------------
@@ -664,11 +653,10 @@ void print_token(Token token) {
     else
         info("%s", token_kind_to_str(token.kind));
 }
-void print_tokens(Token_Array tokens) {
+void print_tokens(Token* tokens) {
     info("Printing tokens..");
-    for (s64 i = 0; i < tokens.count; i += 1) {
-        print_token(tokens.data[i]);
-    }
+    Token* token = tokens;
+    while(token) print_token(*token++);
 }
 
 bool is_valid_identifier(u8 c) {
