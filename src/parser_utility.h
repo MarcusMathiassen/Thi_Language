@@ -42,4 +42,9 @@ void set_if_statement(Parser_Context* ctx, AST* if_statement);
 void restore_if_statement(Parser_Context* ctx);
 void set_dangling_else(Parser_Context* ctx, AST* else_block);
 
+Token_Kind tokKind(Parser_Context* ctx);
+char*      tokValue(Parser_Context* ctx);
+Token      currTok(Parser_Context* ctx);
+Token      prevTok(Parser_Context* ctx);
+
 #endif

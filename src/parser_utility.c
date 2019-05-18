@@ -62,6 +62,19 @@ make_parser_context(void) {
     return ctx;
 }
 
+Token_Kind tokKind(Parser_Context* ctx) {
+    return ctx->curr_tok.kind;
+}
+char* tokValue(Parser_Context* ctx) {
+    return ctx->curr_tok.value;
+}
+Token currTok(Parser_Context* ctx) {
+    return ctx->curr_tok;
+}
+Token prevTok(Parser_Context* ctx) {
+    return ctx->prev_tok;
+}
+
 Type* get_type(Parser_Context* ctx) {
     DEBUG_START;
 
