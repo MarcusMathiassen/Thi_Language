@@ -91,6 +91,7 @@ void type_ref_list_append(Type_Ref_List* l, Type* t);
 
 bool is_same_type(Type* a, Type* b);
 
+List* type_get_members(Type* type);
 s64   get_offset_in_struct_to_field(Type* type, char* name);
 s64   get_size_of_underlying_type_if_any(Type* type);
 Type* get_underlying_type_if_any(Type* type);

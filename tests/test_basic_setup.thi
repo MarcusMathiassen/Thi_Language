@@ -12,3 +12,16 @@ main()
     return comp()
 
 comp() => return 1
+
+
+# List ::= a comma delimted list of things surrounded by parenthases
+# ex. (a, b, c)
+
+# Parameter List ::= a list of variable decls
+# ex. (x: f32, y: f32, z: f32)
+
+# Argument List ::= a list of expressions
+# ex. (43.0, y, "hello", getX())
+
+# Grouped  ::= a List of variable decls
+# ex. x: f32, y: f32, z: f32

@@ -33,6 +33,19 @@ char* type_kind_to_str(Type_Kind kind) {
     return NULL;
 }
 
+List* type_get_members(Type* type) {
+    assert(type);
+    // clang-format off
+    switch(type->kind) {
+    default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
+    case TYPE_ENUM:       return type->Enum.members;
+    case TYPE_STRUCT:     return type->Struct.members;
+    }
+    // clang-format on
+    UNREACHABLE;
+    return NULL;
+}
+
 void type_replace(Type* a, Type* b) {
     assert(a);
     assert(b);
@@ -168,67 +181,47 @@ s64 type_array_get_count(Type* type) {
 
 char* type_to_str(Type* type) {
     if (!type) return "---";
-    // warning("type_to_str: %s", type_kind_to_str(type->kind));
+    // clang-format off
     switch (type->kind) {
-    case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
-    case TYPE_VOID: return "void";
-    case TYPE_UNRESOLVED: return strf("PLACEHOLDER(%s)", type->Unresolved.name);
-    case TYPE_ARRAY:
-        return strf("%s[%d]", type_to_str(type->Array.type), type->Array.size);
-    case TYPE_INT:
-        return strf(type->Int.is_unsigned ? "u%d" : "s%d", type->Int.bytes * 8);
-    case TYPE_POINTER: return strf("%s*", type_to_str(type->Pointer.pointee));
-    case TYPE_FLOAT: return strf("f%d", type->Float.bytes * 8);
-    case TYPE_STRING: return strf("\"\", %d", type->String.len);
-    case TYPE_STRUCT: {
-        return type->Struct.name; // TODO(marcus): should we do Simplified or Complex?
-        char* s = strf("%s\n", type->Struct.name);
-        LIST_FOREACH(type->Struct.members) {
-            AST* mem = (AST*)it->data;
-            s        = strf("%s\t%s", s, strf("%s\n", ast_to_str(mem)));
-        }
-        return s;
-    };
+    default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
+    case TYPE_VAR_ARGS:   return "TYPE_VAR_ARGS";
+    case TYPE_VOID:       return "void";
+    case TYPE_UNRESOLVED: return strf("%s?", get_type_name(type));
+    case TYPE_ARRAY:      return strf("%s[%d]", type_to_str(type->Array.type), type->Array.size);
+    case TYPE_INT:        return strf(type->Int.is_unsigned ? "u%d" : "s%d", type->Int.bytes * 8);
+    case TYPE_POINTER:    return strf("%s*", type_to_str(type->Pointer.pointee));
+    case TYPE_FLOAT:      return strf("f%d", type->Float.bytes * 8);
+    case TYPE_STRING:     return strf("\"\", %d", type->String.len);
 
-    case TYPE_ENUM: {
-        return type->Enum.name; // TODO(marcus): should we do Simplified or Complex?
-        char* s = strf("%s\n", type->Enum.name);
-        LIST_FOREACH(type->Enum.members) {
-            AST* mem = (AST*)it->data;
-            s        = strf("%s\t%s", s, strf("%s\n", ast_to_str(mem)));
+    case TYPE_ENUM: // fallthrough
+    case TYPE_STRUCT: {
+        string s = string_create_f("%s = { ", get_type_name(type));
+        LIST_FOREACH(type_get_members(type)) {
+            AST* mem = it->data;
+            string_append(&s, ast_to_str(mem));
+            if (it->next) string_append(&s, ", ");
         }
-        return s;
+        string_append(&s, " }");
+        return string_data(&s);
     };
 
     case TYPE_FUNCTION: {
-        string str       = make_string(type->Function.name);
-        s64    arg_count = type->Function.args->count;
-        s64    arg_index = 0;
-        append_string(&str, "(");
+        string s = string_create_f("%s(", get_type_name(type));
         LIST_FOREACH(type->Function.args) {
-            append_string(&str, ast_to_str(it->data));
-            if (arg_index != arg_count - 1) {
-                append_string(&str, ", ");
-            }
-            arg_index += 1;
+            string_append(&s, ast_to_str(it->data));
+            if (it->next) string_append(&s, ", ");
         }
-        append_string(&str, ")");
-        if (type->Function.ret_type)
-            append_string_f(&str, " %s", type_to_str(type->Function.ret_type));
-        return str.c_str;
+        string_append_f(&s, ") %s", type_to_str(type->Function.ret_type));
+        return string_data(&s);
     }
-    default:
-        warning("type_to_str not implemented kind %d",
-                type_kind_to_str(type->kind));
     }
-    assert(0 == 1);
+    // clang-format on
+    UNREACHABLE;
     return NULL;
 }
 
 char* type_to_json(Type* type) {
     if (!type) return "\"---\"";
-    // error("type_to_json got null");
-    // warning("type_to_json: %s", type_kind_to_str(type->kind));
     char* result = NULL;
     switch (type->kind) {
     default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));

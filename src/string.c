@@ -29,15 +29,13 @@ make_string_f(char* fmt, ...) {
     s64 n = 1 + vsnprintf(0, 0, fmt, args);
     va_end(args);
 
-    string s;
-    s.c_str = xmalloc(n);
-    s.len   = n;
+    char* str = xmalloc(n);
 
     va_start(args, fmt);
-    vsnprintf(s.c_str, n, fmt, args);
+    vsnprintf(str, n, fmt, args);
     va_end(args);
 
-    return s;
+    return make_string(str);
 }
 
 void append_string(string* s, char* str) {
@@ -90,13 +88,14 @@ string string_create_f(char* fmt, ...) {
     va_start(args, fmt);
     s64 n = 1 + vsnprintf(0, 0, fmt, args);
     va_end(args);
-    string s;
-    s.c_str = xmalloc(n);
-    s.len   = n;
+    
+    char* str = xmalloc(n);
+
     va_start(args, fmt);
-    vsnprintf(s.c_str, n, fmt, args);
+    vsnprintf(str, n, fmt, args);
     va_end(args);
-    return s;
+
+    return make_string(str);
 }
 char* string_data(string* this) {
     assert(this);
@@ -146,6 +145,13 @@ void string_destroy(string* this) {
 
 void string_tests(void) {
     // string test
+
+    string x = string_create_f("%s", "hello");
+    assert(strcmp(x.c_str, "hello") == 0);
+    string_append(&x, "{");
+    assert(strcmp(x.c_str, "hello{") == 0);
+
+
     string s = make_string("Hello");
     assert(s.len == 5);
     assert(strcmp(s.c_str, "Hello") == 0);

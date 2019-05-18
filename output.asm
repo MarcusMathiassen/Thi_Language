@@ -4,13 +4,22 @@ section .text
 _main:
 	push rbp
 	mov rbp, rsp
-	sub rsp, 32; 16 alloc, 16 padding
+	sub rsp, 16; 0 alloc, 16 padding
 .begin:
-	mov [rbp-8], rdi; store_r
-	mov [rbp-16], rsi; store_r
-	mov rax, 8
+	call _comp
 	jmp .end
 .end:
-	add rsp, 32; 16 alloc, 16 padding
+	add rsp, 16; 0 alloc, 16 padding
+	leave
+	ret
+_comp:
+	push rbp
+	mov rbp, rsp
+	sub rsp, 16; 0 alloc, 16 padding
+.begin:
+	mov rax, 1
+	jmp .end
+.end:
+	add rsp, 16; 0 alloc, 16 padding
 	leave
 	ret

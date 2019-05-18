@@ -36,7 +36,7 @@ void resolve_sizeofs(void* arg, AST* expr) {
     ast_replace(expr, constant_value);
 }
 void resolve_typeofs(void* arg, AST* expr) {
-    AST* string_value = make_ast_string(expr->t, type_to_str(expr->type));
+    AST* string_value = make_ast_string(expr->t, get_type_name(expr->type));
     ast_replace(expr, string_value);
 }
 void pass_initilize_enums(void* thi, AST* expr) {
@@ -93,6 +93,7 @@ void run_all_passes(void* thi, AST* expr) {
 }
 
 void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* expr) {
+    assert(expr);
     info("%s: %s -> %s", ast_kind_to_str(expr->kind), wrap_with_colored_parens(ast_to_str(expr)), give_unique_color(type_to_str(expr->type)));
     // clang-format off
     switch (expr->kind) {
@@ -447,7 +448,6 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
 void assemble(Thi* thi, char* asm_file, char* exec_name) {
     string comp_call =
         make_string_f("nasm -f macho64 -g %s -o %s.o", asm_file, exec_name);
