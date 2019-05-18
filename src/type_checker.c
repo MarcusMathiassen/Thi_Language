@@ -26,9 +26,6 @@
 #include <assert.h> // assert
 #include <string.h> // strcmp
 
-#define UNFINISHED \
-    error("[UNFINISHED] %s: %s", give_unique_color((char*)__func__), wrap_with_colored_parens(ast_to_str(expr)));
-
 #define DEBUG_START                                                                                             \
     info("%s: %s", give_unique_color(ast_kind_to_str(expr->kind)), wrap_with_colored_parens(ast_to_str(expr))); \
     assert(expr);

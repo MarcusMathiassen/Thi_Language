@@ -27,6 +27,7 @@
 #include "constants.h"    // all constnats
 #include "lexer.h"        // generate_tokens_from_source, print_tokens
 #include "list.h"         // list_tests
+#include "cst.h"         // cst_tests
 #include "map.h"          // map
 #include "parser.h"       // generate_ast_from_tokens
 #include "stack.h"        // stack_tests
@@ -276,6 +277,7 @@ int main(int argc, char** argv) {
     list_tests();
     stack_tests();
     lexer_test();
+    cst_tests();
 
     Thi thi = make_thi();
 

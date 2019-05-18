@@ -18,18 +18,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
+//------------------------------------------------------------------------------
+//                               ast.h
+//------------------------------------------------------------------------------
+
 #ifndef AST_H
 #define AST_H
 
 #include "lexer.h" // Token_Kind
 #include "list.h"  // List
 #include "type.h"  // Type
-
-//------------------------------------------------------------------------------
-//                               ast.h
-//------------------------------------------------------------------------------
-
-typedef struct AST AST;
 
 typedef enum {
     AST_MODULE,
@@ -73,6 +71,8 @@ typedef enum {
 //------------------------------------------------------------------------------
 //                                  AST Structures
 //------------------------------------------------------------------------------
+
+typedef struct AST AST;
 
 struct AST {
     AST_Kind kind;

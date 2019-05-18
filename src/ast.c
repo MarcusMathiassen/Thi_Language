@@ -18,6 +18,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
+//------------------------------------------------------------------------------
+//                               ast.c
+//------------------------------------------------------------------------------
+
 #include "ast.h"
 #include "constants.h"
 #include "lexer.h"   // token_kind_to_str,
@@ -26,9 +30,6 @@
 #include <assert.h>  // assert
 #include <string.h>  // strlen
 
-//------------------------------------------------------------------------------
-//                               ast.c
-//------------------------------------------------------------------------------
 void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr) {
     if (!expr) return;
     assert(func);
@@ -305,7 +306,7 @@ char* ast_to_json(AST* expr) {
     case AST_IF:            return strf("{%s:{\"cond\": %s, \"then_block\": %s, \"else_block\": %s }}", ast_json_prelude(expr), ast_to_json(expr->If.cond), ast_to_json(expr->If.then_block), ast_to_json(expr->If.else_block));
     // clang-format on
     case AST_BLOCK: {
-        string str         = string_create(strf("{%s: [", ast_json_prelude(expr)));
+        string str = string_create(strf("{%s: [", ast_json_prelude(expr)));
         LIST_FOREACH(expr->Block.stmts) {
             string_append(&str, ast_to_json(it->data));
             if (it->next) string_append(&str, ", ");
