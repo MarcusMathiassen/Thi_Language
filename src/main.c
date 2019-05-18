@@ -1,3 +1,27 @@
+// Copyright (c) 2019 Marcus Mathiassen
+
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+
+//------------------------------------------------------------------------------
+//                               main.c
+//------------------------------------------------------------------------------
+
 #include "ast.h"          // AST, AST_Kind
 #include "codegen.h"      // generate_code_from_ast
 #include "constants.h"    // all constnats
@@ -20,16 +44,13 @@
 #include <sys/ioctl.h>    // NOTE(marcus): what do i use this for?
 #include <unistd.h>       // NOTE(marcus): what do i use this for?
 
-//------------------------------------------------------------------------------
-//                               Main Driver
-//------------------------------------------------------------------------------
-
 void assemble(Thi* thi, char* asm_file, char* exec_name);
 void linking_stage(Thi* thi, char* exec_name);
 
 //------------------------------------------------------------------------------
 //                               Passes
 //------------------------------------------------------------------------------
+
 void resolve_sizeofs(void* arg, AST* expr) {
     s64  size           = get_size_of_type(expr->Sizeof.expr->type);
     AST* constant_value = make_ast_int(expr->t, size);
@@ -450,10 +471,10 @@ int main(int argc, char** argv) {
 }
 void assemble(Thi* thi, char* asm_file, char* exec_name) {
     string comp_call =
-        make_string_f("nasm -f macho64 -g %s -o %s.o", asm_file, exec_name);
+        string_create_f("nasm -f macho64 -g %s -o %s.o", asm_file, exec_name);
     push_timer(thi, "Assembler");
     system(comp_call.c_str);
-    free_string(&comp_call);
+    string_destroy(&comp_call);
     pop_timer(thi);
 }
 

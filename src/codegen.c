@@ -1,3 +1,23 @@
+// Copyright (c) 2019 Marcus Mathiassen
+
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+
 #include "codegen.h"
 #include "ast.h" // AST*, ast_to_str
 #include "codegen_utility.h"
@@ -124,7 +144,7 @@ char* generate_code_from_ast(AST* ast) {
 
     Codegen_Context ctx = make_codegen_context();
 
-    append_string(&ctx.section_data, "section .data\n");
+    string_append(&ctx.section_data, "section .data\n");
     emit_no_tab(&ctx, "section .text");
 
     codegen_expr(&ctx, ast);
@@ -194,15 +214,17 @@ codegen_unary(Codegen_Context* ctx, AST* expr) {
     } break;
     case TOKEN_MINUS: {
         Type_Kind tk = operand_val->type->kind;
-        if (tk == TYPE_INT) {
+        switch (tk) {
+        default: ERROR_UNHANDLED_KIND(type_kind_to_str(tk));
+        case TYPE_INT:
             emit(ctx, "neg %s", reg);
             break;
-        } else if (TYPE_FLOAT) {
+
+        case TYPE_FLOAT:
             emit(ctx, "movd ecx, xmm0");
             emit(ctx, "xor ecx, 2147483648");
             emit(ctx, "movd xmm0, ecx");
-        } else {
-            error("UNHANLED MINUS TYPE for TOKEN_MINUS CODEGEN");
+            break;
         }
         break;
     }
@@ -750,7 +772,7 @@ codegen_note(Codegen_Context* ctx, AST* expr) {
     assert(expr->kind == AST_NOTE);
     AST* int_expr = expr->Note.expr;
     assert(int_expr->kind == AST_INT);
-    s32 integer_value = int_expr->Int.val;
+    s64 integer_value = int_expr->Int.val;
     if (integer_value < 1) error("note parameters start at 1.");
 
     AST*   arg  = get_arg_from_func(ctx->current_function->Function.type,
@@ -1069,10 +1091,9 @@ codegen_function(Codegen_Context* ctx, AST* expr) {
     // emit(ctx, "add rsp, %lld; rest", rest);
 
     push_scope(ctx);
-    List*  stmts = func_body->Block.stmts;
-    Value* last  = NULL;
+    List* stmts = func_body->Block.stmts;
     LIST_FOREACH(stmts) {
-        last = codegen_expr(ctx, it->data);
+        codegen_expr(ctx, it->data);
     }
 
     emit(ctx, "%s:", DEFAULT_FUNCTION_END_LABEL_NAME);

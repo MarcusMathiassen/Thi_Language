@@ -1,3 +1,23 @@
+// Copyright (c) 2019 Marcus Mathiassen
+
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+
 #include "codegen_utility.h"
 
 #include "ast.h" // AST*, ast_to_str
@@ -22,9 +42,9 @@ make_codegen_context() {
     ctx.scope_stack                    = make_stack();
     ctx.current_function               = NULL;
     ctx.expected_type                  = NULL;
-    ctx.section_extern                 = make_string("");
-    ctx.section_text                   = make_string("");
-    ctx.section_data                   = make_string("");
+    ctx.section_extern                 = string_create("");
+    ctx.section_text                   = string_create("");
+    ctx.section_data                   = string_create("");
     ctx.stack_index                    = 0;
     ctx.text_label_counter             = 0;
     ctx.data_label_counter             = 0;
@@ -53,7 +73,7 @@ void emit_no_tab(Codegen_Context* ctx, char* fmt, ...) {
     vsnprintf(str, str_len, fmt, args);
     va_end(args);
 
-    append_string_f(&ctx->section_text, "%s\n", str);
+    string_append_f(&ctx->section_text, "%s\n", str);
 
     free(str);
 }
@@ -69,7 +89,7 @@ void emit_extern(Codegen_Context* ctx, char* fmt, ...) {
     vsnprintf(str, str_len, fmt, args);
     va_end(args);
 
-    append_string_f(&ctx->section_extern, "extern _%s\n", str);
+    string_append_f(&ctx->section_extern, "extern _%s\n", str);
 
     free(str);
 }
@@ -85,7 +105,7 @@ void emit_data(Codegen_Context* ctx, char* fmt, ...) {
     vsnprintf(str, str_len, fmt, args);
     va_end(args);
 
-    append_string_f(&ctx->section_data, "\t%s\n", str);
+    string_append_f(&ctx->section_data, "\t%s\n", str);
 
     free(str);
 }
@@ -111,9 +131,9 @@ void emit(Codegen_Context* ctx, char* fmt, ...) {
     }
 
     if (is_label) {
-        append_string_f(&ctx->section_text, "%s\n", str);
+        string_append_f(&ctx->section_text, "%s\n", str);
     } else {
-        append_string_f(&ctx->section_text, "\t%s\n", str);
+        string_append_f(&ctx->section_text, "\t%s\n", str);
     }
 
     free(str);

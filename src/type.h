@@ -1,3 +1,23 @@
+// Copyright (c) 2019 Marcus Mathiassen
+
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+
 #ifndef TYPE_H
 #define TYPE_H
 
@@ -86,7 +106,7 @@ typedef struct
 } Type_Ref_List;
 
 Type_Ref_List
-make_type_ref_list();
+make_type_ref_list(void);
 void type_ref_list_append(Type_Ref_List* l, Type* t);
 
 bool is_same_type(Type* a, Type* b);
@@ -104,7 +124,7 @@ void  type_replace(Type* a, Type* b);
 
 // clang-format off
 Type*   make_type_unresolved    (char* name);
-Type*   make_type_void          ();
+Type*   make_type_void          (void);
 Type*   make_type_int           (s8 bytes, bool is_unsigned);
 Type*   make_type_float         (s8 bytes);
 Type*   make_type_string        (s64 len);
@@ -113,7 +133,7 @@ Type*   make_type_array         (Type* type, s64 size);
 Type*   make_type_struct        (char* name, List* members);
 Type*   make_type_enum          (char* name, List* members);
 Type*   make_type_function      (char* name, List* args, Type* ret_type, bool has_var_arg);
-Type*   make_type_var_args      ();
+Type*   make_type_var_args      (void);
 // clang-format on
 s64 type_function_get_arg_count(Type* type);
 s64 type_array_get_count(Type* type);

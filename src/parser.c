@@ -1,20 +1,42 @@
-#include "parser.h"
-#include "ast.h" // AST, ast_make_*
-#include "constants.h"
-#include "lexer.h" // Token, Token_Kind, generate_tokens_from_source, token_array_get_info_of
-#include "map.h"   // Map
-#include "parser_utility.h"
-#include "type.h"     // Type, make_typspec_*,
-#include "typedefs.h" // s32 , s64, etc.
-#include "utility.h"  // info, error, warning, success, strf, get_file_content
-#include <assert.h>   // assert
-#include <stdarg.h>   // va_list, va_start, va_end
-#include <stdio.h>    // printf, vprintf
-#include <stdlib.h>   // xmalloc
-#include <string.h>   // strcmp
+// Copyright (c) 2019 Marcus Mathiassen
+
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+
 //------------------------------------------------------------------------------
 //                              parser.c
 //------------------------------------------------------------------------------
+
+#include "parser.h"
+
+#include "ast.h"            // AST, ast_make_*
+#include "constants.h"      // DEFAULT_INT_BYTE_SIZE, etc.
+#include "lexer.h"          // Token, Token_Kind, generate_tokens_from_source, token_array_get_info_of
+#include "map.h"            // Map
+#include "parser_utility.h" // utility funcs
+#include "type.h"           // Type, make_typspec_*,
+#include "typedefs.h"       // s32 , s64, etc.
+#include "utility.h"        // info, error, warning, success, strf, get_file_content
+#include <assert.h>         // assert
+#include <stdarg.h>         // va_list, va_start, va_end
+#include <stdio.h>          // printf, vprintf
+#include <stdlib.h>         // xmalloc
+#include <string.h>         // strcmp
 
 #define DEBUG_START \
     assert(ctx);    \
@@ -36,7 +58,6 @@ Token_Kind unary_ops[UNARY_OP_COUNT] = {
 //------------------------------------------------------------------------------
 //                               Parser
 //------------------------------------------------------------------------------
-
 //------------------------------------------------------------------------------
 //              Each construct of the language gets its own function
 //------------------------------------------------------------------------------

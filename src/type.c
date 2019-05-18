@@ -1,8 +1,28 @@
+// Copyright (c) 2019 Marcus Mathiassen
+
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+
 #include "type.h"
 
 #include "ast.h"       // AST*
 #include "constants.h" // TYPE_LIST_STARTING_ALLOC
-#include "string.h"    // strf, append_string, string
+#include "string.h"    // strf, string_append, string
 #include "utility.h"   // error
 #include <assert.h>    // assert
 #include <string.h>    // strcmp
@@ -256,52 +276,52 @@ char* type_to_json(Type* type) {
     } break;
     case TYPE_STRUCT: {
         return strf("{\"%s\": {\"name\": \"%s\"}}", type_kind_to_str(type->kind), type->Struct.name);
-        string str = make_string("");
-        append_string_f(&str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Struct.name);
-        append_string(&str, "\"args\": [");
+        string str = string_create("");
+        string_append_f(&str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Struct.name);
+        string_append(&str, "\"args\": [");
         s64 arg_count = type->Struct.members->count;
         s64 counter   = 0;
         LIST_FOREACH(type->Struct.members) {
-            append_string(&str, ast_to_json(it->data));
-            if (counter != arg_count - 1) append_string(&str, ",");
+            string_append(&str, ast_to_json(it->data));
+            if (counter != arg_count - 1) string_append(&str, ",");
             counter += 1;
         }
-        append_string(&str, "]}}");
+        string_append(&str, "]}}");
         result = str.c_str;
     } break;
 
     case TYPE_ENUM: {
         return strf("{\"%s\": {\"name\": \"%s\"}}", type_kind_to_str(type->kind), type->Enum.name);
-        string str = make_string("");
-        append_string_f(&str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Enum.name);
-        append_string(&str, "\"args\": [");
+        string str = string_create("");
+        string_append_f(&str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Enum.name);
+        string_append(&str, "\"args\": [");
         s64 arg_count = type->Enum.members->count;
         s64 counter   = 0;
         LIST_FOREACH(type->Enum.members) {
-            append_string(&str, ast_to_json(it->data));
-            if (counter != arg_count - 1) append_string(&str, ",");
+            string_append(&str, ast_to_json(it->data));
+            if (counter != arg_count - 1) string_append(&str, ",");
             counter += 1;
         }
-        append_string(&str, "]}}");
+        string_append(&str, "]}}");
         result = str.c_str;
     };
 
     case TYPE_FUNCTION: {
-        string str = make_string("");
-        append_string_f(&str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Enum.name);
-        append_string(&str, "\"args\": [");
+        string str = string_create("");
+        string_append_f(&str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Enum.name);
+        string_append(&str, "\"args\": [");
         s64 arg_count = type->Function.args->count;
         s64 counter   = 0;
         LIST_FOREACH(type->Function.args) {
-            append_string(&str, ast_to_json(it->data));
-            if (counter != arg_count - 1) append_string(&str, ",");
+            string_append(&str, ast_to_json(it->data));
+            if (counter != arg_count - 1) string_append(&str, ",");
             counter += 1;
         }
-        // append_string(&str, "]}}");
+        // string_append(&str, "]}}");
         // warning("BEGIN");
         // warning("%s", type_to_json(type->Function.ret_type));
         // warning("ED");
-        append_string(&str, strf("], \"ret_type\":%s}}", type_to_json(type->Function.ret_type)));
+        string_append(&str, strf("], \"ret_type\":%s}}", type_to_json(type->Function.ret_type)));
         result = str.c_str;
     }
     }

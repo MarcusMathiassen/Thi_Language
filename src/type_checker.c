@@ -1,3 +1,23 @@
+// Copyright (c) 2019 Marcus Mathiassen
+
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+
 #include "type_checker.h"
 #include "ast.h"
 #include "constants.h"
@@ -9,17 +29,9 @@
 #define UNFINISHED \
     error("[UNFINISHED] %s: %s", give_unique_color((char*)__func__), wrap_with_colored_parens(ast_to_str(expr)));
 
-// #define DEBUG_START                                                                                            \
-//     info_no_newline("%s: %s", give_unique_color((char*)__func__), wrap_with_colored_parens(ast_to_str(expr))); \
-    // assert(expr);
-
 #define DEBUG_START                                                                                             \
     info("%s: %s", give_unique_color(ast_kind_to_str(expr->kind)), wrap_with_colored_parens(ast_to_str(expr))); \
     assert(expr);
-
-#define DEBUG_END \
-    // info(" -> %s", give_unique_color(type_to_str(expr->type))); \
-    // assert(expr->type);
 
 typedef struct
 {
@@ -28,38 +40,39 @@ typedef struct
     Type* expected_type;
 } Typer_Context;
 
-Type* type_check_expr(Typer_Context* ctx, AST* expr);
-
-Type* type_check_module(Typer_Context* ctx, AST* expr);
-Type* type_check_typeof(Typer_Context* ctx, AST* expr);
-Type* type_check_sizeof(Typer_Context* ctx, AST* expr);
-Type* type_check_switch(Typer_Context* ctx, AST* expr);
-Type* type_check_extern(Typer_Context* ctx, AST* expr);
-Type* type_check_struct(Typer_Context* ctx, AST* expr);
-Type* type_check_enum(Typer_Context* ctx, AST* expr);
-Type* type_check_function(Typer_Context* ctx, AST* expr);
-Type* type_check_note(Typer_Context* ctx, AST* expr);
-Type* type_check_int(Typer_Context* ctx, AST* expr);
-Type* type_check_float(Typer_Context* ctx, AST* expr);
-Type* type_check_string(Typer_Context* ctx, AST* expr);
-Type* type_check_ident(Typer_Context* ctx, AST* expr);
-Type* type_check_call(Typer_Context* ctx, AST* expr);
-Type* type_check_unary(Typer_Context* ctx, AST* expr);
-Type* type_check_binary(Typer_Context* ctx, AST* expr);
-Type* type_check_variable_decl(Typer_Context* ctx, AST* expr);
-Type* type_check_constant_decl(Typer_Context* ctx, AST* expr);
-Type* type_check_block(Typer_Context* ctx, AST* expr);
-Type* type_check_subscript(Typer_Context* ctx, AST* expr);
-Type* type_check_field_access(Typer_Context* ctx, AST* expr);
-Type* type_check_if(Typer_Context* ctx, AST* expr);
-Type* type_check_for(Typer_Context* ctx, AST* expr);
-Type* type_check_while(Typer_Context* ctx, AST* expr);
-Type* type_check_return(Typer_Context* ctx, AST* expr);
-Type* type_check_defer(Typer_Context* ctx, AST* expr);
-Type* type_check_break(Typer_Context* ctx, AST* expr);
-Type* type_check_continue(Typer_Context* ctx, AST* expr);
-Type* type_check_as(Typer_Context* ctx, AST* expr);
-Type* type_check_is(Typer_Context* ctx, AST* expr);
+// clang-format off
+Type* type_check_expr           (Typer_Context* ctx, AST* expr);
+Type* type_check_module         (Typer_Context* ctx, AST* expr);
+Type* type_check_typeof         (Typer_Context* ctx, AST* expr);
+Type* type_check_sizeof         (Typer_Context* ctx, AST* expr);
+Type* type_check_switch         (Typer_Context* ctx, AST* expr);
+Type* type_check_extern         (Typer_Context* ctx, AST* expr);
+Type* type_check_struct         (Typer_Context* ctx, AST* expr);
+Type* type_check_enum           (Typer_Context* ctx, AST* expr);
+Type* type_check_function       (Typer_Context* ctx, AST* expr);
+Type* type_check_note           (Typer_Context* ctx, AST* expr);
+Type* type_check_int            (Typer_Context* ctx, AST* expr);
+Type* type_check_float          (Typer_Context* ctx, AST* expr);
+Type* type_check_string         (Typer_Context* ctx, AST* expr);
+Type* type_check_ident          (Typer_Context* ctx, AST* expr);
+Type* type_check_call           (Typer_Context* ctx, AST* expr);
+Type* type_check_unary          (Typer_Context* ctx, AST* expr);
+Type* type_check_binary         (Typer_Context* ctx, AST* expr);
+Type* type_check_variable_decl  (Typer_Context* ctx, AST* expr);
+Type* type_check_constant_decl  (Typer_Context* ctx, AST* expr);
+Type* type_check_block          (Typer_Context* ctx, AST* expr);
+Type* type_check_subscript      (Typer_Context* ctx, AST* expr);
+Type* type_check_field_access   (Typer_Context* ctx, AST* expr);
+Type* type_check_if             (Typer_Context* ctx, AST* expr);
+Type* type_check_for            (Typer_Context* ctx, AST* expr);
+Type* type_check_while          (Typer_Context* ctx, AST* expr);
+Type* type_check_return         (Typer_Context* ctx, AST* expr);
+Type* type_check_defer          (Typer_Context* ctx, AST* expr);
+Type* type_check_break          (Typer_Context* ctx, AST* expr);
+Type* type_check_continue       (Typer_Context* ctx, AST* expr);
+Type* type_check_as             (Typer_Context* ctx, AST* expr);
+Type* type_check_is             (Typer_Context* ctx, AST* expr);
+// clang-format on
 
 static Type* get_symbol(Typer_Context* ctx, char* name) {
     return (Type*)map_get(ctx->symbol_table, name);
@@ -74,56 +87,49 @@ void type_checker(Map* symbol_table, AST* ast) {
 
 Type* type_check_expr(Typer_Context* ctx, AST* expr) {
     if (!expr) return NULL;
-
     DEBUG_START;
-
-    // This nodes type
-    Type* t = NULL;
+    Type* result = NULL;
     // clang-format off
     switch (expr->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(expr->kind));
-    case AST_FALLTHROUGH:    t = NULL;                                       break;
-    case AST_LOAD:           t = NULL;                                       break;
-    case AST_LINK:           t = NULL;                                       break;
-    case AST_TYPEOF:         t = type_check_typeof(ctx, expr);               break;
-    case AST_SIZEOF:         t = type_check_sizeof(ctx, expr);               break;
-    case AST_SWITCH:         t = type_check_switch(ctx, expr);               break;
-    case AST_EXTERN:         t = type_check_extern(ctx, expr);               break;
-    case AST_STRUCT:         t = type_check_struct(ctx, expr);               break;
-    case AST_ENUM:           t = type_check_enum(ctx, expr);                 break;
-    case AST_FUNCTION:       t = type_check_function(ctx, expr);             break;
-    case AST_NOTE:           t = type_check_note(ctx, expr);                 break;
-    case AST_INT:            t = type_check_int(ctx, expr);                  break;
-    case AST_FLOAT:          t = type_check_float(ctx, expr);                break;
-    case AST_STRING:         t = type_check_string(ctx, expr);               break;
-    case AST_IDENT:          t = type_check_ident(ctx, expr);                break;
-    case AST_CALL:           t = type_check_call(ctx, expr);                 break;
-    case AST_UNARY:          t = type_check_unary(ctx, expr);                break;
-    case AST_BINARY:         t = type_check_binary(ctx, expr);               break;
-    case AST_VARIABLE_DECL:  t = type_check_variable_decl(ctx, expr);        break;
-    case AST_CONSTANT_DECL:  t = type_check_constant_decl(ctx, expr);        break;
-    case AST_BLOCK:          t = type_check_block(ctx, expr);                break;
-    case AST_GROUPING:       t = type_check_expr(ctx, expr->Grouping.expr);  break;
-    case AST_SUBSCRIPT:      t = type_check_subscript(ctx, expr);            break;
-    case AST_FIELD_ACCESS:   t = type_check_field_access(ctx, expr);         break;
-    case AST_IF:             t = type_check_if(ctx, expr);                   break;
-    case AST_FOR:            t = type_check_for(ctx, expr);                  break;
-    case AST_WHILE:          t = type_check_while(ctx, expr);                break;
-    case AST_RETURN:         t = type_check_return(ctx, expr);               break;
-    case AST_DEFER:          t = type_check_defer(ctx, expr);                break;
-    case AST_BREAK:          t = type_check_break(ctx, expr);                break;
-    case AST_CONTINUE:       t = type_check_continue(ctx, expr);             break;
-    case AST_AS:             t = type_check_as(ctx, expr);                   break;
-    case AST_IS:             t = type_check_is(ctx, expr);                   break;
-    case AST_MODULE:         t = type_check_module(ctx, expr);               break;
+    case AST_FALLTHROUGH:    result = NULL;                                                   break;
+    case AST_LOAD:           result = NULL;                                                   break;
+    case AST_LINK:           result = NULL;                                                   break;
+    case AST_TYPEOF:         result = type_check_typeof        (ctx, expr);                   break;
+    case AST_SIZEOF:         result = type_check_sizeof        (ctx, expr);                   break;
+    case AST_SWITCH:         result = type_check_switch        (ctx, expr);                   break;
+    case AST_EXTERN:         result = type_check_extern        (ctx, expr);                   break;
+    case AST_STRUCT:         result = type_check_struct        (ctx, expr);                   break;
+    case AST_ENUM:           result = type_check_enum          (ctx, expr);                   break;
+    case AST_FUNCTION:       result = type_check_function      (ctx, expr);                   break;
+    case AST_NOTE:           result = type_check_note          (ctx, expr);                   break;
+    case AST_INT:            result = type_check_int           (ctx, expr);                   break;
+    case AST_FLOAT:          result = type_check_float         (ctx, expr);                   break;
+    case AST_STRING:         result = type_check_string        (ctx, expr);                   break;
+    case AST_IDENT:          result = type_check_ident         (ctx, expr);                   break;
+    case AST_CALL:           result = type_check_call          (ctx, expr);                   break;
+    case AST_UNARY:          result = type_check_unary         (ctx, expr);                   break;
+    case AST_BINARY:         result = type_check_binary        (ctx, expr);                   break;
+    case AST_VARIABLE_DECL:  result = type_check_variable_decl (ctx, expr);                   break;
+    case AST_CONSTANT_DECL:  result = type_check_constant_decl (ctx, expr);                   break;
+    case AST_BLOCK:          result = type_check_block         (ctx, expr);                   break;
+    case AST_GROUPING:       result = type_check_expr          (ctx, expr->Grouping.expr);    break;
+    case AST_SUBSCRIPT:      result = type_check_subscript     (ctx, expr);                   break;
+    case AST_FIELD_ACCESS:   result = type_check_field_access  (ctx, expr);                   break;
+    case AST_IF:             result = type_check_if            (ctx, expr);                   break;
+    case AST_FOR:            result = type_check_for           (ctx, expr);                   break;
+    case AST_WHILE:          result = type_check_while         (ctx, expr);                   break;
+    case AST_RETURN:         result = type_check_return        (ctx, expr);                   break;
+    case AST_DEFER:          result = type_check_defer         (ctx, expr);                   break;
+    case AST_BREAK:          result = type_check_break         (ctx, expr);                   break;
+    case AST_CONTINUE:       result = type_check_continue      (ctx, expr);                   break;
+    case AST_AS:             result = type_check_as            (ctx, expr);                   break;
+    case AST_IS:             result = type_check_is            (ctx, expr);                   break;
+    case AST_MODULE:         result = type_check_module        (ctx, expr);                   break;
     }
     // clang-format on
-
-    expr->type = t;
-
-    DEBUG_END;
-
-    return t;
+    expr->type = result;
+    return result;
 }
 
 Type* type_check_sizeof(Typer_Context* ctx, AST* expr) {
@@ -233,6 +239,7 @@ Type* type_check_unary(Typer_Context* ctx, AST* expr) {
     Type* res = NULL;
     switch (op) {
     case TOKEN_DOT: {
+        assert(ctx->expected_type);
         if (ctx->expected_type->kind == TYPE_ENUM) {
             Type* enum_t = ctx->expected_type;
             res          = enum_t;
@@ -478,6 +485,6 @@ Type* type_check_as(Typer_Context* ctx, AST* expr) {
 Type* type_check_is(Typer_Context* ctx, AST* expr) {
     type_check_expr(ctx, expr->Is.body);
     type_check_expr(ctx, expr->Is.expr);
-    // UNFINISHED;
+    UNFINISHED;
     return NULL;
 }

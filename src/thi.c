@@ -1,3 +1,23 @@
+// Copyright (c) 2019 Marcus Mathiassen
+
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+
 #include "thi.h"
 #include "type.h"
 #include "utility.h"
@@ -16,11 +36,11 @@ Thi make_thi() {
     thi.symbol_map              = make_map();
     thi.macro_map               = make_map();
     thi.timer_stack             = make_stack();
-    thi.output_name             = make_string("");
+    thi.output_name             = string_create("");
     thi.previous_file           = NULL;
     thi.input_file              = NULL;
-    thi.source_file             = make_string("");
-    thi.current_directory       = make_string("");
+    thi.source_file             = string_create("");
+    thi.current_directory       = string_create("");
 
     thi.all_passes_for_all_kinds = make_map();
 
@@ -134,12 +154,12 @@ char* get_output_name(Thi* thi) {
     return thi->output_name.c_str;
 }
 void set_output_name(Thi* thi, char* name) {
-    thi->output_name = make_string(name);
+    thi->output_name = string_create(name);
 }
 
 void set_source_file(Thi* thi, char* file_name) {
     thi->previous_file = thi->source_file.c_str;
-    thi->source_file   = make_string(file_name);
+    thi->source_file   = string_create(file_name);
 }
 char* get_source_file(Thi* thi) {
     return thi->source_file.c_str;
@@ -148,7 +168,7 @@ char* get_previous_source_file(Thi* thi) {
     return thi->previous_file;
 }
 void set_current_directory(Thi* thi, char* dir_name) {
-    thi->current_directory = make_string(dir_name);
+    thi->current_directory = string_create(dir_name);
 }
 char* get_current_directory(Thi* thi) {
     return thi->current_directory.c_str;

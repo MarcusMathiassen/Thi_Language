@@ -1,7 +1,27 @@
+// Copyright (c) 2019 Marcus Mathiassen
+
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+
 #include "ast.h"
 #include "constants.h"
 #include "lexer.h"   // token_kind_to_str,
-#include "string.h"  // strf, append_string, string
+#include "string.h"  // strf, string_append, string
 #include "utility.h" // info, success, error, warning, xmalloc, xrealloc
 #include <assert.h>  // assert
 #include <string.h>  // strlen
@@ -11,62 +31,26 @@
 //------------------------------------------------------------------------------
 void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr) {
     if (!expr) return;
+    assert(func);
     switch (expr->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(expr->kind));
-    case AST_MODULE:
-        ast_visit(func, ctx, expr->Module.top_level);
-        break;
-    case AST_TYPEOF:
-        ast_visit(func, ctx, expr->Typeof.expr);
-        break;
-    case AST_SIZEOF:
-        ast_visit(func, ctx, expr->Sizeof.expr);
-        break;
-    case AST_FALLTHROUGH:
-        break;
-    case AST_LOAD:
-        break;
-    case AST_LINK:
-        break;
-    case AST_EXTERN:
-        LIST_FOREACH(expr->Extern.type->Function.args) {
-            ast_visit(func, ctx, it->data);
-        }
-        break;
-    case AST_INT:
-        break;
-    case AST_FLOAT:
-        break;
-    case AST_STRING:
-        break;
-    case AST_IDENT:
-        break;
-    case AST_STRUCT:
-        break;
-    case AST_ENUM:
-        break;
-    case AST_SWITCH:
-        ast_visit(func, ctx, expr->Switch.cond);
-        ast_visit(func, ctx, expr->Switch.cases);
-        ast_visit(func, ctx, expr->Switch.default_case);
-        break;
-    case AST_FUNCTION:
-        ast_visit(func, ctx, expr->Function.body);
-        LIST_FOREACH(expr->Function.type->Function.args) {
-            ast_visit(func, ctx, it->data);
-        }
-        LIST_FOREACH(expr->Function.defers) {
-            ast_visit(func, ctx, it->data);
-        }
-        break;
-    case AST_NOTE:
-        ast_visit(func, ctx, expr->Note.expr);
-        break;
-    case AST_CALL:
-        LIST_FOREACH(expr->Call.args) {
-            ast_visit(func, ctx, it->data);
-        }
-        break;
+
+    // clang-format off
+    case AST_MODULE: ast_visit(func, ctx, expr->Module.top_level); break;
+    case AST_TYPEOF: ast_visit(func, ctx, expr->Typeof.expr);      break;
+    case AST_SIZEOF: ast_visit(func, ctx, expr->Sizeof.expr);      break;
+    case AST_NOTE:   ast_visit(func, ctx, expr->Note.expr);        break;
+    
+    case AST_FALLTHROUGH: break;
+    case AST_LOAD:        break;
+    case AST_LINK:        break;
+    case AST_INT:         break;
+    case AST_FLOAT:       break;
+    case AST_STRING:      break;
+    case AST_IDENT:       break;
+    case AST_STRUCT:      break;
+        // clang-format on
+
     case AST_UNARY:
         ast_visit(func, ctx, expr->Unary.operand);
         break;
@@ -80,11 +64,7 @@ void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr) {
     case AST_CONSTANT_DECL:
         ast_visit(func, ctx, expr->Constant_Decl.value);
         break;
-    case AST_BLOCK:
-        LIST_FOREACH(expr->Block.stmts) {
-            ast_visit(func, ctx, it->data);
-        }
-        break;
+    case AST_ENUM: break;
     case AST_GROUPING:
         ast_visit(func, ctx, expr->Grouping.expr);
         break;
@@ -130,8 +110,36 @@ void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr) {
         ast_visit(func, ctx, expr->Is.expr);
         ast_visit(func, ctx, expr->Is.body);
         break;
+    case AST_SWITCH:
+        ast_visit(func, ctx, expr->Switch.cond);
+        ast_visit(func, ctx, expr->Switch.cases);
+        ast_visit(func, ctx, expr->Switch.default_case);
+        break;
+    case AST_EXTERN:
+        LIST_FOREACH(expr->Extern.type->Function.args) {
+            ast_visit(func, ctx, it->data);
+        }
+        break;
+    case AST_FUNCTION:
+        ast_visit(func, ctx, expr->Function.body);
+        LIST_FOREACH(expr->Function.type->Function.args) {
+            ast_visit(func, ctx, it->data);
+        }
+        LIST_FOREACH(expr->Function.defers) {
+            ast_visit(func, ctx, it->data);
+        }
+        break;
+    case AST_CALL:
+        LIST_FOREACH(expr->Call.args) {
+            ast_visit(func, ctx, it->data);
+        }
+        break;
+    case AST_BLOCK:
+        LIST_FOREACH(expr->Block.stmts) {
+            ast_visit(func, ctx, it->data);
+        }
+        break;
     }
-    assert(func);
     (*func)(ctx, expr);
 }
 
@@ -225,26 +233,21 @@ char* ast_to_str(AST* expr) {
                     ast_to_str(expr->For.step), ast_to_str(expr->For.then_block));
     case AST_WHILE:             return strf("while %s %s", ast_to_str(expr->While.cond), ast_to_str(expr->While.then_block));
     case AST_BLOCK: {
-        string str = make_string("{");
+        string s = string_create("{ ");
         LIST_FOREACH(expr->Block.stmts) {
-            AST* stmt = (AST*)it->data;
-            append_string_f(&str, "%s; ", ast_to_str(stmt));
+            string_append_f(&s, "%s; ", ast_to_str(it->data));
         }
-        append_string(&str, "}");
-        return str.c_str;
+        string_append(&s, "}");
+        return string_data(&s);
     }
     case AST_CALL: {
-        string str   = make_string(expr->Call.callee);
-        s64    count = expr->Call.args->count;
-        s64    index = 0;
-        append_string(&str, "(");
+        string s   = string_create_f("%s(", expr->Call.callee);
         LIST_FOREACH(expr->Call.args) {
-            AST* arg = (AST*)it->data;
-            append_string(&str, ast_to_str(arg));
-            if (index++ != count - 1) append_string(&str, ", ");
+            string_append(&s, ast_to_str(it->data));
+            if (it->next) string_append(&s, ", ");
         }
-        append_string(&str, ")");
-        return str.c_str;
+        string_append(&s, ")");
+        return string_data(&s);
     }
     }
     // clang-format on
@@ -302,29 +305,26 @@ char* ast_to_json(AST* expr) {
     case AST_IF:            return strf("{%s:{\"cond\": %s, \"then_block\": %s, \"else_block\": %s }}", ast_json_prelude(expr), ast_to_json(expr->If.cond), ast_to_json(expr->If.then_block), ast_to_json(expr->If.else_block));
     // clang-format on
     case AST_BLOCK: {
-        s64    block_count = expr->Block.stmts->count;
-        s64    counter     = 0;
-        string str         = make_string(strf("{%s: [", ast_json_prelude(expr)));
+        string str         = string_create(strf("{%s: [", ast_json_prelude(expr)));
         LIST_FOREACH(expr->Block.stmts) {
-            append_string(&str, ast_to_json(it->data));
-            if (counter != block_count - 1) append_string(&str, ",");
-            counter += 1;
+            string_append(&str, ast_to_json(it->data));
+            if (it->next) string_append(&str, ", ");
         }
-        append_string(&str, "]}");
+        string_append(&str, "]}");
         return str.c_str;
     } break;
     case AST_CALL: {
-        string str = make_string("");
-        append_string_f(&str, "{%s:{\"callee\": \"%s\", ", ast_json_prelude(expr), expr->Call.callee);
-        append_string(&str, "\"args\": [");
+        string str = string_create("");
+        string_append_f(&str, "{%s:{\"callee\": \"%s\", ", ast_json_prelude(expr), expr->Call.callee);
+        string_append(&str, "\"args\": [");
         s64 arg_count = expr->Call.args->count;
         s64 counter   = 0;
         LIST_FOREACH(expr->Call.args) {
-            append_string(&str, ast_to_json(it->data));
-            if (counter != arg_count - 1) append_string(&str, ",");
+            string_append(&str, ast_to_json(it->data));
+            if (counter != arg_count - 1) string_append(&str, ",");
             counter += 1;
         }
-        append_string(&str, "]}}");
+        string_append(&str, "]}}");
         return str.c_str;
     } break;
     }
@@ -390,10 +390,10 @@ AST* make_ast_typeof(Token t, AST* expr) {
     return e;
 }
 
-AST* make_ast_module (Token t, char* name, AST* top_level) {
+AST* make_ast_module(Token t, char* name, AST* top_level) {
     assert(name);
-    AST* e         = make_ast(AST_MODULE, t);
-    e->Module.name = name;
+    AST* e              = make_ast(AST_MODULE, t);
+    e->Module.name      = name;
     e->Module.top_level = top_level;
     return e;
 }

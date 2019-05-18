@@ -1,76 +1,36 @@
+// Copyright (c) 2019 Marcus Mathiassen
+
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+
+//------------------------------------------------------------------------------
+//                               string.c
+//------------------------------------------------------------------------------
+
 #include "string.h"
 
-#include "list.h"
 #include "typedefs.h"
 #include "utility.h" // xmalloc, xrealloc
 #include <assert.h>  // assert
 #include <stdarg.h>  // va_list, va_start, va_end
-#include <stdio.h>   // printf, vprintf
+#include <stdio.h>   // vsnprintf
 #include <stdlib.h>  // free
 #include <string.h>  // memcpy
-
-string
-make_string(char* str) {
-    assert(str);
-    string s;
-    s64    str_len = strlen(str);
-    s.c_str        = xmalloc(str_len + 1);
-    s.len          = str_len;
-    memcpy(s.c_str, str, str_len);
-    s.c_str[s.len] = 0;
-    return s;
-}
-
-string
-make_string_f(char* fmt, ...) {
-    assert(fmt);
-    va_list args;
-    va_start(args, fmt);
-    s64 n = 1 + vsnprintf(0, 0, fmt, args);
-    va_end(args);
-
-    char* str = xmalloc(n);
-
-    va_start(args, fmt);
-    vsnprintf(str, n, fmt, args);
-    va_end(args);
-
-    return make_string(str);
-}
-
-void append_string(string* s, char* str) {
-    assert(s);
-    assert(str);
-    s64 str_len = strlen(str);
-    assert(str_len != 0);
-    s->c_str = xrealloc(s->c_str, s->len + str_len + 1);
-    memcpy(s->c_str + s->len, str, str_len);
-    s->len += str_len;
-    s->c_str[s->len] = 0;
-}
-
-void append_string_f(string* s, char* fmt, ...) {
-    assert(s);
-    assert(fmt);
-    va_list args;
-    va_start(args, fmt);
-    s64 n = 1 + vsnprintf(0, 0, fmt, args);
-    va_end(args);
-
-    char* str = xmalloc(n);
-
-    va_start(args, fmt);
-    vsnprintf(str, n, fmt, args);
-    va_end(args);
-
-    append_string(s, str);
-
-    free(str);
-}
-
-void free_string(string* s) {
-    free(s->c_str);
-}
 
 string string_create(char* str) {
     assert(str);
@@ -88,14 +48,14 @@ string string_create_f(char* fmt, ...) {
     va_start(args, fmt);
     s64 n = 1 + vsnprintf(0, 0, fmt, args);
     va_end(args);
-    
+
     char* str = xmalloc(n);
 
     va_start(args, fmt);
     vsnprintf(str, n, fmt, args);
     va_end(args);
 
-    return make_string(str);
+    return string_create(str);
 }
 char* string_data(string* this) {
     assert(this);
@@ -130,7 +90,7 @@ void string_append_f(string* this, char* fmt, ...) {
     va_start(args, fmt);
     vsnprintf(str, n, fmt, args);
     va_end(args);
-    append_string(this, str);
+    string_append(this, str);
     free(str);
 }
 void string_destroy(string* this) {
@@ -145,20 +105,13 @@ void string_destroy(string* this) {
 
 void string_tests(void) {
     // string test
-
-    string x = string_create_f("%s", "hello");
-    assert(strcmp(x.c_str, "hello") == 0);
-    string_append(&x, "{");
-    assert(strcmp(x.c_str, "hello{") == 0);
-
-
-    string s = make_string("Hello");
+    string s = string_create("Hello");
     assert(s.len == 5);
     assert(strcmp(s.c_str, "Hello") == 0);
-    append_string(&s, ", Marcus Mathiasssen.");
+    string_append(&s, ", Marcus Mathiasssen.");
     assert(s.len == 26);
     assert(strcmp(s.c_str, "Hello, Marcus Mathiasssen.") == 0);
-    append_string(&s, " It's nice to see you again. How are you?");
+    string_append(&s, " It's nice to see you again. How are you?");
     assert(s.len == 67);
     assert(strcmp(s.c_str,
                   "Hello, Marcus Mathiasssen. It's nice to see you "
