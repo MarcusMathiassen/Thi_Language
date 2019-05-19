@@ -30,9 +30,9 @@
     info("%s: %s", give_unique_color(ast_kind_to_str(node->kind)), wrap_with_colored_parens(ast_to_str(node))); \
     assert(node);
 
-typedef struct
-{
+typedef struct {
     Map*  symbol_table;
+    AST*  module;
     AST*  active_function;
     Type* expected_type;
 } Typer_Context;
@@ -134,6 +134,7 @@ Type* type_check_sizeof(Typer_Context* ctx, AST* node) {
     return get_symbol(ctx, DEFAULT_BIG_INT_TYPE_AS_STRING);
 }
 Type* type_check_module(Typer_Context* ctx, AST* node) {
+    ctx->module = node;
     return type_check_node(ctx, node->Module.top_level);
 }
 
@@ -185,6 +186,10 @@ Type* type_check_function(Typer_Context* ctx, AST* node) {
     AST*  func_body = node->Function.body;
     List* args      = func_type->Function.args;
 
+    if (func_type->Function.ret_type->kind == TYPE_UNRESOLVED) {
+        func_type->Function.ret_type = map_get(ctx->symbol_table, get_type_name(func_type->Function.ret_type));
+    }
+
     ctx->active_function = node;
 
     LIST_FOREACH(args) {
@@ -193,12 +198,6 @@ Type* type_check_function(Typer_Context* ctx, AST* node) {
     }
 
     type_check_node(ctx, func_body);
-
-    node->type->Function.ret_type = node->type->Function.ret_type;
-    func_body->type               = node->type->Function.ret_type;
-
-    ctx->active_function = NULL;
-
     return func_type;
 }
 Type* type_check_note(Typer_Context* ctx, AST* node) {
@@ -224,10 +223,14 @@ Type* type_check_call(Typer_Context* ctx, AST* node) {
     char* callee = node->Call.callee;
     List* args   = node->Call.args;
     Type* func_t = (Type*)map_get(ctx->symbol_table, callee);
+    if (func_t->Function.ret_type->kind == TYPE_UNRESOLVED) {
+        func_t->Function.ret_type = map_get(ctx->symbol_table, get_type_name(func_t->Function.ret_type));
+    }
+    info(type_to_str(func_t));
     LIST_FOREACH(args) {
         type_check_node(ctx, it->data);
     }
-    return func_t;
+    return func_t->Function.ret_type;
 }
 Type* type_check_unary(Typer_Context* ctx, AST* node) {
     Token_Kind op      = node->Unary.op;
@@ -263,7 +266,7 @@ Type* type_check_binary(Typer_Context* ctx, AST* node) {
     Type* b = type_check_node(ctx, rhs);
 
     if (!is_same_type(a, b)) {
-        // error("[type_missmatch] %s -> %s != %s ", ast_to_str(node), type_to_str(a), type_to_str(b));
+        error("[type_missmatch] %s -> %s != %s ", ast_to_str(node), type_to_str(a), type_to_str(b));
     }
 
     // 'a' and 'b' are the same so just return any one of them
@@ -290,13 +293,46 @@ Type* type_check_constant_decl(Typer_Context* ctx, AST* node) {
     AST* value = node->Constant_Decl.value;
     return type_check_node(ctx, value);
 }
+
 Type* type_check_block(Typer_Context* ctx, AST* node) {
+
     List* stmts = node->Block.stmts;
+
+    // Gather all returned types
+    List* returned_nodes = make_list();
     LIST_FOREACH(stmts) {
-        type_check_node(ctx, it->data);
+        AST* statement = it->data;
+        type_check_node(ctx, statement);
+        if (statement->kind == AST_RETURN) {
+            list_append(returned_nodes, statement);
+        }
     }
-    return NULL;
+
+    Type* result_t = NULL;
+    // In case of the block has a return
+    if (returned_nodes->count > 0) {
+
+        // ..make sure they are all the same type
+        AST*  a   = list_first(returned_nodes);
+        Type* a_t = a->type;
+        LIST_FOREACH(returned_nodes) {
+            AST*  b   = it->data;
+            Type* b_t = b->type;
+            // ..raise an error if not
+
+            if (!is_same_type(a_t, b_t)) {
+                error("[%s] Type_Error. Differing return types in block.\n%s <- %s\n!=\n%s <- %s", LOCATION_OF_AST_TO_STR(ctx->module, node), type_to_str(a_t), ast_to_str(a), type_to_str(b_t), ast_to_str(b));
+            }
+        }
+        result_t = a_t;
+    }
+
+    // We return the common type returned from any return statement in
+    // the block.
+
+    return result_t;
 }
+
 Type* type_check_subscript(Typer_Context* ctx, AST* node) {
 
     AST* load = node->Subscript.load;
@@ -455,9 +491,6 @@ Type* type_check_while(Typer_Context* ctx, AST* node) {
 Type* type_check_return(Typer_Context* ctx, AST* node) {
     AST*  ret_node = node->Return.node;
     Type* t        = type_check_node(ctx, ret_node);
-    assert(ctx->active_function);
-    ctx->active_function->Function.type->Function.ret_type = t;
-    ctx->active_function->Function.body->type              = t;
     return t;
 }
 

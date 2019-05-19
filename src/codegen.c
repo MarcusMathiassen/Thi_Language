@@ -545,7 +545,7 @@ codegen_variable_decl(Codegen_Context* ctx, AST* node) {
     assert(node->kind == AST_VARIABLE_DECL);
 
     char* name            = node->Variable_Decl.name;
-    Type* type            = node->Variable_Decl.type;
+    Type* type            = node->type;
     AST*  assignment_expr = node->Variable_Decl.value;
 
     s64 type_size = get_size_of_type(type);

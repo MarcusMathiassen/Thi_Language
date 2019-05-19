@@ -1,4 +1,8 @@
-main()
-    i := 0
-    while i < 4  i += 1 
-    return i - 3
+main() 
+    x : s64 = N
+    return comp(x)
+
+N :: 3
+
+comp(i: s64) 
+    return i

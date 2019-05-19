@@ -44,8 +44,8 @@ typedef enum {
 typedef struct CST CST;
 
 typedef struct {
-    s64      line_pos;
-    s64      col_pos;
+    s64 line_pos;
+    s64 col_pos;
 } Loc_Info;
 
 struct CST {
@@ -65,6 +65,161 @@ struct CST {
         {
             List* nodes;
         } Comma_Separated_List;
+        struct
+        {
+            char* name;
+            CST*  top_level;
+        } Module;
+        struct
+        {
+            CST* cond;
+            CST* cases;
+            CST* default_case;
+        } Switch;
+        struct
+        {
+            CST* node;
+            CST* body;
+            bool has_fallthrough;
+        } Is;
+        struct
+        {
+            Type* type;
+        } Extern;
+        struct
+        {
+            char* str;
+        } Load;
+        struct
+        {
+            char* str;
+        } Link;
+        struct
+        {
+            CST* node;
+        } Note;
+        struct
+        {
+            CST* node;
+        } Grouping;
+        struct
+        {
+            List* stmts;
+        } Block;
+        struct
+        {
+            s64 val;
+        } Int;
+        struct
+        {
+            f64 val;
+        } Float;
+        struct
+        {
+            char* val;
+        } String;
+        struct
+        {
+            Type* type;
+        } Struct;
+        struct
+        {
+            Type* type;
+        } Enum;
+        struct
+        {
+            Type* type;
+            CST*  body;
+            List* defers;
+        } Function;
+        struct
+        {
+            char* name;
+        } Ident;
+        struct
+        {
+            char* callee;
+            List* args;
+        } Call;
+        struct
+        {
+            Token_Kind op;
+            CST*       operand;
+        } Unary;
+        struct
+        {
+            Token_Kind op;
+            CST*       lhs;
+            CST*       rhs;
+        } Binary;
+        struct
+        {
+            char* name;
+            Type* type;
+            CST*  value;
+        } Variable_Decl;
+        struct
+        {
+            char* name;
+            CST*  value;
+        } Constant_Decl;
+        struct
+        {
+            CST* load;
+            CST* sub;
+        } Subscript;
+        struct
+        {
+            CST*  load;
+            char* field;
+        } Field_Access;
+        struct
+        {
+            CST* cond;
+            CST* then_block;
+            CST* else_block;
+        } If;
+        struct
+        {
+            CST* init;
+            CST* cond;
+            CST* step;
+            CST* then_block;
+        } For;
+        struct
+        {
+            CST* cond;
+            CST* then_block;
+        } While;
+        struct
+        {
+            CST* node;
+        } Return;
+        struct
+        {
+            CST* node;
+        } Break;
+        struct
+        {
+            CST* node;
+        } Continue;
+        struct
+        {
+            CST* node;
+        } Defer;
+        struct
+        {
+            CST* node;
+            CST* type_node;
+        } As;
+        struct
+        {
+            CST* node;
+        } Sizeof;
+        struct
+        {
+            CST* node;
+        } Typeof;
     };
 };
 

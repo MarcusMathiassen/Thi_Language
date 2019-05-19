@@ -201,21 +201,22 @@ char* get_file_content(char* filename) {
     assert(filename);
     char* buffer = NULL;
     s64   string_size, read_size;
-    FILE* handler = fopen(filename, "r");
+    FILE* f = fopen(filename, "r");
+    if (!f) error("failed to open file: %s", filename);
 
-    if (handler) {
+    if (f) {
         // Seek the last byte of the file
-        fseek(handler, 0, SEEK_END);
+        fseek(f, 0, SEEK_END);
         // Offset from the first to the last byte, or in other words, filesize
-        string_size = ftell(handler);
+        string_size = ftell(f);
         // go back to the start of the file
-        rewind(handler);
+        rewind(f);
 
         // Allocate a string that can hold it all
         buffer = (char*)xmalloc(sizeof(u8) * (string_size + 1));
 
         // Read it all in one operation
-        read_size = fread(buffer, sizeof(u8), string_size, handler);
+        read_size = fread(buffer, sizeof(u8), string_size, f);
 
         // fread doesn't set it so put a \0 in the last position
         // and buffer is now officially a string
@@ -229,7 +230,7 @@ char* get_file_content(char* filename) {
         }
 
         // Always remember to close the file.
-        fclose(handler);
+        fclose(f);
     }
 
     return buffer;

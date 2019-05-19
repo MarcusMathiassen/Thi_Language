@@ -22,12 +22,12 @@
 //                               main.c
 //------------------------------------------------------------------------------
 
-#include "ast.h"          // AST, AST_Kind
-#include "codegen.h"      // generate_code_from_ast
-#include "constants.h"    // all constnats
-#include "lexer.h"        // generate_tokens_from_source, print_tokens
-#include "list.h"         // list_tests
-#include "cst.h"         // cst_tests
+#include "ast.h"       // AST, AST_Kind
+#include "codegen.h"   // generate_code_from_ast
+#include "constants.h" // all constnats
+#include "lexer.h"     // generate_tokens_from_source, print_tokens
+#include "list.h"      // list_tests
+// #include "cst.h"         // cst_tests
 #include "map.h"          // map
 #include "parser.h"       // generate_ast_from_tokens
 #include "stack.h"        // stack_tests
@@ -61,6 +61,47 @@ void resolve_typeofs(void* arg, AST* node) {
     AST* string_value = make_ast_string(node->loc_info, get_type_name(node->type));
     ast_replace(node, string_value);
 }
+
+void find_dependencies(void* arg, AST* node) {
+    switch (node->kind) {
+    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
+    case AST_ENUM: {
+    } break;
+    case AST_MODULE: {
+    } break;
+    case AST_INT: {
+    } break;
+    case AST_FUNCTION: {
+    } break;
+    case AST_BLOCK: {
+    } break;
+    case AST_RETURN: {
+    } break;
+    case AST_CALL: {
+    } break;
+    case AST_IDENT: {
+        //
+    } break;
+    case AST_CONSTANT_DECL: {
+        // If the value is not a constant we depend on it
+        if (node->Constant_Decl.value->kind == AST_IDENT) {
+            list_append(node->edges, node->Constant_Decl.value);
+        }
+    } break;
+    case AST_VARIABLE_DECL: {
+
+        AST* var_decl_value = node->Variable_Decl.value;
+
+        // If it has an assigned value, it depends on it being resolved before
+        // this
+        if (var_decl_value) {
+            list_append(node->edges, var_decl_value);
+        }
+
+    } break;
+    }
+}
+
 void pass_initilize_enums(void* thi, AST* node) {
     switch (node->kind) {
     default: break;
@@ -277,7 +318,7 @@ int main(int argc, char** argv) {
     list_tests();
     stack_tests();
     lexer_test();
-    cst_tests();
+    //    cst_tests();
 
     Thi thi = make_thi();
 
@@ -356,12 +397,27 @@ int main(int argc, char** argv) {
     pctx.dir            = dir;
     AST* ast            = parse(&pctx, source_file);
 
+    List* modules = make_list();
+    list_append(modules, ast);
+
     info(ast_to_str(ast));
     thi.ast = ast;
 
     info("Running passes");
 
+    // thi_run_pass(&thi, "find_dependencies", find_dependencies, NULL);
     thi_run_pass(&thi, "pass_add_all_symbols", pass_add_all_symbols, &thi);
+
+    List* loads = ast_find_all_of_kind(AST_LOAD, ast);
+    LIST_FOREACH(loads) {
+        AST*  load = it->data;
+        char* file = load->Load.str;
+        pctx.file  = file;
+        file       = strf("%s%s", pctx.dir, file);
+        ast_replace(load, parse(&pctx, file));
+    }
+    List* loads_after = ast_find_all_of_kind(AST_LOAD, ast);
+    assert(loads_after->count == 0);
 
     // Run all passes
     print_symbol_map(&thi);

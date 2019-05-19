@@ -64,6 +64,10 @@
     <false>                 ::= "false"
     <return>                ::= "return" <expr>
 
+
+    <type>                  ::= <ident> ['*']*
+                              | <ident> [ '[' <expr>? ']' ]*
+
     <ident_list>            ::= <ident>-<ident>
     <constant_decl>         ::= <ident_list>
                               | <ident> <expr>
@@ -114,15 +118,14 @@
                                 | <link>
                                 | <constant_decl>
 
-    <statement>             ::= <def>
-                                | <continue>
+    <statement>             ::= <continue>
                                 | <break>
                                 | <variable_decl>
                                 | <func_call>
                                 | <return>
                                 | <defer>
                                 | <if>
-                                | <case>
+                                | <is>
                                 | <for>
 #
 # Binary Operator Precedence

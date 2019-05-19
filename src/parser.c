@@ -41,7 +41,7 @@
 
 #define DEBUG_START \
     assert(ctx);    \
-    // info("%s: %s", __func__, token_to_str(currTok(ctx)));
+    info("%s: %s", __func__, token_to_str(currTok(ctx)));
 
 #define UNARY_OP_COUNT 9
 Token_Kind unary_ops[UNARY_OP_COUNT] = {
@@ -64,6 +64,7 @@ Token_Kind unary_ops[UNARY_OP_COUNT] = {
 //------------------------------------------------------------------------------
 
 // clang-format off
+AST* parse_top_level                (Parser_Context* ctx);
 AST* parse_statement                (Parser_Context* ctx);
 AST* parse_primary                  (Parser_Context* ctx);
 AST* parse_identifier               (Parser_Context* ctx);
@@ -98,6 +99,7 @@ AST* parse_struct                   (Parser_Context* ctx);
 AST* parse_comma_delim_list         (Parser_Context* ctx);
 AST* parse_prefix                   (Parser_Context* ctx);
 AST* parse_postfix                  (Parser_Context* ctx);
+
 // clang-format on
 
 //------------------------------------------------------------------------------
@@ -118,6 +120,8 @@ List* generate_ast_from_tokens         (char* file, Token* tokens);
 
 AST* parse(Parser_Context* ctx, char* file) {
 
+    info("Parsing %s", file);
+
     // Save state to recover from later
     char* last_file = ctx->file;
     char* last_dir  = ctx->dir;
@@ -126,19 +130,9 @@ AST* parse(Parser_Context* ctx, char* file) {
     ctx->file = file;
     ctx->dir  = get_file_directory(file);
 
-    char*  source = get_file_content(file);
-    Token* tokens = generate_tokens_from_source(source);
-
-    // Testing here
-    // List* top_level_cst = generate_cst_from_tokens(tokens);
-    // LIST_FOREACH(top_level_cst) {
-    //     info(cst_to_str(it->data));
-    // }
-    // List*  top_level_ast = generate_ast_from_cst(top_level_cst);
-    // LIST_FOREACH(top_level_ast) {
-    //     info(ast_to_str(it->data));
-    // }
-    List* top_level_ast = generate_ast_from_tokens(file, tokens);
+    char*  source        = get_file_content(file);
+    Token* tokens        = generate_tokens_from_source(source);
+    List*  top_level_ast = generate_ast_from_tokens(file, tokens);
 
     AST* top_level_scope = make_ast_block(loc(ctx), top_level_ast);
 
@@ -164,7 +158,7 @@ List* generate_ast_from_tokens(char* file, Token* tokens) {
     List* ast = make_list();
 
     while (!tok_is(&ctx, TOKEN_EOF)) {
-        AST* stmt = parse_statement(&ctx);
+        AST* stmt = parse_top_level(&ctx);
         assert(stmt);
         list_append(ast, stmt);
     }
@@ -176,10 +170,28 @@ List* generate_ast_from_tokens(char* file, Token* tokens) {
 //                               Private
 //------------------------------------------------------------------------------
 
+AST* parse_top_level(Parser_Context* ctx) {
+    DEBUG_START;
+    // clang-format off
+    switch (tokKind(ctx)) {
+    default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
+    case TOKEN_ENUM:                return parse_enum(ctx);
+    case TOKEN_STRUCT:              return parse_struct(ctx);
+    case TOKEN_IDENTIFIER:          return parse_statement(ctx);
+    case TOKEN_EXTERN:              return parse_extern(ctx);
+    case TOKEN_LOAD:                return parse_load(ctx);
+    case TOKEN_LINK:                return parse_link(ctx);
+    }
+    // clang-format on
+    UNREACHABLE;
+    return NULL;
+}
+
 AST* parse_statement(Parser_Context* ctx) {
     DEBUG_START;
     // clang-format off
     switch (tokKind(ctx)) {
+    default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
     case TOKEN_BLOCK_START:         return parse_block(ctx);
     case TOKEN_ENUM:                return parse_enum(ctx);
     case TOKEN_STRUCT:              return parse_struct(ctx);
@@ -197,7 +209,6 @@ AST* parse_statement(Parser_Context* ctx) {
     case TOKEN_EXTERN:              return parse_extern(ctx);
     case TOKEN_LOAD:                return parse_load(ctx);
     case TOKEN_LINK:                return parse_link(ctx);
-    default: error("Invalid statement token '%s'", token_to_str(currTok(ctx)));
     }
     // clang-format on
     UNREACHABLE;
@@ -208,6 +219,7 @@ AST* parse_primary(Parser_Context* ctx) {
     DEBUG_START;
     // clang-format off
     switch (tokKind(ctx)) {
+    default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
     case TOKEN_DOT_DOT_DOT: eat(ctx); return make_ast_var_args(loc(ctx));
     case TOKEN_TRUE:        eat(ctx); return make_ast_int(loc(ctx), 1);
     case TOKEN_FALSE:       eat(ctx); return make_ast_int(loc(ctx), 0);
@@ -219,7 +231,6 @@ AST* parse_primary(Parser_Context* ctx) {
     case TOKEN_INTEGER:     return parse_integer(ctx);
     case TOKEN_STRING:      return parse_string(ctx);
     case TOKEN_OPEN_PAREN:  return parse_parens(ctx);
-    default: error("Invalid primary token '%s'", token_to_str(currTok(ctx)));
     }
     // clang-format on
     UNREACHABLE;
@@ -231,14 +242,6 @@ AST* parse_identifier(Parser_Context* ctx) {
 
     char* ident = tokValue(ctx);
     eat_kind(ctx, TOKEN_IDENTIFIER);
-
-    /*
-        <constant_decl>         ::= <ident_list>
-                                  | <ident> <expr>
-        <variable_decl>         ::= <ident_list>
-                                  | <ident_list> "=" <expr>
-                                  | <ident> "=" <expr>
-    */
 
     // clang-format off
     switch (tokKind(ctx)) {
@@ -284,9 +287,7 @@ AST* parse_load(Parser_Context* ctx) {
     eat_kind(ctx, TOKEN_LOAD);
     char* str = strf("%s.thi", tokValue(ctx));
     eat_kind(ctx, TOKEN_STRING);
-    AST* ast = parse(ctx, str);
-    list_append(ctx->loads, str);
-    return ast;
+    return make_ast_load(loc(ctx), str);
 }
 
 AST* parse_link(Parser_Context* ctx) {
@@ -485,44 +486,44 @@ AST* parse_function_call(Parser_Context* ctx, char* ident) {
     eat_kind(ctx, TOKEN_OPEN_PAREN);
     List* args                   = make_list();
     bool  has_multiple_arguments = false;
+    bool  has_var_args           = false;
+    bool  is_a_def               = true;
     while (!tok_is(ctx, TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(ctx, TOKEN_COMMA);
         AST* arg = parse_expression(ctx);
+
+        if (arg->kind != AST_VARIABLE_DECL) {
+            is_a_def = false;
+        }
+
         // warning("%s", ast_to_json(arg));
         list_append(args, arg);
         has_multiple_arguments = true;
+        if (arg->kind == AST_VAR_ARGS) {
+            error("found var args %s", ast_to_str(arg));
+            has_var_args = true;
+        }
     }
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
 
-    // Is it a function def? It is if..
-    if (tok_is_on_same_line(ctx) && tok_is(ctx, TOKEN_EQ_GT)) {
-        // since '=>' means single statement function and implicit return
-        // ..we only parse a SINGLE statement.
-        eat_kind(ctx, TOKEN_EQ_GT);
-        bool has_var_args = false;
-
-        LIST_FOREACH(args) {
-            AST* d = it->data;
-            if (d->kind == AST_VAR_ARGS) {
-                error("found var args %s", ast_to_str(d));
-                has_var_args = true;
-                break;
-            }
+    if (is_a_def) {
+        // Is it a function def? It is if..
+        if (tok_is_on_same_line(ctx) && tok_is(ctx, TOKEN_EQ_GT)) {
+            eat_kind(ctx, TOKEN_EQ_GT);
+            AST*  block = parse_block(ctx);
+            Type* type  = make_type_function(ident, args, NULL, has_var_args);
+            return make_ast_function(loc(ctx), type, block);
+        } else if (tok_is_on_same_line(ctx) && tok_is(ctx, TOKEN_RIGHT_ARROW)) {
+            eat_kind(ctx, TOKEN_RIGHT_ARROW);
+            Type* ret_type = get_type(ctx);
+            AST*  block    = parse_block(ctx);
+            Type* type     = make_type_function(ident, args, ret_type, has_var_args);
+            return make_ast_function(loc(ctx), type, block);
+        } else if (tok_is(ctx, TOKEN_BLOCK_START)) {
+            AST*  block = parse_block(ctx);
+            Type* type  = make_type_function(ident, args, NULL, has_var_args);
+            return make_ast_function(loc(ctx), type, block);
         }
-        Type* type = make_type_function(ident, args, NULL, has_var_args);
-        return make_ast_function(loc(ctx), type, parse_block(ctx));
-    } else if (tok_is(ctx, TOKEN_BLOCK_START)) {
-        bool has_var_args = false;
-        LIST_FOREACH(args) {
-            AST* d = it->data;
-            if (d->kind == AST_VAR_ARGS) {
-                error("found var args %s", ast_to_str(d));
-                has_var_args = true;
-                break;
-            }
-        }
-        Type* type = make_type_function(ident, args, NULL, has_var_args);
-        return make_ast_function(loc(ctx), type, parse_block(ctx));
     }
 
     return make_ast_call(loc(ctx), ident, args);

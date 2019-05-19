@@ -33,6 +33,7 @@
 
 char* type_kind_to_str(Type_Kind kind) {
     // clang-format off
+    assert(kind < TYPE_COUNT);
     switch (kind) {
     default: ERROR_UNHANDLED_KIND(strf("%d", kind));
     case TYPE_UNRESOLVED: return "TYPE_UNRESOLVED";
@@ -153,7 +154,7 @@ s64 get_size_of_type(Type* type) {
             LIST_FOREACH(type->Struct.members) {
                 AST* mem = (AST*)it->data;
                 if (mem->kind != AST_FUNCTION)
-                    accum_size += get_size_of_type(mem->Variable_Decl.type);
+                    accum_size += get_size_of_type(mem->type);
             }
         }
         return accum_size;
@@ -162,7 +163,7 @@ s64 get_size_of_type(Type* type) {
         s64 accum_size = 0;
         LIST_FOREACH(type->Function.args) {
             AST* arg = (AST*)it->data;
-            accum_size += get_size_of_type(arg->Variable_Decl.type);
+            accum_size += get_size_of_type(arg->type);
         }
         return accum_size;
     }

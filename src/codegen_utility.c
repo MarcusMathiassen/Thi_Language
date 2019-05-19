@@ -731,7 +731,7 @@ s64 get_all_alloca_in_block(AST* block) {
         switch (stmt->kind) {
         default: break;
         case AST_VARIABLE_DECL:
-            sum += get_size_of_type(stmt->Variable_Decl.type);
+            sum += get_size_of_type(stmt->type);
             break;
         case AST_BLOCK: sum += get_all_alloca_in_block(stmt); break;
         }

@@ -68,7 +68,7 @@ struct
     {TOKEN_PIPE_EQ, 2},       // |=
     {TOKEN_LT_LT_EQ, 2},      // <<=
     {TOKEN_GT_GT_EQ, 2},      // >>=
-                              // {TOKEN_COMMA, 1},          // ,
+    // {TOKEN_COMMA, 1},          // ,
 };
 
 Parser_Context
@@ -78,7 +78,6 @@ make_parser_context(void) {
     ctx.curr_tok.kind      = TOKEN_UNKNOWN;
     ctx.llast_if_statement = NULL;
     ctx.olast_if_statement = NULL;
-    ctx.loads              = make_list();
     return ctx;
 }
 

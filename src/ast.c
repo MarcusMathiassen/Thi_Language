@@ -24,7 +24,6 @@
 
 #include "ast.h"
 #include "constants.h"
-#include "cst.h"    // CST
 #include "lexer.h"  // token_kind_to_str,
 #include "string.h" // strf, string_append, string
 #include "typedefs.h"
@@ -92,7 +91,7 @@ char* ast_to_str(AST* node) {
     case AST_SPACE_SEPARATED_IDENTIFIER_LIST: {
         string s = string_create("");
         LIST_FOREACH(node->Space_Separated_Identifier_List.identifiers) {
-            string_append(&s, cst_to_str(it->data));
+            string_append(&s, ast_to_str(it->data));
             if (it->next) string_append(&s, " ");
         }
         return string_data(&s);
@@ -100,7 +99,7 @@ char* ast_to_str(AST* node) {
     case AST_COMMA_SEPARATED_LIST: {
         string s = string_create("");
         LIST_FOREACH(node->Comma_Separated_List.nodes) {
-            string_append(&s, cst_to_str(it->data));
+            string_append(&s, ast_to_str(it->data));
             if (it->next) string_append(&s, ", ");
         }
         return string_data(&s);
@@ -393,10 +392,14 @@ void ast_ref_list_append(AST_Ref_List* l, AST* a) {
     l->count += 1;
 }
 
+void ast_add_edge(AST* a, AST* dep) {
+    list_append(a->edges, dep);
+}
+
 void ast_replace(AST* a, AST* b) {
     assert(a);
     assert(b);
-    info("REPLACED %s WITH %s", give_unique_color(ast_to_str(a)), give_unique_color(ast_to_str(b)));
+    info("REPLACED %s -> %s WITH %s -> %s", give_unique_color(ast_to_str(a)), give_unique_color(type_to_str(a->type)), give_unique_color(ast_to_str(b)), give_unique_color(type_to_str(b->type)));
     *a = *b;
     // CLEANUP
 }
@@ -879,6 +882,7 @@ AST* make_ast(AST_Kind kind, Loc_Info loc_info) {
     e->kind     = kind;
     e->loc_info = loc_info;
     e->type     = NULL;
+    e->edges    = make_list();
     return e;
 }
 

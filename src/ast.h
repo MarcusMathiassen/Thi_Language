@@ -81,6 +81,7 @@ struct AST {
     AST_Kind kind;
     Type*    type;
     Loc_Info loc_info;
+    List*    edges;
     union {
         struct
         {
@@ -111,47 +112,38 @@ struct AST {
         {
             Type* type;
         } Extern;
-
         struct
         {
             char* str;
         } Load;
-
         struct
         {
             char* str;
         } Link;
-
         struct
         {
             AST* node;
         } Note;
-
         struct
         {
             AST* node;
         } Grouping;
-
         struct
         {
             List* stmts;
         } Block;
-
         struct
         {
             s64 val;
         } Int;
-
         struct
         {
             f64 val;
         } Float;
-
         struct
         {
             char* val;
         } String;
-
         struct
         {
             Type* type;
@@ -160,70 +152,59 @@ struct AST {
         {
             Type* type;
         } Enum;
-
         struct
         {
             Type* type;
             AST*  body;
             List* defers;
         } Function;
-
         struct
         {
             char* name;
         } Ident;
-
         struct
         {
-            char* callee;
             List* args;
+            char* callee;
         } Call;
-
         struct
         {
             Token_Kind op;
             AST*       operand;
         } Unary;
-
         struct
         {
             Token_Kind op;
             AST*       lhs;
             AST*       rhs;
         } Binary;
-
         struct
         {
             char* name;
             Type* type;
             AST*  value;
         } Variable_Decl;
-
         struct
         {
             char* name;
             AST*  value;
         } Constant_Decl;
-
         struct
         {
             AST* load;
             AST* sub;
         } Subscript;
-
         struct
         {
             AST*  load;
             char* field;
         } Field_Access;
-
         struct
         {
             AST* cond;
             AST* then_block;
             AST* else_block;
         } If;
-
         struct
         {
             AST* init;
@@ -231,39 +212,32 @@ struct AST {
             AST* step;
             AST* then_block;
         } For;
-
         struct
         {
             AST* cond;
             AST* then_block;
         } While;
-
         struct
         {
             AST* node;
         } Return;
-
         struct
         {
             AST* node;
         } Break;
-
         struct
         {
             AST* node;
         } Continue;
-
         struct
         {
             AST* node;
         } Defer;
-
         struct
         {
             AST* node;
             AST* type_node;
         } As;
-
         struct
         {
             AST* node;
