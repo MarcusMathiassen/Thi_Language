@@ -195,7 +195,7 @@ List* generate_cst_from_tokens(Token* tokens) {
     ctx.prev.kind = TOKEN_UNKNOWN;
 
     eat(&ctx); // prep the first token
-    List* top_level = make_list();
+    List* cst = make_list();
 
     while (!is(&ctx, TOKEN_EOF)) {
         CST* node = parse_node(&ctx);
@@ -213,9 +213,9 @@ List* generate_cst_from_tokens(Token* tokens) {
         } break;
         }
         assert(node);
-        list_append(top_level, node);
+        list_append(cst, node);
     }
-    return top_level;
+    return cst;
 }
 
 //------------------------------------------------------------------------------

@@ -24,9 +24,10 @@
 
 #include "ast.h"
 #include "constants.h"
-#include "cst.h"     // CST
-#include "lexer.h"   // token_kind_to_str,
-#include "string.h"  // strf, string_append, string
+#include "cst.h"    // CST
+#include "lexer.h"  // token_kind_to_str,
+#include "string.h" // strf, string_append, string
+#include "typedefs.h"
 #include "utility.h" // info, success, error, warning, xmalloc, xrealloc
 #include <assert.h>  // assert
 #include <string.h>  // strlen
@@ -379,40 +380,46 @@ void ast_replace(AST* a, AST* b) {
 
 #define DEBUG_START \
     assert(ctx);    \
-    // info("%s: %s", __func__, cst_to_str(curr(ctx)));
+    info("%s: %s", __func__, cst_to_str(curr(ctx)));
 
 typedef struct {
-    List_Node*  iter;
-    CST*  prev;
-    CST*  curr;
-    List* loads;
+    List_Node* iter;
+    CST*       prev;
+    CST*       curr;
+    List*      loads;
 
 } AST_Parser_Context;
 
 static CST* curr(AST_Parser_Context* ctx) {
+    assert(ctx);
     return ctx->curr;
 }
 
 static CST* prev(AST_Parser_Context* ctx) {
+    assert(ctx);
     return ctx->prev;
 }
 
 static CST_Kind kind(AST_Parser_Context* ctx) {
+    assert(ctx);
     return ctx->curr->kind;
 }
 
 static char* value(AST_Parser_Context* ctx) {
+    assert(ctx);
     assert(ctx->curr->kind == CST_TOKEN);
     return ctx->curr->token.value;
 }
 
 static bool same_line(AST_Parser_Context* ctx) {
+    assert(ctx);
     s64 l1 = curr(ctx)->loc_info.line_pos;
     s64 l2 = prev(ctx)->loc_info.line_pos;
     return l1 == l2;
 }
 
 static bool is(AST_Parser_Context* ctx, CST_Kind k) {
+    assert(ctx);
     return kind(ctx) == k;
 }
 
@@ -426,6 +433,7 @@ static void eat(AST_Parser_Context* ctx) {
 }
 
 static void eat_kind(AST_Parser_Context* ctx, CST_Kind expected_kind) {
+    assert(ctx);
     if (kind(ctx) != expected_kind) {
         error("Expected '%s' got '%s'", cst_kind_to_str(expected_kind), cst_kind_to_str(kind(ctx)));
     }
@@ -433,32 +441,31 @@ static void eat_kind(AST_Parser_Context* ctx, CST_Kind expected_kind) {
 }
 
 static AST* parse_node(AST_Parser_Context* ctx) {
-    DEBUG_START;
-    switch (kind(ctx)) {
-    default: ERROR_UNHANDLED_KIND(cst_kind_to_str(kind(ctx)))
-    }
+    // DEBUG_START;
+    // switch (ctx->curr->kind) {
+    // default: ERROR_UNHANDLED_KIND(cst_kind_to_str(kind(ctx)));
+    // }
     UNREACHABLE;
     return NULL;
 }
 
-List* generate_ast_from_cst(List* top_level_cst) {
+List* generate_ast_from_cst(List* cst) {
     info("Generating AST from CST..");
-    assert(top_level_cst);
-    List* top_level_ast = make_list();
+    assert(cst);
 
     AST_Parser_Context ctx;
-    ctx.iter  = top_level_cst->head;
+    ctx.iter  = cst->head;
     ctx.loads = make_list();
 
-    eat(&ctx);
+    eat(&ctx); // prep
 
-    info(cst_to_str(curr(&ctx)));
-
-    LIST_FOREACH(top_level_cst) {
+    List* ast = make_list();
+    LIST_FOREACH(cst) {
         AST* node = parse_node(&ctx);
-        list_append(top_level_ast, node);
+        assert(node);
+        // list_append(ast, node);
     }
-    return top_level_ast;
+    return ast;
 }
 
 //------------------------------------------------------------------------------

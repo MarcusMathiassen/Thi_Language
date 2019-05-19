@@ -39,9 +39,9 @@ typedef double f64;
 
 typedef s8 bool;
 
-#define ERROR_UNHANDLED_KIND(kind) error("[%s:%s:%s] Unhandled case '%s'", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), give_unique_color((char*)__LINE__), give_unique_color(kind));
-#define UNREACHABLE error("[%s:%s:%s] UNREACHABLE", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), give_unique_color((char*)__LINE__));
-#define UNFINISHED error("[%s:%s:%s] UNFINISHED", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), give_unique_color((char*)__LINE__));
+#define ERROR_UNHANDLED_KIND(str) error("[%s:%s:%d] Unhandled case '%s'", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color(str));
+#define UNREACHABLE error("[%s:%s:%d] %s", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color("UNREACHABLE"));
+#define UNFINISHED error("[%s:%s:%d] %s", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color("UNFINISHED"));
 
 #define true 1
 #define false 0

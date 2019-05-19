@@ -265,7 +265,7 @@ struct AST {
     };
 };
 
-List* generate_ast_from_cst(List* top_level_cst);
+List* generate_ast_from_cst(List* cst);
 
 // clang-format off
 AST* make_ast_module        (Token t, char* name, AST* top_level);
