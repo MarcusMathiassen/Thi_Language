@@ -426,8 +426,8 @@ int main(int argc, char** argv) {
     // Run all passes
     ast_visit(run_all_passes, &thi, ast);
 
-    char* json = ast_to_json(ast);
-    write_to_file("ast.json", json);
+    // char* json = ast_to_json(ast);
+    // write_to_file("ast.json", json);
 
     info(ast_to_str(ast));
 
@@ -476,7 +476,6 @@ void assemble(Thi* thi, char* asm_file, char* exec_name) {
         string_create_f("nasm -f macho64 -g %s -o %s.o", asm_file, exec_name);
     push_timer(thi, "Assembler");
     system(comp_call.c_str);
-    string_destroy(&comp_call);
     pop_timer(thi);
 }
 

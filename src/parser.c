@@ -130,15 +130,15 @@ AST* parse(Parser_Context* ctx, char* file) {
     Token* tokens    = generate_tokens_from_source(source);
 
     // Testing here 
-    List* top_level_cst = generate_cst_from_tokens(tokens);
-    LIST_FOREACH(top_level_cst) {
-        info(cst_to_str(it->data));
-    }
-    List*  top_level_ast = generate_ast_from_cst(top_level_cst);
-    LIST_FOREACH(top_level_ast) {
-        info(ast_to_str(it->data));
-    }
-    // List*  top_level_ast = generate_ast_from_tokens(tokens);
+    // List* top_level_cst = generate_cst_from_tokens(tokens);
+    // LIST_FOREACH(top_level_cst) {
+    //     info(cst_to_str(it->data));
+    // }
+    // List*  top_level_ast = generate_ast_from_cst(top_level_cst);
+    // LIST_FOREACH(top_level_ast) {
+    //     info(ast_to_str(it->data));
+    // }
+    List*  top_level_ast = generate_ast_from_tokens(tokens);
 
     AST* top_level_scope = make_ast_block(currTok(ctx), top_level_ast);
 

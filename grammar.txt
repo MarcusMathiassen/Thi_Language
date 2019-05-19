@@ -36,9 +36,6 @@
     <ident>                 ::= "_" + <character | digit>..
                                 | <character | digit>..
 
-    <type>                  ::= <ident> | "u8" | "u16" | "u32" | "u64" | "s8" | "s16" | "s32" | "s64" | "f32" | "f64"
-                              | <type> "*"..
-
     <binary>                ::= <expr> <binary_operator> <expr>
     <unary>                 ::= <unary_operator> <expr>
 
@@ -57,7 +54,7 @@
     <subscript>             ::= <expr> "[" <expr> "]"
     <defer>                 ::= "defer" <expr>
                                 | "defer" <block>
-    <as>                    ::= <expr> "as" <type>
+    <as>                    ::= <expr> "as" <ident>
     <sizeof>                ::= "sizeof" <expr>
     <link>                  ::= "link" <string>
     <load>                  ::= "load" <string>
@@ -69,21 +66,22 @@
 
     <ident_list>            ::= <ident>-<ident>
     <constant_decl>         ::= <ident_list>
-    <var_decl>              ::= <ident_list>
-                                | <ident_list> "=" <expr>
-                                | <ident> "=" <expr>
-
-
-    <func_call>             ::= <ident> "(" <expr>.. ")"
-    <func_def_extern>       ::= <ident> "(" <type>.. ")" <type>
-    <func_def>              ::= <ident> "(" <var_decl>.. ")" <type> <block>
-    <func_lambda>           ::= <ident> '=>' <block>
-
-    <variable_decl_block>   ::= <block_start> <var_decl>.. <block_end>
-    <constant_decl_block>   ::= <block_start> <constant_decl>.. <block_end>
+                              | <ident> <expr>
+    <variable_decl>         ::= <ident_list>
+                               | <ident_list> "=" <expr>
+                               | <ident> "=" <expr>
 
     <struct_def>            ::= <ident> <var_decl_block>
     <enum_def>              ::= <ident> <constant_decl_block>
+
+    <func_call>             ::= <ident> "(" <expr>.. ")"
+    <func_def_extern>       ::= <ident> "(" <ident>.. ")" <ident>
+    <func_def>              ::= <ident> "(" <variable_decl>.. ")" <ident> <block>
+    <func_lambda>           ::= <ident> '=>' <block>
+
+    <variable_decl_block>   ::= <block_start> <variable_decl>.. <block_end>
+    <constant_decl_block>   ::= <block_start> <constant_decl>.. <block_end>
+
 
     <case>                  ::= "case" <expr> <expr>
                                 | "case" <expr> <block>
@@ -94,7 +92,7 @@
                                 | "if" <expr> <block> "else" <block>
     <if_switch>             ::= "if" <expr> <case_block>
     <for>                   ::= "for" <block>
-                                | "for" <var_decl> "," <cond_expr> "," <expr> <block>
+                                | "for" <variable_decl> "," <cond_expr> "," <expr> <block>
                                 | "for" <cond_expr> <block>
 
     <expr>                  ::= <ident>
@@ -119,7 +117,7 @@
     <statement>             ::= <def>
                                 | <continue>
                                 | <break>
-                                | <var_decl>
+                                | <variable_decl>
                                 | <func_call>
                                 | <return>
                                 | <defer>
