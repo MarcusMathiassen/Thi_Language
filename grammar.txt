@@ -49,11 +49,6 @@
                                 | <expr> ">=" <expr>
                                 | <expr> ">" <expr>
 
-    <constant_decl>         ::= <ident> <expr>
-    <var_decl>              ::= <ident> ":" <type>
-                                | <ident> ":" <type> "=" <expr>
-                                | <ident> ":=" <expr>
-
     <block_start>           ::= On indent
     <block_end>             ::= On undent
     <block>                 ::= <block_start> <statement>.. <block_end>
@@ -72,9 +67,17 @@
     <false>                 ::= "false"
     <return>                ::= "return" <expr>
 
+    <ident_list>            ::= <ident>-<ident>
+    <constant_decl>         ::= <ident_list>
+    <var_decl>              ::= <ident_list>
+                                | <ident_list> "=" <expr>
+                                | <ident> "=" <expr>
+
+
     <func_call>             ::= <ident> "(" <expr>.. ")"
     <func_def_extern>       ::= <ident> "(" <type>.. ")" <type>
     <func_def>              ::= <ident> "(" <var_decl>.. ")" <type> <block>
+    <func_lambda>           ::= <ident> '=>' <block>
 
     <var_decl_block>        ::= <block_start> <var_decl>.. <block_end>
     <constant_decl_block>   ::= <block_start> <constant_decl>.. <block_end>

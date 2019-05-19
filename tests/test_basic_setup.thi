@@ -1,27 +1,14 @@
-struct v2
-    x: f32
-    y: f32
 
-enum Mode
-    dark :: 2
-    light
-    night :: 5
-    day
+struct v2
+    x f32
+    y f32
 
 main()  
-    return comp()
+    
+    x = 3
 
-comp() => return 1
+    y s32
 
+    z v2
 
-# List ::= a comma delimted list of things surrounded by parenthases
-# ex. (a, b, c)
-
-# Parameter List ::= a list of variable decls
-# ex. (x: f32, y: f32, z: f32)
-
-# Argument List ::= a list of expressions
-# ex. (43.0, y, "hello", getX())
-
-# Grouped  ::= a List of variable decls
-# ex. x: f32, y: f32, z: f32
+    return 1

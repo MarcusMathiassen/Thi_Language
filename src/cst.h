@@ -25,13 +25,17 @@
 #ifndef CST_H
 #define CST_H
 
-#include "lexer.h" // Token_Kind
+#include "lexer.h" // Token_Kind, Token
 #include "list.h"  // List
 #include "type.h"  // Type
 
 typedef enum {
+    CST_TOKEN,
+    CST_PROGRAM,
+    CST_MODULE,
     CST_IDENTIFIER,
     CST_IDENTIFIER_LIST,
+    CST_GROUP,
     CST_BLOCK,
     CST_ARGUMENT_LIST,
     CST_COUNT,
@@ -45,7 +49,17 @@ typedef struct CST CST;
 
 struct CST {
     CST_Kind kind;
+    Token    token;
     union {
+        struct
+        {
+            List* modules;
+        } Program;
+        struct
+        {
+            char* name;
+            CST*  top_level;
+        } Module;
         struct
         {
             char* name;
@@ -54,6 +68,10 @@ struct CST {
         {
             List* identifiers;
         } Identifier_List;
+        struct
+        {
+            CST* node;
+        } Group;
         struct
         {
             List* constructs;
@@ -65,8 +83,14 @@ struct CST {
     };
 };
 
+List* generate_cst_from_tokens(Token* tokens);
+
+CST* make_cst_token(Token token);
+CST* make_cst_program(List* modules);
+CST* make_cst_module(char* name, CST* top_level);
 CST* make_cst_identifier(char* name);
 CST* make_cst_identifier_list(List* identifiers);
+CST* make_cst_group(CST* node);
 CST* make_cst_block(List* constructs);
 CST* make_cst_argument_list(List* arguments);
 

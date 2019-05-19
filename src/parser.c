@@ -26,6 +26,7 @@
 
 #include "ast.h"            // AST, ast_make_*
 #include "constants.h"      // DEFAULT_INT_BYTE_SIZE, etc.
+#include "cst.h"            // CST
 #include "lexer.h"          // Token, Token_Kind, generate_tokens_from_source, token_array_get_info_of
 #include "map.h"            // Map
 #include "parser_utility.h" // utility funcs
@@ -127,6 +128,15 @@ AST* parse(Parser_Context* ctx, char* file) {
 
     char*  source    = get_file_content(file);
     Token* tokens    = generate_tokens_from_source(source);
+
+    // Testing here 
+    List* top_level_cst = generate_cst_from_tokens(tokens);
+    CST* module = make_cst_module(file, make_cst_block(top_level_cst));
+    List* modules = make_list();
+    list_append(modules, module);
+    CST* cst = make_cst_program(modules);
+    info(cst_to_str(cst));
+
     List*  top_level = generate_ast_from_tokens(tokens);
 
     AST* top_level_scope = make_ast_block(currTok(ctx), top_level);
@@ -142,7 +152,7 @@ AST* parse(Parser_Context* ctx, char* file) {
 }
 
 List* generate_ast_from_tokens(Token* tokens) {
-    info("Generating ast from tokens..");
+    info("Generating AST from tokens..");
 
     Parser_Context ctx = make_parser_context();
     ctx.tokens         = tokens;
