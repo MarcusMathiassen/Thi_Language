@@ -1,3 +1,9 @@
+
+
+struct v2
+    x: f32
+    y: f32
+
 main() -> s64
     i : s64 = 5
     if comp(i) return 3
