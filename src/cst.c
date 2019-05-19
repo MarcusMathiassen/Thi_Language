@@ -23,10 +23,9 @@
 //------------------------------------------------------------------------------
 
 #include "cst.h"
-#include "ast.h"            // AST
-#include "list.h"           // List
-#include "parser_utility.h" // Parser_Context
-#include "string.h"         // string
+#include "ast.h"    // AST
+#include "list.h"   // List
+#include "string.h" // string
 #include "typedefs.h"
 #include "utility.h" // xmalloc
 #include <assert.h>  // assert
@@ -40,8 +39,6 @@ char* cst_kind_to_str(CST_Kind kind) {
     switch (kind) {
     default:                                  ERROR_UNHANDLED_KIND(strf("%d", kind));
     case CST_TOKEN:                           return "CST_TOKEN";
-    case CST_PROGRAM:                         return "CST_PROGRAM";
-    case CST_MODULE:                          return "CST_MODULE";
     case CST_IDENTIFIER:                      return "CST_IDENTIFIER";
     case CST_SPACE_SEPARATED_IDENTIFIER_LIST: return "CST_SPACE_SEPARATED_IDENTIFIER_LIST";
     case CST_COMMA_SEPARATED_LIST:            return "CST_COMMA_SEPARATED_LIST";
@@ -58,24 +55,6 @@ char* cst_to_str(CST* node) {
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(cst_kind_to_str(node->kind));
     case CST_TOKEN: return  node->token.value;
-    case CST_PROGRAM:  {
-        string s = string_create("Program = [\n");
-        LIST_FOREACH(node->Program.modules) {
-            string_append_f(&s, "%s", cst_to_str(it->data));
-            if (it->next) string_append(&s, "\n");
-        }
-        string_append(&s, "\n]");
-        return string_data(&s);
-    }
-    case CST_MODULE:  {
-        string s = string_create_f("%s = [\n", node->Module.name);
-        LIST_FOREACH(node->Module.nodes) {
-            string_append(&s, cst_to_str(it->data));
-            if (it->next) string_append(&s, "\n");
-        }
-        string_append(&s, "\n]");
-        return string_data(&s);
-    }
     case CST_IDENTIFIER: return node->Identifier.name;
     case CST_SPACE_SEPARATED_IDENTIFIER_LIST: {
         string s = string_create("");
@@ -105,16 +84,6 @@ void cst_visit(void (*func)(void*, CST*), void* ctx, CST* node) {
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(cst_kind_to_str(node->kind));
     case CST_TOKEN: break;
-    case CST_PROGRAM:
-        LIST_FOREACH(node->Program.modules) {
-            cst_visit(func, ctx, it->data);
-        }
-        break;
-    case CST_MODULE: {
-        LIST_FOREACH(node->Module.nodes) {
-            cst_visit(func, ctx, it->data);
-        }
-    } break;
     case CST_IDENTIFIER: break;
     case CST_SPACE_SEPARATED_IDENTIFIER_LIST:
         LIST_FOREACH(node->Space_Separated_Identifier_List.identifiers) {
@@ -138,23 +107,78 @@ void cst_visit(void (*func)(void*, CST*), void* ctx, CST* node) {
     assert(ctx);    \
     // info("%s: %s", __func__, token_to_str(currTok(ctx)));
 
-CST* get_next_node(Parser_Context* ctx) {
+typedef struct {
+    Token* tokens;
+    Token  prev;
+    Token  curr;
+} CST_Parser_Context;
+
+static Token curr(CST_Parser_Context* ctx) {
+    return ctx->curr;
+}
+
+static Token prev(CST_Parser_Context* ctx) {
+    return ctx->prev;
+}
+
+static Token_Kind kind(CST_Parser_Context* ctx) {
+    return ctx->curr.kind;
+}
+
+static Loc_Info loc(CST_Parser_Context* ctx) {
+    Loc_Info loc_info;
+    loc_info.line_pos = curr(ctx).line_pos;
+    loc_info.col_pos  = curr(ctx).col_pos;
+    return loc_info;
+}
+
+static char* value(CST_Parser_Context* ctx) {
+    return ctx->curr.value;
+}
+
+static bool same_line(CST_Parser_Context* ctx) {
+    s64 l1 = curr(ctx).line_pos;
+    s64 l2 = prev(ctx).line_pos;
+    return l1 == l2;
+}
+
+static bool is(CST_Parser_Context* ctx, Token_Kind k) {
+    return kind(ctx) == k;
+}
+
+static void eat(CST_Parser_Context* ctx) {
+    ctx->prev = ctx->curr;
+    ctx->curr = *ctx->tokens;
+    if (ctx->tokens)
+        ++ctx->tokens;
+    else
+        error("cant eat no more");
+}
+
+static void eat_kind(CST_Parser_Context* ctx, Token_Kind expected_kind) {
+    if (kind(ctx) != expected_kind) {
+        error("Expected '%s' got '%s'", token_kind_to_str(expected_kind), token_kind_to_str(kind(ctx)));
+    }
+    eat(ctx);
+}
+
+CST* parse_node(CST_Parser_Context* ctx) {
     DEBUG_START;
-    switch (tokKind(ctx)) {
+    switch (kind(ctx)) {
     default: {
-        CST* node = make_cst_token(currTok(ctx));
+        CST* node = make_cst_token(loc(ctx), curr(ctx));
         eat(ctx);
         return node;
     }
     case TOKEN_IDENTIFIER: {
         List* idents = make_list();
-        list_append(idents, make_cst_identifier(tokValue(ctx)));
+        list_append(idents, make_cst_identifier(loc(ctx), value(ctx)));
         eat_kind(ctx, TOKEN_IDENTIFIER);
-        while ((tokKind(ctx) == TOKEN_IDENTIFIER) && tok_is_on_same_line(ctx)) {
-            list_append(idents, make_cst_identifier(tokValue(ctx)));
+        while (is(ctx, TOKEN_IDENTIFIER) && same_line(ctx)) {
+            list_append(idents, make_cst_identifier(loc(ctx), value(ctx)));
             eat_kind(ctx, TOKEN_IDENTIFIER);
         }
-        if (idents->count > 1) return make_cst_space_separated_identifier_list(idents);
+        if (idents->count > 1) return make_cst_space_separated_identifier_list(loc(ctx), idents);
         return list_first(idents);
     }
     }
@@ -165,25 +189,27 @@ CST* get_next_node(Parser_Context* ctx) {
 List* generate_cst_from_tokens(Token* tokens) {
     info("Generating CST from tokens..");
 
-    Parser_Context ctx = make_parser_context();
-    ctx.tokens         = tokens;
+    CST_Parser_Context ctx;
+    ctx.tokens    = tokens;
+    ctx.curr.kind = TOKEN_UNKNOWN;
+    ctx.prev.kind = TOKEN_UNKNOWN;
 
     eat(&ctx); // prep the first token
     List* top_level = make_list();
 
-    while (!tok_is(&ctx, TOKEN_EOF)) {
-        CST* node = get_next_node(&ctx);
-        switch (tokKind(&ctx)) {
+    while (!is(&ctx, TOKEN_EOF)) {
+        CST* node = parse_node(&ctx);
+        switch (kind(&ctx)) {
         default: break;
         case TOKEN_COMMA: {
             List* node_list = make_list();
             list_append(node_list, node);
-            while (tok_is(&ctx, TOKEN_COMMA)) {
+            while (is(&ctx, TOKEN_COMMA)) {
                 eat_kind(&ctx, TOKEN_COMMA);
-                CST* node = get_next_node(&ctx);
+                CST* node = parse_node(&ctx);
                 list_append(node_list, node);
             }
-            if (node_list->count > 1) node = make_cst_comma_separated_list(node_list);
+            if (node_list->count > 1) node = make_cst_comma_separated_list(loc(&ctx), node_list);
         } break;
         }
         assert(node);
@@ -197,55 +223,37 @@ List* generate_cst_from_tokens(Token* tokens) {
 //------------------------------------------------------------------------------
 void cst_tests(void) {
 }
-
 //------------------------------------------------------------------------------
 //                               CST Maker Functions
 //------------------------------------------------------------------------------
 
-CST* make_cst(CST_Kind kind) {
-    CST* e  = xmalloc(sizeof(CST));
-    e->kind = kind;
+CST* make_cst(Loc_Info loc_info, CST_Kind kind) {
+    CST* e      = xmalloc(sizeof(CST));
+    e->loc_info = loc_info;
+    e->kind     = kind;
     return e;
 }
 
-CST* make_cst_token(Token token) {
-    CST* e   = make_cst(CST_TOKEN);
+CST* make_cst_token(Loc_Info loc_info, Token token) {
+    CST* e   = make_cst(loc_info, CST_TOKEN);
     e->token = token;
     return e;
 }
-
-CST* make_cst_program(List* modules) {
-    assert(modules);
-    CST* e             = make_cst(CST_PROGRAM);
-    e->Program.modules = modules;
-    return e;
-}
-
-CST* make_cst_module(char* name, List* nodes) {
+CST* make_cst_identifier(Loc_Info loc_info, char* name) {
     assert(name);
-    CST* e              = make_cst(CST_MODULE);
-    e->Module.name      = name;
-    e->Module.nodes = nodes;
-    return e;
-}
-
-CST* make_cst_identifier(char* name) {
-    assert(name);
-    CST* e             = make_cst(CST_IDENTIFIER);
+    CST* e             = make_cst(loc_info, CST_IDENTIFIER);
     e->Identifier.name = name;
     return e;
 }
-
-CST* make_cst_space_separated_identifier_list(List* identifiers) {
+CST* make_cst_space_separated_identifier_list(Loc_Info loc_info, List* identifiers) {
     assert(identifiers);
-    CST* e                                         = make_cst(CST_SPACE_SEPARATED_IDENTIFIER_LIST);
+    CST* e                                         = make_cst(loc_info, CST_SPACE_SEPARATED_IDENTIFIER_LIST);
     e->Space_Separated_Identifier_List.identifiers = identifiers;
     return e;
 }
-
-CST* make_cst_comma_separated_list(List* nodes) {
+CST* make_cst_comma_separated_list(Loc_Info loc_info, List* nodes) {
     assert(nodes);
-    CST* e                        = make_cst(CST_COMMA_SEPARATED_LIST);
+    CST* e                        = make_cst(loc_info, CST_COMMA_SEPARATED_LIST);
     e->Comma_Separated_List.nodes = nodes;
     return e;
 }

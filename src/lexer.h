@@ -133,8 +133,7 @@ typedef struct
 {
     Token_Kind kind;
     char*      value;
-    s64        line_pos;
-    s64        col_pos;
+    s64        line_pos, col_pos;
 } Token;
 
 typedef struct

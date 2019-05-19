@@ -131,15 +131,16 @@ AST* parse(Parser_Context* ctx, char* file) {
 
     // Testing here 
     List* top_level_cst = generate_cst_from_tokens(tokens);
-    CST* module = make_cst_module(file, top_level_cst);
-    List* modules = make_list();
-    list_append(modules, module);
-    CST* cst = make_cst_program(modules);
-    info(cst_to_str(cst));
+    LIST_FOREACH(top_level_cst) {
+        info(cst_to_str(it->data));
+    }
+    List*  top_level_ast = generate_ast_from_cst(top_level_cst);
+    LIST_FOREACH(top_level_ast) {
+        info(ast_to_str(it->data));
+    }
+    // List*  top_level_ast = generate_ast_from_tokens(tokens);
 
-    List*  top_level = generate_ast_from_tokens(tokens);
-
-    AST* top_level_scope = make_ast_block(currTok(ctx), top_level);
+    AST* top_level_scope = make_ast_block(currTok(ctx), top_level_ast);
 
     // Wrap it all in a module
     AST* ast = make_ast_module(currTok(ctx), file, top_level_scope);

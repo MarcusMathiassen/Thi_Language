@@ -24,125 +24,16 @@
 
 #include "ast.h"
 #include "constants.h"
+#include "cst.h"     // CST
 #include "lexer.h"   // token_kind_to_str,
 #include "string.h"  // strf, string_append, string
 #include "utility.h" // info, success, error, warning, xmalloc, xrealloc
 #include <assert.h>  // assert
 #include <string.h>  // strlen
 
-void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr) {
-    if (!expr) return;
-    assert(func);
-    switch (expr->kind) {
-    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(expr->kind));
-
-    // clang-format off
-    case AST_MODULE: ast_visit(func, ctx, expr->Module.top_level); break;
-    case AST_TYPEOF: ast_visit(func, ctx, expr->Typeof.expr);      break;
-    case AST_SIZEOF: ast_visit(func, ctx, expr->Sizeof.expr);      break;
-    case AST_NOTE:   ast_visit(func, ctx, expr->Note.expr);        break;
-    
-    case AST_FALLTHROUGH: break;
-    case AST_LOAD:        break;
-    case AST_LINK:        break;
-    case AST_INT:         break;
-    case AST_FLOAT:       break;
-    case AST_STRING:      break;
-    case AST_IDENT:       break;
-    case AST_STRUCT:      break;
-        // clang-format on
-
-    case AST_UNARY:
-        ast_visit(func, ctx, expr->Unary.operand);
-        break;
-    case AST_BINARY:
-        ast_visit(func, ctx, expr->Binary.lhs);
-        ast_visit(func, ctx, expr->Binary.rhs);
-        break;
-    case AST_VARIABLE_DECL:
-        ast_visit(func, ctx, expr->Variable_Decl.value);
-        break;
-    case AST_CONSTANT_DECL:
-        ast_visit(func, ctx, expr->Constant_Decl.value);
-        break;
-    case AST_ENUM: break;
-    case AST_GROUPING:
-        ast_visit(func, ctx, expr->Grouping.expr);
-        break;
-    case AST_SUBSCRIPT:
-        ast_visit(func, ctx, expr->Subscript.load);
-        ast_visit(func, ctx, expr->Subscript.sub);
-        break;
-    case AST_FIELD_ACCESS:
-        ast_visit(func, ctx, expr->Field_Access.load);
-        break;
-    case AST_IF:
-        ast_visit(func, ctx, expr->If.cond);
-        ast_visit(func, ctx, expr->If.else_block);
-        ast_visit(func, ctx, expr->If.then_block);
-        break;
-    case AST_FOR:
-        ast_visit(func, ctx, expr->For.init);
-        ast_visit(func, ctx, expr->For.cond);
-        ast_visit(func, ctx, expr->For.step);
-        ast_visit(func, ctx, expr->For.then_block);
-        break;
-    case AST_WHILE:
-        ast_visit(func, ctx, expr->While.cond);
-        ast_visit(func, ctx, expr->While.then_block);
-        break;
-    case AST_RETURN:
-        ast_visit(func, ctx, expr->Return.expr);
-        break;
-    case AST_DEFER:
-        ast_visit(func, ctx, expr->Defer.expr);
-        break;
-    case AST_BREAK:
-        ast_visit(func, ctx, expr->Break.expr);
-        break;
-    case AST_CONTINUE:
-        ast_visit(func, ctx, expr->Continue.expr);
-        break;
-    case AST_AS:
-        ast_visit(func, ctx, expr->As.expr);
-        ast_visit(func, ctx, expr->As.type_expr);
-        break;
-    case AST_IS:
-        ast_visit(func, ctx, expr->Is.expr);
-        ast_visit(func, ctx, expr->Is.body);
-        break;
-    case AST_SWITCH:
-        ast_visit(func, ctx, expr->Switch.cond);
-        ast_visit(func, ctx, expr->Switch.cases);
-        ast_visit(func, ctx, expr->Switch.default_case);
-        break;
-    case AST_EXTERN:
-        LIST_FOREACH(expr->Extern.type->Function.args) {
-            ast_visit(func, ctx, it->data);
-        }
-        break;
-    case AST_FUNCTION:
-        ast_visit(func, ctx, expr->Function.body);
-        LIST_FOREACH(expr->Function.type->Function.args) {
-            ast_visit(func, ctx, it->data);
-        }
-        LIST_FOREACH(expr->Function.defers) {
-            ast_visit(func, ctx, it->data);
-        }
-        break;
-    case AST_CALL:
-        LIST_FOREACH(expr->Call.args) {
-            ast_visit(func, ctx, it->data);
-        }
-        break;
-    case AST_BLOCK:
-        LIST_FOREACH(expr->Block.stmts) {
-            ast_visit(func, ctx, it->data);
-        }
-        break;
-    }
-    (*func)(ctx, expr);
-}
+//------------------------------------------------------------------------------
+//                               AST Utility
+//------------------------------------------------------------------------------
 
 char* ast_kind_to_str(AST_Kind kind) {
     // clang-format off
@@ -333,6 +224,120 @@ char* ast_to_json(AST* expr) {
     return NULL;
 }
 
+void ast_visit(void (*func)(void*, AST*), void* ctx, AST* expr) {
+    if (!expr) return;
+    assert(func);
+    switch (expr->kind) {
+    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(expr->kind));
+
+    // clang-format off
+    case AST_MODULE: ast_visit(func, ctx, expr->Module.top_level); break;
+    case AST_TYPEOF: ast_visit(func, ctx, expr->Typeof.expr);      break;
+    case AST_SIZEOF: ast_visit(func, ctx, expr->Sizeof.expr);      break;
+    case AST_NOTE:   ast_visit(func, ctx, expr->Note.expr);        break;
+    
+    case AST_FALLTHROUGH: break;
+    case AST_LOAD:        break;
+    case AST_LINK:        break;
+    case AST_INT:         break;
+    case AST_FLOAT:       break;
+    case AST_STRING:      break;
+    case AST_IDENT:       break;
+    case AST_STRUCT:      break;
+        // clang-format on
+
+    case AST_UNARY:
+        ast_visit(func, ctx, expr->Unary.operand);
+        break;
+    case AST_BINARY:
+        ast_visit(func, ctx, expr->Binary.lhs);
+        ast_visit(func, ctx, expr->Binary.rhs);
+        break;
+    case AST_VARIABLE_DECL:
+        ast_visit(func, ctx, expr->Variable_Decl.value);
+        break;
+    case AST_CONSTANT_DECL:
+        ast_visit(func, ctx, expr->Constant_Decl.value);
+        break;
+    case AST_ENUM: break;
+    case AST_GROUPING:
+        ast_visit(func, ctx, expr->Grouping.expr);
+        break;
+    case AST_SUBSCRIPT:
+        ast_visit(func, ctx, expr->Subscript.load);
+        ast_visit(func, ctx, expr->Subscript.sub);
+        break;
+    case AST_FIELD_ACCESS:
+        ast_visit(func, ctx, expr->Field_Access.load);
+        break;
+    case AST_IF:
+        ast_visit(func, ctx, expr->If.cond);
+        ast_visit(func, ctx, expr->If.else_block);
+        ast_visit(func, ctx, expr->If.then_block);
+        break;
+    case AST_FOR:
+        ast_visit(func, ctx, expr->For.init);
+        ast_visit(func, ctx, expr->For.cond);
+        ast_visit(func, ctx, expr->For.step);
+        ast_visit(func, ctx, expr->For.then_block);
+        break;
+    case AST_WHILE:
+        ast_visit(func, ctx, expr->While.cond);
+        ast_visit(func, ctx, expr->While.then_block);
+        break;
+    case AST_RETURN:
+        ast_visit(func, ctx, expr->Return.expr);
+        break;
+    case AST_DEFER:
+        ast_visit(func, ctx, expr->Defer.expr);
+        break;
+    case AST_BREAK:
+        ast_visit(func, ctx, expr->Break.expr);
+        break;
+    case AST_CONTINUE:
+        ast_visit(func, ctx, expr->Continue.expr);
+        break;
+    case AST_AS:
+        ast_visit(func, ctx, expr->As.expr);
+        ast_visit(func, ctx, expr->As.type_expr);
+        break;
+    case AST_IS:
+        ast_visit(func, ctx, expr->Is.expr);
+        ast_visit(func, ctx, expr->Is.body);
+        break;
+    case AST_SWITCH:
+        ast_visit(func, ctx, expr->Switch.cond);
+        ast_visit(func, ctx, expr->Switch.cases);
+        ast_visit(func, ctx, expr->Switch.default_case);
+        break;
+    case AST_EXTERN:
+        LIST_FOREACH(expr->Extern.type->Function.args) {
+            ast_visit(func, ctx, it->data);
+        }
+        break;
+    case AST_FUNCTION:
+        ast_visit(func, ctx, expr->Function.body);
+        LIST_FOREACH(expr->Function.type->Function.args) {
+            ast_visit(func, ctx, it->data);
+        }
+        LIST_FOREACH(expr->Function.defers) {
+            ast_visit(func, ctx, it->data);
+        }
+        break;
+    case AST_CALL:
+        LIST_FOREACH(expr->Call.args) {
+            ast_visit(func, ctx, it->data);
+        }
+        break;
+    case AST_BLOCK:
+        LIST_FOREACH(expr->Block.stmts) {
+            ast_visit(func, ctx, it->data);
+        }
+        break;
+    }
+    (*func)(ctx, expr);
+}
+
 AST* get_arg_from_func(Type* func_t, s64 arg_index) {
     assert(func_t);
     assert(func_t->kind == TYPE_FUNCTION);
@@ -360,10 +365,6 @@ void ast_ref_list_append(AST_Ref_List* l, AST* a) {
     l->count += 1;
 }
 
-//------------------------------------------------------------------------------
-//                               AST Utility Functions
-//------------------------------------------------------------------------------
-
 void ast_replace(AST* a, AST* b) {
     assert(a);
     assert(b);
@@ -373,7 +374,101 @@ void ast_replace(AST* a, AST* b) {
 }
 
 //------------------------------------------------------------------------------
-//                               AST* Maker Functions
+//                               AST Parser
+//------------------------------------------------------------------------------
+
+#define DEBUG_START \
+    assert(ctx);    \
+    // info("%s: %s", __func__, cst_to_str(curr(ctx)));
+
+typedef struct {
+    List_Node*  iter;
+    CST*  prev;
+    CST*  curr;
+    List* loads;
+
+} AST_Parser_Context;
+
+static CST* curr(AST_Parser_Context* ctx) {
+    return ctx->curr;
+}
+
+static CST* prev(AST_Parser_Context* ctx) {
+    return ctx->prev;
+}
+
+static CST_Kind kind(AST_Parser_Context* ctx) {
+    return ctx->curr->kind;
+}
+
+static char* value(AST_Parser_Context* ctx) {
+    assert(ctx->curr->kind == CST_TOKEN);
+    return ctx->curr->token.value;
+}
+
+static bool same_line(AST_Parser_Context* ctx) {
+    s64 l1 = curr(ctx)->loc_info.line_pos;
+    s64 l2 = prev(ctx)->loc_info.line_pos;
+    return l1 == l2;
+}
+
+static bool is(AST_Parser_Context* ctx, CST_Kind k) {
+    return kind(ctx) == k;
+}
+
+static void eat(AST_Parser_Context* ctx) {
+    ctx->prev = ctx->curr;
+    ctx->curr = ctx->iter->data;
+    if (ctx->iter->next)
+        ctx->iter = ctx->iter->next;
+    else
+        error("cant eat no more");
+}
+
+static void eat_kind(AST_Parser_Context* ctx, CST_Kind expected_kind) {
+    if (kind(ctx) != expected_kind) {
+        error("Expected '%s' got '%s'", cst_kind_to_str(expected_kind), cst_kind_to_str(kind(ctx)));
+    }
+    eat(ctx);
+}
+
+static AST* parse_node(AST_Parser_Context* ctx) {
+    DEBUG_START;
+    switch (kind(ctx)) {
+    default: ERROR_UNHANDLED_KIND(cst_kind_to_str(kind(ctx)))
+    }
+    UNREACHABLE;
+    return NULL;
+}
+
+List* generate_ast_from_cst(List* top_level_cst) {
+    info("Generating AST from CST..");
+    assert(top_level_cst);
+    List* top_level_ast = make_list();
+
+    AST_Parser_Context ctx;
+    ctx.iter  = top_level_cst->head;
+    ctx.loads = make_list();
+
+    eat(&ctx);
+
+    info(cst_to_str(curr(&ctx)));
+
+    LIST_FOREACH(top_level_cst) {
+        AST* node = parse_node(&ctx);
+        list_append(top_level_ast, node);
+    }
+    return top_level_ast;
+}
+
+//------------------------------------------------------------------------------
+//                               AST Tests
+//------------------------------------------------------------------------------
+void ast_tests(void) {
+}
+
+//------------------------------------------------------------------------------
+//                               AST Maker Functions
 //------------------------------------------------------------------------------
 
 AST* make_ast(AST_Kind kind, Token t) {

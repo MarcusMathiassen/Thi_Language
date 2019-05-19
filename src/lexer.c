@@ -676,7 +676,8 @@ void print_token(Token token) {
 void print_tokens(Token* tokens) {
     info("Printing tokens..");
     Token* token = tokens;
-    while(token) print_token(*token++);
+    while (token)
+        print_token(*token++);
 }
 
 bool is_valid_identifier(u8 c) {

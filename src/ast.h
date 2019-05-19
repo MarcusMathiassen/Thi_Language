@@ -28,6 +28,7 @@
 #include "lexer.h" // Token_Kind
 #include "list.h"  // List
 #include "type.h"  // Type
+#include "cst.h"  // CST
 
 typedef enum {
     AST_MODULE,
@@ -264,6 +265,8 @@ struct AST {
     };
 };
 
+List* generate_ast_from_cst(List* top_level_cst);
+
 // clang-format off
 AST* make_ast_module        (Token t, char* name, AST* top_level);
 AST* make_ast_extern        (Token t, Type* type);
@@ -302,6 +305,7 @@ AST* make_ast_break         (Token t);
 AST* make_ast_continue      (Token t);
 
 AST*  get_arg_from_func (Type* func_t, s64 arg_index);
+void ast_tests(void);
 void  ast_visit         (void (*func)(void*, AST*), void* ctx, AST* expr);
 void  ast_replace       (AST* a, AST* b);
 char* ast_to_json       (AST* expr);

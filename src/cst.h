@@ -31,8 +31,6 @@
 
 typedef enum {
     CST_TOKEN,
-    CST_PROGRAM,
-    CST_MODULE,
     CST_IDENTIFIER,
     CST_SPACE_SEPARATED_IDENTIFIER_LIST,
     CST_COMMA_SEPARATED_LIST,
@@ -45,19 +43,16 @@ typedef enum {
 
 typedef struct CST CST;
 
+typedef struct {
+    s64      line_pos;
+    s64      col_pos;
+} Loc_Info;
+
 struct CST {
     CST_Kind kind;
-    Token    token;
+    Loc_Info loc_info;
     union {
-        struct
-        {
-            List* modules;
-        } Program;
-        struct
-        {
-            char* name;
-            List* nodes;
-        } Module;
+        Token token;
         struct
         {
             char* name;
@@ -75,12 +70,10 @@ struct CST {
 
 List* generate_cst_from_tokens(Token* tokens);
 
-CST* make_cst_token(Token token);
-CST* make_cst_program(List* modules);
-CST* make_cst_module(char* name, List* nodes);
-CST* make_cst_identifier(char* name);
-CST* make_cst_space_separated_identifier_list(List* identifiers);
-CST* make_cst_comma_separated_list(List* arguments);
+CST* make_cst_token(Loc_Info loc_info, Token token);
+CST* make_cst_identifier(Loc_Info loc_info, char* name);
+CST* make_cst_space_separated_identifier_list(Loc_Info loc_info, List* identifiers);
+CST* make_cst_comma_separated_list(Loc_Info loc_info, List* nodes);
 
 void  cst_tests(void);
 char* cst_kind_to_str(CST_Kind kind);
