@@ -179,7 +179,7 @@ Token* generate_tokens_from_source(char* source) {
         if (lctx.current_indentation_level > lctx.previous_indentation_level) {
             Token t;
             t.kind                          = TOKEN_BLOCK_START;
-            t.value                         = "";
+            t.value                         = "{";
             t.line_pos                      = lctx.line_count;
             t.col_pos                       = lctx.stream - lctx.position_of_newline;
             lctx.previous_indentation_level = lctx.current_indentation_level;
@@ -190,10 +190,10 @@ Token* generate_tokens_from_source(char* source) {
                lctx.previous_indentation_level) {
             Token t;
             t.kind     = TOKEN_BLOCK_END;
-            t.value    = "";
+            t.value    = "}";
             t.line_pos = lctx.line_count;
             t.col_pos  = lctx.stream - lctx.position_of_newline;
-            lctx.previous_indentation_level -= 4;
+            lctx.previous_indentation_level -= DEFAULT_INDENT_LEVEL;
             token_array_append(&tokens, t);
         }
 

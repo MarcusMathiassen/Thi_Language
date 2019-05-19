@@ -131,7 +131,7 @@ AST* parse(Parser_Context* ctx, char* file) {
 
     // Testing here 
     List* top_level_cst = generate_cst_from_tokens(tokens);
-    CST* module = make_cst_module(file, make_cst_block(top_level_cst));
+    CST* module = make_cst_module(file, top_level_cst);
     List* modules = make_list();
     list_append(modules, module);
     CST* cst = make_cst_program(modules);

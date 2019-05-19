@@ -66,7 +66,7 @@ void string_append(string* this, char* str) {
     assert(this);
     assert(str);
     s64 str_len = strlen(str);
-    assert(str_len != 0);
+    if (str_len == 0) return;
 
     char* c_str = this->c_str;
     s64   len   = this->len;

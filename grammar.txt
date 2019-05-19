@@ -79,7 +79,7 @@
     <func_def>              ::= <ident> "(" <var_decl>.. ")" <type> <block>
     <func_lambda>           ::= <ident> '=>' <block>
 
-    <var_decl_block>        ::= <block_start> <var_decl>.. <block_end>
+    <variable_decl_block>   ::= <block_start> <var_decl>.. <block_end>
     <constant_decl_block>   ::= <block_start> <constant_decl>.. <block_end>
 
     <struct_def>            ::= <ident> <var_decl_block>
