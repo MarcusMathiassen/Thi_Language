@@ -109,7 +109,7 @@ Type* parse_enum_signature             (Parser_Context* ctx, char* enum_name);
 Type* parse_struct_signature           (Parser_Context* ctx, char* struct_name);
 Type* parse_function_signature         (Parser_Context* ctx, char* func_name);
 Type* parse_extern_function_signature  (Parser_Context* ctx, char* func_name);
-List* generate_ast_from_tokens         (Token* tokens);
+List* generate_ast_from_tokens         (char* file, Token* tokens);
 // clang-format on
 
 //------------------------------------------------------------------------------
@@ -126,10 +126,10 @@ AST* parse(Parser_Context* ctx, char* file) {
     ctx->file = file;
     ctx->dir  = get_file_directory(file);
 
-    char*  source    = get_file_content(file);
-    Token* tokens    = generate_tokens_from_source(source);
+    char*  source = get_file_content(file);
+    Token* tokens = generate_tokens_from_source(source);
 
-    // Testing here 
+    // Testing here
     // List* top_level_cst = generate_cst_from_tokens(tokens);
     // LIST_FOREACH(top_level_cst) {
     //     info(cst_to_str(it->data));
@@ -138,12 +138,12 @@ AST* parse(Parser_Context* ctx, char* file) {
     // LIST_FOREACH(top_level_ast) {
     //     info(ast_to_str(it->data));
     // }
-    List*  top_level_ast = generate_ast_from_tokens(tokens);
+    List* top_level_ast = generate_ast_from_tokens(file, tokens);
 
-    AST* top_level_scope = make_ast_block(currTok(ctx), top_level_ast);
+    AST* top_level_scope = make_ast_block(loc(ctx), top_level_ast);
 
     // Wrap it all in a module
-    AST* ast = make_ast_module(currTok(ctx), file, top_level_scope);
+    AST* ast = make_ast_module(loc(ctx), file, top_level_scope);
 
     // Recover state
     ctx->file = last_file;
@@ -152,11 +152,12 @@ AST* parse(Parser_Context* ctx, char* file) {
     return ast;
 }
 
-List* generate_ast_from_tokens(Token* tokens) {
+List* generate_ast_from_tokens(char* file, Token* tokens) {
     info("Generating AST from tokens..");
 
     Parser_Context ctx = make_parser_context();
     ctx.tokens         = tokens;
+    ctx.file           = file;
 
     eat(&ctx); // prep the first token
 
@@ -207,9 +208,9 @@ AST* parse_primary(Parser_Context* ctx) {
     DEBUG_START;
     // clang-format off
     switch (tokKind(ctx)) {
-    case TOKEN_DOT_DOT_DOT: eat(ctx); return make_ast_var_args(currTok(ctx));
-    case TOKEN_TRUE:        eat(ctx); return make_ast_int(currTok(ctx), 1);
-    case TOKEN_FALSE:       eat(ctx); return make_ast_int(currTok(ctx), 0);
+    case TOKEN_DOT_DOT_DOT: eat(ctx); return make_ast_var_args(loc(ctx));
+    case TOKEN_TRUE:        eat(ctx); return make_ast_int(loc(ctx), 1);
+    case TOKEN_FALSE:       eat(ctx); return make_ast_int(loc(ctx), 0);
     case TOKEN_IDENTIFIER:  return parse_identifier(ctx);
     case TOKEN_DOLLAR_SIGN: return parse_note(ctx);
     case TOKEN_FLOAT:       return parse_float(ctx);
@@ -231,13 +232,21 @@ AST* parse_identifier(Parser_Context* ctx) {
     char* ident = tokValue(ctx);
     eat_kind(ctx, TOKEN_IDENTIFIER);
 
+    /*
+        <constant_decl>         ::= <ident_list>
+                                  | <ident> <expr>
+        <variable_decl>         ::= <ident_list>
+                                  | <ident_list> "=" <expr>
+                                  | <ident> "=" <expr>
+    */
+
     // clang-format off
     switch (tokKind(ctx)) {
     case TOKEN_COLON:       // fallthrough
     case TOKEN_COLON_EQ:    return parse_variable_decl(ctx, ident);
     case TOKEN_COLON_COLON: return parse_constant_decl(ctx, ident);
     case TOKEN_OPEN_PAREN:  return parse_function_call(ctx, ident);
-    default:                return make_ast_ident(currTok(ctx), ident);
+    default:                return make_ast_ident(loc(ctx), ident);
     }
     // clang-format on
     UNREACHABLE;
@@ -249,7 +258,7 @@ AST* parse_expression_identifier(Parser_Context* ctx) {
     char* ident = tokValue(ctx);
     eat_kind(ctx, TOKEN_IDENTIFIER);
     if (tokKind(ctx) == TOKEN_OPEN_PAREN) return parse_function_call(ctx, ident);
-    return make_ast_ident(currTok(ctx), ident);
+    return make_ast_ident(loc(ctx), ident);
 }
 
 AST* parse_struct(Parser_Context* ctx) {
@@ -258,7 +267,7 @@ AST* parse_struct(Parser_Context* ctx) {
     char* ident = tokValue(ctx);
     eat_kind(ctx, TOKEN_IDENTIFIER);
     Type* type = parse_struct_signature(ctx, ident);
-    return make_ast_struct(currTok(ctx), type);
+    return make_ast_struct(loc(ctx), type);
 }
 
 AST* parse_enum(Parser_Context* ctx) {
@@ -267,7 +276,7 @@ AST* parse_enum(Parser_Context* ctx) {
     char* ident = tokValue(ctx);
     eat_kind(ctx, TOKEN_IDENTIFIER);
     Type* type = parse_enum_signature(ctx, ident);
-    return make_ast_enum(currTok(ctx), type);
+    return make_ast_enum(loc(ctx), type);
 }
 
 AST* parse_load(Parser_Context* ctx) {
@@ -285,7 +294,7 @@ AST* parse_link(Parser_Context* ctx) {
     eat_kind(ctx, TOKEN_LINK);
     char* str = tokValue(ctx);
     eat_kind(ctx, TOKEN_STRING);
-    return make_ast_link(currTok(ctx), str);
+    return make_ast_link(loc(ctx), str);
 }
 
 AST* parse_extern(Parser_Context* ctx) {
@@ -294,20 +303,20 @@ AST* parse_extern(Parser_Context* ctx) {
     char* ident = tokValue(ctx);
     eat_kind(ctx, TOKEN_IDENTIFIER);
     Type* type = parse_extern_function_signature(ctx, ident);
-    AST*  e    = make_ast_extern(currTok(ctx), type);
+    AST*  e    = make_ast_extern(loc(ctx), type);
     return e;
 }
 
 AST* parse_continue(Parser_Context* ctx) {
     DEBUG_START;
     eat_kind(ctx, TOKEN_CONTINUE);
-    return make_ast_continue(currTok(ctx));
+    return make_ast_continue(loc(ctx));
 }
 
 AST* parse_break(Parser_Context* ctx) {
     DEBUG_START;
     eat_kind(ctx, TOKEN_BREAK);
-    return make_ast_break(currTok(ctx));
+    return make_ast_break(loc(ctx));
 }
 
 AST* parse_while(Parser_Context* ctx) {
@@ -315,7 +324,7 @@ AST* parse_while(Parser_Context* ctx) {
     eat_kind(ctx, TOKEN_WHILE);
     AST* cond       = parse_expression(ctx);
     AST* then_block = parse_block(ctx);
-    return make_ast_while(currTok(ctx), cond, then_block);
+    return make_ast_while(loc(ctx), cond, then_block);
 }
 
 AST* parse_for(Parser_Context* ctx) {
@@ -327,39 +336,39 @@ AST* parse_for(Parser_Context* ctx) {
     eat_kind(ctx, TOKEN_COMMA);
     AST* step       = parse_expression(ctx);
     AST* then_block = parse_block(ctx);
-    return make_ast_for(currTok(ctx), init, cond, step, then_block);
+    return make_ast_for(loc(ctx), init, cond, step, then_block);
 }
 
 AST* parse_defer(Parser_Context* ctx) {
     DEBUG_START;
     eat_kind(ctx, TOKEN_DEFER);
     AST* block = parse_block(ctx);
-    return make_ast_defer(currTok(ctx), block);
+    return make_ast_defer(loc(ctx), block);
 }
 
 AST* parse_fallthrough(Parser_Context* ctx) {
     DEBUG_START;
-    Token t = currTok(ctx);
+    Loc_Info loc_info = loc(ctx);
     eat_kind(ctx, TOKEN_FALLTHROUGH);
-    return make_ast_fallthrough(t);
+    return make_ast_fallthrough(loc_info);
 }
 AST* parse_is(Parser_Context* ctx) {
     DEBUG_START;
-    Token t = currTok(ctx);
+    Loc_Info loc_info = loc(ctx);
     eat_kind(ctx, TOKEN_IS);
     AST* expr = parse_expression(ctx);
     AST* body = parse_block(ctx);
 
     bool has_fallthrough = false;
     LIST_FOREACH(body->Block.stmts) {
-        AST* stmt = (AST*)it->data;
+        AST* stmt = it->data;
         if (stmt->kind == AST_FALLTHROUGH) {
             has_fallthrough = true;
             break;
         }
     }
 
-    return make_ast_is(t, expr, body, has_fallthrough);
+    return make_ast_is(loc_info, expr, body, has_fallthrough);
 }
 
 AST* parse_dangling_else(Parser_Context* ctx) {
@@ -370,9 +379,9 @@ AST* parse_dangling_else(Parser_Context* ctx) {
     return NULL;
 }
 
-void maybe_convert_if_to_switch(AST* expr) {
+void maybe_convert_if_to_switch(AST* node) {
 
-    AST* then_block = expr->If.then_block;
+    AST* then_block = node->If.then_block;
 
     // check for any AST_IS inside
     List* stmts                             = then_block->Block.stmts;
@@ -401,7 +410,7 @@ void maybe_convert_if_to_switch(AST* expr) {
         }
 
         // Transform this if into a switch
-        ast_replace(expr, make_ast_switch(expr->t, expr));
+        ast_replace(node, make_ast_switch(node->loc_info, node));
     }
 }
 
@@ -415,7 +424,7 @@ AST* parse_if(Parser_Context* ctx) {
         eat_kind(ctx, TOKEN_ELSE);
         else_block = parse_block(ctx);
     }
-    AST* if_statement = make_ast_if(currTok(ctx), cond, then_block, else_block);
+    AST* if_statement = make_ast_if(loc(ctx), cond, then_block, else_block);
     set_if_statement(ctx, if_statement);
 
     maybe_convert_if_to_switch(if_statement);
@@ -427,7 +436,7 @@ AST* parse_string(Parser_Context* ctx) {
     DEBUG_START;
     char* value = tokValue(ctx);
     eat_kind(ctx, TOKEN_STRING);
-    return make_ast_string(currTok(ctx), value);
+    return make_ast_string(loc(ctx), value);
 }
 
 AST* parse_block(Parser_Context* ctx) {
@@ -440,7 +449,7 @@ AST* parse_block(Parser_Context* ctx) {
         List* stmts = make_list();
         AST*  stmt  = parse_statement(ctx);
         if (stmt) list_append(stmts, stmt);
-        block = make_ast_block(currTok(ctx), stmts);
+        block = make_ast_block(loc(ctx), stmts);
     }
 
     if (!block) {
@@ -453,7 +462,7 @@ AST* parse_block(Parser_Context* ctx) {
             }
         }
         eat_kind(ctx, TOKEN_BLOCK_END);
-        block = make_ast_block(currTok(ctx), stmts);
+        block = make_ast_block(loc(ctx), stmts);
     }
 
     assert(block);
@@ -467,7 +476,7 @@ AST* parse_return(Parser_Context* ctx) {
     DEBUG_START;
     eat_kind(ctx, TOKEN_RETURN);
     AST* expr = tok_is_on_same_line(ctx) ? parse_expression(ctx) : NULL;
-    return make_ast_return(currTok(ctx), expr);
+    return make_ast_return(loc(ctx), expr);
 }
 
 AST* parse_function_call(Parser_Context* ctx, char* ident) {
@@ -501,7 +510,7 @@ AST* parse_function_call(Parser_Context* ctx, char* ident) {
             }
         }
         Type* type = make_type_function(ident, args, NULL, has_var_args);
-        return make_ast_function(currTok(ctx), type, parse_block(ctx));
+        return make_ast_function(loc(ctx), type, parse_block(ctx));
     } else if (tok_is(ctx, TOKEN_BLOCK_START)) {
         bool has_var_args = false;
         LIST_FOREACH(args) {
@@ -513,17 +522,17 @@ AST* parse_function_call(Parser_Context* ctx, char* ident) {
             }
         }
         Type* type = make_type_function(ident, args, NULL, has_var_args);
-        return make_ast_function(currTok(ctx), type, parse_block(ctx));
+        return make_ast_function(loc(ctx), type, parse_block(ctx));
     }
 
-    return make_ast_call(currTok(ctx), ident, args);
+    return make_ast_call(loc(ctx), ident, args);
 }
 
 AST* parse_constant_decl(Parser_Context* ctx, char* ident) {
     DEBUG_START;
     eat_kind(ctx, TOKEN_COLON_COLON);
     AST* value = parse_expression(ctx);
-    return make_ast_constant_decl(currTok(ctx), ident, value);
+    return make_ast_constant_decl(loc(ctx), ident, value);
 }
 
 AST* parse_variable_decl(Parser_Context* ctx, char* ident) {
@@ -550,7 +559,7 @@ AST* parse_variable_decl(Parser_Context* ctx, char* ident) {
         break;
     }
 
-    return make_ast_variable_decl(currTok(ctx), variable_name, variable_type, variable_value);
+    return make_ast_variable_decl(loc(ctx), variable_name, variable_type, variable_value);
 }
 
 AST* parse_binary(Parser_Context* ctx, s8 expr_prec, AST* lhs) {
@@ -592,7 +601,7 @@ AST* parse_binary(Parser_Context* ctx, s8 expr_prec, AST* lhs) {
         }
 
         // Merge lhs/rhs.
-        lhs = make_ast_binary(currTok(ctx), binary_op_token, lhs, rhs);
+        lhs = make_ast_binary(loc(ctx), binary_op_token, lhs, rhs);
     }
 
     return expr;
@@ -601,14 +610,14 @@ AST* parse_binary(Parser_Context* ctx, s8 expr_prec, AST* lhs) {
 AST* read_as(Parser_Context* ctx, AST* expr) {
     eat_kind(ctx, TOKEN_AS);
     AST* type_expr = parse_expression(ctx);
-    return make_ast_as(currTok(ctx), expr, type_expr);
+    return make_ast_as(loc(ctx), expr, type_expr);
 }
 
 AST* read_subscript_expr(Parser_Context* ctx, AST* expr) {
     eat_kind(ctx, TOKEN_OPEN_BRACKET);
     AST* sub = parse_expression(ctx);
     eat_kind(ctx, TOKEN_CLOSE_BRACKET);
-    sub = make_ast_subscript(currTok(ctx), expr, sub);
+    sub = make_ast_subscript(loc(ctx), expr, sub);
     return sub;
 }
 
@@ -616,7 +625,7 @@ AST* read_field_access(Parser_Context* ctx, AST* expr) {
     eat_kind(ctx, TOKEN_DOT);
     char* field_name = tokValue(ctx);
     eat_kind(ctx, TOKEN_IDENTIFIER);
-    AST* field = make_ast_field_access(currTok(ctx), expr, field_name);
+    AST* field = make_ast_field_access(loc(ctx), expr, field_name);
     return field;
 }
 
@@ -661,16 +670,16 @@ AST* parse_unary(Parser_Context* ctx) {
             eat(ctx);
             AST* operand = parse_unary(ctx);
             if (operand) {
-                unary = make_ast_unary(currTok(ctx), op, operand);
+                unary = make_ast_unary(loc(ctx), op, operand);
             }
         }
     }
 
     if (unary) {
         if (unary->Unary.op == TOKEN_SIZEOF) {
-            ast_replace(unary, make_ast_sizeof(unary->t, unary->Unary.operand));
+            ast_replace(unary, make_ast_sizeof(unary->loc_info, unary->Unary.operand));
         } else if (unary->Unary.op == TOKEN_TYPEOF) {
-            ast_replace(unary, make_ast_typeof(unary->t, unary->Unary.operand));
+            ast_replace(unary, make_ast_typeof(unary->loc_info, unary->Unary.operand));
         }
     }
 
@@ -689,7 +698,7 @@ AST* parse_note(Parser_Context* ctx) {
     case TOKEN_INTEGER:     expr = parse_integer(ctx); break;
     }
     // clang-format on
-    return make_ast_note(currTok(ctx), expr);
+    return make_ast_note(loc(ctx), expr);
 }
 
 AST* parse_expression(Parser_Context* ctx) {
@@ -701,13 +710,13 @@ AST* parse_expression(Parser_Context* ctx) {
 
 AST* parse_float(Parser_Context* ctx) {
     DEBUG_START;
-    AST* res = make_ast_float(currTok(ctx), get_float(ctx));
+    AST* res = make_ast_float(loc(ctx), get_float(ctx));
     return res;
 }
 
 AST* parse_integer(Parser_Context* ctx) {
     DEBUG_START;
-    AST* res = make_ast_int(currTok(ctx), get_integer(ctx));
+    AST* res = make_ast_int(loc(ctx), get_integer(ctx));
     return res;
 }
 
@@ -716,7 +725,7 @@ AST* parse_parens(Parser_Context* ctx) {
     eat_kind(ctx, TOKEN_OPEN_PAREN);
     AST* expr = parse_expression(ctx);
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
-    return make_ast_grouping(currTok(ctx), expr);
+    return make_ast_grouping(loc(ctx), expr);
 }
 
 //------------------------------------------------------------------------------
@@ -765,7 +774,7 @@ Type* parse_extern_function_signature(Parser_Context* ctx, char* func_name) {
             has_var_args = true;
         } else {
             Type* type = get_type(ctx);
-            AST*  expr = make_ast_variable_decl(currTok(ctx), NULL, type, NULL);
+            AST*  expr = make_ast_variable_decl(loc(ctx), NULL, type, NULL);
             list_append(args, expr);
         }
         has_multiple_arguments = true;

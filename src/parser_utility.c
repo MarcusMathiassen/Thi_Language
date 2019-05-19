@@ -230,7 +230,7 @@ void eat(Parser_Context* ctx) {
 void eat_kind(Parser_Context* ctx, Token_Kind kind) {
     Token_Kind tk = ctx->curr_tok.kind;
     if (tk != kind) {
-        error("Expected '%s' got '%s'", token_kind_to_str(kind), token_kind_to_str(tk));
+        error("[%s:%s:%s] expected '%s' got '%s'", give_unique_color(ctx->file), give_unique_color(strf("%d", ctx->curr_tok.line_pos)), give_unique_color(strf("%d", ctx->curr_tok.col_pos)), give_unique_color(token_kind_to_str(kind)), give_unique_color(tokValue(ctx)));
     }
     eat(ctx);
 }
@@ -244,4 +244,11 @@ void restore_if_statement(Parser_Context* ctx) {
 }
 void set_dangling_else(Parser_Context* ctx, AST* else_block) {
     ctx->llast_if_statement->If.else_block = else_block;
+}
+
+Loc_Info loc(Parser_Context* ctx) {
+    Loc_Info loc_info;
+    loc_info.line_pos = ctx->curr_tok.line_pos;
+    loc_info.col_pos  = ctx->curr_tok.col_pos;
+    return loc_info;
 }

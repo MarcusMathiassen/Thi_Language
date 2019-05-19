@@ -27,8 +27,8 @@
 #include <string.h> // strcmp
 
 #define DEBUG_START                                                                                             \
-    info("%s: %s", give_unique_color(ast_kind_to_str(expr->kind)), wrap_with_colored_parens(ast_to_str(expr))); \
-    assert(expr);
+    info("%s: %s", give_unique_color(ast_kind_to_str(node->kind)), wrap_with_colored_parens(ast_to_str(node))); \
+    assert(node);
 
 typedef struct
 {
@@ -38,37 +38,37 @@ typedef struct
 } Typer_Context;
 
 // clang-format off
-Type* type_check_expr           (Typer_Context* ctx, AST* expr);
-Type* type_check_module         (Typer_Context* ctx, AST* expr);
-Type* type_check_typeof         (Typer_Context* ctx, AST* expr);
-Type* type_check_sizeof         (Typer_Context* ctx, AST* expr);
-Type* type_check_switch         (Typer_Context* ctx, AST* expr);
-Type* type_check_extern         (Typer_Context* ctx, AST* expr);
-Type* type_check_struct         (Typer_Context* ctx, AST* expr);
-Type* type_check_enum           (Typer_Context* ctx, AST* expr);
-Type* type_check_function       (Typer_Context* ctx, AST* expr);
-Type* type_check_note           (Typer_Context* ctx, AST* expr);
-Type* type_check_int            (Typer_Context* ctx, AST* expr);
-Type* type_check_float          (Typer_Context* ctx, AST* expr);
-Type* type_check_string         (Typer_Context* ctx, AST* expr);
-Type* type_check_ident          (Typer_Context* ctx, AST* expr);
-Type* type_check_call           (Typer_Context* ctx, AST* expr);
-Type* type_check_unary          (Typer_Context* ctx, AST* expr);
-Type* type_check_binary         (Typer_Context* ctx, AST* expr);
-Type* type_check_variable_decl  (Typer_Context* ctx, AST* expr);
-Type* type_check_constant_decl  (Typer_Context* ctx, AST* expr);
-Type* type_check_block          (Typer_Context* ctx, AST* expr);
-Type* type_check_subscript      (Typer_Context* ctx, AST* expr);
-Type* type_check_field_access   (Typer_Context* ctx, AST* expr);
-Type* type_check_if             (Typer_Context* ctx, AST* expr);
-Type* type_check_for            (Typer_Context* ctx, AST* expr);
-Type* type_check_while          (Typer_Context* ctx, AST* expr);
-Type* type_check_return         (Typer_Context* ctx, AST* expr);
-Type* type_check_defer          (Typer_Context* ctx, AST* expr);
-Type* type_check_break          (Typer_Context* ctx, AST* expr);
-Type* type_check_continue       (Typer_Context* ctx, AST* expr);
-Type* type_check_as             (Typer_Context* ctx, AST* expr);
-Type* type_check_is             (Typer_Context* ctx, AST* expr);
+Type* type_check_node           (Typer_Context* ctx, AST* node);
+Type* type_check_module         (Typer_Context* ctx, AST* node);
+Type* type_check_typeof         (Typer_Context* ctx, AST* node);
+Type* type_check_sizeof         (Typer_Context* ctx, AST* node);
+Type* type_check_switch         (Typer_Context* ctx, AST* node);
+Type* type_check_extern         (Typer_Context* ctx, AST* node);
+Type* type_check_struct         (Typer_Context* ctx, AST* node);
+Type* type_check_enum           (Typer_Context* ctx, AST* node);
+Type* type_check_function       (Typer_Context* ctx, AST* node);
+Type* type_check_note           (Typer_Context* ctx, AST* node);
+Type* type_check_int            (Typer_Context* ctx, AST* node);
+Type* type_check_float          (Typer_Context* ctx, AST* node);
+Type* type_check_string         (Typer_Context* ctx, AST* node);
+Type* type_check_ident          (Typer_Context* ctx, AST* node);
+Type* type_check_call           (Typer_Context* ctx, AST* node);
+Type* type_check_unary          (Typer_Context* ctx, AST* node);
+Type* type_check_binary         (Typer_Context* ctx, AST* node);
+Type* type_check_variable_decl  (Typer_Context* ctx, AST* node);
+Type* type_check_constant_decl  (Typer_Context* ctx, AST* node);
+Type* type_check_block          (Typer_Context* ctx, AST* node);
+Type* type_check_subscript      (Typer_Context* ctx, AST* node);
+Type* type_check_field_access   (Typer_Context* ctx, AST* node);
+Type* type_check_if             (Typer_Context* ctx, AST* node);
+Type* type_check_for            (Typer_Context* ctx, AST* node);
+Type* type_check_while          (Typer_Context* ctx, AST* node);
+Type* type_check_return         (Typer_Context* ctx, AST* node);
+Type* type_check_defer          (Typer_Context* ctx, AST* node);
+Type* type_check_break          (Typer_Context* ctx, AST* node);
+Type* type_check_continue       (Typer_Context* ctx, AST* node);
+Type* type_check_as             (Typer_Context* ctx, AST* node);
+Type* type_check_is             (Typer_Context* ctx, AST* node);
 // clang-format on
 
 static Type* get_symbol(Typer_Context* ctx, char* name) {
@@ -79,83 +79,83 @@ void type_checker(Map* symbol_table, AST* ast) {
     info("Type checking...");
     Typer_Context ctx;
     ctx.symbol_table = symbol_table;
-    type_check_expr(&ctx, ast);
+    type_check_node(&ctx, ast);
 }
 
-Type* type_check_expr(Typer_Context* ctx, AST* expr) {
-    if (!expr) return NULL;
+Type* type_check_node(Typer_Context* ctx, AST* node) {
+    if (!node) return NULL;
     DEBUG_START;
     Type* result = NULL;
     // clang-format off
-    switch (expr->kind) {
-    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(expr->kind));
+    switch (node->kind) {
+    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
     case AST_FALLTHROUGH:    result = NULL;                                                   break;
     case AST_LOAD:           result = NULL;                                                   break;
     case AST_LINK:           result = NULL;                                                   break;
-    case AST_TYPEOF:         result = type_check_typeof        (ctx, expr);                   break;
-    case AST_SIZEOF:         result = type_check_sizeof        (ctx, expr);                   break;
-    case AST_SWITCH:         result = type_check_switch        (ctx, expr);                   break;
-    case AST_EXTERN:         result = type_check_extern        (ctx, expr);                   break;
-    case AST_STRUCT:         result = type_check_struct        (ctx, expr);                   break;
-    case AST_ENUM:           result = type_check_enum          (ctx, expr);                   break;
-    case AST_FUNCTION:       result = type_check_function      (ctx, expr);                   break;
-    case AST_NOTE:           result = type_check_note          (ctx, expr);                   break;
-    case AST_INT:            result = type_check_int           (ctx, expr);                   break;
-    case AST_FLOAT:          result = type_check_float         (ctx, expr);                   break;
-    case AST_STRING:         result = type_check_string        (ctx, expr);                   break;
-    case AST_IDENT:          result = type_check_ident         (ctx, expr);                   break;
-    case AST_CALL:           result = type_check_call          (ctx, expr);                   break;
-    case AST_UNARY:          result = type_check_unary         (ctx, expr);                   break;
-    case AST_BINARY:         result = type_check_binary        (ctx, expr);                   break;
-    case AST_VARIABLE_DECL:  result = type_check_variable_decl (ctx, expr);                   break;
-    case AST_CONSTANT_DECL:  result = type_check_constant_decl (ctx, expr);                   break;
-    case AST_BLOCK:          result = type_check_block         (ctx, expr);                   break;
-    case AST_GROUPING:       result = type_check_expr          (ctx, expr->Grouping.expr);    break;
-    case AST_SUBSCRIPT:      result = type_check_subscript     (ctx, expr);                   break;
-    case AST_FIELD_ACCESS:   result = type_check_field_access  (ctx, expr);                   break;
-    case AST_IF:             result = type_check_if            (ctx, expr);                   break;
-    case AST_FOR:            result = type_check_for           (ctx, expr);                   break;
-    case AST_WHILE:          result = type_check_while         (ctx, expr);                   break;
-    case AST_RETURN:         result = type_check_return        (ctx, expr);                   break;
-    case AST_DEFER:          result = type_check_defer         (ctx, expr);                   break;
-    case AST_BREAK:          result = type_check_break         (ctx, expr);                   break;
-    case AST_CONTINUE:       result = type_check_continue      (ctx, expr);                   break;
-    case AST_AS:             result = type_check_as            (ctx, expr);                   break;
-    case AST_IS:             result = type_check_is            (ctx, expr);                   break;
-    case AST_MODULE:         result = type_check_module        (ctx, expr);                   break;
+    case AST_TYPEOF:         result = type_check_typeof        (ctx, node);                   break;
+    case AST_SIZEOF:         result = type_check_sizeof        (ctx, node);                   break;
+    case AST_SWITCH:         result = type_check_switch        (ctx, node);                   break;
+    case AST_EXTERN:         result = type_check_extern        (ctx, node);                   break;
+    case AST_STRUCT:         result = type_check_struct        (ctx, node);                   break;
+    case AST_ENUM:           result = type_check_enum          (ctx, node);                   break;
+    case AST_FUNCTION:       result = type_check_function      (ctx, node);                   break;
+    case AST_NOTE:           result = type_check_note          (ctx, node);                   break;
+    case AST_INT:            result = type_check_int           (ctx, node);                   break;
+    case AST_FLOAT:          result = type_check_float         (ctx, node);                   break;
+    case AST_STRING:         result = type_check_string        (ctx, node);                   break;
+    case AST_IDENT:          result = type_check_ident         (ctx, node);                   break;
+    case AST_CALL:           result = type_check_call          (ctx, node);                   break;
+    case AST_UNARY:          result = type_check_unary         (ctx, node);                   break;
+    case AST_BINARY:         result = type_check_binary        (ctx, node);                   break;
+    case AST_VARIABLE_DECL:  result = type_check_variable_decl (ctx, node);                   break;
+    case AST_CONSTANT_DECL:  result = type_check_constant_decl (ctx, node);                   break;
+    case AST_BLOCK:          result = type_check_block         (ctx, node);                   break;
+    case AST_GROUPING:       result = type_check_node          (ctx, node->Grouping.node);    break;
+    case AST_SUBSCRIPT:      result = type_check_subscript     (ctx, node);                   break;
+    case AST_FIELD_ACCESS:   result = type_check_field_access  (ctx, node);                   break;
+    case AST_IF:             result = type_check_if            (ctx, node);                   break;
+    case AST_FOR:            result = type_check_for           (ctx, node);                   break;
+    case AST_WHILE:          result = type_check_while         (ctx, node);                   break;
+    case AST_RETURN:         result = type_check_return        (ctx, node);                   break;
+    case AST_DEFER:          result = type_check_defer         (ctx, node);                   break;
+    case AST_BREAK:          result = type_check_break         (ctx, node);                   break;
+    case AST_CONTINUE:       result = type_check_continue      (ctx, node);                   break;
+    case AST_AS:             result = type_check_as            (ctx, node);                   break;
+    case AST_IS:             result = type_check_is            (ctx, node);                   break;
+    case AST_MODULE:         result = type_check_module        (ctx, node);                   break;
     }
     // clang-format on
-    expr->type = result;
+    node->type = result;
     return result;
 }
 
-Type* type_check_sizeof(Typer_Context* ctx, AST* expr) {
-    type_check_expr(ctx, expr->Sizeof.expr);
+Type* type_check_sizeof(Typer_Context* ctx, AST* node) {
+    type_check_node(ctx, node->Sizeof.node);
     return get_symbol(ctx, DEFAULT_BIG_INT_TYPE_AS_STRING);
 }
-Type* type_check_module(Typer_Context* ctx, AST* expr) {
-    return type_check_expr(ctx, expr->Module.top_level);
+Type* type_check_module(Typer_Context* ctx, AST* node) {
+    return type_check_node(ctx, node->Module.top_level);
 }
 
-Type* type_check_typeof(Typer_Context* ctx, AST* expr) {
-    return type_check_expr(ctx, expr->Typeof.expr);
+Type* type_check_typeof(Typer_Context* ctx, AST* node) {
+    return type_check_node(ctx, node->Typeof.node);
 }
 
-Type* type_check_switch(Typer_Context* ctx, AST* expr) {
+Type* type_check_switch(Typer_Context* ctx, AST* node) {
 
-    AST* cond         = expr->Switch.cond;
-    AST* cases        = expr->Switch.cases;
-    AST* default_case = expr->Switch.default_case;
+    AST* cond         = node->Switch.cond;
+    AST* cases        = node->Switch.cases;
+    AST* default_case = node->Switch.default_case;
 
     // Make sure the resulting type is of type INT.
-    type_check_expr(ctx, cond);
+    type_check_node(ctx, cond);
     // if (cond_t->kind == TYPE_INT) {
     // error("%s is not a INT.", ast_to_str(cond), type_to_str(cond_t));
     // }
 
     // A switches type is the same as its cases return type if any.
-    Type* a = type_check_expr(ctx, cases);
-    Type* b = type_check_expr(ctx, default_case);
+    Type* a = type_check_node(ctx, cases);
+    Type* b = type_check_node(ctx, default_case);
 
     if (!is_same_type(a, b)) {
         error("[type_missmatch] %s != %s", type_to_str(a), type_to_str(b));
@@ -164,74 +164,74 @@ Type* type_check_switch(Typer_Context* ctx, AST* expr) {
     return a;
 }
 
-Type* type_check_extern(Typer_Context* ctx, AST* expr) {
-    return expr->Extern.type;
+Type* type_check_extern(Typer_Context* ctx, AST* node) {
+    return node->Extern.type;
 }
-Type* type_check_struct(Typer_Context* ctx, AST* expr) {
-    LIST_FOREACH(expr->Struct.type->Struct.members) {
-        type_check_expr(ctx, it->data);
+Type* type_check_struct(Typer_Context* ctx, AST* node) {
+    LIST_FOREACH(node->Struct.type->Struct.members) {
+        type_check_node(ctx, it->data);
     }
-    return expr->Struct.type;
+    return node->Struct.type;
 }
-Type* type_check_enum(Typer_Context* ctx, AST* expr) {
-    LIST_FOREACH(expr->Enum.type->Enum.members) {
-        type_check_expr(ctx, it->data);
+Type* type_check_enum(Typer_Context* ctx, AST* node) {
+    LIST_FOREACH(node->Enum.type->Enum.members) {
+        type_check_node(ctx, it->data);
     }
-    return expr->Enum.type;
+    return node->Enum.type;
 }
-Type* type_check_function(Typer_Context* ctx, AST* expr) {
+Type* type_check_function(Typer_Context* ctx, AST* node) {
 
-    Type* func_type = expr->Function.type;
-    AST*  func_body = expr->Function.body;
+    Type* func_type = node->Function.type;
+    AST*  func_body = node->Function.body;
     List* args      = func_type->Function.args;
 
-    ctx->active_function = expr;
+    ctx->active_function = node;
 
     LIST_FOREACH(args) {
         AST* arg = (AST*)it->data;
-        type_check_expr(ctx, arg);
+        type_check_node(ctx, arg);
     }
 
-    type_check_expr(ctx, func_body);
+    type_check_node(ctx, func_body);
 
-    expr->type->Function.ret_type = expr->type->Function.ret_type;
-    func_body->type               = expr->type->Function.ret_type;
+    node->type->Function.ret_type = node->type->Function.ret_type;
+    func_body->type               = node->type->Function.ret_type;
 
     ctx->active_function = NULL;
 
     return func_type;
 }
-Type* type_check_note(Typer_Context* ctx, AST* expr) {
+Type* type_check_note(Typer_Context* ctx, AST* node) {
     return NULL;
 }
 
-Type* type_check_int(Typer_Context* ctx, AST* expr) {
+Type* type_check_int(Typer_Context* ctx, AST* node) {
     return (Type*)map_get(ctx->symbol_table, DEFAULT_INT_TYPE_AS_STRING);
 }
 
-Type* type_check_float(Typer_Context* ctx, AST* expr) {
+Type* type_check_float(Typer_Context* ctx, AST* node) {
     return (Type*)map_get(ctx->symbol_table, DEFAULT_FLOAT_TYPE_AS_STRING);
 }
-Type* type_check_string(Typer_Context* ctx, AST* expr) {
+Type* type_check_string(Typer_Context* ctx, AST* node) {
     return make_type_pointer(make_type_int(8, 1));
 }
 
-Type* type_check_ident(Typer_Context* ctx, AST* expr) {
-    char* identifier = expr->Ident.name;
+Type* type_check_ident(Typer_Context* ctx, AST* node) {
+    char* identifier = node->Ident.name;
     return get_symbol(ctx, identifier);
 }
-Type* type_check_call(Typer_Context* ctx, AST* expr) {
-    char* callee = expr->Call.callee;
-    List* args   = expr->Call.args;
+Type* type_check_call(Typer_Context* ctx, AST* node) {
+    char* callee = node->Call.callee;
+    List* args   = node->Call.args;
     Type* func_t = (Type*)map_get(ctx->symbol_table, callee);
     LIST_FOREACH(args) {
-        type_check_expr(ctx, it->data);
+        type_check_node(ctx, it->data);
     }
     return func_t;
 }
-Type* type_check_unary(Typer_Context* ctx, AST* expr) {
-    Token_Kind op      = expr->Unary.op;
-    AST*       operand = expr->Unary.operand;
+Type* type_check_unary(Typer_Context* ctx, AST* node) {
+    Token_Kind op      = node->Unary.op;
+    AST*       operand = node->Unary.operand;
 
     Type* res = NULL;
     switch (op) {
@@ -242,44 +242,43 @@ Type* type_check_unary(Typer_Context* ctx, AST* expr) {
             res          = enum_t;
             assert(operand->kind == AST_IDENT);
             LIST_FOREACH(enum_t->Enum.members) {
-                AST* mem = (AST*)it->data;
+                AST* mem = it->data;
                 if (strcmp(operand->Ident.name, mem->Constant_Decl.name) == 0) {
-                    *expr = *make_ast_binary(
-                        mem->t, TOKEN_DOT, make_ast_ident(mem->t, enum_t->Enum.name), operand);
+                    ast_replace(node, make_ast_binary(mem->loc_info, TOKEN_DOT, make_ast_ident(mem->loc_info, enum_t->Enum.name), operand));
                 }
             }
         }
     } break;
-    default: res = type_check_expr(ctx, operand); break;
+    default: res = type_check_node(ctx, operand); break;
     }
 
     return res;
 }
-Type* type_check_binary(Typer_Context* ctx, AST* expr) {
+Type* type_check_binary(Typer_Context* ctx, AST* node) {
 
-    AST* lhs = expr->Binary.lhs;
-    AST* rhs = expr->Binary.rhs;
+    AST* lhs = node->Binary.lhs;
+    AST* rhs = node->Binary.rhs;
 
-    Type* a = type_check_expr(ctx, lhs);
-    Type* b = type_check_expr(ctx, rhs);
+    Type* a = type_check_node(ctx, lhs);
+    Type* b = type_check_node(ctx, rhs);
 
     if (!is_same_type(a, b)) {
-        // error("[type_missmatch] %s -> %s != %s ", ast_to_str(expr), type_to_str(a), type_to_str(b));
+        // error("[type_missmatch] %s -> %s != %s ", ast_to_str(node), type_to_str(a), type_to_str(b));
     }
 
     // 'a' and 'b' are the same so just return any one of them
     return a;
 }
-Type* type_check_variable_decl(Typer_Context* ctx, AST* expr) {
-    char* variable_name   = expr->Variable_Decl.name;
-    Type* variable_type   = expr->Variable_Decl.type;
-    AST*  assignment_expr = expr->Variable_Decl.value;
+Type* type_check_variable_decl(Typer_Context* ctx, AST* node) {
+    char* variable_name   = node->Variable_Decl.name;
+    Type* variable_type   = node->Variable_Decl.type;
+    AST*  assignment_expr = node->Variable_Decl.value;
 
-    Type* assigned_type = type_check_expr(ctx, assignment_expr);
+    Type* assigned_type = type_check_node(ctx, assignment_expr);
 
     // Make sure the set type and assigned type is the same
     if (variable_type && assigned_type && !is_same_type(variable_type, assigned_type)) {
-        error("[type_missmatch] %s -> %s != %s ", ast_to_str(expr), type_to_str(variable_type), type_to_str(assigned_type));
+        error("[type_missmatch] %s -> %s != %s ", ast_to_str(node), type_to_str(variable_type), type_to_str(assigned_type));
     }
     variable_type      = assigned_type ? assigned_type : variable_type;
     ctx->expected_type = variable_type;
@@ -287,27 +286,27 @@ Type* type_check_variable_decl(Typer_Context* ctx, AST* expr) {
     return variable_type;
 }
 
-Type* type_check_constant_decl(Typer_Context* ctx, AST* expr) {
-    AST* value = expr->Constant_Decl.value;
-    return type_check_expr(ctx, value);
+Type* type_check_constant_decl(Typer_Context* ctx, AST* node) {
+    AST* value = node->Constant_Decl.value;
+    return type_check_node(ctx, value);
 }
-Type* type_check_block(Typer_Context* ctx, AST* expr) {
-    List* stmts = expr->Block.stmts;
+Type* type_check_block(Typer_Context* ctx, AST* node) {
+    List* stmts = node->Block.stmts;
     LIST_FOREACH(stmts) {
-        type_check_expr(ctx, it->data);
+        type_check_node(ctx, it->data);
     }
     return NULL;
 }
-Type* type_check_subscript(Typer_Context* ctx, AST* expr) {
+Type* type_check_subscript(Typer_Context* ctx, AST* node) {
 
-    AST* load = expr->Subscript.load;
-    AST* sub  = expr->Subscript.sub;
+    AST* load = node->Subscript.load;
+    AST* sub  = node->Subscript.sub;
 
     warning("load: %s", ast_to_str(load));
     warning("sub: %s", ast_to_str(sub));
 
-    Type* t = type_check_expr(ctx, load);
-    type_check_expr(ctx, sub);
+    Type* t = type_check_node(ctx, load);
+    type_check_node(ctx, sub);
 
     warning("type: %s", type_to_str(t));
     warning("type size: %d", get_size_of_type(t));
@@ -317,38 +316,38 @@ Type* type_check_subscript(Typer_Context* ctx, AST* expr) {
     warning("array type: %s", type_to_str(t));
     warning("array type size: %d", get_size_of_type(t));
 
-    info_no_newline("transformed %s into ", give_unique_color(ast_to_str(expr)));
+    info_no_newline("transformed %s into ", give_unique_color(ast_to_str(node)));
 
     // Get the size of the underlaying type
     // s64 u_size = get_size_of_type(t);
 
     // Compute the offset
 
-    // AST* offset = make_ast_binary(expr->t, TOKEN_ASTERISK, sub, make_ast_int(expr->t, u_size));
-    // AST* pos = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, load);
-    // AST* result = make_ast_binary(expr->t, TOKEN_PLUS, pos, offset);
-    // result = make_ast_unary(expr->t, THI_SYNTAX_POINTER, result);
+    // AST* offset = make_ast_binary(node->t, TOKEN_ASTERISK, sub, make_ast_int(node->t, u_size));
+    // AST* pos = make_ast_unary(node->t, THI_SYNTAX_ADDRESS, load);
+    // AST* result = make_ast_binary(node->t, TOKEN_PLUS, pos, offset);
+    // result = make_ast_unary(node->t, THI_SYNTAX_POINTER, result);
 
-    // expr = make_ast_binary(expr->t, TOKEN_ASTERISK, sub, make_ast_int(expr->t, u_size));
-    // ast_replace(expr, make_ast_binary(expr->t, TOKEN_ASTERISK, sub, make_ast_int(expr->t, u_size)));
+    // node = make_ast_binary(node->t, TOKEN_ASTERISK, sub, make_ast_int(node->t, u_size));
+    // ast_replace(node, make_ast_binary(node->t, TOKEN_ASTERISK, sub, make_ast_int(node->t, u_size)));
     // Get the memory location of the load
-    // AST* stack_ref = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, load);
+    // AST* stack_ref = make_ast_unary(node->t, THI_SYNTAX_ADDRESS, load);
     // Add the offset and memory address together
-    // expr = make_ast_binary(expr->t, TOKEN_PLUS, stack_ref, expr);
-    // ast_replace(expr, make_ast_binary(expr->t, TOKEN_PLUS, stack_ref, expr));
+    // node = make_ast_binary(node->t, TOKEN_PLUS, stack_ref, node);
+    // ast_replace(node, make_ast_binary(node->t, TOKEN_PLUS, stack_ref, node));
     // // Load the resulting location by dereferencing the memory address
-    // expr = make_ast_unary(expr->t, THI_SYNTAX_POINTER, expr);
-    // ast_replace(expr, make_ast_unary(expr->t, THI_SYNTAX_POINTER, expr));
+    // node = make_ast_unary(node->t, THI_SYNTAX_POINTER, node);
+    // ast_replace(node, make_ast_unary(node->t, THI_SYNTAX_POINTER, node));
 
-    // type_check_expr(ctx, result);
-    // ast_replace(expr, result);
+    // type_check_node(ctx, result);
+    // ast_replace(node, result);
 
     // ex. array: Foo[5]
     //     array[4].i[5]
     // trfm -> *(&(array) + sub * sizeof(array[0]))
     // turns it into this ->  *(&v + 0)
 
-    info("%s -> %s %s ", give_unique_color(ast_to_str(expr)), type_to_str(t), ast_kind_to_str(expr->kind));
+    info("%s -> %s %s ", give_unique_color(ast_to_str(node)), type_to_str(t), ast_kind_to_str(node->kind));
 
     return t;
 }
@@ -367,12 +366,12 @@ char* get_name_of_member(AST* mem) {
     return result;
 }
 
-Type* type_check_field_access(Typer_Context* ctx, AST* expr) {
-    char* type_name  = expr->Field_Access.load->Ident.name;
-    char* field_name = expr->Field_Access.field;
+Type* type_check_field_access(Typer_Context* ctx, AST* node) {
+    char* type_name  = node->Field_Access.load->Ident.name;
+    char* field_name = node->Field_Access.field;
     info("field: %s type: %s", field_name, type_name);
 
-    Type* t = type_check_expr(ctx, expr->Field_Access.load);
+    Type* t = type_check_node(ctx, node->Field_Access.load);
 
     // Type* t = map_get(ctx->symbol_table, type_name);
 
@@ -385,7 +384,7 @@ Type* type_check_field_access(Typer_Context* ctx, AST* expr) {
             info_no_newline("on %s", ast_to_str(mem));
             if (strcmp(mem->Constant_Decl.name, field_name) == 0) {
                 info("found it!");
-                ast_replace(expr, mem->Constant_Decl.value);
+                ast_replace(node, mem->Constant_Decl.value);
                 res = mem->type;
                 break;
             }
@@ -402,20 +401,20 @@ Type* type_check_field_access(Typer_Context* ctx, AST* expr) {
 
                 // // Get the offset
                 // s64 offset_size = get_offset_in_struct_to_field(t, field_name);
-                // AST* offset = make_ast_int(expr->t, offset_size);
+                // AST* offset = make_ast_int(node->t, offset_size);
 
                 // // Get the memory location of the load
-                // AST* stack_ref = make_ast_unary(expr->t, THI_SYNTAX_ADDRESS, make_ast_ident(expr->t, type_name));
+                // AST* stack_ref = make_ast_unary(node->t, THI_SYNTAX_ADDRESS, make_ast_ident(node->t, type_name));
 
                 // AST *result;
 
                 // // Add the offset and memory location
-                // result = make_ast_binary(expr->t, TOKEN_PLUS, stack_ref, offset);
+                // result = make_ast_binary(node->t, TOKEN_PLUS, stack_ref, offset);
 
                 // // Load the resulting memory location
-                // result = make_ast_unary(expr->t, THI_SYNTAX_POINTER, expr);
+                // result = make_ast_unary(node->t, THI_SYNTAX_POINTER, node);
 
-                // ast_replace(expr, result);
+                // ast_replace(node, result);
 
                 // turns it into this ->  *(&v + 0)
                 res = mem->type;
@@ -423,65 +422,65 @@ Type* type_check_field_access(Typer_Context* ctx, AST* expr) {
             }
         }
     } break;
-    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(expr->kind))
+    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind))
     }
 
-    // type_check_expr(ctx, expr);
+    // type_check_node(ctx, node);
 
     return res;
 }
-Type* type_check_if(Typer_Context* ctx, AST* expr) {
-    AST* cond       = expr->If.cond;
-    AST* then_block = expr->If.then_block;
-    AST* else_block = expr->If.else_block;
-    type_check_expr(ctx, cond);
+Type* type_check_if(Typer_Context* ctx, AST* node) {
+    AST* cond       = node->If.cond;
+    AST* then_block = node->If.then_block;
+    AST* else_block = node->If.else_block;
+    type_check_node(ctx, cond);
     ctx->expected_type = cond->type;
-    type_check_expr(ctx, then_block);
-    type_check_expr(ctx, else_block);
+    type_check_node(ctx, then_block);
+    type_check_node(ctx, else_block);
     return cond->type;
 }
-Type* type_check_for(Typer_Context* ctx, AST* expr) {
-    type_check_expr(ctx, expr->For.init);
-    type_check_expr(ctx, expr->For.cond);
-    type_check_expr(ctx, expr->For.step);
-    type_check_expr(ctx, expr->For.then_block);
+Type* type_check_for(Typer_Context* ctx, AST* node) {
+    type_check_node(ctx, node->For.init);
+    type_check_node(ctx, node->For.cond);
+    type_check_node(ctx, node->For.step);
+    type_check_node(ctx, node->For.then_block);
     return NULL;
 }
-Type* type_check_while(Typer_Context* ctx, AST* expr) {
-    type_check_expr(ctx, expr->While.cond);
-    type_check_expr(ctx, expr->While.then_block);
+Type* type_check_while(Typer_Context* ctx, AST* node) {
+    type_check_node(ctx, node->While.cond);
+    type_check_node(ctx, node->While.then_block);
     return NULL;
 }
 
-Type* type_check_return(Typer_Context* ctx, AST* expr) {
-    AST*  ret_expr = expr->Return.expr;
-    Type* t        = type_check_expr(ctx, ret_expr);
+Type* type_check_return(Typer_Context* ctx, AST* node) {
+    AST*  ret_node = node->Return.node;
+    Type* t        = type_check_node(ctx, ret_node);
     assert(ctx->active_function);
     ctx->active_function->Function.type->Function.ret_type = t;
     ctx->active_function->Function.body->type              = t;
     return t;
 }
 
-Type* type_check_defer(Typer_Context* ctx, AST* expr) {
-    return type_check_expr(ctx, expr->Defer.expr);
+Type* type_check_defer(Typer_Context* ctx, AST* node) {
+    return type_check_node(ctx, node->Defer.node);
     ;
 }
-Type* type_check_break(Typer_Context* ctx, AST* expr) {
-    return type_check_expr(ctx, expr->Break.expr);
+Type* type_check_break(Typer_Context* ctx, AST* node) {
+    return type_check_node(ctx, node->Break.node);
 }
-Type* type_check_continue(Typer_Context* ctx, AST* expr) {
-    return type_check_expr(ctx, expr->Continue.expr);
+Type* type_check_continue(Typer_Context* ctx, AST* node) {
+    return type_check_node(ctx, node->Continue.node);
     ;
 }
-Type* type_check_as(Typer_Context* ctx, AST* expr) {
-    type_check_expr(ctx, expr->As.expr);
-    Type* t = type_check_expr(ctx, expr->As.type_expr);
+Type* type_check_as(Typer_Context* ctx, AST* node) {
+    type_check_node(ctx, node->As.node);
+    Type* t = type_check_node(ctx, node->As.type_node);
     return t;
 }
 
-Type* type_check_is(Typer_Context* ctx, AST* expr) {
-    type_check_expr(ctx, expr->Is.body);
-    type_check_expr(ctx, expr->Is.expr);
+Type* type_check_is(Typer_Context* ctx, AST* node) {
+    type_check_node(ctx, node->Is.body);
+    type_check_node(ctx, node->Is.node);
     UNFINISHED;
     return NULL;
 }

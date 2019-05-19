@@ -25,12 +25,14 @@
 #ifndef AST_H
 #define AST_H
 
+#include "cst.h"   // CST
 #include "lexer.h" // Token_Kind
 #include "list.h"  // List
 #include "type.h"  // Type
-#include "cst.h"  // CST
 
 typedef enum {
+    AST_SPACE_SEPARATED_IDENTIFIER_LIST,
+    AST_COMMA_SEPARATED_LIST,
     AST_MODULE,
     AST_IS,
     AST_FALLTHROUGH,
@@ -78,8 +80,16 @@ typedef struct AST AST;
 struct AST {
     AST_Kind kind;
     Type*    type;
-    Token    t;
+    Loc_Info loc_info;
     union {
+        struct
+        {
+            List* identifiers;
+        } Space_Separated_Identifier_List;
+        struct
+        {
+            List* nodes;
+        } Comma_Separated_List;
         struct
         {
             char* name;
@@ -93,7 +103,7 @@ struct AST {
         } Switch;
         struct
         {
-            AST* expr;
+            AST* node;
             AST* body;
             bool has_fallthrough;
         } Is;
@@ -114,12 +124,12 @@ struct AST {
 
         struct
         {
-            AST* expr;
+            AST* node;
         } Note;
 
         struct
         {
-            AST* expr;
+            AST* node;
         } Grouping;
 
         struct
@@ -230,88 +240,88 @@ struct AST {
 
         struct
         {
-            AST* expr;
+            AST* node;
         } Return;
 
         struct
         {
-            AST* expr;
+            AST* node;
         } Break;
 
         struct
         {
-            AST* expr;
+            AST* node;
         } Continue;
 
         struct
         {
-            AST* expr;
+            AST* node;
         } Defer;
 
         struct
         {
-            AST* expr;
-            AST* type_expr;
+            AST* node;
+            AST* type_node;
         } As;
 
         struct
         {
-            AST* expr;
+            AST* node;
         } Sizeof;
         struct
         {
-            AST* expr;
+            AST* node;
         } Typeof;
     };
 };
 
 List* generate_ast_from_cst(List* cst);
 
-// clang-format off
-AST* make_ast_module        (Token t, char* name, AST* top_level);
-AST* make_ast_extern        (Token t, Type* type);
-AST* make_ast_load          (Token t, char* str);
-AST* make_ast_link          (Token t, char* str);
-AST* make_ast_var_args      (Token t);
-AST* make_ast_note          (Token t, AST* expr);
-AST* make_ast_int           (Token t, s64 value);
-AST* make_ast_float         (Token t, f64 value);
-AST* make_ast_string        (Token t, char* value);
-AST* make_ast_ident         (Token t, char* ident);
-AST* make_ast_struct        (Token t, Type* struct_t);
-AST* make_ast_enum          (Token t, Type* enum_t);
-AST* make_ast_function      (Token t, Type* func_t, AST* body);
-AST* make_ast_call          (Token t, char* callee, List* args);
-AST* make_ast_unary         (Token t, Token_Kind op, AST* operand);
-AST* make_ast_binary        (Token t, Token_Kind op, AST* lhs, AST* rhs);
-AST* make_ast_block         (Token t, List* stmts);
-AST* make_ast_grouping      (Token t, AST* expr);
-AST* make_ast_variable_decl (Token t, char* name, Type* type, AST* value);
-AST* make_ast_constant_decl (Token t, char* name, AST* value);
-AST* make_ast_subscript     (Token t, AST* load, AST* sub);
-AST* make_ast_field_access  (Token t, AST* load, char* field);
-AST* make_ast_if            (Token t, AST* cond, AST* then_block, AST* else_block);
-AST* make_ast_for           (Token t, AST* init, AST* cond, AST* step, AST* then_block);
-AST* make_ast_while         (Token t, AST* cond, AST* then_block);
-AST* make_ast_return        (Token t, AST* expr);
-AST* make_ast_defer         (Token t, AST* expr);
-AST* make_ast_as            (Token t, AST* expr, AST* type_expr);
-AST* make_ast_sizeof        (Token t, AST* expr);
-AST* make_ast_typeof        (Token t, AST* expr);
-AST* make_ast_is            (Token t, AST* expr, AST* body, bool has_fallthrough);
-AST* make_ast_switch        (Token t, AST* if_statement);
-AST* make_ast_fallthrough   (Token t);
-AST* make_ast_break         (Token t);
-AST* make_ast_continue      (Token t);
+AST* make_ast_module(Loc_Info loc_info, char* name, AST* top_level);
+AST* make_ast_extern(Loc_Info loc_info, Type* type);
+AST* make_ast_load(Loc_Info loc_info, char* str);
+AST* make_ast_link(Loc_Info loc_info, char* str);
+AST* make_ast_var_args(Loc_Info loc_info);
+AST* make_ast_note(Loc_Info loc_info, AST* node);
+AST* make_ast_int(Loc_Info loc_info, s64 value);
+AST* make_ast_float(Loc_Info loc_info, f64 value);
+AST* make_ast_string(Loc_Info loc_info, char* value);
+AST* make_ast_ident(Loc_Info loc_info, char* ident);
+AST* make_ast_struct(Loc_Info loc_info, Type* struct_t);
+AST* make_ast_enum(Loc_Info loc_info, Type* enum_t);
+AST* make_ast_function(Loc_Info loc_info, Type* func_t, AST* body);
+AST* make_ast_call(Loc_Info loc_info, char* callee, List* args);
+AST* make_ast_unary(Loc_Info loc_info, Token_Kind op, AST* operand);
+AST* make_ast_binary(Loc_Info loc_info, Token_Kind op, AST* lhs, AST* rhs);
+AST* make_ast_block(Loc_Info loc_info, List* stmts);
+AST* make_ast_grouping(Loc_Info loc_info, AST* node);
+AST* make_ast_variable_decl(Loc_Info loc_info, char* name, Type* type, AST* value);
+AST* make_ast_constant_decl(Loc_Info loc_info, char* name, AST* value);
+AST* make_ast_subscript(Loc_Info loc_info, AST* load, AST* sub);
+AST* make_ast_field_access(Loc_Info loc_info, AST* load, char* field);
+AST* make_ast_if(Loc_Info loc_info, AST* cond, AST* then_block, AST* else_block);
+AST* make_ast_for(Loc_Info loc_info, AST* init, AST* cond, AST* step, AST* then_block);
+AST* make_ast_while(Loc_Info loc_info, AST* cond, AST* then_block);
+AST* make_ast_return(Loc_Info loc_info, AST* node);
+AST* make_ast_defer(Loc_Info loc_info, AST* node);
+AST* make_ast_as(Loc_Info loc_info, AST* node, AST* type_node);
+AST* make_ast_sizeof(Loc_Info loc_info, AST* node);
+AST* make_ast_typeof(Loc_Info loc_info, AST* node);
+AST* make_ast_is(Loc_Info loc_info, AST* node, AST* body, bool has_fallthrough);
+AST* make_ast_switch(Loc_Info loc_info, AST* if_statement);
+AST* make_ast_fallthrough(Loc_Info loc_info);
+AST* make_ast_break(Loc_Info loc_info);
+AST* make_ast_continue(Loc_Info loc_info);
+AST* make_ast_space_separated_identifier_list(Loc_Info loc_info, List* identifiers);
+AST* make_ast_comma_separated_list(Loc_Info loc_info, List* nodes);
 
-AST*  get_arg_from_func (Type* func_t, s64 arg_index);
-void ast_tests(void);
-void  ast_visit         (void (*func)(void*, AST*), void* ctx, AST* expr);
-void  ast_replace       (AST* a, AST* b);
-char* ast_to_json       (AST* expr);
-char* ast_to_str        (AST* expr);
-char* ast_kind_to_str   (AST_Kind kind);
-// clang-format on
+AST*  get_arg_from_func(Type* func_t, s64 arg_index);
+void  ast_tests(void);
+void  ast_visit(void (*func)(void*, AST*), void* ctx, AST* node);
+void  ast_replace(AST* a, AST* b);
+char* ast_to_json(AST* node);
+char* ast_to_str(AST* node);
+char* ast_kind_to_str(AST_Kind kind);
 
 typedef struct {
     AST** data;

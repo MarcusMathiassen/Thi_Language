@@ -53,14 +53,15 @@ int            get_tok_precedence(Parser_Context* ctx);
 Token          next_tok(Parser_Context* ctx);
 Token_Kind
 next_tok_kind(Parser_Context* ctx);
-bool tok_is_on_same_line(Parser_Context* ctx);
-bool next_tok_is_on_same_line(Parser_Context* ctx);
-bool tok_is(Parser_Context* ctx, Token_Kind kind);
-void eat(Parser_Context* ctx);
-void eat_kind(Parser_Context* ctx, Token_Kind kind);
-void set_if_statement(Parser_Context* ctx, AST* if_statement);
-void restore_if_statement(Parser_Context* ctx);
-void set_dangling_else(Parser_Context* ctx, AST* else_block);
+Loc_Info loc(Parser_Context* ctx);
+bool     tok_is_on_same_line(Parser_Context* ctx);
+bool     next_tok_is_on_same_line(Parser_Context* ctx);
+bool     tok_is(Parser_Context* ctx, Token_Kind kind);
+void     eat(Parser_Context* ctx);
+void     eat_kind(Parser_Context* ctx, Token_Kind kind);
+void     set_if_statement(Parser_Context* ctx, AST* if_statement);
+void     restore_if_statement(Parser_Context* ctx);
+void     set_dangling_else(Parser_Context* ctx, AST* else_block);
 
 Token_Kind tokKind(Parser_Context* ctx);
 char*      tokValue(Parser_Context* ctx);

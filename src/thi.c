@@ -59,6 +59,8 @@ Thi make_thi() {
     thi.field_access                        = make_ast_ref_list();
 
     // AST_Kind
+    map_set(thi.all_passes_for_all_kinds, "AST_SPACE_SEPARATED_IDENTIFIER_LIST", make_list());
+    map_set(thi.all_passes_for_all_kinds, "AST_COMMA_SEPARATED_LIST", make_list());
     map_set(thi.all_passes_for_all_kinds, "AST_MODULE", make_list());
     map_set(thi.all_passes_for_all_kinds, "AST_IS", make_list());
     map_set(thi.all_passes_for_all_kinds, "AST_FALLTHROUGH", make_list());
@@ -107,6 +109,8 @@ List* thi_get_visitors_for_kind(Thi* thi, AST_Kind kind) {
 
 void thi_remove_all_passes(Thi* thi) {
     // AST_Kind
+    map_set(thi->all_passes_for_all_kinds, "AST_SPACE_SEPARATED_IDENTIFIER_LIST", make_list());
+    map_set(thi->all_passes_for_all_kinds, "AST_COMMA_SEPARATED_LIST", make_list());
     map_set(thi->all_passes_for_all_kinds, "AST_MODULE", make_list());
     map_set(thi->all_passes_for_all_kinds, "AST_IS", make_list());
     map_set(thi->all_passes_for_all_kinds, "AST_FALLTHROUGH", make_list());

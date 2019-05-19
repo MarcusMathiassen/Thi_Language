@@ -52,22 +52,22 @@ void linking_stage(Thi* thi, char* exec_name);
 //                               Passes
 //------------------------------------------------------------------------------
 
-void resolve_sizeofs(void* arg, AST* expr) {
-    s64  size           = get_size_of_type(expr->Sizeof.expr->type);
-    AST* constant_value = make_ast_int(expr->t, size);
-    ast_replace(expr, constant_value);
+void resolve_sizeofs(void* arg, AST* node) {
+    s64  size           = get_size_of_type(node->Sizeof.node->type);
+    AST* constant_value = make_ast_int(node->loc_info, size);
+    ast_replace(node, constant_value);
 }
-void resolve_typeofs(void* arg, AST* expr) {
-    AST* string_value = make_ast_string(expr->t, get_type_name(expr->type));
-    ast_replace(expr, string_value);
+void resolve_typeofs(void* arg, AST* node) {
+    AST* string_value = make_ast_string(node->loc_info, get_type_name(node->type));
+    ast_replace(node, string_value);
 }
-void pass_initilize_enums(void* thi, AST* expr) {
-    switch (expr->kind) {
+void pass_initilize_enums(void* thi, AST* node) {
+    switch (node->kind) {
     default: break;
     case AST_ENUM: {
 
         s64  counter = 0;
-        AST* e       = expr;
+        AST* e       = node;
         LIST_FOREACH(e->Enum.type->Enum.members) {
             AST* m = it->data;
             // Turn idents into constant decls
@@ -75,7 +75,7 @@ void pass_initilize_enums(void* thi, AST* expr) {
             default:
                 error("unhandled case: %s, %s, %s", ast_kind_to_str(m->kind), __func__, __LINE__);
             case AST_IDENT:
-                it->data = make_ast_constant_decl(m->t, m->Ident.name, make_ast_int(m->t, counter));
+                it->data = make_ast_constant_decl(m->loc_info, m->Ident.name, make_ast_int(m->loc_info, counter));
                 // ast_ref_list_append(&thi->constants, it->data);
                 break;
             case AST_CONSTANT_DECL:
@@ -90,35 +90,35 @@ void pass_initilize_enums(void* thi, AST* expr) {
     } break;
     }
 }
-void pass_add_all_symbols(void* thi, AST* expr) {
-    switch (expr->kind) {
+void pass_add_all_symbols(void* thi, AST* node) {
+    switch (node->kind) {
     default: break;
     case AST_ENUM:   // fallthrough
     case AST_STRUCT: // fallthrough
-    case AST_FUNCTION: add_symbol(thi, get_type_name(expr->type), expr->type); break;
+    case AST_FUNCTION: add_symbol(thi, get_type_name(node->type), node->type); break;
     }
 }
-void check_for_unresolved_types(void* ctx, AST* expr) {
-    if (expr->type && expr->type->kind == TYPE_UNRESOLVED) {
+void check_for_unresolved_types(void* ctx, AST* node) {
+    if (node->type && node->type->kind == TYPE_UNRESOLVED) {
         error(
-            "[check_for_unresolved_types]: unresolved type found for expr: %s",
-            ast_to_str(expr));
+            "[check_for_unresolved_types]: unresolved type found for node: %s",
+            ast_to_str(node));
     }
 }
 
-void run_all_passes(void* thi, AST* expr) {
-    List* visitors = thi_get_visitors_for_kind(thi, expr->kind);
+void run_all_passes(void* thi, AST* node) {
+    List* visitors = thi_get_visitors_for_kind(thi, node->kind);
     LIST_FOREACH(visitors) {
         PassDescriptor* passDesc = it->data;
-        (*passDesc->visitor_func)(passDesc->visitor_arg, expr);
+        (*passDesc->visitor_func)(passDesc->visitor_arg, node);
     }
 }
 
-void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* expr) {
-    assert(expr);
-    info("%s: %s -> %s", ast_kind_to_str(expr->kind), wrap_with_colored_parens(ast_to_str(expr)), give_unique_color(type_to_str(expr->type)));
+void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* node) {
+    assert(node);
+    info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(node)), give_unique_color(type_to_str(node->type)));
     // clang-format off
-    switch (expr->kind) {
+    switch (node->kind) {
     case AST_MODULE:      // fallthrough
     case AST_LOAD:        // fallthrough
     case AST_LINK:        // fallthrough
@@ -135,17 +135,17 @@ void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* expr) {
     default: break;
     }
     // clang-format on
-    if (!expr->type) {
+    if (!node->type) {
         error(
             "[make_sure_all_nodes_have_a_valid_type]: missing type for "
-            "expr: %s",
-            ast_to_str(expr));
+            "node: %s",
+            ast_to_str(node));
     }
 }
 
-void visitor_resolve_unresolved_types(void* thi, AST* expr) {
-    if (!expr->type) return;
-    Type* placeholder_t = expr->type;
+void visitor_resolve_unresolved_types(void* thi, AST* node) {
+    if (!node->type) return;
+    Type* placeholder_t = node->type;
     while (placeholder_t->kind == TYPE_POINTER) {
         placeholder_t = placeholder_t->Pointer.pointee;
     }
@@ -155,14 +155,14 @@ void visitor_resolve_unresolved_types(void* thi, AST* expr) {
     }
 }
 
-void constant_fold(void* ctx, AST* expr) {
-    switch (expr->kind) {
+void constant_fold(void* ctx, AST* node) {
+    switch (node->kind) {
     case AST_BINARY: {
-        Token_Kind op  = expr->Binary.op;
-        AST*       lhs = expr->Binary.lhs;
-        AST*       rhs = expr->Binary.rhs;
-        if (lhs->kind == AST_GROUPING) lhs = lhs->Grouping.expr;
-        if (rhs->kind == AST_GROUPING) rhs = rhs->Grouping.expr;
+        Token_Kind op  = node->Binary.op;
+        AST*       lhs = node->Binary.lhs;
+        AST*       rhs = node->Binary.rhs;
+        if (lhs->kind == AST_GROUPING) lhs = lhs->Grouping.node;
+        if (rhs->kind == AST_GROUPING) rhs = rhs->Grouping.node;
         if (lhs->kind == AST_INT && rhs->kind == AST_INT) {
             s64 lhs_v = lhs->Int.val;
             s64 rhs_v = rhs->Int.val;
@@ -190,8 +190,8 @@ void constant_fold(void* ctx, AST* expr) {
             default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
             }
             // clang-format on
-            info("folded %s into %lld", ast_to_str(expr), value);
-            ast_replace(expr, make_ast_int(expr->t, value));
+            info("folded %s into %lld", ast_to_str(node), value);
+            ast_replace(node, make_ast_int(node->loc_info, value));
         } else if (lhs->kind == AST_FLOAT && rhs->kind == AST_FLOAT) {
             f64 lhs_v = lhs->Float.val;
             f64 rhs_v = rhs->Float.val;
@@ -211,16 +211,16 @@ void constant_fold(void* ctx, AST* expr) {
             default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
             }
             // clang-format on
-            info("folded %s into %lld", ast_to_str(expr), value);
-            AST* constant_value = make_ast_int(expr->t, value);
-            ast_replace(expr, constant_value);
+            info("folded %s into %lld", ast_to_str(node), value);
+            AST* constant_value = make_ast_int(node->loc_info, value);
+            ast_replace(node, constant_value);
         }
     } break;
     case AST_UNARY: {
-        AST* operand = expr->Unary.operand;
-        if (operand->kind == AST_GROUPING) operand = operand->Grouping.expr;
+        AST* operand = node->Unary.operand;
+        if (operand->kind == AST_GROUPING) operand = operand->Grouping.node;
         if (operand->kind == AST_INT) {
-            Token_Kind op     = expr->Unary.op;
+            Token_Kind op     = node->Unary.op;
             s64        oper_v = operand->Int.val;
             s64        value  = 0;
             // clang-format off
@@ -232,9 +232,9 @@ void constant_fold(void* ctx, AST* expr) {
             default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
             }
             // clang-format on
-            info("folded %s into %lld", ast_to_str(expr), value);
-            AST* constant_value = make_ast_int(expr->t, value);
-            ast_replace(expr, constant_value);
+            info("folded %s into %lld", ast_to_str(node), value);
+            AST* constant_value = make_ast_int(node->loc_info, value);
+            ast_replace(node, constant_value);
         }
     } break;
     default: break;
@@ -247,10 +247,10 @@ typedef struct
     void*    list;
 } AST_FindAll_Query;
 
-void ast_query(void* query, AST* expr) {
+void ast_query(void* query, AST* node) {
     AST_FindAll_Query* q = query;
-    if (expr->kind == q->kind) {
-        list_append((List*)q->list, expr);
+    if (node->kind == q->kind) {
+        list_append((List*)q->list, node);
     }
 }
 
