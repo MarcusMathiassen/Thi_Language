@@ -1,4 +1,4 @@
 load "foo"
-bar (a: s32)
+bar (a s64) s64
     return foo(a)
 

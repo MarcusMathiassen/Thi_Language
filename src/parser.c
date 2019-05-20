@@ -26,7 +26,7 @@
 
 #include "ast.h"            // AST, ast_make_*
 #include "constants.h"      // DEFAULT_INT_BYTE_SIZE, etc.
-#include "cst.h"            // CST
+// #include "cst.h"            // CST
 #include "lexer.h"          // Token, Token_Kind, generate_tokens_from_source, token_array_get_info_of
 #include "map.h"            // Map
 #include "parser_utility.h" // utility funcs
@@ -113,7 +113,7 @@ Type* parse_enum_signature             (Parser_Context* ctx, char* enum_name);
 Type* parse_type_signature             (Parser_Context* ctx, char* struct_name);
 Type* parse_function_signature         (Parser_Context* ctx, char* func_name);
 Type* parse_extern_function_signature  (Parser_Context* ctx, char* func_name);
-List* generate_ast_from_tokens         (char* file, Token* tokens);
+List* generate_ast_from_tokens         (Parser_Context* ctx);
 // clang-format on
 
 //------------------------------------------------------------------------------
@@ -124,47 +124,70 @@ AST* parse(Parser_Context* ctx, char* file) {
 
     info("Parsing %s", file);
 
-    // Save state to recover from later
+    assert(ctx->symbols);
+
+    // Save state
+    Token* tokens_offset_before_load = ctx->tokens;
     char* last_file = ctx->file;
-    char* last_dir  = ctx->dir;
+    char* last_dir  = get_file_directory(last_file);
 
-    // Set the some state
-    ctx->file = file;
-    ctx->dir  = get_file_directory(file);
+    ctx->file  = strf("%s%s", last_dir ? last_dir : "", file);
 
-    char*  source        = get_file_content(file);
-    Token* tokens        = generate_tokens_from_source(source);
-    List*  top_level_ast = generate_ast_from_tokens(file, tokens);
+    // Check if we've already loaded the file before.
+    bool already_loaded = false;
+    LIST_FOREACH(ctx->loads) {
+        info(it->data);
+        char* already_loaded_file = it->data;
+        if (strcmp(ctx->file, already_loaded_file) == 0) already_loaded = true;
+    }
+    if (already_loaded) return NULL;
 
-    AST* top_level_scope = make_ast_block(loc(ctx), top_level_ast);
+    char* file_path = ctx->file;
+    info("\nfile: %s", file);
+    info("ctx->file: %s", ctx->file);
+    info("ctx->dir: %s", ctx->dir);
+    info("last_file: %s", last_file);
+    info("last_dir: %s", last_dir);
+    info("file_path: %s", file_path);
+
+    // Add it to the list of loaded files.
+    list_append(ctx->loads, file_path);
+
+    char*  source        = get_file_content(file_path);
+    ctx->tokens = generate_tokens_from_source(source);
+    List*  top_level_ast = generate_ast_from_tokens(ctx);
+
+    AST* ast = make_ast_block(loc(ctx), top_level_ast);
+
+    // Loc_Info lc = ast->loc_info;
+    // List* args = make_list();
+    // Type* int_t = make_type_int(4, false);
+    // Type* char_t = make_type_pointer(make_type_pointer(make_type_int(4, false)));
+    // list_append(args, make_ast_variable_decl(lc, "argc", int_t, NULL));
+    // list_append(args, make_ast_variable_decl(lc, "argv", char_t, NULL));
+    // Type* func_t = make_type_function("main", args, int_t, false);
+    // AST* func = make_ast_function(lc, func_t, ast);
 
     // Wrap it all in a module
-    AST* ast = make_ast_module(loc(ctx), file, top_level_scope);
+    // ast = make_ast_module(loc(ctx), file_path, func);
 
-    // Recover state
-    ctx->file = last_file;
-    ctx->dir  = last_dir;
+    // Restore state
+    ctx->tokens = tokens_offset_before_load;
+    // ctx->file = last_file;
+    // ctx->dir  = last_dir;
 
     return ast;
 }
 
-List* generate_ast_from_tokens(char* file, Token* tokens) {
+List* generate_ast_from_tokens(Parser_Context* ctx) {
     info("Generating AST from tokens..");
-
-    Parser_Context ctx = make_parser_context();
-    ctx.tokens         = tokens;
-    ctx.file           = file;
-
-    eat(&ctx); // prep the first token
-
+    eat(ctx); // prep the first token
     List* ast = make_list();
-
-    while (!tok_is(&ctx, TOKEN_EOF)) {
-        AST* stmt = parse_top_level(&ctx);
+    while (!tok_is(ctx, TOKEN_EOF)) {
+        AST* stmt = parse_statement(ctx);
         assert(stmt);
         list_append(ast, stmt);
     }
-
     return ast;
 }
 
@@ -306,9 +329,13 @@ AST* parse_enum(Parser_Context* ctx) {
 AST* parse_load(Parser_Context* ctx) {
     DEBUG_START;
     eat_kind(ctx, TOKEN_LOAD);
-    char* str = strf("%s.thi", tokValue(ctx));
+    char* file = strf("%s.thi", tokValue(ctx));
     eat_kind(ctx, TOKEN_STRING);
-    return make_ast_load(loc(ctx), str);
+
+    // parse the file
+    AST* module = parse(ctx, file);
+
+    return module ? module : make_ast_load(loc(ctx), file);
 }
 
 AST* parse_link(Parser_Context* ctx) {

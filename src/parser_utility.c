@@ -78,6 +78,8 @@ make_parser_context(void) {
     ctx.curr_tok.kind      = TOKEN_UNKNOWN;
     ctx.llast_if_statement = NULL;
     ctx.olast_if_statement = NULL;
+    ctx.loads = make_list();
+    ctx.symbols = NULL; // we borrow anothers map
     return ctx;
 }
 
@@ -107,10 +109,11 @@ Type* get_type(Parser_Context* ctx) {
 
     eat_kind(ctx, TOKEN_IDENTIFIER);
 
-    Type* type = NULL;
+    Type* type = map_get(ctx->symbols, type_name);
     if (!type) {
         type       = make_type_unresolved(type_name);
         type->name = type_name;
+        info("found unknown type %s. will resolve later", type_name);
     }
     type->name = type_name;
 

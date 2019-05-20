@@ -35,6 +35,9 @@ typedef struct
     char* file;
     char* dir;
 
+    Map* symbols;
+    List* loads;
+
     Token top_tok;
     Token curr_tok;
     Token prev_tok;

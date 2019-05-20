@@ -419,8 +419,22 @@ int main(int argc, char** argv) {
     // Parse
     Parser_Context pctx = make_parser_context();
     pctx.file           = source_file;
-    pctx.dir            = dir;
-    AST* ast            = parse(&pctx, source_file);
+    pctx.symbols        = thi.symbol_map;
+    AST* ast            = parse(&pctx, name);
+
+    success("all loaded files");
+    LIST_FOREACH(pctx.loads) {
+        success("file: %s", it->data);
+    }
+
+    Loc_Info lc = ast->loc_info;
+    List* args = make_list();
+    Type* int_t = make_type_int(4, false);
+    Type* char_t = make_type_pointer(make_type_pointer(make_type_int(4, false)));
+    list_append(args, make_ast_variable_decl(lc, "argc", int_t, NULL));
+    list_append(args, make_ast_variable_decl(lc, "argv", char_t, NULL));
+    Type* func_t = make_type_function("main", args, int_t, false);
+    ast = make_ast_function(lc, func_t, ast);
 
     List* modules = make_list();
     list_append(modules, ast);
@@ -432,16 +446,16 @@ int main(int argc, char** argv) {
 
     // thi_run_pass(&thi, "find_dependencies", find_dependencies, NULL);
 
-    List* loads = ast_find_all_of_kind(AST_LOAD, ast);
-    LIST_FOREACH(loads) {
-        AST*  load = it->data;
-        char* file = load->Load.str;
-        pctx.file  = file;
-        file       = strf("%s%s", pctx.dir, file);
-        ast_replace(load, parse(&pctx, file));
-    }
-    List* loads_after = ast_find_all_of_kind(AST_LOAD, ast);
-    assert(loads_after->count == 0);
+    // List* loads = ast_find_all_of_kind(AST_LOAD, ast);
+    // LIST_FOREACH(loads) {
+    //     AST*  load = it->data;
+    //     char* file = load->Load.str;
+    //     pctx.file  = file;
+    //     file       = strf("%s%s", pctx.dir, file);
+    //     ast_replace(load, parse(&pctx, file));
+    // }
+    // List* loads_after = ast_find_all_of_kind(AST_LOAD, ast);
+    // assert(loads_after->count == 0);
 
     thi_run_pass(&thi, "pass_initilize_enums", pass_initilize_enums, &thi);
     thi_run_pass(&thi, "pass_add_all_symbols", pass_add_all_symbols, &thi);
