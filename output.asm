@@ -8,6 +8,12 @@ _main:
 .begin:
 	mov [rbp-8], rdi; store_r
 	mov [rbp-16], rsi; store_r
+	mov rax, 0
+	push rax
+	push rax
+	pop rcx
+	mov [rbp-40], rcx; store
+	pop rax
 	mov rax, 1
 	jmp .end
 .end:

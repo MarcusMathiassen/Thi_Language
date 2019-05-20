@@ -570,8 +570,8 @@ AST* parse_function_decl(Parser_Context* ctx, char* ident) {
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
 
     Type* ret_type = NULL;
-    if (tok_is_on_same_line(ctx) && tok_is(ctx, TOKEN_RIGHT_ARROW)) {
-        eat_kind(ctx, TOKEN_RIGHT_ARROW);
+    if (tok_is_on_same_line(ctx) && tok_is(ctx, TOKEN_IDENTIFIER)) {
+        eat_kind(ctx, TOKEN_IDENTIFIER);
         ret_type = get_type(ctx);
     }
     
@@ -825,8 +825,8 @@ Type* parse_extern_function_signature(Parser_Context* ctx, char* func_name) {
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
 
     Type* ret_type = NULL;
-    if (tok_is_on_same_line(ctx) && tok_is(ctx, TOKEN_RIGHT_ARROW)) {
-        eat_kind(ctx, TOKEN_RIGHT_ARROW);
+    if (tok_is_on_same_line(ctx) && tok_is(ctx, TOKEN_IDENTIFIER)) {
+        eat_kind(ctx, TOKEN_IDENTIFIER);
         ret_type = get_type(ctx);
     }
 

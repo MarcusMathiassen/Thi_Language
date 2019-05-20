@@ -23,10 +23,10 @@
 
 #type Parser => lexer Lexer
 
-main(argc int, argv char**) -> s64
+main(argc int, argv char**) int
     
-    i s32 = 0
-
+    i int = 0
+    
     return 1
 
 #main() -> s64
