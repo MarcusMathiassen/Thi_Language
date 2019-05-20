@@ -46,7 +46,6 @@ typedef enum {
     KEY_FOR,
     KEY_WHILE,
     KEY_RETURN,
-    KEY_STRUCT,
     KEY_ENUM,
     KEY_BREAK,
     KEY_CONTINUE,
@@ -54,7 +53,7 @@ typedef enum {
     KEY_IS,
     KEY_FALLTHROUGH,
     KEY_TYPEOF,
-    KEY_COUNT
+    __KEY_COUNT__
 } Keyword_Kind;
 
 typedef struct
@@ -80,7 +79,7 @@ typedef struct
     s64          previous_indentation_level;
     s64          current_indentation_level;
     Intern_Array interns;
-    char*        keywords[KEY_COUNT];
+    char*        keywords[__KEY_COUNT__];
 } Lexer_Context;
 
 //------------------------------------------------------------------------------
@@ -105,7 +104,7 @@ char* intern(Intern_Array* intern_array, char* str);
 //                               Public
 //------------------------------------------------------------------------------
 
-char* STATIC_KEYWORDS_ARRAY[KEY_COUNT] = {
+char* STATIC_KEYWORDS_ARRAY[__KEY_COUNT__] = {
     "link",
     "type",
     "true",
@@ -120,7 +119,6 @@ char* STATIC_KEYWORDS_ARRAY[KEY_COUNT] = {
     "for",
     "while",
     "return",
-    "struct",
     "enum",
     "break",
     "continue",
@@ -132,11 +130,11 @@ char* STATIC_KEYWORDS_ARRAY[KEY_COUNT] = {
 
 void lexer_test(void) {
     char* source =
-        "struct v2\n    x: f32\n    y: f32\n    core()\n        return 1\n";
+        "type v2\n    x: f32\n    y: f32\n    core()\n        return 1\n";
     Token* tokens = generate_tokens_from_source(source);
     // info(source);
     // print_tokens(lf.tokens);
-    assert(tokens[0].kind == TOKEN_STRUCT);       // struct
+    assert(tokens[0].kind == TOKEN_TYPE);         // type
     assert(tokens[1].kind == TOKEN_IDENTIFIER);   // v2
     assert(tokens[2].kind == TOKEN_BLOCK_START);  //
     assert(tokens[3].kind == TOKEN_IDENTIFIER);   // x
@@ -167,7 +165,7 @@ Token* generate_tokens_from_source(char* source) {
     lctx.current_indentation_level  = 0;
     lctx.interns                    = make_intern_array();
 
-    for (s64 i = 0; i < KEY_COUNT; ++i) {
+    for (s64 i = 0; i < __KEY_COUNT__; ++i) {
         lctx.keywords[i] = intern(&lctx.interns, STATIC_KEYWORDS_ARRAY[i]);
     }
 
@@ -518,7 +516,7 @@ Token get_token(Lexer_Context* lctx) {
     token.value = intern_range(&lctx->interns, token.value, c);
     if (token.kind == TOKEN_IDENTIFIER) {
         s64 i = 0;
-        while (i < KEY_COUNT) {
+        while (i < __KEY_COUNT__) {
             if (token.value == lctx->keywords[i]) {
                 break;
             }
@@ -540,7 +538,6 @@ Token get_token(Lexer_Context* lctx) {
         case KEY_FOR:         token.kind = TOKEN_FOR;         break;
         case KEY_WHILE:       token.kind = TOKEN_WHILE;       break;
         case KEY_RETURN:      token.kind = TOKEN_RETURN;      break;
-        case KEY_STRUCT:      token.kind = TOKEN_STRUCT;      break;
         case KEY_ENUM:        token.kind = TOKEN_ENUM;        break;
         case KEY_BREAK:       token.kind = TOKEN_BREAK;       break;
         case KEY_CONTINUE:    token.kind = TOKEN_CONTINUE;    break;
@@ -589,7 +586,6 @@ char* token_kind_to_str(Token_Kind kind) {
     case TOKEN_FOR:               return "for";
     case TOKEN_WHILE:             return "while";
     case TOKEN_RETURN:            return "return";
-    case TOKEN_STRUCT:            return "struct";
     case TOKEN_ENUM:              return "enum";
     case TOKEN_BREAK:             return "break";
     case TOKEN_CONTINUE:          return "continue";

@@ -35,6 +35,7 @@ typedef struct
     char* file;
     char* dir;
 
+    Token top_tok;
     Token curr_tok;
     Token prev_tok;
 

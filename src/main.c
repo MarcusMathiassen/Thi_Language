@@ -62,6 +62,23 @@ void resolve_typeofs(void* arg, AST* node) {
     ast_replace(node, string_value);
 }
 
+typedef struct {
+    AST* parent;
+    Type* expected_type;
+} Semantic_Context;
+void silently_cast_constants_to_their_expected_types(Semantic_Context* ctx, AST* node) {
+    switch (node->kind) {
+    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
+    case AST_VARIABLE_DECL: {
+        ctx->parent = node;
+        ctx->expected_type = node->type;
+    } break;
+    case AST_CALL: {
+        ctx->parent = node;
+    } break;
+    }
+}
+
 void find_dependencies(void* arg, AST* node) {
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
@@ -137,6 +154,14 @@ void pass_add_all_symbols(void* thi, AST* node) {
     case AST_ENUM:   // fallthrough
     case AST_STRUCT: // fallthrough
     case AST_FUNCTION: add_symbol(thi, get_type_name(node->type), node->type); break;
+    }
+}
+void pass_resolve_all_symbols(void* thi, AST* node) {
+    switch (node->kind) {
+    default: break;
+    case AST_ENUM:   // fallthrough
+    case AST_STRUCT: // fallthrough
+    case AST_FUNCTION: node->type = get_symbol(thi, get_type_name(node->type)); break;
     }
 }
 void check_for_unresolved_types(void* ctx, AST* node) {
@@ -406,7 +431,6 @@ int main(int argc, char** argv) {
     info("Running passes");
 
     // thi_run_pass(&thi, "find_dependencies", find_dependencies, NULL);
-    thi_run_pass(&thi, "pass_add_all_symbols", pass_add_all_symbols, &thi);
 
     List* loads = ast_find_all_of_kind(AST_LOAD, ast);
     LIST_FOREACH(loads) {
@@ -419,6 +443,9 @@ int main(int argc, char** argv) {
     List* loads_after = ast_find_all_of_kind(AST_LOAD, ast);
     assert(loads_after->count == 0);
 
+    thi_run_pass(&thi, "pass_initilize_enums", pass_initilize_enums, &thi);
+    thi_run_pass(&thi, "pass_add_all_symbols", pass_add_all_symbols, &thi);
+
     // Run all passes
     print_symbol_map(&thi);
 
@@ -426,7 +453,6 @@ int main(int argc, char** argv) {
     // PASS: resolve all unresolved types
     //
     thi_run_pass(&thi, "resolve_unresolved_types", visitor_resolve_unresolved_types, &thi);
-    thi_run_pass(&thi, "pass_initilize_enums", pass_initilize_enums, &thi);
 
     PassDescriptor passDesc; // We reuse this one
     passDesc.description  = "Resolve sizeofs";
@@ -527,9 +553,9 @@ int main(int argc, char** argv) {
 
     return 0;
 }
+
 void assemble(Thi* thi, char* asm_file, char* exec_name) {
-    string comp_call =
-        string_create_f("nasm -f macho64 -g %s -o %s.o", asm_file, exec_name);
+    string comp_call = string_create_f("nasm -f macho64 -g %s -o %s.o", asm_file, exec_name);
     push_timer(thi, "Assembler");
     system(comp_call.c_str);
     pop_timer(thi);

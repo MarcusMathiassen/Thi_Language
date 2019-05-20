@@ -28,6 +28,7 @@
 //------------------------------------------------------------------------------
 
 typedef enum {
+
     TOKEN_UNKNOWN,
     TOKEN_EOF,
     TOKEN_COMMENT,
@@ -36,6 +37,7 @@ typedef enum {
     TOKEN_WHITESPACE,
     TOKEN_NEWLINE,
     TOKEN_IDENTIFIER,
+
     TOKEN_IS,
     TOKEN_CAST,
     TOKEN_TYPEOF,
@@ -53,11 +55,11 @@ typedef enum {
     TOKEN_FOR,
     TOKEN_WHILE,
     TOKEN_RETURN,
-    TOKEN_STRUCT,
     TOKEN_ENUM,
     TOKEN_BREAK,
     TOKEN_CONTINUE,
     TOKEN_AS,
+
     TOKEN_NUMBER,
     TOKEN_CHAR,
     TOKEN_INTEGER,
@@ -127,6 +129,7 @@ typedef enum {
     TOKEN_HASH,
     TOKEN_EQ,
     TOKEN_PIPE_GT,
+    __TOKEN_COUNT__
 } Token_Kind;
 
 typedef struct

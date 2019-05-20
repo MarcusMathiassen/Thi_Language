@@ -193,7 +193,7 @@ void add_load(Thi* thi, char* loaded_file) {
         }
     }
     list_append(thi->loads, loaded_file);
-    info("added load: '%s'", give_unique_color(loaded_file));
+    info("added load: %s", give_unique_color(loaded_file));
 }
 
 void add_link(Thi* thi, char* library_name) {
@@ -205,7 +205,7 @@ void add_link(Thi* thi, char* library_name) {
         }
     }
     list_append(thi->links, library_name);
-    info("added link: '%s'", give_unique_color(library_name));
+    info("added link: %s", give_unique_color(library_name));
 }
 
 List* get_link_list(Thi* thi) {
@@ -227,7 +227,7 @@ Type* add_symbol(Thi* thi, char* name, Type* type) {
     if (!t) {
         error("symbol redecl: '%s'", name);
     }
-    info("added symbol: %s of type '%s'", give_unique_color(name), type_to_str(type));
+    info("added symbol: %s of type %s", give_unique_color(name), give_unique_color(type_to_str(type)));
     return t;
 }
 

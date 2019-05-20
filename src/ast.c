@@ -1076,7 +1076,7 @@ AST* make_ast_variable_decl(Loc_Info loc_info, char* name, Type* type, AST* valu
     e->Variable_Decl.name  = name;
     e->type                = type;
     e->Variable_Decl.type  = type;
-    e->Variable_Decl.value = value;
+    e->Variable_Decl.value  = value;
     return e;
 }
 
@@ -1163,12 +1163,14 @@ AST* make_ast_as(Loc_Info loc_info, AST* node, AST* type_node) {
     e->As.type_node = type_node;
     return e;
 }
+
 AST* make_ast_space_separated_identifier_list(Loc_Info loc_info, List* identifiers) {
     assert(identifiers);
     AST* e                                         = make_ast(AST_SPACE_SEPARATED_IDENTIFIER_LIST, loc_info);
     e->Space_Separated_Identifier_List.identifiers = identifiers;
     return e;
 }
+
 AST* make_ast_comma_separated_list(Loc_Info loc_info, List* nodes) {
     assert(nodes);
     AST* e                        = make_ast(AST_COMMA_SEPARATED_LIST, loc_info);

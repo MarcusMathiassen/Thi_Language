@@ -177,15 +177,16 @@ s64 get_offset_in_struct_to_field(Type* type, char* name) {
     assert(type);
     assert(type->kind == TYPE_STRUCT);
     s64 accum_size = 0;
-    LIST_FOREACH(type->Struct.members) {
+    LIST_FOREACH(type_get_members(type)) {
         AST* mem = it->data;
         if (strcmp(name, mem->Variable_Decl.name) == 0) {
             return accum_size;
         }
-        accum_size += get_size_of_type(mem->Variable_Decl.type);
+        accum_size += get_size_of_type(mem->type);
     }
     error("cant find field: %s", name);
-    return -1;
+    UNREACHABLE;
+    return 0;
 }
 
 s64 type_function_get_arg_count(Type* type) {
@@ -355,6 +356,7 @@ void type_ref_list_append(Type_Ref_List* l, Type* t) {
 Type* make_type(Type_Kind kind) {
     Type* t = xmalloc(sizeof(Type));
     t->kind = kind;
+    t->edges = make_list();
     return t;
 }
 

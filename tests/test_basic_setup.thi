@@ -1,13 +1,70 @@
+#extern printf (u8*, ...) -> s32
+
+#enum Kind
+#    Identifier
+#    Name :: 4
+#    Call
+#    Func :: 6
+#    Type
+#    Enum
+
+#type v4
+#    x := 0.0
+#    y := 0.0
+#    z := 0.0
+#    w := 0.0
+
+#type v3
+#    x := 0.0
+#    y := 0.0
+#    z := 0.0
+
+#type v2 => x := 0.0, y := 0.0
+
+#type Parser => lexer Lexer
+
+main(argc int, argv char**) -> s64
+    
+    i s32 = 0
+
+    return 1
+
+#main() -> s64
+#    v: v2
+#    i := 5
+#    if comp(i) return 3
+#    return comp(i)
 
 
-struct v2
-    x: f32
-    y: f32
+# comp (x) => x * x
+# comp(65) would gen comp(x: s64) -> typeof(x*x) => return x * x
+# comp(65.0) would gen comp(x: f32) -> typeof(x*x) => return x * x
+# comp(v) would gen comp(x: v2) -> typeof(x*x) => return x * x
 
-main() -> s64
-    i : s64 = 5
-    if comp(i) return 3
-    return comp(i)
+#comp(x: s64) -> s64
+#    return x
 
-comp(x: s64) -> s64
-    return x
+
+#enum Kind
+#    Identifier
+#    Name 4
+#    Call
+#    Func 6
+#    type
+#    Enum
+
+#type v2
+#    x f32
+#    y f32
+
+#main()
+#    v v2
+#    v.x = 3.53
+#    v.y = 64.1
+#    printf("v.x = %f", v.x)
+#    printf("v.y = %f", v.y)
+#    i = 5
+#    if comp(i) return 3
+#    return comp(i)
+
+# comp(x) => x

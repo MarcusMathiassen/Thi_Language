@@ -169,16 +169,16 @@ Type* type_check_extern(Typer_Context* ctx, AST* node) {
     return node->Extern.type;
 }
 Type* type_check_struct(Typer_Context* ctx, AST* node) {
-    LIST_FOREACH(node->Struct.type->Struct.members) {
+    LIST_FOREACH(type_get_members(node->type)) {
         type_check_node(ctx, it->data);
     }
-    return node->Struct.type;
+    return node->type;
 }
 Type* type_check_enum(Typer_Context* ctx, AST* node) {
-    LIST_FOREACH(node->Enum.type->Enum.members) {
+    LIST_FOREACH(type_get_members(node->type)) {
         type_check_node(ctx, it->data);
     }
-    return node->Enum.type;
+    return node->type;
 }
 Type* type_check_function(Typer_Context* ctx, AST* node) {
 
@@ -276,6 +276,8 @@ Type* type_check_variable_decl(Typer_Context* ctx, AST* node) {
     char* variable_name   = node->Variable_Decl.name;
     Type* variable_type   = node->Variable_Decl.type;
     AST*  assignment_expr = node->Variable_Decl.value;
+
+    ctx->expected_type = variable_type ? variable_type : NULL;
 
     Type* assigned_type = type_check_node(ctx, assignment_expr);
 

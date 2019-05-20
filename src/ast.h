@@ -31,6 +31,10 @@
 #include "type.h"  // Type
 
 typedef enum {
+    BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED,
+} BlockFlags;
+
+typedef enum {
     AST_SPACE_SEPARATED_IDENTIFIER_LIST,
     AST_COMMA_SEPARATED_LIST,
     AST_MODULE,
@@ -131,7 +135,12 @@ struct AST {
         struct
         {
             List* stmts;
+            u8 flags;
         } Block;
+        struct
+        {
+            List* exprs;
+        } ExpressionList;
         struct
         {
             s64 val;

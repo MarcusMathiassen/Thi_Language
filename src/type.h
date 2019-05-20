@@ -48,6 +48,7 @@ typedef enum {
 struct Type {
     char*     name;
     Type_Kind kind;
+    List*     edges;
     union {
         struct
         {
