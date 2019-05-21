@@ -1,4 +1,3 @@
-
-main()
-    i: s32
+def main()
+    i s64
     return i + 3

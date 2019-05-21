@@ -32,12 +32,8 @@ _main:
 	push rax
 	mov rax, 8
 	push rax
-	mov rax, 0
-	push rax
 	lea rax, [rbp-60]; load_lea
 	lea rax, [rbp-60]; addrsof
-	pop rcx
-	add rax, rcx
 	pop rcx
 	add rax, rcx
 	pop rcx
@@ -48,12 +44,8 @@ _main:
 	push rax
 	mov rax, 16
 	push rax
-	mov rax, 0
-	push rax
 	lea rax, [rbp-60]; load_lea
 	lea rax, [rbp-60]; addrsof
-	pop rcx
-	add rax, rcx
 	pop rcx
 	add rax, rcx
 	pop rcx
@@ -81,12 +73,8 @@ _main:
 	movsd [rsp], xmm0
 	mov rax, 8
 	push rax
-	mov rax, 0
-	push rax
 	lea rax, [rbp-60]; load_lea
 	lea rax, [rbp-60]; addrsof
-	pop rcx
-	add rax, rcx
 	pop rcx
 	add rax, rcx
 	mov rax, [rax]; deref
@@ -118,24 +106,16 @@ _main:
 	push rax
 	mov rax, 16
 	push rax
-	mov rax, 0
-	push rax
 	lea rax, [rbp-60]; load_lea
 	lea rax, [rbp-60]; addrsof
-	pop rcx
-	add rax, rcx
 	pop rcx
 	add rax, rcx
 	mov rax, [rax]; deref
 	push rax
 	mov rax, 8
 	push rax
-	mov rax, 0
-	push rax
 	lea rax, [rbp-60]; load_lea
 	lea rax, [rbp-60]; addrsof
-	pop rcx
-	add rax, rcx
 	pop rcx
 	add rax, rcx
 	mov rax, [rax]; deref

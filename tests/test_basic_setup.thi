@@ -1,4 +1,4 @@
-#load "includes/cstdlib"
+load "includes/cstdlib"
 load "includes/cstdio"
 
 def v2  

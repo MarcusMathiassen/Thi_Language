@@ -244,6 +244,22 @@ void constant_fold(void* ctx, AST* node) {
         AST*       rhs = node->Binary.rhs;
         if (lhs->kind == AST_GROUPING) lhs = lhs->Grouping.node;
         if (rhs->kind == AST_GROUPING) rhs = rhs->Grouping.node;
+
+        switch(op){
+        case TOKEN_PLUS: // fallthrough
+        case TOKEN_MINUS:  // fallthrough
+        case TOKEN_ASTERISK:  // fallthrough
+        case TOKEN_FWSLASH:       
+            if (lhs->kind == AST_INT && lhs->Int.val == 0) {
+                ast_replace(node, rhs);
+            // ..the same for the rhs side
+            } else if (rhs->kind == AST_INT && rhs->Int.val == 0) {
+                ast_replace(node, lhs);
+            }
+        default: break;
+        }
+
+
         if (lhs->kind == AST_INT && rhs->kind == AST_INT) {
             s64 lhs_v = lhs->Int.val;
             s64 rhs_v = rhs->Int.val;
@@ -276,6 +292,21 @@ void constant_fold(void* ctx, AST* node) {
             f64 lhs_v = lhs->Float.val;
             f64 rhs_v = rhs->Float.val;
             f64 value = 0.0;
+
+            switch(op){
+            case TOKEN_PLUS: // fallthrough
+            case TOKEN_MINUS:  // fallthrough
+            case TOKEN_ASTERISK:  // fallthrough
+            case TOKEN_FWSLASH:       
+                if (lhs->kind == AST_FLOAT && lhs->Float.val == 0.0) {
+                    ast_replace(node, rhs);
+                // ..the same for the rhs side
+                } else if (rhs->kind == AST_FLOAT && rhs->Float.val == 0.0) {
+                    ast_replace(node, lhs);
+                }
+            default: break;
+            }
+
             // clang-format off
             switch (op) {
             case TOKEN_EQ_EQ:     value = (lhs_v == rhs_v); break;
