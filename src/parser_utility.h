@@ -35,6 +35,9 @@ typedef struct
     char* file;
     char* dir;
 
+    u64 lines;
+    u64 comments;
+
     Map* symbols;
     List* loads;
 

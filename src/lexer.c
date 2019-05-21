@@ -87,7 +87,7 @@ typedef struct
 //                               Lexer Functions
 //------------------------------------------------------------------------------
 
-Token get_token(Lexer_Context* lctx);
+Token get_token(Lexer_Context* ctx);
 bool  is_valid_digit(u8 c);
 bool  is_valid_identifier(u8 c);
 int   get_keyword_index(char* identifier);
@@ -133,7 +133,8 @@ char* STATIC_KEYWORDS_ARRAY[__KEY_COUNT__] = {
 void lexer_test(void) {
     char* source =
         "type v2\n    x: f32\n    y: f32\n    core()\n        return 1\n";
-    Token* tokens = generate_tokens_from_source(source);
+    Lexed_File lf = generate_tokens_from_source(source);
+    Token* tokens = lf.tokens.data;
     // info(source);
     // print_tokens(lf.tokens);
     assert(tokens[0].kind == TOKEN_TYPE);         // type
@@ -155,7 +156,8 @@ void lexer_test(void) {
     assert(tokens[16].kind == TOKEN_BLOCK_END);   //
     assert(tokens[17].kind == TOKEN_EOF);         //
 
-    tokens = generate_tokens_from_source("0.3453 1e3 0x043 'x' 100_000 100_000.00");
+    lf = generate_tokens_from_source("0.3453 1e3 0x043 'x' 100_000 100_000.00");
+    tokens = lf.tokens.data;
     assert(tokens[0].kind == TOKEN_FLOAT);
     assert(tokens[1].kind == TOKEN_INTEGER);
     assert(tokens[2].kind == TOKEN_HEX);
@@ -164,44 +166,46 @@ void lexer_test(void) {
     assert(tokens[5].kind == TOKEN_FLOAT);
 }
 
-Token* generate_tokens_from_source(char* source) {
-    Lexer_Context lctx;
-    lctx.stream                     = source;
-    lctx.position_of_newline        = source;
-    lctx.start_of_line              = source;
-    lctx.line_count                 = 1;
-    lctx.comment_count              = 0;
-    lctx.previous_indentation_level = 0;
-    lctx.current_indentation_level  = 0;
-    lctx.interns                    = make_intern_array();
+Lexed_File generate_tokens_from_source(char* source) {
+    Lexer_Context ctx;
+    ctx.stream                     = source;
+    ctx.position_of_newline        = source;
+    ctx.start_of_line              = source;
+    ctx.line_count                 = 1;
+    ctx.comment_count              = 0;
+    ctx.previous_indentation_level = 0;
+    ctx.current_indentation_level  = 0;
+    ctx.interns                    = make_intern_array();
 
     for (s64 i = 0; i < __KEY_COUNT__; ++i) {
-        lctx.keywords[i] = intern(&lctx.interns, STATIC_KEYWORDS_ARRAY[i]);
+        ctx.keywords[i] = intern(&ctx.interns, STATIC_KEYWORDS_ARRAY[i]);
     }
 
     Token_Array tokens = make_token_array();
 
-    while (true) {
-        Token token = get_token(&lctx);
+    double start_time = get_time();
 
-        if (lctx.current_indentation_level > lctx.previous_indentation_level) {
+    while (true) {
+        Token token = get_token(&ctx);
+
+        if (ctx.current_indentation_level > ctx.previous_indentation_level) {
             Token t;
             t.kind                          = TOKEN_BLOCK_START;
             t.value                         = "{";
-            t.line_pos                      = lctx.line_count;
-            t.col_pos                       = lctx.stream - lctx.position_of_newline;
-            lctx.previous_indentation_level = lctx.current_indentation_level;
+            t.line_pos                      = ctx.line_count;
+            t.col_pos                       = ctx.stream - ctx.position_of_newline;
+            ctx.previous_indentation_level = ctx.current_indentation_level;
             token_array_append(&tokens, t);
         }
 
-        while (lctx.current_indentation_level <
-               lctx.previous_indentation_level) {
+        while (ctx.current_indentation_level <
+               ctx.previous_indentation_level) {
             Token t;
             t.kind     = TOKEN_BLOCK_END;
             t.value    = "}";
-            t.line_pos = lctx.line_count;
-            t.col_pos  = lctx.stream - lctx.position_of_newline;
-            lctx.previous_indentation_level -= DEFAULT_INDENT_LEVEL;
+            t.line_pos = ctx.line_count;
+            t.col_pos  = ctx.stream - ctx.position_of_newline;
+            ctx.previous_indentation_level -= DEFAULT_INDENT_LEVEL;
             token_array_append(&tokens, t);
         }
 
@@ -213,7 +217,13 @@ Token* generate_tokens_from_source(char* source) {
         }
     }
 
-    return tokens.data;
+    Lexed_File lf;
+    lf.tokens = tokens;
+    lf.seconds = get_time() - start_time;
+    lf.comments = ctx.comment_count;
+    lf.lines = ctx.line_count;
+
+    return lf;
 }
 
 //------------------------------------------------------------------------------
@@ -223,14 +233,14 @@ Token* generate_tokens_from_source(char* source) {
 #define CASE_SINGLE_TOKEN(c1, t_kind) \
     case c1: token.kind = t_kind; ++c;
 
-Token get_token(Lexer_Context* lctx) {
-    char* c = lctx->stream;
+Token get_token(Lexer_Context* ctx) {
+    char* c = ctx->stream;
 
     Token token;
     token.kind     = TOKEN_UNKNOWN;
     token.value    = c;
-    token.line_pos = lctx->line_count;
-    token.col_pos  = c - lctx->position_of_newline;
+    token.line_pos = ctx->line_count;
+    token.col_pos  = c - ctx->position_of_newline;
 
     switch (*c) {
     case '#': {
@@ -238,7 +248,7 @@ Token get_token(Lexer_Context* lctx) {
         while (*c != '\n') {
             ++c;
         }
-        lctx->comment_count += 1;
+        ctx->comment_count += 1;
         token.kind = TOKEN_COMMENT;
     } break;
     case ' ':  /* fallthrough */
@@ -252,8 +262,8 @@ Token get_token(Lexer_Context* lctx) {
         while (*c == ' ' || *c == '\n' || *c == '\r' || *c == '\t') {
             if (*c == '\n') {
                 has_newline = true;
-                lctx->line_count += 1;
-                lctx->position_of_newline = c;
+                ctx->line_count += 1;
+                ctx->position_of_newline = c;
             }
             ++c;
         }
@@ -263,13 +273,13 @@ Token get_token(Lexer_Context* lctx) {
             while (*c != '\n') {
                 ++c;
             }
-            lctx->comment_count += 1;
+            ctx->comment_count += 1;
             goto skip;
         }
 
-        lctx->start_of_line = c;
+        ctx->start_of_line = c;
         if (has_newline) {
-            lctx->current_indentation_level = c - lctx->position_of_newline - 1;
+            ctx->current_indentation_level = c - ctx->position_of_newline - 1;
         }
     } break;
         CASE_SINGLE_TOKEN('\0', TOKEN_EOF);
@@ -523,11 +533,11 @@ Token get_token(Lexer_Context* lctx) {
     } break;
     }
 
-    token.value = intern_range(&lctx->interns, token.value, c);
+    token.value = intern_range(&ctx->interns, token.value, c);
     if (token.kind == TOKEN_IDENTIFIER) {
         s64 i = 0;
         while (i < __KEY_COUNT__) {
-            if (token.value == lctx->keywords[i]) {
+            if (token.value == ctx->keywords[i]) {
                 break;
             }
             i += 1;
@@ -562,7 +572,7 @@ Token get_token(Lexer_Context* lctx) {
         ++c; // we skip the last '
     }
 
-    lctx->stream = c;
+    ctx->stream = c;
 
     return token;
 }

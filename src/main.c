@@ -52,16 +52,17 @@ void linking_stage(Thi* thi, char* exec_name);
 //                               Passes
 //------------------------------------------------------------------------------
 
-void resolve_sizeofs(void* arg, AST* node) {
+void resolve_sizeofs(void* dont_care, AST* node) {
     s64  size           = get_size_of_type(node->Sizeof.node->type);
     AST* constant_value = make_ast_int(node->loc_info, size);
     ast_replace(node, constant_value);
 }
-void resolve_typeofs(void* arg, AST* node) {
+void resolve_typeofs(void* dont_care, AST* node) {
     AST* string_value = make_ast_string(node->loc_info, get_type_name(node->type));
     ast_replace(node, string_value);
 }
 void resolve_subscript(void* dont_care, AST* node) {
+    
     AST* load = node->Subscript.load;
     AST* sub  = node->Subscript.sub;
     Type* type_of_field = node->type;
@@ -323,7 +324,6 @@ void constant_fold(void* ctx, AST* node) {
             default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
             }
             // clang-format on
-            info("folded %s into %lld", ast_to_str(node), value);
             AST* constant_value = make_ast_int(node->loc_info, value);
             ast_replace(node, constant_value);
         }
@@ -353,10 +353,11 @@ List* ast_find_all_of_kind(AST_Kind kind, AST* ast) {
 }
 
 void thi_run_pass(Thi* thi, char* pass_description, void (*visitor_func)(void*, AST*), void* visitor_func_arg) {
-    info("Running pass: %s", pass_description);
+    success("running pass: %s", pass_description);
     push_timer(thi, pass_description);
     ast_visit(visitor_func, visitor_func_arg, thi->ast);
     pop_timer(thi);
+    success("... COMPLETED.");
 }
 
 int main(int argc, char** argv) {
@@ -453,33 +454,11 @@ int main(int argc, char** argv) {
         success("file: %s", it->data);
     }
 
-    // Type* int_t    = make_type_int(4, false);
-    // Type* charpp_t = make_type_pointer(make_type_pointer(make_type_int(1, true)));
-
-    // List* parameters = make_list();
-    // list_append(parameters, int_t);
-    // list_append(parameters, charpp_t);
-
-    // Loc_Info lc = ast->loc_info;
-
-    // List* args = make_list();
-    // list_append(args, make_ast_variable_decl(lc, "argc", int_t, NULL));
-    // list_append(args, make_ast_variable_decl(lc, "argv", charpp_t, NULL));
-
-    // Type* func_t = make_type_function("main", args, int_t, 0);
-    // ast = make_ast_function(lc, "main", parameters, func_t, ast);
-
     List* modules = make_list();
     list_append(modules, ast);
 
     info(ast_to_str(ast));
     thi.ast = ast;
-
-    
-    // Semantic_Context sctx;
-    // thi_run_pass(&thi, "semantic analysis", sema_check_node, sema_ctx);
-
-    // ast = pass_typify(ast)
 
     info("Running passes");
 
@@ -537,18 +516,14 @@ int main(int argc, char** argv) {
     List* idents = ast_find_all_of_kind(AST_IDENT, ast);
     List* constant_decls =
         ast_find_all_of_kind(AST_CONSTANT_DECL, ast);
-    info("idents %d", idents->count);
     LIST_FOREACH(idents) {
         AST* ident = it->data;
-        success("%s", ast_to_str(ident));
         LIST_FOREACH(constant_decls) {
             AST* const_decl = it->data;
             if (strcmp(ident->Ident.name, const_decl->Constant_Decl.name) ==
                 0) {
-                info("%s turned into %s", ast_to_str(ident), ast_to_str(const_decl->Constant_Decl.value));
                 ast_replace(ident, const_decl->Constant_Decl.value);
                 ident->type = const_decl->type;
-                info("%s after  %s", ast_to_str(ident), ast_to_str(const_decl->Constant_Decl.value));
                 break;
             }
         }
@@ -577,9 +552,7 @@ int main(int argc, char** argv) {
         write_to_file(output_filename, output);
         assemble(&thi, output_filename, exec_name);
         linking_stage(&thi, exec_name);
-    } else {
-        error("generating code from ast failed.");
-    }
+    } else error("generating code from ast failed.");
 
     // Debug info. Writing out sizes of our types.
     info("size of Token: %lu bytes", sizeof(Token));
@@ -593,14 +566,14 @@ int main(int argc, char** argv) {
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
     info("--- Compiler timings ---");
-    info("lines %lld comments %lld", thi.lines, thi.comments);
+    info("lines %s%s comments %s", give_unique_color(strf("%lld", pctx.lines)), RGB_GRAY, give_unique_color(strf("%lld", pctx.comments)));
     LIST_FOREACH(get_timers(&thi)) {
         Timer* tm      = (Timer*)it->data;
         s64    len     = strlen(tm->desc);
         char*  ms      = strf("%f seconds", tm->ms / 1e3);
         s64    ms_l    = strlen(ms);
         s64    padding = w.ws_col - len - ms_l - 1; // -1 is the ':'
-        info("%s:%*s%s", tm->desc, padding, "", ms);
+        info(give_unique_color(strf("%s:%*s%s", tm->desc, padding, "", ms)));
     }
     info("---------------------------");
 

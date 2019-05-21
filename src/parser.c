@@ -155,7 +155,12 @@ AST* parse(Parser_Context* ctx, char* file) {
     list_append(ctx->loads, file_path);
 
     char* source        = get_file_content(file_path);
-    ctx->tokens         = generate_tokens_from_source(source);
+    Lexed_File lf         = generate_tokens_from_source(source);
+    
+    ctx->tokens = lf.tokens.data;
+    ctx->lines += lf.lines;
+    ctx->comments += lf.comments;
+
     List* top_level_ast = generate_ast_from_tokens(ctx);
 
     AST* ast = make_ast_block(loc(ctx), top_level_ast);
@@ -219,6 +224,7 @@ AST* parse_statement(Parser_Context* ctx) {
     switch (tokKind(ctx)) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
     case TOKEN_BLOCK_START:         return parse_block(ctx);
+    // case TOKEN_OPEN_PAREN:          return parse_parens(ctx);
     case TOKEN_DEF:                 return parse_def(ctx);
     case TOKEN_ENUM:                return parse_enum(ctx);
     case TOKEN_TYPE:                return parse_type(ctx);
