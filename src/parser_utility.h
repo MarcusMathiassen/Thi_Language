@@ -48,7 +48,6 @@ typedef struct
 } Parser_Context;
 
 Parser_Context make_parser_context(void);
-Type*          get_type(Parser_Context* ctx);
 s64            get_integer(Parser_Context* ctx);
 f64            get_float(Parser_Context* ctx);
 int            get_tok_precedence(Parser_Context* ctx);

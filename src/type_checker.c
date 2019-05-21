@@ -184,10 +184,10 @@ Type* type_check_function(Typer_Context* ctx, AST* node) {
 
     Type* func_type = node->Function.type;
     AST*  func_body = node->Function.body;
-    List* args      = func_type->Function.args;
+    List* args      = func_type->Function.parameters;
 
-    if (func_type->Function.ret_type->kind == TYPE_UNRESOLVED) {
-        func_type->Function.ret_type = map_get(ctx->symbol_table, get_type_name(func_type->Function.ret_type));
+    if (func_type->Function.return_type->kind == TYPE_UNRESOLVED) {
+        func_type->Function.return_type = map_get(ctx->symbol_table, get_type_name(func_type->Function.return_type));
     }
 
     ctx->active_function = node;
@@ -223,14 +223,14 @@ Type* type_check_call(Typer_Context* ctx, AST* node) {
     char* callee = node->Call.callee;
     List* args   = node->Call.args;
     Type* func_t = (Type*)map_get(ctx->symbol_table, callee);
-    if (func_t->Function.ret_type->kind == TYPE_UNRESOLVED) {
-        func_t->Function.ret_type = map_get(ctx->symbol_table, get_type_name(func_t->Function.ret_type));
+    if (func_t->Function.return_type->kind == TYPE_UNRESOLVED) {
+        func_t->Function.return_type = map_get(ctx->symbol_table, get_type_name(func_t->Function.return_type));
     }
     info(type_to_str(func_t));
     LIST_FOREACH(args) {
         type_check_node(ctx, it->data);
     }
-    return func_t->Function.ret_type;
+    return func_t->Function.return_type;
 }
 Type* type_check_unary(Typer_Context* ctx, AST* node) {
     Token_Kind op      = node->Unary.op;

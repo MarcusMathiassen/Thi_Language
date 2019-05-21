@@ -5,7 +5,7 @@
     else
     for
     while
-    struct
+    type
     enum
     return
     defer
@@ -22,111 +22,116 @@
 #
 # Grammar
 #
-    <integer>               ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
-    <float>                 ::= <integer> "." <integer>
-                                | "." <integer>
-    <string>                ::= "\"" <ASCII> "\""
-    <char>                  ::= "'" <ASCII> "'"
-    <binary_operator>       ::= "~" | "*" | "-" | "+" | "/"| "&" | "|" | "%" | "^" | "<" | ">" | "="
+   integer              ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+                          | integer '_' integer
+
+   float                ::= integer "." integer
+                          | integer '_' integer "." integer 
+
+   string               ::= "\"" ASCII "\""
+   char                 ::= "'" ASCII "'"
+   binary_operator      ::= "~" | "*" | "-" | "+" | "/"| "&" | "|" | "%" | "^" | "<" | ">" | "="
                                 |  "<<" |  ">>" | "<=" | ">=" | "*=" | "&&" | "||" | "/=" | "+=" | "-=" | "%=" | "|=" | "&=" | "^=" | "!="
-    <unary_operator>        ::= "!" | "*" | "-" | "+" | "&" | "^"
-    <character>             ::= "Aa".."Zz"
+   unary_operator       ::= "!" | "*" | "-" | "+" | "&" | "^"
+   character            ::= "Aa".."Zz"
 
 
-    <ident>                 ::= "_" + <character | digit>..
-                                | <character | digit>..
+   ident                ::= ("_" | character) ("_" | character | digit)* 
 
-    <binary>                ::= <expr> <binary_operator> <expr>
-    <unary>                 ::= <unary_operator> <expr>
+   binary               ::= expr binary_operator expr
+   unary                ::= unary_operator expr
 
-    <cond_expr>             ::= <expr> "==" <expr>
-                                | <expr> "!=" <expr>
-                                | <expr> "<" <expr>
-                                | <expr> "<=" <expr>
-                                | <expr> ">=" <expr>
-                                | <expr> ">" <expr>
+   cond_expr            ::= expr "==" expr
+                         |  expr "!=" expr
+                         |  expr "<" expr
+                         |  expr "<=" expr
+                         |  expr ">=" expr
+                         |  expr ">" expr
 
-    <block_start>           ::= On indent
-    <block_end>             ::= On undent
-    <block>                 ::= <block_start> <statement>.. <block_end>
+   block_start          ::= indent
+   block_end            ::= undent
+   block                ::= block_start statement+ block_end
 
-    <grouping>              ::= "(" <expr> ")"
-    <subscript>             ::= <expr> "[" <expr> "]"
-    <defer>                 ::= "defer" <expr>
-                                | "defer" <block>
-    <as>                    ::= <expr> "as" <ident>
-    <sizeof>                ::= "sizeof" <expr>
-    <link>                  ::= "link" <string>
-    <load>                  ::= "load" <string>
-    <break>                 ::= "break"
-    <continue>              ::= "continue"
-    <true>                  ::= "true"
-    <false>                 ::= "false"
-    <return>                ::= "return" <expr>
-
-
-    <type>                  ::= <ident> ['*']*
-                              | <ident> [ '[' <expr>? ']' ]*
-
-    <ident_list>            ::= <ident>-<ident>
-    <constant_decl>         ::= <ident_list>
-                              | <ident> <expr>
-    <variable_decl>         ::= <ident_list>
-                               | <ident_list> "=" <expr>
-                               | <ident> "=" <expr>
-
-    <struct_def>            ::= <ident> <var_decl_block>
-    <enum_def>              ::= <ident> <constant_decl_block>
-
-    <func_call>             ::= <ident> "(" <expr>.. ")"
-    <func_def_extern>       ::= <ident> "(" <ident>.. ")" <ident>
-    <func_def>              ::= <ident> "(" <variable_decl>.. ")" <ident> <block>
-    <func_lambda>           ::= <ident> '=>' <block>
-
-    <variable_decl_block>   ::= <block_start> <variable_decl>.. <block_end>
-    <constant_decl_block>   ::= <block_start> <constant_decl>.. <block_end>
+   grouping             ::= "(" expr ")"
+   subscript            ::= expr "[" expr "]"
+   defer                ::= "defer" expr | "defer" block
+   as                   ::= expr "as" ident
+   sizeof               ::= "sizeof" expr
+   typeof               ::= "typeof" expr
+   link                 ::= "link" string
+   load                 ::= "load" string
+   break                ::= "break"
+   continue             ::= "continue"
+   true                 ::= "true"
+   false                ::= "false"
+   return               ::= "return" expr
 
 
-    <case>                  ::= "case" <expr> <expr>
-                                | "case" <expr> <block>
-                                | "case" "." <enum_member> <expr>
-                                | "case" "." <enum_member> <block>
-    <case_block>            ::= <block_start> <case>.. <block_start>
-    <if>                    ::= "if" <expr> <block>
-                                | "if" <expr> <block> "else" <block>
-    <if_switch>             ::= "if" <expr> <case_block>
-    <for>                   ::= "for" <block>
-                                | "for" <variable_decl> "," <cond_expr> "," <expr> <block>
-                                | "for" <cond_expr> <block>
+   type                 ::= ident '*' *
+                          | ident '[' expr? ']'
+                          | ident '(' type* ')' type?
 
-    <expr>                  ::= <ident>
-                                | <binary>
-                                | <unary>
-                                | <integer>
-                                | <float>
-                                | <string>
-                                | <grouping>
-                                | <true>
-                                | <false>
-                                | <sizeof>
+   constant_decl        ::= ident :: ident
+                          | ident :: expr
 
-    <def>                   ::= <func_def>
-                                | <struct_def>
-                                | <enum_def>
-                                | <func_def_extern>
-                                | <load>
-                                | <link>
-                                | <constant_decl>
+   variable_decl        ::= ident type
+                          | ident "=" expr
+                          | ident type "=" expr
 
-    <statement>             ::= <continue>
-                                | <break>
-                                | <variable_decl>
-                                | <func_call>
-                                | <return>
-                                | <defer>
-                                | <if>
-                                | <is>
-                                | <for>
+   type_def             ::= ident block
+   enum_def             ::= ident block
+
+   func_call            ::= ident "("expr>.. ")"
+   func_def_extern      ::= ident "("ident>.. ")"ident>
+   func_def             ::= ident "("variable_decl>.. ")"ident>block>
+   func_lambda          ::= ident '=>'block>
+
+   variable_decl_block  ::=block_start>variable_decl>..block_end>
+   constant_decl_block  ::=block_start>constant_decl>..block_end>
+
+
+   case                 ::= "case"expr>expr>
+                                | "case"expr>block>
+                                | "case" "."enum_member>expr>
+                                | "case" "."enum_member>block>
+   case_block           ::=block_start>case>..block_start>
+   if                   ::= "if"expr>block>
+                                | "if"expr>block"else"block>
+   if_switch            ::= "if"expr>case_block>
+   for                  ::= "for"block>
+                                | "for"variable_decl","cond_expr","expr>block>
+                                | "for"cond_expr>block>
+
+   expr                 ::= ident
+                          | binary
+                          | unary
+                          | integer
+                          | float
+                          | string
+                          | grouping
+                          | true
+                          | false
+                          | sizeof
+                          | typeof
+
+   def                  ::= func_def
+                          | struct_def
+                          | enum_def
+                          | func_def_extern
+                          | load
+                          | link
+                          | constant_decl
+
+   statement            ::=continue>
+                                |break>
+                                |variable_decl>
+                                |func_call>
+                                |return>
+                                |defer>
+                                |if>
+                                |is>
+                                |for>
+
 #
 # Binary Operator Precedence
 #
@@ -143,12 +148,12 @@
     % 80
     - 70
     + 70
-    < 65
+    65
     >> 65
-    < 60
+    60
     > 60
     >= 60
-    <= 60
+   = 60
     == 50
     != 50
     && 48
@@ -168,5 +173,5 @@
     &= 10
     ^= 10
     |= 10
-    <= 10
+   = 10
     >>= 10

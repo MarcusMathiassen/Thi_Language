@@ -32,6 +32,7 @@
 //------------------------------------------------------------------------------
 
 typedef enum {
+    KEY_DEF,
     KEY_LINK,
     KEY_TYPE,
     KEY_TRUE,
@@ -105,6 +106,7 @@ char* intern(Intern_Array* intern_array, char* str);
 //------------------------------------------------------------------------------
 
 char* STATIC_KEYWORDS_ARRAY[__KEY_COUNT__] = {
+    "def",
     "link",
     "type",
     "true",
@@ -152,6 +154,14 @@ void lexer_test(void) {
     assert(tokens[15].kind == TOKEN_BLOCK_END);   //
     assert(tokens[16].kind == TOKEN_BLOCK_END);   //
     assert(tokens[17].kind == TOKEN_EOF);         //
+
+    tokens = generate_tokens_from_source("0.3453 1e3 0x043 'x' 100_000 100_000.00");
+    assert(tokens[0].kind == TOKEN_FLOAT);
+    assert(tokens[1].kind == TOKEN_INTEGER);
+    assert(tokens[2].kind == TOKEN_HEX);
+    assert(tokens[3].kind == TOKEN_CHAR);
+    assert(tokens[4].kind == TOKEN_INTEGER);
+    assert(tokens[5].kind == TOKEN_FLOAT);
 }
 
 Token* generate_tokens_from_source(char* source) {
@@ -441,7 +451,7 @@ Token get_token(Lexer_Context* lctx) {
         bool is_float = false;
 
         // Number: [0-9._]+e[0-9]+
-        if (isdigit(*c)) {
+        if (isdigit(*c) || *c == '.') {
             while (is_valid_digit(*c) || (is_hex && is_valid_identifier(*c))) {
                 if (*c == 'x') is_hex = true;
                 if (*c == '.') is_float = true;
@@ -524,6 +534,7 @@ Token get_token(Lexer_Context* lctx) {
         }
         // clang-format off
         switch (i) {
+        case KEY_DEF:         token.kind = TOKEN_DEF;         break;
         case KEY_LINK:        token.kind = TOKEN_LINK;        break;
         case KEY_TYPE:        token.kind = TOKEN_TYPE;        break;
         case KEY_TRUE:        token.kind = TOKEN_TRUE;        break;
@@ -568,6 +579,7 @@ char* token_kind_to_str(Token_Kind kind) {
     case TOKEN_WHITESPACE:        return "TOKEN_WHITESPACE";
     case TOKEN_NEWLINE:           return "TOKEN_NEWLINE";
     case TOKEN_IDENTIFIER:        return "TOKEN_IDENTIFIER";
+    case TOKEN_DEF:               return "def";
     case TOKEN_IS:                return "is";
     case TOKEN_AS:                return "as";
     case TOKEN_CAST:              return "cast";

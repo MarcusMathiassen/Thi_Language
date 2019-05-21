@@ -45,10 +45,22 @@ typedef enum {
     TYPE_COUNT,
 } Type_Kind;
 
+typedef enum {
+    TYPE_FLAG_HAS_VAR_ARG               = 1 << 0,
+    TYPE_FLAG_IMPLICIT_RETURN           = 1 << 1,
+    TYPE_FLAG_IN_NEED_OF_TYPE_INFERENCE = 1 << 2,
+    TYPE_FLAG_QUICK_LAMBDA              = 1 << 3,
+} Type_Flag;
+
+typedef struct {
+    char* name;
+    Type* type;
+} Type_Parameter;
+
 struct Type {
-    char*     name;
     Type_Kind kind;
-    List*     edges;
+    u8        flags;
+    char*     name;
     union {
         struct
         {
@@ -92,9 +104,8 @@ struct Type {
         struct
         {
             char* name;
-            List* args;
-            Type* ret_type;
-            bool  has_var_arg;
+            List* parameters;
+            Type* return_type;
         } Function;
     };
 };
@@ -133,7 +144,7 @@ Type*   make_type_pointer       (Type* pointee);
 Type*   make_type_array         (Type* type, s64 size);
 Type*   make_type_struct        (char* name, List* members);
 Type*   make_type_enum          (char* name, List* members);
-Type*   make_type_function      (char* name, List* args, Type* ret_type, bool has_var_arg);
+Type*   make_type_function      (char* name, List* parameters, Type* return_type, u32 flags);
 Type*   make_type_var_args      (void);
 // clang-format on
 s64 type_function_get_arg_count(Type* type);

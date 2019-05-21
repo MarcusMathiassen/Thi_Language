@@ -1,43 +1,14 @@
+#def v2  
+#    x f32
+#    y f32
+
+#def comp(x s64) s64 
+#    if get(x) return 3
+#    return x
+
+#def get(i s64) s64 
+#    return i
 
 
-
-
-
-
-load "includes/bar"
-
-return 3
-
-
-
-
-
-
-
-
-
-
-#load "glfw"
-
-#type v2 => x = 0.0, y = 0.0
-#type v3 => x = 0.0, y = 0.0, z = 0.0
-#type v4 => x = 0.0, y = 0.0, z = 0.0, w = 0.0
-
-
-## func def returns 1
-#comp(x s32) s32 
-#    return 1
-
-## func def returns 1
-#comp(x s32) s32 => 1 
-
-## func def returns 1
-#comp(x) => 1
-
-#comp(x) # func call
-#return 1 # program ends returning 1
-
-#comp(x) # func def
-#    return 1 # comp returns 1
-
-#if x is under x = 3, is called, 
+i = 3
+return i

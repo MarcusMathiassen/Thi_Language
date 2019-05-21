@@ -163,6 +163,8 @@ struct AST {
         } Enum;
         struct
         {
+            char* name;
+            List* parameters;
             Type* type;
             AST*  body;
             List* defers;
@@ -272,7 +274,7 @@ AST* make_ast_string(Loc_Info loc_info, char* value);
 AST* make_ast_ident(Loc_Info loc_info, char* ident);
 AST* make_ast_struct(Loc_Info loc_info, Type* struct_t);
 AST* make_ast_enum(Loc_Info loc_info, Type* enum_t);
-AST* make_ast_function(Loc_Info loc_info, Type* func_t, AST* body);
+AST* make_ast_function(Loc_Info loc_info, char* name, List* parameters, Type* func_t, AST* body);
 AST* make_ast_call(Loc_Info loc_info, char* callee, List* args);
 AST* make_ast_unary(Loc_Info loc_info, Token_Kind op, AST* operand);
 AST* make_ast_binary(Loc_Info loc_info, Token_Kind op, AST* lhs, AST* rhs);

@@ -26,7 +26,7 @@
 
 #define DEBUG_START \
     assert(ctx);    \
-    // info("%s: %s", __func__, token_to_str(ctx->curr_tok));
+    info("%s: %s", __func__, token_to_str(ctx->curr_tok));
 
 #define BIN_OP_COUNT 35
 struct
@@ -94,51 +94,6 @@ Token currTok(Parser_Context* ctx) {
 }
 Token prevTok(Parser_Context* ctx) {
     return ctx->prev_tok;
-}
-
-Type* get_type(Parser_Context* ctx) {
-    DEBUG_START;
-
-    char* type_name = ctx->curr_tok.value;
-
-    // // Check if var arg
-    // if (tok_is(ctx, TOKEN_DOT_DOT_DOT)) {
-    //     eat_kind(ctx, TOKEN_DOT_DOT_DOT);
-    //     return make_type_var_args();
-    // }
-
-    eat_kind(ctx, TOKEN_IDENTIFIER);
-
-    Type* type = map_get(ctx->symbols, type_name);
-    if (!type) {
-        type       = make_type_unresolved(type_name);
-        type->name = type_name;
-        info("found unknown type %s. will resolve later", type_name);
-    }
-    type->name = type_name;
-
-    switch (ctx->curr_tok.kind) {
-    case THI_SYNTAX_POINTER: {
-        while (tok_is(ctx, THI_SYNTAX_POINTER)) {
-            eat_kind(ctx, THI_SYNTAX_POINTER);
-            type = make_type_pointer(type);
-        }
-    } break;
-    case TOKEN_OPEN_BRACKET: {
-        while (tok_is(ctx, TOKEN_OPEN_BRACKET)) {
-            eat_kind(ctx, TOKEN_OPEN_BRACKET);
-            s64 size = 0;
-            if (tok_is(ctx, TOKEN_INTEGER) || tok_is(ctx, TOKEN_HEX)) {
-                size = get_integer(ctx);
-            }
-            eat_kind(ctx, TOKEN_CLOSE_BRACKET);
-            type = make_type_array(type, size);
-        }
-    } break;
-    default: break;
-    }
-
-    return type;
 }
 
 s64 get_integer(Parser_Context* ctx) {

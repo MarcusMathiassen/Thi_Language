@@ -38,6 +38,7 @@ typedef enum {
     TOKEN_NEWLINE,
     TOKEN_IDENTIFIER,
 
+    TOKEN_DEF,
     TOKEN_IS,
     TOKEN_CAST,
     TOKEN_TYPEOF,

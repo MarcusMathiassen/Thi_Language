@@ -63,14 +63,14 @@ void resolve_typeofs(void* arg, AST* node) {
 }
 
 typedef struct {
-    AST* parent;
+    AST*  parent;
     Type* expected_type;
 } Semantic_Context;
 void silently_cast_constants_to_their_expected_types(Semantic_Context* ctx, AST* node) {
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
     case AST_VARIABLE_DECL: {
-        ctx->parent = node;
+        ctx->parent        = node;
         ctx->expected_type = node->type;
     } break;
     case AST_CALL: {
@@ -164,6 +164,7 @@ void pass_resolve_all_symbols(void* thi, AST* node) {
     case AST_FUNCTION: node->type = get_symbol(thi, get_type_name(node->type)); break;
     }
 }
+
 void check_for_unresolved_types(void* ctx, AST* node) {
     if (node->type && node->type->kind == TYPE_UNRESOLVED) {
         error(
@@ -427,14 +428,21 @@ int main(int argc, char** argv) {
         success("file: %s", it->data);
     }
 
+    Type* int_t    = make_type_int(4, false);
+    Type* charpp_t = make_type_pointer(make_type_pointer(make_type_int(4, false)));
+
+    List* parameters = make_list();
+    list_append(parameters, int_t);
+    list_append(parameters, charpp_t);
+
     Loc_Info lc = ast->loc_info;
+
     List* args = make_list();
-    Type* int_t = make_type_int(4, false);
-    Type* char_t = make_type_pointer(make_type_pointer(make_type_int(4, false)));
     list_append(args, make_ast_variable_decl(lc, "argc", int_t, NULL));
-    list_append(args, make_ast_variable_decl(lc, "argv", char_t, NULL));
-    Type* func_t = make_type_function("main", args, int_t, false);
-    ast = make_ast_function(lc, func_t, ast);
+    list_append(args, make_ast_variable_decl(lc, "argv", charpp_t, NULL));
+
+    Type* func_t = make_type_function("main", args, int_t, 0);
+    ast = make_ast_function(lc, "main", parameters, func_t, ast);
 
     List* modules = make_list();
     list_append(modules, ast);
@@ -444,19 +452,7 @@ int main(int argc, char** argv) {
 
     info("Running passes");
 
-    // thi_run_pass(&thi, "find_dependencies", find_dependencies, NULL);
-
-    // List* loads = ast_find_all_of_kind(AST_LOAD, ast);
-    // LIST_FOREACH(loads) {
-    //     AST*  load = it->data;
-    //     char* file = load->Load.str;
-    //     pctx.file  = file;
-    //     file       = strf("%s%s", pctx.dir, file);
-    //     ast_replace(load, parse(&pctx, file));
-    // }
-    // List* loads_after = ast_find_all_of_kind(AST_LOAD, ast);
-    // assert(loads_after->count == 0);
-
+    thi_run_pass(&thi, "binary_assign_to_variable_decl", binary_assign_to_variable_decl, &thi);
     thi_run_pass(&thi, "pass_initilize_enums", pass_initilize_enums, &thi);
     thi_run_pass(&thi, "pass_add_all_symbols", pass_add_all_symbols, &thi);
 

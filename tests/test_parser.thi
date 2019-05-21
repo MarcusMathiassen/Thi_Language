@@ -2,59 +2,60 @@
 #   function name mangling
 #   struct methods
 
-main(argc: int, argc: char**)  
-    parser: Parser
+def main(argc int, argc char**)
+    parser Parser
     return 1
 
-compile(source: char*)
-    tokens := makeTokens(source)
-    ast    := makeAST(tokens)
-    code   := makeX64(aast)
+def compile(source)
+    tokens = makeTokens(source)
+    ast    = makeAST(tokens)
+    code   = makeX64(aast)
     return code
 
-struct Parser
+type Parser
 
-    lexer := Lexer()
+    lexer = Lexer()
 
-    curr := Token()
-    prev := Token()
-    next := Token()
+    curr = Token()
+    prev = Token()
+    next = Token()
 
-    eat()
+    add = (x) => x
+
+    def eat()
         prev = curr
         curr = next
         next = lexer.getToken()
 
-    eat(kind: TokenKind)
+    def eat(kind)
         if curr.kind != kind error("expected % got %", kind.str(), curr.kind.str())
         eat()
 
-    sameLine() => return prev.line == curr.line
-    nextSameLine() => return curr.line == next.line
-    isCurr(kind: TokenKind) => return curr.kind == kind
-    isNext(kind: TokenKind) => return next.kind == kind
+    def sameLine() => prev.line == curr.line
+    def nextSameLine() => curr.line == next.line
+    def isCurr(kind) => curr.kind == kind
+    def isNext(kind) => next.kind == kind
 
-    generateAST()
+    def generateAST()
         eat()
-        ast := makeList()
-        while !isCurr(.eof)
-            stmt := parseStatement()
-            if stmt ast.append(stmt)
+        ast = []
+        while !isCurr(.EOF)
+            stmt = parseStatement()
+            ast += stmt
         return ast
 
-    parsePrimary()
+    def parsePrimary()
         if curr.kind
-            is .True return parseTrue()
-            is .False return parseFalse()
-            is .Sizeof return parseSizeof()
-            is .Cast return parseCast()
-            is .Identifier return parseIdentifier()
-            is .DollarSign return parseNote()
-            is .Float return parseFloat()
-            is .Char return parseChar()
-            is .Hex return parseHex()
-            is .Integer return parseInt()
-            is .String return parseString()
-            is .OpenParen return parseParen()
+            is .True => parseTrue()
+            is .False => parseFalse()
+            is .Sizeof => parseSizeof()
+            is .Cast => parseCast()
+            is .Identifier => parseIdentifier()
+            is .DollarSign => parseNote()
+            is .Float => parseFloat()
+            is .Char => parseChar()
+            is .Hex => parseHex()
+            is .Integer => parseInt()
+            is .String => parseString()
+            is .OpenParen => parseParen()
         else error("Invalid primary token '%s'", curr.str())
-        return nil

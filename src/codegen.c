@@ -625,7 +625,7 @@ codegen_call(Codegen_Context* ctx, AST* node) {
         }
     }
 
-    if (node->type->Function.has_var_arg) {
+    if (node->type->flags & TYPE_FLAG_HAS_VAR_ARG) {
         emit(ctx, "mov rax, %lld; var_arg_count", total);
     }
 
@@ -1044,7 +1044,7 @@ codegen_function(Codegen_Context* ctx, AST* node) {
 
     reset_stack(ctx);
 
-    List* args              = func_type->Function.args;
+    List* args              = func_type->Function.parameters;
     s8    int_arg_counter   = 0;
     s8    float_arg_counter = 0;
     s8    rest              = 0;
