@@ -99,6 +99,7 @@ codegen_node(Codegen_Context* ctx, AST* node) {
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
     case AST_MODULE: return codegen_node(ctx, node->Module.top_level);
+    case AST_NOP: return NULL;
     case AST_FALLTHROUGH: return NULL;
     case AST_LOAD: return NULL;
     case AST_LINK: return NULL;
@@ -575,8 +576,6 @@ codegen_call(Codegen_Context* ctx, AST* node) {
     List* args     = node->Call.args;
     Type* ret_type = node->type;
 
-    assert(ret_type);
-
     List* values = make_list();
     // List* ints   = make_list();
     // List* floats  = make_list();
@@ -634,8 +633,7 @@ codegen_call(Codegen_Context* ctx, AST* node) {
         }
     }
 
-    emit(ctx, "mov al, %lld; var_arg_count", 1);
-    // error("flag: %d", node->type->flags & TYPE_FLAG_HAS_VAR_ARG);
+    // error(type_to_str(node->type));
     if (node->type->flags & TYPE_FLAG_HAS_VAR_ARG) {
         emit(ctx, "mov al, %lld; var_arg_count", total);
     }

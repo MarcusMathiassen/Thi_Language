@@ -58,7 +58,7 @@ void resolve_sizeofs(void* dont_care, AST* node) {
     ast_replace(node, constant_value);
 }
 void resolve_typeofs(void* dont_care, AST* node) {
-    AST* string_value = make_ast_string(node->loc_info, get_type_name(node->type));
+    AST* string_value = make_ast_string(node->loc_info, type_to_str(node->type));
     ast_replace(node, string_value);
 }
 void resolve_subscript(void* dont_care, AST* node) {
@@ -534,6 +534,21 @@ int main(int argc, char** argv) {
     // Sanity checks
     thi_run_pass(&thi, "check_for_unresolved_types", check_for_unresolved_types, NULL);
     thi_run_pass(&thi, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);
+
+    // Remove unused externs
+    List* externs = ast_find_all_of_kind(AST_EXTERN, ast);
+    List* calls = ast_find_all_of_kind(AST_CALL, ast);
+    LIST_FOREACH(externs) {
+        AST* node_e = it->data;
+        bool used = false;
+        LIST_FOREACH(calls) {
+            AST* node_c = it->data;
+            if (strcmp(node_e->Extern.type->Function.name, node_c->Call.callee) == 0) {
+                used = true;
+            }
+        }
+        if (!used) ast_replace(node_e, make_ast_nop(node_e->loc_info));
+    }
 
     // char* json = ast_to_json(ast);
     // write_to_file("ast.json", json);

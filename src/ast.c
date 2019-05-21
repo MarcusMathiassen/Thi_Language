@@ -39,6 +39,7 @@ char* ast_kind_to_str(AST_Kind kind) {
     // clang-format off
     switch (kind) {
     default: ERROR_UNHANDLED_KIND(strf("%d", kind));
+    case AST_NOP:                             return "AST_NOP";
     case AST_SPACE_SEPARATED_IDENTIFIER_LIST: return "AST_SPACE_SEPARATED_IDENTIFIER_LIST";
     case AST_COMMA_SEPARATED_LIST:            return "AST_COMMA_SEPARATED_LIST";
     case AST_MODULE:                          return "AST_MODULE";
@@ -106,6 +107,7 @@ char* ast_to_str(AST* node) {
     }
     case AST_MODULE:            return strf("module '%s'= %s", node->Module.name, ast_to_str(node->Module.top_level));
     case AST_VAR_ARGS:          return "...";
+    case AST_NOP:               return "nop";
     case AST_FALLTHROUGH:       return "fallthrough";
     case AST_SWITCH:            return strf("switch %s %s else %s", ast_to_str(node->Switch.cond), ast_to_str(node->Switch.cases),
                     ast_to_str(node->Switch.default_case));
@@ -883,6 +885,11 @@ AST* make_ast(AST_Kind kind, Loc_Info loc_info) {
     e->loc_info = loc_info;
     e->type     = NULL;
     e->edges    = make_list();
+    return e;
+}
+
+AST* make_ast_nop(Loc_Info loc_info) {
+    AST* e         = make_ast(AST_NOP, loc_info);
     return e;
 }
 

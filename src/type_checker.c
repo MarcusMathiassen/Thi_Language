@@ -231,6 +231,7 @@ Type* type_check_call(Typer_Context* ctx, AST* node) {
     LIST_FOREACH(args) {
         type_check_node(ctx, it->data);
     }
+    func_t->Function.return_type->flags = func_t->flags; // @HACK
     return func_t->Function.return_type;
 }
 Type* type_check_unary(Typer_Context* ctx, AST* node) {

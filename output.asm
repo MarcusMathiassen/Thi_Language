@@ -1,133 +1,49 @@
-extern _atoi
-extern _atol
-extern _atoll
-extern _atof
-extern _strtof
-extern _strtod
-extern _strtold
-extern _strtol
-extern _strtoul
-extern _strtoll
-extern _strtoull
-extern _rand
-extern _srand
-extern _malloc
-extern _calloc
-extern _realloc
-extern _free
-extern _aligned_alloc
-extern _abort
-extern _exit
-extern __Exit
-extern _quick_exit
-extern _getenv
-extern _system
-extern _abs
-extern _labs
-extern _llabs
-extern _fopen
-extern _freopen
-extern _fclose
-extern _remove
-extern _rename
-extern _feof
-extern _ferror
-extern _fflush
-extern _clearerr
-extern _fseek
-extern _ftell
-extern _rewind
-extern _fread
-extern _fwrite
-extern _fgetc
-extern _getc
-extern _getchar
-extern _ungetc
-extern _fputc
-extern _putc
-extern _putchar
-extern _fgets
-extern _fputs
-extern _puts
 extern _printf
-extern _fprintf
-extern _sprintf
-extern _snprintf
-extern _scanf
-extern _fscanf
-extern _sscanf
-extern _perror
 section .data
+	d0: dq `get(x: s64) s64`, 0 
+	d1: dq `%s\n`, 0 
 global _main
 section .text
+_get:
+	push rbp
+	mov rbp, rsp
+	sub rsp, 16; 8 alloc, 8 padding
+.begin:
+	mov [rbp-8], rdi; store_r
+	mov rax, 6
+	jmp .end
+.end:
+	add rsp, 16; 8 alloc, 8 padding
+	leave
+	ret
 _main:
 	push rbp
 	mov rbp, rsp
-	sub rsp, 48; 40 alloc, 8 padding
+	sub rsp, 32; 20 alloc, 12 padding
 .begin:
-	mov rax, 53
+	mov [rbp-4], edi; store_r
+	mov [rbp-12], rsi; store_r
+	mov rax, 64
+	push rax
+	pop rdi
+	call _get
 	push rax
 	push rax
-	mov rax, 8
-	push rax
-	mov rax, 0
-	push rax
-	lea rax, [rbp-40]; load_lea
-	lea rax, [rbp-40]; addrsof
+	mov rax, [rbp-20]; load
 	pop rcx
-	add rax, rcx
-	pop rcx
-	add rax, rcx
-	pop rcx
-	mov [rax], rcx; store
+	mov [rbp-20], rcx; store
 	pop rax
-	mov rax, 2
+	mov rax, d0; string_ref
 	push rax
+	mov rax, d1; string_ref
 	push rax
-	mov rax, 16
-	push rax
-	mov rax, 0
-	push rax
-	lea rax, [rbp-40]; load_lea
-	lea rax, [rbp-40]; addrsof
-	pop rcx
-	add rax, rcx
-	pop rcx
-	add rax, rcx
-	pop rcx
-	mov [rax], rcx; store
-	pop rax
-	mov rax, 54
-	push rax
-	mov rax, 16
-	push rax
-	mov rax, 0
-	push rax
-	lea rax, [rbp-40]; load_lea
-	lea rax, [rbp-40]; addrsof
-	pop rcx
-	add rax, rcx
-	pop rcx
-	add rax, rcx
-	mov rax, [rax]; deref
-	push rax
-	mov rax, 8
-	push rax
-	mov rax, 0
-	push rax
-	lea rax, [rbp-40]; load_lea
-	lea rax, [rbp-40]; addrsof
-	pop rcx
-	add rax, rcx
-	pop rcx
-	add rax, rcx
-	mov rax, [rax]; deref
-	pop rcx
-	add rax, rcx
-	pop rcx
-	sub rax, rcx
+	pop rdi
+	pop rsi
+	mov al, 2; var_arg_count
+	call _printf
+	mov rax, [rbp-20]; load
 	jmp .end
 .end:
-	add rsp, 48; 40 alloc, 8 padding
+	add rsp, 32; 20 alloc, 12 padding
 	leave
 	ret
