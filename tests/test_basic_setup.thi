@@ -13,6 +13,7 @@ def main(argc s32, argv char**) s64
     #v.i[2] = 2
 
     i s64 = get(64)
+    x s64 = get(64)
 
     #printf("%d %d\n", (sizeof s64 * 8), v.i[1])
     printf("%s\n", (typeof get))
