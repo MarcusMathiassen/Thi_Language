@@ -61,17 +61,19 @@ void resolve_typeofs(void* arg, AST* node) {
     AST* string_value = make_ast_string(node->loc_info, get_type_name(node->type));
     ast_replace(node, string_value);
 }
-
 void resolve_subscript(void* dont_care, AST* node) {
     AST* load = node->Subscript.load;
     AST* sub  = node->Subscript.sub;
+    Type* type_of_field = node->type;
 
-    s64 size = get_size_of_type(load->type);
+    s64 size = get_size_of_underlying_type_if_any(load->type);
 
-    sub = make_ast_binary(node->loc_info, TOKEN_ASTERISK, make_ast_int(node->loc_info, size), sub);
     load = make_ast_unary(node->loc_info, THI_SYNTAX_ADDRESS, load);
+    sub = make_ast_binary(node->loc_info, TOKEN_ASTERISK, make_ast_int(node->loc_info, size), sub);
     sub = make_ast_binary(node->loc_info, TOKEN_PLUS, load, sub);
     sub = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, sub);
+
+    sub->type = type_of_field;
 
     ast_replace(node, sub);
 }
@@ -140,7 +142,7 @@ void pass_initilize_enums(void* thi, AST* node) {
 
         s64  counter = 0;
         AST* e       = node;
-        LIST_FOREACH(e->Enum.type->Enum.members) {
+        LIST_FOREACH(type_get_members(e->type)) {
             AST* m = it->data;
             // Turn idents into constant decls
             switch (m->kind) {
@@ -148,7 +150,6 @@ void pass_initilize_enums(void* thi, AST* node) {
                 error("unhandled case: %s, %s, %s", ast_kind_to_str(m->kind), __func__, __LINE__);
             case AST_IDENT:
                 it->data = make_ast_constant_decl(m->loc_info, m->Ident.name, make_ast_int(m->loc_info, counter));
-                // ast_ref_list_append(&thi->constants, it->data);
                 break;
             case AST_CONSTANT_DECL:
                 assert(m->Constant_Decl.value->kind == AST_INT);
@@ -156,7 +157,6 @@ void pass_initilize_enums(void* thi, AST* node) {
                 break;
             }
             counter += 1;
-            // warning("%s", ast_to_json(m));
         }
 
     } break;
@@ -271,7 +271,6 @@ void constant_fold(void* ctx, AST* node) {
             default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
             }
             // clang-format on
-            info("folded %s into %lld", ast_to_str(node), value);
             ast_replace(node, make_ast_int(node->loc_info, value));
         } else if (lhs->kind == AST_FLOAT && rhs->kind == AST_FLOAT) {
             f64 lhs_v = lhs->Float.val;
@@ -292,7 +291,6 @@ void constant_fold(void* ctx, AST* node) {
             default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
             }
             // clang-format on
-            info("folded %s into %lld", ast_to_str(node), value);
             AST* constant_value = make_ast_int(node->loc_info, value);
             ast_replace(node, constant_value);
         }
@@ -300,6 +298,18 @@ void constant_fold(void* ctx, AST* node) {
     case AST_UNARY: {
         AST* operand = node->Unary.operand;
         if (operand->kind == AST_GROUPING) operand = operand->Grouping.node;
+
+        // ex. &(*x) is the same as x
+        // ex. *(&x) is the same as x
+        if (operand->kind == AST_UNARY) {
+            Token_Kind op = node->Unary.op;
+            switch (op) {
+            default: break;
+            case THI_SYNTAX_POINTER: ast_replace(node, operand->Unary.op == THI_SYNTAX_ADDRESS ? operand->Unary.operand : operand); break;
+            case THI_SYNTAX_ADDRESS: ast_replace(node, operand->Unary.op == THI_SYNTAX_POINTER ? operand->Unary.operand : operand); break;
+            }
+        }
+
         if (operand->kind == AST_INT) {
             Token_Kind op     = node->Unary.op;
             s64        oper_v = operand->Int.val;
@@ -343,6 +353,7 @@ List* ast_find_all_of_kind(AST_Kind kind, AST* ast) {
 }
 
 void thi_run_pass(Thi* thi, char* pass_description, void (*visitor_func)(void*, AST*), void* visitor_func_arg) {
+    info("Running pass: %s", pass_description);
     push_timer(thi, pass_description);
     ast_visit(visitor_func, visitor_func_arg, thi->ast);
     pop_timer(thi);
@@ -510,7 +521,9 @@ int main(int argc, char** argv) {
     type_checker(thi.symbol_map, ast);
 
     // Run all passes
+    push_timer(&thi, "Run all passes");
     ast_visit(run_all_passes, &thi, ast);
+    pop_timer(&thi);
 
     // Second typechecking pass
     type_checker(thi.symbol_map, ast);

@@ -1,18 +1,13 @@
 extern printf(u8*, ...) s32
 
 def v2  
-    x s64
-    y s64
     i s64[5]
 
 def main() s64
     v v2
 
-    v.i[0] = 0
-    v.i[1] = 1
-    v.i[2] = 2
+    v.i[1] = 53
+    #v.i[1] = 1
+    #v.i[2] = 2
 
-    v.x = 142
-    #printf("%d %d %d", v.x, 2, 3)
-    
-    return v.i[1] + v.i[2]
+    return 1 #v.i[1] + v.i[2]
