@@ -178,10 +178,8 @@ make_value_struct(Type* type) {
 
 s64 get_stack_pos_of_variable(Value* variable) {
     switch (variable->kind) {
-    default:
-        error("unhandled case: %s, %s, %s", value_kind_to_str(variable->kind), __func__, __LINE__);
-    case VALUE_LOAD_INST:
-        return get_stack_pos_of_variable(variable->LoadInst.variable);
+    default: ERROR_UNHANDLED_KIND(value_kind_to_str(variable->kind));
+    case VALUE_LOAD_INST: return get_stack_pos_of_variable(variable->LoadInst.variable);
     case VALUE_VARIABLE: return variable->Variable.stack_pos;
     }
     return 0;

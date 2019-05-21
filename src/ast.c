@@ -137,7 +137,7 @@ char* ast_to_str(AST* node) {
     case AST_CONSTANT_DECL:     return strf("%s :: %s", node->Constant_Decl.name, ast_to_str(node->Constant_Decl.value));
     case AST_STRUCT:            return type_to_str(node->Struct.type);
     case AST_ENUM:              return type_to_str(node->Enum.type);
-    case AST_FUNCTION:          return strf("%s%s%s", node->Function.name, type_to_str(node->type), ast_to_str(node->Function.body));
+    case AST_FUNCTION:          return strf("%s%s", type_to_str(node->type), ast_to_str(node->Function.body));
     case AST_GROUPING:          return strf("(%s)", ast_to_str(node->Grouping.node));
     case AST_SUBSCRIPT:         return strf("%s[%s]", ast_to_str(node->Subscript.load), ast_to_str(node->Subscript.sub));
     case AST_IF:                return strf(node->If.else_block ? "if %s %s else %s" : "if %s %s", ast_to_str(node->If.cond),
@@ -299,8 +299,8 @@ void ast_visit(void (*func)(void*, AST*), void* ctx, AST* node) {
         break;
     case AST_IF:
         ast_visit(func, ctx, node->If.cond);
-        ast_visit(func, ctx, node->If.else_block);
         ast_visit(func, ctx, node->If.then_block);
+        ast_visit(func, ctx, node->If.else_block);
         break;
     case AST_FOR:
         ast_visit(func, ctx, node->For.init);

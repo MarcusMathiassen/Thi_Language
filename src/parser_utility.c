@@ -26,7 +26,7 @@
 
 #define DEBUG_START \
     assert(ctx);    \
-    info("%s: %s", __func__, token_to_str(ctx->curr_tok));
+    // info("%s: %s", __func__, token_to_str(ctx->curr_tok));
 
 #define BIN_OP_COUNT 35
 struct

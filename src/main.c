@@ -62,21 +62,35 @@ void resolve_typeofs(void* arg, AST* node) {
     ast_replace(node, string_value);
 }
 
-typedef struct {
-    AST*  parent;
-    Type* expected_type;
-} Semantic_Context;
-void silently_cast_constants_to_their_expected_types(Semantic_Context* ctx, AST* node) {
-    switch (node->kind) {
-    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
-    case AST_VARIABLE_DECL: {
-        ctx->parent        = node;
-        ctx->expected_type = node->type;
-    } break;
-    case AST_CALL: {
-        ctx->parent = node;
-    } break;
-    }
+void resolve_subscript(void* dont_care, AST* node) {
+    AST* load = node->Subscript.load;
+    AST* sub  = node->Subscript.sub;
+
+    s64 size = get_size_of_type(load->type);
+
+    sub = make_ast_binary(node->loc_info, TOKEN_ASTERISK, make_ast_int(node->loc_info, size), sub);
+    load = make_ast_unary(node->loc_info, THI_SYNTAX_ADDRESS, load);
+    sub = make_ast_binary(node->loc_info, TOKEN_PLUS, load, sub);
+    sub = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, sub);
+
+    ast_replace(node, sub);
+}
+
+void resolve_field_access(void* dont_care, AST* node) {
+
+    AST*  load       = node->Field_Access.load;
+    char* field_name = node->Field_Access.field;
+    Type* type_of_field = node->type;
+
+    s64  offset_size = get_offset_in_struct_to_field(load->type, field_name);
+    AST* offset      = make_ast_int(node->loc_info, offset_size);
+
+    load = make_ast_unary(node->loc_info, THI_SYNTAX_ADDRESS, load);
+    load = make_ast_binary(node->loc_info, TOKEN_PLUS, load, offset);
+    load = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, load);
+
+    load->type = type_of_field;
+    ast_replace(node, load);
 }
 
 void find_dependencies(void* arg, AST* node) {
@@ -184,7 +198,7 @@ void run_all_passes(void* thi, AST* node) {
 
 void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* node) {
     assert(node);
-    info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(node)), give_unique_color(type_to_str(node->type)));
+    // info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(node)), give_unique_color(type_to_str(node->type)));
     // clang-format off
     switch (node->kind) {
     case AST_MODULE:      // fallthrough
@@ -452,7 +466,6 @@ int main(int argc, char** argv) {
 
     
     // Semantic_Context sctx;
-    // sctx.symbols =     
     // thi_run_pass(&thi, "semantic analysis", sema_check_node, sema_ctx);
 
     // ast = pass_typify(ast)
@@ -480,12 +493,26 @@ int main(int argc, char** argv) {
 
     passDesc.description  = "Resolve typeofs";
     passDesc.kind         = AST_TYPEOF;
-    passDesc.passKind     = PASS_UNSAFE;
     passDesc.visitor_func = resolve_typeofs;
-    passDesc.visitor_arg  = NULL;
+    thi_install_pass(&thi, passDesc);
+
+    passDesc.description  = "Resolve subscripts";
+    passDesc.kind         = AST_SUBSCRIPT;
+    passDesc.visitor_func = resolve_subscript;
+    thi_install_pass(&thi, passDesc);
+
+    passDesc.description  = "Resolve field access";
+    passDesc.kind         = AST_FIELD_ACCESS;
+    passDesc.visitor_func = resolve_field_access;
     thi_install_pass(&thi, passDesc);
 
     // Give every node a type and do some checking
+    type_checker(thi.symbol_map, ast);
+
+    // Run all passes
+    ast_visit(run_all_passes, &thi, ast);
+
+    // Second typechecking pass
     type_checker(thi.symbol_map, ast);
 
     //
@@ -520,9 +547,6 @@ int main(int argc, char** argv) {
     // Sanity checks
     thi_run_pass(&thi, "check_for_unresolved_types", check_for_unresolved_types, NULL);
     thi_run_pass(&thi, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);
-
-    // Run all passes
-    ast_visit(run_all_passes, &thi, ast);
 
     // char* json = ast_to_json(ast);
     // write_to_file("ast.json", json);

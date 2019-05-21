@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesViewState
+   version = "1.0">
+   <ContextStates>
+      <ContextState
+         contextName = "type_check_call:type_checker.c">
+         <PersistentStrings>
+            <PersistentString
+               value = "(AST*)args">
+            </PersistentString>
+            <PersistentString
+               value = "(Type*)ctx-&gt;symbol_table-&gt;data">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+   </ContextStates>
+</VariablesViewState>

@@ -142,26 +142,26 @@ void emit(Codegen_Context* ctx, char* fmt, ...) {
 void push_type(Codegen_Context* ctx, Type* type) {
     assert(type);
     switch (type->kind) {
+    default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
     case TYPE_ARRAY:   // fallthrough
     case TYPE_POINTER: // fallthrough
     case TYPE_STRUCT:  // fallthrough
     case TYPE_ENUM:    // fallthrough
     case TYPE_INT: push(ctx, RAX); break;
     case TYPE_FLOAT: push(ctx, XMM0); break;
-    default: error("Unhandled push_type %s", type_to_str(type));
     }
 }
 
 void pop_type_2(Codegen_Context* ctx, Type* type) {
     assert(type);
     switch (type->kind) {
+    default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
     case TYPE_ARRAY:   // fallthrough
     case TYPE_POINTER: // fallthrough
     case TYPE_STRUCT:  // fallthrough
     case TYPE_ENUM:    // fallthrough
     case TYPE_INT: pop(ctx, RCX); break;
     case TYPE_FLOAT: pop(ctx, XMM1); break;
-    default: error("pop_type_2 pop_type %s", type_to_str(type));
     }
 }
 void pop_type(Codegen_Context* ctx, Type* type) {
@@ -187,6 +187,7 @@ void push(Codegen_Context* ctx, int reg) {
         emit(ctx, "push %s", r);
     }
     ctx->stack_index += 8;
+    // warning("ctx->stack_index: %d", ctx->stack_index);
 }
 
 void pop(Codegen_Context* ctx, int reg) {
@@ -199,7 +200,7 @@ void pop(Codegen_Context* ctx, int reg) {
         emit(ctx, "pop %s", r);
     }
     ctx->stack_index -= 8;
-    if(ctx->stack_index < 0) error("ctx->stack_index < 0: %d %s", ctx->stack_index, ctx->section_text.c_str);
+    assert(ctx->stack_index >= 0);
 }
 
 char* get_op_size(s8 bytes) {
@@ -304,6 +305,7 @@ void alloc_variable(Codegen_Context* ctx, Value* variable) {
          type_to_str(variable->type),
          size);
     ctx->stack_index += size;
+    // warning("ctx->stack_index: %d", ctx->stack_index);
 }
 
 void dealloc_variable(Codegen_Context* ctx, Value* variable) {
@@ -315,8 +317,7 @@ void dealloc_variable(Codegen_Context* ctx, Value* variable) {
          type_to_str(variable->type),
          size);
     ctx->stack_index -= size;
-    // assert(ctx->stack_index >= 0);
-    if(ctx->stack_index < 0) error("ctx->stack_index < 0: %d %s", ctx->stack_index, ctx->section_text.c_str);
+    assert(ctx->stack_index >= 0);
 }
 
 void push_scope(Codegen_Context* ctx) {
@@ -436,11 +437,8 @@ void emit_store(Codegen_Context* ctx, Value* variable) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     s64 stack_pos = get_stack_pos_of_variable(variable);
-
     char* reg = get_result_reg_2(variable->type);
-
     char* mov_op = get_move_op(variable->type);
-
     switch (variable->type->kind) {
     case TYPE_STRUCT:
     case TYPE_ARRAY: emit(ctx, "%s [rax], %s; store", mov_op, reg); break;
@@ -681,11 +679,12 @@ void emit_push(Codegen_Context* ctx, s8 reg) {
     char* r = get_reg(reg);
     if (reg >= XMM0 && reg <= XMM7) {
         emit(ctx, "sub rsp, 8");
-        emit(ctx, "movsd [rsp], %s", r);
+        emit(ctx, "movss [rsp], %s", r);
     } else {
         emit(ctx, "push %s", r);
     }
     ctx->stack_index += 8;
+    // warning("ctx->stack_index: %d", ctx->stack_index);
 }
 
 void emit_pop(Codegen_Context* ctx, s8 reg) {
@@ -693,7 +692,7 @@ void emit_pop(Codegen_Context* ctx, s8 reg) {
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
     char* r = get_reg(reg);
     if (reg >= XMM0 && reg <= XMM7) {
-        emit(ctx, "movsd %s, [rsp]", r);
+        emit(ctx, "movss %s, [rsp]", r);
         emit(ctx, "add rsp, 8");
 
     } else {
@@ -726,7 +725,7 @@ void emit_lea_reg64_mem(Codegen_Context* ctx, s8 reg64, char* mem) {
 
 void visitor_get_all_alloca_in_block(void* sum, AST* node) {
     if (node->kind == AST_VARIABLE_DECL) {
-        *(s64*)sum = get_size_of_type(node->type);
+        *((s64*)sum) = get_size_of_type(node->type);
     }
 }
 

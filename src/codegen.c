@@ -33,9 +33,10 @@
 #include <string.h>  // strcmp
 
 #define DEBUG_START                                                              \
-    info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(node))); \
     assert(ctx);                                                                 \
-    assert(node);
+    assert(node); \
+    // info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(node))); \
+    // emit(ctx, "; %s", ast_to_str(node));
 
 Value*
 codegen_sizeof(Codegen_Context* ctx, AST* node);
@@ -61,12 +62,6 @@ Value*
 codegen_macro(Codegen_Context* ctx, AST* node);
 Value*
 codegen_ident(Codegen_Context* ctx, AST* node);
-Value*
-codegen_field_access(Codegen_Context* ctx, AST* node);
-Value*
-codegen_subscript(Codegen_Context* ctx, AST* node);
-Value*
-codegen_subscript_no_deref(Codegen_Context* ctx, AST* node);
 Value*
 codegen_string(Codegen_Context* ctx, AST* node);
 Value*
@@ -124,8 +119,6 @@ codegen_node(Codegen_Context* ctx, AST* node) {
     case AST_CONSTANT_DECL: return codegen_constant_decl(ctx, node);
     case AST_BLOCK: return codegen_block(ctx, node);
     case AST_GROUPING: return codegen_node(ctx, node->Grouping.node);
-    case AST_SUBSCRIPT: return codegen_subscript(ctx, node);
-    case AST_FIELD_ACCESS: return codegen_field_access(ctx, node);
     case AST_IF: return codegen_if(ctx, node);
     case AST_FOR: return codegen_for(ctx, node);
     case AST_WHILE: return codegen_while(ctx, node);
@@ -196,7 +189,7 @@ codegen_unary(Codegen_Context* ctx, AST* node) {
         }
     } break;
     case THI_SYNTAX_POINTER: {
-        Type* t   = operand_val->type->Array.type;
+        Type* t   = operand_val->type;
         char* reg = get_result_reg(t);
         // char* mov_size = get_op_size(get_size_of_type(t));
         emit(ctx, "mov %s, [rax]; deref", reg);
@@ -254,19 +247,31 @@ codegen_binary(Codegen_Context* ctx, AST* node) {
     }
 
     case THI_SYNTAX_ASSIGNMENT: {
+
+        /*
+            LHS must be a LOAD
+            RHS can be what ever
+            LOAD ::= v.x | v[4] | v7
+        */
+
+        if (lhs->kind == AST_UNARY) { // LOAD, *(&(v)+5)
+            lhs = lhs->Unary.operand;
+        }
+
+        if (lhs->kind == AST_VARIABLE_DECL) {
+            lhs->Variable_Decl.value = rhs;
+            return codegen_node(ctx, lhs);
+        }
+
         Value* rhs_v = codegen_node(ctx, rhs);
         push_type(ctx, rhs_v->type);
         push_type(ctx, rhs_v->type);
         Value* variable = NULL;
         info("%s %s", ast_kind_to_str(lhs->kind), ast_to_str(lhs));
-        if (lhs->kind == AST_SUBSCRIPT) {
-            variable = codegen_subscript_no_deref(ctx, lhs);
-        } else {
-            variable = codegen_node(ctx, lhs);
-            if (variable->type->kind == TYPE_POINTER) {
-                s64 stack_pos = get_stack_pos_of_variable(variable);
-                emit(ctx, "lea rax, [rbp-%lld]; assign_not_subscri", stack_pos);
-            }
+        variable = codegen_node(ctx, lhs);
+        if (variable->type->kind == TYPE_POINTER) {
+            s64 stack_pos = get_stack_pos_of_variable(variable);
+            emit(ctx, "lea rax, [rbp-%lld]; assign_not_subscri", stack_pos);
         }
         pop_type_2(ctx, rhs_v->type);
         emit_store(ctx, variable);
@@ -551,6 +556,8 @@ codegen_variable_decl(Codegen_Context* ctx, AST* node) {
     s64 type_size = get_size_of_type(type);
     s64 stack_pos = type_size + ctx->stack_index;
 
+    warning("name: %s stack_pos: %d type_size: %d", name, stack_pos, type_size);
+
     Value* variable = make_value_variable(name, type, stack_pos);
     add_variable(ctx, variable);
 
@@ -581,15 +588,15 @@ codegen_call(Codegen_Context* ctx, AST* node) {
     // s8 other_counter     = 0;
 
     LIST_FOREACH_REVERSE(args) {
-        AST*   arg = (AST*)it->data;
+        AST*   arg = it->data;
         Value* v   = codegen_node(ctx, arg);
         push_type(ctx, v->type);
         list_append(values, v);
         total += 1;
     }
 
-    LIST_FOREACH(values) {
-        Value* v = (Value*)it->data;
+    LIST_FOREACH_REVERSE(values) {
+        Value* v = it->data;
         switch (v->type->kind) {
         default: ERROR_UNHANDLED_KIND(type_kind_to_str(v->type->kind));
         case TYPE_POINTER:
@@ -597,6 +604,7 @@ codegen_call(Codegen_Context* ctx, AST* node) {
         case TYPE_ENUM:
         case TYPE_INT: {
             switch (int_arg_counter) {
+            default: ERROR_UNHANDLED_KIND(type_kind_to_str(v->type->kind));
             case 0: pop(ctx, RDI); break;
             case 1: pop(ctx, RSI); break;
             case 2: pop(ctx, RDX); break;
@@ -608,6 +616,7 @@ codegen_call(Codegen_Context* ctx, AST* node) {
         } break;
         case TYPE_FLOAT: {
             switch (float_arg_counter) {
+            default: ERROR_UNHANDLED_KIND(type_kind_to_str(v->type->kind));
             case 0: pop(ctx, XMM0); break;
             case 1: pop(ctx, XMM1); break;
             case 2: pop(ctx, XMM2); break;
@@ -625,8 +634,10 @@ codegen_call(Codegen_Context* ctx, AST* node) {
         }
     }
 
+    emit(ctx, "mov al, %lld; var_arg_count", 1);
+    // error("flag: %d", node->type->flags & TYPE_FLAG_HAS_VAR_ARG);
     if (node->type->flags & TYPE_FLAG_HAS_VAR_ARG) {
-        emit(ctx, "mov rax, %lld; var_arg_count", total);
+        emit(ctx, "mov al, %lld; var_arg_count", total);
     }
 
     emit(ctx, "call _%s", callee);
@@ -638,11 +649,10 @@ Value*
 codegen_float(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_FLOAT);
-    Value* val    = make_value_float(make_type_float(DEFAULT_FLOAT_BYTE_SIZE),
-                                  node->Float.val);
+    Value* val    = make_value_float(node->type, node->Float.val);
     char*  flabel = make_data_label(ctx);
     char*  db_op  = get_db_op(val->type);
-    emit_data(ctx, "%s: %s %f", flabel, db_op, node->Float.val);
+    emit_data(ctx, "%s: %s %f", flabel, db_op, val->Float.value);
     char* mov_op = get_move_op(val->type);
     char* reg    = get_result_reg(val->type);
     emit(ctx, "%s %s, [rel %s]; float_ref", mov_op, reg, flabel);
@@ -653,10 +663,7 @@ Value*
 codegen_int(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_INT);
-    Value* val =
-        make_value_int(DEFAULT_INT_BYTE_SIZE,
-                       make_type_int(DEFAULT_INT_BYTE_SIZE, 0),
-                       node->Int.val);
+    Value* val = make_value_int(DEFAULT_INT_BYTE_SIZE, node->type, node->Int.val);
     char* reg    = get_result_reg(val->type);
     char* mov_op = get_move_op(val->type);
     emit(ctx, "%s %s, %d", mov_op, reg, val->Int.value);
@@ -669,13 +676,12 @@ codegen_block(Codegen_Context* ctx, AST* node) {
     push_scope(ctx);
     List*  stmts = node->Block.stmts;
     Value* last  = NULL;
-    if (node->Block.flags & BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED) {
-        AST* last_stmt = list_last(stmts);
-        ast_replace(last_stmt, make_ast_return(last_stmt->loc_info, last_stmt));
-    }
+    // if (node->Block.flags & BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED) {
+        // AST* last_stmt = list_last(stmts);
+        // ast_replace(last_stmt, make_ast_return(last_stmt->loc_info, last_stmt));
+    // }
     LIST_FOREACH(stmts) {
-        AST* stmt = (AST*)it->data;
-        last      = codegen_node(ctx, stmt);
+        last = codegen_node(ctx, it->data);
     }
     pop_scope(ctx);
     return last;
@@ -689,70 +695,6 @@ codegen_ident(Codegen_Context* ctx, AST* node) {
     Value* var  = get_variable(ctx, name);
     emit_load(ctx, var);
     return var;
-}
-
-Value*
-codegen_subscript_no_deref(Codegen_Context* ctx, AST* node) {
-    DEBUG_START;
-    assert(node->kind == AST_SUBSCRIPT);
-
-    AST* load = node->Subscript.load;
-    AST* sub  = node->Subscript.sub;
-
-    s64 size = get_size_of_type(load->type);
-
-    sub  = make_ast_binary(node->loc_info, TOKEN_ASTERISK, make_ast_int(node->loc_info, size), sub);
-    load = make_ast_unary(node->loc_info, THI_SYNTAX_ADDRESS, load);
-    sub  = make_ast_binary(node->loc_info, TOKEN_PLUS, load, sub);
-
-    emit(ctx, "\n; codegen_subscript_no_deref");
-    return codegen_node(ctx, sub);
-}
-
-Value*
-codegen_field_access(Codegen_Context* ctx, AST* node) {
-    DEBUG_START;
-    assert(node->kind == AST_FIELD_ACCESS);
-
-    AST*  load       = node->Field_Access.load;
-    char* field_name = node->Field_Access.field;
-
-    // Get the offset
-    s64  offset_size = get_offset_in_struct_to_field(load->type, field_name);
-    AST* offset      = make_ast_int(node->loc_info, offset_size);
-
-    // Get the memory location of the load
-    AST* stack_ref = make_ast_unary(node->loc_info, THI_SYNTAX_ADDRESS, load);
-
-    // Add the offset and memory location
-    node = make_ast_binary(node->loc_info, TOKEN_PLUS, stack_ref, offset);
-
-    // Load the resulting memory location
-    node = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, node);
-
-    emit(ctx, "\n; codegen_field_access");
-    success("codegen_field_access: %s", ast_to_str(node));
-    return codegen_node(ctx, node);
-}
-
-Value*
-codegen_subscript(Codegen_Context* ctx, AST* node) {
-    DEBUG_START;
-    assert(node->kind == AST_SUBSCRIPT);
-
-    AST* load = node->Subscript.load;
-    AST* sub  = node->Subscript.sub;
-
-    s64 size = get_size_of_type(load->type);
-
-    sub  = make_ast_binary(node->loc_info, TOKEN_ASTERISK, make_ast_int(node->loc_info, size), sub);
-    load = make_ast_unary(node->loc_info, THI_SYNTAX_ADDRESS, load);
-    sub  = make_ast_binary(node->loc_info, TOKEN_PLUS, load, sub);
-    sub  = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, sub);
-
-    emit(ctx, "\n; codegen_subscript");
-    success("codegen_subscript: %s", ast_to_str(sub));
-    return codegen_node(ctx, sub);
 }
 
 Value*
@@ -1016,8 +958,7 @@ codegen_struct(Codegen_Context* ctx, AST* node) {
     return make_value_struct(node->Struct.type);
 }
 
-Value*
-codegen_function(Codegen_Context* ctx, AST* node) {
+Value* codegen_function(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_FUNCTION);
 
@@ -1038,9 +979,10 @@ codegen_function(Codegen_Context* ctx, AST* node) {
 
     sum += get_all_alloca_in_block(func_body);
 
+    warning("%d", sum);
+
     s64 stack_allocated = sum;
-    s32 padding         = X64_ASM_MACOS_STACK_PADDING -
-                  (stack_allocated % X64_ASM_MACOS_STACK_PADDING);
+    s32 padding = X64_ASM_MACOS_STACK_PADDING - (stack_allocated % X64_ASM_MACOS_STACK_PADDING);
     if (stack_allocated + padding)
         emit(ctx, "sub rsp, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);
 
@@ -1054,7 +996,7 @@ codegen_function(Codegen_Context* ctx, AST* node) {
     s8    rest              = 0;
 
     LIST_FOREACH(args) {
-        AST*   arg  = (AST*)it->data;
+        AST*   arg  = it->data;
         Value* v    = codegen_node(ctx, arg);
         s64    size = get_size_of_value(v);
 

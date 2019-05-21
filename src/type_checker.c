@@ -223,6 +223,7 @@ Type* type_check_call(Typer_Context* ctx, AST* node) {
     char* callee = node->Call.callee;
     List* args   = node->Call.args;
     Type* func_t = (Type*)map_get(ctx->symbol_table, callee);
+    assert(func_t->Function.return_type);
     if (func_t->Function.return_type->kind == TYPE_UNRESOLVED) {
         func_t->Function.return_type = map_get(ctx->symbol_table, get_type_name(func_t->Function.return_type));
     }
@@ -266,7 +267,7 @@ Type* type_check_binary(Typer_Context* ctx, AST* node) {
     Type* b = type_check_node(ctx, rhs);
 
     if (!is_same_type(a, b)) {
-        error("[type_missmatch] %s -> %s != %s ", ast_to_str(node), type_to_str(a), type_to_str(b));
+        // error("[type_missmatch] %s -> %s != %s ", ast_to_str(node), type_to_str(a), type_to_str(b));
     }
 
     // 'a' and 'b' are the same so just return any one of them
@@ -336,57 +337,11 @@ Type* type_check_block(Typer_Context* ctx, AST* node) {
 }
 
 Type* type_check_subscript(Typer_Context* ctx, AST* node) {
-
     AST* load = node->Subscript.load;
     AST* sub  = node->Subscript.sub;
-
-    warning("load: %s", ast_to_str(load));
-    warning("sub: %s", ast_to_str(sub));
-
     Type* t = type_check_node(ctx, load);
     type_check_node(ctx, sub);
-
-    warning("type: %s", type_to_str(t));
-    warning("type size: %d", get_size_of_type(t));
-
     t = get_underlying_type_if_any(t);
-
-    warning("array type: %s", type_to_str(t));
-    warning("array type size: %d", get_size_of_type(t));
-
-    info_no_newline("transformed %s into ", give_unique_color(ast_to_str(node)));
-
-    // Get the size of the underlaying type
-    // s64 u_size = get_size_of_type(t);
-
-    // Compute the offset
-
-    // AST* offset = make_ast_binary(node->t, TOKEN_ASTERISK, sub, make_ast_int(node->t, u_size));
-    // AST* pos = make_ast_unary(node->t, THI_SYNTAX_ADDRESS, load);
-    // AST* result = make_ast_binary(node->t, TOKEN_PLUS, pos, offset);
-    // result = make_ast_unary(node->t, THI_SYNTAX_POINTER, result);
-
-    // node = make_ast_binary(node->t, TOKEN_ASTERISK, sub, make_ast_int(node->t, u_size));
-    // ast_replace(node, make_ast_binary(node->t, TOKEN_ASTERISK, sub, make_ast_int(node->t, u_size)));
-    // Get the memory location of the load
-    // AST* stack_ref = make_ast_unary(node->t, THI_SYNTAX_ADDRESS, load);
-    // Add the offset and memory address together
-    // node = make_ast_binary(node->t, TOKEN_PLUS, stack_ref, node);
-    // ast_replace(node, make_ast_binary(node->t, TOKEN_PLUS, stack_ref, node));
-    // // Load the resulting location by dereferencing the memory address
-    // node = make_ast_unary(node->t, THI_SYNTAX_POINTER, node);
-    // ast_replace(node, make_ast_unary(node->t, THI_SYNTAX_POINTER, node));
-
-    // type_check_node(ctx, result);
-    // ast_replace(node, result);
-
-    // ex. array: Foo[5]
-    //     array[4].i[5]
-    // trfm -> *(&(array) + sub * sizeof(array[0]))
-    // turns it into this ->  *(&v + 0)
-
-    info("%s -> %s %s ", give_unique_color(ast_to_str(node)), type_to_str(t), ast_kind_to_str(node->kind));
-
     return t;
 }
 
@@ -410,6 +365,7 @@ Type* type_check_field_access(Typer_Context* ctx, AST* node) {
     info("field: %s type: %s", field_name, type_name);
 
     Type* t = type_check_node(ctx, node->Field_Access.load);
+    assert(t);
 
     // Type* t = map_get(ctx->symbol_table, type_name);
 
@@ -436,25 +392,6 @@ Type* type_check_field_access(Typer_Context* ctx, AST* node) {
             if (strcmp(name, field_name) == 0) {
                 info("found it!");
                 info("getting offset to '%s' in type '%s'", name, type_to_str(t));
-
-                // // Get the offset
-                // s64 offset_size = get_offset_in_struct_to_field(t, field_name);
-                // AST* offset = make_ast_int(node->t, offset_size);
-
-                // // Get the memory location of the load
-                // AST* stack_ref = make_ast_unary(node->t, THI_SYNTAX_ADDRESS, make_ast_ident(node->t, type_name));
-
-                // AST *result;
-
-                // // Add the offset and memory location
-                // result = make_ast_binary(node->t, TOKEN_PLUS, stack_ref, offset);
-
-                // // Load the resulting memory location
-                // result = make_ast_unary(node->t, THI_SYNTAX_POINTER, node);
-
-                // ast_replace(node, result);
-
-                // turns it into this ->  *(&v + 0)
                 res = mem->type;
                 break;
             }
@@ -462,11 +399,10 @@ Type* type_check_field_access(Typer_Context* ctx, AST* node) {
     } break;
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind))
     }
-
     // type_check_node(ctx, node);
-
     return res;
 }
+
 Type* type_check_if(Typer_Context* ctx, AST* node) {
     AST* cond       = node->If.cond;
     AST* then_block = node->If.then_block;
@@ -498,14 +434,12 @@ Type* type_check_return(Typer_Context* ctx, AST* node) {
 
 Type* type_check_defer(Typer_Context* ctx, AST* node) {
     return type_check_node(ctx, node->Defer.node);
-    ;
 }
 Type* type_check_break(Typer_Context* ctx, AST* node) {
     return type_check_node(ctx, node->Break.node);
 }
 Type* type_check_continue(Typer_Context* ctx, AST* node) {
     return type_check_node(ctx, node->Continue.node);
-    ;
 }
 Type* type_check_as(Typer_Context* ctx, AST* node) {
     type_check_node(ctx, node->As.node);

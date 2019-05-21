@@ -206,7 +206,7 @@ char* type_to_str(Type* type) {
     // clang-format off
     switch (type->kind) {
     default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
-    case TYPE_VAR_ARGS:   return "TYPE_VAR_ARGS";
+    case TYPE_VAR_ARGS:   return "...";
     case TYPE_VOID:       return "void";
     case TYPE_UNRESOLVED: return strf("%s?", get_type_name(type));
     case TYPE_ARRAY:      return strf("%s[%d]", type_to_str(type->Array.type), type->Array.size);

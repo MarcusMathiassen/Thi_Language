@@ -1,16 +1,18 @@
-def v2  
-    x f32
-    y f32
-def comp(x s64) s64 
-    if get(x) return 3
-    return x
+extern printf(u8*, ...) s32
 
-def get(i s64) s64 
-    return i
+def v2  
+    x s64
+    y s64
+    i s64[5]
 
 def main() s64
-    i s64 = 3
-    return sq(3)
+    v v2
 
+    v.i[0] = 0
+    v.i[1] = 1
+    v.i[2] = 2
 
-def sq(s s32) s32 => s * s
+    v.x = 142
+    #printf("%d %d %d", v.x, 2, 3)
+    
+    return v.i[1] + v.i[2]

@@ -503,6 +503,7 @@ AST* parse_block(Parser_Context* ctx) {
         } 
         List* stmts = make_list();
         AST* stmt = parse_statement(ctx);
+        stmt = make_ast_return(stmt->loc_info, stmt);
         list_append(stmts, stmt);
         block = make_ast_block(loc(ctx), stmts);
     } else {
@@ -860,22 +861,20 @@ Type* parse_extern_function_signature(Parser_Context* ctx, char* func_name) {
     eat_kind(ctx, TOKEN_OPEN_PAREN);
     List* args                   = make_list();
     bool  has_multiple_arguments = false;
-    bool  has_types_only         = ctx->top_tok.kind == TOKEN_EXTERN;
+    u32 flags = 0;
     while (!tok_is(ctx, TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(ctx, TOKEN_COMMA);
-        if (has_types_only) {
-            Type* type = get_type(ctx);
-            AST*  expr = make_ast_variable_decl(loc(ctx), NULL, type, NULL);
-            list_append(args, expr);
-        }
         Type* type = get_type(ctx);
+        if (type->kind == TYPE_VAR_ARGS) {
+            flags |= TYPE_FLAG_HAS_VAR_ARG;
+        }
         AST*  expr = make_ast_variable_decl(loc(ctx), NULL, type, NULL);
         list_append(args, expr);
         has_multiple_arguments = true;
     }
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
     Type* ret_type = tok_is_on_same_line(ctx) ? get_type(ctx) : NULL;
-    return make_type_function(func_name, args, ret_type, false);
+    return make_type_function(func_name, args, ret_type, flags);
 }
 
 Type* get_type(Parser_Context* ctx) {
