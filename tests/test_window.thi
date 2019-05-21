@@ -7,7 +7,7 @@ load "includes/cmath"
 
 DEFAULT_WINDOW_TITLE :: "Hello Triangle"
 
-main()
+def main()
     if !glfwInit() puts("GLFW init failed.")
     defer glfwTerminate()
     defer puts("Closing..")
@@ -73,8 +73,8 @@ main()
         if glfwGetKey(window, GLFW_KEY_X) is GLFW_PRESS scale +=  0.01
         if glfwGetKey(window, GLFW_KEY_Z) is GLFW_PRESS scale +=  -0.01
 
-        w: int
-        h: int
+        w int
+        h int
         #glfwGetFramebufferSize(window, &w, &h)
         #printf("framebuffer size: %dx%d\n", w, h)
 
@@ -89,7 +89,7 @@ main()
     #  is in 'RAX' when all defers have run.
     return 1
 
-drawTriangle(x: f32, y: f32, s: f32)
+def drawTriangle(x f32, y f32, s f32)
     glBegin(GL_TRIANGLES)
     defer glEnd()
     glColor3f(1.0, 0.0, 0.0)
