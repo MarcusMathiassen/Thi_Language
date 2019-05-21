@@ -5,3 +5,5 @@
 [ ] - struct braced initilization syntax with named parameters
 [ ] - support for variable arguments in in not just clibs.
 [ ] - solve circular dependencies, and any other dependencies.
+[ ] - remove duplicate data tables in assembly output.
+[ ] - find a better way to remove unused externs

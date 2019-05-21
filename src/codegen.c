@@ -601,6 +601,7 @@ codegen_call(Codegen_Context* ctx, AST* node) {
         case TYPE_POINTER:
         case TYPE_ARRAY:
         case TYPE_ENUM:
+        case TYPE_STRUCT: 
         case TYPE_INT: {
             switch (int_arg_counter) {
             default: ERROR_UNHANDLED_KIND(type_kind_to_str(v->type->kind));
@@ -626,9 +627,6 @@ codegen_call(Codegen_Context* ctx, AST* node) {
             case 7: pop(ctx, XMM7); break;
             }
             float_arg_counter += 1;
-        } break;
-        case TYPE_STRUCT: {
-            pop(ctx, RAX);
         } break;
         }
     }

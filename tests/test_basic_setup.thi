@@ -1,21 +1,19 @@
-load "includes/cstdlib"
+#load "includes/cstdlib"
 load "includes/cstdio"
 
 def v2  
     i s64[5]
+    z f64
 
 def get(x s64) s64
     return 6
 
 def main(argc s32, argv char**) s64
-    #v v2
-    #v.i[1] = 53
-    #v.i[2] = 2
+    v v2
+    v.i[1] = 53
+    v.i[2] = 2
 
-    i s64 = get(64)
-    x s64 = get(64)
+    printf("%d %d %f %f\n", sizeof s64 * 8, v.i[1], 4.33, v.z = 1333.3333)
+    printf("%s %s\n", typeof get, typeof v2)
 
-    #printf("%d %d\n", (sizeof s64 * 8), v.i[1])
-    printf("%s\n", (typeof get))
-
-    return i
+    return v.i[1] + v.i[2] - 54

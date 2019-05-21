@@ -374,8 +374,15 @@ int main(int argc, char** argv) {
     Thi thi = make_thi();
 
     s32 opt;
-    while ((opt = getopt(argc, argv, "f:dv:")) != -1) {
+    while ((opt = getopt(argc, argv, "f:hdv:")) != -1) {
         switch (opt) {
+        case 'h': {
+            info("--- Thi Compiler ---");
+            info("Usage:");
+            info("      thi -f <file>");
+            info("      thi -v");
+            return 0;
+        } break;
         case 'v': thi.detailed_print = true; break;
         case 'd': thi.debug_mode = true; break;
         case 'f':
