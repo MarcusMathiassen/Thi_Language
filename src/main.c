@@ -62,7 +62,7 @@ void resolve_typeofs(void* dont_care, AST* node) {
     ast_replace(node, string_value);
 }
 void resolve_subscript(void* dont_care, AST* node) {
-    
+
     AST* load = node->Subscript.load;
     AST* sub  = node->Subscript.sub;
     Type* type_of_field = node->type;
@@ -78,7 +78,6 @@ void resolve_subscript(void* dont_care, AST* node) {
 
     ast_replace(node, sub);
 }
-
 void resolve_field_access(void* dont_care, AST* node) {
 
     AST*  load       = node->Field_Access.load;

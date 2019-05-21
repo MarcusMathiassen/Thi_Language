@@ -187,7 +187,6 @@ void push(Codegen_Context* ctx, int reg) {
         emit(ctx, "push %s", r);
     }
     ctx->stack_index += 8;
-    // warning("ctx->stack_index: %d", ctx->stack_index);
 }
 
 void pop(Codegen_Context* ctx, int reg) {
@@ -305,7 +304,6 @@ void alloc_variable(Codegen_Context* ctx, Value* variable) {
          type_to_str(variable->type),
          size);
     ctx->stack_index += size;
-    // warning("ctx->stack_index: %d", ctx->stack_index);
 }
 
 void dealloc_variable(Codegen_Context* ctx, Value* variable) {
@@ -684,7 +682,6 @@ void emit_push(Codegen_Context* ctx, s8 reg) {
         emit(ctx, "push %s", r);
     }
     ctx->stack_index += 8;
-    // warning("ctx->stack_index: %d", ctx->stack_index);
 }
 
 void emit_pop(Codegen_Context* ctx, s8 reg) {
