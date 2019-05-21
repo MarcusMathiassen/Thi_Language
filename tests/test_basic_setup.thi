@@ -1,14 +1,16 @@
-#def v2  
-#    x f32
-#    y f32
+def v2  
+    x f32
+    y f32
+def comp(x s64) s64 
+    if get(x) return 3
+    return x
 
-#def comp(x s64) s64 
-#    if get(x) return 3
-#    return x
+def get(i s64) s64 
+    return i
 
-#def get(i s64) s64 
-#    return i
+def main() s64
+    i s64 = 3
+    return sq(3)
 
 
-i = 3
-return i
+def sq(s s32) s32 => s * s

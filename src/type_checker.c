@@ -519,3 +519,4 @@ Type* type_check_is(Typer_Context* ctx, AST* node) {
     UNFINISHED;
     return NULL;
 }
+ 

@@ -199,7 +199,7 @@ void pop(Codegen_Context* ctx, int reg) {
         emit(ctx, "pop %s", r);
     }
     ctx->stack_index -= 8;
-    assert(ctx->stack_index >= 0);
+    if(ctx->stack_index < 0) error("ctx->stack_index < 0: %d %s", ctx->stack_index, ctx->section_text.c_str);
 }
 
 char* get_op_size(s8 bytes) {
@@ -315,7 +315,8 @@ void dealloc_variable(Codegen_Context* ctx, Value* variable) {
          type_to_str(variable->type),
          size);
     ctx->stack_index -= size;
-    assert(ctx->stack_index >= 0);
+    // assert(ctx->stack_index >= 0);
+    if(ctx->stack_index < 0) error("ctx->stack_index < 0: %d %s", ctx->stack_index, ctx->section_text.c_str);
 }
 
 void push_scope(Codegen_Context* ctx) {
@@ -723,18 +724,14 @@ void emit_lea_reg64_mem(Codegen_Context* ctx, s8 reg64, char* mem) {
     emit(ctx, "lea %s, %s", r, mem);
 }
 
+void visitor_get_all_alloca_in_block(void* sum, AST* node) {
+    if (node->kind == AST_VARIABLE_DECL) {
+        *(s64*)sum = get_size_of_type(node->type);
+    }
+}
+
 s64 get_all_alloca_in_block(AST* block) {
     s64   sum   = 0;
-    List* stmts = block->Block.stmts;
-    LIST_FOREACH(stmts) {
-        AST* stmt = (AST*)it->data;
-        switch (stmt->kind) {
-        default: break;
-        case AST_VARIABLE_DECL:
-            sum += get_size_of_type(stmt->type);
-            break;
-        case AST_BLOCK: sum += get_all_alloca_in_block(stmt); break;
-        }
-    }
+    ast_visit(visitor_get_all_alloca_in_block, &sum, block);
     return sum;
 }

@@ -883,6 +883,11 @@ Type* get_type(Parser_Context* ctx) {
 
     Type* type = NULL;
 
+    if (tok_is(ctx, TOKEN_DOT_DOT_DOT)) {
+        eat(ctx);
+        return make_type_var_args();
+    }
+
     if (tok_is(ctx, TOKEN_IDENTIFIER)) {
         char* type_name = ctx->curr_tok.value;
         eat_kind(ctx, TOKEN_IDENTIFIER);

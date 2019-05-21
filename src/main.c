@@ -154,6 +154,7 @@ void pass_add_all_symbols(void* thi, AST* node) {
     case AST_ENUM:   // fallthrough
     case AST_STRUCT: // fallthrough
     case AST_FUNCTION: add_symbol(thi, get_type_name(node->type), node->type); break;
+    case AST_EXTERN: add_symbol(thi, get_type_name(node->type), node->type); break;
     }
 }
 void pass_resolve_all_symbols(void* thi, AST* node) {
@@ -218,7 +219,6 @@ void visitor_resolve_unresolved_types(void* thi, AST* node) {
     }
     if (placeholder_t->kind == TYPE_UNRESOLVED) {
         *placeholder_t = *get_symbol(thi, get_type_name(placeholder_t));
-        ;
     }
 }
 
@@ -428,21 +428,21 @@ int main(int argc, char** argv) {
         success("file: %s", it->data);
     }
 
-    Type* int_t    = make_type_int(4, false);
-    Type* charpp_t = make_type_pointer(make_type_pointer(make_type_int(4, false)));
+    // Type* int_t    = make_type_int(4, false);
+    // Type* charpp_t = make_type_pointer(make_type_pointer(make_type_int(1, true)));
 
-    List* parameters = make_list();
-    list_append(parameters, int_t);
-    list_append(parameters, charpp_t);
+    // List* parameters = make_list();
+    // list_append(parameters, int_t);
+    // list_append(parameters, charpp_t);
 
-    Loc_Info lc = ast->loc_info;
+    // Loc_Info lc = ast->loc_info;
 
-    List* args = make_list();
-    list_append(args, make_ast_variable_decl(lc, "argc", int_t, NULL));
-    list_append(args, make_ast_variable_decl(lc, "argv", charpp_t, NULL));
+    // List* args = make_list();
+    // list_append(args, make_ast_variable_decl(lc, "argc", int_t, NULL));
+    // list_append(args, make_ast_variable_decl(lc, "argv", charpp_t, NULL));
 
-    Type* func_t = make_type_function("main", args, int_t, 0);
-    ast = make_ast_function(lc, "main", parameters, func_t, ast);
+    // Type* func_t = make_type_function("main", args, int_t, 0);
+    // ast = make_ast_function(lc, "main", parameters, func_t, ast);
 
     List* modules = make_list();
     list_append(modules, ast);
@@ -450,9 +450,15 @@ int main(int argc, char** argv) {
     info(ast_to_str(ast));
     thi.ast = ast;
 
+    
+    // Semantic_Context sctx;
+    // sctx.symbols =     
+    // thi_run_pass(&thi, "semantic analysis", sema_check_node, sema_ctx);
+
+    // ast = pass_typify(ast)
+
     info("Running passes");
 
-    thi_run_pass(&thi, "binary_assign_to_variable_decl", binary_assign_to_variable_decl, &thi);
     thi_run_pass(&thi, "pass_initilize_enums", pass_initilize_enums, &thi);
     thi_run_pass(&thi, "pass_add_all_symbols", pass_add_all_symbols, &thi);
 
