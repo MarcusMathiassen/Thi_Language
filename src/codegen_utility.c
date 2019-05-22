@@ -301,7 +301,7 @@ void alloc_variable(Codegen_Context* ctx, Value* variable) {
     s64 size = get_size_of_value(variable);
     info("Allocating variable '%s', type '%s', size '%lld' ",
          variable->Variable.name,
-         type_to_str(NULL, variable->type),
+         get_type_name(variable->type),
          size);
     ctx->stack_index += size;
 }
@@ -312,7 +312,7 @@ void dealloc_variable(Codegen_Context* ctx, Value* variable) {
     s64 size = get_size_of_value(variable);
     info("Deallocating variable '%s', type '%s', size '%lld' ",
          variable->Variable.name,
-         type_to_str(NULL, variable->type),
+         get_type_name(variable->type),
          size);
     ctx->stack_index -= size;
     assert(ctx->stack_index >= 0);

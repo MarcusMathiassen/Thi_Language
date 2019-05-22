@@ -36,8 +36,7 @@ typedef struct
 #define STACK_FOREACH(stack) \
     for (Stack_Node* it = (stack->head); (it); (it) = (it)->next)
 
-Stack*
-make_stack(void);
+Stack* make_stack(void);
 void  stack_init(Stack* stack);
 void  stack_free(Stack* stack);
 void* stack_push(Stack* stack, void* data);

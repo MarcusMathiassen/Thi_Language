@@ -222,13 +222,10 @@ AST* parse_statement(Parser_Context* ctx) {
     ctx->top_tok = ctx->curr_tok;
     // clang-format off
     switch (tokKind(ctx)) {
-    default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
-    case TOKEN_BLOCK_START:         return parse_block(ctx);
-    // case TOKEN_OPEN_PAREN:          return parse_parens(ctx);
+    default:                        return parse_expression(ctx);
     case TOKEN_DEF:                 return parse_def(ctx);
     case TOKEN_ENUM:                return parse_enum(ctx);
     case TOKEN_TYPE:                return parse_type(ctx);
-    case TOKEN_IDENTIFIER:          return parse_expression(ctx);
     case TOKEN_RETURN:              return parse_return(ctx);
     case TOKEN_BREAK:               return parse_break(ctx);
     case TOKEN_CONTINUE:            return parse_continue(ctx);

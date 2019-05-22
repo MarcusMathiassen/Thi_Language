@@ -232,21 +232,25 @@ codegen_binary(Codegen_Context* ctx, AST* node) {
     switch (op) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
     case THI_SYNTAX_ASSIGNMENT: {
-        if (lhs->kind == AST_UNARY) { // LOAD
-            lhs = lhs->Unary.operand;
-        }
+        // if (lhs->kind == AST_UNARY) { // LOAD
+        //     lhs = lhs->Unary.operand;
+        // }
         if (lhs->kind == AST_VARIABLE_DECL) {
             lhs->Variable_Decl.value = rhs;
             return codegen_node(ctx, lhs);
         }
         Value* rhs_v = codegen_node(ctx, rhs);
+
         push_type(ctx, rhs_v->type);
         push_type(ctx, rhs_v->type);
+
         Value* variable = NULL;
         variable = codegen_node(ctx, lhs);
+
         pop_type_2(ctx, rhs_v->type);
         emit_store(ctx, variable);
         pop_type(ctx, rhs_v->type);
+        
         return variable;
     }
 

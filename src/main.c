@@ -23,6 +23,7 @@
 //------------------------------------------------------------------------------
 
 #include "ast.h"       // AST, AST_Kind
+#include "sema.h"       // semantic_analysis
 #include "codegen.h"   // generate_code_from_ast
 #include "constants.h" // all constnats
 #include "lexer.h"     // generate_tokens_from_source, print_tokens
@@ -489,6 +490,9 @@ int main(int argc, char** argv) {
     passDesc.kind         = AST_FIELD_ACCESS;
     passDesc.visitor_func = resolve_field_access;
     thi_install_pass(&thi, passDesc);
+
+    // Semantic analyis
+    semantic_analysis(ast);
 
     // Give every node a type and do some checking
     type_checker(thi.symbol_map, ast);
