@@ -32,6 +32,11 @@ typedef struct {
     s64   cap;
 } string;
 
+typedef struct {
+    string* str;
+    u64 indentation_level;
+} String_Context;
+
 string* string_create(char* str);
 string* string_create_f(char* fmt, ...);
 void   string_destroy(string* this);

@@ -70,7 +70,7 @@ List* type_get_members(Type* type) {
 void type_replace(Type* a, Type* b) {
     assert(a);
     assert(b);
-    info("REPLACED %s WITH %s", give_unique_color(type_to_str(a)), give_unique_color(type_to_str(b)));
+    info("REPLACED %s WITH %s", give_unique_color(type_to_str(NULL, a)), give_unique_color(type_to_str(NULL, b)));
     *a = *b;
     // MEM_LEAK
 }
@@ -104,8 +104,8 @@ s64 get_size_of_underlying_type_if_any(Type* type) {
 bool is_same_type(Type* a, Type* b) {
     assert(a);
     assert(b);
-    char* an = type_to_str(a);
-    char* bn = type_to_str(b);
+    char* an = type_to_str(NULL, a);
+    char* bn = type_to_str(NULL, b);
     return strcmp(an, bn) == 0;
 }
 
@@ -114,16 +114,18 @@ char* get_type_name(Type* type) {
     // clang-format off
     switch (type->kind) {
     default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
-    case TYPE_INT:        return "int";
-    case TYPE_VOID:       return "void";
+    case TYPE_INT:// fallthrough
+    case TYPE_FLOAT:// fallthrough
+    case TYPE_POINTER:
+    case TYPE_ARRAY:
+    case TYPE_VOID:       return type_to_str(NULL, type);
     case TYPE_UNRESOLVED: return type->Unresolved.name;
-    case TYPE_POINTER: {
-        Type* t = type->Pointer.pointee;
-        while (t->kind == TYPE_POINTER) {
-            t = type->Pointer.pointee;
-        }
-        return get_type_name(t);
-    }
+    //     Type* t = type->Pointer.pointee;
+    //     while (t->kind == TYPE_POINTER) {
+    //         t = type->Pointer.pointee;
+    //     }
+    //     return get_type_name(t);
+    // }
     case TYPE_STRUCT:   return type->Struct.name;
     case TYPE_ENUM:     return type->Enum.name;
     case TYPE_FUNCTION: return type->Function.name ? type->Function.name : "---";
@@ -201,45 +203,82 @@ s64 type_array_get_count(Type* type) {
     return type->Array.size;
 }
 
-char* type_to_str(Type* type) {
-    if (!type) return "---";
-    // clang-format off
+char* type_to_str(String_Context* ctx, Type* type) {
+
+    // @HOT: this is checked no each and every call.
+    if (!ctx) {
+        ctx                    = xmalloc(sizeof(String_Context));
+        ctx->str               = string_create("");
+        ctx->indentation_level = 0;
+    }
+
+    string* s = ctx->str;
+
+    if (!type) {
+        string_append(s, "---");
+        return string_data(s);
+    }
+
     switch (type->kind) {
     default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
-    case TYPE_VAR_ARGS:   return "...";
-    case TYPE_VOID:       return "void";
-    case TYPE_UNRESOLVED: return strf("%s?", get_type_name(type));
-    case TYPE_ARRAY:      return strf("%s[%d]", type_to_str(type->Array.type), type->Array.size);
-    case TYPE_INT:        return strf(type->Int.is_unsigned ? "u%d" : "s%d", type->Int.bytes * 8);
-    case TYPE_POINTER:    return strf("%s*", type_to_str(type->Pointer.pointee));
-    case TYPE_FLOAT:      return strf("f%d", type->Float.bytes * 8);
-    case TYPE_STRING:     return strf("\"\", %d", type->String.len);
-
+    case TYPE_VAR_ARGS: {
+        string_append(s, "...");
+        break;
+    }
+    case TYPE_VOID: {
+        string_append(s, "void");
+        break;
+    }
+    case TYPE_UNRESOLVED: {
+        string_append_f(s, "%s?", get_type_name(type));
+        break;
+    }
+    case TYPE_ARRAY: {
+        type_to_str(ctx, type->Array.type);
+        string_append_f(s, "[%d]", type->Array.size);
+        break;
+    }
+    case TYPE_INT: {
+        string_append_f(s, type->Int.is_unsigned ? "u%d" : "s%d", type->Int.bytes * 8);
+        break;
+    }
+    case TYPE_POINTER: {
+        type_to_str(ctx, type->Pointer.pointee);
+        string_append(s, "*");
+        break;
+    }
+    case TYPE_FLOAT: {
+        string_append_f(s, "f%d", type->Float.bytes * 8);
+        break;
+    }
+    case TYPE_STRING: {
+        string_append_f(s, "\"\", %d", type->String.len);
+        break;
+    }
     case TYPE_ENUM: // fallthrough
     case TYPE_STRUCT: {
-        string *s = string_create_f("%s = { ", get_type_name(type));
+        string_append_f(s, "%s\n", get_type_name(type));
+        ctx->indentation_level += DEFAULT_INDENT_LEVEL;
         LIST_FOREACH(type_get_members(type)) {
-            AST* mem = it->data;
-            string_append(s, ast_to_str(NULL, mem));
-            if (it->next) string_append(s, ", ");
+            string_append(s, get_indentation_as_str(ctx->indentation_level));
+            ast_to_str(ctx, it->data);
+            string_append(s, "\n");
         }
-        string_append(s, " }");
-        return string_data(s);
+        ctx->indentation_level -= DEFAULT_INDENT_LEVEL;
+        break;
     };
 
     case TYPE_FUNCTION: {
-        string *s = string_create_f("%s(", get_type_name(type));
+        string_append(s, "(");
         LIST_FOREACH(type->Function.parameters) {
-            string_append(s, ast_to_str(NULL, it->data));
+            ast_to_str(ctx, it->data);
             if (it->next) string_append(s, ", ");
         }
-        string_append_f(s, ") %s", type_to_str(type->Function.return_type));
-        return string_data(s);
+        string_append_f(s, ") %s", get_type_name(type->Function.return_type)); 
+        break;
     }
     }
-    // clang-format on
-    UNREACHABLE;
-    return NULL;
+    return string_data(s);
 }
 
 char* type_to_json(Type* type) {
@@ -278,7 +317,7 @@ char* type_to_json(Type* type) {
     } break;
     case TYPE_STRUCT: {
         return strf("{\"%s\": {\"name\": \"%s\"}}", type_kind_to_str(type->kind), type->Struct.name);
-        string *str = string_create("");
+        string* str = string_create("");
         string_append_f(str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Struct.name);
         string_append(str, "\"args\": [");
         s64 arg_count = type->Struct.members->count;
@@ -294,7 +333,7 @@ char* type_to_json(Type* type) {
 
     case TYPE_ENUM: {
         return strf("{\"%s\": {\"name\": \"%s\"}}", type_kind_to_str(type->kind), type->Enum.name);
-        string *str = string_create("");
+        string* str = string_create("");
         string_append_f(str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Enum.name);
         string_append(str, "\"args\": [");
         s64 arg_count = type->Enum.members->count;
@@ -309,7 +348,7 @@ char* type_to_json(Type* type) {
     };
 
     case TYPE_FUNCTION: {
-        string *str = string_create("");
+        string* str = string_create("");
         string_append_f(str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Enum.name);
         string_append(str, "\"args\": [");
         s64 arg_count = type->Function.parameters->count;

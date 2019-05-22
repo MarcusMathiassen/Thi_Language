@@ -307,13 +307,8 @@ AST*  get_arg_from_func(Type* func_t, s64 arg_index);
 void  ast_tests(void);
 void  ast_visit(void (*func)(void*, AST*), void* ctx, AST* node);
 void  ast_replace(AST* a, AST* b);
-char* ast_to_json(AST* node);
-
-
-typedef struct {
-    string* str;
-    u64 indentation_level;
-} String_Context; 
+char* ast_to_json(AST* node); 
+char* get_ast_name(AST* node);
 char* ast_to_str(String_Context* ctx, AST* node);
 char* ast_kind_to_str(AST_Kind kind);
 

@@ -58,7 +58,7 @@ void resolve_sizeofs(void* dont_care, AST* node) {
     ast_replace(node, constant_value);
 }
 void resolve_typeofs(void* dont_care, AST* node) {
-    AST* string_value = make_ast_string(node->loc_info, type_to_str(node->type));
+    AST* string_value = make_ast_string(node->loc_info, get_type_name(node->type));
     ast_replace(node, string_value);
 }
 void resolve_subscript(void* dont_care, AST* node) {
@@ -93,46 +93,6 @@ void resolve_field_access(void* dont_care, AST* node) {
 
     load->type = type_of_field;
     ast_replace(node, load);
-}
-
-void find_dependencies(void* arg, AST* node) {
-    switch (node->kind) {
-    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
-    case AST_ENUM: {
-    } break;
-    case AST_MODULE: {
-    } break;
-    case AST_INT: {
-    } break;
-    case AST_FUNCTION: {
-    } break;
-    case AST_BLOCK: {
-    } break;
-    case AST_RETURN: {
-    } break;
-    case AST_CALL: {
-    } break;
-    case AST_IDENT: {
-        //
-    } break;
-    case AST_CONSTANT_DECL: {
-        // If the value is not a constant we depend on it
-        if (node->Constant_Decl.value->kind == AST_IDENT) {
-            list_append(node->edges, node->Constant_Decl.value);
-        }
-    } break;
-    case AST_VARIABLE_DECL: {
-
-        AST* var_decl_value = node->Variable_Decl.value;
-
-        // If it has an assigned value, it depends on it being resolved before
-        // this
-        if (var_decl_value) {
-            list_append(node->edges, var_decl_value);
-        }
-
-    } break;
-    }
 }
 
 void pass_initilize_enums(void* thi, AST* node) {
@@ -198,7 +158,7 @@ void run_all_passes(void* thi, AST* node) {
 
 void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* node) {
     assert(node);
-    // info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(NULL, node)), give_unique_color(type_to_str(node->type)));
+    // info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(NULL, node)), give_unique_color(type_to_str(NULL, node->type)));
     // clang-format off
     switch (node->kind) {
     case AST_MODULE:      // fallthrough
@@ -491,10 +451,7 @@ int main(int argc, char** argv) {
         success("file: %s", it->data);
     }
 
-    List* modules = make_list();
-    list_append(modules, ast);
-
-    info(ast_to_str(NULL, ast));
+    // info(ast_to_str(NULL, ast));
     thi.ast = ast;
 
     info("Running passes");

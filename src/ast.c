@@ -84,14 +84,43 @@ char* ast_kind_to_str(AST_Kind kind) {
     return NULL;
 }
 
-char* at_ident_level(u64 indent_level) {
-    char* s = "";
-    assert(DEFAULT_INDENT_LEVEL == 4);
-    while (indent_level > DEFAULT_INDENT_LEVEL) {
-        s = strf("%s    ", s);
-        indent_level -= DEFAULT_INDENT_LEVEL;
+char* get_ast_name(AST* node) {
+    if (!node) {
+        return "---";
     }
-    return s;
+    char* result = NULL;
+    switch (node->kind) {
+    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
+    case AST_MODULE: {
+        result = node->Module.name;
+        break;
+    }
+    case AST_VARIABLE_DECL: {
+        result = node->Variable_Decl.name;
+        break;
+    }
+    case AST_CONSTANT_DECL: {
+        result = node->Constant_Decl.name;
+        break;
+    }
+    case AST_FUNCTION: {
+        result =  node->Function.name;
+        break;
+    }
+    case AST_STRUCT: {
+        result =  node->Struct.type->Struct.name;
+        break;
+    }
+    case AST_ENUM: {
+        result =  node->Enum.type->Enum.name;
+        break;
+    }
+    case AST_IDENT: {
+        result =  node->Ident.name;
+        break;
+    }
+    }
+    return result ? result : "---";
 }
 
 char* ast_to_str(String_Context* ctx, AST* node) {
@@ -127,7 +156,7 @@ char* ast_to_str(String_Context* ctx, AST* node) {
         break;
     }
     case AST_MODULE: {
-        string_append_f(s, "module '%s'= ", node->Module.name);
+        string_append_f(s, "# %s", get_ast_name(node));
         ast_to_str(ctx, node->Module.top_level);
         break;
     }
@@ -169,7 +198,8 @@ char* ast_to_str(String_Context* ctx, AST* node) {
         break;
     }
     case AST_EXTERN: {
-        string_append_f(s, "extern %s", type_to_str(node->type));
+        string_append(s, "extern "); 
+        type_to_str(ctx, node->type);
         break;
     }
     case AST_LOAD: {
@@ -227,7 +257,7 @@ char* ast_to_str(String_Context* ctx, AST* node) {
         break;
     }
     case AST_IDENT: {
-        string_append(s, node->Ident.name);
+        string_append(s, get_ast_name(node));
         break;
     }
     case AST_UNARY: {
@@ -245,33 +275,28 @@ char* ast_to_str(String_Context* ctx, AST* node) {
         break;
     }
     case AST_VARIABLE_DECL: {
-        if (!node->Variable_Decl.name) {
-            string_append(s, type_to_str(node->type));
-            break;
-        }
-        if (!node->Variable_Decl.value) {
-            string_append_f(s, "%s %s", node->Variable_Decl.name, type_to_str(node->type));
-            break;
-        }
-        string_append_f(s, "%s %s = ", node->Variable_Decl.name, type_to_str(node->type));
+        string_append_f(s, "%s %s = ", get_ast_name(node), get_type_name(node->type));
         ast_to_str(ctx, node->Variable_Decl.value);
         break;
     }
     case AST_CONSTANT_DECL: {
-        string_append_f(s, "%s :: ", node->Constant_Decl.name); 
+        string_append_f(s, "%s :: ", get_ast_name(node)); 
         ast_to_str(ctx, node->Constant_Decl.value);
         break;
     }
     case AST_STRUCT: {
-        string_append(s, type_to_str(node->Struct.type));
+        string_append(s, "def "); 
+        type_to_str(ctx, node->Struct.type);
         break;
     }
     case AST_ENUM: {
-        string_append(s, type_to_str(node->Enum.type));
+        string_append(s, "def "); 
+        type_to_str(ctx, node->Enum.type);
         break;
     }
     case AST_FUNCTION: {
-        string_append_f(s, "\n%s ", type_to_str(node->type));
+        string_append_f(s, "def %s ", get_ast_name(node)); 
+        type_to_str(ctx, node->type);
         ast_to_str(ctx, node->Function.body);
         break;
     }
@@ -318,16 +343,16 @@ char* ast_to_str(String_Context* ctx, AST* node) {
         break;
     }
     case AST_BLOCK: {
-        string_append(s, "{\n");
+        string_append(s, "\n");
         ctx->indentation_level += DEFAULT_INDENT_LEVEL;
         LIST_FOREACH(node->Block.stmts) {
-            string_append(s, at_ident_level(ctx->indentation_level));
+            string_append(s, get_indentation_as_str(ctx->indentation_level));
             ast_to_str(ctx, it->data);
             string_append(s, "\n");
         }
         ctx->indentation_level -= DEFAULT_INDENT_LEVEL;
-        string_append(s, at_ident_level(ctx->indentation_level));
-        string_append(s, "}");
+        // string_append(s, get_indentation_as_str(ctx->indentation_level));
+        // string_append(s, "}");
         break;
     }
     case AST_CALL: {
@@ -574,7 +599,7 @@ void ast_add_edge(AST* a, AST* dep) {
 void ast_replace(AST* a, AST* b) {
     assert(a);
     assert(b);
-    info("REPLACED %s -> %s WITH %s -> %s", give_unique_color(ast_to_str(NULL, a)), give_unique_color(type_to_str(a->type)), give_unique_color(ast_to_str(NULL, b)), give_unique_color(type_to_str(b->type)));
+    info("REPLACED %s -> %s WITH %s -> %s", give_unique_color(ast_to_str(NULL, a)), give_unique_color(type_to_str(NULL, a->type)), give_unique_color(ast_to_str(NULL, b)), give_unique_color(type_to_str(NULL, b->type)));
     *a = *b;
     // CLEANUP
 }
@@ -1258,8 +1283,8 @@ AST* make_ast_variable_decl(Loc_Info loc_info, char* name, Type* type, AST* valu
     // 'value' and 'name' can be NULL
     // assert(type);
     AST* e                 = make_ast(AST_VARIABLE_DECL, loc_info);
-    e->Variable_Decl.name  = name;
     e->type                = type;
+    e->Variable_Decl.name  = name;
     e->Variable_Decl.type  = type;
     e->Variable_Decl.value = value;
     return e;

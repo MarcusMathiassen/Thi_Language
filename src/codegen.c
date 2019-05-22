@@ -35,7 +35,7 @@
 #define DEBUG_START                                                              \
     assert(ctx);                                                                 \
     assert(node); \
-    info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(NULL, node))); \
+    // info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(NULL, node))); \
     // emit(ctx, "; %s", ast_to_str(NULL, node));
 
 Value*
@@ -268,7 +268,7 @@ codegen_binary(Codegen_Context* ctx, AST* node) {
         push_type(ctx, rhs_v->type);
         push_type(ctx, rhs_v->type);
         Value* variable = NULL;
-        info("%s %s", ast_kind_to_str(lhs->kind), ast_to_str(NULL, lhs));
+        // info("%s %s", ast_kind_to_str(lhs->kind), ast_to_str(NULL, lhs));
         variable = codegen_node(ctx, lhs);
         if (variable->type->kind == TYPE_POINTER) {
             s64 stack_pos = get_stack_pos_of_variable(variable);
@@ -631,7 +631,7 @@ codegen_call(Codegen_Context* ctx, AST* node) {
         }
     }
 
-    // error(type_to_str(node->type));
+    // error(type_to_str(NULL, node->type));
     if (node->type->flags & TYPE_FLAG_HAS_VAR_ARG) {
         emit(ctx, "mov al, %lld; var_arg_count", total);
     }

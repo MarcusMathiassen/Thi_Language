@@ -3,8 +3,8 @@ section .data
 	d0: dq 1333.333300
 	d1: dq 4.330000
 	d2: dq `%d %d %f %f\n`, 0 
-	d3: dq `v2 = { i s64[5], z f64 }`, 0 
-	d4: dq `get(x s64) s64`, 0 
+	d3: dq `v2`, 0 
+	d4: dq `get`, 0 
 	d5: dq `%s %s\n`, 0 
 global _main
 section .text
@@ -51,25 +51,6 @@ _main:
 	pop rcx
 	mov [rax], rcx; store
 	pop rax
-	mov rax, 0
-	cmp al, 0
-	je .l0
-	mov rax, 53
-	cmp al, 0
-	je .l3
-	mov rax, 54
-	jmp .end
-	jmp .l3
-.l2:
-.l3:
-	mov rax, 1
-	jmp .end
-	jmp .l1
-.l0:
-	mov rax, 4
-	jmp .end
-	jmp .end
-.l1:
 	movsd xmm0, [rel d0]; float_ref
 	sub rsp, 8
 	movsd [rsp], xmm0

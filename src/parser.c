@@ -143,7 +143,7 @@ AST* parse(Parser_Context* ctx, char* file) {
     // Check if we've already loaded the file before.
     bool already_loaded = false;
     LIST_FOREACH(ctx->loads) {
-        info(it->data);
+        // info(it->data);
         char* already_loaded_file = it->data;
         if (strcmp(ctx->file, already_loaded_file) == 0) already_loaded = true;
     }
@@ -156,7 +156,7 @@ AST* parse(Parser_Context* ctx, char* file) {
 
     char* source        = get_file_content(file_path);
     Lexed_File lf         = generate_tokens_from_source(source);
-    
+
     ctx->tokens = lf.tokens.data;
     ctx->lines += lf.lines;
     ctx->comments += lf.comments;
@@ -167,7 +167,7 @@ AST* parse(Parser_Context* ctx, char* file) {
 
     // Type* func_t = make_type_function(file_path, make_list(), NULL, false);
     // AST* func = make_ast_function(ast->loc_info, func_t, ast);
-    // ast = make_ast_module(loc(ctx), file_path, func);
+    ast = make_ast_module(loc(ctx), file_path, ast);
 
     // Restore state
     ctx->tokens             = saved_tokens;
@@ -341,7 +341,6 @@ AST* parse_load(Parser_Context* ctx) {
 
     // parse the file
     AST* module = parse(ctx, file);
-
     return module ? module : make_ast_load(loc(ctx), file);
 }
 

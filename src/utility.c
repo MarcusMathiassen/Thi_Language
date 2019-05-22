@@ -287,6 +287,16 @@ char* strf(char* fmt, ...) {
     return str;
 }
 
+char* get_indentation_as_str(u64 indent_level) {
+    char* s = "";
+    assert(DEFAULT_INDENT_LEVEL == 4);
+    while (indent_level > DEFAULT_INDENT_LEVEL) {
+        s = strf("%s    ", s);
+        indent_level -= DEFAULT_INDENT_LEVEL;
+    }
+    return s;
+}
+
 // Color Whell
 char* colors[6] = {
     "\033[31m", // red
