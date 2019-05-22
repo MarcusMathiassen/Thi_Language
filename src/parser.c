@@ -43,7 +43,7 @@
     assert(ctx);    \
     // info("%s: %s", __func__, token_to_str(currTok(ctx)));
 
-#define UNARY_OP_COUNT 9
+#define UNARY_OP_COUNT 10
 Token_Kind unary_ops[UNARY_OP_COUNT] = {
     TOKEN_BANG,
     THI_SYNTAX_POINTER,
@@ -54,6 +54,7 @@ Token_Kind unary_ops[UNARY_OP_COUNT] = {
     TOKEN_DOT,
     TOKEN_SIZEOF,
     TOKEN_TYPEOF,
+    TOKEN_PLUS_PLUS,
 };
 
 //------------------------------------------------------------------------------

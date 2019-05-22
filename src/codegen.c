@@ -181,6 +181,9 @@ codegen_unary(Codegen_Context* ctx, AST* node) {
 
     switch (op) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
+    case TOKEN_PLUS_PLUS: {
+        codegen_node(ctx, make_ast_binary(node->loc_info, TOKEN_PLUS_EQ, operand, make_ast_int(node->loc_info, 1)));
+    } break;
     case THI_SYNTAX_ADDRESS: {
         s64 stack_pos = get_stack_pos_of_variable(operand_val);
         emit(ctx, "lea rax, [rbp-%lld]; addrsof", stack_pos);
