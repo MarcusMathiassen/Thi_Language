@@ -119,6 +119,7 @@ char* get_type_name(Type* type) {
     case TYPE_POINTER:
     case TYPE_ARRAY:
     case TYPE_VOID:       return type_to_str(NULL, type);
+    case TYPE_FUNCTION: return type->Function.name ? type->Function.name : "---";
     case TYPE_UNRESOLVED: return type->Unresolved.name;
     //     Type* t = type->Pointer.pointee;
     //     while (t->kind == TYPE_POINTER) {
@@ -128,7 +129,6 @@ char* get_type_name(Type* type) {
     // }
     case TYPE_STRUCT:   return type->Struct.name;
     case TYPE_ENUM:     return type->Enum.name;
-    case TYPE_FUNCTION: return type->Function.name ? type->Function.name : "---";
     case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
     }
     // clang-format on

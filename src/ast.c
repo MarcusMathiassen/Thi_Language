@@ -253,7 +253,7 @@ char* ast_to_str(String_Context* ctx, AST* node) {
         break;
     }
     case AST_STRING: {
-        string_append_f(s, "\"%s\"", node->String.val ? node->String.val : "WHAT?");
+        string_append_f(s, "\"%s\"", node->String.val);
         break;
     }
     case AST_IDENT: {

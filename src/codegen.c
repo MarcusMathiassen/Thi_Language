@@ -183,16 +183,11 @@ codegen_unary(Codegen_Context* ctx, AST* node) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
     case THI_SYNTAX_ADDRESS: {
         s64 stack_pos = get_stack_pos_of_variable(operand_val);
-        switch (operand_val->type->kind) {
-        case TYPE_POINTER:
-        case TYPE_ARRAY: emit(ctx, "lea rax, [rax]; addrsof", stack_pos); break;
-        default: emit(ctx, "lea rax, [rbp-%lld]; addrsof", stack_pos); break;
-        }
+        emit(ctx, "lea rax, [rbp-%lld]; addrsof", stack_pos);
     } break;
     case THI_SYNTAX_POINTER: {
         Type* t   = operand_val->type;
         char* reg = get_result_reg(t);
-        // char* mov_size = get_op_size(get_size_of_type(t));
         emit(ctx, "mov %s, [rax]; deref", reg);
     } break;
     case TOKEN_BANG: {
@@ -236,26 +231,14 @@ codegen_binary(Codegen_Context* ctx, AST* node) {
 
     switch (op) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
-    // Field access
-    case TOKEN_DOT: {
-        Value* variable = get_variable(ctx, lhs->Ident.name);
-        assert(variable->kind == VALUE_VARIABLE);
-        if (variable->type->kind) {
-            // Value* lhs_v = codegen_node(lhs);
-            error("codegen field access on structs not implemented");
-        }
-        break;
-    }
-
     case THI_SYNTAX_ASSIGNMENT: {
-
         /*
             LHS must be a LOAD
             RHS can be what ever
             LOAD ::= v.x | v[4] | v7
         */
 
-        if (lhs->kind == AST_UNARY) { // LOAD, *(&(v)+5)
+        if (lhs->kind == AST_UNARY) { // LOAD
             lhs = lhs->Unary.operand;
         }
 

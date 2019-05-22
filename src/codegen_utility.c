@@ -437,37 +437,16 @@ void emit_store(Codegen_Context* ctx, Value* variable) {
     s64 stack_pos = get_stack_pos_of_variable(variable);
     char* reg = get_result_reg_2(variable->type);
     char* mov_op = get_move_op(variable->type);
-    switch (variable->type->kind) {
-    case TYPE_STRUCT:
-    case TYPE_ARRAY: emit(ctx, "%s [rax], %s; store", mov_op, reg); break;
-    case TYPE_POINTER: {
-        reg = get_result_reg_2(variable->type->Pointer.pointee);
-        emit(ctx, "%s [rax], %s; store", mov_op, reg);
-        break;
-    }
-    default:
-        emit(ctx, "%s [rbp-%lld], %s; store", mov_op, stack_pos, reg);
-        break;
-    }
+    emit(ctx, "%s [rbp-%lld], %s; store", mov_op, stack_pos, reg);
 }
 
 void emit_load(Codegen_Context* ctx, Value* variable) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     s64 stack_pos = get_stack_pos_of_variable(variable);
-    // s64 size      = get_size_of_value(variable);
-    // char* mov_size  = get_op_size(size);
     char* reg    = get_result_reg(variable->type);
     char* mov_op = get_move_op(variable->type);
-    switch (variable->type->kind) {
-    case TYPE_STRUCT:
-    case TYPE_ARRAY:
-        emit(ctx, "lea rax, [rbp-%lld]; load_lea", stack_pos);
-        break;
-    default:
-        emit(ctx, "%s %s, [rbp-%lld]; load", mov_op, reg, stack_pos);
-        break;
-    }
+    emit(ctx, "%s %s, [rbp-%lld]; load", mov_op, reg, stack_pos);
 }
 
 void set_break_label(Codegen_Context* ctx, char* break_l) {

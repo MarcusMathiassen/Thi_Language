@@ -53,7 +53,7 @@ void linking_stage(Thi* thi, char* exec_name);
 //------------------------------------------------------------------------------
 
 void resolve_sizeofs(void* dont_care, AST* node) {
-    s64  size           = get_size_of_type(node->Sizeof.node->type);
+    s64  size           = get_size_of_type(node->type);
     AST* constant_value = make_ast_int(node->loc_info, size);
     ast_replace(node, constant_value);
 }

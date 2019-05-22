@@ -238,26 +238,18 @@ Type* type_check_unary(Typer_Context* ctx, AST* node) {
     Token_Kind op      = node->Unary.op;
     AST*       operand = node->Unary.operand;
 
-    Type* res = NULL;
+    Type* result_t = type_check_node(ctx, operand);
     switch (op) {
-    case TOKEN_DOT: {
-        assert(ctx->expected_type);
-        if (ctx->expected_type->kind == TYPE_ENUM) {
-            Type* enum_t = ctx->expected_type;
-            res          = enum_t;
-            assert(operand->kind == AST_IDENT);
-            LIST_FOREACH(enum_t->Enum.members) {
-                AST* mem = it->data;
-                if (strcmp(operand->Ident.name, mem->Constant_Decl.name) == 0) {
-                    ast_replace(node, make_ast_binary(mem->loc_info, TOKEN_DOT, make_ast_ident(mem->loc_info, enum_t->Enum.name), operand));
-                }
-            }
-        }
+    default: break;
+    case THI_SYNTAX_POINTER: {
+        result_t = result_t->Pointer.pointee;
     } break;
-    default: res = type_check_node(ctx, operand); break;
+    case THI_SYNTAX_ADDRESS: {
+        result_t = make_type_pointer(result_t);
+    } break;
     }
 
-    return res;
+    return result_t;
 }
 Type* type_check_binary(Typer_Context* ctx, AST* node) {
 
