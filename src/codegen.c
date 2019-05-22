@@ -232,31 +232,18 @@ codegen_binary(Codegen_Context* ctx, AST* node) {
     switch (op) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
     case THI_SYNTAX_ASSIGNMENT: {
-        /*
-            LHS must be a LOAD
-            RHS can be what ever
-            LOAD ::= v.x | v[4] | v7
-        */
-
         if (lhs->kind == AST_UNARY) { // LOAD
             lhs = lhs->Unary.operand;
         }
-
         if (lhs->kind == AST_VARIABLE_DECL) {
             lhs->Variable_Decl.value = rhs;
             return codegen_node(ctx, lhs);
         }
-
         Value* rhs_v = codegen_node(ctx, rhs);
         push_type(ctx, rhs_v->type);
         push_type(ctx, rhs_v->type);
         Value* variable = NULL;
-        // info("%s %s", ast_kind_to_str(lhs->kind), ast_to_str(NULL, lhs));
         variable = codegen_node(ctx, lhs);
-        if (variable->type->kind == TYPE_POINTER) {
-            s64 stack_pos = get_stack_pos_of_variable(variable);
-            emit(ctx, "lea rax, [rbp-%lld]; assign_not_subscri", stack_pos);
-        }
         pop_type_2(ctx, rhs_v->type);
         emit_store(ctx, variable);
         pop_type(ctx, rhs_v->type);

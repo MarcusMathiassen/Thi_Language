@@ -5,8 +5,8 @@ def v2
     i s64[5]
     z f64
 
-#def get(x s64) s64
-#    return 6
+def get(x s64) s64
+    return 6
 
 def main(argc s32, argv char**) s64
     v v2
@@ -24,25 +24,28 @@ def main(argc s32, argv char**) s64
 
     if 0 return 3
 
-    printf("k = %d\n", k)
+    printf(" k = %d\n", k)
     printf("*i = %d\n", *i)
 
-    i[0] = 3
-    
-    printf("k = %d\n", k)
+    k = 3
+
+    printf(" k = %d\n", k)
     printf("*i = %d\n", *i)
 
     printf("typeof &i = %s\n", typeof &i)
     printf("typeof *i = %s\n", typeof *i)
-    printf("typeof i = %s\n", typeof i)
+    printf("typeof  i = %s\n", typeof i)
     printf("typeof &k = %s\n", typeof &k)
-    printf("typeof k = %s\n", typeof k)
-    printf("sizeof *i = %s\n", sizeof *i)
-    printf("sizeof i = %s\n", sizeof i)
+    printf("typeof  k = %s\n", typeof k)
+
+    printf("sizeof *i = %d\n", sizeof *i)
+    printf("sizeof  i = %d\n", sizeof i)
 
     printf("addrsof &k = %llu\n", &k)
     printf("addrsof &i = %llu\n", &i)
-    printf("addrsof i = %llu\n", i)
-    printf("addrsof *i = %llu\n", *i)
+    printf("addrsof  i = %llu\n", i)
+
+    printf("*i = %llu\n", *i)
+    printf(" k = %llu\n", k)
 
     return 1

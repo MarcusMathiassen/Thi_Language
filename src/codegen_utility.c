@@ -701,7 +701,7 @@ void emit_lea_reg64_mem(Codegen_Context* ctx, s8 reg64, char* mem) {
 
 void visitor_get_all_alloca_in_block(void* sum, AST* node) {
     if (node->kind == AST_VARIABLE_DECL) {
-        *((s64*)sum) = get_size_of_type(node->type);
+        *((s64*)sum) += get_size_of_type(node->type);
     }
 }
 

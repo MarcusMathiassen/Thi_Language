@@ -5,36 +5,49 @@ section .data
 	d1: dq 4.330000
 	d2: dq `%d %d %f %f\n`, 0 
 	d3: dq `v2`, 0 
-	d4: dq `---`, 0 
+	d4: dq `get`, 0 
 	d5: dq `%s %s\n`, 0 
 	d6: dq `Hello`, 0 
 	d7: dq `You!`, 0 
-	d8: dq `k = %d\n`, 0 
+	d8: dq ` k = %d\n`, 0 
 	d9: dq `*i = %d\n`, 0 
-	d10: dq `k = %d\n`, 0 
+	d10: dq ` k = %d\n`, 0 
 	d11: dq `*i = %d\n`, 0 
 	d12: dq `s64**`, 0 
 	d13: dq `typeof &i = %s\n`, 0 
 	d14: dq `s64`, 0 
 	d15: dq `typeof *i = %s\n`, 0 
 	d16: dq `s64*`, 0 
-	d17: dq `typeof i = %s\n`, 0 
+	d17: dq `typeof  i = %s\n`, 0 
 	d18: dq `s64*`, 0 
 	d19: dq `typeof &k = %s\n`, 0 
 	d20: dq `s64`, 0 
-	d21: dq `typeof k = %s\n`, 0 
-	d22: dq `sizeof *i = %s\n`, 0 
-	d23: dq `sizeof i = %s\n`, 0 
+	d21: dq `typeof  k = %s\n`, 0 
+	d22: dq `sizeof *i = %d\n`, 0 
+	d23: dq `sizeof  i = %d\n`, 0 
 	d24: dq `addrsof &k = %llu\n`, 0 
 	d25: dq `addrsof &i = %llu\n`, 0 
-	d26: dq `addrsof i = %llu\n`, 0 
-	d27: dq `addrsof *i = %llu\n`, 0 
+	d26: dq `addrsof  i = %llu\n`, 0 
+	d27: dq `*i = %llu\n`, 0 
+	d28: dq ` k = %llu\n`, 0 
 global _main
 section .text
+_get:
+	push rbp
+	mov rbp, rsp
+	sub rsp, 16; 8 alloc, 8 padding
+.begin:
+	mov [rbp-8], rdi; store_r
+	mov rax, 6
+	jmp .end
+.end:
+	add rsp, 16; 8 alloc, 8 padding
+	leave
+	ret
 _main:
 	push rbp
 	mov rbp, rsp
-	sub rsp, 32; 20 alloc, 12 padding
+	sub rsp, 96; 84 alloc, 12 padding
 .begin:
 	mov [rbp-4], edi; store_r
 	mov [rbp-12], rsi; store_r
@@ -117,7 +130,6 @@ _main:
 	push rax
 	push rax
 	mov rax, [rbp-68]; load
-	lea rax, [rbp-68]; assign_not_subscri
 	pop rcx
 	mov [rbp-68], rcx; store
 	pop rax
@@ -143,7 +155,6 @@ _main:
 	push rax
 	push rax
 	mov rax, [rbp-84]; load
-	lea rax, [rbp-84]; assign_not_subscri
 	pop rcx
 	mov [rbp-84], rcx; store
 	pop rax
@@ -176,10 +187,9 @@ _main:
 	mov rax, 3
 	push rax
 	push rax
-	mov rax, [rbp-84]; load
-	lea rax, [rbp-84]; assign_not_subscri
+	mov rax, [rbp-76]; load
 	pop rcx
-	mov [rbp-84], rcx; store
+	mov [rbp-76], rcx; store
 	pop rax
 	mov rax, [rbp-76]; load
 	push rax
@@ -289,9 +299,17 @@ _main:
 	pop rsi
 	mov al, 2; var_arg_count
 	call _printf
+	mov rax, [rbp-76]; load
+	push rax
+	mov rax, d28; string_ref
+	push rax
+	pop rdi
+	pop rsi
+	mov al, 2; var_arg_count
+	call _printf
 	mov rax, 1
 	jmp .end
 .end:
-	add rsp, 32; 20 alloc, 12 padding
+	add rsp, 96; 84 alloc, 12 padding
 	leave
 	ret
