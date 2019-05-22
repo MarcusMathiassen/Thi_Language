@@ -59,6 +59,9 @@ static AST* get_variable_in_scope(Sema_Context* ctx, char* name) {
     return NULL;
 }
 
+#define SCOPE_START stack_push(ctx->scopes, stack_peek(ctx->scopes));
+#define SCOPE_END stack_pop(ctx->scopes);
+
 void sema_check_node(Sema_Context* ctx, AST* node) {
     assert(ctx);
     if (!node) return;
@@ -76,7 +79,7 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         }
         break;
     // clang-format off
-    case AST_MODULE: sema_check_node(ctx, node->Module.top_level); break;
+    case AST_MODULE: ctx->module = node; sema_check_node(ctx, node->Module.top_level); break;
     case AST_TYPEOF: sema_check_node(ctx, node->Typeof.node);      break;
     case AST_SIZEOF: sema_check_node(ctx, node->Sizeof.node);      break;
     case AST_NOTE:   sema_check_node(ctx, node->Note.node);        break;
@@ -87,7 +90,13 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
     case AST_INT:         break;
     case AST_FLOAT:       break;
     case AST_STRING:      break;
-    case AST_IDENT:       break;
+    case AST_IDENT: {
+        // AST* var = get_variable_in_scope(ctx, node->Ident.name);
+        // if (!var) {
+        //     error("[%s:%d:%d] undefined identifier %s", ctx->module->Module.name, node->loc_info.line_pos, node->loc_info.col_pos, ast_to_str(NULL, node));
+        // }
+        // break;
+    }
     case AST_STRUCT:      break;
         // clang-format on
 
@@ -134,10 +143,12 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         sema_check_node(ctx, node->If.else_block);
         break;
     case AST_FOR:
+        SCOPE_START;
         sema_check_node(ctx, node->For.init);
         sema_check_node(ctx, node->For.cond);
         sema_check_node(ctx, node->For.step);
         sema_check_node(ctx, node->For.then_block);
+        SCOPE_END;
         break;
     case AST_WHILE:
         sema_check_node(ctx, node->While.cond);
@@ -188,11 +199,11 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         }
         break;
     case AST_BLOCK:
-        stack_push(ctx->scopes, stack_peek(ctx->scopes));
+        SCOPE_START;
         LIST_FOREACH(node->Block.stmts) {
             sema_check_node(ctx, it->data);
         }
-        stack_pop(ctx->scopes);
+        SCOPE_END;
         break;
     }
 }

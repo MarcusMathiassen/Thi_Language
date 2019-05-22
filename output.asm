@@ -148,7 +148,7 @@ _main:
 	pop rdi
 	mov al, 1; var_arg_count
 	call _puts
-	mov rax, 40
+	mov rax, 56
 	push rax
 	pop rdi
 	call _malloc
@@ -168,7 +168,7 @@ _main:
 .l0:
 	mov rax, [rbp-84]; load
 	push rax
-	mov rax, 5
+	mov rax, 7
 	pop rcx
 	cmp rcx, rax
 	setl al
@@ -215,7 +215,7 @@ _main:
 .l3:
 	mov rax, [rbp-84]; load
 	push rax
-	mov rax, 5
+	mov rax, 7
 	pop rcx
 	cmp rcx, rax
 	setl al
@@ -271,17 +271,17 @@ _main:
 	mov rax, -5
 	push rax
 	push rax
-	mov rax, [rbp-100]; load
-	pop rcx
-	mov [rbp-100], rcx; store
-	pop rax
-	mov rax, [rbp-100]; load
-	lea rax, [rbp-100]; addrsof
-	push rax
-	push rax
 	mov rax, [rbp-84]; load
 	pop rcx
 	mov [rbp-84], rcx; store
+	pop rax
+	mov rax, [rbp-84]; load
+	lea rax, [rbp-84]; addrsof
+	push rax
+	push rax
+	mov rax, [rbp-92]; load
+	pop rcx
+	mov [rbp-92], rcx; store
 	pop rax
 	mov rax, 0
 	cmp al, 0
@@ -292,7 +292,7 @@ _main:
 	jmp .l7
 .l6:
 .l7:
-	mov rax, [rbp-100]; load
+	mov rax, [rbp-84]; load
 	push rax
 	mov rax, d9; string_ref
 	push rax
@@ -300,7 +300,7 @@ _main:
 	pop rsi
 	mov al, 2; var_arg_count
 	call _printf
-	mov rax, [rbp-84]; load
+	mov rax, [rbp-92]; load
 	mov rax, [rax]; deref
 	push rax
 	mov rax, d10; string_ref
@@ -312,11 +312,11 @@ _main:
 	mov rax, 3
 	push rax
 	push rax
-	mov rax, [rbp-100]; load
+	mov rax, [rbp-84]; load
 	pop rcx
-	mov [rbp-100], rcx; store
+	mov [rbp-84], rcx; store
 	pop rax
-	mov rax, [rbp-100]; load
+	mov rax, [rbp-84]; load
 	push rax
 	mov rax, d11; string_ref
 	push rax
@@ -324,7 +324,7 @@ _main:
 	pop rsi
 	mov al, 2; var_arg_count
 	call _printf
-	mov rax, [rbp-84]; load
+	mov rax, [rbp-92]; load
 	mov rax, [rax]; deref
 	push rax
 	mov rax, d12; string_ref
@@ -389,8 +389,8 @@ _main:
 	pop rsi
 	mov al, 2; var_arg_count
 	call _printf
-	mov rax, [rbp-100]; load
-	lea rax, [rbp-100]; addrsof
+	mov rax, [rbp-84]; load
+	lea rax, [rbp-84]; addrsof
 	push rax
 	mov rax, d25; string_ref
 	push rax
@@ -398,7 +398,7 @@ _main:
 	pop rsi
 	mov al, 2; var_arg_count
 	call _printf
-	mov rax, [rbp-84]; load
+	mov rax, [rbp-92]; load
 	push rax
 	mov rax, d26; string_ref
 	push rax
@@ -406,8 +406,8 @@ _main:
 	pop rsi
 	mov al, 2; var_arg_count
 	call _printf
-	mov rax, [rbp-84]; load
-	lea rax, [rbp-84]; addrsof
+	mov rax, [rbp-92]; load
+	lea rax, [rbp-92]; addrsof
 	push rax
 	mov rax, d27; string_ref
 	push rax
@@ -415,7 +415,7 @@ _main:
 	pop rsi
 	mov al, 2; var_arg_count
 	call _printf
-	mov rax, [rbp-84]; load
+	mov rax, [rbp-92]; load
 	mov rax, [rax]; deref
 	push rax
 	mov rax, d28; string_ref
@@ -424,7 +424,7 @@ _main:
 	pop rsi
 	mov al, 2; var_arg_count
 	call _printf
-	mov rax, [rbp-100]; load
+	mov rax, [rbp-84]; load
 	push rax
 	mov rax, d29; string_ref
 	push rax

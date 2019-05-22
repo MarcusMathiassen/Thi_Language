@@ -250,7 +250,7 @@ codegen_binary(Codegen_Context* ctx, AST* node) {
         pop_type_2(ctx, rhs_v->type);
         emit_store(ctx, variable);
         pop_type(ctx, rhs_v->type);
-        
+
         return variable;
     }
 
@@ -661,8 +661,7 @@ Value*
 codegen_ident(Codegen_Context* ctx, AST* node) {
     assert(node->kind == AST_IDENT);
     DEBUG_START;
-    char*  name = node->Ident.name;
-    Value* var  = get_variable(ctx, name);
+    Value* var  = get_variable(ctx, node);
     emit_load(ctx, var);
     return var;
 }
@@ -692,8 +691,7 @@ codegen_note(Codegen_Context* ctx, AST* node) {
 
     AST*   arg  = get_arg_from_func(ctx->current_function->Function.type,
                                  integer_value - 1);
-    char*  name = arg->Variable_Decl.name;
-    Value* var  = get_variable(ctx, name);
+    Value* var  = get_variable(ctx, make_ast_ident(arg->loc_info, arg->Variable_Decl.name));
 
     emit_load(ctx, var);
 
@@ -731,6 +729,8 @@ codegen_for(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_FOR);
 
+    push_scope(ctx);
+
     char* begin_l = make_text_label(ctx);
     char* mid_l   = make_text_label(ctx);
     char* end_l   = make_text_label(ctx);
@@ -754,6 +754,8 @@ codegen_for(Codegen_Context* ctx, AST* node) {
     codegen_node(ctx, step);
     emit(ctx, "jmp %s", begin_l);
     emit(ctx, "%s:", end_l);
+
+    pop_scope(ctx);
 
     return NULL;
 }

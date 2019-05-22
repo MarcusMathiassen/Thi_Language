@@ -91,10 +91,8 @@ char* get_db_op(Type* type);
 char* get_move_op(Type* type);
 void  alloc_variable(Codegen_Context* ctx, Value* variable);
 void  dealloc_variable(Codegen_Context* ctx, Value* variable);
-Value*
-get_variable_in_scope(Scope* scope, char* name);
-Value*
-get_variable(Codegen_Context* ctx, char* name);
+Value* get_variable_in_scope(Scope* scope, char* name);
+Value* get_variable(Codegen_Context* ctx, AST* ident);
 void  add_variable(Codegen_Context* ctx, Value* variable);
 int   align(int n, s32 m);
 char* get_instr(Token_Kind op, Type* type);

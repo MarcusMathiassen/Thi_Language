@@ -447,6 +447,8 @@ int main(int argc, char** argv) {
     pctx.symbols        = thi.symbol_map;
     AST* ast            = parse(&pctx, name);
 
+    // ast = make_ast_module(ast->loc_info, source_file, ast);
+
     success("all loaded files");
     LIST_FOREACH(pctx.loads) {
         success("file: %s", it->data);
@@ -493,7 +495,7 @@ int main(int argc, char** argv) {
 
     // Semantic analyis
     semantic_analysis(ast);
-
+    
     // Give every node a type and do some checking
     type_checker(thi.symbol_map, ast);
 
@@ -501,6 +503,7 @@ int main(int argc, char** argv) {
     push_timer(&thi, "Run all passes");
     ast_visit(run_all_passes, &thi, ast);
     pop_timer(&thi);
+
 
     // Second typechecking pass
     type_checker(thi.symbol_map, ast);

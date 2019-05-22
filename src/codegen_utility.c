@@ -343,14 +343,14 @@ get_variable_in_scope(Scope* scope, char* name) {
 }
 
 Value*
-get_variable(Codegen_Context* ctx, char* name) {
-    assert(name);
+get_variable(Codegen_Context* ctx, AST* ident) {
+    assert(ident);
     STACK_FOREACH(ctx->scope_stack) {
         Scope* scope = (Scope*)it->data;
-        Value* res   = get_variable_in_scope(scope, name);
+        Value* res   = get_variable_in_scope(scope, ident->Ident.name);
         if (res) return res;
     }
-    error("no variable with name '%s'", name);
+    error("no variable with name '%s'", ident->Ident.name);
     return NULL;
 }
 

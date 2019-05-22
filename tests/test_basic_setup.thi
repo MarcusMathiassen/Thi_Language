@@ -16,20 +16,20 @@ def main(argc s32, argv char**) s64
     printf("%d %d %f %f\n", sizeof s64 * 8, v.i[1], 4.33, v.z = 1333.3333)
     printf("%s %s\n", typeof get, typeof v2)
 
-    name u8* = "Hello"
+    name = "Hello"
     puts(name)
     puts("You!")
 
-    x s64* = malloc(sizeof s64 * 5)
+    x s64* = malloc(sizeof s64 * 7)
 
-    for i s64 = 0, i < 5, i += 1
+    for i = 0, i < 7, i += 1
         x[i] = i
 
-    for i s64 = 0, i < 5, i += 1
+    for i = 0, i < 7, i += 1
         printf("addrs: %zu => x[%d] = %d\n", &x[i], i, x[i])
 
     k = -5
-    i s64* = &k
+    i = &k
 
     if 0 return 3
 
