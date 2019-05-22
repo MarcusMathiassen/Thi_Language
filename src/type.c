@@ -274,7 +274,7 @@ char* type_to_str(String_Context* ctx, Type* type) {
             ast_to_str(ctx, it->data);
             if (it->next) string_append(s, ", ");
         }
-        string_append_f(s, ") %s", get_type_name(type->Function.return_type)); 
+        string_append_f(s, ") %s", get_type_name(type->Function.return_type));
         break;
     }
     }

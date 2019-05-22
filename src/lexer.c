@@ -32,6 +32,7 @@
 //------------------------------------------------------------------------------
 
 typedef enum {
+    KEY_IN,
     KEY_DEF,
     KEY_LINK,
     KEY_TYPE,
@@ -106,6 +107,7 @@ char* intern(Intern_Array* intern_array, char* str);
 //------------------------------------------------------------------------------
 
 char* STATIC_KEYWORDS_ARRAY[__KEY_COUNT__] = {
+    "in",
     "def",
     "link",
     "type",
@@ -133,8 +135,8 @@ char* STATIC_KEYWORDS_ARRAY[__KEY_COUNT__] = {
 void lexer_test(void) {
     char* source =
         "type v2\n    x: f32\n    y: f32\n    core()\n        return 1\n";
-    Lexed_File lf = generate_tokens_from_source(source);
-    Token* tokens = lf.tokens.data;
+    Lexed_File lf     = generate_tokens_from_source(source);
+    Token*     tokens = lf.tokens.data;
     // info(source);
     // print_tokens(lf.tokens);
     assert(tokens[0].kind == TOKEN_TYPE);         // type
@@ -156,7 +158,7 @@ void lexer_test(void) {
     assert(tokens[16].kind == TOKEN_BLOCK_END);   //
     assert(tokens[17].kind == TOKEN_EOF);         //
 
-    lf = generate_tokens_from_source("0.3453 1e3 0x043 'x' 100_000 100_000.00");
+    lf     = generate_tokens_from_source("0.3453 1e3 0x043 'x' 100_000 100_000.00");
     tokens = lf.tokens.data;
     assert(tokens[0].kind == TOKEN_FLOAT);
     assert(tokens[1].kind == TOKEN_INTEGER);
@@ -190,10 +192,10 @@ Lexed_File generate_tokens_from_source(char* source) {
 
         if (ctx.current_indentation_level > ctx.previous_indentation_level) {
             Token t;
-            t.kind                          = TOKEN_BLOCK_START;
-            t.value                         = "{";
-            t.line_pos                      = ctx.line_count;
-            t.col_pos                       = ctx.stream - ctx.position_of_newline;
+            t.kind                         = TOKEN_BLOCK_START;
+            t.value                        = "{";
+            t.line_pos                     = ctx.line_count;
+            t.col_pos                      = ctx.stream - ctx.position_of_newline;
             ctx.previous_indentation_level = ctx.current_indentation_level;
             token_array_append(&tokens, t);
         }
@@ -218,10 +220,10 @@ Lexed_File generate_tokens_from_source(char* source) {
     }
 
     Lexed_File lf;
-    lf.tokens = tokens;
-    lf.seconds = get_time() - start_time;
+    lf.tokens   = tokens;
+    lf.seconds  = get_time() - start_time;
     lf.comments = ctx.comment_count;
-    lf.lines = ctx.line_count;
+    lf.lines    = ctx.line_count;
 
     return lf;
 }
@@ -544,6 +546,7 @@ Token get_token(Lexer_Context* ctx) {
         }
         // clang-format off
         switch (i) {
+        case KEY_IN:          token.kind = TOKEN_IN;          break;
         case KEY_DEF:         token.kind = TOKEN_DEF;         break;
         case KEY_LINK:        token.kind = TOKEN_LINK;        break;
         case KEY_TYPE:        token.kind = TOKEN_TYPE;        break;
@@ -589,6 +592,7 @@ char* token_kind_to_str(Token_Kind kind) {
     case TOKEN_WHITESPACE:        return "TOKEN_WHITESPACE";
     case TOKEN_NEWLINE:           return "TOKEN_NEWLINE";
     case TOKEN_IDENTIFIER:        return "TOKEN_IDENTIFIER";
+    case TOKEN_IN:                return "in";
     case TOKEN_DEF:               return "def";
     case TOKEN_IS:                return "is";
     case TOKEN_AS:                return "as";

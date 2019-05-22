@@ -26,8 +26,8 @@
 #include <assert.h> // assert
 #include <string.h> // strcmp
 
-#define DEBUG_START                                                                                             \
-    assert(node); \
+#define DEBUG_START \
+    assert(node);   \
     // info("%s: %s", give_unique_color(ast_kind_to_str(node->kind)), wrap_with_colored_parens(ast_to_str(NULL, node)));
 
 typedef struct {
@@ -330,9 +330,9 @@ Type* type_check_block(Typer_Context* ctx, AST* node) {
 }
 
 Type* type_check_subscript(Typer_Context* ctx, AST* node) {
-    AST* load = node->Subscript.load;
-    AST* sub  = node->Subscript.sub;
-    Type* t = type_check_node(ctx, load);
+    AST*  load = node->Subscript.load;
+    AST*  sub  = node->Subscript.sub;
+    Type* t    = type_check_node(ctx, load);
     type_check_node(ctx, sub);
     t = get_underlying_type_if_any(t);
     return t;
@@ -446,4 +446,3 @@ Type* type_check_is(Typer_Context* ctx, AST* node) {
     UNFINISHED;
     return NULL;
 }
- 

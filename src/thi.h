@@ -73,7 +73,7 @@ typedef struct
     List*         loads;
     List*         links;
 
-    AST*  ast;
+    AST*   ast;
     Map*   symbol_map;
     Map*   macro_map;
     Stack* timer_stack;
@@ -81,8 +81,8 @@ typedef struct
 
     string* output_name;
     string* source_file;
-    char*  input_file;
-    char*  previous_file;
+    char*   input_file;
+    char*   previous_file;
     string* current_directory;
 } Thi;
 

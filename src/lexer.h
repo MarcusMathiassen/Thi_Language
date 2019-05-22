@@ -40,6 +40,7 @@ typedef enum {
 
     TOKEN_DEF,
     TOKEN_IS,
+    TOKEN_IN,
     TOKEN_CAST,
     TOKEN_TYPEOF,
     TOKEN_SIZEOF,

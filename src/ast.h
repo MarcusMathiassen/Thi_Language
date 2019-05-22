@@ -25,11 +25,11 @@
 #ifndef AST_H
 #define AST_H
 
-#include "cst.h"   // CST
-#include "lexer.h" // Token_Kind
-#include "list.h"  // List
-#include "type.h"  // Type
-#include "string.h"  // string
+#include "cst.h"    // CST
+#include "lexer.h"  // Token_Kind
+#include "list.h"   // List
+#include "string.h" // string
+#include "type.h"   // Type
 
 typedef enum {
     BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED,
@@ -137,7 +137,7 @@ struct AST {
         struct
         {
             List* stmts;
-            u8 flags;
+            u8    flags;
         } Block;
         struct
         {
@@ -307,7 +307,7 @@ AST*  get_arg_from_func(Type* func_t, s64 arg_index);
 void  ast_tests(void);
 void  ast_visit(void (*func)(void*, AST*), void* ctx, AST* node);
 void  ast_replace(AST* a, AST* b);
-char* ast_to_json(AST* node); 
+char* ast_to_json(AST* node);
 char* get_ast_name(AST* node);
 char* ast_to_str(String_Context* ctx, AST* node);
 char* ast_kind_to_str(AST_Kind kind);

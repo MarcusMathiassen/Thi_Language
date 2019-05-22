@@ -23,11 +23,11 @@
 //------------------------------------------------------------------------------
 
 #include "ast.h"       // AST, AST_Kind
-#include "sema.h"       // semantic_analysis
 #include "codegen.h"   // generate_code_from_ast
 #include "constants.h" // all constnats
 #include "lexer.h"     // generate_tokens_from_source, print_tokens
 #include "list.h"      // list_tests
+#include "sema.h"      // semantic_analysis
 // #include "cst.h"         // cst_tests
 #include "map.h"          // map
 #include "parser.h"       // generate_ast_from_tokens
@@ -64,16 +64,16 @@ void resolve_typeofs(void* dont_care, AST* node) {
 }
 void resolve_subscript(void* dont_care, AST* node) {
 
-    AST* load = node->Subscript.load;
-    AST* sub  = node->Subscript.sub;
+    AST*  load          = node->Subscript.load;
+    AST*  sub           = node->Subscript.sub;
     Type* type_of_field = node->type;
 
     s64 size = get_size_of_underlying_type_if_any(load->type);
 
     load = make_ast_unary(node->loc_info, THI_SYNTAX_ADDRESS, load);
-    sub = make_ast_binary(node->loc_info, TOKEN_ASTERISK, make_ast_int(node->loc_info, size), sub);
-    sub = make_ast_binary(node->loc_info, TOKEN_PLUS, load, sub);
-    sub = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, sub);
+    sub  = make_ast_binary(node->loc_info, TOKEN_ASTERISK, make_ast_int(node->loc_info, size), sub);
+    sub  = make_ast_binary(node->loc_info, TOKEN_PLUS, load, sub);
+    sub  = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, sub);
 
     sub->type = type_of_field;
 
@@ -81,8 +81,8 @@ void resolve_subscript(void* dont_care, AST* node) {
 }
 void resolve_field_access(void* dont_care, AST* node) {
 
-    AST*  load       = node->Field_Access.load;
-    char* field_name = node->Field_Access.field;
+    AST*  load          = node->Field_Access.load;
+    char* field_name    = node->Field_Access.field;
     Type* type_of_field = node->type;
 
     s64  offset_size = get_offset_in_struct_to_field(load->type, field_name);
@@ -206,20 +206,19 @@ void constant_fold(void* ctx, AST* node) {
         if (lhs->kind == AST_GROUPING) lhs = lhs->Grouping.node;
         if (rhs->kind == AST_GROUPING) rhs = rhs->Grouping.node;
 
-        switch(op){
-        case TOKEN_PLUS: // fallthrough
-        case TOKEN_MINUS:  // fallthrough
-        case TOKEN_ASTERISK:  // fallthrough
-        case TOKEN_FWSLASH:       
+        switch (op) {
+        case TOKEN_PLUS:     // fallthrough
+        case TOKEN_MINUS:    // fallthrough
+        case TOKEN_ASTERISK: // fallthrough
+        case TOKEN_FWSLASH:
             if (lhs->kind == AST_INT && lhs->Int.val == 0) {
                 ast_replace(node, rhs);
-            // ..the same for the rhs side
+                // ..the same for the rhs side
             } else if (rhs->kind == AST_INT && rhs->Int.val == 0) {
                 ast_replace(node, lhs);
             }
         default: break;
         }
-
 
         if (lhs->kind == AST_INT && rhs->kind == AST_INT) {
             s64 lhs_v = lhs->Int.val;
@@ -254,14 +253,14 @@ void constant_fold(void* ctx, AST* node) {
             f64 rhs_v = rhs->Float.val;
             f64 value = 0.0;
 
-            switch(op){
-            case TOKEN_PLUS: // fallthrough
-            case TOKEN_MINUS:  // fallthrough
-            case TOKEN_ASTERISK:  // fallthrough
-            case TOKEN_FWSLASH:       
+            switch (op) {
+            case TOKEN_PLUS:     // fallthrough
+            case TOKEN_MINUS:    // fallthrough
+            case TOKEN_ASTERISK: // fallthrough
+            case TOKEN_FWSLASH:
                 if (lhs->kind == AST_FLOAT && lhs->Float.val == 0.0) {
                     ast_replace(node, rhs);
-                // ..the same for the rhs side
+                    // ..the same for the rhs side
                 } else if (rhs->kind == AST_FLOAT && rhs->Float.val == 0.0) {
                     ast_replace(node, lhs);
                 }
@@ -495,7 +494,7 @@ int main(int argc, char** argv) {
 
     // Semantic analyis
     semantic_analysis(ast);
-    
+
     // Give every node a type and do some checking
     type_checker(thi.symbol_map, ast);
 
@@ -503,7 +502,6 @@ int main(int argc, char** argv) {
     push_timer(&thi, "Run all passes");
     ast_visit(run_all_passes, &thi, ast);
     pop_timer(&thi);
-
 
     // Second typechecking pass
     type_checker(thi.symbol_map, ast);
@@ -539,10 +537,10 @@ int main(int argc, char** argv) {
 
     // Remove unused externs
     List* externs = ast_find_all_of_kind(AST_EXTERN, ast);
-    List* calls = ast_find_all_of_kind(AST_CALL, ast);
+    List* calls   = ast_find_all_of_kind(AST_CALL, ast);
     LIST_FOREACH(externs) {
         AST* node_e = it->data;
-        bool used = false;
+        bool used   = false;
         LIST_FOREACH(calls) {
             AST* node_c = it->data;
             if (strcmp(node_e->Extern.type->Function.name, node_c->Call.callee) == 0) {
@@ -568,7 +566,8 @@ int main(int argc, char** argv) {
         write_to_file(output_filename, output);
         assemble(&thi, output_filename, exec_name);
         linking_stage(&thi, exec_name);
-    } else error("generating code from ast failed.");
+    } else
+        error("generating code from ast failed.");
 
     // Debug info. Writing out sizes of our types.
     info("size of Token: %lu bytes", sizeof(Token));

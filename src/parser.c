@@ -41,7 +41,7 @@
 
 #define DEBUG_START \
     assert(ctx);    \
-    // info("%s: %s", __func__, token_to_str(currTok(ctx)));
+    info("%s: %s", __func__, token_to_str(currTok(ctx)));
 
 #define UNARY_OP_COUNT 10
 Token_Kind unary_ops[UNARY_OP_COUNT] = {
@@ -155,8 +155,8 @@ AST* parse(Parser_Context* ctx, char* file) {
     // Add it to the list of loaded files.
     list_append(ctx->loads, file_path);
 
-    char* source        = get_file_content(file_path);
-    Lexed_File lf         = generate_tokens_from_source(source);
+    char*      source = get_file_content(file_path);
+    Lexed_File lf     = generate_tokens_from_source(source);
 
     ctx->tokens = lf.tokens.data;
     ctx->lines += lf.lines;
@@ -383,12 +383,42 @@ AST* parse_while(Parser_Context* ctx) {
 AST* parse_for(Parser_Context* ctx) {
     DEBUG_START;
     eat_kind(ctx, TOKEN_FOR);
+
     AST* init = parse_statement(ctx);
-    eat_kind(ctx, TOKEN_COMMA);
-    AST* cond = parse_expression(ctx);
-    eat_kind(ctx, TOKEN_COMMA);
-    AST* step       = parse_expression(ctx);
-    AST* then_block = parse_block(ctx);
+    AST* cond = NULL;
+    AST* step       = NULL;
+    AST* then_block = NULL;
+
+    if (tok_is(ctx, TOKEN_IN)) {
+
+        // for param in params
+        // expands into..
+        // for it = 0, it < len(params), ++it
+        //     param := params[it]
+
+        // WE ARE A 'FOR IN'
+        eat_kind(ctx, TOKEN_IN);
+
+        // Parse the rhs
+        AST* after_in = parse_expression(ctx);
+
+        AST* it = make_ast_ident(loc(ctx), DEFAULT_FOR_IN_ITERATOR_NAME);
+        AST* it_var = make_ast_binary(loc(ctx), TOKEN_EQ, init, make_ast_subscript(loc(ctx), after_in, it));
+
+        init = make_ast_binary(loc(ctx), TOKEN_EQ, it, make_ast_int(loc(ctx), 0));
+        cond = make_ast_binary(loc(ctx), TOKEN_LT, it, make_ast_int(loc(ctx), 7)); //@HARDCODED
+        step = make_ast_unary(loc(ctx), TOKEN_PLUS_PLUS, it);
+        then_block = parse_block(ctx);
+
+        // Place the 'param' variable at the start of the block
+        list_prepend(then_block->Block.stmts, it_var);
+    } else {
+        eat_kind(ctx, TOKEN_COMMA);
+        cond = parse_expression(ctx);
+        eat_kind(ctx, TOKEN_COMMA);
+        step       = parse_expression(ctx);
+        then_block = parse_block(ctx);
+    }
     return make_ast_for(loc(ctx), init, cond, step, then_block);
 }
 
@@ -496,17 +526,17 @@ AST* parse_block(Parser_Context* ctx) {
     DEBUG_START;
 
     AST* block = NULL;
-    u32 flags = 0;
+    u32  flags = 0;
 
     // are we parsing a single line expression list thingy?
     if (tok_is_on_same_line(ctx)) {
         if (tok_is(ctx, TOKEN_EQ_GT)) { // =>
             eat(ctx);
             flags = BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED;
-        } 
+        }
         List* stmts = make_list();
-        AST* stmt = parse_statement(ctx);
-        stmt = make_ast_return(stmt->loc_info, stmt);
+        AST*  stmt  = parse_statement(ctx);
+        stmt        = make_ast_return(stmt->loc_info, stmt);
         list_append(stmts, stmt);
         block = make_ast_block(loc(ctx), stmts);
     } else {
@@ -614,7 +644,7 @@ AST* parse_def(Parser_Context* ctx) {
     char* ident = tokValue(ctx);
     eat_kind(ctx, TOKEN_IDENTIFIER);
 
-    if(tok_is(ctx, TOKEN_OPEN_PAREN)) {
+    if (tok_is(ctx, TOKEN_OPEN_PAREN)) {
         return parse_function_decl(ctx, ident);
     }
 
@@ -625,16 +655,16 @@ AST* parse_def(Parser_Context* ctx) {
     LIST_FOREACH(body->Block.stmts) {
         AST* stmt = it->data;
         switch (stmt->kind) {
-            case AST_IDENT: break;
-            case AST_CONSTANT_DECL: break; 
-            default: 
-                is_enum = false; 
-                break;
+        case AST_IDENT: break;
+        case AST_CONSTANT_DECL: break;
+        default:
+            is_enum = false;
+            break;
         }
     }
 
-    Type* decl_t = is_enum ? make_type_enum(ident, body->Block.stmts) : make_type_struct(ident, body->Block.stmts); 
-    AST* decl = is_enum ? make_ast_enum(lc, decl_t) : make_ast_struct(lc, decl_t);
+    Type* decl_t = is_enum ? make_type_enum(ident, body->Block.stmts) : make_type_struct(ident, body->Block.stmts);
+    AST*  decl   = is_enum ? make_ast_enum(lc, decl_t) : make_ast_struct(lc, decl_t);
 
     return decl;
 }
@@ -864,14 +894,14 @@ Type* parse_extern_function_signature(Parser_Context* ctx, char* func_name) {
     eat_kind(ctx, TOKEN_OPEN_PAREN);
     List* args                   = make_list();
     bool  has_multiple_arguments = false;
-    u32 flags = 0;
+    u32   flags                  = 0;
     while (!tok_is(ctx, TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(ctx, TOKEN_COMMA);
         Type* type = get_type(ctx);
         if (type->kind == TYPE_VAR_ARGS) {
             flags |= TYPE_FLAG_HAS_VAR_ARG;
         }
-        AST*  expr = make_ast_variable_decl(loc(ctx), NULL, type, NULL);
+        AST* expr = make_ast_variable_decl(loc(ctx), NULL, type, NULL);
         list_append(args, expr);
         has_multiple_arguments = true;
     }

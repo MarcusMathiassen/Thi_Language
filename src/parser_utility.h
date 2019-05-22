@@ -38,7 +38,7 @@ typedef struct
     u64 lines;
     u64 comments;
 
-    Map* symbols;
+    Map*  symbols;
     List* loads;
 
     Token top_tok;

@@ -434,18 +434,18 @@ void emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg) {
 void emit_store(Codegen_Context* ctx, Value* variable) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
-    s64 stack_pos = get_stack_pos_of_variable(variable);
-    char* reg = get_result_reg_2(variable->type);
-    char* mov_op = get_move_op(variable->type);
+    s64   stack_pos = get_stack_pos_of_variable(variable);
+    char* reg       = get_result_reg_2(variable->type);
+    char* mov_op    = get_move_op(variable->type);
     emit(ctx, "%s [rbp-%lld], %s; store", mov_op, stack_pos, reg);
 }
 
 void emit_load(Codegen_Context* ctx, Value* variable) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
-    s64 stack_pos = get_stack_pos_of_variable(variable);
-    char* reg    = get_result_reg(variable->type);
-    char* mov_op = get_move_op(variable->type);
+    s64   stack_pos = get_stack_pos_of_variable(variable);
+    char* reg       = get_result_reg(variable->type);
+    char* mov_op    = get_move_op(variable->type);
     emit(ctx, "%s %s, [rbp-%lld]; load", mov_op, reg, stack_pos);
 }
 
@@ -706,7 +706,7 @@ void visitor_get_all_alloca_in_block(void* sum, AST* node) {
 }
 
 s64 get_all_alloca_in_block(AST* block) {
-    s64   sum   = 0;
+    s64 sum = 0;
     ast_visit(visitor_get_all_alloca_in_block, &sum, block);
     return sum;
 }

@@ -20,21 +20,21 @@
 
 #include "sema.h"
 #include "ast.h"
+#include "constants.h"
 #include "list.h"
 #include "map.h"
 #include "stack.h"
-#include "constants.h"
 #include "type.h"
 #include "utility.h"
 #include <assert.h> // assert
 #include <string.h> // strcmp
 
-#define DEBUG_START                                                                                             \
-    assert(node); \
+#define DEBUG_START \
+    assert(node);   \
     info("%s: %s", give_unique_color(ast_kind_to_str(node->kind)), wrap_with_colored_parens(ast_to_str(NULL, node)));
 
 typedef struct {
-    AST*  module;
+    AST*   module;
     Stack* scopes;
 } Sema_Context;
 
@@ -68,7 +68,7 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
     DEBUG_START;
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
-        case AST_SPACE_SEPARATED_IDENTIFIER_LIST:
+    case AST_SPACE_SEPARATED_IDENTIFIER_LIST:
         LIST_FOREACH(node->Space_Separated_Identifier_List.identifiers) {
             sema_check_node(ctx, it->data);
         }
@@ -106,9 +106,9 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
     case AST_BINARY: {
         sema_check_node(ctx, node->Binary.lhs);
         sema_check_node(ctx, node->Binary.rhs);
-        AST* rhs = node->Binary.rhs;
-        AST* lhs = node->Binary.lhs;
-        Token_Kind op = node->Binary.op;
+        AST*       rhs = node->Binary.rhs;
+        AST*       lhs = node->Binary.lhs;
+        Token_Kind op  = node->Binary.op;
         if (op == THI_SYNTAX_ASSIGNMENT && lhs->kind == AST_IDENT) {
             // Look for it in the current scope and any parent scope.
             AST* var = get_variable_in_scope(ctx, lhs->Ident.name);

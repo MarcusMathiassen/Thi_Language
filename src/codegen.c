@@ -32,10 +32,10 @@
 #include <stdio.h>   //
 #include <string.h>  // strcmp
 
-#define DEBUG_START                                                              \
-    assert(ctx);                                                                 \
-    assert(node); \
-    // info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(NULL, node))); \
+#define DEBUG_START \
+    assert(ctx);    \
+    assert(node);   \
+    info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(NULL, node))); \
     // emit(ctx, "; %s", ast_to_str(NULL, node));
 
 Value*
@@ -157,22 +157,6 @@ codegen_unary(Codegen_Context* ctx, AST* node) {
     Token_Kind op      = node->Unary.op;
     AST*       operand = node->Unary.operand;
 
-    if (op == TOKEN_DOT) {
-        // This is an enum accessor
-        // Find the enum member
-        assert(ctx->expected_type);
-        Type* enum_type = ctx->expected_type;
-        assert(operand->kind == AST_IDENT);
-        LIST_FOREACH(enum_type->Enum.members) {
-            AST* mem = (AST*)it->data;
-            if (strcmp(operand->Ident.name, mem->Constant_Decl.name) == 0) {
-                return codegen_node(
-                    ctx,
-                    make_ast_int(mem->loc_info, mem->Constant_Decl.value->Int.val));
-            }
-        }
-    }
-
     Value* operand_val = codegen_node(ctx, operand);
     // s64    operand_size = get_size_of_value(operand_val);
 
@@ -248,7 +232,7 @@ codegen_binary(Codegen_Context* ctx, AST* node) {
         push_type(ctx, rhs_v->type);
 
         Value* variable = NULL;
-        variable = codegen_node(ctx, lhs);
+        variable        = codegen_node(ctx, lhs);
 
         pop_type_2(ctx, rhs_v->type);
         emit_store(ctx, variable);
@@ -578,7 +562,7 @@ codegen_call(Codegen_Context* ctx, AST* node) {
         case TYPE_POINTER:
         case TYPE_ARRAY:
         case TYPE_ENUM:
-        case TYPE_STRUCT: 
+        case TYPE_STRUCT:
         case TYPE_INT: {
             switch (int_arg_counter) {
             default: ERROR_UNHANDLED_KIND(type_kind_to_str(v->type->kind));
@@ -636,9 +620,9 @@ Value*
 codegen_int(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_INT);
-    Value* val = make_value_int(DEFAULT_INT_BYTE_SIZE, node->type, node->Int.val);
-    char* reg    = get_result_reg(val->type);
-    char* mov_op = get_move_op(val->type);
+    Value* val    = make_value_int(DEFAULT_INT_BYTE_SIZE, node->type, node->Int.val);
+    char*  reg    = get_result_reg(val->type);
+    char*  mov_op = get_move_op(val->type);
     emit(ctx, "%s %s, %d", mov_op, reg, val->Int.value);
     return val;
 }
@@ -650,8 +634,8 @@ codegen_block(Codegen_Context* ctx, AST* node) {
     List*  stmts = node->Block.stmts;
     Value* last  = NULL;
     // if (node->Block.flags & BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED) {
-        // AST* last_stmt = list_last(stmts);
-        // ast_replace(last_stmt, make_ast_return(last_stmt->loc_info, last_stmt));
+    // AST* last_stmt = list_last(stmts);
+    // ast_replace(last_stmt, make_ast_return(last_stmt->loc_info, last_stmt));
     // }
     LIST_FOREACH(stmts) {
         last = codegen_node(ctx, it->data);
@@ -664,7 +648,7 @@ Value*
 codegen_ident(Codegen_Context* ctx, AST* node) {
     assert(node->kind == AST_IDENT);
     DEBUG_START;
-    Value* var  = get_variable(ctx, node);
+    Value* var = get_variable(ctx, node);
     emit_load(ctx, var);
     return var;
 }
@@ -692,9 +676,9 @@ codegen_note(Codegen_Context* ctx, AST* node) {
     s64 integer_value = node->Note.node->Int.val;
     if (integer_value < 1) error("note parameters start at 1.");
 
-    AST*   arg  = get_arg_from_func(ctx->current_function->Function.type,
+    AST*   arg = get_arg_from_func(ctx->current_function->Function.type,
                                  integer_value - 1);
-    Value* var  = get_variable(ctx, make_ast_ident(arg->loc_info, arg->Variable_Decl.name));
+    Value* var = get_variable(ctx, make_ast_ident(arg->loc_info, arg->Variable_Decl.name));
 
     emit_load(ctx, var);
 
@@ -957,7 +941,7 @@ Value* codegen_function(Codegen_Context* ctx, AST* node) {
     warning("%d", sum);
 
     s64 stack_allocated = sum;
-    s32 padding = X64_ASM_MACOS_STACK_PADDING - (stack_allocated % X64_ASM_MACOS_STACK_PADDING);
+    s32 padding         = X64_ASM_MACOS_STACK_PADDING - (stack_allocated % X64_ASM_MACOS_STACK_PADDING);
     if (stack_allocated + padding)
         emit(ctx, "sub rsp, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);
 

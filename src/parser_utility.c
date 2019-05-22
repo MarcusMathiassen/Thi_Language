@@ -78,8 +78,8 @@ make_parser_context(void) {
     ctx.curr_tok.kind      = TOKEN_UNKNOWN;
     ctx.llast_if_statement = NULL;
     ctx.olast_if_statement = NULL;
-    ctx.loads = make_list();
-    ctx.symbols = NULL; // we borrow anothers map
+    ctx.loads              = make_list();
+    ctx.symbols            = NULL; // we borrow anothers map
     return ctx;
 }
 

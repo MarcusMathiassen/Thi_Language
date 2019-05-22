@@ -31,15 +31,15 @@
 
 typedef struct
 {
-    AST*   current_function;
-    Type*  expected_type;
-    Stack* scope_stack;
-    s64    stack_index;
+    AST*    current_function;
+    Type*   expected_type;
+    Stack*  scope_stack;
+    s64     stack_index;
     string* section_text;
     string* section_data;
     string* section_extern;
-    s64    text_label_counter;
-    s64    data_label_counter;
+    s64     text_label_counter;
+    s64     data_label_counter;
 
     char* o0;
     char* o1;
@@ -77,25 +77,25 @@ void emit_extern(Codegen_Context* ctx, char* fmt, ...);
 void emit_data(Codegen_Context* ctx, char* fmt, ...);
 void emit(Codegen_Context* ctx, char* fmt, ...);
 
-void  push(Codegen_Context* ctx, int reg);
-void  pop(Codegen_Context* ctx, int reg);
-void  push_type(Codegen_Context* ctx, Type* type);
-void  pop_type(Codegen_Context* ctx, Type* type);
-void  pop_type_2(Codegen_Context* ctx, Type* type);
-void  push_scope(Codegen_Context* ctx);
-void  pop_scope(Codegen_Context* ctx);
-char* get_result_reg(Type* type);
-char* get_result_reg_2(Type* type);
-char* get_op_size(s8 bytes);
-char* get_db_op(Type* type);
-char* get_move_op(Type* type);
-void  alloc_variable(Codegen_Context* ctx, Value* variable);
-void  dealloc_variable(Codegen_Context* ctx, Value* variable);
+void   push(Codegen_Context* ctx, int reg);
+void   pop(Codegen_Context* ctx, int reg);
+void   push_type(Codegen_Context* ctx, Type* type);
+void   pop_type(Codegen_Context* ctx, Type* type);
+void   pop_type_2(Codegen_Context* ctx, Type* type);
+void   push_scope(Codegen_Context* ctx);
+void   pop_scope(Codegen_Context* ctx);
+char*  get_result_reg(Type* type);
+char*  get_result_reg_2(Type* type);
+char*  get_op_size(s8 bytes);
+char*  get_db_op(Type* type);
+char*  get_move_op(Type* type);
+void   alloc_variable(Codegen_Context* ctx, Value* variable);
+void   dealloc_variable(Codegen_Context* ctx, Value* variable);
 Value* get_variable_in_scope(Scope* scope, char* name);
 Value* get_variable(Codegen_Context* ctx, AST* ident);
-void  add_variable(Codegen_Context* ctx, Value* variable);
-int   align(int n, s32 m);
-char* get_instr(Token_Kind op, Type* type);
+void   add_variable(Codegen_Context* ctx, Value* variable);
+int    align(int n, s32 m);
+char*  get_instr(Token_Kind op, Type* type);
 
 char* emit_save_result(Codegen_Context* ctx, Value* value);
 char* get_next_available_reg_fitting(Codegen_Context* ctx, Type* type);

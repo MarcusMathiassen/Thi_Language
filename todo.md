@@ -8,3 +8,4 @@
 [ ] - remove duplicate data tables in assembly output.
 [ ] - find a better way to remove unused externs
 [ ] - sema on AST_IDENT should print an error on undefined identifiers
+[ ] - fix 'for in' it's hardcoded atm

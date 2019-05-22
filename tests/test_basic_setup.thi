@@ -9,54 +9,57 @@ def get(x s64) s64
     return 6
 
 def main(argc s32, argv char**) s64
-    i = 1
-    return ++i
 
-    #v v2
-    #v.i[1] = 53
-    #v.i[2] = 2
-    #printf("%d %d %f %f\n", sizeof s64 * 8, v.i[1], 4.33, v.z = 1333.3333)
-    #printf("%s %s\n", typeof get, typeof v2)
+    v v2
+    v.i[1] = 53
+    v.i[2] = 2
+    printf("%d %d %f %f\n", sizeof s64 * 8, v.i[1], 4.33, v.z = 1333.3333)
+    printf("%s %s\n", typeof get, typeof v2)
 
-    #name = "Hello"
-    #puts(name)
-    #puts("You!")
+    name = "Hello"
+    puts(name)
+    puts("You!")
 
-    #x s64* = malloc(sizeof s64 * 7)
+    # for param in params
+    # expands into..
+    # for it = 0, it < len(params), ++it
+    #     param := params[it]
 
-    #for i = 0, i < 7, i += 1
-    #    x[i] = i
+    x s64* =  malloc(sizeof s64 * 7)
 
-    #for i = 0, i < 7, i += 1
-    #    printf("addrs: %zu => x[%d] = %d\n", &x[i], i, x[i])
+    for i = 0, i < 7, ++i
+        x[i] = i
 
-    #k = -5
-    #i = &k
+    #for item in x
+        #printf("addrs: %zu => x[%d] = %d\n", &item, it, item)
 
-    #if 0 return 3
+    k = -5
+    i = &k
 
-    #printf(" k = %d\n", k)
-    #printf("*i = %d\n", *i)
+    if 0 return 3
 
-    #k = 3
+    printf(" k = %d\n", k)
+    printf("*i = %d\n", *i)
 
-    #printf(" k = %d\n", k)
-    #printf("*i = %d\n", *i)
+    k = 3
 
-    #printf("typeof &i = %s\n", typeof &i)
-    #printf("typeof *i = %s\n", typeof *i)
-    #printf("typeof  i = %s\n", typeof i)
-    #printf("typeof &k = %s\n", typeof &k)
-    #printf("typeof  k = %s\n", typeof k)
+    printf(" k = %d\n", k)
+    printf("*i = %d\n", *i)
 
-    #printf("sizeof *i = %d\n", sizeof *i)
-    #printf("sizeof  i = %d\n", sizeof i)
+    printf("typeof &i = %s\n", typeof &i)
+    printf("typeof *i = %s\n", typeof *i)
+    printf("typeof  i = %s\n", typeof i)
+    printf("typeof &k = %s\n", typeof &k)
+    printf("typeof  k = %s\n", typeof k)
 
-    #printf("addrsof &k = %llu\n", &k)
-    #printf("addrsof  i = %llu\n", i)
-    #printf("addrsof &i = %llu\n", &i)
+    printf("sizeof *i = %d\n", sizeof *i)
+    printf("sizeof  i = %d\n", sizeof i)
 
-    #printf("*i = %llu\n", *i)
-    #printf(" k = %llu\n", k)
+    printf("addrsof &k = %llu\n", &k)
+    printf("addrsof  i = %llu\n", i)
+    printf("addrsof &i = %llu\n", &i)
 
-    #return 1
+    printf("*i = %llu\n", *i)
+    printf(" k = %llu\n", k)
+
+    return 1

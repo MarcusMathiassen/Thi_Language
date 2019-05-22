@@ -35,10 +35,10 @@
 
 string* string_create(char* str) {
     assert(str);
-    string* s      = xmalloc(sizeof(string));
-    s->c_str        = xmalloc(STRING_STARTING_ALLOC);
-    s->len          = 0;
-    s->cap          = STRING_STARTING_ALLOC;
+    string* s = xmalloc(sizeof(string));
+    s->c_str  = xmalloc(STRING_STARTING_ALLOC);
+    s->len    = 0;
+    s->cap    = STRING_STARTING_ALLOC;
     string_append(s, str);
     return s;
 }
@@ -52,7 +52,7 @@ string* string_create_f(char* fmt, ...) {
     va_start(args, fmt);
     vsnprintf(str, n, fmt, args);
     va_end(args);
-    string *s = string_create(str);
+    string* s = string_create(str);
     free(str);
     return s;
 }
@@ -66,8 +66,18 @@ void string_append(string* this, char* str) {
     s64 str_len = strlen(str);
     if (str_len == 0) return;
     assert(this->len <= this->cap);
-    if (this->cap - this->len <= str_len) {
-        this->cap = this->len + str_len + 1 + STRING_STARTING_ALLOC;
+    while (this->cap < this->len + str_len + 1) {
+        /* Doubling growth strategy. */
+        this->cap <<= 1;
+        if (this->cap == 0) {
+            /* Left shift of max bits will go to 0. An unsigned type set to
+             * -1 will return the maximum possible size. However, we should
+             *  have run out of memory well before we need to do this. Since
+             *  this is the theoretical maximum total system memory we don't
+             *  have a flag saying we can't grow any more because it should
+             *  be impossible to get to this point. */
+            this->cap--;
+        }
         this->c_str = xrealloc(this->c_str, this->cap);
     }
     memcpy(this->c_str + this->len, str, str_len);

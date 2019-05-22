@@ -21,7 +21,7 @@
 #ifndef TYPE_H
 #define TYPE_H
 
-#include "list.h" // List
+#include "list.h"   // List
 #include "string.h" // String_Context
 #include "typedefs.h"
 
