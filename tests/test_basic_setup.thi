@@ -13,6 +13,12 @@ def main(argc s32, argv char**) s64
     v.i[1] = 53
     v.i[2] = 2
 
+    if 0
+        if 53
+            return 54
+        return 1
+    else return 4
+
     printf("%d %d %f %f\n", sizeof s64 * 8, v.i[1], 4.33, v.z = 1333.3333)
     printf("%s %s\n", typeof get, typeof v2)
 

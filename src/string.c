@@ -63,12 +63,11 @@ char* string_data(string* this) {
 }
 void string_append(string* this, char* str) {
     assert(this);
-    assert(str);
     s64 str_len = strlen(str);
     if (str_len == 0) return;
     assert(this->len <= this->cap);
     if (this->cap - this->len <= str_len) {
-        this->cap = this->len + str_len;
+        this->cap = this->len + str_len + 1 + STRING_STARTING_ALLOC;
         this->c_str = xrealloc(this->c_str, this->cap);
     }
     memcpy(this->c_str + this->len, str, str_len);
@@ -107,7 +106,6 @@ void string_tests(void) {
     assert(strcmp(string_data(s), "Hello") == 0);
     string_append(s, ", Marcus Mathiasssen.");
     assert(s->len == 26);
-    assert(s->cap == 26);
     assert(strcmp(string_data(s), "Hello, Marcus Mathiasssen.") == 0);
     string_append(s, " It's nice to see you again. How are you?");
     assert(s->len == 67);
