@@ -24,15 +24,16 @@
 
 #ifndef STRING_H
 #define STRING_H
-
 #include "typedefs.h"
+
 typedef struct {
     char* c_str;
     s64   len;
+    s64   cap;
 } string;
 
-string string_create(char* str);
-string string_create_f(char* fmt, ...);
+string* string_create(char* str);
+string* string_create_f(char* fmt, ...);
 void   string_destroy(string* this);
 char*  string_data(string* this);
 void   string_append(string* this, char* str);

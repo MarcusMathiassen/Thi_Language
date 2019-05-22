@@ -79,11 +79,11 @@ typedef struct
     Stack* timer_stack;
     List*  timer_list;
 
-    string output_name;
-    string source_file;
+    string* output_name;
+    string* source_file;
     char*  input_file;
     char*  previous_file;
-    string current_directory;
+    string* current_directory;
 } Thi;
 
 Thi   make_thi(void);

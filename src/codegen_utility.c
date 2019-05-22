@@ -73,7 +73,7 @@ void emit_no_tab(Codegen_Context* ctx, char* fmt, ...) {
     vsnprintf(str, str_len, fmt, args);
     va_end(args);
 
-    string_append_f(&ctx->section_text, "%s\n", str);
+    string_append_f(ctx->section_text, "%s\n", str);
 
     free(str);
 }
@@ -89,7 +89,7 @@ void emit_extern(Codegen_Context* ctx, char* fmt, ...) {
     vsnprintf(str, str_len, fmt, args);
     va_end(args);
 
-    string_append_f(&ctx->section_extern, "extern _%s\n", str);
+    string_append_f(ctx->section_extern, "extern _%s\n", str);
 
     free(str);
 }
@@ -105,7 +105,7 @@ void emit_data(Codegen_Context* ctx, char* fmt, ...) {
     vsnprintf(str, str_len, fmt, args);
     va_end(args);
 
-    string_append_f(&ctx->section_data, "\t%s\n", str);
+    string_append_f(ctx->section_data, "\t%s\n", str);
 
     free(str);
 }
@@ -131,9 +131,9 @@ void emit(Codegen_Context* ctx, char* fmt, ...) {
     }
 
     if (is_label) {
-        string_append_f(&ctx->section_text, "%s\n", str);
+        string_append_f(ctx->section_text, "%s\n", str);
     } else {
-        string_append_f(&ctx->section_text, "\t%s\n", str);
+        string_append_f(ctx->section_text, "\t%s\n", str);
     }
 
     free(str);

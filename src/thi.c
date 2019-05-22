@@ -157,18 +157,17 @@ void thi_install_pass(Thi* thi, PassDescriptor passDesc) {
 }
 
 char* get_output_name(Thi* thi) {
-    return thi->output_name.c_str;
+    return string_data(thi->output_name);
 }
 void set_output_name(Thi* thi, char* name) {
     thi->output_name = string_create(name);
 }
-
 void set_source_file(Thi* thi, char* file_name) {
-    thi->previous_file = thi->source_file.c_str;
+    thi->previous_file = string_data(thi->source_file);
     thi->source_file   = string_create(file_name);
 }
 char* get_source_file(Thi* thi) {
-    return thi->source_file.c_str;
+    return string_data(thi->source_file);
 }
 char* get_previous_source_file(Thi* thi) {
     return thi->previous_file;
@@ -177,7 +176,7 @@ void set_current_directory(Thi* thi, char* dir_name) {
     thi->current_directory = string_create(dir_name);
 }
 char* get_current_directory(Thi* thi) {
-    return thi->current_directory.c_str;
+    return string_data(thi->current_directory);
 }
 
 List* get_load_list(Thi* thi) {

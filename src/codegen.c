@@ -35,8 +35,8 @@
 #define DEBUG_START                                                              \
     assert(ctx);                                                                 \
     assert(node); \
-    info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(node))); \
-    // emit(ctx, "; %s", ast_to_str(node));
+    info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(NULL, node))); \
+    // emit(ctx, "; %s", ast_to_str(NULL, node));
 
 Value*
 codegen_sizeof(Codegen_Context* ctx, AST* node);
@@ -138,12 +138,12 @@ char* generate_code_from_ast(AST* ast) {
 
     Codegen_Context ctx = make_codegen_context();
 
-    string_append(&ctx.section_data, "section .data\n");
+    string_append(ctx.section_data, "section .data\n");
     emit_no_tab(&ctx, "section .text");
 
     codegen_node(&ctx, ast);
 
-    char* output = strf("%s%sglobal _main\n%s", ctx.section_extern.c_str, ctx.section_data.c_str, ctx.section_text.c_str);
+    char* output = strf("%s%sglobal _main\n%s", string_data(ctx.section_extern), string_data(ctx.section_data), string_data(ctx.section_text));
 
     info("%s", output);
 
@@ -268,7 +268,7 @@ codegen_binary(Codegen_Context* ctx, AST* node) {
         push_type(ctx, rhs_v->type);
         push_type(ctx, rhs_v->type);
         Value* variable = NULL;
-        info("%s %s", ast_kind_to_str(lhs->kind), ast_to_str(lhs));
+        info("%s %s", ast_kind_to_str(lhs->kind), ast_to_str(NULL, lhs));
         variable = codegen_node(ctx, lhs);
         if (variable->type->kind == TYPE_POINTER) {
             s64 stack_pos = get_stack_pos_of_variable(variable);

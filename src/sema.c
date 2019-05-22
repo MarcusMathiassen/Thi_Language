@@ -30,7 +30,7 @@
 #include <string.h> // strcmp
 
 #define DEBUG_START                                                                                             \
-    info("%s: %s", give_unique_color(ast_kind_to_str(node->kind)), wrap_with_colored_parens(ast_to_str(node))); \
+    info("%s: %s", give_unique_color(ast_kind_to_str(node->kind)), wrap_with_colored_parens(ast_to_str(NULL, node))); \
     assert(node);
 
 typedef struct {

@@ -57,20 +57,20 @@ char* cst_to_str(CST* node) {
     case CST_TOKEN: return  node->token.value;
     case CST_IDENTIFIER: return node->Identifier.name;
     case CST_SPACE_SEPARATED_IDENTIFIER_LIST: {
-        string s = string_create("");
+        string *s = string_create("");
         LIST_FOREACH(node->Space_Separated_Identifier_List.identifiers) {
-            string_append(&s, cst_to_str(it->data));
-            if (it->next) string_append(&s, " ");
+            string_append(s, cst_to_str(it->data));
+            if (it->next) string_append(s, " ");
         }
-        return string_data(&s);
+        return string_data(s);
     }
     case CST_COMMA_SEPARATED_LIST: {
-        string s = string_create("");
+        string *s = string_create("");
         LIST_FOREACH(node->Comma_Separated_List.nodes) {
-            string_append(&s, cst_to_str(it->data));
-            if (it->next) string_append(&s, ", ");
+            string_append(s, cst_to_str(it->data));
+            if (it->next) string_append(s, ", ");
         }
-        return string_data(&s);
+        return string_data(s);
     }
     }
     // clang-format on

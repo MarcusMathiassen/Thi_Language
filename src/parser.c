@@ -461,7 +461,7 @@ void maybe_convert_if_to_switch(AST* node) {
                 error(
                     "%s\nonly 'case' statements are allowed inside an if "
                     "switch",
-                    ast_to_str(stmt));
+                    ast_to_str(NULL, stmt));
             }
         }
 
@@ -562,7 +562,7 @@ AST* parse_function_call(Parser_Context* ctx, char* ident) {
         list_append(args, arg);
         has_multiple_arguments = true;
         if (arg->kind == AST_VAR_ARGS) {
-            error("found var args %s", ast_to_str(arg));
+            error("found var args %s", ast_to_str(NULL, arg));
             has_var_args = true;
         }
     }
@@ -586,7 +586,7 @@ AST* parse_function_decl(Parser_Context* ctx, char* ident) {
         list_append(args, arg);
         has_multiple_arguments = true;
         if (arg->kind == AST_VAR_ARGS) {
-            error("found var args %s", ast_to_str(arg));
+            error("found var args %s", ast_to_str(NULL, arg));
             flags |= TYPE_FLAG_HAS_VAR_ARG;
         }
     }

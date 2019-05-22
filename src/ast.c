@@ -84,89 +84,210 @@ char* ast_kind_to_str(AST_Kind kind) {
     return NULL;
 }
 
-char* ast_to_str(AST* node) {
-    if (!node) return "---";
-    // clang-format off
+char* at_ident_levle(char* str, u64 indent_level) {
+    char* s = NULL;
+    assert(DEFAULT_INDENT_LEVEL == 4);
+    while (indent_level > DEFAULT_INDENT_LEVEL) {
+        s = strf("%s    ", s);
+        indent_level -= DEFAULT_INDENT_LEVEL;
+    }
+    return s;
+}
+
+char* ast_to_str(String_Context* ctx, AST* node) {
+
+    // @HOT: this is checked no each and every call.
+    if (!ctx) {
+        ctx      = xmalloc(sizeof(String_Context));
+        ctx->str = string_create("");
+        ctx->indentation_level = 0;
+    }
+    string* s = ctx->str;
+
+    if (!node) {
+        string_append(s, "---");
+        return string_data(s);
+    }
+
     switch (node->kind) {
-    default:                    ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
+    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
     case AST_SPACE_SEPARATED_IDENTIFIER_LIST: {
-        string s = string_create("");
         LIST_FOREACH(node->Space_Separated_Identifier_List.identifiers) {
-            string_append(&s, ast_to_str(it->data));
-            if (it->next) string_append(&s, " ");
+            ast_to_str(ctx, it->data);
+            if (it->next) string_append(s, " ");
         }
-        return string_data(&s);
+        break;
     }
     case AST_COMMA_SEPARATED_LIST: {
-        string s = string_create("");
         LIST_FOREACH(node->Comma_Separated_List.nodes) {
-            string_append(&s, ast_to_str(it->data));
-            if (it->next) string_append(&s, ", ");
+            ast_to_str(ctx, it->data);
+            if (it->next) string_append(s, ", ");
         }
-        return string_data(&s);
+        break;
     }
-    case AST_MODULE:            return strf("module '%s'= %s", node->Module.name, ast_to_str(node->Module.top_level));
-    case AST_VAR_ARGS:          return "...";
-    case AST_NOP:               return "nop";
-    case AST_FALLTHROUGH:       return "fallthrough";
-    case AST_SWITCH:            return strf("switch %s %s else %s", ast_to_str(node->Switch.cond), ast_to_str(node->Switch.cases),
-                    ast_to_str(node->Switch.default_case));
-    case AST_IS:                return strf("is %s %s", ast_to_str(node->Is.node), ast_to_str(node->Is.body));
-    case AST_TYPEOF:            return strf("typeof %s", ast_to_str(node->Typeof.node));
-    case AST_SIZEOF:            return strf("sizeof %s", ast_to_str(node->Sizeof.node));
-    case AST_EXTERN:            return strf("extern %s", type_to_str(node->type));
-    case AST_LOAD:              return strf("load %s", node->Load.str);
-    case AST_LINK:              return strf("link %s", node->Link.str);
-    case AST_DEFER:             return strf("defer %s", ast_to_str(node->Defer.node));
-    case AST_BREAK:             return "break";
-    case AST_CONTINUE:          return "continue";
-    case AST_AS:                return strf("%s as %s)", ast_to_str(node->As.node), ast_to_str(node->As.type_node));
-    case AST_RETURN:            return strf("return %s", ast_to_str(node->Return.node));
-    case AST_FIELD_ACCESS:      return strf("%s.%s", ast_to_str(node->Field_Access.load), node->Field_Access.field);
-    case AST_NOTE:              return strf("$%s", ast_to_str(node->Note.node));
-    case AST_INT:               return strf("%lld", node->Int.val);
-    case AST_FLOAT:             return strf("%f", node->Float.val);
-    case AST_STRING:            return strf("\"%s\"", node->String.val);
-    case AST_IDENT:             return strf("%s", node->Ident.name);
-    case AST_UNARY:             return strf("%s(%s)", token_kind_to_str(node->Unary.op), ast_to_str(node->Unary.operand));
-    case AST_BINARY:            return strf("%s %s %s", ast_to_str(node->Binary.lhs), token_kind_to_str(node->Binary.op),
-                    ast_to_str(node->Binary.rhs));
-    case AST_VARIABLE_DECL:     
-        if (!node->Variable_Decl.name) return strf("%s", type_to_str(node->type));
-        if (!node->Variable_Decl.value) return strf("%s: %s", node->Variable_Decl.name, type_to_str(node->type));
-        return strf("%s: %s = %s", node->Variable_Decl.name, type_to_str(node->type),
-                    ast_to_str(node->Variable_Decl.value));
-    case AST_CONSTANT_DECL:     return strf("%s :: %s", node->Constant_Decl.name, ast_to_str(node->Constant_Decl.value));
-    case AST_STRUCT:            return type_to_str(node->Struct.type);
-    case AST_ENUM:              return type_to_str(node->Enum.type);
-    case AST_FUNCTION:          return strf("%s%s", type_to_str(node->type), ast_to_str(node->Function.body));
-    case AST_GROUPING:          return strf("(%s)", ast_to_str(node->Grouping.node));
-    case AST_SUBSCRIPT:         return strf("%s[%s]", ast_to_str(node->Subscript.load), ast_to_str(node->Subscript.sub));
-    case AST_IF:                return strf(node->If.else_block ? "if %s %s else %s" : "if %s %s", ast_to_str(node->If.cond),
-                    ast_to_str(node->If.then_block), ast_to_str(node->If.else_block));
-    case AST_FOR:               return strf("for %s, %s, %s %s", ast_to_str(node->For.init), ast_to_str(node->For.cond),
-                    ast_to_str(node->For.step), ast_to_str(node->For.then_block));
-    case AST_WHILE:             return strf("while %s %s", ast_to_str(node->While.cond), ast_to_str(node->While.then_block));
+    case AST_MODULE: {
+        string_append_f(s, "module '%s'= ", node->Module.name);
+        ast_to_str(ctx, node->Module.top_level);
+        break;
+    }
+    case AST_VAR_ARGS: {
+        string_append(s, "...");
+        break;
+    }
+    case AST_NOP: {
+        string_append(s, "nop");
+        break;
+    }
+    case AST_FALLTHROUGH: {
+        string_append(s, "fallthrough");
+        break;
+    }
+    case AST_SWITCH: {
+        string_append(s, "switch");
+        string_append_f(s, "switch %s %s else %s", 
+        ast_to_str(ctx, node->Switch.cond);
+        ast_to_str(ctx, node->Switch.cases);
+        ast_to_str(ctx, node->Switch.default_case);
+        break;
+    }
+    case AST_IS: {
+        string_append_f(s, "is %s %s", ast_to_str(ctx, node->Is.node), ast_to_str(ctx, node->Is.body));
+        break;
+    }
+    case AST_TYPEOF: {
+        string_append_f(s, "typeof %s", ast_to_str(ctx, node->Typeof.node));
+        break;
+    }
+    case AST_SIZEOF: {
+        string_append_f(s, "sizeof %s", ast_to_str(ctx, node->Sizeof.node));
+        break;
+    }
+    case AST_EXTERN: {
+        string_append_f(s, "extern %s", type_to_str(node->type));
+        break;
+    }
+    case AST_LOAD: {
+        string_append_f(s, "load %s", node->Load.str);
+        break;
+    }
+    case AST_LINK: {
+        string_append_f(s, "link %s", node->Link.str);
+        break;
+    }
+    case AST_DEFER: {
+        string_append_f(s, "defer %s", ast_to_str(ctx, node->Defer.node));
+        break;
+    }
+    case AST_BREAK: {
+        string_append(s, "break");
+        break;
+    }
+    case AST_CONTINUE: {
+        string_append(s, "continue");
+        break;
+    }
+    case AST_AS: {
+        string_append_f(s, "%s as %s)", ast_to_str(ctx, node->As.node), ast_to_str(ctx, node->As.type_node));
+        break;
+    }
+    case AST_RETURN: {
+        string_append_f(s, "return %s", ast_to_str(ctx, node->Return.node));
+        break;
+    }
+    case AST_FIELD_ACCESS: {
+        string_append_f(s, "%s.%s", ast_to_str(ctx, node->Field_Access.load), node->Field_Access.field);
+        break;
+    }
+    case AST_NOTE: {
+        string_append_f(s, "$%s", ast_to_str(ctx, node->Note.node));
+        break;
+    }
+    case AST_INT: {
+        string_append_f(s, "%lld", node->Int.val);
+        break;
+    }
+    case AST_FLOAT: {
+        string_append_f(s, "%f", node->Float.val);
+        break;
+    }
+    case AST_STRING: {
+        string_append_f(s, "\"%s\"", node->String.val);
+        break;
+    }
+    case AST_IDENT: {
+        string_append_f(s, "%s", node->Ident.name);
+        break;
+    }
+    case AST_UNARY: {
+        string_append_f(s, "%s(%s)", token_kind_to_str(node->Unary.op), ast_to_str(ctx, node->Unary.operand));
+        break;
+    }
+    case AST_BINARY: {
+        string_append_f(s, "%s %s %s", ast_to_str(ctx, node->Binary.lhs), token_kind_to_str(node->Binary.op), ast_to_str(ctx, node->Binary.rhs));
+        break;
+    }
+    case AST_VARIABLE_DECL: {
+        if (!node->Variable_Decl.name) string_append_f(s, "%s", type_to_str(node->type));
+        if (!node->Variable_Decl.value) string_append_f(s, "%s: %s", node->Variable_Decl.name, type_to_str(node->type));
+        string_append_f(s, "%s: %s = %s", node->Variable_Decl.name, type_to_str(node->type), ast_to_str(ctx, node->Variable_Decl.value));
+        break;
+    }
+    case AST_CONSTANT_DECL: {
+        string_append_f(s, "%s :: %s", node->Constant_Decl.name, ast_to_str(ctx, node->Constant_Decl.value));
+        break;
+    }
+    case AST_STRUCT: {
+        string_append(s, type_to_str(node->Struct.type));
+        break;
+    }
+    case AST_ENUM: {
+        string_append(s, type_to_str(node->Enum.type));
+        break;
+    }
+    case AST_FUNCTION: {
+        string_append_f(s, "%s%s", type_to_str(node->type), ast_to_str(ctx, node->Function.body));
+        break;
+    }
+    case AST_GROUPING: {
+        string_append_f(s, "(%s)", ast_to_str(ctx, node->Grouping.node));
+        break;
+    }
+    case AST_SUBSCRIPT: {
+        string_append_f(s, "%s[%s]", ast_to_str(ctx, node->Subscript.load), ast_to_str(ctx, node->Subscript.sub));
+        break;
+    }
+    case AST_IF: {
+        string_append_f(s, node->If.else_block ? "if %s %s else %s" : "if %s %s", ast_to_str(ctx, node->If.cond), ast_to_str(ctx, node->If.then_block), ast_to_str(ctx, node->If.else_block));
+        break;
+    }
+    case AST_FOR: {
+        string_append_f(s, "for %s, %s, %s %s", ast_to_str(ctx, node->For.init), ast_to_str(ctx, node->For.cond), ast_to_str(ctx, node->For.step), ast_to_str(ctx, node->For.then_block));
+        break;
+    }
+    case AST_WHILE: {
+        string_append_f(s, "while %s %s", ast_to_str(ctx, node->While.cond), ast_to_str(ctx, node->While.then_block));
+        break;
+    }
     case AST_BLOCK: {
-        string s = string_create("{ ");
+        string_append(s, "{ ");
+        ctx->indentation_level += DEFAULT_INDENT_LEVEL;
         LIST_FOREACH(node->Block.stmts) {
-            string_append_f(&s, "%s; ", ast_to_str(it->data));
+            string_append_f(s, "\n%s; ", ast_to_str(ctx, it->data));
         }
-        string_append(&s, "}");
-        return string_data(&s);
+        string_append(s, "}");
+        ctx->indentation_level -= DEFAULT_INDENT_LEVEL;
+        break;
     }
     case AST_CALL: {
-        string s   = string_create_f("%s(", node->Call.callee);
+        string_append_f(s, "%s(", node->Call.callee);
         LIST_FOREACH(node->Call.args) {
-            string_append(&s, ast_to_str(it->data));
-            if (it->next) string_append(&s, ", ");
+            string_append(s, ast_to_str(ctx, it->data));
+            if (it->next) string_append(s, ", ");
         }
-        string_append(&s, ")");
-        return string_data(&s);
+        string_append(s, ")");
+        break;
     }
     }
-    // clang-format on
-    UNREACHABLE;
     return NULL;
 }
 
@@ -217,27 +338,27 @@ char* ast_to_json(AST* node) {
     case AST_IF:            return strf("{%s:{\"cond\": %s, \"then_block\": %s, \"else_block\": %s }}", ast_json_prelude(node), ast_to_json(node->If.cond), ast_to_json(node->If.then_block), ast_to_json(node->If.else_block));
     // clang-format on
     case AST_BLOCK: {
-        string str = string_create(strf("{%s: [", ast_json_prelude(node)));
+        string* str = string_create(strf("{%s: [", ast_json_prelude(node)));
         LIST_FOREACH(node->Block.stmts) {
-            string_append(&str, ast_to_json(it->data));
-            if (it->next) string_append(&str, ", ");
+            string_append(str, ast_to_json(it->data));
+            if (it->next) string_append(str, ", ");
         }
-        string_append(&str, "]}");
-        return str.c_str;
+        string_append(str, "]}");
+        return string_data(str);
     } break;
     case AST_CALL: {
-        string str = string_create("");
-        string_append_f(&str, "{%s:{\"callee\": \"%s\", ", ast_json_prelude(node), node->Call.callee);
-        string_append(&str, "\"args\": [");
+        string *str = string_create("");
+        string_append_f(str, "{%s:{\"callee\": \"%s\", ", ast_json_prelude(node), node->Call.callee);
+        string_append(str, "\"args\": [");
         s64 arg_count = node->Call.args->count;
         s64 counter   = 0;
         LIST_FOREACH(node->Call.args) {
-            string_append(&str, ast_to_json(it->data));
-            if (counter != arg_count - 1) string_append(&str, ",");
+            string_append(str, ast_to_json(it->data));
+            if (counter != arg_count - 1) string_append(str, ",");
             counter += 1;
         }
-        string_append(&str, "]}}");
-        return str.c_str;
+        string_append(str, "]}}");
+        return string_data(str);
     } break;
     }
     UNREACHABLE;
@@ -401,7 +522,7 @@ void ast_add_edge(AST* a, AST* dep) {
 void ast_replace(AST* a, AST* b) {
     assert(a);
     assert(b);
-    info("REPLACED %s -> %s WITH %s -> %s", give_unique_color(ast_to_str(a)), give_unique_color(type_to_str(a->type)), give_unique_color(ast_to_str(b)), give_unique_color(type_to_str(b->type)));
+    info("REPLACED %s -> %s WITH %s -> %s", give_unique_color(ast_to_str(NULL, a)), give_unique_color(type_to_str(a->type)), give_unique_color(ast_to_str(NULL, b)), give_unique_color(type_to_str(b->type)));
     *a = *b;
     // CLEANUP
 }
@@ -889,7 +1010,7 @@ AST* make_ast(AST_Kind kind, Loc_Info loc_info) {
 }
 
 AST* make_ast_nop(Loc_Info loc_info) {
-    AST* e         = make_ast(AST_NOP, loc_info);
+    AST* e = make_ast(AST_NOP, loc_info);
     return e;
 }
 

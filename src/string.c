@@ -23,6 +23,7 @@
 //------------------------------------------------------------------------------
 
 #include "string.h"
+#include "constants.h"
 
 #include "typedefs.h"
 #include "utility.h" // xmalloc, xrealloc
@@ -32,30 +33,28 @@
 #include <stdlib.h>  // free
 #include <string.h>  // memcpy
 
-string string_create(char* str) {
+string* string_create(char* str) {
     assert(str);
-    string s;
-    s64    str_len = strlen(str);
-    s.c_str        = xmalloc(str_len + 1);
-    s.len          = str_len;
-    memcpy(s.c_str, str, str_len);
-    s.c_str[s.len] = 0;
+    string* s      = xmalloc(sizeof(string));
+    s->c_str        = xmalloc(STRING_STARTING_ALLOC);
+    s->len          = 0;
+    s->cap          = STRING_STARTING_ALLOC;
+    string_append(s, str);
     return s;
 }
-string string_create_f(char* fmt, ...) {
+string* string_create_f(char* fmt, ...) {
     assert(fmt);
     va_list args;
     va_start(args, fmt);
     s64 n = 1 + vsnprintf(0, 0, fmt, args);
     va_end(args);
-
     char* str = xmalloc(n);
-
     va_start(args, fmt);
     vsnprintf(str, n, fmt, args);
     va_end(args);
-
-    return string_create(str);
+    string *s = string_create(str);
+    free(str);
+    return s;
 }
 char* string_data(string* this) {
     assert(this);
@@ -67,18 +66,16 @@ void string_append(string* this, char* str) {
     assert(str);
     s64 str_len = strlen(str);
     if (str_len == 0) return;
-
-    char* c_str = this->c_str;
-    s64   len   = this->len;
-
-    c_str = xrealloc(c_str, len + str_len + 1);
-    memcpy(c_str + len, str, str_len);
-    len += str_len;
-    c_str[len] = 0;
-
-    this->c_str = c_str;
-    this->len   = len;
+    assert(this->len <= this->cap);
+    if (this->cap - this->len <= str_len) {
+        this->cap = this->len + str_len;
+        this->c_str = xrealloc(this->c_str, this->cap);
+    }
+    memcpy(this->c_str + this->len, str, str_len);
+    this->len += str_len;
+    this->c_str[this->len] = 0;
 }
+
 void string_append_f(string* this, char* fmt, ...) {
     assert(this);
     assert(fmt);
@@ -105,15 +102,16 @@ void string_destroy(string* this) {
 
 void string_tests(void) {
     // string test
-    string s = string_create("Hello");
-    assert(s.len == 5);
-    assert(strcmp(s.c_str, "Hello") == 0);
-    string_append(&s, ", Marcus Mathiasssen.");
-    assert(s.len == 26);
-    assert(strcmp(s.c_str, "Hello, Marcus Mathiasssen.") == 0);
-    string_append(&s, " It's nice to see you again. How are you?");
-    assert(s.len == 67);
-    assert(strcmp(s.c_str,
+    string* s = string_create("Hello");
+    assert(s->len == 5);
+    assert(strcmp(string_data(s), "Hello") == 0);
+    string_append(s, ", Marcus Mathiasssen.");
+    assert(s->len == 26);
+    assert(s->cap == 26);
+    assert(strcmp(string_data(s), "Hello, Marcus Mathiasssen.") == 0);
+    string_append(s, " It's nice to see you again. How are you?");
+    assert(s->len == 67);
+    assert(strcmp(string_data(s),
                   "Hello, Marcus Mathiasssen. It's nice to see you "
                   "again. How are you?") == 0);
 }

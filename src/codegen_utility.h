@@ -35,9 +35,9 @@ typedef struct
     Type*  expected_type;
     Stack* scope_stack;
     s64    stack_index;
-    string section_text;
-    string section_data;
-    string section_extern;
+    string* section_text;
+    string* section_data;
+    string* section_extern;
     s64    text_label_counter;
     s64    data_label_counter;
 

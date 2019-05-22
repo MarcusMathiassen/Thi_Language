@@ -217,24 +217,24 @@ char* type_to_str(Type* type) {
 
     case TYPE_ENUM: // fallthrough
     case TYPE_STRUCT: {
-        string s = string_create_f("%s = { ", get_type_name(type));
+        string *s = string_create_f("%s = { ", get_type_name(type));
         LIST_FOREACH(type_get_members(type)) {
             AST* mem = it->data;
-            string_append(&s, ast_to_str(mem));
-            if (it->next) string_append(&s, ", ");
+            string_append(s, ast_to_str(NULL, mem));
+            if (it->next) string_append(s, ", ");
         }
-        string_append(&s, " }");
-        return string_data(&s);
+        string_append(s, " }");
+        return string_data(s);
     };
 
     case TYPE_FUNCTION: {
-        string s = string_create_f("%s(", get_type_name(type));
+        string *s = string_create_f("%s(", get_type_name(type));
         LIST_FOREACH(type->Function.parameters) {
-            string_append(&s, ast_to_str(it->data));
-            if (it->next) string_append(&s, ", ");
+            string_append(s, ast_to_str(NULL, it->data));
+            if (it->next) string_append(s, ", ");
         }
-        string_append_f(&s, ") %s", type_to_str(type->Function.return_type));
-        return string_data(&s);
+        string_append_f(s, ") %s", type_to_str(type->Function.return_type));
+        return string_data(s);
     }
     }
     // clang-format on
@@ -278,53 +278,53 @@ char* type_to_json(Type* type) {
     } break;
     case TYPE_STRUCT: {
         return strf("{\"%s\": {\"name\": \"%s\"}}", type_kind_to_str(type->kind), type->Struct.name);
-        string str = string_create("");
-        string_append_f(&str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Struct.name);
-        string_append(&str, "\"args\": [");
+        string *str = string_create("");
+        string_append_f(str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Struct.name);
+        string_append(str, "\"args\": [");
         s64 arg_count = type->Struct.members->count;
         s64 counter   = 0;
         LIST_FOREACH(type->Struct.members) {
-            string_append(&str, ast_to_json(it->data));
-            if (counter != arg_count - 1) string_append(&str, ",");
+            string_append(str, ast_to_json(it->data));
+            if (counter != arg_count - 1) string_append(str, ",");
             counter += 1;
         }
-        string_append(&str, "]}}");
-        result = str.c_str;
+        string_append(str, "]}}");
+        result = string_data(str);
     } break;
 
     case TYPE_ENUM: {
         return strf("{\"%s\": {\"name\": \"%s\"}}", type_kind_to_str(type->kind), type->Enum.name);
-        string str = string_create("");
-        string_append_f(&str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Enum.name);
-        string_append(&str, "\"args\": [");
+        string *str = string_create("");
+        string_append_f(str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Enum.name);
+        string_append(str, "\"args\": [");
         s64 arg_count = type->Enum.members->count;
         s64 counter   = 0;
         LIST_FOREACH(type->Enum.members) {
-            string_append(&str, ast_to_json(it->data));
-            if (counter != arg_count - 1) string_append(&str, ",");
+            string_append(str, ast_to_json(it->data));
+            if (counter != arg_count - 1) string_append(str, ",");
             counter += 1;
         }
-        string_append(&str, "]}}");
-        result = str.c_str;
+        string_append(str, "]}}");
+        result = string_data(str);
     };
 
     case TYPE_FUNCTION: {
-        string str = string_create("");
-        string_append_f(&str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Enum.name);
-        string_append(&str, "\"args\": [");
+        string *str = string_create("");
+        string_append_f(str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Enum.name);
+        string_append(str, "\"args\": [");
         s64 arg_count = type->Function.parameters->count;
         s64 counter   = 0;
         LIST_FOREACH(type->Function.parameters) {
-            string_append(&str, ast_to_json(it->data));
-            if (counter != arg_count - 1) string_append(&str, ",");
+            string_append(str, ast_to_json(it->data));
+            if (counter != arg_count - 1) string_append(str, ",");
             counter += 1;
         }
-        // string_append(&str, "]}}");
+        // string_append(str, "]}}");
         // warning("BEGIN");
         // warning("%s", type_to_json(type->Function.ret_type));
         // warning("ED");
-        string_append(&str, strf("], \"ret_type\":%s}}", type_to_json(type->Function.return_type)));
-        result = str.c_str;
+        string_append(str, strf("], \"ret_type\":%s}}", type_to_json(type->Function.return_type)));
+        result = string_data(str);
     }
     }
     assert(result);

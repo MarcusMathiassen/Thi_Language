@@ -184,7 +184,7 @@ void check_for_unresolved_types(void* ctx, AST* node) {
     if (node->type && node->type->kind == TYPE_UNRESOLVED) {
         error(
             "[check_for_unresolved_types]: unresolved type found for node: %s",
-            ast_to_str(node));
+            ast_to_str(NULL, node));
     }
 }
 
@@ -198,7 +198,7 @@ void run_all_passes(void* thi, AST* node) {
 
 void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* node) {
     assert(node);
-    // info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(node)), give_unique_color(type_to_str(node->type)));
+    // info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(NULL, node)), give_unique_color(type_to_str(node->type)));
     // clang-format off
     switch (node->kind) {
     case AST_MODULE:      // fallthrough
@@ -221,7 +221,7 @@ void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* node) {
         error(
             "[make_sure_all_nodes_have_a_valid_type]: missing type for "
             "node: %s",
-            ast_to_str(node));
+            ast_to_str(NULL, node));
     }
 }
 
@@ -494,7 +494,7 @@ int main(int argc, char** argv) {
     List* modules = make_list();
     list_append(modules, ast);
 
-    info(ast_to_str(ast));
+    info(ast_to_str(NULL, ast));
     thi.ast = ast;
 
     info("Running passes");
@@ -591,7 +591,7 @@ int main(int argc, char** argv) {
     // char* json = ast_to_json(ast);
     // write_to_file("ast.json", json);
 
-    info(ast_to_str(ast));
+    info(ast_to_str(NULL, ast));
 
     // Codegen
     push_timer(&thi, "Codegen");
@@ -633,9 +633,9 @@ int main(int argc, char** argv) {
 }
 
 void assemble(Thi* thi, char* asm_file, char* exec_name) {
-    string comp_call = string_create_f("nasm -f macho64 -g %s -o %s.o", asm_file, exec_name);
+    string* comp_call = string_create_f("nasm -f macho64 -g %s -o %s.o", asm_file, exec_name);
     push_timer(thi, "Assembler");
-    system(comp_call.c_str);
+    system(string_data(comp_call));
     pop_timer(thi);
 }
 
