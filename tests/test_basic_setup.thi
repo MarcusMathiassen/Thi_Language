@@ -1,12 +1,38 @@
-load "includes/cstdlib"
-load "includes/cstdio"
+load "includes/cstdlib" # This works kindof like the C preprocessor. 
+load "includes/cstdio"  # It creates a module with the name of the load
+                        # containing all constructs in the file.
 
+# Any 'def' followed by IDENTIFIER BLOCK is seen as either a STRUCT or an ENUM
+# To define an ENUM you just have to make sure all members are constant variables.
+# If not, it gets converted to a STRUCT.
 def v2    
     i s64[5]
     z f64
 
+# '=>' can be used every where a block is expected.
+# It implicitly returns the last expression.
+
+# So this..
 def get(x s64) s64
-    return 6
+    return x
+
+# Can be written as this..
+def get(x s64) s64 => x
+
+# Or this..
+def get(x s64) s64 => print("got %", x), x
+
+# At a later stage full type-inference will let you do this..
+def get(x) => x 
+# It 'get' is now a generic function. Taking any input 'x' that
+# is valid for all operations on 'x' in the block.
+
+# This means if you did this..
+def get(x) => x * x
+# 'x' would need to be able to do the '*' binary operation.
+# Which is valid for all ints and floats but not strings or user defined
+# types. BUT the user can implement binary or unary operators for a type
+# with the syntax 'def *(a v2, b v2)'. 
 
 def main(argc s32, argv char**) s64
 
@@ -16,32 +42,44 @@ def main(argc s32, argv char**) s64
     printf("%d %d %f %f\n", sizeof s64 * 8, v.i[1], 4.33, v.z = 1333.3333)
     printf("%s %s\n", typeof get, typeof v2)
 
+    # A variable declaration is any 'IDENTIFIER = EXPRESSION' binary expression
+    # where IDENTIFIER is undefined. It will get its type from the result of the rhs
+    # expression.
+
+    # 'sizeof' is a compile time 'macro', if we can call it that, that replaces
+    # the 'sizeof EXPRESSION' with the size of that expression.
+
+    # 'typeof' in the same vain, is replaced by the resulting type of the expression
+    # as a constant string literal.
+
+    # Both 'sizeof' and 'typeof' are unary expressions. Which means
+    # it binds to the closest expression to the right. So parenteses are not needed.
+
     name = "Hello"
     puts(name)
     puts("You!")
 
-    # for param in params
-    # expands into..
-    # for it = 0, it < len(params), ++it
-    #     param := params[it]
-
     x s64* =  malloc(sizeof s64 * 7)
 
+    # This is a classic 'for' loop in C
     for i = 0, i < 7, ++i
         x[i] = i
 
-    #for item in x
-        #printf("addrs: %zu => x[%d] = %d\n", &item, it, item)
+    for item in x
+        #print("addrs: %zu => x[%d] = %d\n", &item, it, item)
 
     k = -5
-    i = &k
+    i = &k # 'i' is variable decl with the type of '&k', which in this case would be 's64*'
 
+    # Every place where a BLOCK statement is expected, a single
+    # expression on the same line can be put instead.
     if 0 return 3
 
     printf(" k = %d\n", k)
     printf("*i = %d\n", *i)
 
-    k = 3
+    k = 3 # 'k' is set to 3. This is not a variable decl because it already
+          # exists in the current scope.
 
     printf(" k = %d\n", k)
     printf("*i = %d\n", *i)
