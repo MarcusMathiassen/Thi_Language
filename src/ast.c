@@ -39,6 +39,7 @@ char* ast_kind_to_str(AST_Kind kind) {
     // clang-format off
     switch (kind) {
     default: ERROR_UNHANDLED_KIND(strf("%d", kind));
+    case AST_COMMENT:                         return "AST_COMMENT";
     case AST_NOP:                             return "AST_NOP";
     case AST_SPACE_SEPARATED_IDENTIFIER_LIST: return "AST_SPACE_SEPARATED_IDENTIFIER_LIST";
     case AST_COMMA_SEPARATED_LIST:            return "AST_COMMA_SEPARATED_LIST";
@@ -141,6 +142,12 @@ char* ast_to_str(String_Context* ctx, AST* node) {
 
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
+    case AST_COMMENT: 
+        string_append(s, node->Comment.text); 
+        break;
+    case AST_NOP: 
+        string_append(s, "nop"); 
+        break;
     case AST_SPACE_SEPARATED_IDENTIFIER_LIST: {
         LIST_FOREACH(node->Space_Separated_Identifier_List.identifiers) {
             ast_to_str(ctx, it->data);
@@ -162,10 +169,6 @@ char* ast_to_str(String_Context* ctx, AST* node) {
     }
     case AST_VAR_ARGS: {
         string_append(s, "...");
-        break;
-    }
-    case AST_NOP: {
-        string_append(s, "nop");
         break;
     }
     case AST_FALLTHROUGH: {
@@ -295,7 +298,7 @@ char* ast_to_str(String_Context* ctx, AST* node) {
         break;
     }
     case AST_FUNCTION: {
-        string_append_f(s, "def %s ", get_ast_name(node));
+        string_append_f(s, "def %s", get_ast_name(node));
         type_to_str(ctx, node->type);
         ast_to_str(ctx, node->Function.body);
         break;
@@ -447,6 +450,10 @@ void ast_visit(void (*func)(void*, AST*), void* ctx, AST* node) {
     assert(func);
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
+
+    case AST_COMMENT: break;
+    case AST_NOP: break;
+
     case AST_SPACE_SEPARATED_IDENTIFIER_LIST:
         LIST_FOREACH(node->Space_Separated_Identifier_List.identifiers) {
             ast_visit(func, ctx, it->data);
@@ -1083,6 +1090,13 @@ AST* make_ast(AST_Kind kind, Loc_Info loc_info) {
     e->loc_info = loc_info;
     e->type     = NULL;
     e->edges    = make_list();
+    return e;
+}
+
+AST* make_ast_comment(Loc_Info loc_info, char* text) {
+    assert(text);
+    AST* e = make_ast(AST_COMMENT, loc_info);
+    e->Comment.text = text;
     return e;
 }
 

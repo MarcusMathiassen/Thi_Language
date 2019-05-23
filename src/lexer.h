@@ -156,7 +156,7 @@ typedef struct
     f64         seconds;
 } Lexed_File;
 
-void       print_tokens(Token* tokens);
+void       print_tokens(Token_Array tokens);
 void       print_token(Token token);
 char*      token_to_str(Token token);
 char*      token_to_json(Token token);

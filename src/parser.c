@@ -157,6 +157,7 @@ AST* parse(Parser_Context* ctx, char* file) {
 
     char*      source = get_file_content(file_path);
     Lexed_File lf     = generate_tokens_from_source(source);
+    print_tokens(lf.tokens);
 
     ctx->tokens = lf.tokens.data;
     ctx->lines += lf.lines;
@@ -190,7 +191,6 @@ List* generate_ast_from_tokens(Parser_Context* ctx) {
     List* ast = make_list();
     while (!tok_is(ctx, TOKEN_EOF)) {
         AST* stmt = parse_statement(ctx);
-        assert(stmt);
         list_append(ast, stmt);
     }
     return ast;
@@ -221,51 +221,62 @@ AST* parse_top_level(Parser_Context* ctx) {
 AST* parse_statement(Parser_Context* ctx) {
     DEBUG_START;
     ctx->top_tok = ctx->curr_tok;
+    AST* result  = NULL;
     // clang-format off
     switch (tokKind(ctx)) {
-    default:                        return parse_expression(ctx);
-    case TOKEN_DEF:                 return parse_def(ctx);
-    case TOKEN_ENUM:                return parse_enum(ctx);
-    case TOKEN_TYPE:                return parse_type(ctx);
-    case TOKEN_RETURN:              return parse_return(ctx);
-    case TOKEN_BREAK:               return parse_break(ctx);
-    case TOKEN_CONTINUE:            return parse_continue(ctx);
-    case TOKEN_IF:                  return parse_if(ctx);
-    case TOKEN_IS:                  return parse_is(ctx);
-    case TOKEN_FALLTHROUGH:         return parse_fallthrough(ctx);
-    case TOKEN_ELSE:                return parse_dangling_else(ctx);
-    case TOKEN_DEFER:               return parse_defer(ctx);
-    case TOKEN_FOR:                 return parse_for(ctx);
-    case TOKEN_WHILE:               return parse_while(ctx);
-    case TOKEN_EXTERN:              return parse_extern(ctx);
-    case TOKEN_LOAD:                return parse_load(ctx);
-    case TOKEN_LINK:                return parse_link(ctx);
+    default:                        result =  parse_expression(ctx);    break;
+    case TOKEN_EOF:                 break;
+    case TOKEN_COMMENT:             eat(ctx); result = parse_statement(ctx); break;
+    case TOKEN_NEWLINE:             eat(ctx); result = parse_statement(ctx); break;
+    case TOKEN_DEF:                 result =  parse_def(ctx);           break;
+    case TOKEN_ENUM:                result =  parse_enum(ctx);          break;
+    case TOKEN_TYPE:                result =  parse_type(ctx);          break;
+
+    case TOKEN_IF:                  result =  parse_if(ctx);            break;
+    case TOKEN_IS:                  result =  parse_is(ctx);            break;
+    case TOKEN_ELSE:                result =  parse_dangling_else(ctx); break;
+    case TOKEN_DEFER:               result =  parse_defer(ctx);         break;
+    case TOKEN_FOR:                 result =  parse_for(ctx);           break;
+    case TOKEN_WHILE:               result =  parse_while(ctx);         break;
+
+    case TOKEN_RETURN:              result =  parse_return(ctx);        break;
+    case TOKEN_BREAK:               result =  parse_break(ctx);         break;
+    case TOKEN_CONTINUE:            result =  parse_continue(ctx);      break;
+    case TOKEN_FALLTHROUGH:         result =  parse_fallthrough(ctx);   break;
+    case TOKEN_LOAD:                result =  parse_load(ctx);          break;
+    case TOKEN_LINK:                result =  parse_link(ctx);          break;
+    case TOKEN_EXTERN:              result =  parse_extern(ctx);        break;
+
     }
     // clang-format on
-    UNREACHABLE;
-    return NULL;
+    // assert(result);
+    return result;
 }
 
 AST* parse_primary(Parser_Context* ctx) {
     DEBUG_START;
+    AST* result = NULL;
     // clang-format off
     switch (tokKind(ctx)) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
-    case TOKEN_DOT_DOT_DOT: eat(ctx); return make_ast_var_args(loc(ctx));
-    case TOKEN_TRUE:        eat(ctx); return make_ast_int(loc(ctx), 1);
-    case TOKEN_FALSE:       eat(ctx); return make_ast_int(loc(ctx), 0);
-    case TOKEN_IDENTIFIER:  return parse_identifier(ctx);
-    case TOKEN_DOLLAR_SIGN: return parse_note(ctx);
-    case TOKEN_FLOAT:       return parse_float(ctx);
+    case TOKEN_COMMENT:     eat(ctx); break;
+    case TOKEN_NEWLINE:     eat(ctx); break;
+    case TOKEN_DOT_DOT_DOT: eat(ctx); result = make_ast_var_args(loc(ctx)); break;
+    case TOKEN_TRUE:        eat(ctx); result = make_ast_int(loc(ctx), 1); break;
+    case TOKEN_FALSE:       eat(ctx); result = make_ast_int(loc(ctx), 0); break;
+    case TOKEN_IDENTIFIER:  result = parse_identifier(ctx); break;
+    case TOKEN_DOLLAR_SIGN: result = parse_note(ctx); break;
+    case TOKEN_FLOAT:       result = parse_float(ctx); break;
     case TOKEN_CHAR:        // fallthrough
     case TOKEN_HEX:         // fallthrough
-    case TOKEN_INTEGER:     return parse_integer(ctx);
-    case TOKEN_STRING:      return parse_string(ctx);
-    case TOKEN_OPEN_PAREN:  return parse_parens(ctx);
+    case TOKEN_INTEGER:     result = parse_integer(ctx); break;
+    case TOKEN_STRING:      result = parse_string(ctx); break;
+    case TOKEN_OPEN_PAREN:  result = parse_parens(ctx); break;
+    case TOKEN_BLOCK_START:  return parse_block(ctx);
     }
     // clang-format on
-    UNREACHABLE;
-    return NULL;
+    // assert(result);
+    return result;
 }
 
 AST* parse_top_level_identifier(Parser_Context* ctx) {
@@ -384,8 +395,8 @@ AST* parse_for(Parser_Context* ctx) {
     DEBUG_START;
     eat_kind(ctx, TOKEN_FOR);
 
-    AST* init = parse_statement(ctx);
-    AST* cond = NULL;
+    AST* init       = parse_statement(ctx);
+    AST* cond       = NULL;
     AST* step       = NULL;
     AST* then_block = NULL;
 
@@ -402,12 +413,12 @@ AST* parse_for(Parser_Context* ctx) {
         // Parse the rhs
         AST* after_in = parse_expression(ctx);
 
-        AST* it = make_ast_ident(loc(ctx), DEFAULT_FOR_IN_ITERATOR_NAME);
+        AST* it     = make_ast_ident(loc(ctx), DEFAULT_FOR_IN_ITERATOR_NAME);
         AST* it_var = make_ast_binary(loc(ctx), TOKEN_EQ, init, make_ast_subscript(loc(ctx), after_in, it));
 
-        init = make_ast_binary(loc(ctx), TOKEN_EQ, it, make_ast_int(loc(ctx), 0));
-        cond = make_ast_binary(loc(ctx), TOKEN_LT, it, make_ast_int(loc(ctx), 7)); //@HARDCODED
-        step = make_ast_unary(loc(ctx), TOKEN_PLUS_PLUS, it);
+        init       = make_ast_binary(loc(ctx), TOKEN_EQ, it, make_ast_int(loc(ctx), 0));
+        cond       = make_ast_binary(loc(ctx), TOKEN_LT, it, make_ast_int(loc(ctx), 7)); //@HARDCODED
+        step       = make_ast_unary(loc(ctx), TOKEN_PLUS_PLUS, it);
         then_block = parse_block(ctx);
 
         // Place the 'param' variable at the start of the block
@@ -557,18 +568,6 @@ AST* parse_block(Parser_Context* ctx) {
 
     return block;
 }
-
-// class Parser
-
-//     currTok, prevTok, nextTok Token
-
-//     sameLine() => prevTok.lineNum == currTok.lineNum
-//     is(kind) => currTok.kind == kind
-//     kind() => currTok.kind
-//     parseExpr()
-//         if kind()
-//             is .Return => eat(), makeASTReturn(sameLine() ? parseExpr() : NULL)
-//             is .Break => eat(), makeASTBreak()
 
 AST* parse_return(Parser_Context* ctx) {
     DEBUG_START;

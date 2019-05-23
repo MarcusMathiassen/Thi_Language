@@ -453,7 +453,7 @@ int main(int argc, char** argv) {
         success("file: %s", it->data);
     }
 
-    // info(ast_to_str(NULL, ast));
+    info(ast_to_str(NULL, ast));
     thi.ast = ast;
 
     info("Running passes");
@@ -492,11 +492,23 @@ int main(int argc, char** argv) {
     passDesc.visitor_func = resolve_field_access;
     thi_install_pass(&thi, passDesc);
 
-    // Semantic analyis
+
+    // 
+    // Semantic analysis
+    // 
     semantic_analysis(ast);
+
+    // 
+    // Typer
+    // 
+    //      Typifies the AST by top down traversal.
+    //      After this pass all nodes are typed.
 
     // Give every node a type and do some checking
     type_checker(thi.symbol_map, ast);
+
+    // Sanity check.. Make sure the typer did what it was supposed to do.
+    thi_run_pass(&thi, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);
 
     // Run all passes
     push_timer(&thi, "Run all passes");

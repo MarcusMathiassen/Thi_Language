@@ -242,7 +242,8 @@ void* list_at(List* list, s64 index) {
 
 void* list_prepend(List* list, void* data) {
     assert(list);
-    assert(data);
+    // assert(data);
+    if (!data) return data;
     ++list->count;
     List_Node* new_node = xmalloc(sizeof(List_Node));
     new_node->data      = data;
@@ -260,7 +261,8 @@ void* list_prepend(List* list, void* data) {
 
 void* list_append(List* list, void* data) {
     assert(list);
-    assert(data);
+    // assert(data);
+    if (!data) return data;
     ++list->count;
     List_Node* new_node = xmalloc(sizeof(List_Node));
     new_node->data      = data;

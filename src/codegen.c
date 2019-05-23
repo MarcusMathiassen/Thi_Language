@@ -166,7 +166,7 @@ codegen_unary(Codegen_Context* ctx, AST* node) {
     switch (op) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
     case TOKEN_PLUS_PLUS: {
-        codegen_node(ctx, make_ast_binary(node->loc_info, TOKEN_PLUS_EQ, operand, make_ast_int(node->loc_info, 1)));
+        result = codegen_node(ctx, make_ast_binary(node->loc_info, TOKEN_PLUS_EQ, operand, make_ast_int(node->loc_info, 1)));
     } break;
     case THI_SYNTAX_ADDRESS: {
         s64 stack_pos = get_stack_pos_of_variable(operand_val);
@@ -222,10 +222,6 @@ codegen_binary(Codegen_Context* ctx, AST* node) {
         // if (lhs->kind == AST_UNARY) { // LOAD
         //     lhs = lhs->Unary.operand;
         // }
-        if (lhs->kind == AST_VARIABLE_DECL) {
-            lhs->Variable_Decl.value = rhs;
-            return codegen_node(ctx, lhs);
-        }
         Value* rhs_v = codegen_node(ctx, rhs);
 
         push_type(ctx, rhs_v->type);
