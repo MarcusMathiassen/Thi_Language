@@ -10,3 +10,7 @@
 [ ] - sema on AST_IDENT should print an error on undefined identifiers
 [ ] - fix 'for in' it's hardcoded atm
 [x] - implement pointer increment
+[ ] - Remove unused load when in addresof
+      ex.
+        mov rax, [rbp-8]; load i from 8
+        lea rax, [rbp-8]; addrsof

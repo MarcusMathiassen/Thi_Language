@@ -1,10 +1,11 @@
 
-# Hello, this is our little program.
-# It combines two numbers and outputs the result.
+def change(x s64*) void
+    *x = 44
+def main() s64
+    i = 5
+    *k = i
+    #*k = 3
 
-load "includes/cstdio"
-def get(x s64) s64 => x
+    change(k)
 
-def main(argc int, argv char**) s32
-    while argv puts(*++argv)
-    return 1
+    return i

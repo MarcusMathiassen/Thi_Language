@@ -158,10 +158,10 @@ codegen_unary(Codegen_Context* ctx, AST* node) {
     Token_Kind op      = node->Unary.op;
     AST*       operand = node->Unary.operand;
 
-    Value* operand_val = codegen_node(ctx, operand);
     // s64    operand_size = get_size_of_value(operand_val);
 
-    char*  reg    = get_result_reg(operand_val->type);
+    Value* operand_val = codegen_node(ctx, operand);
+    char*  reg    = get_result_reg(operand->type);
     Value* result = operand_val;
 
     switch (op) {
@@ -223,9 +223,9 @@ codegen_binary(Codegen_Context* ctx, AST* node) {
     switch (op) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
     case THI_SYNTAX_ASSIGNMENT: {
-        // if (lhs->kind == AST_UNARY) { // LOAD
-        //     lhs = lhs->Unary.operand;
-        // }
+        if (lhs->kind == AST_UNARY) { // LOAD
+            lhs = lhs->Unary.operand;
+        }
         Value* rhs_v = codegen_node(ctx, rhs);
 
         push_type(ctx, rhs_v->type);

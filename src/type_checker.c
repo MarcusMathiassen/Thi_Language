@@ -225,10 +225,11 @@ Type* type_check_call(Typer_Context* ctx, AST* node) {
     char* callee = node->Call.callee;
     List* args   = node->Call.args;
     Type* func_t = (Type*)map_get(ctx->symbol_table, callee);
+    assert(func_t);
     assert(func_t->Function.return_type);
-    if (func_t->Function.return_type->kind == TYPE_UNRESOLVED) {
-        func_t->Function.return_type = map_get(ctx->symbol_table, get_type_name(func_t->Function.return_type));
-    }
+    // if (func_t->Function.return_type->kind == TYPE_UNRESOLVED) {
+    //     func_t->Function.return_type = map_get(ctx->symbol_table, get_type_name(func_t->Function.return_type));
+    // }
     // info(type_to_str(NULL, func_t));
     LIST_FOREACH(args) {
         type_check_node(ctx, it->data);

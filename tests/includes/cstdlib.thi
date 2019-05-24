@@ -16,7 +16,7 @@ extern srand (u32)
 extern malloc (u32)  void*
 extern calloc (u32, u32)  void*
 extern realloc (void *, u32)  void*
-extern free (void*)
+extern free (void*) void
 extern aligned_alloc(u32, u32)  void*
 extern abort ()
 extern exit (s32) 

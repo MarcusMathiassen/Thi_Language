@@ -329,6 +329,7 @@ Lexed_File generate_tokens_from_source(char* source) {
 Token get_token(Lexer_Context* ctx) {
     char* c = ctx->stream;
 
+entry:
     skip_whitespace(c);
 
     Token token;
@@ -341,11 +342,11 @@ Token get_token(Lexer_Context* ctx) {
     switch (*c) {
     default: break;
     case '#':
-        token.value = c;
+        // token.value = c;
         skip_comment(c)
         ctx->comment_count += 1;
-        token.kind = TOKEN_COMMENT;
-        goto end;
+        // token.kind = TOKEN_COMMENT;
+        goto entry;
     case '\n':
         token.kind = TOKEN_NEWLINE;
         ++c; // skip the newline
