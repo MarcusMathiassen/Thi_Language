@@ -428,7 +428,7 @@ void emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg) {
     s64   stack_pos = get_stack_pos_of_variable(variable);
     char* reg_c     = get_reg(reg);
     char* mov_op    = get_move_op(variable->type);
-    emit(ctx, "%s [rbp-%lld], %s; store_r", mov_op, stack_pos, reg_c);
+    emit(ctx, "%s [rbp-%lld], %s; store_r %s at %lld", mov_op, stack_pos, reg_c, (variable->Variable.name), stack_pos);
 }
 
 void emit_store(Codegen_Context* ctx, Value* variable) {
@@ -437,7 +437,7 @@ void emit_store(Codegen_Context* ctx, Value* variable) {
     s64   stack_pos = get_stack_pos_of_variable(variable);
     char* reg       = get_result_reg_2(variable->type);
     char* mov_op    = get_move_op(variable->type);
-    emit(ctx, "%s [rbp-%lld], %s; store", mov_op, stack_pos, reg);
+    emit(ctx, "%s [rbp-%lld], %s; store %s at %lld", mov_op, stack_pos, reg, (variable->Variable.name), stack_pos);
 }
 
 void emit_load(Codegen_Context* ctx, Value* variable) {
@@ -446,7 +446,7 @@ void emit_load(Codegen_Context* ctx, Value* variable) {
     s64   stack_pos = get_stack_pos_of_variable(variable);
     char* reg       = get_result_reg(variable->type);
     char* mov_op    = get_move_op(variable->type);
-    emit(ctx, "%s %s, [rbp-%lld]; load", mov_op, reg, stack_pos);
+    emit(ctx, "%s %s, [rbp-%lld]; load %s from %lld", mov_op, reg, stack_pos, variable->Variable.name, stack_pos);
 }
 
 void set_break_label(Codegen_Context* ctx, char* break_l) {

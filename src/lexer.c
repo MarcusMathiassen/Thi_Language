@@ -73,6 +73,7 @@ typedef struct
 
 typedef struct
 {
+    char*        file;
     char*        stream;
     char*        position_of_newline;
     char*        start_of_line;
@@ -168,6 +169,79 @@ void lexer_test(void) {
     // assert(tokens[5].kind == TOKEN_FLOAT);
 }
 
+
+#define LEXER_ERROR(x) error("[%s:%d:%d] %s", ctx.file, token.line_pos, token.col_pos, x)
+Lexed_File generate_tokens_from_file(char* file) {
+
+    char* source = get_file_content(file);
+
+    Lexer_Context ctx;
+    ctx.file                       = file;
+    ctx.stream                     = source;
+    ctx.position_of_newline        = source;
+    ctx.start_of_line              = source;
+    ctx.line_count                 = 1;
+    ctx.comment_count              = 0;
+    ctx.previous_indentation_level = 0;
+    ctx.current_indentation_level  = 0;
+    ctx.interns                    = make_intern_array();
+
+    for (s64 i = 0; i < __KEY_COUNT__; ++i)
+        ctx.keywords[i] = intern(&ctx.interns, STATIC_KEYWORDS_ARRAY[i]);
+
+    Token_Array tokens = make_token_array();
+
+    double start_time = get_time();
+
+    Token token;
+    token.kind = TOKEN_UNKNOWN;
+    while (token.kind != TOKEN_EOF) {
+
+        Token last_token = token;
+        token = get_token(&ctx);
+
+        if (
+            last_token.kind == TOKEN_NEWLINE && 
+            token.kind != TOKEN_NEWLINE && 
+            token.kind != TOKEN_COMMENT) {
+            if (token.col_pos % DEFAULT_INDENT_LEVEL != 0) LEXER_ERROR("indentation error.");
+            ctx.current_indentation_level = token.col_pos;
+            warning("token.col_pos: %d", token.col_pos);
+        }
+
+        if (ctx.current_indentation_level > ctx.previous_indentation_level) {
+            Token t;
+            t.kind                         = TOKEN_BLOCK_START;
+            t.value                        = "{";
+            t.line_pos                     = ctx.line_count;
+            t.col_pos                      = ctx.stream - ctx.position_of_newline;
+            ctx.previous_indentation_level = ctx.current_indentation_level;
+            token_array_append(&tokens, t);
+        } 
+        while (ctx.current_indentation_level < ctx.previous_indentation_level) {
+            Token t;
+            t.kind     = TOKEN_BLOCK_END;
+            t.value    = "}";
+            t.line_pos = ctx.line_count;
+            t.col_pos  = ctx.stream - ctx.position_of_newline;
+            ctx.previous_indentation_level -= DEFAULT_INDENT_LEVEL;
+            token_array_append(&tokens, t);
+        }
+        
+        if (token.kind != TOKEN_UNKNOWN) 
+            token_array_append(&tokens, token);
+        
+    }
+
+    Lexed_File lf;
+    lf.tokens   = tokens;
+    lf.seconds  = get_time() - start_time;
+    lf.comments = ctx.comment_count;
+    lf.lines    = ctx.line_count;
+
+    return lf;
+}
+
 Lexed_File generate_tokens_from_source(char* source) {
     Lexer_Context ctx;
     ctx.stream                     = source;
@@ -193,7 +267,11 @@ Lexed_File generate_tokens_from_source(char* source) {
         Token last_token = token;
         token = get_token(&ctx);
 
-        if (last_token.kind == TOKEN_NEWLINE && token.kind != TOKEN_NEWLINE) {
+        if (
+            last_token.kind == TOKEN_NEWLINE && 
+            token.kind != TOKEN_NEWLINE && 
+            token.kind != TOKEN_COMMENT) {
+            if (token.col_pos % DEFAULT_INDENT_LEVEL != 0) LEXER_ERROR("indentation error.");
             ctx.current_indentation_level = token.col_pos;
             warning("token.col_pos: %d", token.col_pos);
         }

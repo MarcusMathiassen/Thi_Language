@@ -79,6 +79,7 @@ void resolve_subscript(void* dont_care, AST* node) {
 
     ast_replace(node, sub);
 }
+
 void resolve_field_access(void* dont_care, AST* node) {
 
     AST*  load          = node->Field_Access.load;

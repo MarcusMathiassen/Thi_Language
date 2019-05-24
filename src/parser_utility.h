@@ -38,6 +38,8 @@ typedef struct
     u64 lines;
     u64 comments;
 
+    bool inside_parens;
+
     Map*  symbols;
     List* loads;
 

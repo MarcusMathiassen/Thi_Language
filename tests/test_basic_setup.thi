@@ -1,9 +1,11 @@
-def main() s64
-    k = 5
-    # Hello
-    i = &k
 
-    if 0 
-        return 3
+# Hello, this is our little program.
+# It combines two numbers and outputs the result.
 
-    return *i
+load "includes/cstdio"
+def get(x s64) s64 => x
+
+def main(argc int, argv char**) s32
+    num = 3
+    puts(*argv)
+    return get(num)

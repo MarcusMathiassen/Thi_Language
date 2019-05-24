@@ -155,8 +155,7 @@ AST* parse(Parser_Context* ctx, char* file) {
     // Add it to the list of loaded files.
     list_append(ctx->loads, file_path);
 
-    char*      source = get_file_content(file_path);
-    Lexed_File lf     = generate_tokens_from_source(source);
+    Lexed_File lf     = generate_tokens_from_file(file_path);
     print_tokens(lf.tokens);
 
     ctx->tokens = lf.tokens.data;
@@ -221,13 +220,39 @@ AST* parse_top_level(Parser_Context* ctx) {
 AST* parse_statement(Parser_Context* ctx) {
     DEBUG_START;
     ctx->top_tok = ctx->curr_tok;
+
+    // Check for indent
+    // if the previous token was a newline and this token is not a newline
+    // if (ctx->prev_tok.kind == TOKEN_NEWLINE && !tok_is(ctx, TOKEN_NEWLINE))
+    //      ctx->current_indentation_level = ctx->curr_tok.col_pos;
+
+    // if (ctx->current_indentation_level > ctx->previous_indentation_level) {
+    //         Token t;
+    //         t.kind                         = TOKEN_BLOCK_START;
+    // //         t.value                        = "{";
+    // //         t.line_pos                     = ctx.line_count;
+    // //         t.col_pos                      = ctx.stream - ctx.position_of_newline;
+    //         ctx->previous_indentation_level = ctx->current_indentation_level;
+    //         ctx->curr_tok = t;
+    // } else {
+    //     while (ctx->current_indentation_level < ctx->previous_indentation_level) {
+    //         Token t;
+    //         t.kind     = TOKEN_BLOCK_END;
+    // //         t.value    = "}";
+    // //         t.line_pos = ctx.line_count;
+    // //         t.col_pos  = ctx.stream - ctx.position_of_newline;
+    //         ctx->previous_indentation_level -= DEFAULT_INDENT_LEVEL;
+    //         ctx->curr_tok = t;
+    //     }
+    // }
+
     AST* result  = NULL;
     // clang-format off
     switch (tokKind(ctx)) {
     default:                        result =  parse_expression(ctx);    break;
     case TOKEN_EOF:                 eat(ctx); break;
     case TOKEN_COMMENT:             result = make_ast_comment(loc(ctx), tokValue(ctx)); eat(ctx); break;
-    case TOKEN_NEWLINE:     eat(ctx); return make_ast_nop(loc(ctx));
+    case TOKEN_NEWLINE:             eat(ctx); return make_ast_nop(loc(ctx));
     case TOKEN_DEF:                 result =  parse_def(ctx);           break;
     case TOKEN_ENUM:                result =  parse_enum(ctx);          break;
     case TOKEN_TYPE:                result =  parse_type(ctx);          break;
@@ -255,10 +280,14 @@ AST* parse_statement(Parser_Context* ctx) {
 AST* parse_primary(Parser_Context* ctx) {
     DEBUG_START;
     AST* result = NULL;
+start:
     // clang-format off
     switch (tokKind(ctx)) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
-    case TOKEN_NEWLINE:     eat(ctx); return make_ast_nop(loc(ctx));
+    case TOKEN_NEWLINE:
+        eat(ctx); 
+        if (!ctx->inside_parens) return  make_ast_nop(loc(ctx));
+        else goto start;
     case TOKEN_DOT_DOT_DOT: eat(ctx); result = make_ast_var_args(loc(ctx)); break;
     case TOKEN_TRUE:        eat(ctx); result = make_ast_int(loc(ctx), 1); break;
     case TOKEN_FALSE:       eat(ctx); result = make_ast_int(loc(ctx), 0); break;
@@ -537,7 +566,8 @@ AST* parse_block(Parser_Context* ctx) {
     u32  flags = 0;
 
     // Skip extranous newlines
-    while(tok_is(ctx, TOKEN_NEWLINE)) eat(ctx);
+    while (tok_is(ctx, TOKEN_NEWLINE))
+        eat(ctx);
 
     // are we parsing a single line expression list thingy?
     if (tok_is_on_same_line(ctx)) {
@@ -582,6 +612,7 @@ AST* parse_function_call(Parser_Context* ctx, char* ident) {
     List* args                   = make_list();
     bool  has_multiple_arguments = false;
     bool  has_var_args           = false;
+    ctx->inside_parens = true;
     while (!tok_is(ctx, TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(ctx, TOKEN_COMMA);
         AST* arg = parse_expression(ctx);
@@ -592,6 +623,7 @@ AST* parse_function_call(Parser_Context* ctx, char* ident) {
             has_var_args = true;
         }
     }
+    ctx->inside_parens = false;
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
     return make_ast_call(loc(ctx), ident, args);
 }
@@ -851,7 +883,9 @@ AST* parse_integer(Parser_Context* ctx) {
 AST* parse_parens(Parser_Context* ctx) {
     DEBUG_START;
     eat_kind(ctx, TOKEN_OPEN_PAREN);
+    ctx->inside_parens = true;
     AST* expr = parse_expression(ctx);
+    ctx->inside_parens = false;
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
     return make_ast_grouping(loc(ctx), expr);
 }
