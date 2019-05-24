@@ -6,6 +6,8 @@ load "includes/cstdio"
 def get(x s64) s64 => x
 
 def main(argc int, argv char**) s32
-    num = 3
-    puts(*argv)
-    return get(num)
+    
+    puts(*(argv+8))
+    ++argv
+    puts(*(argv+8))
+    return 1
