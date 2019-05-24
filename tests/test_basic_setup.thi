@@ -1,5 +1,9 @@
 def main() s64
     k = 5
+    # Hello
     i = &k
-    k = 51
+
+    if 0 
+        return 3
+
     return *i

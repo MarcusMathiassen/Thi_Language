@@ -162,6 +162,8 @@ void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* node) {
     // info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(NULL, node)), give_unique_color(type_to_str(NULL, node->type)));
     // clang-format off
     switch (node->kind) {
+    case AST_COMMENT:     // fallthrough
+    case AST_NOP:         // fallthrough
     case AST_MODULE:      // fallthrough
     case AST_LOAD:        // fallthrough
     case AST_LINK:        // fallthrough
@@ -492,15 +494,14 @@ int main(int argc, char** argv) {
     passDesc.visitor_func = resolve_field_access;
     thi_install_pass(&thi, passDesc);
 
-
-    // 
+    //
     // Semantic analysis
-    // 
+    //
     semantic_analysis(ast);
 
-    // 
+    //
     // Typer
-    // 
+    //
     //      Typifies the AST by top down traversal.
     //      After this pass all nodes are typed.
 

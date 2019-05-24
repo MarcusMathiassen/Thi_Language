@@ -32,9 +32,9 @@
 #include <stdio.h>   //
 #include <string.h>  // strcmp
 
-#define DEBUG_START \
-    assert(ctx);    \
-    assert(node);   \
+#define DEBUG_START                                                                    \
+    assert(ctx);                                                                       \
+    assert(node);                                                                      \
     info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(NULL, node))); \
     // emit(ctx, "; %s", ast_to_str(NULL, node));
 
@@ -99,6 +99,7 @@ codegen_node(Codegen_Context* ctx, AST* node) {
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
     case AST_MODULE: return codegen_node(ctx, node->Module.top_level);
+    case AST_COMMENT: return NULL;
     case AST_NOP: return NULL;
     case AST_FALLTHROUGH: return NULL;
     case AST_LOAD: return NULL;

@@ -89,6 +89,8 @@ Type* type_check_node(Typer_Context* ctx, AST* node) {
     // clang-format off
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
+    case AST_COMMENT:        result = NULL;                                                   break;
+    case AST_NOP:            result = NULL;                                                   break;
     case AST_FALLTHROUGH:    result = NULL;                                                   break;
     case AST_LOAD:           result = NULL;                                                   break;
     case AST_LINK:           result = NULL;                                                   break;

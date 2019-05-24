@@ -225,9 +225,9 @@ AST* parse_statement(Parser_Context* ctx) {
     // clang-format off
     switch (tokKind(ctx)) {
     default:                        result =  parse_expression(ctx);    break;
-    case TOKEN_EOF:                 break;
-    case TOKEN_COMMENT:             eat(ctx); result = parse_statement(ctx); break;
-    case TOKEN_NEWLINE:             eat(ctx); result = parse_statement(ctx); break;
+    case TOKEN_EOF:                 eat(ctx); break;
+    case TOKEN_COMMENT:             result = make_ast_comment(loc(ctx), tokValue(ctx)); eat(ctx); break;
+    case TOKEN_NEWLINE:     eat(ctx); return make_ast_nop(loc(ctx));
     case TOKEN_DEF:                 result =  parse_def(ctx);           break;
     case TOKEN_ENUM:                result =  parse_enum(ctx);          break;
     case TOKEN_TYPE:                result =  parse_type(ctx);          break;
@@ -246,10 +246,9 @@ AST* parse_statement(Parser_Context* ctx) {
     case TOKEN_LOAD:                result =  parse_load(ctx);          break;
     case TOKEN_LINK:                result =  parse_link(ctx);          break;
     case TOKEN_EXTERN:              result =  parse_extern(ctx);        break;
-
     }
     // clang-format on
-    // assert(result);
+    assert(result);
     return result;
 }
 
@@ -259,8 +258,7 @@ AST* parse_primary(Parser_Context* ctx) {
     // clang-format off
     switch (tokKind(ctx)) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
-    case TOKEN_COMMENT:     eat(ctx); break;
-    case TOKEN_NEWLINE:     eat(ctx); break;
+    case TOKEN_NEWLINE:     eat(ctx); return make_ast_nop(loc(ctx));
     case TOKEN_DOT_DOT_DOT: eat(ctx); result = make_ast_var_args(loc(ctx)); break;
     case TOKEN_TRUE:        eat(ctx); result = make_ast_int(loc(ctx), 1); break;
     case TOKEN_FALSE:       eat(ctx); result = make_ast_int(loc(ctx), 0); break;
@@ -272,10 +270,9 @@ AST* parse_primary(Parser_Context* ctx) {
     case TOKEN_INTEGER:     result = parse_integer(ctx); break;
     case TOKEN_STRING:      result = parse_string(ctx); break;
     case TOKEN_OPEN_PAREN:  result = parse_parens(ctx); break;
-    case TOKEN_BLOCK_START:  return parse_block(ctx);
     }
     // clang-format on
-    // assert(result);
+    assert(result);
     return result;
 }
 
@@ -538,6 +535,9 @@ AST* parse_block(Parser_Context* ctx) {
 
     AST* block = NULL;
     u32  flags = 0;
+
+    // Skip extranous newlines
+    while(tok_is(ctx, TOKEN_NEWLINE)) eat(ctx);
 
     // are we parsing a single line expression list thingy?
     if (tok_is_on_same_line(ctx)) {

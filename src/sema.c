@@ -84,6 +84,8 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
     case AST_SIZEOF: sema_check_node(ctx, node->Sizeof.node);      break;
     case AST_NOTE:   sema_check_node(ctx, node->Note.node);        break;
     
+    case AST_COMMENT: break;
+    case AST_NOP: break;
     case AST_FALLTHROUGH: break;
     case AST_LOAD:        break;
     case AST_LINK:        break;

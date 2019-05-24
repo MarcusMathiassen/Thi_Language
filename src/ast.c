@@ -142,11 +142,11 @@ char* ast_to_str(String_Context* ctx, AST* node) {
 
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
-    case AST_COMMENT: 
-        string_append(s, node->Comment.text); 
+    case AST_COMMENT:
+        string_append(s, node->Comment.text);
         break;
-    case AST_NOP: 
-        string_append(s, "nop"); 
+    case AST_NOP:
+        string_append(s, "nop");
         break;
     case AST_SPACE_SEPARATED_IDENTIFIER_LIST: {
         LIST_FOREACH(node->Space_Separated_Identifier_List.identifiers) {
@@ -1095,7 +1095,7 @@ AST* make_ast(AST_Kind kind, Loc_Info loc_info) {
 
 AST* make_ast_comment(Loc_Info loc_info, char* text) {
     assert(text);
-    AST* e = make_ast(AST_COMMENT, loc_info);
+    AST* e          = make_ast(AST_COMMENT, loc_info);
     e->Comment.text = text;
     return e;
 }
