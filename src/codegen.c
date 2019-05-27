@@ -161,8 +161,8 @@ codegen_unary(Codegen_Context* ctx, AST* node) {
     // s64    operand_size = get_size_of_value(operand_val);
 
     Value* operand_val = codegen_node(ctx, operand);
-    char*  reg    = get_result_reg(operand->type);
-    Value* result = operand_val;
+    char*  reg         = get_result_reg(operand->type);
+    Value* result      = operand_val;
 
     switch (op) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
@@ -175,11 +175,13 @@ codegen_unary(Codegen_Context* ctx, AST* node) {
     case THI_SYNTAX_ADDRESS: {
         s64 stack_pos = get_stack_pos_of_variable(operand_val);
         emit(ctx, "lea rax, [rbp-%lld]; addrsof", stack_pos);
+
     } break;
     case THI_SYNTAX_POINTER: {
         Type* t   = operand_val->type;
         char* reg = get_result_reg(t);
         emit(ctx, "mov %s, [rax]; deref", reg);
+        // A deref expects an lvalue and returns an lvalue
     } break;
     case TOKEN_BANG: {
         emit(ctx, "cmp %s, 0", reg);
@@ -212,8 +214,10 @@ codegen_unary(Codegen_Context* ctx, AST* node) {
     return result;
 }
 
-Value*
-codegen_binary(Codegen_Context* ctx, AST* node) {
+// *<lvalue> ::= deref
+// &<lvalue> ::= addressof
+
+Value* codegen_binary(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
 
     Token_Kind op  = node->Binary.op;
@@ -223,22 +227,20 @@ codegen_binary(Codegen_Context* ctx, AST* node) {
     switch (op) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
     case THI_SYNTAX_ASSIGNMENT: {
-        if (lhs->kind == AST_UNARY) { // LOAD
+
+        if (lhs->kind == AST_UNARY) {
             lhs = lhs->Unary.operand;
         }
+
         Value* rhs_v = codegen_node(ctx, rhs);
-
         push_type(ctx, rhs_v->type);
-        push_type(ctx, rhs_v->type);
-
-        Value* variable = NULL;
-        variable        = codegen_node(ctx, lhs);
-
+        // push_type(ctx, rhs_v->type);
+        Value* lhs_v = codegen_node(ctx, lhs);
         pop_type_2(ctx, rhs_v->type);
-        emit_store(ctx, variable);
-        pop_type(ctx, rhs_v->type);
-
-        return variable;
+        emit_store(ctx, lhs_v);
+        emit_load(ctx, lhs_v);
+        // pop_type(ctx, rhs_v->type);
+        return lhs_v;
     }
 
     case TOKEN_PLUS: {

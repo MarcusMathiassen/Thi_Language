@@ -3,24 +3,99 @@
 #   struct methods
 
 def main(argc int, argc char**)
-    parser Parser
+    sourceFile = argv[2]
+    asm = compile(sourceFile)
+    name = getFileName(sourceFile)
+    writeToFile(name, asm)
     return 1
 
 def compile(source)
     tokens = makeTokens(source)
     ast    = makeAST(tokens)
-    code   = makeX64(aast)
+    code   = makeX64(ast)
     return code
 
-type Parser
+def Array<T>
+
+    data T* = 0
+    len s64 = 0
+    cap s64 = 0
+
+    def += (item T)
+        reserveSpace(len+1)
+        data[len++] = item
+
+    def += (items Array<T>)
+        reserveSpace(items.count)
+        for el in items
+            data[len++] = el
+    
+    def reserveSpace(count s64)
+        if len + count > cap
+            cap += count
+            data = realloc(data, cap)
+
+
+def __TypeKind enum
+    Unresolved
+    Void
+    Int
+    Float
+    String
+    Pointer
+    Array
+    Enum
+    Struct
+    Function
+    Var_args
+
+def __Type
+    name char*
+    flags u32
+    kind __TypeKind
+
+def TokenKind enum
+    Identifier
+    Int
+    Float
+    String
+    Newline
+    EOF
+    def count() => __TypeID(*this).members.count
+    def str()
+        for member in __TypeID(*this).members
+            member.value == *this
+            return member.name
+    
+for member in membersof kind
+    info(nameof member)
+
+# for member in [count, str, Identifier, Int, etc.]
+#    info(nameof member)
+
+def Token
+    kind TokenKind = .__Unknown
+    value u8* = 0
+    line s64 = 1
+    col s64 = 0
+
+def Lexer
+    cursor u8* = 0
+    def eatUntil(c) 
+        while *cursor != c ++cursor
+    def getToken()
+        c = cursor
+        if *c
+            is '_' => while isAlpha(*c) eat(); .Identifier
+            is [0-9] => eatUntil(' '); .Number
+
+def Parser
 
     lexer = Lexer()
 
     curr = Token()
     prev = Token()
     next = Token()
-
-    add = (x) => x
 
     def eat()
         prev = curr
@@ -41,7 +116,7 @@ type Parser
         ast = []
         while !isCurr(.EOF)
             stmt = parseStatement()
-            ast += stmt
+            if stmt ast += stmt
         return ast
 
     def parsePrimary()

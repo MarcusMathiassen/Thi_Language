@@ -157,6 +157,7 @@ AST* parse(Parser_Context* ctx, char* file) {
 
     Lexed_File lf     = generate_tokens_from_file(file_path);
     print_tokens(lf.tokens);
+    // error("<--->");
 
     ctx->tokens = lf.tokens.data;
     ctx->lines += lf.lines;
@@ -251,8 +252,7 @@ AST* parse_statement(Parser_Context* ctx) {
     switch (tokKind(ctx)) {
     default:                        result =  parse_expression(ctx);    break;
     case TOKEN_EOF:                 eat(ctx); break;
-    case TOKEN_COMMENT:             result = make_ast_comment(loc(ctx), tokValue(ctx)); eat(ctx); break;
-    case TOKEN_NEWLINE:             eat(ctx); return NULL; return make_ast_nop(loc(ctx));
+    case TOKEN_TERMINAL:             eat(ctx); return NULL; return make_ast_nop(loc(ctx));
     case TOKEN_DEF:                 result =  parse_def(ctx);           break;
     case TOKEN_ENUM:                result =  parse_enum(ctx);          break;
     case TOKEN_TYPE:                result =  parse_type(ctx);          break;
@@ -284,7 +284,7 @@ start:
     // clang-format off
     switch (tokKind(ctx)) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
-    case TOKEN_NEWLINE:
+    case TOKEN_TERMINAL:
         eat(ctx); 
         if (!ctx->inside_parens) return NULL; //return make_ast_nop(loc(ctx));
         else goto start;
@@ -450,10 +450,8 @@ AST* parse_for(Parser_Context* ctx) {
         // Place the 'param' variable at the start of the block
         list_prepend(then_block->Block.stmts, it_var);
     } else {
-        eat_kind(ctx, TOKEN_COMMA);
-        cond = parse_expression(ctx);
-        eat_kind(ctx, TOKEN_COMMA);
-        step       = parse_expression(ctx);
+        cond       = parse_statement(ctx);
+        step       = parse_statement(ctx);
         then_block = parse_block(ctx);
     }
     return make_ast_for(loc(ctx), init, cond, step, then_block);
@@ -566,30 +564,31 @@ AST* parse_block(Parser_Context* ctx) {
     u32  flags = 0;
 
     // Skip extranous newlines
-    while (tok_is(ctx, TOKEN_NEWLINE))
+    while (tok_is(ctx, TOKEN_TERMINAL))
         eat(ctx);
 
     // are we parsing a single line expression list thingy?
-    if (tok_is_on_same_line(ctx)) {
-        if (tok_is(ctx, TOKEN_EQ_GT)) { // =>
-            eat(ctx);
-            flags = BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED;
-        }
-        List* stmts = make_list();
-        AST*  stmt  = parse_statement(ctx);
-        stmt        = make_ast_return(stmt->loc_info, stmt);
+    // if (tok_is_on_same_line(ctx)) {
+    //     if (tok_is(ctx, TOKEN_EQ_GT)) { // =>
+    //         eat(ctx);
+    //         flags = BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED;
+    //     }
+    //     List* stmts = make_list();
+    //     AST*  stmt  = parse_statement(ctx);
+    //     stmt        = make_ast_return(stmt->loc_info, stmt);
+    //     list_append(stmts, stmt);
+    //     block = make_ast_block(loc(ctx), stmts);
+    // }
+
+    List* stmts = make_list();
+    eat_kind(ctx, TOKEN_BLOCK_START);
+    while (!tok_is(ctx, TOKEN_BLOCK_END)) {
+        AST* stmt = parse_statement(ctx);
         list_append(stmts, stmt);
-        block = make_ast_block(loc(ctx), stmts);
-    } else {
-        List* stmts = make_list();
-        eat_kind(ctx, TOKEN_BLOCK_START);
-        while (!tok_is(ctx, TOKEN_BLOCK_END)) {
-            AST* stmt = parse_statement(ctx);
-            list_append(stmts, stmt);
-        }
-        eat_kind(ctx, TOKEN_BLOCK_END);
-        block = make_ast_block(loc(ctx), stmts);
     }
+    eat_kind(ctx, TOKEN_BLOCK_END);
+    block = make_ast_block(loc(ctx), stmts);
+
     block->Block.flags |= flags;
 
     assert(block);
@@ -618,10 +617,6 @@ AST* parse_function_call(Parser_Context* ctx, char* ident) {
         AST* arg = parse_expression(ctx);
         list_append(args, arg);
         has_multiple_arguments = true;
-        if (arg->kind == AST_VAR_ARGS) {
-            error("found var args %s", ast_to_str(NULL, arg));
-            has_var_args = true;
-        }
     }
     ctx->inside_parens = false;
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
@@ -945,14 +940,11 @@ Type* parse_extern_function_signature(Parser_Context* ctx, char* func_name) {
 
 Type* get_type(Parser_Context* ctx) {
     DEBUG_START;
-
     Type* type = NULL;
-
     if (tok_is(ctx, TOKEN_DOT_DOT_DOT)) {
         eat(ctx);
         return make_type_var_args();
     }
-
     if (tok_is(ctx, TOKEN_IDENTIFIER)) {
         char* type_name = ctx->curr_tok.value;
         eat_kind(ctx, TOKEN_IDENTIFIER);

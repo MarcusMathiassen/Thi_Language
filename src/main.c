@@ -70,10 +70,9 @@ void resolve_subscript(void* dont_care, AST* node) {
 
     s64 size = get_size_of_underlying_type_if_any(load->type);
 
-    load = make_ast_unary(node->loc_info, THI_SYNTAX_ADDRESS, load);
-    sub  = make_ast_binary(node->loc_info, TOKEN_ASTERISK, make_ast_int(node->loc_info, size), sub);
-    sub  = make_ast_binary(node->loc_info, TOKEN_PLUS, load, sub);
-    sub  = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, sub);
+    sub = make_ast_binary(node->loc_info, TOKEN_ASTERISK, make_ast_int(node->loc_info, size), sub);
+    sub = make_ast_binary(node->loc_info, TOKEN_PLUS, load, sub);
+    sub = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, sub);
 
     sub->type = type_of_field;
 

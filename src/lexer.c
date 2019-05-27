@@ -135,7 +135,7 @@ char* STATIC_KEYWORDS_ARRAY[__KEY_COUNT__] = {
 
 void lexer_test(void) {
     // char* source =
-    //     "type v2\n    x: f32\n    y: f32\n    core()\n        return 1\n";
+        // "type v2\n    x: f32\n    y: f32\n    core()\n        return 1\n";
     // Lexed_File lf     = generate_tokens_from_source(source);
     // Token*     tokens = lf.tokens.data;
     // // info(source);
@@ -343,12 +343,12 @@ entry:
     default: break;
     case '#':
         // token.value = c;
-        skip_comment(c)
+        skip_comment(c);
         ctx->comment_count += 1;
         // token.kind = TOKEN_COMMENT;
         goto entry;
     case '\n':
-        token.kind = TOKEN_NEWLINE;
+        token.kind = TOKEN_TERMINAL;
         ++c; // skip the newline
         ctx->position_of_newline = c;
         ++ctx->line_count;
@@ -411,7 +411,7 @@ entry:
         break;
         CASE_SINGLE_TOKEN('^', TOKEN_HAT);
         break;
-        CASE_SINGLE_TOKEN(';', TOKEN_SEMICOLON);
+        CASE_SINGLE_TOKEN(';', TOKEN_TERMINAL);
         break;
         CASE_SINGLE_TOKEN('?', TOKEN_QUESTION_MARK);
         break;
@@ -693,6 +693,7 @@ char* token_kind_to_str(Token_Kind kind) {
     case TOKEN_COMMENT:           return "TOKEN_COMMENT";
     case TOKEN_BLOCK_START:       return "TOKEN_BLOCK_START";
     case TOKEN_BLOCK_END:         return "TOKEN_BLOCK_END";
+    case TOKEN_TERMINAL:          return "TOKEN_TERMINAL";
     case TOKEN_WHITESPACE:        return "TOKEN_WHITESPACE";
     case TOKEN_NEWLINE:           return "TOKEN_NEWLINE";
     case TOKEN_IDENTIFIER:        return "TOKEN_IDENTIFIER";

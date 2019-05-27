@@ -433,8 +433,8 @@ void emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg) {
     {
         // case TYPE_POINTER:
         // case TYPE_STRUCT:
-            // emit(ctx, "%s [rax], %s; store_r %s", mov_op, reg_c, (variable->Variable.name));
-            // break;
+        //     emit(ctx, "%s [rax], %s; store_r %s", mov_op, reg_c, (variable->Variable.name));
+        //     break;
         default: 
             emit(ctx, "%s [rbp-%lld], %s; store_r %s at %lld", mov_op, stack_pos, reg_c, (variable->Variable.name), stack_pos);
             break;
@@ -458,7 +458,7 @@ void emit_store(Codegen_Context* ctx, Value* variable) {
             emit(ctx, "%s [rbp-%lld], %s; store %s at %lld", mov_op, stack_pos, reg, (variable->Variable.name), stack_pos);
             break;
     }
-}
+} 
 
 void emit_load(Codegen_Context* ctx, Value* variable) {
     assert(variable);

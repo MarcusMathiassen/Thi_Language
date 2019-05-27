@@ -1,11 +1,7 @@
 
-def change(x s64*) void
-    *x = 44
-def main() s64
-    i = 5
-    *k = i
-    #*k = 3
 
-    change(k)
 
-    return i
+# This is a Thi program
+def main(argc int, argv char**) s64 {
+    return 1;
+}
