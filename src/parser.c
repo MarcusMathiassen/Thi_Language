@@ -41,7 +41,7 @@
 
 #define DEBUG_START \
     assert(ctx);    \
-    info("%s: %s", __func__, token_to_str(currTok(ctx)));
+    // info("%s: %s", __func__, token_to_str(currTok(ctx)));
 
 #define UNARY_OP_COUNT 10
 Token_Kind unary_ops[UNARY_OP_COUNT] = {
@@ -156,7 +156,7 @@ AST* parse(Parser_Context* ctx, char* file) {
     list_append(ctx->loads, file_path);
 
     Lexed_File lf     = generate_tokens_from_file(file_path);
-    print_tokens(lf.tokens);
+    // print_tokens(lf.tokens);
     // error("<--->");
 
     ctx->tokens = lf.tokens.data;
@@ -222,37 +222,12 @@ AST* parse_statement(Parser_Context* ctx) {
     DEBUG_START;
     ctx->top_tok = ctx->curr_tok;
 
-    // Check for indent
-    // if the previous token was a newline and this token is not a newline
-    // if (ctx->prev_tok.kind == TOKEN_NEWLINE && !tok_is(ctx, TOKEN_NEWLINE))
-    //      ctx->current_indentation_level = ctx->curr_tok.col_pos;
-
-    // if (ctx->current_indentation_level > ctx->previous_indentation_level) {
-    //         Token t;
-    //         t.kind                         = TOKEN_BLOCK_START;
-    // //         t.value                        = "{";
-    // //         t.line_pos                     = ctx.line_count;
-    // //         t.col_pos                      = ctx.stream - ctx.position_of_newline;
-    //         ctx->previous_indentation_level = ctx->current_indentation_level;
-    //         ctx->curr_tok = t;
-    // } else {
-    //     while (ctx->current_indentation_level < ctx->previous_indentation_level) {
-    //         Token t;
-    //         t.kind     = TOKEN_BLOCK_END;
-    // //         t.value    = "}";
-    // //         t.line_pos = ctx.line_count;
-    // //         t.col_pos  = ctx.stream - ctx.position_of_newline;
-    //         ctx->previous_indentation_level -= DEFAULT_INDENT_LEVEL;
-    //         ctx->curr_tok = t;
-    //     }
-    // }
-
     AST* result  = NULL;
     // clang-format off
     switch (tokKind(ctx)) {
     default:                        result =  parse_expression(ctx);    break;
     case TOKEN_EOF:                 eat(ctx); break;
-    case TOKEN_TERMINAL:             eat(ctx); return NULL; return make_ast_nop(loc(ctx));
+    case TOKEN_NEWLINE:             eat(ctx); return NULL; return make_ast_nop(loc(ctx));
     case TOKEN_DEF:                 result =  parse_def(ctx);           break;
     case TOKEN_ENUM:                result =  parse_enum(ctx);          break;
     case TOKEN_TYPE:                result =  parse_type(ctx);          break;
@@ -284,7 +259,7 @@ start:
     // clang-format off
     switch (tokKind(ctx)) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
-    case TOKEN_TERMINAL:
+    case TOKEN_NEWLINE:
         eat(ctx); 
         if (!ctx->inside_parens) return NULL; //return make_ast_nop(loc(ctx));
         else goto start;
@@ -523,7 +498,7 @@ void maybe_convert_if_to_switch(AST* node) {
                 error(
                     "%s\nonly 'case' statements are allowed inside an if "
                     "switch",
-                    ast_to_str(NULL, stmt));
+                    ast_to_str(stmt));
             }
         }
 
@@ -564,7 +539,7 @@ AST* parse_block(Parser_Context* ctx) {
     u32  flags = 0;
 
     // Skip extranous newlines
-    while (tok_is(ctx, TOKEN_TERMINAL))
+    while (tok_is(ctx, TOKEN_NEWLINE))
         eat(ctx);
 
     // are we parsing a single line expression list thingy?
@@ -610,7 +585,6 @@ AST* parse_function_call(Parser_Context* ctx, char* ident) {
     eat_kind(ctx, TOKEN_OPEN_PAREN);
     List* args                   = make_list();
     bool  has_multiple_arguments = false;
-    bool  has_var_args           = false;
     ctx->inside_parens = true;
     while (!tok_is(ctx, TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(ctx, TOKEN_COMMA);
@@ -639,7 +613,7 @@ AST* parse_function_decl(Parser_Context* ctx, char* ident) {
         list_append(args, arg);
         has_multiple_arguments = true;
         if (arg->kind == AST_VAR_ARGS) {
-            error("found var args %s", ast_to_str(NULL, arg));
+            error("found var args %s", ast_to_str(arg));
             flags |= TYPE_FLAG_HAS_VAR_ARG;
         }
     }

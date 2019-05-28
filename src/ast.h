@@ -315,7 +315,9 @@ void  ast_visit(void (*func)(void*, AST*), void* ctx, AST* node);
 void  ast_replace(AST* a, AST* b);
 char* ast_to_json(AST* node);
 char* get_ast_name(AST* node);
-char* ast_to_str(String_Context* ctx, AST* node);
+
+char* ast_to_str(AST* node);
+char* ast_to_str_r(String_Context* ctx, AST* node);
 char* ast_kind_to_str(AST_Kind kind);
 
 typedef struct {

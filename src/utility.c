@@ -321,6 +321,11 @@ char* wrap_with_colored_parens(char* str) {
     char* current_color = get_next_color();
     return strf("%s(\033[00m%s%s)\033[00m", current_color, str, current_color);
 }
+
+char* ucolor(char* str) {
+    return give_unique_color(str);
+}
+
 char* give_unique_color(char* str) {
     assert(str);
     char* current_color = get_next_color();

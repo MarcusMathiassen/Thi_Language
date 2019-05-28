@@ -348,7 +348,7 @@ entry:
         // token.kind = TOKEN_COMMENT;
         goto entry;
     case '\n':
-        token.kind = TOKEN_TERMINAL;
+        token.kind = TOKEN_NEWLINE;
         ++c; // skip the newline
         ctx->position_of_newline = c;
         ++ctx->line_count;

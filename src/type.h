@@ -43,7 +43,7 @@ typedef enum {
     TYPE_STRUCT,
     TYPE_FUNCTION,
     TYPE_VAR_ARGS,
-    TYPE_COUNT,
+    _TYPE_COUNT_,
 } Type_Kind;
 
 typedef enum {

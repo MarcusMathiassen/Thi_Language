@@ -133,7 +133,7 @@ void emit(Codegen_Context* ctx, char* fmt, ...) {
     if (is_label) {
         string_append_f(ctx->section_text, "%s\n", str);
     } else {
-        string_append_f(ctx->section_text, "\t%s\n", str);
+        string_append_f(ctx->section_text, "\t\t%s\n", str);
     }
 
     free(str);
@@ -441,22 +441,29 @@ void emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg) {
     }
 }
 
+
+void emit_store_deref(Codegen_Context* ctx, Value* variable) {
+    assert(variable);
+    assert(variable->kind == VALUE_VARIABLE);
+    char* reg       = get_result_reg_2(variable->type);
+    char* mov_op    = get_move_op(variable->type);
+    emit(ctx, "%s [rax], %s; store %s", mov_op, reg, (variable->Variable.name));
+} 
+
 void emit_store(Codegen_Context* ctx, Value* variable) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     s64   stack_pos = get_stack_pos_of_variable(variable);
     char* reg       = get_result_reg_2(variable->type);
     char* mov_op    = get_move_op(variable->type);
-
-    switch(variable->type->kind)
-    {
-        case TYPE_POINTER:
-        case TYPE_STRUCT:
-            emit(ctx, "%s [rax], %s; store %s", mov_op, reg, (variable->Variable.name));
-            break;
-        default: 
-            emit(ctx, "%s [rbp-%lld], %s; store %s at %lld", mov_op, stack_pos, reg, (variable->Variable.name), stack_pos);
-            break;
+    switch(variable->type->kind) {
+    case TYPE_POINTER:
+    case TYPE_STRUCT:
+        emit(ctx, "%s [rax], %s; store %s of type '%s'", mov_op, reg, (variable->Variable.name), get_type_name(variable->type));
+        break;
+    default:
+        emit(ctx, "%s [rbp-%lld], %s; store %s of type '%s' at %lld", mov_op, stack_pos, reg, (variable->Variable.name), get_type_name(variable->type), stack_pos);
+        break;
     }
 } 
 
@@ -466,7 +473,7 @@ void emit_load(Codegen_Context* ctx, Value* variable) {
     s64   stack_pos = get_stack_pos_of_variable(variable);
     char* reg       = get_result_reg(variable->type);
     char* mov_op    = get_move_op(variable->type);
-    emit(ctx, "%s %s, [rbp-%lld]; load %s from %lld", mov_op, reg, stack_pos, variable->Variable.name, stack_pos);
+    emit(ctx, "%s %s, [rbp-%lld]; load %s of type '%s' from %lld", mov_op, reg, stack_pos, variable->Variable.name, get_type_name(variable->type), stack_pos);
 }
 
 void set_break_label(Codegen_Context* ctx, char* break_l) {

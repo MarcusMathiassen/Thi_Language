@@ -33,7 +33,7 @@
 
 char* type_kind_to_str(Type_Kind kind) {
     // clang-format off
-    assert(kind < TYPE_COUNT);
+    assert(kind < _TYPE_COUNT_);
     switch (kind) {
     default: ERROR_UNHANDLED_KIND(strf("%d", kind));
     case TYPE_UNRESOLVED: return "TYPE_UNRESOLVED";
@@ -47,7 +47,7 @@ char* type_kind_to_str(Type_Kind kind) {
     case TYPE_STRUCT:     return "TYPE_STRUCT";
     case TYPE_FUNCTION:   return "TYPE_FUNCTION";
     case TYPE_VAR_ARGS:   return "TYPE_VAR_ARGS";
-    case TYPE_COUNT:      return "TYPE_COUNT";
+    case _TYPE_COUNT_:    return "_TYPE_COUNT_";
     }
     // clang-format on
     UNREACHABLE;
@@ -261,7 +261,7 @@ char* type_to_str(String_Context* ctx, Type* type) {
         ctx->indentation_level += DEFAULT_INDENT_LEVEL;
         LIST_FOREACH(type_get_members(type)) {
             string_append(s, get_indentation_as_str(ctx->indentation_level));
-            ast_to_str(ctx, it->data);
+            ast_to_str_r(ctx, it->data);
             string_append(s, "\n");
         }
         ctx->indentation_level -= DEFAULT_INDENT_LEVEL;
@@ -271,7 +271,7 @@ char* type_to_str(String_Context* ctx, Type* type) {
     case TYPE_FUNCTION: {
         string_append(s, "(");
         LIST_FOREACH(type->Function.parameters) {
-            ast_to_str(ctx, it->data);
+            ast_to_str_r(ctx, it->data);
             if (it->next) string_append(s, ", ");
         }
         string_append_f(s, ") %s", get_type_name(type->Function.return_type));
@@ -366,6 +366,7 @@ char* type_to_json(Type* type) {
         result = string_data(str);
     }
     }
+    
     assert(result);
     return result;
 }

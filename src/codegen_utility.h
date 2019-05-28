@@ -107,6 +107,7 @@ s64 get_all_alloca_in_block(AST* block);
 void emit_cast(Codegen_Context* ctx, Value* variable, Type* desired_type);
 void emit_cast_int_to_int(Codegen_Context* ctx, char* reg, Type* type);
 void emit_cast_float_to_int(Codegen_Context* ctx, char* reg, Type* type);
+void emit_store_deref(Codegen_Context* ctx, Value* variable);
 void emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg);
 void emit_store(Codegen_Context* ctx, Value* variable);
 void emit_load(Codegen_Context* ctx, Value* variable);

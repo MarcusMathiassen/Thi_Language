@@ -54,9 +54,13 @@ void* _realloc(void* ptr, s64 bytes, char* file, int line);
 #define xcalloc(n, m) _calloc(n, m, __FILE__, __LINE__)
 char* strf(char* fmt, ...);
 char* get_indentation_as_str(u64 indent_level);
+//------------------------------------------------------------------------------
+//                               Colors
+//------------------------------------------------------------------------------
 char* get_previous_color(void);
 char* get_next_color(void);
 char* wrap_with_colored_parens(char* str);
+char* ucolor(char* str);
 char* give_unique_color(char* str);
 char* get_unique_color(void);
 //------------------------------------------------------------------------------

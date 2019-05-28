@@ -1,7 +1,38 @@
 
 
 
-# This is a Thi program
-def main(argc int, argv char**) s64 {
-    return 1;
-}
+
+#change:                                 # @change
+#        mov     QWORD PTR [RSP - 8], RDI
+#        mov     RDI, QWORD PTR [RSP - 8]
+#        mov     DWORD PTR [RDI], 53
+#        ret
+
+#main:                                   # @main
+#        push    RBP
+#        mov     RBP, RSP
+#        sub     RSP, 32
+#        lea     RAX, QWORD PTR [RBP - 20]
+#        mov     DWORD PTR [RBP - 4], 0
+#        mov     DWORD PTR [RBP - 8], EDI
+#        mov     QWORD PTR [RBP - 16], RSI
+#        mov     DWORD PTR [RBP - 20], 0
+#        mov     QWORD PTR [RBP - 32], RAX
+#        mov     RDI, QWORD PTR [RBP - 32]
+#        call    change
+#        mov     ECX, DWORD PTR [RBP - 20]
+#        add     ECX, 3
+#        mov     EAX, ECX
+#        add     RSP, 32
+#        pop     RBP
+#        ret
+
+
+def change(x s64*, ri s64) void
+    *x = 53
+
+def main(argc int, argv char**) s64
+    i = 1
+    k = &i
+    changed(k, 0)
+    return i + 3

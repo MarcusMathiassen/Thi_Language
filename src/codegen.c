@@ -35,67 +35,39 @@
 #define DEBUG_START                                                                    \
     assert(ctx);                                                                       \
     assert(node);                                                                      \
-    info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(NULL, node))); \
-    // emit(ctx, "; %s", ast_to_str(NULL, node));
+    info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(node))); \
+    // emit(ctx, "; %s", ast_to_str(node));
 
-Value*
-codegen_sizeof(Codegen_Context* ctx, AST* node);
-Value*
-codegen_extern(Codegen_Context* ctx, AST* node);
-Value*
-codegen_unary(Codegen_Context* ctx, AST* node);
-Value*
-codegen_binary(Codegen_Context* ctx, AST* node);
-Value*
-codegen_variable_decl(Codegen_Context* ctx, AST* node);
-Value*
-codegen_constant_decl(Codegen_Context* ctx, AST* node);
-Value*
-codegen_call(Codegen_Context* ctx, AST* node);
-Value*
-codegen_float(Codegen_Context* ctx, AST* node);
-Value*
-codegen_int(Codegen_Context* ctx, AST* node);
-Value*
-codegen_block(Codegen_Context* ctx, AST* node);
-Value*
-codegen_macro(Codegen_Context* ctx, AST* node);
-Value*
-codegen_ident(Codegen_Context* ctx, AST* node);
-Value*
-codegen_string(Codegen_Context* ctx, AST* node);
-Value*
-codegen_note(Codegen_Context* ctx, AST* node);
-Value*
-codegen_if(Codegen_Context* ctx, AST* node);
-Value*
-codegen_for(Codegen_Context* ctx, AST* node);
-Value*
-codegen_while(Codegen_Context* ctx, AST* node);
-Value*
-codegen_defer(Codegen_Context* ctx, AST* node);
-Value*
-codegen_return(Codegen_Context* ctx, AST* node);
-Value*
-codegen_break(Codegen_Context* ctx, AST* node);
-Value*
-codegen_continue(Codegen_Context* ctx, AST* node);
-Value*
-codegen_struct(Codegen_Context* ctx, AST* node);
-Value*
-codegen_enum(Codegen_Context* ctx, AST* node);
-Value*
-codegen_function(Codegen_Context* ctx, AST* node);
-Value*
-codegen_as(Codegen_Context* ctx, AST* node);
-Value*
-codegen_switch(Codegen_Context* ctx, AST* node);
-Value*
-codegen_node(Codegen_Context* ctx, AST* node);
+Value* codegen_sizeof(Codegen_Context* ctx, AST* node);
+Value* codegen_extern(Codegen_Context* ctx, AST* node);
+Value* codegen_unary(Codegen_Context* ctx, AST* node);
+Value* codegen_binary(Codegen_Context* ctx, AST* node);
+Value* codegen_variable_decl(Codegen_Context* ctx, AST* node);
+Value* codegen_constant_decl(Codegen_Context* ctx, AST* node);
+Value* codegen_call(Codegen_Context* ctx, AST* node);
+Value* codegen_float(Codegen_Context* ctx, AST* node);
+Value* codegen_int(Codegen_Context* ctx, AST* node);
+Value* codegen_block(Codegen_Context* ctx, AST* node);
+Value* codegen_macro(Codegen_Context* ctx, AST* node);
+Value* codegen_ident(Codegen_Context* ctx, AST* node);
+Value* codegen_string(Codegen_Context* ctx, AST* node);
+Value* codegen_note(Codegen_Context* ctx, AST* node);
+Value* codegen_if(Codegen_Context* ctx, AST* node);
+Value* codegen_for(Codegen_Context* ctx, AST* node);
+Value* codegen_while(Codegen_Context* ctx, AST* node);
+Value* codegen_defer(Codegen_Context* ctx, AST* node);
+Value* codegen_return(Codegen_Context* ctx, AST* node);
+Value* codegen_break(Codegen_Context* ctx, AST* node);
+Value* codegen_continue(Codegen_Context* ctx, AST* node);
+Value* codegen_struct(Codegen_Context* ctx, AST* node);
+Value* codegen_enum(Codegen_Context* ctx, AST* node);
+Value* codegen_function(Codegen_Context* ctx, AST* node);
+Value* codegen_as(Codegen_Context* ctx, AST* node);
+Value* codegen_switch(Codegen_Context* ctx, AST* node);
+Value* codegen_node(Codegen_Context* ctx, AST* node);
 
 // @Hotpath
-Value*
-codegen_node(Codegen_Context* ctx, AST* node) {
+Value* codegen_node(Codegen_Context* ctx, AST* node) {
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
     case AST_MODULE: return codegen_node(ctx, node->Module.top_level);
@@ -151,8 +123,7 @@ char* generate_code_from_ast(AST* ast) {
     return output;
 }
 
-Value*
-codegen_unary(Codegen_Context* ctx, AST* node) {
+Value* codegen_unary(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
 
     Token_Kind op      = node->Unary.op;
@@ -174,13 +145,12 @@ codegen_unary(Codegen_Context* ctx, AST* node) {
     } break;
     case THI_SYNTAX_ADDRESS: {
         s64 stack_pos = get_stack_pos_of_variable(operand_val);
-        emit(ctx, "lea rax, [rbp-%lld]; addrsof", stack_pos);
-
+        emit(ctx, "lea rax, [rbp-%lld]; addrsof '%s'", stack_pos, operand_val->Variable.name);
     } break;
     case THI_SYNTAX_POINTER: {
         Type* t   = operand_val->type;
         char* reg = get_result_reg(t);
-        emit(ctx, "mov %s, [rax]; deref", reg);
+        emit(ctx, "mov %s, [rax]; deref '%s'", reg, operand_val->Variable.name);
         // A deref expects an lvalue and returns an lvalue
     } break;
     case TOKEN_BANG: {
@@ -227,19 +197,15 @@ Value* codegen_binary(Codegen_Context* ctx, AST* node) {
     switch (op) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
     case THI_SYNTAX_ASSIGNMENT: {
-
         if (lhs->kind == AST_UNARY) {
             lhs = lhs->Unary.operand;
         }
-
         Value* rhs_v = codegen_node(ctx, rhs);
         push_type(ctx, rhs_v->type);
-        // push_type(ctx, rhs_v->type);
         Value* lhs_v = codegen_node(ctx, lhs);
         pop_type_2(ctx, rhs_v->type);
         emit_store(ctx, lhs_v);
         emit_load(ctx, lhs_v);
-        // pop_type(ctx, rhs_v->type);
         return lhs_v;
     }
 

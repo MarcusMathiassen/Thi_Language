@@ -1,5 +1,5 @@
 [ ] - passing structs as parameters to function calls
-[ ] - dereference '*' syntax parsed correctly
+[x] - dereference '*' syntax parsed correctly
 [ ] - implicit upcast type conversion for suitable expressions
 [ ] - make sure all basic types are handled correctly
 [ ] - struct braced initilization syntax with named parameters
@@ -14,3 +14,5 @@
       ex.
         mov rax, [rbp-8]; load i from 8
         lea rax, [rbp-8]; addrsof
+[ ] - X64 colored by statements and expressions.
+[ ] - X64 commented by statements and expressions.

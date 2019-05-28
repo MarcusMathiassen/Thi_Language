@@ -33,6 +33,7 @@ make_stack() {
 
 void stack_init(Stack* stack) {
     stack->head = NULL;
+    stack->count = 0;
 }
 void stack_free(Stack* stack) {
     while (stack_pop(stack) != NULL) {
@@ -72,6 +73,7 @@ void* stack_push(Stack* stack, void* data) {
     tmp->data       = data;
     tmp->next       = stack->head;
     stack->head     = tmp;
+    ++stack->count;
     return data;
 }
 
@@ -81,6 +83,7 @@ void* stack_pop(Stack* stack) {
     Stack_Node* tmp    = stack->head;
     void*       popped = tmp->data;
     stack->head        = stack->head->next;
+    --stack->count;
     free(tmp);
     return popped;
 }

@@ -145,7 +145,7 @@ void check_for_unresolved_types(void* ctx, AST* node) {
     if (node->type && node->type->kind == TYPE_UNRESOLVED) {
         error(
             "[check_for_unresolved_types]: unresolved type found for node: %s",
-            ast_to_str(NULL, node));
+            ast_to_str(node));
     }
 }
 
@@ -159,7 +159,7 @@ void run_all_passes(void* thi, AST* node) {
 
 void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* node) {
     assert(node);
-    // info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(NULL, node)), give_unique_color(type_to_str(NULL, node->type)));
+    info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(node)), give_unique_color(type_to_str(NULL, node->type)));
     // clang-format off
     switch (node->kind) {
     case AST_COMMENT:     // fallthrough
@@ -184,7 +184,7 @@ void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* node) {
         error(
             "[make_sure_all_nodes_have_a_valid_type]: missing type for "
             "node: %s",
-            ast_to_str(NULL, node));
+            ast_to_str(node));
     }
 }
 
@@ -455,7 +455,7 @@ int main(int argc, char** argv) {
         success("file: %s", it->data);
     }
 
-    info(ast_to_str(NULL, ast));
+    info(ast_to_str(ast));
     thi.ast = ast;
 
     info("Running passes");
@@ -566,7 +566,7 @@ int main(int argc, char** argv) {
     // char* json = ast_to_json(ast);
     // write_to_file("ast.json", json);
 
-    info(ast_to_str(NULL, ast));
+    info(ast_to_str(ast));
 
     // Codegen
     push_timer(&thi, "Codegen");
@@ -583,10 +583,14 @@ int main(int argc, char** argv) {
         error("generating code from ast failed.");
 
     // Debug info. Writing out sizes of our types.
-    info("size of Token: %lu bytes", sizeof(Token));
-    info("size of AST:   %lu bytes", sizeof(AST));
-    info("size of Type:  %lu bytes", sizeof(Type));
-    info("size of Value: %lu bytes", sizeof(Value));
+    info("size of Token:   %lu bytes", sizeof(Token));
+    info("size of AST:     %lu bytes", sizeof(AST));
+    info("size of Type:    %lu bytes", sizeof(Type));
+    info("size of Value:   %lu bytes", sizeof(Value));
+    info("size of Map:     %lu bytes", sizeof(Map));
+    info("size of List:    %lu bytes", sizeof(List));
+    info("size of Stack:   %lu bytes", sizeof(Stack));
+    info("size of string:  %lu bytes", sizeof(string));
 
     pop_timer(&thi);
 

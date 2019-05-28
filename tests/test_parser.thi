@@ -15,22 +15,22 @@ def compile(source)
     code   = makeX64(ast)
     return code
 
-def Array<T>
+def Array(T) class
 
     data T* = 0
-    len s64 = 0
-    cap s64 = 0
+    len = 0
+    cap = 0
 
     def += (item T)
         reserveSpace(len+1)
         data[len++] = item
 
-    def += (items Array<T>)
+    def += (items Array(T))
         reserveSpace(items.count)
         for el in items
             data[len++] = el
     
-    def reserveSpace(count s64)
+    def reserveSpace(count)
         if len + count > cap
             cap += count
             data = realloc(data, cap)
@@ -49,7 +49,7 @@ def __TypeKind enum
     Function
     Var_args
 
-def __Type
+def __Type struct
     name char*
     flags u32
     kind __TypeKind
@@ -66,22 +66,16 @@ def TokenKind enum
         for member in __TypeID(*this).members
             member.value == *this
             return member.name
-    
-for member in membersof kind
-    info(nameof member)
 
-# for member in [count, str, Identifier, Int, etc.]
-#    info(nameof member)
-
-def Token
+def Token struct
     kind TokenKind = .__Unknown
     value u8* = 0
     line s64 = 1
     col s64 = 0
 
-def Lexer
+def Lexer class
     cursor u8* = 0
-    def eatUntil(c) 
+    def eatUntil(c)
         while *cursor != c ++cursor
     def getToken()
         c = cursor
@@ -89,7 +83,7 @@ def Lexer
             is '_' => while isAlpha(*c) eat(); .Identifier
             is [0-9] => eatUntil(' '); .Number
 
-def Parser
+def Parser class
 
     lexer = Lexer()
 
@@ -112,7 +106,7 @@ def Parser
     def isNext(kind) => next.kind == kind
 
     def generateAST()
-        eat()
+        eat() # prime the first token
         ast = []
         while !isCurr(.EOF)
             stmt = parseStatement()
