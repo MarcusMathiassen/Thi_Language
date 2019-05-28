@@ -56,7 +56,7 @@ typedef enum {
 typedef struct {
     char* name;
     Type* type;
-} Type_Parameter;
+} Type_Name_Pair;
 
 struct Type {
     Type_Kind kind;

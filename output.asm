@@ -4,18 +4,17 @@ section .text
 _change:
 		push rbp
 		mov rbp, rsp
-		sub rsp, 32; 16 alloc, 16 padding
+		sub rsp, 16; 8 alloc, 8 padding
 .begin:
 		mov [rbp-8], rdi; store_r x at 8
-		mov [rbp-16], rsi; store_r ri at 16
 		mov rax, 53
 		push rax
 		mov rax, [rbp-8]; load x of type 's64*' from 8
 		pop rcx
-		mov [rax], rcx; store x of type 's64*'
+		mov [rax], rcx; store x
 		mov rax, [rbp-8]; load x of type 's64*' from 8
 .end:
-		add rsp, 32; 16 alloc, 16 padding
+		add rsp, 16; 8 alloc, 8 padding
 		leave
 		ret
 _main:
@@ -36,24 +35,15 @@ _main:
 		push rax
 		mov rax, [rbp-32]; load k of type 's64*' from 32
 		pop rcx
-		mov [rax], rcx; store k of type 's64*'
+		mov [rbp-32], rcx; store k of type 's64*' at 32
 		mov rax, [rbp-32]; load k of type 's64*' from 32
-		mov rax, 0
+		mov rax, 42
 		push rax
 		mov rax, [rbp-32]; load k of type 's64*' from 32
-		push rax
-		pop rdi
-		pop rsi
-		call _change
-		mov rax, 3
-		push rax
-		mov rax, [rbp-24]; load i of type 's64' from 24
-		push rax
-		mov rax, [rbp-24]; load i of type 's64' from 24
 		pop rcx
-		imul rax, rcx
-		pop rcx
-		add rax, rcx
+		mov [rax], rcx; store k
+		mov rax, [rbp-32]; load k of type 's64*' from 32
+		mov rax, [rbp-24]; load i of type 's64' from 24
 		jmp .end
 .end:
 		add rsp, 48; 32 alloc, 16 padding

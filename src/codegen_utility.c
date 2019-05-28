@@ -455,10 +455,10 @@ void emit_store(Codegen_Context* ctx, Value* variable) {
     char* reg       = get_result_reg_2(variable->type);
     char* mov_op    = get_move_op(variable->type);
     switch (variable->type->kind) {
-    case TYPE_POINTER:
-    case TYPE_STRUCT:
-        emit(ctx, "%s [rax], %s; store %s of type '%s'", mov_op, reg, (variable->Variable.name), get_type_name(variable->type));
-        break;
+    // case TYPE_POINTER:
+    // case TYPE_STRUCT:
+    //     emit(ctx, "%s [rax], %s; store %s of type '%s'", mov_op, reg, (variable->Variable.name), get_type_name(variable->type));
+    //     break;
     default:
         emit(ctx, "%s [rbp-%lld], %s; store %s of type '%s' at %lld", mov_op, stack_pos, reg, (variable->Variable.name), get_type_name(variable->type), stack_pos);
         break;

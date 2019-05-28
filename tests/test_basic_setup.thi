@@ -30,5 +30,6 @@ def change(x s64*) void
 def main(argc int, argv char**) s64
     i = 1
     k = &i
-    changed(k)
+    *k = 42
+    #change(k)
     return i

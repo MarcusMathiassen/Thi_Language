@@ -85,6 +85,10 @@ char* ast_kind_to_str(AST_Kind kind) {
     return NULL;
 }
 
+char* get_ast_loc_str(AST* node) {
+    return strf("%d:%d", node->loc_info.line_pos, node->loc_info.col_pos);
+}
+
 char* get_ast_name(AST* node) {
     if (!node) {
         return "---";
@@ -373,79 +377,79 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
     return string_data(s);
 }
 
-char* ast_json_prelude(AST* node) {
-    return strf(
-        "\"type\": %s, \"%s\"",
-        type_to_json(node->type),
-        ast_kind_to_str(node->kind));
-}
+// char* ast_json_prelude(AST* node) {
+//     return strf(
+//         "\"type\": %s, \"%s\"",
+//         type_to_json(node->type),
+//         ast_kind_to_str(node->kind));
+// }
 
-char* ast_to_json(AST* node) {
-    if (!node) return "\"NULL\"";
-    // clang-format off
-    switch (node->kind) {
-    default:                ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
-    case AST_MODULE:        return strf("{%s:{\"name\":\"%s\",\"top_level\":%s}}", ast_json_prelude(node), node->Module.name, ast_to_json(node->Module.top_level));
-    case AST_SWITCH:        return strf("{%s:{\"cond\":%s,\"cases\":%s,\"default\":%s}}", ast_json_prelude(node), ast_to_json(node->Switch.cond), ast_to_json(node->Switch.cases), ast_to_json(node->Switch.default_case));
-    case AST_IS:            return strf("{%s:{\"case\":%s,\"body\":%s,\"has_fallthrough\":%s}}", ast_json_prelude(node), ast_to_json(node->Is.node), ast_to_json(node->Is.body), node->Is.has_fallthrough ? "true" : "false");
-    case AST_FIELD_ACCESS:  return strf("{%s:{\"load\":%s,\"field\":\"%s\"}}", ast_json_prelude(node), ast_to_json(node->Field_Access.load), node->Field_Access.field);
-    case AST_TYPEOF:        return strf("{%s:{\"typeof\": %s}}", ast_json_prelude(node), ast_to_json(node->Typeof.node));
-    case AST_SIZEOF:        return strf("{%s:{\"sizeof\": %s}}", ast_json_prelude(node), ast_to_json(node->Sizeof.node));
-    case AST_AS:            return strf("{%s:{\"node\": %s, \"type_node\":%s}}", ast_json_prelude(node), ast_to_json(node->As.node), ast_to_json(node->As.type_node));
-    case AST_EXTERN:        return strf("{%s:{\"extern\": %s}}", ast_json_prelude(node), type_to_json(node->type));
-    case AST_LOAD:          return strf("{%s:{\"load\": \"%s\"}}", ast_json_prelude(node), node->Load.str);
-    case AST_VAR_ARGS:      return strf("{%s:{\"var_args\": ...}}", ast_json_prelude(node));
-    case AST_LINK:          return strf("{%s:{\"link\": \"%s\"}}", ast_json_prelude(node), node->Link.str);
-    case AST_SUBSCRIPT:     return strf("{%s:{\"load\": %s, \"sub\": %s}}", ast_json_prelude(node), ast_to_json(node->Subscript.load), ast_to_json(node->Subscript.sub));
-    case AST_CONTINUE:      return strf("{%s:{%s}}", ast_json_prelude(node), "\"continue\"");
-    case AST_FALLTHROUGH:   return strf("{%s: true}", ast_json_prelude(node));
-    case AST_BREAK:         return strf("{%s:{%s}}", ast_json_prelude(node), "\"break\"");
-    case AST_DEFER:         return strf("{%s:{\"node\": %s}}", ast_json_prelude(node), ast_to_json(node->Defer.node));
-    case AST_NOTE:          return strf("{%s:{\"note\":\"%s\"}}", ast_json_prelude(node), ast_to_json(node->Note.node));
-    case AST_INT:           return strf("{%s:{\"value\": %lld}}", ast_json_prelude(node), node->Int.val);
-    case AST_STRING:        return strf("{%s:{\"value\": \"%s\"}}", ast_json_prelude(node), node->String.val);
-    case AST_FLOAT:         return strf("{%s:{\"value\": %f}}", ast_json_prelude(node), node->Float.val);
-    case AST_IDENT:         return strf("{%s:{\"ident\": \"%s\"}}", ast_json_prelude(node), node->Ident.name);
-    case AST_UNARY:         return strf("{%s:{\"op\": \"%s\", \"node\": \"%s\"}}", ast_json_prelude(node), token_kind_to_str(node->Unary.op), ast_to_json(node->Unary.operand));
-    case AST_BINARY:        return strf("{%s:{\"op\": \"%s\", \"lhs\": %s, \"rhs\": %s}}", ast_json_prelude(node), token_kind_to_str(node->Binary.op), ast_to_json(node->Binary.lhs), ast_to_json(node->Binary.rhs));
-    case AST_RETURN:        return strf("{%s:{\"node\": %s}}", ast_json_prelude(node), ast_to_json(node->Return.node));
-    case AST_VARIABLE_DECL: return strf("{%s:{\"name\": \"%s\", \"type\": %s, \"value\": %s}}", ast_json_prelude(node), node->Variable_Decl.name, type_to_json(node->type), ast_to_json(node->Variable_Decl.value));
-    case AST_CONSTANT_DECL: return strf("{%s:{\"name\": \"%s\", \"value\": %s}}", ast_json_prelude(node), node->Constant_Decl.name, ast_to_json(node->Constant_Decl.value));
-    case AST_FUNCTION:      return strf("{%s:{\"type\": %s, \"body\": %s }}", ast_json_prelude(node), type_to_json(node->type), ast_to_json(node->Function.body));
-    case AST_STRUCT:        return strf("{%s:{\"type\": %s}}", ast_json_prelude(node), type_to_json(node->Struct.type));
-    case AST_ENUM:          return strf("{%s:{\"type\": %s}}", ast_json_prelude(node), type_to_json(node->Enum.type));
-    case AST_GROUPING:      return strf("{%s:{\"node\": %s}}", ast_json_prelude(node), ast_to_json(node->Grouping.node));
-    case AST_WHILE:         return strf("{%s:{\"cond\": %s, \"then_block\": %s}}", ast_json_prelude(node), ast_to_json(node->While.cond), ast_to_json(node->While.then_block));
-    case AST_FOR:           return strf("{%s:{\"init\": %s, \"cond\": %s, \"step\": %s, ""\"then_block\": %s }}", ast_json_prelude(node), ast_to_json(node->For.init), ast_to_json(node->For.cond), ast_to_json(node->For.step), ast_to_json(node->For.then_block));
-    case AST_IF:            return strf("{%s:{\"cond\": %s, \"then_block\": %s, \"else_block\": %s }}", ast_json_prelude(node), ast_to_json(node->If.cond), ast_to_json(node->If.then_block), ast_to_json(node->If.else_block));
-    // clang-format on
-    case AST_BLOCK: {
-        string* str = string_create(strf("{%s: [", ast_json_prelude(node)));
-        LIST_FOREACH(node->Block.stmts) {
-            string_append(str, ast_to_json(it->data));
-            if (it->next) string_append(str, ", ");
-        }
-        string_append(str, "]}");
-        return string_data(str);
-    } break;
-    case AST_CALL: {
-        string* str = string_create("");
-        string_append_f(str, "{%s:{\"callee\": \"%s\", ", ast_json_prelude(node), node->Call.callee);
-        string_append(str, "\"args\": [");
-        s64 arg_count = node->Call.args->count;
-        s64 counter   = 0;
-        LIST_FOREACH(node->Call.args) {
-            string_append(str, ast_to_json(it->data));
-            if (counter != arg_count - 1) string_append(str, ",");
-            counter += 1;
-        }
-        string_append(str, "]}}");
-        return string_data(str);
-    } break;
-    }
-    UNREACHABLE;
-    return NULL;
-}
+// char* ast_to_json(AST* node) {
+//     if (!node) return "\"NULL\"";
+//     // clang-format off
+//     switch (node->kind) {
+//     default:                ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
+//     case AST_MODULE:        return strf("{%s:{\"name\":\"%s\",\"top_level\":%s}}", ast_json_prelude(node), node->Module.name, ast_to_json(node->Module.top_level));
+//     case AST_SWITCH:        return strf("{%s:{\"cond\":%s,\"cases\":%s,\"default\":%s}}", ast_json_prelude(node), ast_to_json(node->Switch.cond), ast_to_json(node->Switch.cases), ast_to_json(node->Switch.default_case));
+//     case AST_IS:            return strf("{%s:{\"case\":%s,\"body\":%s,\"has_fallthrough\":%s}}", ast_json_prelude(node), ast_to_json(node->Is.node), ast_to_json(node->Is.body), node->Is.has_fallthrough ? "true" : "false");
+//     case AST_FIELD_ACCESS:  return strf("{%s:{\"load\":%s,\"field\":\"%s\"}}", ast_json_prelude(node), ast_to_json(node->Field_Access.load), node->Field_Access.field);
+//     case AST_TYPEOF:        return strf("{%s:{\"typeof\": %s}}", ast_json_prelude(node), ast_to_json(node->Typeof.node));
+//     case AST_SIZEOF:        return strf("{%s:{\"sizeof\": %s}}", ast_json_prelude(node), ast_to_json(node->Sizeof.node));
+//     case AST_AS:            return strf("{%s:{\"node\": %s, \"type_node\":%s}}", ast_json_prelude(node), ast_to_json(node->As.node), ast_to_json(node->As.type_node));
+//     case AST_EXTERN:        return strf("{%s:{\"extern\": %s}}", ast_json_prelude(node), type_to_json(node->type));
+//     case AST_LOAD:          return strf("{%s:{\"load\": \"%s\"}}", ast_json_prelude(node), node->Load.str);
+//     case AST_VAR_ARGS:      return strf("{%s:{\"var_args\": ...}}", ast_json_prelude(node));
+//     case AST_LINK:          return strf("{%s:{\"link\": \"%s\"}}", ast_json_prelude(node), node->Link.str);
+//     case AST_SUBSCRIPT:     return strf("{%s:{\"load\": %s, \"sub\": %s}}", ast_json_prelude(node), ast_to_json(node->Subscript.load), ast_to_json(node->Subscript.sub));
+//     case AST_CONTINUE:      return strf("{%s:{%s}}", ast_json_prelude(node), "\"continue\"");
+//     case AST_FALLTHROUGH:   return strf("{%s: true}", ast_json_prelude(node));
+//     case AST_BREAK:         return strf("{%s:{%s}}", ast_json_prelude(node), "\"break\"");
+//     case AST_DEFER:         return strf("{%s:{\"node\": %s}}", ast_json_prelude(node), ast_to_json(node->Defer.node));
+//     case AST_NOTE:          return strf("{%s:{\"note\":\"%s\"}}", ast_json_prelude(node), ast_to_json(node->Note.node));
+//     case AST_INT:           return strf("{%s:{\"value\": %lld}}", ast_json_prelude(node), node->Int.val);
+//     case AST_STRING:        return strf("{%s:{\"value\": \"%s\"}}", ast_json_prelude(node), node->String.val);
+//     case AST_FLOAT:         return strf("{%s:{\"value\": %f}}", ast_json_prelude(node), node->Float.val);
+//     case AST_IDENT:         return strf("{%s:{\"ident\": \"%s\"}}", ast_json_prelude(node), node->Ident.name);
+//     case AST_UNARY:         return strf("{%s:{\"op\": \"%s\", \"node\": \"%s\"}}", ast_json_prelude(node), token_kind_to_str(node->Unary.op), ast_to_json(node->Unary.operand));
+//     case AST_BINARY:        return strf("{%s:{\"op\": \"%s\", \"lhs\": %s, \"rhs\": %s}}", ast_json_prelude(node), token_kind_to_str(node->Binary.op), ast_to_json(node->Binary.lhs), ast_to_json(node->Binary.rhs));
+//     case AST_RETURN:        return strf("{%s:{\"node\": %s}}", ast_json_prelude(node), ast_to_json(node->Return.node));
+//     case AST_VARIABLE_DECL: return strf("{%s:{\"name\": \"%s\", \"type\": %s, \"value\": %s}}", ast_json_prelude(node), node->Variable_Decl.name, type_to_json(node->type), ast_to_json(node->Variable_Decl.value));
+//     case AST_CONSTANT_DECL: return strf("{%s:{\"name\": \"%s\", \"value\": %s}}", ast_json_prelude(node), node->Constant_Decl.name, ast_to_json(node->Constant_Decl.value));
+//     case AST_FUNCTION:      return strf("{%s:{\"type\": %s, \"body\": %s }}", ast_json_prelude(node), type_to_json(node->type), ast_to_json(node->Function.body));
+//     case AST_STRUCT:        return strf("{%s:{\"type\": %s}}", ast_json_prelude(node), type_to_json(node->Struct.type));
+//     case AST_ENUM:          return strf("{%s:{\"type\": %s}}", ast_json_prelude(node), type_to_json(node->Enum.type));
+//     case AST_GROUPING:      return strf("{%s:{\"node\": %s}}", ast_json_prelude(node), ast_to_json(node->Grouping.node));
+//     case AST_WHILE:         return strf("{%s:{\"cond\": %s, \"then_block\": %s}}", ast_json_prelude(node), ast_to_json(node->While.cond), ast_to_json(node->While.then_block));
+//     case AST_FOR:           return strf("{%s:{\"init\": %s, \"cond\": %s, \"step\": %s, ""\"then_block\": %s }}", ast_json_prelude(node), ast_to_json(node->For.init), ast_to_json(node->For.cond), ast_to_json(node->For.step), ast_to_json(node->For.then_block));
+//     case AST_IF:            return strf("{%s:{\"cond\": %s, \"then_block\": %s, \"else_block\": %s }}", ast_json_prelude(node), ast_to_json(node->If.cond), ast_to_json(node->If.then_block), ast_to_json(node->If.else_block));
+//     // clang-format on
+//     case AST_BLOCK: {
+//         string* str = string_create(strf("{%s: [", ast_json_prelude(node)));
+//         LIST_FOREACH(node->Block.stmts) {
+//             string_append(str, ast_to_json(it->data));
+//             if (it->next) string_append(str, ", ");
+//         }
+//         string_append(str, "]}");
+//         return string_data(str);
+//     } break;
+//     case AST_CALL: {
+//         string* str = string_create("");
+//         string_append_f(str, "{%s:{\"callee\": \"%s\", ", ast_json_prelude(node), node->Call.callee);
+//         string_append(str, "\"args\": [");
+//         s64 arg_count = node->Call.args->count;
+//         s64 counter   = 0;
+//         LIST_FOREACH(node->Call.args) {
+//             string_append(str, ast_to_json(it->data));
+//             if (counter != arg_count - 1) string_append(str, ",");
+//             counter += 1;
+//         }
+//         string_append(str, "]}}");
+//         return string_data(str);
+//     } break;
+//     }
+//     UNREACHABLE;
+//     return NULL;
+// }
 
 void ast_visit(void (*func)(void*, AST*), void* ctx, AST* node) {
     if (!node) return;

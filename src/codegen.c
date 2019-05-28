@@ -197,14 +197,20 @@ Value* codegen_binary(Codegen_Context* ctx, AST* node) {
     switch (op) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
     case THI_SYNTAX_ASSIGNMENT: {
+
+        bool is_deref = false;
+
         if (lhs->kind == AST_UNARY) {
             lhs = lhs->Unary.operand;
+            is_deref = true;
         }
         Value* rhs_v = codegen_node(ctx, rhs);
         push_type(ctx, rhs_v->type);
         Value* lhs_v = codegen_node(ctx, lhs);
         pop_type_2(ctx, rhs_v->type);
-        emit_store(ctx, lhs_v);
+        if (is_deref) {
+            emit_store_deref(ctx, lhs_v);
+        } else emit_store(ctx, lhs_v);
         emit_load(ctx, lhs_v);
         return lhs_v;
     }
@@ -463,8 +469,7 @@ Value* codegen_binary(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
-Value*
-codegen_constant_decl(Codegen_Context* ctx, AST* node) {
+Value* codegen_constant_decl(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     // assert(0);
     // assert(node->kind == AST_CONSTANT_DECL);
@@ -474,8 +479,7 @@ codegen_constant_decl(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
-Value*
-codegen_variable_decl(Codegen_Context* ctx, AST* node) {
+Value* codegen_variable_decl(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_VARIABLE_DECL);
 
@@ -498,8 +502,7 @@ codegen_variable_decl(Codegen_Context* ctx, AST* node) {
     return variable;
 }
 
-Value*
-codegen_call(Codegen_Context* ctx, AST* node) {
+Value* codegen_call(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     char* callee   = node->Call.callee;
     List* args     = node->Call.args;
@@ -570,8 +573,7 @@ codegen_call(Codegen_Context* ctx, AST* node) {
     return make_value_call(callee, ret_type);
 }
 
-Value*
-codegen_float(Codegen_Context* ctx, AST* node) {
+Value* codegen_float(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_FLOAT);
     Value* val    = make_value_float(node->type, node->Float.val);
@@ -584,8 +586,7 @@ codegen_float(Codegen_Context* ctx, AST* node) {
     return val;
 }
 
-Value*
-codegen_int(Codegen_Context* ctx, AST* node) {
+Value* codegen_int(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_INT);
     Value* val    = make_value_int(DEFAULT_INT_BYTE_SIZE, node->type, node->Int.val);
@@ -595,8 +596,7 @@ codegen_int(Codegen_Context* ctx, AST* node) {
     return val;
 }
 
-Value*
-codegen_block(Codegen_Context* ctx, AST* node) {
+Value* codegen_block(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     push_scope(ctx);
     List*  stmts = node->Block.stmts;
@@ -612,8 +612,7 @@ codegen_block(Codegen_Context* ctx, AST* node) {
     return last;
 }
 
-Value*
-codegen_ident(Codegen_Context* ctx, AST* node) {
+Value* codegen_ident(Codegen_Context* ctx, AST* node) {
     assert(node->kind == AST_IDENT);
     DEBUG_START;
     Value* var = get_variable(ctx, node);
@@ -621,8 +620,7 @@ codegen_ident(Codegen_Context* ctx, AST* node) {
     return var;
 }
 
-Value*
-codegen_string(Codegen_Context* ctx, AST* node) {
+Value* codegen_string(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_STRING);
     char* val    = node->String.val;
@@ -636,8 +634,7 @@ codegen_string(Codegen_Context* ctx, AST* node) {
     return make_value_string(val, t);
 }
 
-Value*
-codegen_note(Codegen_Context* ctx, AST* node) {
+Value* codegen_note(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_NOTE);
     assert(node->Note.node->kind == AST_INT);
@@ -653,8 +650,7 @@ codegen_note(Codegen_Context* ctx, AST* node) {
     return var;
 }
 
-Value*
-codegen_if(Codegen_Context* ctx, AST* node) {
+Value* codegen_if(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_IF);
 
@@ -679,8 +675,7 @@ codegen_if(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
-Value*
-codegen_for(Codegen_Context* ctx, AST* node) {
+Value* codegen_for(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_FOR);
 
@@ -715,8 +710,7 @@ codegen_for(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
-Value*
-codegen_while(Codegen_Context* ctx, AST* node) {
+Value* codegen_while(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_WHILE);
 
@@ -741,8 +735,7 @@ codegen_while(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
-Value*
-codegen_defer(Codegen_Context* ctx, AST* node) {
+Value* codegen_defer(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_DEFER);
     AST* defer_expr = node->Defer.node;
@@ -750,8 +743,7 @@ codegen_defer(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
-Value*
-codegen_return(Codegen_Context* ctx, AST* node) {
+Value* codegen_return(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_RETURN);
 
@@ -776,16 +768,14 @@ codegen_return(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
-Value*
-codegen_break(Codegen_Context* ctx, AST* node) {
+Value* codegen_break(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_BREAK);
     emit(ctx, "jmp %s", ctx->lbreak);
     return NULL;
 }
 
-Value*
-codegen_switch(Codegen_Context* ctx, AST* node) {
+Value* codegen_switch(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_SWITCH);
 
@@ -841,8 +831,7 @@ codegen_switch(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
-Value*
-codegen_as(Codegen_Context* ctx, AST* node) {
+Value* codegen_as(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_AS);
     AST*   e = node->As.node;
@@ -852,24 +841,21 @@ codegen_as(Codegen_Context* ctx, AST* node) {
     return v;
 }
 
-Value*
-codegen_continue(Codegen_Context* ctx, AST* node) {
+Value* codegen_continue(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_CONTINUE);
     emit(ctx, "jmp %s", ctx->lcontinue);
     return NULL;
 }
 
-Value*
-codegen_enum(Codegen_Context* ctx, AST* node) {
+Value* codegen_enum(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_ENUM);
     warning("enum incomplete?");
     return NULL;
 }
 
-Value*
-codegen_extern(Codegen_Context* ctx, AST* node) {
+Value* codegen_extern(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_EXTERN);
     char* func_name = node->Extern.type->Function.name;
@@ -877,8 +863,7 @@ codegen_extern(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
-Value*
-codegen_struct(Codegen_Context* ctx, AST* node) {
+Value* codegen_struct(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_STRUCT);
     warning("struct incomplete?");

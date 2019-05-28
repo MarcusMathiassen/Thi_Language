@@ -21,7 +21,7 @@
 #include "type.h"
 
 // @Todo(marcus) remove ast.h dependency. A Type shouldn't depent on AST nodes.
-#include "ast.h"       // AST*, ast_to_str_r
+// #include "ast.h"       // AST*, ast_to_str_r
 #include "constants.h" // TYPE_LIST_STARTING_ALLOC
 #include "string.h"    // strf, string_append, string
 #include "utility.h"   // error
@@ -68,12 +68,12 @@ List* type_get_members(Type* type) {
     return NULL;
 }
 
+// @Cleanup(marcus) we're leaking memory here.
 void type_replace(Type* a, Type* b) {
     assert(a);
     assert(b);
     info("REPLACED %s WITH %s", give_unique_color(type_to_str( a)), give_unique_color(type_to_str( b)));
     *a = *b;
-    // MEM_LEAK
 }
 
 Type* get_underlying_type_if_any(Type* type) {
@@ -148,24 +148,22 @@ s64 get_size_of_type(Type* type) {
     case TYPE_INT:        return type->Int.bytes;
     case TYPE_FLOAT:      return type->Float.bytes;
     case TYPE_STRING:     return type->String.len;
-    case TYPE_POINTER:    return 8;
-    case TYPE_ENUM:       return 8;
+    case TYPE_POINTER:    return DEFAULT_POINTER_SIZE;
+    case TYPE_ENUM:       return DEFAULT_ENUM_SIZE;
     case TYPE_ARRAY:      return get_size_of_type(type->Array.type) * type->Array.size;
     case TYPE_STRUCT: {
         s64 accum_size = 0;
-        if (type->Struct.members) {
-            LIST_FOREACH(type->Struct.members) {
-                AST* mem = (AST*)it->data;
-                if (mem->kind != AST_FUNCTION)
-                    accum_size += get_size_of_type(mem->type);
-            }
+        LIST_FOREACH(type_get_members(type)) {
+            Type_Name_Pair* mem = it->data;
+            if (mem->type->kind == TYPE_FUNCTION) continue;
+            accum_size += get_size_of_type(mem->type);
         }
         return accum_size;
     }
     case TYPE_FUNCTION: {
         s64 accum_size = 0;
         LIST_FOREACH(type->Function.parameters) {
-            AST* arg = (AST*)it->data;
+            Type_Name_Pair* arg = it->data;
             accum_size += get_size_of_type(arg->type);
         }
         return accum_size;
@@ -181,10 +179,8 @@ s64 get_offset_in_struct_to_field(Type* type, char* name) {
     assert(type->kind == TYPE_STRUCT);
     s64 accum_size = 0;
     LIST_FOREACH(type_get_members(type)) {
-        AST* mem = it->data;
-        if (strcmp(name, mem->Variable_Decl.name) == 0) {
-            return accum_size;
-        }
+        Type_Name_Pair* mem = it->data;
+        if (name == mem->name) return accum_size;
         accum_size += get_size_of_type(mem->type);
     }
     error("cant find field: %s", name);
@@ -264,7 +260,7 @@ char* type_to_str_r(String_Context* ctx, Type* type) {
         ctx->indentation_level += DEFAULT_INDENT_LEVEL;
         LIST_FOREACH(type_get_members(type)) {
             string_append(s, get_indentation_as_str(ctx->indentation_level));
-            ast_to_str_r(ctx, it->data);
+            // ast_to_str_r(ctx, it->data); //@Cleanup
             string_append(s, "\n");
         }
         ctx->indentation_level -= DEFAULT_INDENT_LEVEL;
@@ -274,7 +270,7 @@ char* type_to_str_r(String_Context* ctx, Type* type) {
     case TYPE_FUNCTION: {
         string_append(s, "(");
         LIST_FOREACH(type->Function.parameters) {
-            ast_to_str_r(ctx, it->data);
+            // ast_to_str_r(ctx, it->data); //@Cleanup
             if (it->next) string_append(s, ", ");
         }
         string_append_f(s, ") %s", get_type_name(type->Function.return_type));
@@ -284,98 +280,99 @@ char* type_to_str_r(String_Context* ctx, Type* type) {
     return string_data(s);
 }
 
-char* type_to_json(Type* type) {
-    if (!type) return "\"---\"";
-    char* result = NULL;
-    switch (type->kind) {
-    default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
-    case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
-    case TYPE_VOID: return "void";
-    case TYPE_UNRESOLVED: {
-        result = strf("{\"%s\": {\"name\": \"%s\"}}",
-                      type_kind_to_str(type->kind),
-                      type->Unresolved.name);
-    } break;
-    case TYPE_ARRAY: {
-        result = strf("{\"%s\": {\"type\": %s, \"size\": %d}}",
-                      type_kind_to_str(type->kind),
-                      type_to_json(type->Array.type),
-                      type->Array.size);
-    } break;
-    case TYPE_INT: {
-        result = strf("{\"%s\": {\"bytes\": %d, \"is_signed\":%s}}",
-                      type_kind_to_str(type->kind),
-                      type->Int.bytes,
-                      type->Int.is_unsigned ? "true" : "false");
-    } break;
-    case TYPE_POINTER: {
-        result =
-            strf("{\"%s\": {\"pointee\": %s}}", type_kind_to_str(type->kind), type_to_json(type->Pointer.pointee));
-    } break;
-    case TYPE_FLOAT: {
-        result = strf("{\"%s\": {\"bytes\": %d}}", type_kind_to_str(type->kind), type->Float.bytes);
-    } break;
-    case TYPE_STRING: {
-        result = strf("{\"%s\": {\"len\": %d}}", type_kind_to_str(type->kind), type->String.len);
-    } break;
-    case TYPE_STRUCT: {
-        return strf("{\"%s\": {\"name\": \"%s\"}}", type_kind_to_str(type->kind), type->Struct.name);
-        string* str = string_create("");
-        string_append_f(str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Struct.name);
-        string_append(str, "\"args\": [");
-        s64 arg_count = type->Struct.members->count;
-        s64 counter   = 0;
-        LIST_FOREACH(type->Struct.members) {
-            string_append(str, ast_to_json(it->data));
-            if (counter != arg_count - 1) string_append(str, ",");
-            counter += 1;
-        }
-        string_append(str, "]}}");
-        result = string_data(str);
-    } break;
+// char* type_to_json(Type* type) {
+//     // @Unfinished(marcus): This function will crash becuase of type_to_str.
+//     error("@Unfinished(marcus): This function will crash becuase of type_to_str.");
+//     if (!type) return "\"---\"";
+//     char* result = NULL;
+//     switch (type->kind) {
+//     default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
+//     case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
+//     case TYPE_VOID: return "void";
+//     case TYPE_UNRESOLVED: {
+//         result = strf("{\"%s\": {\"name\": \"%s\"}}",
+//                       type_kind_to_str(type->kind),
+//                       type->Unresolved.name);
+//     } break;
+//     case TYPE_ARRAY: {
+//         result = strf("{\"%s\": {\"type\": %s, \"size\": %d}}",
+//                       type_kind_to_str(type->kind),
+//                       type_to_json(type->Array.type),
+//                       type->Array.size);
+//     } break;
+//     case TYPE_INT: {
+//         result = strf("{\"%s\": {\"bytes\": %d, \"is_signed\":%s}}",
+//                       type_kind_to_str(type->kind),
+//                       type->Int.bytes,
+//                       type->Int.is_unsigned ? "true" : "false");
+//     } break;
+//     case TYPE_POINTER: {
+//         result =
+//             strf("{\"%s\": {\"pointee\": %s}}", type_kind_to_str(type->kind), type_to_json(type->Pointer.pointee));
+//     } break;
+//     case TYPE_FLOAT: {
+//         result = strf("{\"%s\": {\"bytes\": %d}}", type_kind_to_str(type->kind), type->Float.bytes);
+//     } break;
+//     case TYPE_STRING: {
+//         result = strf("{\"%s\": {\"len\": %d}}", type_kind_to_str(type->kind), type->String.len);
+//     } break;
+//     case TYPE_STRUCT: {
+//         return strf("{\"%s\": {\"name\": \"%s\"}}", type_kind_to_str(type->kind), type->Struct.name);
+//         string* str = string_create("");
+//         string_append_f(str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Struct.name);
+//         string_append(str, "\"args\": [");
+//         s64 arg_count = type->Struct.members->count;
+//         s64 counter   = 0;
+//         LIST_FOREACH(type->Struct.members) {
+//             string_append(str, ast_to_json(it->data));
+//             if (counter != arg_count - 1) string_append(str, ",");
+//             counter += 1;
+//         }
+//         string_append(str, "]}}");
+//         result = string_data(str);
+//     } break;
 
-    case TYPE_ENUM: {
-        return strf("{\"%s\": {\"name\": \"%s\"}}", type_kind_to_str(type->kind), type->Enum.name);
-        string* str = string_create("");
-        string_append_f(str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Enum.name);
-        string_append(str, "\"args\": [");
-        s64 arg_count = type->Enum.members->count;
-        s64 counter   = 0;
-        LIST_FOREACH(type->Enum.members) {
-            string_append(str, ast_to_json(it->data));
-            if (counter != arg_count - 1) string_append(str, ",");
-            counter += 1;
-        }
-        string_append(str, "]}}");
-        result = string_data(str);
-    };
+//     case TYPE_ENUM: {
+//         return strf("{\"%s\": {\"name\": \"%s\"}}", type_kind_to_str(type->kind), type->Enum.name);
+//         string* str = string_create("");
+//         string_append_f(str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Enum.name);
+//         string_append(str, "\"args\": [");
+//         s64 arg_count = type->Enum.members->count;
+//         s64 counter   = 0;
+//         LIST_FOREACH(type->Enum.members) {
+//             string_append(str, ast_to_json(it->data));
+//             if (counter != arg_count - 1) string_append(str, ",");
+//             counter += 1;
+//         }
+//         string_append(str, "]}}");
+//         result = string_data(str);
+//     };
 
-    case TYPE_FUNCTION: {
-        string* str = string_create("");
-        string_append_f(str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Enum.name);
-        string_append(str, "\"args\": [");
-        s64 arg_count = type->Function.parameters->count;
-        s64 counter   = 0;
-        LIST_FOREACH(type->Function.parameters) {
-            string_append(str, ast_to_json(it->data));
-            if (counter != arg_count - 1) string_append(str, ",");
-            counter += 1;
-        }
-        // string_append(str, "]}}");
-        // warning("BEGIN");
-        // warning("%s", type_to_json(type->Function.ret_type));
-        // warning("ED");
-        string_append(str, strf("], \"ret_type\":%s}}", type_to_json(type->Function.return_type)));
-        result = string_data(str);
-    }
-    }
+//     case TYPE_FUNCTION: {
+//         string* str = string_create("");
+//         string_append_f(str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Enum.name);
+//         string_append(str, "\"args\": [");
+//         s64 arg_count = type->Function.parameters->count;
+//         s64 counter   = 0;
+//         LIST_FOREACH(type->Function.parameters) {
+//             string_append(str, ast_to_json(it->data));
+//             if (counter != arg_count - 1) string_append(str, ",");
+//             counter += 1;
+//         }
+//         // string_append(str, "]}}");
+//         // warning("BEGIN");
+//         // warning("%s", type_to_json(type->Function.ret_type));
+//         // warning("ED");
+//         string_append(str, strf("], \"ret_type\":%s}}", type_to_json(type->Function.return_type)));
+//         result = string_data(str);
+//     }
+//     }
 
-    assert(result);
-    return result;
-}
+//     assert(result);
+//     return result;
+// }
 
-Type_Ref_List
-make_type_ref_list() {
+Type_Ref_List make_type_ref_list() {
     Type_Ref_List l;
     l.count     = 0;
     l.allocated = TYPE_REF_LIST_STARTING_ALLOC;

@@ -35,6 +35,7 @@
 
 typedef struct {
     AST*   module;
+    Map*   symbols;
     Stack* scopes;
 } Sema_Context;
 
@@ -48,22 +49,25 @@ void semantic_analysis(AST* ast) {
     sema_check_node(&ctx, ast);
 }
 
-static AST* get_variable_in_scope(Sema_Context* ctx, char* name) {
+static AST* get_symbol_in_scope(Sema_Context* ctx, char* name) {
     assert(ctx);
     assert(name);
     info("looking for %s", ucolor(name));
     STACK_FOREACH(ctx->scopes) {
-        List* variables = it->data;
-        info_no_newline("..scope change. listing scope variables.. ");
-        LIST_FOREACH_REVERSE(variables) {
+        List* symbols = it->data;
+
+        // @Debug(marcus): remove this later
+        info_no_newline("..scope change. listing scope.. ");
+        LIST_FOREACH_REVERSE(symbols) {
             AST* v = it->data;
-            info_no_newline("%s ", ucolor(v->Variable_Decl.name));
+            info_no_newline("%s ", ucolor(get_ast_name(v)));
         }
+
         info(".listing done.");
-        LIST_FOREACH_REVERSE(variables) {
+        LIST_FOREACH_REVERSE(symbols) {
             AST* v = it->data;
-            info("..on %s", ucolor(v->Variable_Decl.name));
-            if (v->Variable_Decl.name == name) {
+            info("..on %s", ucolor(get_ast_name(v)));
+            if (get_ast_name(v) == name) {
                 info(" <- found.\n");
                 return v;
             }
@@ -74,7 +78,11 @@ static AST* get_variable_in_scope(Sema_Context* ctx, char* name) {
 
 #define SCOPE_START stack_push(ctx->scopes, make_list())
 #define SCOPE_END stack_pop(ctx->scopes)
-#define SCOPE_ADD(x) list_append(stack_peek(ctx->scopes), x)
+
+void add_node_to_scope(Sema_Context* ctx, AST* node) {
+    list_append(stack_peek(ctx->scopes), node);
+    info("added %s to scope.", ucolor(get_ast_name(node)));
+}
 
 void sema_check_node(Sema_Context* ctx, AST* node) {
     assert(ctx);
@@ -112,15 +120,16 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
     case AST_FLOAT:       break;
     case AST_STRING:      break;
     case AST_IDENT: {
-        AST* var = get_variable_in_scope(ctx, node->Ident.name);
+        AST* var = get_symbol_in_scope(ctx, node->Ident.name);
         if (!var) {
-            error("[%s:%d:%d] undefined identifier %s", ctx->module->Module.name, node->loc_info.line_pos, node->loc_info.col_pos, ucolor(ast_to_str(node)));
+            error("[%s:%s] undefined identifier %s", get_ast_name(ctx->module), get_ast_loc_str(node), ucolor(ast_to_str(node)));
         }
         break;
     }
-    case AST_STRUCT:      break;
-        // clang-format on
+    case AST_STRUCT:
+         break;
 
+        // clang-format on
     case AST_UNARY:
         sema_check_node(ctx, node->Unary.operand);
         break;
@@ -130,10 +139,10 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         Token_Kind op  = node->Binary.op;
         if (op == THI_SYNTAX_ASSIGNMENT && lhs->kind == AST_IDENT) {
             // Look for it in the current scope and any parent scope.
-            AST* var = get_variable_in_scope(ctx, lhs->Ident.name);
+            AST* var = get_symbol_in_scope(ctx, lhs->Ident.name);
             if (!var) {
                 ast_replace(node, make_ast_variable_decl(lhs->loc_info, lhs->Ident.name, NULL, rhs));
-                SCOPE_ADD(node);
+                add_node_to_scope(ctx, node);
             }
         }
         sema_check_node(ctx, node->Binary.lhs);
@@ -141,11 +150,11 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         break;
     }
     case AST_VARIABLE_DECL:
-        SCOPE_ADD(node);
+        add_node_to_scope(ctx, node);
         sema_check_node(ctx, node->Variable_Decl.value);
         break;
     case AST_CONSTANT_DECL:
-        SCOPE_ADD(node);
+        add_node_to_scope(ctx, node);
         sema_check_node(ctx, node->Constant_Decl.value);
         break;
     case AST_ENUM: break;
@@ -207,6 +216,7 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         }
         break;
     case AST_FUNCTION:
+        add_node_to_scope(ctx, node);
         SCOPE_START;
         LIST_FOREACH(node->Function.type->Function.parameters) {
             sema_check_node(ctx, it->data);
@@ -224,12 +234,17 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         }
         info("");
         break;
-    case AST_CALL:
-        // @Todo(marcus) verify that the callee exists in our scope
+
+    case AST_CALL: {
+        char* callee   = node->Call.callee;
+        AST*  callee_f = get_symbol_in_scope(ctx, callee);
+        if (!callee_f) error("no function in scope with name %s", ucolor(callee));
         LIST_FOREACH(node->Call.args) {
             sema_check_node(ctx, it->data);
         }
         break;
+    }
+
     case AST_BLOCK:
         SCOPE_START;
         LIST_FOREACH(node->Block.stmts) {
