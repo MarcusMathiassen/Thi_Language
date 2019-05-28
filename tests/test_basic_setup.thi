@@ -31,5 +31,11 @@ def main(argc int, argv char**) s64
     i = 1
     k = &i
     *k = 42
+
+    for i = 0; i < 3; i += 1
+        return 1
+
+
+
     #change(k)
     return i
