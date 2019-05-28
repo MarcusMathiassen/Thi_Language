@@ -32,7 +32,7 @@ make_stack() {
 }
 
 void stack_init(Stack* stack) {
-    stack->head = NULL;
+    stack->head  = NULL;
     stack->count = 0;
 }
 void stack_free(Stack* stack) {

@@ -155,7 +155,7 @@ AST* parse(Parser_Context* ctx, char* file) {
     // Add it to the list of loaded files.
     list_append(ctx->loads, file_path);
 
-    Lexed_File lf     = generate_tokens_from_file(file_path);
+    Lexed_File lf = generate_tokens_from_file(file_path);
     // print_tokens(lf.tokens);
     // error("<--->");
 
@@ -222,7 +222,7 @@ AST* parse_statement(Parser_Context* ctx) {
     DEBUG_START;
     ctx->top_tok = ctx->curr_tok;
 
-    AST* result  = NULL;
+    AST* result = NULL;
     // clang-format off
     switch (tokKind(ctx)) {
     default:                        result =  parse_expression(ctx);    break;
@@ -585,7 +585,7 @@ AST* parse_function_call(Parser_Context* ctx, char* ident) {
     eat_kind(ctx, TOKEN_OPEN_PAREN);
     List* args                   = make_list();
     bool  has_multiple_arguments = false;
-    ctx->inside_parens = true;
+    ctx->inside_parens           = true;
     while (!tok_is(ctx, TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(ctx, TOKEN_COMMA);
         AST* arg = parse_expression(ctx);
@@ -853,7 +853,7 @@ AST* parse_parens(Parser_Context* ctx) {
     DEBUG_START;
     eat_kind(ctx, TOKEN_OPEN_PAREN);
     ctx->inside_parens = true;
-    AST* expr = parse_expression(ctx);
+    AST* expr          = parse_expression(ctx);
     ctx->inside_parens = false;
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
     return make_ast_grouping(loc(ctx), expr);

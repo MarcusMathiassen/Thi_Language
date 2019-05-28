@@ -219,7 +219,7 @@ void print_symbol_map(Thi* thi) {
     s64 count = thi->symbol_map->size;
     info("symbol_map count: %d", count);
     for (s64 i = 0; i < count; ++i) {
-        info("key %lld type %s", thi->symbol_map->data[i].key, type_to_str(NULL, thi->symbol_map->data[i].data));
+        info("key %lld type %s", thi->symbol_map->data[i].key, type_to_str( thi->symbol_map->data[i].data));
     }
 }
 
@@ -230,7 +230,7 @@ Type* add_symbol(Thi* thi, char* name, Type* type) {
     if (!t) {
         error("symbol redecl: '%s'", name);
     }
-    info("added symbol: %s of type %s", give_unique_color(name), give_unique_color(type_to_str(NULL, type)));
+    info("added symbol: %s of type %s", give_unique_color(name), give_unique_color(type_to_str( type)));
     return t;
 }
 

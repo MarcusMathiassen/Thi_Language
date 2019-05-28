@@ -53,15 +53,22 @@ void linking_stage(Thi* thi, char* exec_name);
 //                               Passes
 //------------------------------------------------------------------------------
 
+// Replaces 'sizeof <expr>' calls with the size of the resulting expr.
 void resolve_sizeofs(void* dont_care, AST* node) {
     s64  size           = get_size_of_type(node->type);
     AST* constant_value = make_ast_int(node->loc_info, size);
     ast_replace(node, constant_value);
 }
+// Replaces 'typeof <expr>' calls with the type of the resulting expr.
 void resolve_typeofs(void* dont_care, AST* node) {
     AST* string_value = make_ast_string(node->loc_info, get_type_name(node->type));
     ast_replace(node, string_value);
 }
+
+// Resolving subscripts means changing 
+// <load>[<expr>]
+// into
+// *(&<load> + sizeof(*load) * <expr>)
 void resolve_subscript(void* dont_care, AST* node) {
 
     AST*  load          = node->Subscript.load;
@@ -75,7 +82,6 @@ void resolve_subscript(void* dont_care, AST* node) {
     sub = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, sub);
 
     sub->type = type_of_field;
-
     ast_replace(node, sub);
 }
 
@@ -159,7 +165,7 @@ void run_all_passes(void* thi, AST* node) {
 
 void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* node) {
     assert(node);
-    info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(node)), give_unique_color(type_to_str(NULL, node->type)));
+    info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(node)), give_unique_color(type_to_str( node->type)));
     // clang-format off
     switch (node->kind) {
     case AST_COMMENT:     // fallthrough
@@ -353,6 +359,7 @@ void thi_run_pass(Thi* thi, char* pass_description, void (*visitor_func)(void*, 
 }
 
 int main(int argc, char** argv) {
+    // @Todo(marcus) do more robust argument handling
     // Argument validation
     if (argc < 2) error("too few arguments.");
 

@@ -135,7 +135,7 @@ char* STATIC_KEYWORDS_ARRAY[__KEY_COUNT__] = {
 
 void lexer_test(void) {
     // char* source =
-        // "type v2\n    x: f32\n    y: f32\n    core()\n        return 1\n";
+    // "type v2\n    x: f32\n    y: f32\n    core()\n        return 1\n";
     // Lexed_File lf     = generate_tokens_from_source(source);
     // Token*     tokens = lf.tokens.data;
     // // info(source);
@@ -169,7 +169,6 @@ void lexer_test(void) {
     // assert(tokens[5].kind == TOKEN_FLOAT);
 }
 
-
 #define LEXER_ERROR(x) error("[%s:%d:%d] %s", ctx.file, token.line_pos, token.col_pos, x)
 Lexed_File generate_tokens_from_file(char* file) {
 
@@ -198,11 +197,11 @@ Lexed_File generate_tokens_from_file(char* file) {
     while (token.kind != TOKEN_EOF) {
 
         Token last_token = token;
-        token = get_token(&ctx);
+        token            = get_token(&ctx);
 
         if (
-            last_token.kind == TOKEN_NEWLINE && 
-            token.kind != TOKEN_NEWLINE && 
+            last_token.kind == TOKEN_NEWLINE &&
+            token.kind != TOKEN_NEWLINE &&
             token.kind != TOKEN_COMMENT) {
             if (token.col_pos % DEFAULT_INDENT_LEVEL != 0) LEXER_ERROR("indentation error.");
             ctx.current_indentation_level = token.col_pos;
@@ -217,7 +216,7 @@ Lexed_File generate_tokens_from_file(char* file) {
             t.col_pos                      = ctx.stream - ctx.position_of_newline;
             ctx.previous_indentation_level = ctx.current_indentation_level;
             token_array_append(&tokens, t);
-        } 
+        }
         while (ctx.current_indentation_level < ctx.previous_indentation_level) {
             Token t;
             t.kind     = TOKEN_BLOCK_END;
@@ -227,10 +226,9 @@ Lexed_File generate_tokens_from_file(char* file) {
             ctx.previous_indentation_level -= DEFAULT_INDENT_LEVEL;
             token_array_append(&tokens, t);
         }
-        
-        if (token.kind != TOKEN_UNKNOWN) 
+
+        if (token.kind != TOKEN_UNKNOWN)
             token_array_append(&tokens, token);
-        
     }
 
     Lexed_File lf;
@@ -265,11 +263,11 @@ Lexed_File generate_tokens_from_source(char* source) {
     while (token.kind != TOKEN_EOF) {
 
         Token last_token = token;
-        token = get_token(&ctx);
+        token            = get_token(&ctx);
 
         if (
-            last_token.kind == TOKEN_NEWLINE && 
-            token.kind != TOKEN_NEWLINE && 
+            last_token.kind == TOKEN_NEWLINE &&
+            token.kind != TOKEN_NEWLINE &&
             token.kind != TOKEN_COMMENT) {
             if (token.col_pos % DEFAULT_INDENT_LEVEL != 0) LEXER_ERROR("indentation error.");
             ctx.current_indentation_level = token.col_pos;
@@ -284,7 +282,7 @@ Lexed_File generate_tokens_from_source(char* source) {
             t.col_pos                      = ctx.stream - ctx.position_of_newline;
             ctx.previous_indentation_level = ctx.current_indentation_level;
             token_array_append(&tokens, t);
-        } 
+        }
         while (ctx.current_indentation_level < ctx.previous_indentation_level) {
             Token t;
             t.kind     = TOKEN_BLOCK_END;
@@ -294,10 +292,9 @@ Lexed_File generate_tokens_from_source(char* source) {
             ctx.previous_indentation_level -= DEFAULT_INDENT_LEVEL;
             token_array_append(&tokens, t);
         }
-        
-        if (token.kind != TOKEN_UNKNOWN) 
+
+        if (token.kind != TOKEN_UNKNOWN)
             token_array_append(&tokens, token);
-        
     }
 
     Lexed_File lf;
@@ -333,11 +330,11 @@ entry:
     skip_whitespace(c);
 
     Token token;
-    token.kind     = TOKEN_UNKNOWN;
-    token.value    = c;
+    token.kind         = TOKEN_UNKNOWN;
+    token.value        = c;
     ctx->start_of_line = c;
-    token.col_pos  = ctx->start_of_line - ctx->position_of_newline;
-    token.line_pos = ctx->line_count;
+    token.col_pos      = ctx->start_of_line - ctx->position_of_newline;
+    token.line_pos     = ctx->line_count;
 
     switch (*c) {
     default: break;
@@ -356,7 +353,8 @@ entry:
     }
 
     switch (*c) {
-    default: ERROR_UNHANDLED_KIND(strf("%c", *c));
+    default:
+        ERROR_UNHANDLED_KIND(strf("%c", *c));
 
         // case '\r': /* fallthrough */
         // case '\t': {

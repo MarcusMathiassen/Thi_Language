@@ -31,7 +31,7 @@ typedef struct Stack_Node {
 typedef struct
 {
     struct Stack_Node* head;
-    s64 count;
+    s64                count;
 } Stack;
 
 #define STACK_FOREACH(stack) \

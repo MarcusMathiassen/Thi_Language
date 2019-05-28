@@ -173,7 +173,7 @@ void pop_type(Codegen_Context* ctx, Type* type) {
     case TYPE_ENUM:    // fallthrough
     case TYPE_INT: pop(ctx, RAX); break;
     case TYPE_FLOAT: pop(ctx, XMM0); break;
-    default: error("Unhandled pop_type %s", type_to_str(NULL, type));
+    default: error("Unhandled pop_type %s", type_to_str( type));
     }
 }
 
@@ -429,26 +429,24 @@ void emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg) {
     char* reg_c     = get_reg(reg);
     char* mov_op    = get_move_op(variable->type);
 
-    switch(variable->type->kind)
-    {
-        // case TYPE_POINTER:
-        // case TYPE_STRUCT:
-        //     emit(ctx, "%s [rax], %s; store_r %s", mov_op, reg_c, (variable->Variable.name));
-        //     break;
-        default: 
-            emit(ctx, "%s [rbp-%lld], %s; store_r %s at %lld", mov_op, stack_pos, reg_c, (variable->Variable.name), stack_pos);
-            break;
+    switch (variable->type->kind) {
+    // case TYPE_POINTER:
+    // case TYPE_STRUCT:
+    //     emit(ctx, "%s [rax], %s; store_r %s", mov_op, reg_c, (variable->Variable.name));
+    //     break;
+    default:
+        emit(ctx, "%s [rbp-%lld], %s; store_r %s at %lld", mov_op, stack_pos, reg_c, (variable->Variable.name), stack_pos);
+        break;
     }
 }
-
 
 void emit_store_deref(Codegen_Context* ctx, Value* variable) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
-    char* reg       = get_result_reg_2(variable->type);
-    char* mov_op    = get_move_op(variable->type);
+    char* reg    = get_result_reg_2(variable->type);
+    char* mov_op = get_move_op(variable->type);
     emit(ctx, "%s [rax], %s; store %s", mov_op, reg, (variable->Variable.name));
-} 
+}
 
 void emit_store(Codegen_Context* ctx, Value* variable) {
     assert(variable);
@@ -456,7 +454,7 @@ void emit_store(Codegen_Context* ctx, Value* variable) {
     s64   stack_pos = get_stack_pos_of_variable(variable);
     char* reg       = get_result_reg_2(variable->type);
     char* mov_op    = get_move_op(variable->type);
-    switch(variable->type->kind) {
+    switch (variable->type->kind) {
     case TYPE_POINTER:
     case TYPE_STRUCT:
         emit(ctx, "%s [rax], %s; store %s of type '%s'", mov_op, reg, (variable->Variable.name), get_type_name(variable->type));
@@ -465,7 +463,7 @@ void emit_store(Codegen_Context* ctx, Value* variable) {
         emit(ctx, "%s [rbp-%lld], %s; store %s of type '%s' at %lld", mov_op, stack_pos, reg, (variable->Variable.name), get_type_name(variable->type), stack_pos);
         break;
     }
-} 
+}
 
 void emit_load(Codegen_Context* ctx, Value* variable) {
     assert(variable);

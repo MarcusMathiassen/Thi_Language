@@ -225,7 +225,7 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         info("");
         break;
     case AST_CALL:
-        // TODO: verify that the callee exists in our scope
+        // @Todo(marcus) verify that the callee exists in our scope
         LIST_FOREACH(node->Call.args) {
             sema_check_node(ctx, it->data);
         }

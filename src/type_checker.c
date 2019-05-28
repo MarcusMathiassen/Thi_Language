@@ -153,7 +153,7 @@ Type* type_check_switch(Typer_Context* ctx, AST* node) {
     // Make sure the resulting type is of type INT.
     type_check_node(ctx, cond);
     // if (cond_t->kind == TYPE_INT) {
-    // error("%s is not a INT.", ast_to_str(cond), type_to_str(NULL, cond_t));
+    // error("%s is not a INT.", ast_to_str(cond), type_to_str( cond_t));
     // }
 
     // A switches type is the same as its cases return type if any.
@@ -161,7 +161,7 @@ Type* type_check_switch(Typer_Context* ctx, AST* node) {
     Type* b = type_check_node(ctx, default_case);
 
     if (!is_same_type(a, b)) {
-        error("[type_missmatch] %s != %s", type_to_str(NULL, a), type_to_str(NULL, b));
+        error("[type_missmatch] %s != %s", type_to_str( a), type_to_str( b));
     }
 
     return a;
@@ -230,7 +230,7 @@ Type* type_check_call(Typer_Context* ctx, AST* node) {
     // if (func_t->Function.return_type->kind == TYPE_UNRESOLVED) {
     //     func_t->Function.return_type = map_get(ctx->symbol_table, get_type_name(func_t->Function.return_type));
     // }
-    // info(type_to_str(NULL, func_t));
+    // info(type_to_str( func_t));
     LIST_FOREACH(args) {
         type_check_node(ctx, it->data);
     }
@@ -263,7 +263,7 @@ Type* type_check_binary(Typer_Context* ctx, AST* node) {
     Type* b = type_check_node(ctx, rhs);
 
     if (!is_same_type(a, b)) {
-        // error("[type_missmatch] %s -> %s != %s ", ast_to_str(node), type_to_str(NULL, a), type_to_str(NULL, b));
+        // error("[type_missmatch] %s -> %s != %s ", ast_to_str(node), type_to_str( a), type_to_str( b));
     }
 
     // 'a' and 'b' are the same so just return any one of them
@@ -280,7 +280,7 @@ Type* type_check_variable_decl(Typer_Context* ctx, AST* node) {
 
     // Make sure the set type and assigned type is the same
     if (variable_type && assigned_type && !is_same_type(variable_type, assigned_type)) {
-        error("[type_missmatch] %s -> %s != %s ", ast_to_str(node), type_to_str(NULL, variable_type), type_to_str(NULL, assigned_type));
+        error("[type_missmatch] %s -> %s != %s ", ast_to_str(node), type_to_str( variable_type), type_to_str( assigned_type));
     }
     variable_type      = assigned_type ? assigned_type : variable_type;
     ctx->expected_type = variable_type;
@@ -320,7 +320,7 @@ Type* type_check_block(Typer_Context* ctx, AST* node) {
             // ..raise an error if not
 
             if (!is_same_type(a_t, b_t)) {
-                error("[%s] Type_Error. Differing return types in block.\n%s <- %s\n!=\n%s <- %s", LOCATION_OF_ast_to_str(ctx->module, node), type_to_str(NULL, a_t), ast_to_str(a), type_to_str(NULL, b_t), ast_to_str(b));
+                error("[%s] Type_Error. Differing return types in block.\n%s <- %s\n!=\n%s <- %s", LOCATION_OF_ast_to_str(ctx->module, node), type_to_str( a_t), ast_to_str(a), type_to_str( b_t), ast_to_str(b));
             }
         }
         result_t = a_t;
@@ -365,7 +365,7 @@ Type* type_check_field_access(Typer_Context* ctx, AST* node) {
 
     // Type* t = map_get(ctx->symbol_table, type_name);
 
-    // info("looking for %s in %s", field_name, type_to_str(NULL, t));
+    // info("looking for %s in %s", field_name, type_to_str( t));
     Type* res = NULL;
     switch (t->kind) {
     case TYPE_ENUM: {
@@ -387,7 +387,7 @@ Type* type_check_field_access(Typer_Context* ctx, AST* node) {
             char* name = get_name_of_member(mem);
             if (strcmp(name, field_name) == 0) {
                 // info("found it!");
-                // info("getting offset to '%s' in type '%s'", name, type_to_str(NULL, t));
+                // info("getting offset to '%s' in type '%s'", name, type_to_str( t));
                 res = mem->type;
                 break;
             }

@@ -20,7 +20,8 @@
 
 #include "type.h"
 
-#include "ast.h"       // AST*
+// @Todo(marcus) remove ast.h dependency. A Type shouldn't depent on AST nodes.
+#include "ast.h"       // AST*, ast_to_str_r
 #include "constants.h" // TYPE_LIST_STARTING_ALLOC
 #include "string.h"    // strf, string_append, string
 #include "utility.h"   // error
@@ -70,7 +71,7 @@ List* type_get_members(Type* type) {
 void type_replace(Type* a, Type* b) {
     assert(a);
     assert(b);
-    info("REPLACED %s WITH %s", give_unique_color(type_to_str(NULL, a)), give_unique_color(type_to_str(NULL, b)));
+    info("REPLACED %s WITH %s", give_unique_color(type_to_str( a)), give_unique_color(type_to_str( b)));
     *a = *b;
     // MEM_LEAK
 }
@@ -104,8 +105,8 @@ s64 get_size_of_underlying_type_if_any(Type* type) {
 bool is_same_type(Type* a, Type* b) {
     assert(a);
     assert(b);
-    char* an = type_to_str(NULL, a);
-    char* bn = type_to_str(NULL, b);
+    char* an = type_to_str( a);
+    char* bn = type_to_str( b);
     return strcmp(an, bn) == 0;
 }
 
@@ -118,7 +119,7 @@ char* get_type_name(Type* type) {
     case TYPE_FLOAT:// fallthrough
     case TYPE_POINTER:
     case TYPE_ARRAY:
-    case TYPE_VOID:       return type_to_str(NULL, type);
+    case TYPE_VOID:       return type_to_str( type);
     case TYPE_FUNCTION: return type->Function.name ? type->Function.name : "---";
     case TYPE_UNRESOLVED: return type->Unresolved.name;
     //     Type* t = type->Pointer.pointee;
@@ -203,15 +204,17 @@ s64 type_array_get_count(Type* type) {
     return type->Array.size;
 }
 
-char* type_to_str(String_Context* ctx, Type* type) {
+char* type_to_str(Type* type) {
+    String_Context ctx;
+    ctx.str               = string_create("");
+    ctx.indentation_level = 0;
+    return type_to_str_r(&ctx, type);
+}
 
-    // @HOT: this is checked no each and every call.
-    if (!ctx) {
-        ctx                    = xmalloc(sizeof(String_Context));
-        ctx->str               = string_create("");
-        ctx->indentation_level = 0;
-    }
-
+char* type_to_str_r(String_Context* ctx, Type* type) {
+    assert(ctx);
+    
+    // Local alias
     string* s = ctx->str;
 
     if (!type) {
@@ -234,7 +237,7 @@ char* type_to_str(String_Context* ctx, Type* type) {
         break;
     }
     case TYPE_ARRAY: {
-        type_to_str(ctx, type->Array.type);
+        type_to_str_r(ctx, type->Array.type);
         string_append_f(s, "[%d]", type->Array.size);
         break;
     }
@@ -243,7 +246,7 @@ char* type_to_str(String_Context* ctx, Type* type) {
         break;
     }
     case TYPE_POINTER: {
-        type_to_str(ctx, type->Pointer.pointee);
+        type_to_str_r(ctx, type->Pointer.pointee);
         string_append(s, "*");
         break;
     }
@@ -366,7 +369,7 @@ char* type_to_json(Type* type) {
         result = string_data(str);
     }
     }
-    
+
     assert(result);
     return result;
 }

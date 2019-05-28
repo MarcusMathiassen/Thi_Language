@@ -74,13 +74,13 @@ struct
 Parser_Context
 make_parser_context(void) {
     Parser_Context ctx;
-    ctx.tokens                     = NULL;
-    ctx.inside_parens = false;
-    ctx.curr_tok.kind              = TOKEN_UNKNOWN;
-    ctx.llast_if_statement         = NULL;
-    ctx.olast_if_statement         = NULL;
-    ctx.loads                      = make_list();
-    ctx.symbols                    = NULL; // we borrow anothers map
+    ctx.tokens             = NULL;
+    ctx.inside_parens      = false;
+    ctx.curr_tok.kind      = TOKEN_UNKNOWN;
+    ctx.llast_if_statement = NULL;
+    ctx.olast_if_statement = NULL;
+    ctx.loads              = make_list();
+    ctx.symbols            = NULL; // we borrow anothers map
     return ctx;
 }
 

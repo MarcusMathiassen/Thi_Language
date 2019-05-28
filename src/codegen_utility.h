@@ -56,21 +56,20 @@ typedef struct
     s8 next_available_rax_reg_counter;
 } Codegen_Context;
 
-Codegen_Context
-make_codegen_context(void);
-void  set_temp_labels(Codegen_Context* ctx, char* l0, char* l1);
-void  restore_temp_labels(Codegen_Context* ctx);
-void  set_break_label(Codegen_Context* ctx, char* break_l);
-void  set_continue_label(Codegen_Context* ctx, char* continue_l);
-void  restore_break_label(Codegen_Context* ctx);
-void  restore_continue_label(Codegen_Context* ctx);
-void  set_jump_labels(Codegen_Context* ctx, char* continue_l, char* break_l);
-void  restore_jump_labels(Codegen_Context* ctx);
-char* make_text_label(Codegen_Context* ctx);
-char* make_data_label(Codegen_Context* ctx);
-void  reset_text_label_counter(Codegen_Context* ctx);
-void  reset_stack(Codegen_Context* ctx);
-void  set_current_function_expr(Codegen_Context* ctx, AST* func_expr);
+Codegen_Context make_codegen_context(void);
+void            set_temp_labels(Codegen_Context* ctx, char* l0, char* l1);
+void            restore_temp_labels(Codegen_Context* ctx);
+void            set_break_label(Codegen_Context* ctx, char* break_l);
+void            set_continue_label(Codegen_Context* ctx, char* continue_l);
+void            restore_break_label(Codegen_Context* ctx);
+void            restore_continue_label(Codegen_Context* ctx);
+void            set_jump_labels(Codegen_Context* ctx, char* continue_l, char* break_l);
+void            restore_jump_labels(Codegen_Context* ctx);
+char*           make_text_label(Codegen_Context* ctx);
+char*           make_data_label(Codegen_Context* ctx);
+void            reset_text_label_counter(Codegen_Context* ctx);
+void            reset_stack(Codegen_Context* ctx);
+void            set_current_function_expr(Codegen_Context* ctx, AST* func_expr);
 
 void emit_no_tab(Codegen_Context* ctx, char* fmt, ...);
 void emit_extern(Codegen_Context* ctx, char* fmt, ...);

@@ -130,7 +130,9 @@ s64   get_size_of_underlying_type_if_any(Type* type);
 Type* get_underlying_type_if_any(Type* type);
 s64   get_size_of_type(Type* Type);
 char* get_type_name(Type* Type);
-char* type_to_str(String_Context* ctx, Type* type);
+
+char* type_to_str(Type* type);
+char* type_to_str_r(String_Context* ctx, Type* type);
 char* type_to_json(Type* type);
 char* type_kind_to_str(Type_Kind kind);
 void  type_replace(Type* a, Type* b);

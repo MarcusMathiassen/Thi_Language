@@ -32,9 +32,9 @@
 #include <stdio.h>   //
 #include <string.h>  // strcmp
 
-#define DEBUG_START                                                                    \
-    assert(ctx);                                                                       \
-    assert(node);                                                                      \
+#define DEBUG_START                                                              \
+    assert(ctx);                                                                 \
+    assert(node);                                                                \
     info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(node))); \
     // emit(ctx, "; %s", ast_to_str(node));
 
@@ -66,7 +66,7 @@ Value* codegen_as(Codegen_Context* ctx, AST* node);
 Value* codegen_switch(Codegen_Context* ctx, AST* node);
 Value* codegen_node(Codegen_Context* ctx, AST* node);
 
-// @Hotpath
+// @Hotpath @Recursive
 Value* codegen_node(Codegen_Context* ctx, AST* node) {
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
@@ -560,7 +560,7 @@ codegen_call(Codegen_Context* ctx, AST* node) {
         }
     }
 
-    // error(type_to_str(NULL, node->type));
+    // error(type_to_str( node->type));
     if (node->type->flags & TYPE_FLAG_HAS_VAR_ARG) {
         emit(ctx, "mov al, %lld; var_arg_count", total);
     }
