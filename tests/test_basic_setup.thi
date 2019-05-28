@@ -27,12 +27,12 @@
 
 extern printf(u8*, ...) s32
 
-#def change(x s64*) void
-#    *x = 53
+def change(x s64*) void
+    *x = 53
 
-#def v2
-#    x f64
-#    y f64
+def v2
+    x f64
+    y f64
 
 def main(argc int, argv char**) s64
     i = 1
@@ -42,10 +42,10 @@ def main(argc int, argv char**) s64
     for x = 0 x < 3 ++x
         printf("%s %d\n", argv[x], 1)
 
-    #v v2
-    #v.x = 53.35
-    #v.y = 14.01
-    #printf("%f %f\n", v.x, v.y) 
+    v v2
+    v.x = 53.35
+    v.y = 14.01
+    printf("%f %f\n", v.x, v.y) 
 
-    #change(k)
+    change(k)
     return i
