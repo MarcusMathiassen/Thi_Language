@@ -637,8 +637,7 @@ AST* parse_def(Parser_Context* ctx) {
         }
     }
 
-    AST*  decl   = is_enum ? make_ast_enum(lc, ident, members) : make_ast_struct(lc, ident, members);
-    return decl;
+    return is_enum ? make_ast_enum(lc, ident, members) : make_ast_struct(lc, ident, members);
 }
 
 AST* parse_variable_decl(Parser_Context* ctx, char* ident) {

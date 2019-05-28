@@ -117,11 +117,11 @@ char* get_ast_name(AST* node) {
         break;
     }
     case AST_STRUCT: {
-        result = node->type->Struct.name;
+        result = node->Struct.name;
         break;
     }
     case AST_ENUM: {
-        result = node->type->Enum.name;
+        result = node->Enum.name;
         break;
     }
     case AST_IDENT: {
@@ -763,16 +763,12 @@ AST* make_ast_struct(Loc_Info loc_info, char* name, List* members) {
     e->Struct.name = name;
     e->Struct.members = members;
 
-    u32 flags = 0;
     List* tps = make_list();
     LIST_FOREACH(members) {
         AST* member = it->data;
         Type_Name_Pair* tp = xmalloc(sizeof(Type_Name_Pair));
         tp->name = get_ast_name(member);
         tp->type =  member->type;
-        if (tp->type->kind == TYPE_VAR_ARGS) {
-            flags |= TYPE_FLAG_HAS_VAR_ARG;
-        }
         list_append(tps, tp);
     }
 
@@ -785,18 +781,15 @@ AST* make_ast_enum(Loc_Info loc_info, char* name, List* members) {
     e->Enum.name = name;
     e->Enum.members = members;;
 
-    u32 flags = 0;
     List* tps = make_list();
     LIST_FOREACH(members) {
         AST* member = it->data;
         Type_Name_Pair* tp = xmalloc(sizeof(Type_Name_Pair));
         tp->name = get_ast_name(member);
         tp->type =  member->type;
-        if (tp->type->kind == TYPE_VAR_ARGS) {
-            flags |= TYPE_FLAG_HAS_VAR_ARG;
-        }
         list_append(tps, tp);
     }
+
     e->type = make_type_enum(name, tps);
     return e;
 }

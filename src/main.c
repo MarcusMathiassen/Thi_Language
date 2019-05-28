@@ -108,7 +108,7 @@ void pass_initilize_enums(void* thi, AST* node) {
 
         s64  counter = 0;
         AST* e       = node;
-        LIST_FOREACH(type_get_members(e->type)) {
+        LIST_FOREACH(e->Enum.members) {
             AST* m = it->data;
             // Turn idents into constant decls
             switch (m->kind) {

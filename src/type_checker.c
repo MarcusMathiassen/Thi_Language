@@ -174,13 +174,13 @@ Type* type_check_extern(Typer_Context* ctx, AST* node) {
     return node->Extern.type;
 }
 Type* type_check_struct(Typer_Context* ctx, AST* node) {
-    LIST_FOREACH(type_get_members(node->type)) {
+    LIST_FOREACH(node->Struct.members) {
         type_check_node(ctx, it->data);
     }
     return node->type;
 }
 Type* type_check_enum(Typer_Context* ctx, AST* node) {
-    LIST_FOREACH(type_get_members(node->type)) {
+    LIST_FOREACH(node->Enum.members) {
         type_check_node(ctx, it->data);
     }
     return node->type;
@@ -344,20 +344,6 @@ Type* type_check_subscript(Typer_Context* ctx, AST* node) {
     return t;
 }
 
-char* get_name_of_member(AST* mem) {
-    char* result = NULL;
-    // clang-format off
-    switch (mem->kind) {
-    case AST_IDENT:             result = mem->Ident.name;                   break;
-    case AST_VARIABLE_DECL:     result = mem->Variable_Decl.name;           break;
-    case AST_CONSTANT_DECL:     result = mem->Constant_Decl.name;           break;
-    case AST_FUNCTION:          result = mem->Function.name;                break;
-    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(mem->kind));
-        // clang-format on
-    }
-    return result;
-}
-
 Type* type_check_field_access(Typer_Context* ctx, AST* node) {
     // char* type_name  = node->Field_Access.load->Ident.name;
     char* field_name = node->Field_Access.field;
@@ -372,25 +358,22 @@ Type* type_check_field_access(Typer_Context* ctx, AST* node) {
     Type* res = NULL;
     switch (t->kind) {
     case TYPE_ENUM: {
-        LIST_FOREACH(t->Enum.members) {
-            AST* mem = it->data;
-            info_no_newline("on %s", ast_to_str(mem));
-            if (strcmp(mem->Constant_Decl.name, field_name) == 0) {
-                // info("found it!");
-                ast_replace(node, mem->Constant_Decl.value);
-                res = mem->type;
-                break;
-            }
-        }
+        // LIST_FOREACH(t->Enum.members) {
+        //     AST* mem = it->data;
+        //     info_no_newline("on %s", ast_to_str(mem));
+        //     if (strcmp(mem->Constant_Decl.name, field_name) == 0) {
+        //         // info("found it!");
+        //         ast_replace(node, mem->Constant_Decl.value);
+        //         res = mem->type;
+        //         break;
+        //     }
+        // }
     } break;
     case TYPE_STRUCT: {
         LIST_FOREACH(t->Struct.members) {
-            AST* mem = it->data;
-            info_no_newline("on %s", ast_to_str(mem));
-            char* name = get_name_of_member(mem);
-            if (strcmp(name, field_name) == 0) {
-                // info("found it!");
-                // info("getting offset to '%s' in type '%s'", name, type_to_str( t));
+            Type_Name_Pair* mem = it->data;
+            info_no_newline("on %s", mem->name);
+            if (strcmp(mem->name, field_name) == 0) {
                 res = mem->type;
                 break;
             }
