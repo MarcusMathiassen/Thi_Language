@@ -3,13 +3,21 @@
    version = "1.0">
    <ContextStates>
       <ContextState
+         contextName = "sema_check_node:sema.c">
+         <PersistentStrings>
+            <PersistentString
+               value = "(AST)node-&gt;Module.top_level">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
          contextName = "type_check_call:type_checker.c">
          <PersistentStrings>
             <PersistentString
-               value = "(AST*)args">
+               value = "(Type*)ctx-&gt;symbol_table-&gt;data">
             </PersistentString>
             <PersistentString
-               value = "(Type*)ctx-&gt;symbol_table-&gt;data">
+               value = "(AST*)args">
             </PersistentString>
          </PersistentStrings>
       </ContextState>

@@ -98,8 +98,6 @@ AST* parse_while                    (Parser_Context* ctx);
 AST* parse_break                    (Parser_Context* ctx);
 AST* parse_continue                 (Parser_Context* ctx);
 AST* parse_string                   (Parser_Context* ctx);
-AST* parse_enum                     (Parser_Context* ctx);
-AST* parse_type                     (Parser_Context* ctx);
 AST* parse_comma_delim_list         (Parser_Context* ctx);
 AST* parse_prefix                   (Parser_Context* ctx);
 AST* parse_postfix                  (Parser_Context* ctx);
@@ -156,20 +154,13 @@ AST* parse(Parser_Context* ctx, char* file) {
     list_append(ctx->loads, file_path);
 
     Lexed_File lf = generate_tokens_from_file(file_path);
-    // print_tokens(lf.tokens);
-    // error("<--->");
 
     ctx->tokens = lf.tokens.data;
     ctx->lines += lf.lines;
     ctx->comments += lf.comments;
 
     List* top_level_ast = generate_ast_from_tokens(ctx);
-
-    AST* ast = make_ast_block(loc(ctx), top_level_ast);
-
-    // Type* func_t = make_type_function(file_path, make_list(), NULL, false);
-    // AST* func = make_ast_function(ast->loc_info, func_t, ast);
-    ast = make_ast_module(loc(ctx), file_path, ast);
+    AST* ast = make_ast_module(loc(ctx), file_path, top_level_ast);
 
     // Restore state
     ctx->tokens             = saved_tokens;
@@ -206,8 +197,6 @@ AST* parse_top_level(Parser_Context* ctx) {
     // clang-format off
     switch (tokKind(ctx)) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
-    case TOKEN_ENUM:                return parse_enum(ctx);
-    case TOKEN_TYPE:                return parse_type(ctx);
     case TOKEN_IDENTIFIER:          return parse_top_level_identifier(ctx);
     case TOKEN_EXTERN:              return parse_extern(ctx);
     case TOKEN_LOAD:                return parse_load(ctx);
@@ -227,10 +216,9 @@ AST* parse_statement(Parser_Context* ctx) {
     switch (tokKind(ctx)) {
     default:                        result =  parse_expression(ctx);    break;
     case TOKEN_EOF:                 eat(ctx); break;
+    case TOKEN_TERMINAL: // fallthrough
     case TOKEN_NEWLINE:             eat(ctx); return NULL; return make_ast_nop(loc(ctx));
     case TOKEN_DEF:                 result =  parse_def(ctx);           break;
-    case TOKEN_ENUM:                result =  parse_enum(ctx);          break;
-    case TOKEN_TYPE:                result =  parse_type(ctx);          break;
 
     case TOKEN_IF:                  result =  parse_if(ctx);            break;
     case TOKEN_IS:                  result =  parse_is(ctx);            break;
@@ -259,6 +247,7 @@ start:
     // clang-format off
     switch (tokKind(ctx)) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
+    case TOKEN_TERMINAL: // fallthrough
     case TOKEN_NEWLINE:
         eat(ctx); 
         if (!ctx->inside_parens) return NULL; //return make_ast_nop(loc(ctx));
@@ -323,24 +312,6 @@ AST* parse_expression_identifier(Parser_Context* ctx) {
     eat_kind(ctx, TOKEN_IDENTIFIER);
     if (tokKind(ctx) == TOKEN_OPEN_PAREN) return parse_function_call(ctx, ident);
     return make_ast_ident(loc(ctx), ident);
-}
-
-AST* parse_type(Parser_Context* ctx) {
-    DEBUG_START;
-    eat_kind(ctx, TOKEN_TYPE);
-    char* ident = tokValue(ctx);
-    eat_kind(ctx, TOKEN_IDENTIFIER);
-    Type* type = parse_type_signature(ctx, ident);
-    return make_ast_struct(loc(ctx), type);
-}
-
-AST* parse_enum(Parser_Context* ctx) {
-    DEBUG_START;
-    eat_kind(ctx, TOKEN_ENUM);
-    char* ident = tokValue(ctx);
-    eat_kind(ctx, TOKEN_IDENTIFIER);
-    Type* type = parse_enum_signature(ctx, ident);
-    return make_ast_enum(loc(ctx), type);
 }
 
 AST* parse_load(Parser_Context* ctx) {
@@ -425,7 +396,7 @@ AST* parse_for(Parser_Context* ctx) {
         // Place the 'param' variable at the start of the block
         list_prepend(then_block->Block.stmts, it_var);
     } else {
-        cond       = parse_statement(ctx);
+        cond       = parse_expression(ctx);
         step       = parse_statement(ctx);
         then_block = parse_block(ctx);
     }
@@ -601,31 +572,32 @@ AST* parse_function_decl(Parser_Context* ctx, char* ident) {
     DEBUG_START;
 
     eat_kind(ctx, TOKEN_OPEN_PAREN);
-    List* args                   = make_list();
-    List* args_types             = make_list();
+    List* params_t = make_list();
+    List* params = make_list();
     bool  has_multiple_arguments = false;
     u32   flags                  = 0;
 
     while (!tok_is(ctx, TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(ctx, TOKEN_COMMA);
-        AST* arg = parse_expression(ctx);
-        list_append(args_types, arg->type);
-        list_append(args, arg);
+        AST* param = parse_expression(ctx);
+
+        Type_Name_Pair* tp = xmalloc(sizeof(Type_Name_Pair));
+        tp->name = get_ast_name(param);
+        tp->type = param->type;
+
+        list_append(params_t, tp);
+        list_append(params, param);
         has_multiple_arguments = true;
-        if (arg->kind == AST_VAR_ARGS) {
-            error("found var args %s", ast_to_str(arg));
-            flags |= TYPE_FLAG_HAS_VAR_ARG;
-        }
     }
 
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
 
     char* func_name = ident;
     Type* ret_type  = tok_is_on_same_line(ctx) ? get_type(ctx) : make_type_void();
-    Type* func_type = make_type_function(func_name, args, ret_type, flags);
+    Type* func_type = make_type_function(func_name, params_t, ret_type, flags);
     AST*  func_body = parse_block(ctx);
 
-    return make_ast_function(loc(ctx), func_name, args, func_type, func_body);
+    return make_ast_function(loc(ctx), func_name, params, func_type, func_body);
 }
 
 AST* parse_constant_decl(Parser_Context* ctx, char* ident) {
@@ -652,7 +624,9 @@ AST* parse_def(Parser_Context* ctx) {
 
     // figure out if it's an enum or struct
     bool is_enum = true;
-    LIST_FOREACH(body->Block.stmts) {
+
+    List* members = body->Block.stmts;
+    LIST_FOREACH(members) {
         AST* stmt = it->data;
         switch (stmt->kind) {
         case AST_IDENT: break;
@@ -663,9 +637,7 @@ AST* parse_def(Parser_Context* ctx) {
         }
     }
 
-    Type* decl_t = is_enum ? make_type_enum(ident, body->Block.stmts) : make_type_struct(ident, body->Block.stmts);
-    AST*  decl   = is_enum ? make_ast_enum(lc, decl_t) : make_ast_struct(lc, decl_t);
-
+    AST*  decl   = is_enum ? make_ast_enum(lc, ident, members) : make_ast_struct(lc, ident, members);
     return decl;
 }
 
@@ -894,22 +866,25 @@ Type* parse_type_signature(Parser_Context* ctx, char* struct_name) {
 Type* parse_extern_function_signature(Parser_Context* ctx, char* func_name) {
     DEBUG_START;
     eat_kind(ctx, TOKEN_OPEN_PAREN);
-    List* args                   = make_list();
+    List* params                   = make_list();
     bool  has_multiple_arguments = false;
     u32   flags                  = 0;
     while (!tok_is(ctx, TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(ctx, TOKEN_COMMA);
-        Type* type = get_type(ctx);
-        if (type->kind == TYPE_VAR_ARGS) {
+
+        Type_Name_Pair* tp = xmalloc(sizeof(Type_Name_Pair));
+        tp->name = NULL;
+        tp->type =  get_type(ctx);
+
+        if (tp->type->kind == TYPE_VAR_ARGS) {
             flags |= TYPE_FLAG_HAS_VAR_ARG;
         }
-        AST* expr = make_ast_variable_decl(loc(ctx), NULL, type, NULL);
-        list_append(args, expr);
+        list_append(params, tp);
         has_multiple_arguments = true;
     }
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
     Type* ret_type = tok_is_on_same_line(ctx) ? get_type(ctx) : make_type_void();
-    return make_type_function(func_name, args, ret_type, flags);
+    return make_type_function(func_name, params, ret_type, flags);
 }
 
 Type* get_type(Parser_Context* ctx) {

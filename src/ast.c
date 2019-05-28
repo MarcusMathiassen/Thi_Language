@@ -108,16 +108,20 @@ char* get_ast_name(AST* node) {
         result = node->Constant_Decl.name;
         break;
     }
+    case AST_EXTERN: {
+        result = get_type_name(node->Extern.type);
+        break;
+    }
     case AST_FUNCTION: {
         result = node->Function.name;
         break;
     }
     case AST_STRUCT: {
-        result = node->Struct.type->Struct.name;
+        result = node->type->Struct.name;
         break;
     }
     case AST_ENUM: {
-        result = node->Enum.type->Enum.name;
+        result = node->type->Enum.name;
         break;
     }
     case AST_IDENT: {
@@ -145,6 +149,8 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         string_append(s, "---");
         return string_data(s);
     }
+    
+    assert(node->kind < AST_COUNT && node->kind >= 0);
 
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
@@ -169,8 +175,11 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         break;
     }
     case AST_MODULE: {
-        string_append_f(s, "# %s", get_ast_name(node));
-        ast_to_str_r(ctx, node->Module.top_level);
+        string_append_f(s, "# %s\n", get_ast_name(node));
+        LIST_FOREACH(node->Module.top_level) {
+            ast_to_str_r(ctx, it->data);
+            string_append(s, "\n");
+        }
         break;
     }
     case AST_VAR_ARGS: {
@@ -207,8 +216,8 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         break;
     }
     case AST_EXTERN: {
-        string_append(s, "extern ");
-        type_to_str_r(ctx, node->type);
+        string_append_f(s, "extern def %s", get_ast_name(node));
+        type_to_str_r(ctx, node->Extern.type);
         break;
     }
     case AST_LOAD: {
@@ -284,8 +293,12 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         break;
     }
     case AST_VARIABLE_DECL: {
-        string_append_f(s, "%s %s = ", get_ast_name(node), get_type_name(node->type));
-        ast_to_str_r(ctx, node->Variable_Decl.value);
+        if (node->Variable_Decl.value) {
+            string_append_f(s, "%s %s = ", get_ast_name(node), get_type_name(node->type));
+            ast_to_str_r(ctx, node->Variable_Decl.value);
+        } else {
+            string_append_f(s, "%s %s", get_ast_name(node), get_type_name(node->type));
+        }
         break;
     }
     case AST_CONSTANT_DECL: {
@@ -295,17 +308,21 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
     }
     case AST_STRUCT: {
         string_append(s, "def ");
-        type_to_str_r(ctx, node->Struct.type);
+        type_to_str_r(ctx, node->type);
         break;
     }
     case AST_ENUM: {
         string_append(s, "def ");
-        type_to_str_r(ctx, node->Enum.type);
+        type_to_str_r(ctx, node->type);
         break;
     }
     case AST_FUNCTION: {
-        string_append_f(s, "def %s", get_ast_name(node));
-        type_to_str_r(ctx, node->type);
+        string_append_f(s, "def %s(", get_ast_name(node));
+        LIST_FOREACH(node->Function.parameters) {
+            ast_to_str_r(ctx, it->data);
+            if (it->next) string_append(s, ", ");
+        }
+        string_append_f(s, ") %s", get_type_name(node->type->Function.return_type));
         ast_to_str_r(ctx, node->Function.body);
         break;
     }
@@ -416,8 +433,8 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
 //     case AST_VARIABLE_DECL: return strf("{%s:{\"name\": \"%s\", \"type\": %s, \"value\": %s}}", ast_json_prelude(node), node->Variable_Decl.name, type_to_json(node->type), ast_to_json(node->Variable_Decl.value));
 //     case AST_CONSTANT_DECL: return strf("{%s:{\"name\": \"%s\", \"value\": %s}}", ast_json_prelude(node), node->Constant_Decl.name, ast_to_json(node->Constant_Decl.value));
 //     case AST_FUNCTION:      return strf("{%s:{\"type\": %s, \"body\": %s }}", ast_json_prelude(node), type_to_json(node->type), ast_to_json(node->Function.body));
-//     case AST_STRUCT:        return strf("{%s:{\"type\": %s}}", ast_json_prelude(node), type_to_json(node->Struct.type));
-//     case AST_ENUM:          return strf("{%s:{\"type\": %s}}", ast_json_prelude(node), type_to_json(node->Enum.type));
+//     case AST_STRUCT:        return strf("{%s:{\"type\": %s}}", ast_json_prelude(node), type_to_json(node->type));
+//     case AST_ENUM:          return strf("{%s:{\"type\": %s}}", ast_json_prelude(node), type_to_json(node->type));
 //     case AST_GROUPING:      return strf("{%s:{\"node\": %s}}", ast_json_prelude(node), ast_to_json(node->Grouping.node));
 //     case AST_WHILE:         return strf("{%s:{\"cond\": %s, \"then_block\": %s}}", ast_json_prelude(node), ast_to_json(node->While.cond), ast_to_json(node->While.then_block));
 //     case AST_FOR:           return strf("{%s:{\"init\": %s, \"cond\": %s, \"step\": %s, ""\"then_block\": %s }}", ast_json_prelude(node), ast_to_json(node->For.init), ast_to_json(node->For.cond), ast_to_json(node->For.step), ast_to_json(node->For.then_block));
@@ -472,7 +489,11 @@ void ast_visit(void (*func)(void*, AST*), void* ctx, AST* node) {
         }
         break;
     // clang-format off
-    case AST_MODULE: ast_visit(func, ctx, node->Module.top_level); break;
+    case AST_MODULE: 
+        LIST_FOREACH(node->Module.top_level) {
+            ast_visit(func, ctx, it->data);
+        }
+        break;
     case AST_TYPEOF: ast_visit(func, ctx, node->Typeof.node);      break;
     case AST_SIZEOF: ast_visit(func, ctx, node->Sizeof.node);      break;
     case AST_NOTE:   ast_visit(func, ctx, node->Note.node);        break;
@@ -558,7 +579,7 @@ void ast_visit(void (*func)(void*, AST*), void* ctx, AST* node) {
         break;
     case AST_FUNCTION:
         ast_visit(func, ctx, node->Function.body);
-        LIST_FOREACH(node->Function.type->Function.parameters) {
+        LIST_FOREACH(node->Function.parameters) {
             ast_visit(func, ctx, it->data);
         }
         LIST_FOREACH(node->Function.defers) {
@@ -656,7 +677,7 @@ AST* make_ast_typeof(Loc_Info loc_info, AST* node) {
     return e;
 }
 
-AST* make_ast_module(Loc_Info loc_info, char* name, AST* top_level) {
+AST* make_ast_module(Loc_Info loc_info, char* name, List* top_level) {
     assert(name);
     AST* e              = make_ast(AST_MODULE, loc_info);
     e->Module.name      = name;
@@ -737,19 +758,46 @@ AST* make_ast_ident(Loc_Info loc_info, char* ident) {
     return e;
 }
 
-AST* make_ast_struct(Loc_Info loc_info, Type* struct_t) {
-    assert(struct_t);
+AST* make_ast_struct(Loc_Info loc_info, char* name, List* members) {
     AST* e         = make_ast(AST_STRUCT, loc_info);
-    e->type        = struct_t;
-    e->Struct.type = struct_t;
+    e->Struct.name = name;
+    e->Struct.members = members;
+
+    u32 flags = 0;
+    List* tps = make_list();
+    LIST_FOREACH(members) {
+        AST* member = it->data;
+        Type_Name_Pair* tp = xmalloc(sizeof(Type_Name_Pair));
+        tp->name = get_ast_name(member);
+        tp->type =  member->type;
+        if (tp->type->kind == TYPE_VAR_ARGS) {
+            flags |= TYPE_FLAG_HAS_VAR_ARG;
+        }
+        list_append(tps, tp);
+    }
+
+    e->type = make_type_struct(name, tps);
     return e;
 }
 
-AST* make_ast_enum(Loc_Info loc_info, Type* enum_t) {
-    assert(enum_t);
+AST* make_ast_enum(Loc_Info loc_info, char* name, List* members) {
     AST* e       = make_ast(AST_ENUM, loc_info);
-    e->type      = enum_t;
-    e->Enum.type = enum_t;
+    e->Enum.name = name;
+    e->Enum.members = members;;
+
+    u32 flags = 0;
+    List* tps = make_list();
+    LIST_FOREACH(members) {
+        AST* member = it->data;
+        Type_Name_Pair* tp = xmalloc(sizeof(Type_Name_Pair));
+        tp->name = get_ast_name(member);
+        tp->type =  member->type;
+        if (tp->type->kind == TYPE_VAR_ARGS) {
+            flags |= TYPE_FLAG_HAS_VAR_ARG;
+        }
+        list_append(tps, tp);
+    }
+    e->type = make_type_enum(name, tps);
     return e;
 }
 
@@ -763,7 +811,6 @@ AST* make_ast_function(Loc_Info loc_info, char* name, List* parameters, Type* fu
     e->type                = func_t;
     e->Function.name       = name;
     e->Function.parameters = parameters;
-    e->Function.type       = func_t;
     e->Function.body       = body;
     e->Function.defers     = make_list();
     return e;

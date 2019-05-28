@@ -19,9 +19,6 @@
 // DEALINGS IN THE SOFTWARE.
 
 #include "type.h"
-
-// @Todo(marcus) remove ast.h dependency. A Type shouldn't depent on AST nodes.
-// #include "ast.h"       // AST*, ast_to_str_r
 #include "constants.h" // TYPE_LIST_STARTING_ALLOC
 #include "string.h"    // strf, string_append, string
 #include "utility.h"   // error
@@ -72,7 +69,7 @@ List* type_get_members(Type* type) {
 void type_replace(Type* a, Type* b) {
     assert(a);
     assert(b);
-    info("REPLACED %s WITH %s", give_unique_color(type_to_str( a)), give_unique_color(type_to_str( b)));
+    info("REPLACED %s WITH %s", give_unique_color(type_to_str(a)), give_unique_color(type_to_str(b)));
     *a = *b;
 }
 
@@ -105,21 +102,20 @@ s64 get_size_of_underlying_type_if_any(Type* type) {
 bool is_same_type(Type* a, Type* b) {
     assert(a);
     assert(b);
-    char* an = type_to_str( a);
-    char* bn = type_to_str( b);
+    char* an = type_to_str(a);
+    char* bn = type_to_str(b);
     return strcmp(an, bn) == 0;
 }
 
 char* get_type_name(Type* type) {
     if (!type) return "---";
-    // clang-format off
     switch (type->kind) {
     default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
-    case TYPE_INT:// fallthrough
-    case TYPE_FLOAT:// fallthrough
+    case TYPE_INT:   // fallthrough
+    case TYPE_FLOAT: // fallthrough
     case TYPE_POINTER:
     case TYPE_ARRAY:
-    case TYPE_VOID:       return type_to_str( type);
+    case TYPE_VOID: return type_to_str(type);
     case TYPE_FUNCTION: return type->Function.name ? type->Function.name : "---";
     case TYPE_UNRESOLVED: return type->Unresolved.name;
     //     Type* t = type->Pointer.pointee;
@@ -128,11 +124,10 @@ char* get_type_name(Type* type) {
     //     }
     //     return get_type_name(t);
     // }
-    case TYPE_STRUCT:   return type->Struct.name;
-    case TYPE_ENUM:     return type->Enum.name;
-    case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
+    case TYPE_STRUCT: return type->Struct.name;
+    case TYPE_ENUM: return type->Enum.name;
+    case TYPE_VAR_ARGS: return "...";
     }
-    // clang-format on
     UNREACHABLE;
     return NULL;
 }
@@ -180,7 +175,7 @@ s64 get_offset_in_struct_to_field(Type* type, char* name) {
     s64 accum_size = 0;
     LIST_FOREACH(type_get_members(type)) {
         Type_Name_Pair* mem = it->data;
-        if (name == mem->name) return accum_size;
+        if (strcmp(name, mem->name) == 0) return accum_size;
         accum_size += get_size_of_type(mem->type);
     }
     error("cant find field: %s", name);
@@ -209,7 +204,7 @@ char* type_to_str(Type* type) {
 
 char* type_to_str_r(String_Context* ctx, Type* type) {
     assert(ctx);
-    
+
     // Local alias
     string* s = ctx->str;
 
@@ -256,13 +251,18 @@ char* type_to_str_r(String_Context* ctx, Type* type) {
     }
     case TYPE_ENUM: // fallthrough
     case TYPE_STRUCT: {
-        string_append_f(s, "%s\n", get_type_name(type));
+        string_append_f(s, "%s { ", get_type_name(type));
         ctx->indentation_level += DEFAULT_INDENT_LEVEL;
         LIST_FOREACH(type_get_members(type)) {
+            Type_Name_Pair* mem = it->data;
             string_append(s, get_indentation_as_str(ctx->indentation_level));
-            // ast_to_str_r(ctx, it->data); //@Cleanup
-            string_append(s, "\n");
+            if (mem->name)
+                string_append_f(s, "%s %s", mem->name, get_type_name(mem->type));
+            else
+                string_append_f(s, "%s", get_type_name(mem->type));
+            if (it->next) string_append(s, ", ");
         }
+        string_append(s, " }");
         ctx->indentation_level -= DEFAULT_INDENT_LEVEL;
         break;
     };
@@ -270,7 +270,11 @@ char* type_to_str_r(String_Context* ctx, Type* type) {
     case TYPE_FUNCTION: {
         string_append(s, "(");
         LIST_FOREACH(type->Function.parameters) {
-            // ast_to_str_r(ctx, it->data); //@Cleanup
+            Type_Name_Pair* param = it->data;
+            if (param->name)
+                string_append_f(s, "%s %s", param->name, get_type_name(param->type));
+            else
+                string_append_f(s, "%s", get_type_name(param->type));
             if (it->next) string_append(s, ", ");
         }
         string_append_f(s, ") %s", get_type_name(type->Function.return_type));

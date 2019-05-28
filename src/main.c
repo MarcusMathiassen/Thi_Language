@@ -28,7 +28,6 @@
 #include "lexer.h"     // generate_tokens_from_source, print_tokens
 #include "list.h"      // list_tests
 #include "sema.h"      // semantic_analysis
-// #include "cst.h"         // cst_tests
 #include "map.h"          // map
 #include "parser.h"       // generate_ast_from_tokens
 #include "stack.h"        // stack_tests
@@ -163,9 +162,9 @@ void run_all_passes(void* thi, AST* node) {
     }
 }
 
-void make_sure_all_nodes_have_a_valid_type(void* ctx, AST* node) {
+void make_sure_all_nodes_have_a_valid_type(void* dont_care, AST* node) {
     assert(node);
-    info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(node)), give_unique_color(type_to_str( node->type)));
+    info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(node)), give_unique_color(type_to_str(node->type)));
     // clang-format off
     switch (node->kind) {
     case AST_COMMENT:     // fallthrough

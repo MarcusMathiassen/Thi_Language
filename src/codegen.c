@@ -70,7 +70,11 @@ Value* codegen_node(Codegen_Context* ctx, AST* node);
 Value* codegen_node(Codegen_Context* ctx, AST* node) {
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
-    case AST_MODULE: return codegen_node(ctx, node->Module.top_level);
+    case AST_MODULE: 
+        LIST_FOREACH(node->Module.top_level) {
+            codegen_node(ctx, it->data);
+        }
+        return NULL;
     case AST_COMMENT: return NULL;
     case AST_NOP: return NULL;
     case AST_FALLTHROUGH: return NULL;
@@ -641,7 +645,8 @@ Value* codegen_note(Codegen_Context* ctx, AST* node) {
     s64 integer_value = node->Note.node->Int.val;
     if (integer_value < 1) error("note parameters start at 1.");
 
-    AST*   arg = get_arg_from_func(ctx->current_function->Function.type,
+    error("@get_arg_from_func thinks parametrs is AST node. CHANGE IT.");
+    AST*   arg = get_arg_from_func(ctx->current_function->type,
                                  integer_value - 1);
     Value* var = get_variable(ctx, make_ast_ident(arg->loc_info, arg->Variable_Decl.name));
 
@@ -867,7 +872,7 @@ Value* codegen_struct(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_STRUCT);
     warning("struct incomplete?");
-    return make_value_struct(node->Struct.type);
+    return make_value_struct(node->type);
 }
 
 Value* codegen_function(Codegen_Context* ctx, AST* node) {
@@ -876,8 +881,7 @@ Value* codegen_function(Codegen_Context* ctx, AST* node) {
 
     set_current_function_expr(ctx, node);
 
-    char* func_name = node->Function.type->Function.name;
-    Type* func_type = node->Function.type;
+    char* func_name = node->Function.name;
     AST*  func_body = node->Function.body;
 
     push_scope(ctx);
@@ -887,7 +891,7 @@ Value* codegen_function(Codegen_Context* ctx, AST* node) {
     emit(ctx, "mov rbp, rsp");
 
     // Sum the params
-    s64 sum = get_size_of_type(node->Function.type);
+    s64 sum = get_size_of_type(node->type);
 
     sum += get_all_alloca_in_block(func_body);
 
@@ -902,7 +906,7 @@ Value* codegen_function(Codegen_Context* ctx, AST* node) {
 
     reset_stack(ctx);
 
-    List* args              = func_type->Function.parameters;
+    List* args              = node->Function.parameters;
     s8    int_arg_counter   = 0;
     s8    float_arg_counter = 0;
     s8    rest              = 0;

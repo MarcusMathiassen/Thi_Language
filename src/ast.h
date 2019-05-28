@@ -105,7 +105,7 @@ struct AST {
         struct
         {
             char* name;
-            AST*  top_level;
+            List* top_level;
         } Module;
         struct
         {
@@ -162,17 +162,18 @@ struct AST {
         } String;
         struct
         {
-            Type* type;
+            char* name;
+            List* members;
         } Struct;
         struct
         {
-            Type* type;
+            char* name;
+            List* members;
         } Enum;
         struct
         {
             char* name;
             List* parameters;
-            Type* type;
             AST*  body;
             List* defers;
         } Function;
@@ -271,7 +272,7 @@ List* generate_ast_from_cst(List* cst);
 
 AST* make_ast_comment(Loc_Info loc_info, char* text);
 AST* make_ast_nop(Loc_Info loc_info);
-AST* make_ast_module(Loc_Info loc_info, char* name, AST* top_level);
+AST* make_ast_module(Loc_Info loc_info, char* name, List* top_level);
 AST* make_ast_extern(Loc_Info loc_info, Type* type);
 AST* make_ast_load(Loc_Info loc_info, char* str);
 AST* make_ast_link(Loc_Info loc_info, char* str);
@@ -281,8 +282,8 @@ AST* make_ast_int(Loc_Info loc_info, s64 value);
 AST* make_ast_float(Loc_Info loc_info, f64 value);
 AST* make_ast_string(Loc_Info loc_info, char* value);
 AST* make_ast_ident(Loc_Info loc_info, char* ident);
-AST* make_ast_struct(Loc_Info loc_info, Type* struct_t);
-AST* make_ast_enum(Loc_Info loc_info, Type* enum_t);
+AST* make_ast_struct(Loc_Info loc_info, char* name, List* members);
+AST* make_ast_enum(Loc_Info loc_info, char* name, List* members);
 AST* make_ast_function(Loc_Info loc_info, char* name, List* parameters, Type* func_t, AST* body);
 AST* make_ast_call(Loc_Info loc_info, char* callee, List* args);
 AST* make_ast_unary(Loc_Info loc_info, Token_Kind op, AST* operand);

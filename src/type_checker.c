@@ -137,7 +137,10 @@ Type* type_check_sizeof(Typer_Context* ctx, AST* node) {
 }
 Type* type_check_module(Typer_Context* ctx, AST* node) {
     ctx->module = node;
-    return type_check_node(ctx, node->Module.top_level);
+    LIST_FOREACH(node->Module.top_level) {
+        type_check_node(ctx, it->data);
+    }
+    return NULL;
 }
 
 Type* type_check_typeof(Typer_Context* ctx, AST* node) {
@@ -184,9 +187,9 @@ Type* type_check_enum(Typer_Context* ctx, AST* node) {
 }
 Type* type_check_function(Typer_Context* ctx, AST* node) {
 
-    Type* func_type = node->Function.type;
+    Type* func_type = node->type;
     AST*  func_body = node->Function.body;
-    List* args      = func_type->Function.parameters;
+    List* args      = node->Function.parameters;
 
     if (func_type->Function.return_type->kind == TYPE_UNRESOLVED) {
         func_type->Function.return_type = map_get(ctx->symbol_table, get_type_name(func_type->Function.return_type));
@@ -348,7 +351,7 @@ char* get_name_of_member(AST* mem) {
     case AST_IDENT:             result = mem->Ident.name;                   break;
     case AST_VARIABLE_DECL:     result = mem->Variable_Decl.name;           break;
     case AST_CONSTANT_DECL:     result = mem->Constant_Decl.name;           break;
-    case AST_FUNCTION:          result = mem->Function.type->Function.name; break;
+    case AST_FUNCTION:          result = mem->Function.name;                break;
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(mem->kind));
         // clang-format on
     }

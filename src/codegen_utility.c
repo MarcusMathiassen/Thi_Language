@@ -336,7 +336,7 @@ get_variable_in_scope(Scope* scope, char* name) {
     assert(scope);
     assert(name);
     LIST_FOREACH(scope->local_variables) {
-        Value* v = (Value*)it->data;
+        Value* v = it->data;
         if (v->Variable.name == name) return v;
     }
     return NULL;

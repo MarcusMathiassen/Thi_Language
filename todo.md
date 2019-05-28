@@ -16,3 +16,5 @@
         lea rax, [rbp-8]; addrsof
 [ ] - X64 colored by statements and expressions.
 [ ] - X64 commented by statements and expressions.
+[ ] - Fix ';' terminator handling in parser.
+

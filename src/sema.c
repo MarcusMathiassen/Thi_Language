@@ -67,7 +67,7 @@ static AST* get_symbol_in_scope(Sema_Context* ctx, char* name) {
         LIST_FOREACH_REVERSE(symbols) {
             AST* v = it->data;
             info("..on %s", ucolor(get_ast_name(v)));
-            if (get_ast_name(v) == name) {
+            if (strcmp(get_ast_name(v), name) == 0) {
                 info(" <- found.\n");
                 return v;
             }
@@ -102,10 +102,10 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         break;
     // clang-format off
     case AST_MODULE: 
-        SCOPE_START;
-        ctx->module = node; 
-        sema_check_node(ctx, node->Module.top_level); 
-        SCOPE_END;
+        ctx->module = node;
+        LIST_FOREACH(node->Module.top_level) {
+            sema_check_node(ctx, it->data);
+        }
         break;
     case AST_TYPEOF: sema_check_node(ctx, node->Typeof.node);      break;
     case AST_SIZEOF: sema_check_node(ctx, node->Sizeof.node);      break;
@@ -211,14 +211,15 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         sema_check_node(ctx, node->Switch.default_case);
         break;
     case AST_EXTERN:
-        LIST_FOREACH(node->Extern.type->Function.parameters) {
-            sema_check_node(ctx, it->data);
-        }
+        add_node_to_scope(ctx, node);
+        // LIST_FOREACH(node->Extern.type->Function.parameters) {
+        //     sema_check_node(ctx, it->data);
+        // }
         break;
     case AST_FUNCTION:
         add_node_to_scope(ctx, node);
         SCOPE_START;
-        LIST_FOREACH(node->Function.type->Function.parameters) {
+        LIST_FOREACH(node->Function.parameters) {
             sema_check_node(ctx, it->data);
         }
         sema_check_node(ctx, node->Function.body);
