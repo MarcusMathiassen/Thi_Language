@@ -163,7 +163,7 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
     // If there is a difference in line position. Add
     // that many newlines.
     s64 diff = node->loc_info.line_pos - ctx->last.line_pos;
-    while (--diff > 0) string_append(s, "\n");
+    while (--diff > 0) string_append_f(s, "\n%s", get_indentation_as_str(ctx->indentation_level));
     ctx->last = node->loc_info;
     //
 
@@ -390,7 +390,7 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         break;
     }
     case AST_BLOCK: {
-        string_append(s, " {\n");
+        string_append(s, "\n");
         ctx->indentation_level += DEFAULT_INDENT_LEVEL;
         LIST_FOREACH(node->Block.stmts) {
             string_append(s, get_indentation_as_str(ctx->indentation_level));
@@ -399,7 +399,6 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
             if (it->next) string_append(s, "\n");
         }
         ctx->indentation_level -= DEFAULT_INDENT_LEVEL;
-        string_append_f(s, "\n%s}", get_indentation_as_str(ctx->indentation_level) );
         break;
     }
     case AST_CALL: {

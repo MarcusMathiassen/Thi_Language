@@ -28,28 +28,13 @@ def main(argc s32, argv u8**) s32
 
     ## There is a bug here. When you run this with it seems
     ## the string is corrupted resulting in a crash.
-
     ## It is something to do with the '%s'
-
-
-
-
-
     printf("typeof x = %s\n", typeof x)
     change(k)
     return i
 
-
-
-
-
-
-
 def change(x s64*)
     *x = 53
-
-
-
 
 def v2
     x f64
