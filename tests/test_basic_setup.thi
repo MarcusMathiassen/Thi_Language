@@ -35,17 +35,28 @@ def v2
     y f64
 
 def main(argc int, argv char**) s64
-    i = 1
-    k = &i
-    *k = 42
+    #i = 1
+    #k = &i
+    #*k = 42
 
-    for x = 0 x < 3 ++x
-        printf("%s %d\n", argv[x], 1)
+    ## Print all arguments
+    #for x = 0 x < argc ++x
+    #    printf("%s\n", argv[x])
+
+
+    # The bug is that 'v.x' type is seen as 'v2' when it should be 'f64'
+    # Check the assembly.
 
     v v2
     v.x = 53.35
-    v.y = 14.01
-    printf("%f %f\n", v.x, v.y) 
+    f = 3.0
+    #*(&v + 0) = 14.01
+    printf("%f\n", v.x)
 
-    change(k)
-    return i
+    #x = 5.0
+    #f = 3.0
+    #printf("%f %f\n", f, x)
+
+    #change(k)
+    #return i
+    return 1

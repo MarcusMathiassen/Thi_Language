@@ -138,7 +138,7 @@ Value* codegen_unary(Codegen_Context* ctx, AST* node) {
     Value* operand_val = codegen_node(ctx, operand);
     char*  reg         = get_result_reg(operand->type);
     Value* result      = operand_val;
-
+    
     switch (op) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
     case TOKEN_PLUS_PLUS: {

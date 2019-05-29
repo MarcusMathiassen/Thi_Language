@@ -255,6 +255,7 @@ Type* type_check_unary(Typer_Context* ctx, AST* node) {
     } break;
     }
 
+    // warning("%s -> %s", ast_to_str(node), type_to_str(result_t));
     return result_t;
 }
 Type* type_check_binary(Typer_Context* ctx, AST* node) {
@@ -345,9 +346,9 @@ Type* type_check_subscript(Typer_Context* ctx, AST* node) {
 }
 
 Type* type_check_field_access(Typer_Context* ctx, AST* node) {
-    // char* type_name  = node->Field_Access.load->Ident.name;
+    char* type_name  = node->Field_Access.load->Ident.name;
     char* field_name = node->Field_Access.field;
-    // info("field: %s type: %s", field_name, type_name);
+    warning("field: %s type: %s", field_name, type_name);
 
     Type* t = type_check_node(ctx, node->Field_Access.load);
     assert(t);
@@ -372,16 +373,15 @@ Type* type_check_field_access(Typer_Context* ctx, AST* node) {
     case TYPE_STRUCT: {
         LIST_FOREACH(t->Struct.members) {
             Type_Name_Pair* mem = it->data;
-            info_no_newline("on %s", mem->name);
+            info_no_newline("on %s ", mem->name);
             if (strcmp(mem->name, field_name) == 0) {
-                res = mem->type;
-                break;
+                info_no_newline("FOUND -> %s of %s\n", mem->name, type_to_str(mem->type));
+                return mem->type;
             }
         }
     } break;
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind))
     }
-    // type_check_node(ctx, node);
     return res;
 }
 

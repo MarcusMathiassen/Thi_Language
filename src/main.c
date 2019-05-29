@@ -93,12 +93,14 @@ void resolve_field_access(void* dont_care, AST* node) {
     s64  offset_size = get_offset_in_struct_to_field(load->type, field_name);
     AST* offset      = make_ast_int(node->loc_info, offset_size);
 
-    load = make_ast_unary(node->loc_info, THI_SYNTAX_ADDRESS, load);
-    load = make_ast_binary(node->loc_info, TOKEN_PLUS, load, offset);
-    load = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, load);
+    AST* res = make_ast_unary(node->loc_info, THI_SYNTAX_ADDRESS, load);
+    res->type = make_type_pointer(load->type);
+    res = make_ast_binary(node->loc_info, TOKEN_PLUS, res, offset);
+    res->type = make_type_pointer(load->type);
+    res = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, res);
+    res->type = type_of_field;
 
-    load->type = type_of_field;
-    ast_replace(node, load);
+    ast_replace(node, res);
 }
 
 void pass_initilize_enums(void* thi, AST* node) {
@@ -523,7 +525,7 @@ int main(int argc, char** argv) {
     pop_timer(&thi);
 
     // Second typechecking pass
-    type_checker(thi.symbol_map, ast);
+    // type_checker(thi.symbol_map, ast);
 
     //
     // Optimization Pass:
