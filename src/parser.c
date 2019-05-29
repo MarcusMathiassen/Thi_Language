@@ -103,6 +103,8 @@ AST* parse_comma_delim_list         (Parser_Context* ctx);
 AST* parse_prefix                   (Parser_Context* ctx);
 AST* parse_postfix                  (Parser_Context* ctx);
 
+void skip_comments_or_newlines(Parser_Context* ctx);
+
 // clang-format on
 
 //------------------------------------------------------------------------------
@@ -249,6 +251,7 @@ AST* parse_statement(Parser_Context* ctx) {
     default:                        result =  parse_expression(ctx);    break;
     case TOKEN_EOF:                 eat(ctx); break;
     case TOKEN_NEWLINE:             eat(ctx); result = NULL; break;
+    case TOKEN_COMMENT:             result = make_ast_comment(loc(ctx), tokValue(ctx)); eat(ctx); break;
     case TOKEN_DEF:                 result =  parse_def(ctx);           break;
 
     case TOKEN_IF:                  result =  parse_if(ctx);            break;
@@ -277,6 +280,7 @@ start:
     // clang-format off
     switch (tokKind(ctx)) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
+    case TOKEN_COMMENT:             result = make_ast_comment(loc(ctx), tokValue(ctx)); eat(ctx); break;
     case TOKEN_NEWLINE:
         eat(ctx); 
         if (!ctx->inside_parens) { result = NULL; break;}
@@ -317,6 +321,8 @@ AST* parse_top_level_identifier(Parser_Context* ctx) {
 AST* parse_identifier(Parser_Context* ctx) {
     DEBUG_START;
 
+    Loc_Info lc = loc(ctx);
+
     char* ident = tokValue(ctx);
     eat_kind(ctx, TOKEN_IDENTIFIER);
 
@@ -327,7 +333,7 @@ AST* parse_identifier(Parser_Context* ctx) {
     case TOKEN_COLON_EQ:    return parse_variable_decl(ctx, ident);
     case TOKEN_COLON_COLON: return parse_constant_decl(ctx, ident);
     case TOKEN_OPEN_PAREN:  return parse_function_call(ctx, ident);
-    default:                return make_ast_ident(loc(ctx), ident);
+    default:                return make_ast_ident(lc, ident);
     }
     // clang-format on
     UNREACHABLE;
@@ -336,63 +342,69 @@ AST* parse_identifier(Parser_Context* ctx) {
 
 AST* parse_expression_identifier(Parser_Context* ctx) {
     DEBUG_START;
+    Loc_Info lc = loc(ctx);
     char* ident = tokValue(ctx);
     eat_kind(ctx, TOKEN_IDENTIFIER);
     if (tokKind(ctx) == TOKEN_OPEN_PAREN) return parse_function_call(ctx, ident);
-    return make_ast_ident(loc(ctx), ident);
+    return make_ast_ident(lc, ident);
 }
 
 AST* parse_load(Parser_Context* ctx) {
     DEBUG_START;
+    Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_LOAD);
     char* file = strf("%s.thi", tokValue(ctx));
     eat_kind(ctx, TOKEN_STRING);
-
-    // parse the file
     AST* module = parse(ctx, file);
-    return make_ast_load(loc(ctx), file, module);
+    return make_ast_load(lc, file, module);
 }
 
 AST* parse_link(Parser_Context* ctx) {
     DEBUG_START;
+    Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_LINK);
     char* str = tokValue(ctx);
     eat_kind(ctx, TOKEN_STRING);
-    return make_ast_link(loc(ctx), str);
+    return make_ast_link(lc, str);
 }
 
 AST* parse_extern(Parser_Context* ctx) {
     DEBUG_START;
+    Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_EXTERN);
     char* ident = tokValue(ctx);
     eat_kind(ctx, TOKEN_IDENTIFIER);
     Type* type = parse_extern_function_signature(ctx, ident);
-    AST* e = make_ast_extern(loc(ctx), type);
+    AST* e = make_ast_extern(lc, type);
     return e;
 }
 
 AST* parse_continue(Parser_Context* ctx) {
     DEBUG_START;
+    Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_CONTINUE);
-    return make_ast_continue(loc(ctx));
+    return make_ast_continue(lc);
 }
 
 AST* parse_break(Parser_Context* ctx) {
     DEBUG_START;
+    Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_BREAK);
-    return make_ast_break(loc(ctx));
+    return make_ast_break(lc);
 }
 
 AST* parse_while(Parser_Context* ctx) {
     DEBUG_START;
+    Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_WHILE);
     AST* cond = parse_expression(ctx);
     AST* then_block = parse_block(ctx);
-    return make_ast_while(loc(ctx), cond, then_block);
+    return make_ast_while(lc, cond, then_block);
 }
 
 AST* parse_for(Parser_Context* ctx) {
     DEBUG_START;
+    Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_FOR);
 
     AST* init = parse_statement(ctx);
@@ -428,25 +440,26 @@ AST* parse_for(Parser_Context* ctx) {
         step = parse_statement(ctx);
         then_block = parse_block(ctx);
     }
-    return make_ast_for(loc(ctx), init, cond, step, then_block);
+    return make_ast_for(lc, init, cond, step, then_block);
 }
 
 AST* parse_defer(Parser_Context* ctx) {
     DEBUG_START;
+    Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_DEFER);
     AST* block = parse_block(ctx);
-    return make_ast_defer(loc(ctx), block);
+    return make_ast_defer(lc, block);
 }
 
 AST* parse_fallthrough(Parser_Context* ctx) {
     DEBUG_START;
-    Loc_Info loc_info = loc(ctx);
+    Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_FALLTHROUGH);
-    return make_ast_fallthrough(loc_info);
+    return make_ast_fallthrough(lc);
 }
 AST* parse_is(Parser_Context* ctx) {
     DEBUG_START;
-    Loc_Info loc_info = loc(ctx);
+    Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_IS);
     AST* expr = parse_expression(ctx);
     AST* body = parse_block(ctx);
@@ -460,7 +473,7 @@ AST* parse_is(Parser_Context* ctx) {
         }
     }
 
-    return make_ast_is(loc_info, expr, body, has_fallthrough);
+    return make_ast_is(lc, expr, body, has_fallthrough);
 }
 
 AST* parse_dangling_else(Parser_Context* ctx) {
@@ -508,6 +521,7 @@ void maybe_convert_if_to_switch(AST* node) {
 
 AST* parse_if(Parser_Context* ctx) {
     DEBUG_START;
+    Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_IF);
     AST* cond = parse_expression(ctx);
     AST* then_block = parse_block(ctx);
@@ -516,7 +530,7 @@ AST* parse_if(Parser_Context* ctx) {
         eat_kind(ctx, TOKEN_ELSE);
         else_block = parse_block(ctx);
     }
-    AST* if_statement = make_ast_if(loc(ctx), cond, then_block, else_block);
+    AST* if_statement = make_ast_if(lc, cond, then_block, else_block);
     set_if_statement(ctx, if_statement);
 
     maybe_convert_if_to_switch(if_statement);
@@ -526,20 +540,21 @@ AST* parse_if(Parser_Context* ctx) {
 
 AST* parse_string(Parser_Context* ctx) {
     DEBUG_START;
+    Loc_Info lc = loc(ctx);
     char* value = tokValue(ctx);
     eat_kind(ctx, TOKEN_STRING);
-    return make_ast_string(loc(ctx), value);
+    return make_ast_string(lc, value);
 }
 
 AST* parse_block(Parser_Context* ctx) {
     DEBUG_START;
+    Loc_Info lc = loc(ctx);
 
     AST* block = NULL;
     u32 flags = 0;
 
-    // Skip extranous newlines
-    while (tok_is(ctx, TOKEN_NEWLINE))
-        eat(ctx);
+    // Skip junk
+    skip_comments_or_newlines(ctx);
 
     // are we parsing a single line expression list thingy?
     // if (tok_is_on_same_line(ctx)) {
@@ -557,7 +572,7 @@ AST* parse_block(Parser_Context* ctx) {
     eat_kind(ctx, TOKEN_BLOCK_START);
     List* stmts = parse_delimited_list(ctx, parse_statement, TOKEN_BLOCK_END);
     eat_kind(ctx, TOKEN_BLOCK_END);
-    block = make_ast_block(loc(ctx), stmts);
+    block = make_ast_block(lc, stmts);
 
     block->Block.flags |= flags;
 
@@ -570,9 +585,10 @@ AST* parse_block(Parser_Context* ctx) {
 
 AST* parse_return(Parser_Context* ctx) {
     DEBUG_START;
+    Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_RETURN);
     AST* expr = tok_is_on_same_line(ctx) ? parse_expression(ctx) : NULL;
-    return make_ast_return(loc(ctx), expr);
+    return make_ast_return(lc, expr);
 }
 
 AST* parse_function_call(Parser_Context* ctx, char* ident) {
@@ -666,12 +682,13 @@ AST* parse_def(Parser_Context* ctx) {
 
 AST* parse_variable_decl(Parser_Context* ctx, char* ident) {
     DEBUG_START;
+    Loc_Info lc = loc(ctx);
     AST* value = NULL;
     if (tok_is(ctx, TOKEN_COLON_EQ)) {
         eat(ctx);
         value = parse_expression(ctx);
     }
-    return make_ast_variable_decl(loc(ctx), ident, get_type(ctx), value);
+    return make_ast_variable_decl(lc, ident, get_type(ctx), value);
 }
 
 AST* parse_binary(Parser_Context* ctx, s8 expr_prec, AST* lhs) {
@@ -719,25 +736,34 @@ AST* parse_binary(Parser_Context* ctx, s8 expr_prec, AST* lhs) {
     return expr;
 }
 
+void skip_comments_or_newlines(Parser_Context* ctx) {
+    while (tok_is(ctx, TOKEN_COMMENT) || tok_is(ctx, TOKEN_NEWLINE)) {
+        eat(ctx);
+    }
+}
+
 AST* read_as(Parser_Context* ctx, AST* expr) {
+    Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_AS);
     AST* type_expr = parse_expression(ctx);
-    return make_ast_as(loc(ctx), expr, type_expr);
+    return make_ast_as(lc, expr, type_expr);
 }
 
 AST* read_subscript_expr(Parser_Context* ctx, AST* expr) {
+    Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_OPEN_BRACKET);
     AST* sub = parse_expression(ctx);
     eat_kind(ctx, TOKEN_CLOSE_BRACKET);
-    sub = make_ast_subscript(loc(ctx), expr, sub);
+    sub = make_ast_subscript(lc, expr, sub);
     return sub;
 }
 
 AST* read_field_access(Parser_Context* ctx, AST* expr) {
+    Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_DOT);
     char* field_name = tokValue(ctx);
     eat_kind(ctx, TOKEN_IDENTIFIER);
-    AST* field = make_ast_field_access(loc(ctx), expr, field_name);
+    AST* field = make_ast_field_access(lc, expr, field_name);
     return field;
 }
 
@@ -774,6 +800,7 @@ AST* parse_postfix(Parser_Context* ctx) {
 
 AST* parse_unary(Parser_Context* ctx) {
     DEBUG_START;
+    Loc_Info lc = loc(ctx);
     AST* unary = NULL;
 
     for (s8 i = 0; i < UNARY_OP_COUNT; ++i) {
@@ -782,7 +809,7 @@ AST* parse_unary(Parser_Context* ctx) {
             eat(ctx);
             AST* operand = parse_unary(ctx);
             if (operand) {
-                unary = make_ast_unary(loc(ctx), op, operand);
+                unary = make_ast_unary(lc, op, operand);
             }
         }
     }
@@ -801,6 +828,7 @@ AST* parse_unary(Parser_Context* ctx) {
 
 AST* parse_note(Parser_Context* ctx) {
     DEBUG_START;
+    Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_DOLLAR_SIGN);
     AST* expr = NULL;
     // clang-format off
@@ -810,7 +838,7 @@ AST* parse_note(Parser_Context* ctx) {
     case TOKEN_INTEGER:     expr = parse_integer(ctx); break;
     }
     // clang-format on
-    return make_ast_note(loc(ctx), expr);
+    return make_ast_note(lc, expr);
 }
 
 AST* parse_expression(Parser_Context* ctx) {
@@ -834,30 +862,34 @@ AST* parse_expression(Parser_Context* ctx) {
 
 AST* parse_float(Parser_Context* ctx) {
     DEBUG_START;
-    AST* res = make_ast_float(loc(ctx), get_float(ctx));
+    Loc_Info lc = loc(ctx);
+    AST* res = make_ast_float(lc, get_float(ctx));
     return res;
 }
 
 AST* parse_char(Parser_Context* ctx) {
     DEBUG_START;
-    AST* res = make_ast_int(loc(ctx), get_integer(ctx), make_type_int(1, true));
+    Loc_Info lc = loc(ctx);
+    AST* res = make_ast_int(lc, get_integer(ctx), make_type_int(1, true));
     return res;
 }
 
 AST* parse_integer(Parser_Context* ctx) {
     DEBUG_START;
-    AST* res = make_ast_int(loc(ctx), get_integer(ctx), make_type_int(DEFAULT_INT_BYTE_SIZE, 0));
+    Loc_Info lc = loc(ctx);
+    AST* res = make_ast_int(lc, get_integer(ctx), make_type_int(DEFAULT_INT_BYTE_SIZE, 0));
     return res;
 }
 
 AST* parse_parens(Parser_Context* ctx) {
     DEBUG_START;
+    Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_OPEN_PAREN);
     ctx->inside_parens = true;
     AST* expr = parse_expression(ctx);
     ctx->inside_parens = false;
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
-    return make_ast_grouping(loc(ctx), expr);
+    return make_ast_grouping(lc, expr);
 }
 
 //------------------------------------------------------------------------------

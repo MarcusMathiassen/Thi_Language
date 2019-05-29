@@ -36,6 +36,7 @@ typedef enum {
 } BlockFlags;
 
 typedef enum {
+    AST_COMMENT,
     AST_NOP,
     AST_SPACE_SEPARATED_IDENTIFIER_LIST,
     AST_COMMA_SEPARATED_LIST,
@@ -89,6 +90,10 @@ struct AST {
     Loc_Info loc_info;
     List* edges;
     union {
+        struct
+        {
+            char* text;
+        } Comment;
         struct
         {
             List* identifiers;
@@ -266,6 +271,7 @@ struct AST {
 
 List* generate_ast_from_cst(List* cst);
 
+AST* make_ast_comment(Loc_Info loc_info, char* text);
 AST* make_ast_nop(Loc_Info loc_info);
 AST* make_ast_module(Loc_Info loc_info, char* name, List* top_level);
 AST* make_ast_extern(Loc_Info loc_info, Type* type);

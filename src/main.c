@@ -168,9 +168,9 @@ void run_all_passes(void* thi, AST* node) {
 
 void make_sure_all_nodes_have_a_valid_type(void* dont_care, AST* node) {
     assert(node);
-    info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(node)), give_unique_color(type_to_str(node->type)));
     // clang-format off
     switch (node->kind) {
+    case AST_COMMENT:     // fallthrough
     case AST_NOP:         // fallthrough
     case AST_MODULE:      // fallthrough
     case AST_LOAD:        // fallthrough
@@ -187,6 +187,7 @@ void make_sure_all_nodes_have_a_valid_type(void* dont_care, AST* node) {
     case AST_FALLTHROUGH: return;
     default: break;
     }
+    info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(node)), give_unique_color(type_to_str(node->type)));
     // clang-format on
     if (!node->type) {
         error(
@@ -245,24 +246,15 @@ void constant_fold_binary(AST* node) {
     if (rhs->kind == AST_GROUPING) rhs = rhs->Grouping.node;
 
     // Remove any + or - where lhs or rhs is 0.
-    if ((lhs->kind == AST_INT && lhs->Int.val == 0) || (lhs->kind == AST_FLOAT && lhs->Float.val == 0.0)) {
-        switch(op) {
-        default: break;
-        case TOKEN_MINUS: // fallthrough
-        case TOKEN_PLUS: 
+    if (op == TOKEN_MINUS || op == TOKEN_PLUS) {
+        if ((lhs->kind == AST_INT && lhs->Int.val == 0) || (lhs->kind == AST_FLOAT && lhs->Float.val == 0.0)) {
             ast_replace(node, rhs); 
             return;
-        }
-    } else if ((rhs->kind == AST_INT && rhs->Int.val == 0) || (rhs->kind == AST_FLOAT && rhs->Float.val == 0.0)) {
-        switch(op) {
-        default: break;
-        case TOKEN_MINUS: // fallthrough
-        case TOKEN_PLUS: 
+        } else if ((rhs->kind == AST_INT && rhs->Int.val == 0) || (rhs->kind == AST_FLOAT && rhs->Float.val == 0.0)) {
             ast_replace(node, lhs); 
             return;
         }
     }
-
 
     if (lhs->kind == AST_INT && rhs->kind == AST_INT) {
         s64 lhs_v = lhs->Int.val;
@@ -511,6 +503,9 @@ int main(int argc, char** argv) {
     // Sanity check.. Make sure the typer did what it was supposed to do.
     thi_run_pass(&thi, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);
 
+    // Write Unoptimized AST out
+    write_to_file("output.thi", ast_to_str(ast));
+
     // Run all passes
     push_timer(&thi, "Run all passes");
     ast_visit(run_all_passes, &thi, ast);
@@ -605,9 +600,8 @@ int main(int argc, char** argv) {
         char* ms = strf("%f seconds", tm->ms / 1e3);
         s64 ms_l = strlen(ms);
         s64 padding = w.ws_col - len - ms_l - 1; // -1 is the ':'
-        info(give_unique_color(strf("%s:%*s%s", tm->desc, padding, "", ms)));
+        info("%s", give_unique_color(strf("%s:%*s%s", tm->desc, padding, "", ms)));
     }
-    write_to_file("output.thi", ast_to_str(ast));
     info("---------------------------");
 
     return 0;

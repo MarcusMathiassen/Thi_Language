@@ -179,7 +179,7 @@ Lexed_File generate_tokens_from_file(char* file) {
     ctx.stream = source;
     ctx.position_of_newline = source;
     ctx.start_of_line = source;
-    ctx.line_count = 1;
+    ctx.line_count = 0;
     ctx.comment_count = 0;
     ctx.previous_indentation_level = 0;
     ctx.current_indentation_level = 0;
@@ -326,7 +326,7 @@ Lexed_File generate_tokens_from_source(char* source) {
 Token get_token(Lexer_Context* ctx) {
     char* c = ctx->stream;
 
-entry:
+// entry:
     skip_whitespace(c);
 
     Token token;
@@ -339,9 +339,11 @@ entry:
     switch (*c) {
     default: break;
     case '#':
+        token.value = c;
+        token.kind = TOKEN_COMMENT;
         skip_comment(c);
-        ctx->comment_count += 1;
-        goto entry;
+        ++ctx->comment_count;
+        goto end;
     case '\n':
         token.kind = TOKEN_NEWLINE;
         ++c; // skip the newline

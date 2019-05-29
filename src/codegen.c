@@ -76,6 +76,7 @@ Value* codegen_node(Codegen_Context* ctx, AST* node) {
             codegen_node(ctx, it->data);
         }
         return NULL;
+    case AST_COMMENT: return NULL;
     case AST_NOP: return NULL;
     case AST_FALLTHROUGH: return NULL;
     case AST_LOAD: return codegen_node(ctx, node->Load.module);

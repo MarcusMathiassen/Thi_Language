@@ -16,6 +16,6 @@
         lea rax, [rbp-8]; addrsof
 [ ] - X64 colored by statements and expressions.
 [ ] - X64 commented by statements and expressions.
-[ ] - Fix ';' terminator handling in parser.
 [ ] - Remove all unused nodes from the AST
 [x] - in Sema, orderless decls are not implemented.
+[ ] - sizeof char returns 8 instead of 1. Why?  

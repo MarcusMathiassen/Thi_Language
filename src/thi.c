@@ -59,6 +59,7 @@ Thi make_thi() {
     thi.field_access = make_ast_ref_list();
 
     // AST_Kind
+    map_set(thi.all_passes_for_all_kinds, "AST_COMMENT", make_list());
     map_set(thi.all_passes_for_all_kinds, "AST_NOP", make_list());
     map_set(thi.all_passes_for_all_kinds, "AST_SPACE_SEPARATED_IDENTIFIER_LIST", make_list());
     map_set(thi.all_passes_for_all_kinds, "AST_COMMA_SEPARATED_LIST", make_list());
@@ -110,6 +111,7 @@ List* thi_get_visitors_for_kind(Thi* thi, AST_Kind kind) {
 
 void thi_remove_all_passes(Thi* thi) {
     // AST_Kind
+    map_set(thi->all_passes_for_all_kinds, "AST_COMMENT", make_list());
     map_set(thi->all_passes_for_all_kinds, "AST_NOP", make_list());
     map_set(thi->all_passes_for_all_kinds, "AST_SPACE_SEPARATED_IDENTIFIER_LIST", make_list());
     map_set(thi->all_passes_for_all_kinds, "AST_COMMA_SEPARATED_LIST", make_list());
@@ -217,7 +219,7 @@ void print_symbol_map(Thi* thi) {
     s64 count = thi->symbol_map->size;
     info("symbol_map count: %d", count);
     for (s64 i = 0; i < count; ++i) {
-        info("key %lld type %s", thi->symbol_map->data[i].key, type_to_str(thi->symbol_map->data[i].data));
+        info("key %s value %s", ucolor(strf("%lld", thi->symbol_map->data[i].key)), ucolor(type_to_str(thi->symbol_map->data[i].data)));
     }
 }
 

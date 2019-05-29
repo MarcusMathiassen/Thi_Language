@@ -84,6 +84,27 @@ void add_node_to_scope(Sema_Context* ctx, AST* node) {
     info("added %s to scope.", ucolor(get_ast_name(node)));
 }
 
+void add_all_decls_in_module(Sema_Context* ctx, AST* node) {
+    LIST_FOREACH(node->Module.top_level) {
+        AST* decl = it->data;
+        switch(decl->kind) {
+            default: error("[%s:%s] illegal top level construct %s", get_ast_name(ctx->module), get_ast_loc_str(decl), ucolor(ast_to_str(decl)));
+            case AST_COMMENT: break;
+            case AST_LINK: break;
+            case AST_LOAD:
+                add_all_decls_in_module(ctx, decl->Load.module);
+                break;
+            case AST_EXTERN: // fallthrough
+            case AST_FUNCTION: // fallthrough
+            case AST_CONSTANT_DECL: // fallthrough
+            case AST_VARIABLE_DECL:// fallthrough
+            case AST_ENUM:// fallthrough
+            case AST_STRUCT:
+                add_node_to_scope(ctx, decl);
+                break;
+        }
+    }
+} 
 void sema_check_node(Sema_Context* ctx, AST* node) {
     assert(ctx);
     if (!node) return;
@@ -103,25 +124,9 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
     // clang-format off
     case AST_MODULE: 
         ctx->module = node;
-
         // To support unordered decls we need to find all before we jump into scopes.
         // So we do a preliminary pass to find all decls and add them to the scope.
-        LIST_FOREACH(node->Module.top_level) {
-            AST* decl = it->data;
-            switch(decl->kind) {
-                default: error("[%s:%s] illegal top level construct %s", get_ast_name(ctx->module), get_ast_loc_str(decl), ucolor(ast_to_str(decl)));
-                case AST_LINK: break;
-                case AST_LOAD: break;
-                case AST_EXTERN: // fallthrough
-                case AST_FUNCTION: // fallthrough
-                case AST_CONSTANT_DECL: // fallthrough
-                case AST_VARIABLE_DECL:// fallthrough
-                case AST_ENUM:// fallthrough
-                case AST_STRUCT:
-                    add_node_to_scope(ctx, decl);
-                    break;
-            }
-        }
+        add_all_decls_in_module(ctx, node);
         LIST_FOREACH(node->Module.top_level) {
             sema_check_node(ctx, it->data);
         }
@@ -130,6 +135,7 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
     case AST_SIZEOF: sema_check_node(ctx, node->Sizeof.node);      break;
     case AST_NOTE:   sema_check_node(ctx, node->Note.node);        break;
     
+    case AST_COMMENT: break;
     case AST_NOP: break;
     case AST_FALLTHROUGH: break;
     case AST_LOAD: 
