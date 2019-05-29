@@ -113,7 +113,9 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
     
     case AST_NOP: break;
     case AST_FALLTHROUGH: break;
-    case AST_LOAD:        break;
+    case AST_LOAD: 
+        sema_check_node(ctx, node->Load.module);      
+        break;
     case AST_LINK:        break;
     case AST_INT:         break;
     case AST_FLOAT:       break;

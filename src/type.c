@@ -245,18 +245,16 @@ char* type_to_str_r(String_Context* ctx, Type* type) {
     }
     case TYPE_ENUM: // fallthrough
     case TYPE_STRUCT: {
-        string_append_f(s, "%s\n", get_type_name(type));
-        ctx->indentation_level += DEFAULT_INDENT_LEVEL;
+        string_append_f(s, "%s = { ", get_type_name(type));
         LIST_FOREACH(type_get_members(type)) {
             Type_Name_Pair* mem = it->data;
-            string_append(s, get_indentation_as_str(ctx->indentation_level));
             if (mem->name)
                 string_append_f(s, "%s %s", mem->name, get_type_name(mem->type));
             else
                 string_append_f(s, "%s", get_type_name(mem->type));
             if (it->next) string_append(s, ", ");
         }
-        ctx->indentation_level -= DEFAULT_INDENT_LEVEL;
+        string_append(s, " }");
         break;
     };
 

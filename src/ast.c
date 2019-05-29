@@ -175,7 +175,7 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         break;
     }
     case AST_MODULE: {
-        string_append_f(s, "# %s\n", get_ast_name(node));
+        // string_append_f(s, "# %s\n", get_ast_name(node));
         LIST_FOREACH(node->Module.top_level) {
             ast_to_str_r(ctx, it->data);
             string_append(s, "\n");
@@ -221,7 +221,7 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         break;
     }
     case AST_LOAD: {
-        string_append_f(s, "load  \"%s\"", node->Load.str);
+        string_append_f(s, "load \"%s\"", node->Load.str);
         break;
     }
     case AST_LINK: {
@@ -500,7 +500,9 @@ void ast_visit(void (*func)(void*, AST*), void* ctx, AST* node) {
     case AST_NOTE:   ast_visit(func, ctx, node->Note.node);        break;
     
     case AST_FALLTHROUGH: break;
-    case AST_LOAD:        break;
+    case AST_LOAD:
+        ast_visit(func, ctx, node->Load.module);
+        break;
     case AST_LINK:        break;
     case AST_INT:         break;
     case AST_FLOAT:       break;
@@ -610,8 +612,7 @@ AST* get_arg_from_func(Type* func_t, s64 arg_index) {
     return node;
 }
 
-AST_Ref_List
-make_ast_ref_list() {
+AST_Ref_List make_ast_ref_list() {
     AST_Ref_List l;
     l.count = 0;
     l.allocated = AST_REF_LIST_STARTING_ALLOC;
@@ -621,11 +622,10 @@ make_ast_ref_list() {
 
 void ast_ref_list_append(AST_Ref_List* l, AST* a) {
     if (l->count >= l->allocated) {
-        l->allocated *= 2;
+        l->allocated *= 1.5;
         l->data = xrealloc(l->data, l->allocated * sizeof(AST*));
     }
-    l->data[l->count] = a;
-    l->count += 1;
+    l->data[l->count++] = a;
 }
 
 void ast_add_edge(AST* a, AST* dep) {
@@ -703,10 +703,12 @@ AST* make_ast_extern(Loc_Info loc_info, Type* type) {
     return e;
 }
 
-AST* make_ast_load(Loc_Info loc_info, char* str) {
+AST* make_ast_load(Loc_Info loc_info, char* str, AST* module) {
     assert(str);
+    assert(module);
     AST* e = make_ast(AST_LOAD, loc_info);
     e->Load.str = str;
+    e->Load.module = module;
     return e;
 }
 

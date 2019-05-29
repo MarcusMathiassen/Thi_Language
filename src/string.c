@@ -67,19 +67,9 @@ void string_append(string* this, char* str) {
     s64 str_len = strlen(str);
     if (str_len == 0) return;
     assert(this->len <= this->cap);
-    while (this->cap < this->len + str_len + 1) {
-        /* Doubling growth strategy. */
-        this->cap <<= 1;
-        if (this->cap == 0) {
-            /* Left shift of max bits will go to 0. An unsigned type set to
-             * -1 will return the maximum possible size. However, we should
-             *  have run out of memory well before we need to do this. Since
-             *  this is the theoretical maximum total system memory we don't
-             *  have a flag saying we can't grow any more because it should
-             *  be impossible to get to this point. */
-            this->cap--;
-        }
-        this->c_str = xrealloc(this->c_str, this->cap);
+    while (this->len + str_len + 1 > this->cap) {
+        this->cap *= PHI;
+        this->c_str = xrealloc(this->c_str, this->cap * sizeof(char));
     }
     memcpy(this->c_str + this->len, str, str_len);
     this->len += str_len;

@@ -462,7 +462,7 @@ int main(int argc, char** argv) {
         success("file: %s", it->data);
     }
 
-    info(ast_to_str(ast));
+    info("%s", ast_to_str(ast));
     thi.ast = ast;
 
     info("Running passes");
@@ -573,7 +573,7 @@ int main(int argc, char** argv) {
     // char* json = ast_to_json(ast);
     // write_to_file("ast.json", json);
 
-    info(ast_to_str(ast));
+    info("%s", ast_to_str(ast));
 
     // Codegen
     push_timer(&thi, "Codegen");

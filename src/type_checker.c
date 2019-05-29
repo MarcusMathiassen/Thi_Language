@@ -91,7 +91,7 @@ Type* type_check_node(Typer_Context* ctx, AST* node) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
     case AST_NOP:            result = NULL;                                                   break;
     case AST_FALLTHROUGH:    result = NULL;                                                   break;
-    case AST_LOAD:           result = NULL;                                                   break;
+    case AST_LOAD:           result = type_check_node(ctx, node->Load.module);                                                   break;
     case AST_LINK:           result = NULL;                                                   break;
     case AST_TYPEOF:         result = type_check_typeof        (ctx, node);                   break;
     case AST_SIZEOF:         result = type_check_sizeof        (ctx, node);                   break;
@@ -228,7 +228,6 @@ Type* type_check_call(Typer_Context* ctx, AST* node) {
     // if (func_t->Function.return_type->kind == TYPE_UNRESOLVED) {
     //     func_t->Function.return_type = map_get(ctx->symbol_table, get_type_name(func_t->Function.return_type));
     // }
-    // info(type_to_str( func_t));
     LIST_FOREACH(args) {
         type_check_node(ctx, it->data);
     }

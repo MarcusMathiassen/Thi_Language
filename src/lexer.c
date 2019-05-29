@@ -815,12 +815,11 @@ Token_Array make_token_array() {
 }
 
 void token_array_append(Token_Array* l, Token t) {
-    if (l->count >= l->allocated) {
-        l->allocated *= 2;
+    if (l->count > l->allocated) {
+        l->allocated *= PHI;
         l->data = xrealloc(l->data, l->allocated * sizeof(Token));
     }
-    l->data[l->count] = t;
-    l->count += 1;
+    l->data[l->count++] = t;
 }
 
 Intern_Array make_intern_array() {
@@ -832,12 +831,11 @@ Intern_Array make_intern_array() {
 }
 
 void intern_array_append(Intern_Array* l, Intern intern) {
-    if (l->count >= l->allocated) {
-        l->allocated *= 2;
+    if (l->count > l->allocated) {
+        l->allocated *= PHI;
         l->data = xrealloc(l->data, l->allocated * sizeof(Intern));
     }
-    l->data[l->count] = intern;
-    l->count += 1;
+    l->data[l->count++] = intern;
 }
 
 char* intern(Intern_Array* interns, char* str) {

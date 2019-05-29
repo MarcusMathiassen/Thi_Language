@@ -24,6 +24,9 @@
 //------------------------------------------------------------------------------
 //                               Printing Functions
 //------------------------------------------------------------------------------
+// These must always be called with a fmt.
+// ex. 'info(my_str)' will crash if 'my_str' contains format specifiers.
+//      so always do this 'info("%s", my_str)' instead.
 void info(char* fmt, ...);
 void warning(char* fmt, ...);
 void success(char* fmt, ...);

@@ -67,6 +67,15 @@ section .data
 	d6: dq 5.000000
 	d7: dq 3.000000
 	d8: dq `f = %f x = %f\n`, 0 
+	d9: dq `c = %c, sizeof c = %d\n`, 0 
+	d10: dq `v2`, 0 
+	d11: dq `typeof v = %s\n`, 0 
+	d12: dq `f64`, 0 
+	d13: dq `typeof v.x = %s\n`, 0 
+	d14: dq `f64`, 0 
+	d15: dq `typeof v.y = %s\n`, 0 
+	d16: dq `f64`, 0 
+	d17: dq `typeof f = %s\n`, 0 
 global _main
 section .text
 _change:
@@ -88,7 +97,7 @@ _change:
 _main:
 		push rbp
 		mov rbp, rsp
-		sub rsp, 80; 68 alloc, 12 padding
+		sub rsp, 80; 69 alloc, 11 padding
 .begin:
 		mov [rbp-4], edi; store_r argc at 4
 		mov [rbp-12], rsi; store_r argv at 12
@@ -251,6 +260,54 @@ _main:
 		add rsp, 8
 		mov al, 3; var_arg_count
 		call _printf
+		mov rax, 72
+		push rax
+		pop rcx
+		mov [rbp-69], cl; store c of type 'u8' at 69
+		mov al, [rbp-69]; load c of type 'u8' from 69
+		mov rax, 8
+		push rax
+		mov al, [rbp-69]; load c of type 'u8' from 69
+		push rax
+		mov rax, d9; string_ref
+		push rax
+		pop rdi
+		pop rsi
+		pop rdx
+		mov al, 3; var_arg_count
+		call _printf
+		mov rax, d10; string_ref
+		push rax
+		mov rax, d11; string_ref
+		push rax
+		pop rdi
+		pop rsi
+		mov al, 2; var_arg_count
+		call _printf
+		mov rax, d12; string_ref
+		push rax
+		mov rax, d13; string_ref
+		push rax
+		pop rdi
+		pop rsi
+		mov al, 2; var_arg_count
+		call _printf
+		mov rax, d14; string_ref
+		push rax
+		mov rax, d15; string_ref
+		push rax
+		pop rdi
+		pop rsi
+		mov al, 2; var_arg_count
+		call _printf
+		mov rax, d16; string_ref
+		push rax
+		mov rax, d17; string_ref
+		push rax
+		pop rdi
+		pop rsi
+		mov al, 2; var_arg_count
+		call _printf
 		mov rax, [rbp-28]; load k of type 's64*' from 28
 		push rax
 		pop rdi
@@ -258,6 +315,6 @@ _main:
 		mov rax, [rbp-20]; load i of type 's64' from 20
 		jmp .end
 .end:
-		add rsp, 80; 68 alloc, 12 padding
+		add rsp, 80; 69 alloc, 11 padding
 		leave
 		ret

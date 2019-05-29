@@ -349,7 +349,7 @@ AST* parse_load(Parser_Context* ctx) {
 
     // parse the file
     AST* module = parse(ctx, file);
-    return module ? module : make_ast_load(loc(ctx), file);
+    return make_ast_load(loc(ctx), file, module);
 }
 
 AST* parse_link(Parser_Context* ctx) {

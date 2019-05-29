@@ -64,10 +64,6 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-f"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "./tests/test_basic_setup.thi"
             isEnabled = "YES">
          </CommandLineArgument>

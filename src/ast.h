@@ -121,6 +121,7 @@ struct AST {
         struct
         {
             char* str;
+            AST* module;
         } Load;
         struct
         {
@@ -268,7 +269,7 @@ List* generate_ast_from_cst(List* cst);
 AST* make_ast_nop(Loc_Info loc_info);
 AST* make_ast_module(Loc_Info loc_info, char* name, List* top_level);
 AST* make_ast_extern(Loc_Info loc_info, Type* type);
-AST* make_ast_load(Loc_Info loc_info, char* str);
+AST* make_ast_load(Loc_Info loc_info, char* str, AST* module);
 AST* make_ast_link(Loc_Info loc_info, char* str);
 AST* make_ast_var_args(Loc_Info loc_info);
 AST* make_ast_note(Loc_Info loc_info, AST* node);
