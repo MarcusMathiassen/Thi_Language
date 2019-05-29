@@ -40,7 +40,7 @@ typedef struct
 
     bool inside_parens;
 
-    Map*  symbols;
+    Map* symbols;
     List* loads;
 
     Token top_tok;
@@ -53,25 +53,25 @@ typedef struct
 } Parser_Context;
 
 Parser_Context make_parser_context(void);
-s64            get_integer(Parser_Context* ctx);
-f64            get_float(Parser_Context* ctx);
-int            get_tok_precedence(Parser_Context* ctx);
-Token          next_tok(Parser_Context* ctx);
+s64 get_integer(Parser_Context* ctx);
+f64 get_float(Parser_Context* ctx);
+int get_tok_precedence(Parser_Context* ctx);
+Token next_tok(Parser_Context* ctx);
 Token_Kind
 next_tok_kind(Parser_Context* ctx);
 Loc_Info loc(Parser_Context* ctx);
-bool     tok_is_on_same_line(Parser_Context* ctx);
-bool     next_tok_is_on_same_line(Parser_Context* ctx);
-bool     tok_is(Parser_Context* ctx, Token_Kind kind);
-void     eat(Parser_Context* ctx);
-void     eat_kind(Parser_Context* ctx, Token_Kind kind);
-void     set_if_statement(Parser_Context* ctx, AST* if_statement);
-void     restore_if_statement(Parser_Context* ctx);
-void     set_dangling_else(Parser_Context* ctx, AST* else_block);
+bool tok_is_on_same_line(Parser_Context* ctx);
+bool next_tok_is_on_same_line(Parser_Context* ctx);
+bool tok_is(Parser_Context* ctx, Token_Kind kind);
+void eat(Parser_Context* ctx);
+void eat_kind(Parser_Context* ctx, Token_Kind kind);
+void set_if_statement(Parser_Context* ctx, AST* if_statement);
+void restore_if_statement(Parser_Context* ctx);
+void set_dangling_else(Parser_Context* ctx, AST* else_block);
 
 Token_Kind tokKind(Parser_Context* ctx);
-char*      tokValue(Parser_Context* ctx);
-Token      currTok(Parser_Context* ctx);
-Token      prevTok(Parser_Context* ctx);
+char* tokValue(Parser_Context* ctx);
+Token currTok(Parser_Context* ctx);
+Token prevTok(Parser_Context* ctx);
 
 #endif

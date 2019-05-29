@@ -140,33 +140,33 @@ typedef enum {
 typedef struct
 {
     Token_Kind kind;
-    char*      value;
-    s64        line_pos, col_pos;
+    char* value;
+    s64 line_pos, col_pos;
 } Token;
 
 typedef struct
 {
     Token* data;
-    s64    count;
-    s64    allocated;
+    s64 count;
+    s64 allocated;
 } Token_Array;
 
 typedef struct
 {
     Token_Array tokens;
-    s64         lines;
-    s64         comments;
-    f64         seconds;
+    s64 lines;
+    s64 comments;
+    f64 seconds;
 } Lexed_File;
 
-void       print_tokens(Token_Array tokens);
-void       print_token(Token token);
-char*      token_to_str(Token token);
-char*      token_to_json(Token token);
-char*      token_kind_to_str(Token_Kind kind);
+void print_tokens(Token_Array tokens);
+void print_token(Token token);
+char* token_to_str(Token token);
+char* token_to_json(Token token);
+char* token_kind_to_str(Token_Kind kind);
 Lexed_File generate_tokens_from_file(char* file);
 Lexed_File generate_tokens_from_source(char* source);
-void       lexer_test(void);
+void lexer_test(void);
 
 #define THI_SYNTAX_POINTER TOKEN_ASTERISK
 #define THI_SYNTAX_ADDRESS TOKEN_AND

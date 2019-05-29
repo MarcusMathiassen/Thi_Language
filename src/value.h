@@ -46,17 +46,17 @@ typedef enum {
 
 struct Value {
     Value_Kind kind;
-    Type*      type;
+    Type* type;
     union {
         struct
         {
             char* name;
-            s64   stack_pos;
+            s64 stack_pos;
         } Variable;
         struct
         {
             char* name;
-            s64   stack_allocated;
+            s64 stack_allocated;
         } Function;
         struct
         {
@@ -67,13 +67,13 @@ struct Value {
         } Float;
         struct
         {
-            u8  bytes;
+            u8 bytes;
             s64 value;
         } Int;
         struct
         {
             char* value;
-            s64   len;
+            s64 len;
         } String;
         struct
         {
@@ -82,12 +82,12 @@ struct Value {
         struct
         {
             Value* variable;
-            s64    offset;
+            s64 offset;
         } LoadInst;
         struct
         {
             Value* variable;
-            s64    offset;
+            s64 offset;
         } StoreInst;
     };
 };

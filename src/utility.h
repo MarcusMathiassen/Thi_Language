@@ -42,7 +42,7 @@ char* remove_file_extension(char* filename);
 char* get_file_directory(char* filename);
 char* get_file_name(char* filename);
 char* get_file_content(char* filename);
-void  write_to_file(char* filename, char* buffer);
+void write_to_file(char* filename, char* buffer);
 //------------------------------------------------------------------------------
 //                               General Purpose
 //------------------------------------------------------------------------------

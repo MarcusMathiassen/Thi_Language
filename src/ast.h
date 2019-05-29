@@ -36,7 +36,6 @@ typedef enum {
 } BlockFlags;
 
 typedef enum {
-    AST_COMMENT,
     AST_NOP,
     AST_SPACE_SEPARATED_IDENTIFIER_LIST,
     AST_COMMA_SEPARATED_LIST,
@@ -86,14 +85,10 @@ typedef struct AST AST;
 
 struct AST {
     AST_Kind kind;
-    Type*    type;
+    Type* type;
     Loc_Info loc_info;
-    List*    edges;
+    List* edges;
     union {
-        struct
-        {
-            char* text;
-        } Comment;
         struct
         {
             List* identifiers;
@@ -142,7 +137,7 @@ struct AST {
         struct
         {
             List* stmts;
-            u8    flags;
+            u8 flags;
         } Block;
         struct
         {
@@ -174,7 +169,7 @@ struct AST {
         {
             char* name;
             List* parameters;
-            AST*  body;
+            AST* body;
             List* defers;
         } Function;
         struct
@@ -189,24 +184,24 @@ struct AST {
         struct
         {
             Token_Kind op;
-            AST*       operand;
+            AST* operand;
         } Unary;
         struct
         {
             Token_Kind op;
-            AST*       lhs;
-            AST*       rhs;
+            AST* lhs;
+            AST* rhs;
         } Binary;
         struct
         {
             char* name;
             Type* type;
-            AST*  value;
+            AST* value;
         } Variable_Decl;
         struct
         {
             char* name;
-            AST*  value;
+            AST* value;
         } Constant_Decl;
         struct
         {
@@ -215,7 +210,7 @@ struct AST {
         } Subscript;
         struct
         {
-            AST*  load;
+            AST* load;
             char* field;
         } Field_Access;
         struct
@@ -270,7 +265,6 @@ struct AST {
 
 List* generate_ast_from_cst(List* cst);
 
-AST* make_ast_comment(Loc_Info loc_info, char* text);
 AST* make_ast_nop(Loc_Info loc_info);
 AST* make_ast_module(Loc_Info loc_info, char* name, List* top_level);
 AST* make_ast_extern(Loc_Info loc_info, Type* type);
@@ -310,10 +304,10 @@ AST* make_ast_continue(Loc_Info loc_info);
 AST* make_ast_space_separated_identifier_list(Loc_Info loc_info, List* identifiers);
 AST* make_ast_comma_separated_list(Loc_Info loc_info, List* nodes);
 
-AST*  get_arg_from_func(Type* func_t, s64 arg_index);
-void  ast_tests(void);
-void  ast_visit(void (*func)(void*, AST*), void* ctx, AST* node);
-void  ast_replace(AST* a, AST* b);
+AST* get_arg_from_func(Type* func_t, s64 arg_index);
+void ast_tests(void);
+void ast_visit(void (*func)(void*, AST*), void* ctx, AST* node);
+void ast_replace(AST* a, AST* b);
 char* ast_to_json(AST* node);
 char* get_ast_name(AST* node);
 
@@ -324,11 +318,11 @@ char* ast_kind_to_str(AST_Kind kind);
 
 typedef struct {
     AST** data;
-    s64   count;
-    s64   allocated;
+    s64 count;
+    s64 allocated;
 } AST_Ref_List;
 
 AST_Ref_List make_ast_ref_list(void);
-void         ast_ref_list_append(AST_Ref_List* l, AST* a);
+void ast_ref_list_append(AST_Ref_List* l, AST* a);
 
 #endif

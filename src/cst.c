@@ -109,8 +109,8 @@ void cst_visit(void (*func)(void*, CST*), void* ctx, CST* node) {
 
 typedef struct {
     Token* tokens;
-    Token  prev;
-    Token  curr;
+    Token prev;
+    Token curr;
 } CST_Parser_Context;
 
 static Token curr(CST_Parser_Context* ctx) {
@@ -128,7 +128,7 @@ static Token_Kind kind(CST_Parser_Context* ctx) {
 static Loc_Info loc(CST_Parser_Context* ctx) {
     Loc_Info loc_info;
     loc_info.line_pos = curr(ctx).line_pos;
-    loc_info.col_pos  = curr(ctx).col_pos;
+    loc_info.col_pos = curr(ctx).col_pos;
     return loc_info;
 }
 
@@ -190,7 +190,7 @@ List* generate_cst_from_tokens(Token* tokens) {
     info("Generating CST from tokens..");
 
     CST_Parser_Context ctx;
-    ctx.tokens    = tokens;
+    ctx.tokens = tokens;
     ctx.curr.kind = TOKEN_UNKNOWN;
     ctx.prev.kind = TOKEN_UNKNOWN;
 
@@ -228,32 +228,32 @@ void cst_tests(void) {
 //------------------------------------------------------------------------------
 
 CST* make_cst(Loc_Info loc_info, CST_Kind kind) {
-    CST* e      = xmalloc(sizeof(CST));
+    CST* e = xmalloc(sizeof(CST));
     e->loc_info = loc_info;
-    e->kind     = kind;
+    e->kind = kind;
     return e;
 }
 
 CST* make_cst_token(Loc_Info loc_info, Token token) {
-    CST* e   = make_cst(loc_info, CST_TOKEN);
+    CST* e = make_cst(loc_info, CST_TOKEN);
     e->token = token;
     return e;
 }
 CST* make_cst_identifier(Loc_Info loc_info, char* name) {
     assert(name);
-    CST* e             = make_cst(loc_info, CST_IDENTIFIER);
+    CST* e = make_cst(loc_info, CST_IDENTIFIER);
     e->Identifier.name = name;
     return e;
 }
 CST* make_cst_space_separated_identifier_list(Loc_Info loc_info, List* identifiers) {
     assert(identifiers);
-    CST* e                                         = make_cst(loc_info, CST_SPACE_SEPARATED_IDENTIFIER_LIST);
+    CST* e = make_cst(loc_info, CST_SPACE_SEPARATED_IDENTIFIER_LIST);
     e->Space_Separated_Identifier_List.identifiers = identifiers;
     return e;
 }
 CST* make_cst_comma_separated_list(Loc_Info loc_info, List* nodes) {
     assert(nodes);
-    CST* e                        = make_cst(loc_info, CST_COMMA_SEPARATED_LIST);
+    CST* e = make_cst(loc_info, CST_COMMA_SEPARATED_LIST);
     e->Comma_Separated_List.nodes = nodes;
     return e;
 }

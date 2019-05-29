@@ -68,7 +68,7 @@ struct CST {
         struct
         {
             char* name;
-            CST*  top_level;
+            CST* top_level;
         } Module;
         struct
         {
@@ -129,7 +129,7 @@ struct CST {
         struct
         {
             Type* type;
-            CST*  body;
+            CST* body;
             List* defers;
         } Function;
         struct
@@ -144,24 +144,24 @@ struct CST {
         struct
         {
             Token_Kind op;
-            CST*       operand;
+            CST* operand;
         } Unary;
         struct
         {
             Token_Kind op;
-            CST*       lhs;
-            CST*       rhs;
+            CST* lhs;
+            CST* rhs;
         } Binary;
         struct
         {
             char* name;
             Type* type;
-            CST*  value;
+            CST* value;
         } Variable_Decl;
         struct
         {
             char* name;
-            CST*  value;
+            CST* value;
         } Constant_Decl;
         struct
         {
@@ -170,7 +170,7 @@ struct CST {
         } Subscript;
         struct
         {
-            CST*  load;
+            CST* load;
             char* field;
         } Field_Access;
         struct
@@ -230,7 +230,7 @@ CST* make_cst_identifier(Loc_Info loc_info, char* name);
 CST* make_cst_space_separated_identifier_list(Loc_Info loc_info, List* identifiers);
 CST* make_cst_comma_separated_list(Loc_Info loc_info, List* nodes);
 
-void  cst_tests(void);
+void cst_tests(void);
 char* cst_kind_to_str(CST_Kind kind);
 char* cst_to_str(CST* node);
 

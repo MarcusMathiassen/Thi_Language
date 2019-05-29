@@ -22,14 +22,14 @@
 //                               main.c
 //------------------------------------------------------------------------------
 
-#include "ast.h"       // AST, AST_Kind
-#include "codegen.h"   // generate_code_from_ast
-#include "constants.h" // all constnats
-#include "lexer.h"     // generate_tokens_from_source, print_tokens
-#include "list.h"      // list_tests
-#include "sema.h"      // semantic_analysis
+#include "ast.h"          // AST, AST_Kind
+#include "codegen.h"      // generate_code_from_ast
+#include "constants.h"    // all constnats
+#include "lexer.h"        // generate_tokens_from_source, print_tokens
+#include "list.h"         // list_tests
 #include "map.h"          // map
 #include "parser.h"       // generate_ast_from_tokens
+#include "sema.h"         // semantic_analysis
 #include "stack.h"        // stack_tests
 #include "string.h"       // strcmp
 #include "thi.h"          // Thi
@@ -54,7 +54,7 @@ void linking_stage(Thi* thi, char* exec_name);
 
 // Replaces 'sizeof <expr>' calls with the size of the resulting expr.
 void resolve_sizeofs(void* dont_care, AST* node) {
-    s64  size           = get_size_of_type(node->type);
+    s64 size = get_size_of_type(node->type);
     AST* constant_value = make_ast_int(node->loc_info, size);
     ast_replace(node, constant_value);
 }
@@ -64,14 +64,14 @@ void resolve_typeofs(void* dont_care, AST* node) {
     ast_replace(node, string_value);
 }
 
-// Resolving subscripts means changing 
+// Resolving subscripts means changing
 // <load>[<expr>]
 // into
 // *(&<load> + sizeof(*load) * <expr>)
 void resolve_subscript(void* dont_care, AST* node) {
 
-    AST*  load          = node->Subscript.load;
-    AST*  sub           = node->Subscript.sub;
+    AST* load = node->Subscript.load;
+    AST* sub = node->Subscript.sub;
     Type* type_of_field = node->type;
 
     s64 size = get_size_of_underlying_type_if_any(load->type);
@@ -86,17 +86,15 @@ void resolve_subscript(void* dont_care, AST* node) {
 
 void resolve_field_access(void* dont_care, AST* node) {
 
-    AST*  load          = node->Field_Access.load;
-    char* field_name    = node->Field_Access.field;
+    AST* load = node->Field_Access.load;
+    char* field_name = node->Field_Access.field;
     Type* type_of_field = node->type;
 
-    s64  offset_size = get_offset_in_struct_to_field(load->type, field_name);
-    AST* offset      = make_ast_int(node->loc_info, offset_size);
+    s64 offset_size = get_offset_in_struct_to_field(load->type, field_name);
+    AST* offset = make_ast_int(node->loc_info, offset_size);
 
     AST* res = make_ast_unary(node->loc_info, THI_SYNTAX_ADDRESS, load);
-    res->type = make_type_pointer(load->type);
     res = make_ast_binary(node->loc_info, TOKEN_PLUS, res, offset);
-    res->type = make_type_pointer(load->type);
     res = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, res);
     res->type = type_of_field;
 
@@ -108,8 +106,8 @@ void pass_initilize_enums(void* thi, AST* node) {
     default: break;
     case AST_ENUM: {
 
-        s64  counter = 0;
-        AST* e       = node;
+        s64 counter = 0;
+        AST* e = node;
         LIST_FOREACH(e->Enum.members) {
             AST* m = it->data;
             // Turn idents into constant decls
@@ -169,7 +167,6 @@ void make_sure_all_nodes_have_a_valid_type(void* dont_care, AST* node) {
     info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(node)), give_unique_color(type_to_str(node->type)));
     // clang-format off
     switch (node->kind) {
-    case AST_COMMENT:     // fallthrough
     case AST_NOP:         // fallthrough
     case AST_MODULE:      // fallthrough
     case AST_LOAD:        // fallthrough
@@ -206,135 +203,137 @@ void visitor_resolve_unresolved_types(void* thi, AST* node) {
     }
 }
 
-void constant_fold(void* ctx, AST* node) {
-    switch (node->kind) {
-    case AST_BINARY: {
-        Token_Kind op  = node->Binary.op;
-        AST*       lhs = node->Binary.lhs;
-        AST*       rhs = node->Binary.rhs;
-        if (lhs->kind == AST_GROUPING) lhs = lhs->Grouping.node;
-        if (rhs->kind == AST_GROUPING) rhs = rhs->Grouping.node;
+void constant_fold_unary(AST* node) {
+    AST* operand = node->Unary.operand;
+    if (operand->kind == AST_GROUPING) operand = operand->Grouping.node;
+
+    // ex. &(*x) is the same as x
+    // ex. *(&x) is the same as x
+    if (operand->kind == AST_UNARY) {
+        Token_Kind op = node->Unary.op;
+        switch (op) {
+        default: break;
+        case THI_SYNTAX_POINTER: ast_replace(node, operand->Unary.op == THI_SYNTAX_ADDRESS ? operand->Unary.operand : operand); break;
+        case THI_SYNTAX_ADDRESS: ast_replace(node, operand->Unary.op == THI_SYNTAX_POINTER ? operand->Unary.operand : operand); break;
+        }
+    }
+
+    if (operand->kind == AST_INT) {
+        Token_Kind op = node->Unary.op;
+        s64 oper_v = operand->Int.val;
+        s64 value = 0;
+        // clang-format off
+        switch (op) {
+        case TOKEN_BANG:    value = !oper_v; break;
+        case TOKEN_PLUS:    value = oper_v;  break;
+        case TOKEN_TILDE:   value = ~oper_v; break;
+        case TOKEN_MINUS:   value = -oper_v; break;
+        default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
+        }
+        // clang-format on
+        AST* constant_value = make_ast_int(node->loc_info, value);
+        ast_replace(node, constant_value);
+    }
+}
+void constant_fold_binary(AST* node) {
+    Token_Kind op = node->Binary.op;
+    AST* lhs = node->Binary.lhs;
+    AST* rhs = node->Binary.rhs;
+    if (lhs->kind == AST_GROUPING) lhs = lhs->Grouping.node;
+    if (rhs->kind == AST_GROUPING) rhs = rhs->Grouping.node;
+
+    switch (op) {
+    case TOKEN_PLUS:     // fallthrough
+    case TOKEN_MINUS:    // fallthrough
+    case TOKEN_ASTERISK: // fallthrough
+    case TOKEN_FWSLASH:
+        if (lhs->kind == AST_INT && lhs->Int.val == 0) {
+            ast_replace(node, rhs);
+            // ..the same for the rhs side
+        } else if (rhs->kind == AST_INT && rhs->Int.val == 0) {
+            ast_replace(node, lhs);
+        }
+    default: break;
+    }
+
+    if (lhs->kind == AST_INT && rhs->kind == AST_INT) {
+        s64 lhs_v = lhs->Int.val;
+        s64 rhs_v = rhs->Int.val;
+        s64 value = 0;
+        // clang-format off
+        switch (op) {
+        default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
+        case TOKEN_EQ_EQ:         value = (lhs_v == rhs_v); break;
+        case TOKEN_BANG_EQ:       value = (lhs_v != rhs_v); break;
+        case TOKEN_PLUS:          value = (lhs_v + rhs_v);  break;
+        case TOKEN_MINUS:         value = (lhs_v - rhs_v);  break;
+        case TOKEN_ASTERISK:      value = (lhs_v * rhs_v);  break;
+        case TOKEN_FWSLASH:       value = (lhs_v / rhs_v);  break;
+        case TOKEN_AND:           value = (lhs_v & rhs_v);  break;
+        case TOKEN_PIPE:          value = (lhs_v | rhs_v);  break;
+        case TOKEN_LT:            value = (lhs_v < rhs_v);  break;
+        case TOKEN_GT:            value = (lhs_v > rhs_v);  break;
+        case TOKEN_GT_GT:         value = (lhs_v >> rhs_v); break;
+        case TOKEN_LT_LT:         value = (lhs_v << rhs_v); break;
+        case TOKEN_PERCENT:       value = (lhs_v % rhs_v);  break;
+        case TOKEN_HAT:           value = (lhs_v ^ rhs_v);  break;
+        case TOKEN_AND_AND:       value = (lhs_v && rhs_v); break;
+        case TOKEN_PIPE_PIPE:     value = (lhs_v || rhs_v); break;
+        case TOKEN_QUESTION_MARK: return;
+        case TOKEN_COLON:         return;
+        }
+        // clang-format on
+        ast_replace(node, make_ast_int(node->loc_info, value));
+    } else if (lhs->kind == AST_FLOAT && rhs->kind == AST_FLOAT) {
+        f64 lhs_v = lhs->Float.val;
+        f64 rhs_v = rhs->Float.val;
+        f64 value = 0.0;
 
         switch (op) {
         case TOKEN_PLUS:     // fallthrough
         case TOKEN_MINUS:    // fallthrough
         case TOKEN_ASTERISK: // fallthrough
         case TOKEN_FWSLASH:
-            if (lhs->kind == AST_INT && lhs->Int.val == 0) {
+            if (lhs->kind == AST_FLOAT && lhs->Float.val == 0.0) {
                 ast_replace(node, rhs);
                 // ..the same for the rhs side
-            } else if (rhs->kind == AST_INT && rhs->Int.val == 0) {
+            } else if (rhs->kind == AST_FLOAT && rhs->Float.val == 0.0) {
                 ast_replace(node, lhs);
             }
         default: break;
         }
 
-        if (lhs->kind == AST_INT && rhs->kind == AST_INT) {
-            s64 lhs_v = lhs->Int.val;
-            s64 rhs_v = rhs->Int.val;
-            s64 value = 0;
-            // clang-format off
-            switch (op) {
-            case TOKEN_EQ_EQ:         value = (lhs_v == rhs_v); break;
-            case TOKEN_BANG_EQ:       value = (lhs_v != rhs_v); break;
-            case TOKEN_PLUS:          value = (lhs_v + rhs_v);  break;
-            case TOKEN_MINUS:         value = (lhs_v - rhs_v);  break;
-            case TOKEN_ASTERISK:      value = (lhs_v * rhs_v);  break;
-            case TOKEN_FWSLASH:       value = (lhs_v / rhs_v);  break;
-            case TOKEN_AND:           value = (lhs_v & rhs_v);  break;
-            case TOKEN_PIPE:          value = (lhs_v | rhs_v);  break;
-            case TOKEN_LT:            value = (lhs_v < rhs_v);  break;
-            case TOKEN_GT:            value = (lhs_v > rhs_v);  break;
-            case TOKEN_GT_GT:         value = (lhs_v >> rhs_v); break;
-            case TOKEN_LT_LT:         value = (lhs_v << rhs_v); break;
-            case TOKEN_PERCENT:       value = (lhs_v % rhs_v);  break;
-            case TOKEN_HAT:           value = (lhs_v ^ rhs_v);  break;
-            case TOKEN_AND_AND:       value = (lhs_v && rhs_v); break;
-            case TOKEN_PIPE_PIPE:     value = (lhs_v || rhs_v); break;
-            case TOKEN_QUESTION_MARK: return;
-            case TOKEN_COLON:         return;
-            default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
-            }
-            // clang-format on
-            ast_replace(node, make_ast_int(node->loc_info, value));
-        } else if (lhs->kind == AST_FLOAT && rhs->kind == AST_FLOAT) {
-            f64 lhs_v = lhs->Float.val;
-            f64 rhs_v = rhs->Float.val;
-            f64 value = 0.0;
-
-            switch (op) {
-            case TOKEN_PLUS:     // fallthrough
-            case TOKEN_MINUS:    // fallthrough
-            case TOKEN_ASTERISK: // fallthrough
-            case TOKEN_FWSLASH:
-                if (lhs->kind == AST_FLOAT && lhs->Float.val == 0.0) {
-                    ast_replace(node, rhs);
-                    // ..the same for the rhs side
-                } else if (rhs->kind == AST_FLOAT && rhs->Float.val == 0.0) {
-                    ast_replace(node, lhs);
-                }
-            default: break;
-            }
-
-            // clang-format off
-            switch (op) {
-            case TOKEN_EQ_EQ:     value = (lhs_v == rhs_v); break;
-            case TOKEN_BANG_EQ:   value = (lhs_v != rhs_v); break;
-            case TOKEN_PLUS:      value = (lhs_v + rhs_v);  break;
-            case TOKEN_MINUS:     value = (lhs_v - rhs_v);  break;
-            case TOKEN_ASTERISK:  value = (lhs_v * rhs_v);  break;
-            case TOKEN_FWSLASH:   value = (lhs_v / rhs_v);  break;
-            case TOKEN_LT:        value = (lhs_v < rhs_v);  break;
-            case TOKEN_GT:        value = (lhs_v > rhs_v);  break;
-            case TOKEN_AND_AND:   value = (lhs_v && rhs_v); break;
-            case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
-            default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
-            }
-            // clang-format on
-            AST* constant_value = make_ast_int(node->loc_info, value);
-            ast_replace(node, constant_value);
+        // clang-format off
+        switch (op) {
+        default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
+        case TOKEN_EQ_EQ:     value = (lhs_v == rhs_v); break;
+        case TOKEN_BANG_EQ:   value = (lhs_v != rhs_v); break;
+        case TOKEN_PLUS:      value = (lhs_v + rhs_v);  break;
+        case TOKEN_MINUS:     value = (lhs_v - rhs_v);  break;
+        case TOKEN_ASTERISK:  value = (lhs_v * rhs_v);  break;
+        case TOKEN_FWSLASH:   value = (lhs_v / rhs_v);  break;
+        case TOKEN_LT:        value = (lhs_v < rhs_v);  break;
+        case TOKEN_GT:        value = (lhs_v > rhs_v);  break;
+        case TOKEN_AND_AND:   value = (lhs_v && rhs_v); break;
+        case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
         }
-    } break;
-    case AST_UNARY: {
-        AST* operand = node->Unary.operand;
-        if (operand->kind == AST_GROUPING) operand = operand->Grouping.node;
-
-        // ex. &(*x) is the same as x
-        // ex. *(&x) is the same as x
-        if (operand->kind == AST_UNARY) {
-            Token_Kind op = node->Unary.op;
-            switch (op) {
-            default: break;
-            case THI_SYNTAX_POINTER: ast_replace(node, operand->Unary.op == THI_SYNTAX_ADDRESS ? operand->Unary.operand : operand); break;
-            case THI_SYNTAX_ADDRESS: ast_replace(node, operand->Unary.op == THI_SYNTAX_POINTER ? operand->Unary.operand : operand); break;
-            }
-        }
-
-        if (operand->kind == AST_INT) {
-            Token_Kind op     = node->Unary.op;
-            s64        oper_v = operand->Int.val;
-            s64        value  = 0;
-            // clang-format off
-            switch (op) {
-            case TOKEN_BANG:    value = !oper_v; break;
-            case TOKEN_PLUS:    value = oper_v;  break;
-            case TOKEN_TILDE:   value = ~oper_v; break;
-            case TOKEN_MINUS:   value = -oper_v; break;
-            default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
-            }
-            // clang-format on
-            AST* constant_value = make_ast_int(node->loc_info, value);
-            ast_replace(node, constant_value);
-        }
-    } break;
+        // clang-format on
+        AST* constant_value = make_ast_int(node->loc_info, value);
+        ast_replace(node, constant_value);
+    }
+}
+void constant_fold(void* dont_care, AST* node) {
+    switch (node->kind) {
     default: break;
+    case AST_BINARY: constant_fold_binary(node); break;
+    case AST_UNARY: constant_fold_unary(node); break;
     }
 }
 
 typedef struct
 {
     AST_Kind kind;
-    void*    list;
+    void* list;
 } AST_FindAll_Query;
 
 void ast_query(void* query, AST* node) {
@@ -345,7 +344,7 @@ void ast_query(void* query, AST* node) {
 }
 
 List* ast_find_all_of_kind(AST_Kind kind, AST* ast) {
-    List*             list  = make_list();
+    List* list = make_list();
     AST_FindAll_Query query = {kind, list};
     ast_visit(ast_query, &query, ast);
     return list;
@@ -396,8 +395,8 @@ int main(int argc, char** argv) {
     }
 
     if (thi.debug_mode) {
-        thi.detailed_print          = true;
-        thi.optimize                = false;
+        thi.detailed_print = true;
+        thi.optimize = false;
         thi.enable_constant_folding = false;
     }
 
@@ -407,9 +406,9 @@ int main(int argc, char** argv) {
     char* source_file = get_source_file(&thi);
     info("Compiling %s", source_file);
 
-    char* ext       = get_file_extension(source_file);
-    char* dir       = get_file_directory(source_file);
-    char* name      = get_file_name(source_file);
+    char* ext = get_file_extension(source_file);
+    char* dir = get_file_directory(source_file);
+    char* name = get_file_name(source_file);
     char* exec_name = remove_file_extension(name);
 
     thi.input_file = source_file;
@@ -452,9 +451,9 @@ int main(int argc, char** argv) {
 
     // Parse
     Parser_Context pctx = make_parser_context();
-    pctx.file           = source_file;
-    pctx.symbols        = thi.symbol_map;
-    AST* ast            = parse(&pctx, name);
+    pctx.file = source_file;
+    pctx.symbols = thi.symbol_map;
+    AST* ast = parse(&pctx, name);
 
     // ast = make_ast_module(ast->loc_info, source_file, ast);
 
@@ -480,25 +479,25 @@ int main(int argc, char** argv) {
     thi_run_pass(&thi, "resolve_unresolved_types", visitor_resolve_unresolved_types, &thi);
 
     PassDescriptor passDesc; // We reuse this one
-    passDesc.description  = "Resolve sizeofs";
-    passDesc.kind         = AST_SIZEOF;
-    passDesc.passKind     = PASS_UNSAFE;
+    passDesc.description = "Resolve sizeofs";
+    passDesc.kind = AST_SIZEOF;
+    passDesc.passKind = PASS_UNSAFE;
     passDesc.visitor_func = resolve_sizeofs;
-    passDesc.visitor_arg  = NULL;
+    passDesc.visitor_arg = NULL;
     thi_install_pass(&thi, passDesc);
 
-    passDesc.description  = "Resolve typeofs";
-    passDesc.kind         = AST_TYPEOF;
+    passDesc.description = "Resolve typeofs";
+    passDesc.kind = AST_TYPEOF;
     passDesc.visitor_func = resolve_typeofs;
     thi_install_pass(&thi, passDesc);
 
-    passDesc.description  = "Resolve subscripts";
-    passDesc.kind         = AST_SUBSCRIPT;
+    passDesc.description = "Resolve subscripts";
+    passDesc.kind = AST_SUBSCRIPT;
     passDesc.visitor_func = resolve_subscript;
     thi_install_pass(&thi, passDesc);
 
-    passDesc.description  = "Resolve field access";
-    passDesc.kind         = AST_FIELD_ACCESS;
+    passDesc.description = "Resolve field access";
+    passDesc.kind = AST_FIELD_ACCESS;
     passDesc.visitor_func = resolve_field_access;
     thi_install_pass(&thi, passDesc);
 
@@ -525,7 +524,7 @@ int main(int argc, char** argv) {
     pop_timer(&thi);
 
     // Second typechecking pass
-    // type_checker(thi.symbol_map, ast);
+    type_checker(thi.symbol_map, ast);
 
     //
     // Optimization Pass:
@@ -558,10 +557,10 @@ int main(int argc, char** argv) {
 
     // Remove unused externs
     List* externs = ast_find_all_of_kind(AST_EXTERN, ast);
-    List* calls   = ast_find_all_of_kind(AST_CALL, ast);
+    List* calls = ast_find_all_of_kind(AST_CALL, ast);
     LIST_FOREACH(externs) {
         AST* node_e = it->data;
-        bool used   = false;
+        bool used = false;
         LIST_FOREACH(calls) {
             AST* node_c = it->data;
             if (strcmp(node_e->Extern.type->Function.name, node_c->Call.callee) == 0) {
@@ -608,11 +607,11 @@ int main(int argc, char** argv) {
     info("--- Compiler timings ---");
     info("lines %s%s comments %s", give_unique_color(strf("%lld", pctx.lines)), RGB_GRAY, give_unique_color(strf("%lld", pctx.comments)));
     LIST_FOREACH(get_timers(&thi)) {
-        Timer* tm      = (Timer*)it->data;
-        s64    len     = strlen(tm->desc);
-        char*  ms      = strf("%f seconds", tm->ms / 1e3);
-        s64    ms_l    = strlen(ms);
-        s64    padding = w.ws_col - len - ms_l - 1; // -1 is the ':'
+        Timer* tm = (Timer*)it->data;
+        s64 len = strlen(tm->desc);
+        char* ms = strf("%f seconds", tm->ms / 1e3);
+        s64 ms_l = strlen(ms);
+        s64 padding = w.ws_col - len - ms_l - 1; // -1 is the ':'
         info(give_unique_color(strf("%s:%*s%s", tm->desc, padding, "", ms)));
     }
     info("---------------------------");
@@ -633,9 +632,9 @@ void linking_stage(Thi* thi, char* exec_name) {
     char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _main",
                            exec_name,
                            exec_name);
-    List* links     = get_link_list(thi);
+    List* links = get_link_list(thi);
     LIST_FOREACH(links) {
-        char* l   = (char*)it->data;
+        char* l = (char*)it->data;
         link_call = strf("%s %s", link_call, l);
     }
     info("Linking with options '%s'", link_call);

@@ -27,17 +27,17 @@
 //                               map.h
 //------------------------------------------------------------------------------
 
-typedef struct Map         Map;
+typedef struct Map Map;
 typedef struct Map_Element Map_Element;
 
 struct Map_Element {
-    s64   key;
+    s64 key;
     void* data;
 };
 
 struct Map {
-    s64          table_size;
-    s64          size;
+    s64 table_size;
+    s64 size;
     Map_Element* data;
 };
 

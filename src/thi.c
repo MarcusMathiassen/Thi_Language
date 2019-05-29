@@ -26,40 +26,39 @@
 
 Thi make_thi() {
     Thi thi;
-    thi.lines                   = 0;
-    thi.comments                = 0;
-    thi.detailed_print          = false;
-    thi.debug_mode              = false;
+    thi.lines = 0;
+    thi.comments = 0;
+    thi.detailed_print = false;
+    thi.debug_mode = false;
     thi.enable_constant_folding = true;
-    thi.optimize                = true;
-    thi.timer_list              = make_list();
-    thi.symbol_map              = make_map();
-    thi.macro_map               = make_map();
-    thi.timer_stack             = make_stack();
-    thi.output_name             = string_create("");
-    thi.previous_file           = NULL;
-    thi.input_file              = NULL;
-    thi.source_file             = string_create("");
-    thi.current_directory       = string_create("");
+    thi.optimize = true;
+    thi.timer_list = make_list();
+    thi.symbol_map = make_map();
+    thi.macro_map = make_map();
+    thi.timer_stack = make_stack();
+    thi.output_name = string_create("");
+    thi.previous_file = NULL;
+    thi.input_file = NULL;
+    thi.source_file = string_create("");
+    thi.current_directory = string_create("");
 
     thi.all_passes_for_all_kinds = make_map();
 
-    thi.ast                                 = NULL;
-    thi.links                               = make_list();
-    thi.loads                               = make_list();
-    thi.unresolved_types                    = make_type_ref_list();
-    thi.externs                             = make_ast_ref_list();
-    thi.calls                               = make_ast_ref_list();
-    thi.subscripts                          = make_ast_ref_list();
+    thi.ast = NULL;
+    thi.links = make_list();
+    thi.loads = make_list();
+    thi.unresolved_types = make_type_ref_list();
+    thi.externs = make_ast_ref_list();
+    thi.calls = make_ast_ref_list();
+    thi.subscripts = make_ast_ref_list();
     thi.variables_in_need_of_type_inference = make_ast_ref_list();
-    thi.constants                           = make_ast_ref_list();
-    thi.identifiers                         = make_ast_ref_list();
-    thi.structs                             = make_ast_ref_list();
-    thi.enums                               = make_ast_ref_list();
-    thi.field_access                        = make_ast_ref_list();
+    thi.constants = make_ast_ref_list();
+    thi.identifiers = make_ast_ref_list();
+    thi.structs = make_ast_ref_list();
+    thi.enums = make_ast_ref_list();
+    thi.field_access = make_ast_ref_list();
 
     // AST_Kind
-    map_set(thi.all_passes_for_all_kinds, "AST_COMMENT", make_list());
     map_set(thi.all_passes_for_all_kinds, "AST_NOP", make_list());
     map_set(thi.all_passes_for_all_kinds, "AST_SPACE_SEPARATED_IDENTIFIER_LIST", make_list());
     map_set(thi.all_passes_for_all_kinds, "AST_COMMA_SEPARATED_LIST", make_list());
@@ -111,7 +110,6 @@ List* thi_get_visitors_for_kind(Thi* thi, AST_Kind kind) {
 
 void thi_remove_all_passes(Thi* thi) {
     // AST_Kind
-    map_set(thi->all_passes_for_all_kinds, "AST_COMMENT", make_list());
     map_set(thi->all_passes_for_all_kinds, "AST_NOP", make_list());
     map_set(thi->all_passes_for_all_kinds, "AST_SPACE_SEPARATED_IDENTIFIER_LIST", make_list());
     map_set(thi->all_passes_for_all_kinds, "AST_COMMA_SEPARATED_LIST", make_list());
@@ -155,8 +153,8 @@ void thi_remove_all_passes(Thi* thi) {
 
 void thi_install_pass(Thi* thi, PassDescriptor passDesc) {
     PassDescriptor* p = xmalloc(sizeof(PassDescriptor));
-    *p                = passDesc;
-    List* l           = map_get(thi->all_passes_for_all_kinds, ast_kind_to_str(passDesc.kind));
+    *p = passDesc;
+    List* l = map_get(thi->all_passes_for_all_kinds, ast_kind_to_str(passDesc.kind));
     list_append(l, p);
 }
 
@@ -168,7 +166,7 @@ void set_output_name(Thi* thi, char* name) {
 }
 void set_source_file(Thi* thi, char* file_name) {
     thi->previous_file = string_data(thi->source_file);
-    thi->source_file   = string_create(file_name);
+    thi->source_file = string_create(file_name);
 }
 char* get_source_file(Thi* thi) {
     return string_data(thi->source_file);
@@ -219,7 +217,7 @@ void print_symbol_map(Thi* thi) {
     s64 count = thi->symbol_map->size;
     info("symbol_map count: %d", count);
     for (s64 i = 0; i < count; ++i) {
-        info("key %lld type %s", thi->symbol_map->data[i].key, type_to_str( thi->symbol_map->data[i].data));
+        info("key %lld type %s", thi->symbol_map->data[i].key, type_to_str(thi->symbol_map->data[i].data));
     }
 }
 
@@ -230,7 +228,7 @@ Type* add_symbol(Thi* thi, char* name, Type* type) {
     if (!t) {
         error("symbol redecl: '%s'", name);
     }
-    info("added symbol: %s of type %s", give_unique_color(name), give_unique_color(type_to_str( type)));
+    info("added symbol: %s of type %s", give_unique_color(name), give_unique_color(type_to_str(type)));
     return t;
 }
 
@@ -250,13 +248,13 @@ List* get_timers(Thi* thi) {
 void push_timer(Thi* thi, char* desc) {
     assert(desc);
     Timer* tm = xmalloc(sizeof(Timer));
-    tm->ms    = get_time();
-    tm->desc  = desc;
+    tm->ms = get_time();
+    tm->desc = desc;
     stack_push(thi->timer_stack, tm);
 }
 
 void pop_timer(Thi* thi) {
     Timer* tm = (Timer*)stack_pop(thi->timer_stack);
-    tm->ms    = get_time() - tm->ms;
+    tm->ms = get_time() - tm->ms;
     list_append(thi->timer_list, tm);
 }

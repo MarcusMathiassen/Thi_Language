@@ -34,8 +34,8 @@
     info("%s: %s", give_unique_color(ast_kind_to_str(node->kind)), wrap_with_colored_parens(ast_to_str(node)));
 
 typedef struct {
-    AST*   module;
-    Map*   symbols;
+    AST* module;
+    Map* symbols;
     Stack* scopes;
 } Sema_Context;
 
@@ -111,7 +111,6 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
     case AST_SIZEOF: sema_check_node(ctx, node->Sizeof.node);      break;
     case AST_NOTE:   sema_check_node(ctx, node->Note.node);        break;
     
-    case AST_COMMENT: break;
     case AST_NOP: break;
     case AST_FALLTHROUGH: break;
     case AST_LOAD:        break;
@@ -134,9 +133,9 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         sema_check_node(ctx, node->Unary.operand);
         break;
     case AST_BINARY: {
-        AST*       rhs = node->Binary.rhs;
-        AST*       lhs = node->Binary.lhs;
-        Token_Kind op  = node->Binary.op;
+        AST* rhs = node->Binary.rhs;
+        AST* lhs = node->Binary.lhs;
+        Token_Kind op = node->Binary.op;
         if (op == THI_SYNTAX_ASSIGNMENT && lhs->kind == AST_IDENT) {
             // Look for it in the current scope and any parent scope.
             AST* var = get_symbol_in_scope(ctx, lhs->Ident.name);
@@ -237,8 +236,8 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         break;
 
     case AST_CALL: {
-        char* callee   = node->Call.callee;
-        AST*  callee_f = get_symbol_in_scope(ctx, callee);
+        char* callee = node->Call.callee;
+        AST* callee_f = get_symbol_in_scope(ctx, callee);
         if (!callee_f) error("no function in scope with name %s", ucolor(callee));
         LIST_FOREACH(node->Call.args) {
             sema_check_node(ctx, it->data);

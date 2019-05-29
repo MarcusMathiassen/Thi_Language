@@ -31,9 +31,9 @@
     // info("%s: %s", give_unique_color(ast_kind_to_str(node->kind)), wrap_with_colored_parens(ast_to_str(node)));
 
 typedef struct {
-    Map*  symbol_table;
-    AST*  module;
-    AST*  active_function;
+    Map* symbol_table;
+    AST* module;
+    AST* active_function;
     Type* expected_type;
 } Typer_Context;
 
@@ -89,7 +89,6 @@ Type* type_check_node(Typer_Context* ctx, AST* node) {
     // clang-format off
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
-    case AST_COMMENT:        result = NULL;                                                   break;
     case AST_NOP:            result = NULL;                                                   break;
     case AST_FALLTHROUGH:    result = NULL;                                                   break;
     case AST_LOAD:           result = NULL;                                                   break;
@@ -149,8 +148,8 @@ Type* type_check_typeof(Typer_Context* ctx, AST* node) {
 
 Type* type_check_switch(Typer_Context* ctx, AST* node) {
 
-    AST* cond         = node->Switch.cond;
-    AST* cases        = node->Switch.cases;
+    AST* cond = node->Switch.cond;
+    AST* cases = node->Switch.cases;
     AST* default_case = node->Switch.default_case;
 
     // Make sure the resulting type is of type INT.
@@ -164,7 +163,7 @@ Type* type_check_switch(Typer_Context* ctx, AST* node) {
     Type* b = type_check_node(ctx, default_case);
 
     if (!is_same_type(a, b)) {
-        error("[type_missmatch] %s != %s", type_to_str( a), type_to_str( b));
+        error("[type_missmatch] %s != %s", type_to_str(a), type_to_str(b));
     }
 
     return a;
@@ -188,8 +187,8 @@ Type* type_check_enum(Typer_Context* ctx, AST* node) {
 Type* type_check_function(Typer_Context* ctx, AST* node) {
 
     Type* func_type = node->type;
-    AST*  func_body = node->Function.body;
-    List* args      = node->Function.parameters;
+    AST* func_body = node->Function.body;
+    List* args = node->Function.parameters;
 
     if (func_type->Function.return_type->kind == TYPE_UNRESOLVED) {
         func_type->Function.return_type = map_get(ctx->symbol_table, get_type_name(func_type->Function.return_type));
@@ -226,7 +225,7 @@ Type* type_check_ident(Typer_Context* ctx, AST* node) {
 }
 Type* type_check_call(Typer_Context* ctx, AST* node) {
     char* callee = node->Call.callee;
-    List* args   = node->Call.args;
+    List* args = node->Call.args;
     Type* func_t = (Type*)map_get(ctx->symbol_table, callee);
     assert(func_t);
     assert(func_t->Function.return_type);
@@ -241,8 +240,8 @@ Type* type_check_call(Typer_Context* ctx, AST* node) {
     return func_t->Function.return_type;
 }
 Type* type_check_unary(Typer_Context* ctx, AST* node) {
-    Token_Kind op      = node->Unary.op;
-    AST*       operand = node->Unary.operand;
+    Token_Kind op = node->Unary.op;
+    AST* operand = node->Unary.operand;
 
     Type* result_t = type_check_node(ctx, operand);
     switch (op) {
@@ -274,9 +273,9 @@ Type* type_check_binary(Typer_Context* ctx, AST* node) {
     return a;
 }
 Type* type_check_variable_decl(Typer_Context* ctx, AST* node) {
-    char* variable_name   = node->Variable_Decl.name;
-    Type* variable_type   = node->Variable_Decl.type;
-    AST*  assignment_expr = node->Variable_Decl.value;
+    char* variable_name = node->Variable_Decl.name;
+    Type* variable_type = node->Variable_Decl.type;
+    AST* assignment_expr = node->Variable_Decl.value;
 
     ctx->expected_type = variable_type ? variable_type : NULL;
 
@@ -284,9 +283,9 @@ Type* type_check_variable_decl(Typer_Context* ctx, AST* node) {
 
     // Make sure the set type and assigned type is the same
     if (variable_type && assigned_type && !is_same_type(variable_type, assigned_type)) {
-        error("[type_missmatch] %s -> %s != %s ", ast_to_str(node), type_to_str( variable_type), type_to_str( assigned_type));
+        error("[type_missmatch] %s -> %s != %s ", ast_to_str(node), type_to_str(variable_type), type_to_str(assigned_type));
     }
-    variable_type      = assigned_type ? assigned_type : variable_type;
+    variable_type = assigned_type ? assigned_type : variable_type;
     ctx->expected_type = variable_type;
     map_set_overwrite(ctx->symbol_table, variable_name, variable_type);
     return variable_type;
@@ -316,15 +315,15 @@ Type* type_check_block(Typer_Context* ctx, AST* node) {
     if (returned_nodes->count > 0) {
 
         // ..make sure they are all the same type
-        AST*  a   = list_first(returned_nodes);
+        AST* a = list_first(returned_nodes);
         Type* a_t = a->type;
         LIST_FOREACH(returned_nodes) {
-            AST*  b   = it->data;
+            AST* b = it->data;
             Type* b_t = b->type;
             // ..raise an error if not
 
             if (!is_same_type(a_t, b_t)) {
-                error("[%s] Type_Error. Differing return types in block.\n%s <- %s\n!=\n%s <- %s", LOCATION_OF_ast_to_str(ctx->module, node), type_to_str( a_t), ast_to_str(a), type_to_str( b_t), ast_to_str(b));
+                error("[%s] Type_Error. Differing return types in block.\n%s <- %s\n!=\n%s <- %s", LOCATION_OF_ast_to_str(ctx->module, node), type_to_str(a_t), ast_to_str(a), type_to_str(b_t), ast_to_str(b));
             }
         }
         result_t = a_t;
@@ -337,16 +336,16 @@ Type* type_check_block(Typer_Context* ctx, AST* node) {
 }
 
 Type* type_check_subscript(Typer_Context* ctx, AST* node) {
-    AST*  load = node->Subscript.load;
-    AST*  sub  = node->Subscript.sub;
-    Type* t    = type_check_node(ctx, load);
+    AST* load = node->Subscript.load;
+    AST* sub = node->Subscript.sub;
+    Type* t = type_check_node(ctx, load);
     type_check_node(ctx, sub);
     t = get_underlying_type_if_any(t);
     return t;
 }
 
 Type* type_check_field_access(Typer_Context* ctx, AST* node) {
-    char* type_name  = node->Field_Access.load->Ident.name;
+    char* type_name = node->Field_Access.load->Ident.name;
     char* field_name = node->Field_Access.field;
     warning("field: %s type: %s", field_name, type_name);
 
@@ -386,7 +385,7 @@ Type* type_check_field_access(Typer_Context* ctx, AST* node) {
 }
 
 Type* type_check_if(Typer_Context* ctx, AST* node) {
-    AST* cond       = node->If.cond;
+    AST* cond = node->If.cond;
     AST* then_block = node->If.then_block;
     AST* else_block = node->If.else_block;
     type_check_node(ctx, cond);
@@ -409,8 +408,8 @@ Type* type_check_while(Typer_Context* ctx, AST* node) {
 }
 
 Type* type_check_return(Typer_Context* ctx, AST* node) {
-    AST*  ret_node = node->Return.node;
-    Type* t        = type_check_node(ctx, ret_node);
+    AST* ret_node = node->Return.node;
+    Type* t = type_check_node(ctx, ret_node);
     return t;
 }
 

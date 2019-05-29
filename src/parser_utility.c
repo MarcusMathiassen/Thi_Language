@@ -32,7 +32,7 @@
 struct
 {
     Token_Kind kind;
-    s32        p;
+    s32 p;
 } binop_precedence[BIN_OP_COUNT] = {
     {TOKEN_OPEN_PAREN, 15},   // ()
     {TOKEN_OPEN_BRACKET, 15}, // []
@@ -74,13 +74,13 @@ struct
 Parser_Context
 make_parser_context(void) {
     Parser_Context ctx;
-    ctx.tokens             = NULL;
-    ctx.inside_parens      = false;
-    ctx.curr_tok.kind      = TOKEN_UNKNOWN;
+    ctx.tokens = NULL;
+    ctx.inside_parens = false;
+    ctx.curr_tok.kind = TOKEN_UNKNOWN;
     ctx.llast_if_statement = NULL;
     ctx.olast_if_statement = NULL;
-    ctx.loads              = make_list();
-    ctx.symbols            = NULL; // we borrow anothers map
+    ctx.loads = make_list();
+    ctx.symbols = NULL; // we borrow anothers map
     return ctx;
 }
 
@@ -166,8 +166,8 @@ bool tok_is_on_same_line(Parser_Context* ctx) {
 
 bool next_tok_is_on_same_line(Parser_Context* ctx) {
     Token t2 = next_tok(ctx);
-    s64   l1 = ctx->curr_tok.line_pos;
-    s64   l2 = t2.line_pos;
+    s64 l1 = ctx->curr_tok.line_pos;
+    s64 l2 = t2.line_pos;
     return l1 == l2;
 }
 bool tok_is(Parser_Context* ctx, Token_Kind kind) {
@@ -207,6 +207,6 @@ void set_dangling_else(Parser_Context* ctx, AST* else_block) {
 Loc_Info loc(Parser_Context* ctx) {
     Loc_Info loc_info;
     loc_info.line_pos = ctx->curr_tok.line_pos;
-    loc_info.col_pos  = ctx->curr_tok.col_pos;
+    loc_info.col_pos = ctx->curr_tok.col_pos;
     return loc_info;
 }

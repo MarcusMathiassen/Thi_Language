@@ -36,9 +36,9 @@
 string* string_create(char* str) {
     assert(str);
     string* s = xmalloc(sizeof(string));
-    s->c_str  = xmalloc(STRING_STARTING_ALLOC);
-    s->len    = 0;
-    s->cap    = STRING_STARTING_ALLOC;
+    s->c_str = xmalloc(STRING_STARTING_ALLOC);
+    s->len = 0;
+    s->cap = STRING_STARTING_ALLOC;
     string_append(s, str);
     return s;
 }

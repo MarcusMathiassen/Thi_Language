@@ -197,7 +197,7 @@ s64 type_array_get_count(Type* type) {
 
 char* type_to_str(Type* type) {
     String_Context ctx;
-    ctx.str               = string_create("");
+    ctx.str = string_create("");
     ctx.indentation_level = 0;
     return type_to_str_r(&ctx, type);
 }
@@ -378,9 +378,9 @@ char* type_to_str_r(String_Context* ctx, Type* type) {
 
 Type_Ref_List make_type_ref_list() {
     Type_Ref_List l;
-    l.count     = 0;
+    l.count = 0;
     l.allocated = TYPE_REF_LIST_STARTING_ALLOC;
-    l.data      = xmalloc(l.allocated * sizeof(Type*));
+    l.data = xmalloc(l.allocated * sizeof(Type*));
     return l;
 }
 
@@ -398,8 +398,8 @@ void type_ref_list_append(Type_Ref_List* l, Type* t) {
 //------------------------------------------------------------------------------
 
 Type* make_type(Type_Kind kind, u32 flags) {
-    Type* t  = xmalloc(sizeof(Type));
-    t->kind  = kind;
+    Type* t = xmalloc(sizeof(Type));
+    t->kind = kind;
     t->flags = flags;
     return t;
 }
@@ -416,7 +416,7 @@ Type* make_type_var_args() {
 
 Type* make_type_unresolved(char* name) {
     assert(name);
-    Type* t            = make_type(TYPE_UNRESOLVED, 0);
+    Type* t = make_type(TYPE_UNRESOLVED, 0);
     t->Unresolved.name = name;
     return t;
 }
@@ -424,7 +424,7 @@ Type* make_type_unresolved(char* name) {
 Type* make_type_array(Type* type, s64 size) {
     assert(type);
     assert(size > 0);
-    Type* t       = make_type(TYPE_ARRAY, 0);
+    Type* t = make_type(TYPE_ARRAY, 0);
     t->Array.type = type;
     t->Array.size = size;
     return t;
@@ -433,29 +433,29 @@ Type* make_type_array(Type* type, s64 size) {
 Type* make_type_int(s8 bytes, bool is_unsigned) {
     assert(bytes > 0 && bytes < 9);
     assert(is_unsigned == 1 || is_unsigned == 0);
-    Type* t            = make_type(TYPE_INT, 0);
-    t->Int.bytes       = bytes;
+    Type* t = make_type(TYPE_INT, 0);
+    t->Int.bytes = bytes;
     t->Int.is_unsigned = is_unsigned;
     return t;
 }
 
 Type* make_type_float(s8 bytes) {
     assert(bytes > 0 && bytes < 9);
-    Type* t        = make_type(TYPE_FLOAT, 0);
+    Type* t = make_type(TYPE_FLOAT, 0);
     t->Float.bytes = bytes;
     return t;
 }
 
 Type* make_type_string(s64 len) {
     assert(len);
-    Type* t       = make_type(TYPE_STRING, 0);
+    Type* t = make_type(TYPE_STRING, 0);
     t->String.len = len;
     return t;
 }
 
 Type* make_type_pointer(Type* pointee) {
     assert(pointee);
-    Type* t            = make_type(TYPE_POINTER, 0);
+    Type* t = make_type(TYPE_POINTER, 0);
     t->Pointer.pointee = pointee;
     return t;
 }
@@ -463,9 +463,9 @@ Type* make_type_pointer(Type* pointee) {
 Type* make_type_enum(char* name, List* members) {
     assert(name);
     assert(members);
-    Type* t         = make_type(TYPE_ENUM, 0);
-    t->name         = name;
-    t->Enum.name    = name;
+    Type* t = make_type(TYPE_ENUM, 0);
+    t->name = name;
+    t->Enum.name = name;
     t->Enum.members = members;
     return t;
 }
@@ -473,19 +473,19 @@ Type* make_type_enum(char* name, List* members) {
 Type* make_type_struct(char* name, List* members) {
     assert(name);
     assert(members);
-    Type* t           = make_type(TYPE_STRUCT, 0);
-    t->name           = name;
-    t->Struct.name    = name;
+    Type* t = make_type(TYPE_STRUCT, 0);
+    t->name = name;
+    t->Struct.name = name;
     t->Struct.members = members;
     return t;
 }
 
 Type* make_type_function(char* name, List* parameters, Type* return_type, u32 flags) {
     assert(name);
-    Type* t                 = make_type(TYPE_FUNCTION, flags);
-    t->name                 = name;
-    t->Function.name        = name;
-    t->Function.parameters  = parameters;
+    Type* t = make_type(TYPE_FUNCTION, flags);
+    t->name = name;
+    t->Function.name = name;
+    t->Function.parameters = parameters;
     t->Function.return_type = return_type;
     return t;
 }

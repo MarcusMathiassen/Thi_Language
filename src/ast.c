@@ -39,7 +39,6 @@ char* ast_kind_to_str(AST_Kind kind) {
     // clang-format off
     switch (kind) {
     default: ERROR_UNHANDLED_KIND(strf("%d", kind));
-    case AST_COMMENT:                         return "AST_COMMENT";
     case AST_NOP:                             return "AST_NOP";
     case AST_SPACE_SEPARATED_IDENTIFIER_LIST: return "AST_SPACE_SEPARATED_IDENTIFIER_LIST";
     case AST_COMMA_SEPARATED_LIST:            return "AST_COMMA_SEPARATED_LIST";
@@ -96,6 +95,9 @@ char* get_ast_name(AST* node) {
     char* result = NULL;
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
+    case AST_NOP:
+        result = "nop";
+        break;
     case AST_MODULE: {
         result = node->Module.name;
         break;
@@ -134,14 +136,14 @@ char* get_ast_name(AST* node) {
 
 char* ast_to_str(AST* node) {
     String_Context ctx;
-    ctx.str               = string_create("");
+    ctx.str = string_create("");
     ctx.indentation_level = 0;
     return ast_to_str_r(&ctx, node);
 }
 
 char* ast_to_str_r(String_Context* ctx, AST* node) {
     assert(ctx);
-    
+
     // Local alias
     string* s = ctx->str;
 
@@ -149,14 +151,11 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         string_append(s, "---");
         return string_data(s);
     }
-    
+
     assert(node->kind < AST_COUNT && node->kind >= 0);
 
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
-    case AST_COMMENT:
-        string_append(s, node->Comment.text);
-        break;
     case AST_NOP:
         string_append(s, "nop");
         break;
@@ -474,7 +473,6 @@ void ast_visit(void (*func)(void*, AST*), void* ctx, AST* node) {
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
 
-    case AST_COMMENT: break;
     case AST_NOP: break;
 
     // @Todo(marcus) figure out what to do with these.
@@ -612,9 +610,9 @@ AST* get_arg_from_func(Type* func_t, s64 arg_index) {
 AST_Ref_List
 make_ast_ref_list() {
     AST_Ref_List l;
-    l.count     = 0;
+    l.count = 0;
     l.allocated = AST_REF_LIST_STARTING_ALLOC;
-    l.data      = xmalloc(l.allocated * sizeof(AST*));
+    l.data = xmalloc(l.allocated * sizeof(AST*));
     return l;
 }
 
@@ -650,18 +648,11 @@ void ast_tests(void) {
 //------------------------------------------------------------------------------
 
 AST* make_ast(AST_Kind kind, Loc_Info loc_info) {
-    AST* e      = xmalloc(sizeof(AST));
-    e->kind     = kind;
+    AST* e = xmalloc(sizeof(AST));
+    e->kind = kind;
     e->loc_info = loc_info;
-    e->type     = NULL;
-    e->edges    = make_list();
-    return e;
-}
-
-AST* make_ast_comment(Loc_Info loc_info, char* text) {
-    assert(text);
-    AST* e          = make_ast(AST_COMMENT, loc_info);
-    e->Comment.text = text;
+    e->type = NULL;
+    e->edges = make_list();
     return e;
 }
 
@@ -672,22 +663,22 @@ AST* make_ast_nop(Loc_Info loc_info) {
 
 AST* make_ast_typeof(Loc_Info loc_info, AST* node) {
     assert(node);
-    AST* e         = make_ast(AST_TYPEOF, loc_info);
+    AST* e = make_ast(AST_TYPEOF, loc_info);
     e->Typeof.node = node;
     return e;
 }
 
 AST* make_ast_module(Loc_Info loc_info, char* name, List* top_level) {
     assert(name);
-    AST* e              = make_ast(AST_MODULE, loc_info);
-    e->Module.name      = name;
+    AST* e = make_ast(AST_MODULE, loc_info);
+    e->Module.name = name;
     e->Module.top_level = top_level;
     return e;
 }
 
 AST* make_ast_sizeof(Loc_Info loc_info, AST* node) {
     assert(node);
-    AST* e         = make_ast(AST_SIZEOF, loc_info);
+    AST* e = make_ast(AST_SIZEOF, loc_info);
     e->Sizeof.node = node;
     return e;
 }
@@ -695,71 +686,71 @@ AST* make_ast_sizeof(Loc_Info loc_info, AST* node) {
 AST* make_ast_field_access(Loc_Info loc_info, AST* load, char* field) {
     assert(load);
     assert(field);
-    AST* e                = make_ast(AST_FIELD_ACCESS, loc_info);
-    e->Field_Access.load  = load;
+    AST* e = make_ast(AST_FIELD_ACCESS, loc_info);
+    e->Field_Access.load = load;
     e->Field_Access.field = field;
     return e;
 }
 
 AST* make_ast_extern(Loc_Info loc_info, Type* type) {
     assert(type);
-    AST* e         = make_ast(AST_EXTERN, loc_info);
-    e->type        = type;
+    AST* e = make_ast(AST_EXTERN, loc_info);
+    e->type = type;
     e->Extern.type = type;
     return e;
 }
 
 AST* make_ast_load(Loc_Info loc_info, char* str) {
     assert(str);
-    AST* e      = make_ast(AST_LOAD, loc_info);
+    AST* e = make_ast(AST_LOAD, loc_info);
     e->Load.str = str;
     return e;
 }
 
 AST* make_ast_link(Loc_Info loc_info, char* str) {
     assert(str);
-    AST* e      = make_ast(AST_LINK, loc_info);
+    AST* e = make_ast(AST_LINK, loc_info);
     e->Link.str = str;
     return e;
 }
 
 AST* make_ast_note(Loc_Info loc_info, AST* node) {
     assert(node);
-    AST* e       = make_ast(AST_NOTE, loc_info);
+    AST* e = make_ast(AST_NOTE, loc_info);
     e->Note.node = node;
     return e;
 }
 
 AST* make_ast_int(Loc_Info loc_info, s64 value) {
-    AST* e     = make_ast(AST_INT, loc_info);
-    e->type    = make_type_int(DEFAULT_INT_BYTE_SIZE, 0);
+    AST* e = make_ast(AST_INT, loc_info);
+    e->type = make_type_int(DEFAULT_INT_BYTE_SIZE, 0);
     e->Int.val = value;
     return e;
 }
 
 AST* make_ast_float(Loc_Info loc_info, f64 value) {
-    AST* e       = make_ast(AST_FLOAT, loc_info);
-    e->type      = make_type_float(DEFAULT_FLOAT_BYTE_SIZE);
+    AST* e = make_ast(AST_FLOAT, loc_info);
+    e->type = make_type_float(DEFAULT_FLOAT_BYTE_SIZE);
     e->Float.val = value;
     return e;
 }
 
 AST* make_ast_string(Loc_Info loc_info, char* value) {
-    AST* e        = make_ast(AST_STRING, loc_info);
-    e->type       = make_type_pointer(make_type_int(1, 1));
+    AST* e = make_ast(AST_STRING, loc_info);
+    e->type = make_type_pointer(make_type_int(1, 1));
     e->String.val = value;
     return e;
 }
 
 AST* make_ast_ident(Loc_Info loc_info, char* ident) {
     assert(ident);
-    AST* e        = make_ast(AST_IDENT, loc_info);
+    AST* e = make_ast(AST_IDENT, loc_info);
     e->Ident.name = ident;
     return e;
 }
 
 AST* make_ast_struct(Loc_Info loc_info, char* name, List* members) {
-    AST* e         = make_ast(AST_STRUCT, loc_info);
+    AST* e = make_ast(AST_STRUCT, loc_info);
     e->Struct.name = name;
     e->Struct.members = members;
 
@@ -768,7 +759,7 @@ AST* make_ast_struct(Loc_Info loc_info, char* name, List* members) {
         AST* member = it->data;
         Type_Name_Pair* tp = xmalloc(sizeof(Type_Name_Pair));
         tp->name = get_ast_name(member);
-        tp->type =  member->type;
+        tp->type = member->type;
         list_append(tps, tp);
     }
 
@@ -777,16 +768,17 @@ AST* make_ast_struct(Loc_Info loc_info, char* name, List* members) {
 }
 
 AST* make_ast_enum(Loc_Info loc_info, char* name, List* members) {
-    AST* e       = make_ast(AST_ENUM, loc_info);
+    AST* e = make_ast(AST_ENUM, loc_info);
     e->Enum.name = name;
-    e->Enum.members = members;;
+    e->Enum.members = members;
+    ;
 
     List* tps = make_list();
     LIST_FOREACH(members) {
         AST* member = it->data;
         Type_Name_Pair* tp = xmalloc(sizeof(Type_Name_Pair));
         tp->name = get_ast_name(member);
-        tp->type =  member->type;
+        tp->type = member->type;
         list_append(tps, tp);
     }
 
@@ -800,12 +792,12 @@ AST* make_ast_function(Loc_Info loc_info, char* name, List* parameters, Type* fu
     assert(func_t);
     assert(func_t->kind == TYPE_FUNCTION);
     assert(body);
-    AST* e                 = make_ast(AST_FUNCTION, loc_info);
-    e->type                = func_t;
-    e->Function.name       = name;
+    AST* e = make_ast(AST_FUNCTION, loc_info);
+    e->type = func_t;
+    e->Function.name = name;
     e->Function.parameters = parameters;
-    e->Function.body       = body;
-    e->Function.defers     = make_list();
+    e->Function.body = body;
+    e->Function.defers = make_list();
     return e;
 }
 
@@ -813,8 +805,8 @@ AST* make_ast_binary(Loc_Info loc_info, Token_Kind op, AST* lhs, AST* rhs) {
     assert(op != TOKEN_UNKNOWN);
     assert(lhs);
     assert(rhs);
-    AST* e        = make_ast(AST_BINARY, loc_info);
-    e->Binary.op  = op;
+    AST* e = make_ast(AST_BINARY, loc_info);
+    e->Binary.op = op;
     e->Binary.lhs = lhs;
     e->Binary.rhs = rhs;
     return e;
@@ -823,30 +815,30 @@ AST* make_ast_binary(Loc_Info loc_info, Token_Kind op, AST* lhs, AST* rhs) {
 AST* make_ast_unary(Loc_Info loc_info, Token_Kind op, AST* operand) {
     assert(op != TOKEN_UNKNOWN);
     assert(operand);
-    AST* e           = make_ast(AST_UNARY, loc_info);
-    e->Unary.op      = op;
+    AST* e = make_ast(AST_UNARY, loc_info);
+    e->Unary.op = op;
     e->Unary.operand = operand;
     return e;
 }
 
 AST* make_ast_switch(Loc_Info loc_info, AST* if_statement) {
-    AST* e                 = make_ast(AST_SWITCH, loc_info);
-    e->Switch.cond         = if_statement->If.cond;
-    e->Switch.cases        = if_statement->If.then_block;
+    AST* e = make_ast(AST_SWITCH, loc_info);
+    e->Switch.cond = if_statement->If.cond;
+    e->Switch.cases = if_statement->If.then_block;
     e->Switch.default_case = if_statement->If.else_block;
     return e;
 }
 
 AST* make_ast_is(Loc_Info loc_info, AST* node, AST* body, bool has_fallthrough) {
-    AST* e                = make_ast(AST_IS, loc_info);
-    e->Is.node            = node;
-    e->Is.body            = body;
+    AST* e = make_ast(AST_IS, loc_info);
+    e->Is.node = node;
+    e->Is.body = body;
     e->Is.has_fallthrough = has_fallthrough;
     return e;
 }
 
 AST* make_ast_block(Loc_Info loc_info, List* stmts) {
-    AST* e         = make_ast(AST_BLOCK, loc_info);
+    AST* e = make_ast(AST_BLOCK, loc_info);
     e->Block.stmts = stmts;
     return e;
 }
@@ -854,9 +846,9 @@ AST* make_ast_block(Loc_Info loc_info, List* stmts) {
 AST* make_ast_call(Loc_Info loc_info, char* callee, List* args) {
     assert(callee);
     assert(args);
-    AST* e         = make_ast(AST_CALL, loc_info);
+    AST* e = make_ast(AST_CALL, loc_info);
     e->Call.callee = callee;
-    e->Call.args   = args;
+    e->Call.args = args;
     return e;
 }
 
@@ -872,7 +864,7 @@ AST* make_ast_fallthrough(Loc_Info loc_info) {
 
 AST* make_ast_grouping(Loc_Info loc_info, AST* node) {
     assert(node);
-    AST* e           = make_ast(AST_GROUPING, loc_info);
+    AST* e = make_ast(AST_GROUPING, loc_info);
     e->Grouping.node = node;
     return e;
 }
@@ -880,10 +872,10 @@ AST* make_ast_grouping(Loc_Info loc_info, AST* node) {
 AST* make_ast_variable_decl(Loc_Info loc_info, char* name, Type* type, AST* value) {
     // 'value' and 'name' can be NULL
     // assert(type);
-    AST* e                 = make_ast(AST_VARIABLE_DECL, loc_info);
-    e->type                = type;
-    e->Variable_Decl.name  = name;
-    e->Variable_Decl.type  = type;
+    AST* e = make_ast(AST_VARIABLE_DECL, loc_info);
+    e->type = type;
+    e->Variable_Decl.name = name;
+    e->Variable_Decl.type = type;
     e->Variable_Decl.value = value;
     return e;
 }
@@ -891,8 +883,8 @@ AST* make_ast_variable_decl(Loc_Info loc_info, char* name, Type* type, AST* valu
 AST* make_ast_constant_decl(Loc_Info loc_info, char* name, AST* value) {
     assert(name);
     assert(value);
-    AST* e                 = make_ast(AST_CONSTANT_DECL, loc_info);
-    e->Constant_Decl.name  = name;
+    AST* e = make_ast(AST_CONSTANT_DECL, loc_info);
+    e->Constant_Decl.name = name;
     e->Constant_Decl.value = value;
     return e;
 }
@@ -900,9 +892,9 @@ AST* make_ast_constant_decl(Loc_Info loc_info, char* name, AST* value) {
 AST* make_ast_subscript(Loc_Info loc_info, AST* load, AST* sub) {
     assert(load);
     assert(sub);
-    AST* e            = make_ast(AST_SUBSCRIPT, loc_info);
+    AST* e = make_ast(AST_SUBSCRIPT, loc_info);
     e->Subscript.load = load;
-    e->Subscript.sub  = sub;
+    e->Subscript.sub = sub;
     return e;
 }
 
@@ -910,22 +902,19 @@ AST* make_ast_if(Loc_Info loc_info, AST* cond, AST* then_block, AST* else_block)
     assert(cond);
     assert(then_block);
     // assert(else_block); // else block is optional
-    AST* e           = make_ast(AST_IF, loc_info);
-    e->If.cond       = cond;
+    AST* e = make_ast(AST_IF, loc_info);
+    e->If.cond = cond;
     e->If.then_block = then_block;
     e->If.else_block = else_block;
     return e;
 }
 
 AST* make_ast_for(Loc_Info loc_info, AST* init, AST* cond, AST* step, AST* then_block) {
-    assert(init);
-    assert(cond);
-    assert(step);
     assert(then_block);
-    AST* e            = make_ast(AST_FOR, loc_info);
-    e->For.init       = init;
-    e->For.cond       = cond;
-    e->For.step       = step;
+    AST* e = make_ast(AST_FOR, loc_info);
+    e->For.init = init;
+    e->For.cond = cond;
+    e->For.step = step;
     e->For.then_block = then_block;
     return e;
 }
@@ -933,22 +922,22 @@ AST* make_ast_for(Loc_Info loc_info, AST* init, AST* cond, AST* step, AST* then_
 AST* make_ast_while(Loc_Info loc_info, AST* cond, AST* then_block) {
     assert(cond);
     assert(then_block);
-    AST* e              = make_ast(AST_WHILE, loc_info);
-    e->While.cond       = cond;
+    AST* e = make_ast(AST_WHILE, loc_info);
+    e->While.cond = cond;
     e->While.then_block = then_block;
     return e;
 }
 
 AST* make_ast_return(Loc_Info loc_info, AST* node) {
     // assert(node); // returns can be called with out an nodeession
-    AST* e         = make_ast(AST_RETURN, loc_info);
+    AST* e = make_ast(AST_RETURN, loc_info);
     e->Return.node = node;
     return e;
 }
 
 AST* make_ast_defer(Loc_Info loc_info, AST* node) {
     assert(node);
-    AST* e        = make_ast(AST_DEFER, loc_info);
+    AST* e = make_ast(AST_DEFER, loc_info);
     e->Defer.node = node;
     return e;
 }
@@ -966,22 +955,22 @@ AST* make_ast_continue(Loc_Info loc_info) {
 AST* make_ast_as(Loc_Info loc_info, AST* node, AST* type_node) {
     assert(node);
     assert(type_node);
-    AST* e          = make_ast(AST_AS, loc_info);
-    e->As.node      = node;
+    AST* e = make_ast(AST_AS, loc_info);
+    e->As.node = node;
     e->As.type_node = type_node;
     return e;
 }
 
 AST* make_ast_space_separated_identifier_list(Loc_Info loc_info, List* identifiers) {
     assert(identifiers);
-    AST* e                                         = make_ast(AST_SPACE_SEPARATED_IDENTIFIER_LIST, loc_info);
+    AST* e = make_ast(AST_SPACE_SEPARATED_IDENTIFIER_LIST, loc_info);
     e->Space_Separated_Identifier_List.identifiers = identifiers;
     return e;
 }
 
 AST* make_ast_comma_separated_list(Loc_Info loc_info, List* nodes) {
     assert(nodes);
-    AST* e                        = make_ast(AST_COMMA_SEPARATED_LIST, loc_info);
+    AST* e = make_ast(AST_COMMA_SEPARATED_LIST, loc_info);
     e->Comma_Separated_List.nodes = nodes;
     return e;
 }

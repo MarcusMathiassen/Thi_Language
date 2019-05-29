@@ -28,21 +28,21 @@
 
 typedef struct {
     char* c_str;
-    s64   len;
-    s64   cap;
+    s64 len;
+    s64 cap;
 } string;
 
 typedef struct {
     string* str;
-    u64     indentation_level;
+    u64 indentation_level;
 } String_Context;
 
 string* string_create(char* str);
 string* string_create_f(char* fmt, ...);
-void    string_destroy(string* this);
-char*   string_data(string* this);
-void    string_append(string* this, char* str);
-void    string_append_f(string* this, char* fmt, ...);
-void    string_tests(void);
+void string_destroy(string* this);
+char* string_data(string* this);
+void string_append(string* this, char* str);
+void string_append_f(string* this, char* fmt, ...);
+void string_tests(void);
 
 #endif

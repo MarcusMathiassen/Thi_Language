@@ -47,10 +47,10 @@ typedef enum {
 } Type_Kind;
 
 typedef enum {
-    TYPE_FLAG_HAS_VAR_ARG               = 1 << 0,
-    TYPE_FLAG_IMPLICIT_RETURN           = 1 << 1,
+    TYPE_FLAG_HAS_VAR_ARG = 1 << 0,
+    TYPE_FLAG_IMPLICIT_RETURN = 1 << 1,
     TYPE_FLAG_IN_NEED_OF_TYPE_INFERENCE = 1 << 2,
-    TYPE_FLAG_QUICK_LAMBDA              = 1 << 3,
+    TYPE_FLAG_QUICK_LAMBDA = 1 << 3,
 } Type_Flag;
 
 typedef struct {
@@ -60,8 +60,8 @@ typedef struct {
 
 struct Type {
     Type_Kind kind;
-    u8        flags;
-    char*     name;
+    u8 flags;
+    char* name;
     union {
         struct
         {
@@ -90,7 +90,7 @@ struct Type {
         struct
         {
             Type* type;
-            s64   size;
+            s64 size;
         } Array;
         struct
         {
@@ -114,8 +114,8 @@ struct Type {
 typedef struct
 {
     Type** data;
-    s64    count;
-    s64    allocated;
+    s64 count;
+    s64 allocated;
 } Type_Ref_List;
 
 Type_Ref_List
@@ -125,17 +125,17 @@ void type_ref_list_append(Type_Ref_List* l, Type* t);
 bool is_same_type(Type* a, Type* b);
 
 List* type_get_members(Type* type);
-s64   get_offset_in_struct_to_field(Type* type, char* name);
-s64   get_size_of_underlying_type_if_any(Type* type);
+s64 get_offset_in_struct_to_field(Type* type, char* name);
+s64 get_size_of_underlying_type_if_any(Type* type);
 Type* get_underlying_type_if_any(Type* type);
-s64   get_size_of_type(Type* Type);
+s64 get_size_of_type(Type* Type);
 char* get_type_name(Type* Type);
 
 char* type_to_str(Type* type);
 char* type_to_str_r(String_Context* ctx, Type* type);
 char* type_to_json(Type* type);
 char* type_kind_to_str(Type_Kind kind);
-void  type_replace(Type* a, Type* b);
+void type_replace(Type* a, Type* b);
 
 // clang-format off
 Type*   make_type_unresolved    (char* name);

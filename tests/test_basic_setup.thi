@@ -1,28 +1,3 @@
-#change:                                 # @change
-#        mov     QWORD PTR [RSP - 8], RDI
-#        mov     RDI, QWORD PTR [RSP - 8]
-#        mov     DWORD PTR [RDI], 53
-#        ret
-
-#main:                                   # @main
-#        push    RBP
-#        mov     RBP, RSP
-#        sub     RSP, 32
-#        lea     RAX, QWORD PTR [RBP - 20]
-#        mov     DWORD PTR [RBP - 4], 0
-#        mov     DWORD PTR [RBP - 8], EDI
-#        mov     QWORD PTR [RBP - 16], RSI
-#        mov     DWORD PTR [RBP - 20], 0
-#        mov     QWORD PTR [RBP - 32], RAX
-#        mov     RDI, QWORD PTR [RBP - 32]
-#        call    change
-#        mov     ECX, DWORD PTR [RBP - 20]
-#        add     ECX, 3
-#        mov     EAX, ECX
-#        add     RSP, 32
-#        pop     RBP
-#        ret
-
 # load "includes/cstdio"
 
 extern printf(u8*, ...) s32
@@ -35,23 +10,28 @@ def v2
     y f64
 
 def main(argc int, argv char**) s64
-    #i = 1
-    #k = &i
-    #*k = 42
+    i = 1
+    k = &i
+    *k = 42
 
-    ## Print all arguments
-    #for x = 0 x < argc ++x
-    #    printf("%s\n", argv[x])
+    # Print all arguments
+    for x = 0 x < argc ++x
+        printf("%s\n", *(argv + sizeof(*argv) * x))
+        printf("%s\n", argv[x])
+
+    # argv[x]
+    # is syntax sugar for
+     #*(argv + sizeof(*argv) * x)
 
 
     # The bug is that 'v.x' type is seen as 'v2' when it should be 'f64'
     # Check the assembly.
 
-    v v2
-    v.x = 53.35
-    f = 3.0
-    #*(&v + 0) = 14.01
-    printf("%f\n", v.x)
+    #v v2
+    #v.x = 53.35
+    #f = 3.0
+    ##*(&v + 0) = 14.01
+    #printf("%f\n", v.x)
 
     #x = 5.0
     #f = 3.0
@@ -59,4 +39,4 @@ def main(argc int, argv char**) s64
 
     #change(k)
     #return i
-    return 1
+    return 1 + 3

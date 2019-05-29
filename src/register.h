@@ -24,13 +24,13 @@
 #include "typedefs.h"
 #include "value.h"
 
-s8    get_num_registers(void);
+s8 get_num_registers(void);
 char* get_reg(s8 reg_n);
 char* get_reg_fitting_value(Value* value);
-s8    get_push_or_popable_reg(s8 reg);
-s8    get_rax_reg_of_byte_size(u8 bytes, char c);
-s8    get_parameter_reg(s8 i, s8 size);
-s8    get_reg_as_another_size(s8 reg, s8 size);
+s8 get_push_or_popable_reg(s8 reg);
+s8 get_rax_reg_of_byte_size(u8 bytes, char c);
+s8 get_parameter_reg(s8 i, s8 size);
+s8 get_reg_as_another_size(s8 reg, s8 size);
 
 s8 get_size_of_reg(s8 reg);
 

@@ -39,24 +39,24 @@
 Codegen_Context
 make_codegen_context() {
     Codegen_Context ctx;
-    ctx.scope_stack                    = make_stack();
-    ctx.current_function               = NULL;
-    ctx.expected_type                  = NULL;
-    ctx.section_extern                 = string_create("");
-    ctx.section_text                   = string_create("");
-    ctx.section_data                   = string_create("");
-    ctx.stack_index                    = 0;
-    ctx.text_label_counter             = 0;
-    ctx.data_label_counter             = 0;
-    ctx.ocontinue                      = NULL;
-    ctx.lcontinue                      = NULL;
-    ctx.obreak                         = NULL;
-    ctx.lbreak                         = NULL;
-    ctx.l_end                          = NULL;
-    ctx.l0                             = NULL;
-    ctx.l1                             = NULL;
-    ctx.o0                             = NULL;
-    ctx.o1                             = NULL;
+    ctx.scope_stack = make_stack();
+    ctx.current_function = NULL;
+    ctx.expected_type = NULL;
+    ctx.section_extern = string_create("");
+    ctx.section_text = string_create("");
+    ctx.section_data = string_create("");
+    ctx.stack_index = 0;
+    ctx.text_label_counter = 0;
+    ctx.data_label_counter = 0;
+    ctx.ocontinue = NULL;
+    ctx.lcontinue = NULL;
+    ctx.obreak = NULL;
+    ctx.lbreak = NULL;
+    ctx.l_end = NULL;
+    ctx.l0 = NULL;
+    ctx.l1 = NULL;
+    ctx.o0 = NULL;
+    ctx.o1 = NULL;
     ctx.next_available_xmm_reg_counter = 0;
     ctx.next_available_rax_reg_counter = 0;
     return ctx;
@@ -173,7 +173,7 @@ void pop_type(Codegen_Context* ctx, Type* type) {
     case TYPE_ENUM:    // fallthrough
     case TYPE_INT: pop(ctx, RAX); break;
     case TYPE_FLOAT: pop(ctx, XMM0); break;
-    default: error("Unhandled pop_type %s", type_to_str( type));
+    default: error("Unhandled pop_type %s", type_to_str(type));
     }
 }
 
@@ -347,7 +347,7 @@ get_variable(Codegen_Context* ctx, AST* ident) {
     assert(ident);
     STACK_FOREACH(ctx->scope_stack) {
         Scope* scope = (Scope*)it->data;
-        Value* res   = get_variable_in_scope(scope, ident->Ident.name);
+        Value* res = get_variable_in_scope(scope, ident->Ident.name);
         if (res) return res;
     }
     error("no variable with name '%s'", ident->Ident.name);
@@ -369,8 +369,8 @@ int align(int n, s32 m) {
 
 void emit_cast_float_to_int(Codegen_Context* ctx, char* reg, Type* type) {
     assert(type->kind == TYPE_INT);
-    bool usig      = type->Int.is_unsigned;
-    s8   type_size = get_size_of_type(type);
+    bool usig = type->Int.is_unsigned;
+    s8 type_size = get_size_of_type(type);
     switch (type_size) {
     case 4: emit(ctx, "cvttss2si %s, xmm0", reg); break;
     case 8: emit(ctx, "cvttsd2si %s, xmm0", reg); break;
@@ -382,8 +382,8 @@ void emit_cast_float_to_int(Codegen_Context* ctx, char* reg, Type* type) {
 
 void emit_cast_int_to_int(Codegen_Context* ctx, char* reg, Type* type) {
     assert(type->kind == TYPE_INT);
-    bool usig      = type->Int.is_unsigned;
-    s8   type_size = get_size_of_type(type);
+    bool usig = type->Int.is_unsigned;
+    s8 type_size = get_size_of_type(type);
     switch (type_size) {
     case 1:
         usig ? emit(ctx, "movzbq %s, al", reg)
@@ -425,9 +425,9 @@ void emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     assert(reg >= 0 && reg <= TOTAL_REG_COUNT);
-    s64   stack_pos = get_stack_pos_of_variable(variable);
-    char* reg_c     = get_reg(reg);
-    char* mov_op    = get_move_op(variable->type);
+    s64 stack_pos = get_stack_pos_of_variable(variable);
+    char* reg_c = get_reg(reg);
+    char* mov_op = get_move_op(variable->type);
 
     switch (variable->type->kind) {
     // case TYPE_POINTER:
@@ -443,7 +443,7 @@ void emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg) {
 void emit_store_deref(Codegen_Context* ctx, Value* variable) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
-    char* reg    = get_result_reg_2(variable->type);
+    char* reg = get_result_reg_2(variable->type);
     char* mov_op = get_move_op(variable->type);
     emit(ctx, "%s [rax], %s; store %s", mov_op, reg, (variable->Variable.name));
 }
@@ -451,9 +451,9 @@ void emit_store_deref(Codegen_Context* ctx, Value* variable) {
 void emit_store(Codegen_Context* ctx, Value* variable) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
-    s64   stack_pos = get_stack_pos_of_variable(variable);
-    char* reg       = get_result_reg_2(variable->type);
-    char* mov_op    = get_move_op(variable->type);
+    s64 stack_pos = get_stack_pos_of_variable(variable);
+    char* reg = get_result_reg_2(variable->type);
+    char* mov_op = get_move_op(variable->type);
     switch (variable->type->kind) {
     // case TYPE_POINTER:
     // case TYPE_STRUCT:
@@ -468,9 +468,9 @@ void emit_store(Codegen_Context* ctx, Value* variable) {
 void emit_load(Codegen_Context* ctx, Value* variable) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
-    s64   stack_pos = get_stack_pos_of_variable(variable);
-    char* reg       = get_result_reg(variable->type);
-    char* mov_op    = get_move_op(variable->type);
+    s64 stack_pos = get_stack_pos_of_variable(variable);
+    char* reg = get_result_reg(variable->type);
+    char* mov_op = get_move_op(variable->type);
     emit(ctx, "%s %s, [rbp-%lld]; load %s of type '%s' from %lld", mov_op, reg, stack_pos, variable->Variable.name, get_type_name(variable->type), stack_pos);
 }
 
@@ -533,8 +533,8 @@ void set_current_function_expr(Codegen_Context* ctx, AST* func_expr) {
 }
 
 char* emit_save_result(Codegen_Context* ctx, Value* value) {
-    char* mov_op     = get_move_op(value->type);
-    char* reg        = get_next_available_reg_fitting(ctx, value->type);
+    char* mov_op = get_move_op(value->type);
+    char* reg = get_next_available_reg_fitting(ctx, value->type);
     char* result_reg = get_result_reg(value->type);
     emit(ctx, "%s %s, %s", mov_op, reg, result_reg);
     return reg;
@@ -570,7 +570,7 @@ char* get_instr(Token_Kind op, Type* type) {
 
 char* get_next_available_reg_fitting(Codegen_Context* ctx, Type* type) {
     s64 size = get_size_of_type(type);
-    s8  r    = -1;
+    s8 r = -1;
     switch (type->kind) {
     case TYPE_ARRAY:   // fallthrough
     case TYPE_POINTER: // fallthrough
