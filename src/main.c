@@ -55,7 +55,9 @@ void linking_stage(Thi* thi, char* exec_name);
 // Replaces 'sizeof <expr>' calls with the size of the resulting expr.
 void resolve_sizeofs(void* dont_care, AST* node) {
     s64 size = get_size_of_type(node->type);
-    AST* constant_value = make_ast_int(node->loc_info, size);
+    warning("%d", size);
+    warning("%d", get_size_of_type(make_type_int(1, false)));
+    AST* constant_value = make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, false));
     ast_replace(node, constant_value);
 }
 // Replaces 'typeof <expr>' calls with the type of the resulting expr.
@@ -76,7 +78,7 @@ void resolve_subscript(void* dont_care, AST* node) {
 
     s64 size = get_size_of_underlying_type_if_any(load->type);
 
-    sub = make_ast_binary(node->loc_info, TOKEN_ASTERISK, make_ast_int(node->loc_info, size), sub);
+    sub = make_ast_binary(node->loc_info, TOKEN_ASTERISK, make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, 0)), sub);
     sub = make_ast_binary(node->loc_info, TOKEN_PLUS, load, sub);
     sub = make_ast_grouping(node->loc_info, sub);
     sub = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, sub);
@@ -92,7 +94,7 @@ void resolve_field_access(void* dont_care, AST* node) {
     Type* type_of_field = node->type;
 
     s64 offset_size = get_offset_in_struct_to_field(load->type, field_name);
-    AST* offset = make_ast_int(node->loc_info, offset_size);
+    AST* offset = make_ast_int(node->loc_info, offset_size, make_type_int(DEFAULT_INT_BYTE_SIZE, 0));
 
     AST* res = make_ast_unary(node->loc_info, THI_SYNTAX_ADDRESS, load);
     res = make_ast_binary(node->loc_info, TOKEN_PLUS, res, offset);
@@ -117,7 +119,7 @@ void pass_initilize_enums(void* thi, AST* node) {
             default:
                 error("unhandled case: %s, %s, %s", ast_kind_to_str(m->kind), __func__, __LINE__);
             case AST_IDENT:
-                it->data = make_ast_constant_decl(m->loc_info, m->Ident.name, make_ast_int(m->loc_info, counter));
+                it->data = make_ast_constant_decl(m->loc_info, m->Ident.name, make_ast_int(m->loc_info, counter, make_type_int(DEFAULT_INT_BYTE_SIZE, 0)));
                 break;
             case AST_CONSTANT_DECL:
                 assert(m->Constant_Decl.value->kind == AST_INT);
@@ -208,7 +210,6 @@ void visitor_resolve_unresolved_types(void* thi, AST* node) {
 void constant_fold_unary(AST* node) {
     AST* operand = node->Unary.operand;
     if (operand->kind == AST_GROUPING) operand = operand->Grouping.node;
-
     // ex. &(*x) is the same as x
     // ex. *(&x) is the same as x
     if (operand->kind == AST_UNARY) {
@@ -219,22 +220,21 @@ void constant_fold_unary(AST* node) {
         case THI_SYNTAX_ADDRESS: ast_replace(node, operand->Unary.op == THI_SYNTAX_POINTER ? operand->Unary.operand : operand); break;
         }
     }
-
     if (operand->kind == AST_INT) {
         Token_Kind op = node->Unary.op;
         s64 oper_v = operand->Int.val;
         s64 value = 0;
         // clang-format off
         switch (op) {
+        default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
         case TOKEN_BANG:    value = !oper_v; break;
         case TOKEN_PLUS:    value = oper_v;  break;
         case TOKEN_TILDE:   value = ~oper_v; break;
         case TOKEN_MINUS:   value = -oper_v; break;
-        default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
         }
         // clang-format on
-        AST* constant_value = make_ast_int(node->loc_info, value);
-        ast_replace(node, constant_value);
+        operand->Int.val = value;
+        ast_replace(node, operand);
     }
 }
 void constant_fold_binary(AST* node) {
@@ -243,21 +243,6 @@ void constant_fold_binary(AST* node) {
     AST* rhs = node->Binary.rhs;
     if (lhs->kind == AST_GROUPING) lhs = lhs->Grouping.node;
     if (rhs->kind == AST_GROUPING) rhs = rhs->Grouping.node;
-
-    switch (op) {
-    case TOKEN_PLUS:     // fallthrough
-    case TOKEN_MINUS:    // fallthrough
-    case TOKEN_ASTERISK: // fallthrough
-    case TOKEN_FWSLASH:
-        if (lhs->kind == AST_INT && lhs->Int.val == 0) {
-            ast_replace(node, rhs);
-            // ..the same for the rhs side
-        } else if (rhs->kind == AST_INT && rhs->Int.val == 0) {
-            ast_replace(node, lhs);
-        }
-    default: break;
-    }
-
     if (lhs->kind == AST_INT && rhs->kind == AST_INT) {
         s64 lhs_v = lhs->Int.val;
         s64 rhs_v = rhs->Int.val;
@@ -285,26 +270,12 @@ void constant_fold_binary(AST* node) {
         case TOKEN_COLON:         return;
         }
         // clang-format on
-        ast_replace(node, make_ast_int(node->loc_info, value));
+        lhs->Int.val = value;
+        ast_replace(node, lhs);
     } else if (lhs->kind == AST_FLOAT && rhs->kind == AST_FLOAT) {
         f64 lhs_v = lhs->Float.val;
         f64 rhs_v = rhs->Float.val;
         f64 value = 0.0;
-
-        switch (op) {
-        case TOKEN_PLUS:     // fallthrough
-        case TOKEN_MINUS:    // fallthrough
-        case TOKEN_ASTERISK: // fallthrough
-        case TOKEN_FWSLASH:
-            if (lhs->kind == AST_FLOAT && lhs->Float.val == 0.0) {
-                ast_replace(node, rhs);
-                // ..the same for the rhs side
-            } else if (rhs->kind == AST_FLOAT && rhs->Float.val == 0.0) {
-                ast_replace(node, lhs);
-            }
-        default: break;
-        }
-
         // clang-format off
         switch (op) {
         default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
@@ -320,8 +291,8 @@ void constant_fold_binary(AST* node) {
         case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
         }
         // clang-format on
-        AST* constant_value = make_ast_int(node->loc_info, value);
-        ast_replace(node, constant_value);
+        lhs->Float.val = value;
+        ast_replace(node, lhs);
     }
 }
 void constant_fold(void* dont_care, AST* node) {
@@ -424,6 +395,7 @@ int main(int argc, char** argv) {
 
     // Make sure it's actually a .thi file
     if (strcmp(ext, "thi") != 0) {
+        error("thats not a thi file...");
     }
 
     add_load(&thi, name);

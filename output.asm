@@ -76,6 +76,8 @@ section .data
 	d15: dq `typeof v.y = %s\n`, 0 
 	d16: dq `f64`, 0 
 	d17: dq `typeof f = %s\n`, 0 
+	d18: dq `f64`, 0 
+	d19: dq `typeof x = %s\n`, 0 
 global _main
 section .text
 _change:
@@ -186,10 +188,15 @@ _main:
 		movsd xmm0, [rel d2]; float_ref
 		sub rsp, 8
 		movsd [rsp], xmm0
+		mov rax, 0
+		push rax
 		mov rax, [rbp-44]; load v of type 'v2' from 44
+		lea rax, [rbp-44]; addrsof 'v'
+		pop rcx
+		add rax, rcx
 		movsd xmm1, [rsp]
 		add rsp, 8
-		mov [rbp-44], rcx; store v of type 'v2' at 44
+		mov [rax], rcx; store v
 		mov rax, [rbp-44]; load v of type 'v2' from 44
 		movsd xmm0, [rel d3]; float_ref
 		sub rsp, 8
@@ -220,7 +227,13 @@ _main:
 		add rax, rcx
 		mov rax, [rax]; deref 'v'
 		push rax
+		mov rax, 0
+		push rax
 		mov rax, [rbp-44]; load v of type 'v2' from 44
+		lea rax, [rbp-44]; addrsof 'v'
+		pop rcx
+		add rax, rcx
+		mov rax, [rax]; deref 'v'
 		push rax
 		mov rax, d5; string_ref
 		push rax
@@ -260,7 +273,7 @@ _main:
 		add rsp, 8
 		mov al, 3; var_arg_count
 		call _printf
-		mov rax, 72
+		mov al, 72
 		push rax
 		pop rcx
 		mov [rbp-69], cl; store c of type 'u8' at 69
@@ -303,6 +316,14 @@ _main:
 		mov rax, d16; string_ref
 		push rax
 		mov rax, d17; string_ref
+		push rax
+		pop rdi
+		pop rsi
+		mov al, 2; var_arg_count
+		call _printf
+		mov rax, d18; string_ref
+		push rax
+		mov rax, d19; string_ref
 		push rax
 		pop rdi
 		pop rsi

@@ -726,9 +726,10 @@ AST* make_ast_note(Loc_Info loc_info, AST* node) {
     return e;
 }
 
-AST* make_ast_int(Loc_Info loc_info, s64 value) {
+AST* make_ast_int(Loc_Info loc_info, s64 value, Type* type) {
     AST* e = make_ast(AST_INT, loc_info);
-    e->type = make_type_int(DEFAULT_INT_BYTE_SIZE, 0);
+    e->type = type;
+    // e->type = make_type_int(DEFAULT_INT_BYTE_SIZE, 0);
     e->Int.val = value;
     return e;
 }

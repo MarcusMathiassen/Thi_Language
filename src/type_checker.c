@@ -85,7 +85,7 @@ void type_checker(Map* symbol_table, AST* ast) {
 Type* type_check_node(Typer_Context* ctx, AST* node) {
     if (!node) return NULL;
     DEBUG_START;
-    Type* result = NULL;
+    Type* result = node->type;
     // clang-format off
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
@@ -101,7 +101,7 @@ Type* type_check_node(Typer_Context* ctx, AST* node) {
     case AST_ENUM:           result = type_check_enum          (ctx, node);                   break;
     case AST_FUNCTION:       result = type_check_function      (ctx, node);                   break;
     case AST_NOTE:           result = type_check_note          (ctx, node);                   break;
-    case AST_INT:            result = type_check_int           (ctx, node);                   break;
+    case AST_INT: break;
     case AST_FLOAT:          result = type_check_float         (ctx, node);                   break;
     case AST_STRING:         result = type_check_string        (ctx, node);                   break;
     case AST_IDENT:          result = type_check_ident         (ctx, node);                   break;

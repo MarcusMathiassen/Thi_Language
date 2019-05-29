@@ -83,6 +83,7 @@ AST* parse_expression               (Parser_Context* ctx);
 AST* parse_unary                    (Parser_Context* ctx);
 AST* parse_binary                   (Parser_Context* ctx, s8 min_prec, AST* lhs);
 AST* parse_integer                  (Parser_Context* ctx);
+AST* parse_char                     (Parser_Context* ctx);
 AST* parse_float                    (Parser_Context* ctx);
 AST* parse_parens                   (Parser_Context* ctx);
 AST* parse_defer                    (Parser_Context* ctx);
@@ -281,12 +282,12 @@ start:
         if (!ctx->inside_parens) { result = NULL; break;}
         else goto start;
     case TOKEN_DOT_DOT_DOT: eat(ctx); result = make_ast_var_args(loc(ctx)); break;
-    case TOKEN_TRUE:        eat(ctx); result = make_ast_int(loc(ctx), 1); break;
-    case TOKEN_FALSE:       eat(ctx); result = make_ast_int(loc(ctx), 0); break;
+    case TOKEN_TRUE:        eat(ctx); result = make_ast_int(loc(ctx), 1, make_type_int(1, 1)); break;
+    case TOKEN_FALSE:       eat(ctx); result = make_ast_int(loc(ctx), 0, make_type_int(1, 1)); break;
     case TOKEN_IDENTIFIER:  result = parse_identifier(ctx); break;
     case TOKEN_DOLLAR_SIGN: result = parse_note(ctx); break;
     case TOKEN_FLOAT:       result = parse_float(ctx); break;
-    case TOKEN_CHAR:        // fallthrough
+    case TOKEN_CHAR:        result = parse_char(ctx); break;
     case TOKEN_HEX:         // fallthrough
     case TOKEN_INTEGER:     result = parse_integer(ctx); break;
     case TOKEN_STRING:      result = parse_string(ctx); break;
@@ -406,22 +407,22 @@ AST* parse_for(Parser_Context* ctx) {
         // for it = 0, it < len(params), ++it
         //     param := params[it]
 
-        // WE ARE A 'FOR IN'
-        eat_kind(ctx, TOKEN_IN);
+        // // WE ARE A 'FOR IN'
+        // eat_kind(ctx, TOKEN_IN);
 
-        // Parse the rhs
-        AST* after_in = parse_expression(ctx);
+        // // Parse the rhs
+        // AST* after_in = parse_expression(ctx);
 
-        AST* it = make_ast_ident(loc(ctx), DEFAULT_FOR_IN_ITERATOR_NAME);
-        AST* it_var = make_ast_binary(loc(ctx), TOKEN_EQ, init, make_ast_subscript(loc(ctx), after_in, it));
+        // AST* it = make_ast_ident(loc(ctx), DEFAULT_FOR_IN_ITERATOR_NAME);
+        // AST* it_var = make_ast_binary(loc(ctx), TOKEN_EQ, init, make_ast_subscript(loc(ctx), after_in, it));
 
-        init = make_ast_binary(loc(ctx), TOKEN_EQ, it, make_ast_int(loc(ctx), 0));
-        cond = make_ast_binary(loc(ctx), TOKEN_LT, it, make_ast_int(loc(ctx), 7)); //@HARDCODED
-        step = make_ast_unary(loc(ctx), TOKEN_PLUS_PLUS, it);
-        then_block = parse_block(ctx);
+        // init = make_ast_binary(loc(ctx), TOKEN_EQ, it, make_ast_int(loc(ctx), 0));
+        // cond = make_ast_binary(loc(ctx), TOKEN_LT, it, make_ast_int(loc(ctx), 7)); //@HARDCODED
+        // step = make_ast_unary(loc(ctx), TOKEN_PLUS_PLUS, it);
+        // then_block = parse_block(ctx);
 
-        // Place the 'param' variable at the start of the block
-        list_prepend(then_block->Block.stmts, it_var);
+        // // Place the 'param' variable at the start of the block
+        // list_prepend(then_block->Block.stmts, it_var);
     } else {
         cond = parse_expression(ctx);
         step = parse_statement(ctx);
@@ -837,9 +838,15 @@ AST* parse_float(Parser_Context* ctx) {
     return res;
 }
 
+AST* parse_char(Parser_Context* ctx) {
+    DEBUG_START;
+    AST* res = make_ast_int(loc(ctx), get_integer(ctx), make_type_int(1, true));
+    return res;
+}
+
 AST* parse_integer(Parser_Context* ctx) {
     DEBUG_START;
-    AST* res = make_ast_int(loc(ctx), get_integer(ctx));
+    AST* res = make_ast_int(loc(ctx), get_integer(ctx), make_type_int(DEFAULT_INT_BYTE_SIZE, 0));
     return res;
 }
 

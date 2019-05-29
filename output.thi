@@ -16,10 +16,10 @@ def main(argc s32, argv u8**) s32
         printf("%s\n", *(argv + 8 * x))
 
     v v2
-    v = 53.350000
+    *(&v + 0) = 53.350000
     *(&v + 8) = 14.010000
     f f64 = 3.000000
-    printf("v.x = %f v.x = %f\n", v, *(&v + 8))
+    printf("v.x = %f v.x = %f\n", *(&v + 0), *(&v + 8))
     x f64 = 5.000000
     f = 3.000000
     printf("f = %f x = %f\n", f, x)
@@ -29,6 +29,7 @@ def main(argc s32, argv u8**) s32
     printf("typeof v.x = %s\n", "f64")
     printf("typeof v.y = %s\n", "f64")
     printf("typeof f = %s\n", "f64")
+    printf("typeof x = %s\n", "f64")
     change(k)
     return i
 

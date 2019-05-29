@@ -145,7 +145,7 @@ Value* codegen_unary(Codegen_Context* ctx, AST* node) {
         s64 size = 1;
         if (operand->type->kind == TYPE_POINTER)
             size = get_size_of_underlying_type_if_any(operand->type);
-        result = codegen_node(ctx, make_ast_binary(node->loc_info, TOKEN_PLUS_EQ, operand, make_ast_int(node->loc_info, size)));
+        result = codegen_node(ctx, make_ast_binary(node->loc_info, TOKEN_PLUS_EQ, operand, make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, 0))));
     } break;
     case THI_SYNTAX_ADDRESS: {
         s64 stack_pos = get_stack_pos_of_variable(operand_val);
