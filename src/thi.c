@@ -74,6 +74,7 @@ Thi make_thi() {
     map_set(thi.all_passes_for_all_kinds, "AST_INT", make_list());
     map_set(thi.all_passes_for_all_kinds, "AST_FLOAT", make_list());
     map_set(thi.all_passes_for_all_kinds, "AST_STRING", make_list());
+    map_set(thi.all_passes_for_all_kinds, "AST_CHAR", make_list());
     map_set(thi.all_passes_for_all_kinds, "AST_IDENT", make_list());
     map_set(thi.all_passes_for_all_kinds, "AST_CALL", make_list());
     map_set(thi.all_passes_for_all_kinds, "AST_UNARY", make_list());
@@ -126,6 +127,7 @@ void thi_remove_all_passes(Thi* thi) {
     map_set(thi->all_passes_for_all_kinds, "AST_INT", make_list());
     map_set(thi->all_passes_for_all_kinds, "AST_FLOAT", make_list());
     map_set(thi->all_passes_for_all_kinds, "AST_STRING", make_list());
+    map_set(thi->all_passes_for_all_kinds, "AST_CHAR", make_list());
     map_set(thi->all_passes_for_all_kinds, "AST_IDENT", make_list());
     map_set(thi->all_passes_for_all_kinds, "AST_CALL", make_list());
     map_set(thi->all_passes_for_all_kinds, "AST_UNARY", make_list());

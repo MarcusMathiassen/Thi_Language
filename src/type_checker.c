@@ -48,9 +48,6 @@ Type* type_check_struct         (Typer_Context* ctx, AST* node);
 Type* type_check_enum           (Typer_Context* ctx, AST* node);
 Type* type_check_function       (Typer_Context* ctx, AST* node);
 Type* type_check_note           (Typer_Context* ctx, AST* node);
-Type* type_check_int            (Typer_Context* ctx, AST* node);
-Type* type_check_float          (Typer_Context* ctx, AST* node);
-Type* type_check_string         (Typer_Context* ctx, AST* node);
 Type* type_check_ident          (Typer_Context* ctx, AST* node);
 Type* type_check_call           (Typer_Context* ctx, AST* node);
 Type* type_check_unary          (Typer_Context* ctx, AST* node);
@@ -103,8 +100,9 @@ Type* type_check_node(Typer_Context* ctx, AST* node) {
     case AST_FUNCTION:       result = type_check_function      (ctx, node);                   break;
     case AST_NOTE:           result = type_check_note          (ctx, node);                   break;
     case AST_INT: break;
-    case AST_FLOAT:          result = type_check_float         (ctx, node);                   break;
-    case AST_STRING:         result = type_check_string        (ctx, node);                   break;
+    case AST_FLOAT: break;
+    case AST_STRING: break;
+    case AST_CHAR: break;
     case AST_IDENT:          result = type_check_ident         (ctx, node);                   break;
     case AST_CALL:           result = type_check_call          (ctx, node);                   break;
     case AST_UNARY:          result = type_check_unary         (ctx, node);                   break;
@@ -204,18 +202,6 @@ Type* type_check_function(Typer_Context* ctx, AST* node) {
 Type* type_check_note(Typer_Context* ctx, AST* node) {
     return NULL;
 }
-
-Type* type_check_int(Typer_Context* ctx, AST* node) {
-    return (Type*)map_get(ctx->symbol_table, DEFAULT_INT_TYPE_AS_STRING);
-}
-
-Type* type_check_float(Typer_Context* ctx, AST* node) {
-    return (Type*)map_get(ctx->symbol_table, DEFAULT_FLOAT_TYPE_AS_STRING);
-}
-Type* type_check_string(Typer_Context* ctx, AST* node) {
-    return make_type_pointer(make_type_int(8, 1));
-}
-
 Type* type_check_ident(Typer_Context* ctx, AST* node) {
     char* identifier = node->Ident.name;
     return get_symbol(ctx, identifier);

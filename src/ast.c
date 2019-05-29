@@ -54,6 +54,7 @@ char* ast_kind_to_str(AST_Kind kind) {
     case AST_INT:                             return "AST_INT";
     case AST_FLOAT:                           return "AST_FLOAT";
     case AST_STRING:                          return "AST_STRING";
+    case AST_CHAR:                            return "AST_CHAR";
     case AST_IDENT:                           return "AST_IDENT";
     case AST_CALL:                            return "AST_CALL";
     case AST_UNARY:                           return "AST_UNARY";
@@ -291,6 +292,10 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         string_append_f(s, "\"%s\"", node->String.val);
         break;
     }
+    case AST_CHAR: {
+        string_append_f(s, "'%c'", node->Char.val);
+        break;
+    }
     case AST_IDENT: {
         string_append(s, get_ast_name(node));
         break;
@@ -526,6 +531,7 @@ void ast_visit(void (*func)(void*, AST*), void* ctx, AST* node) {
     case AST_INT:         break;
     case AST_FLOAT:       break;
     case AST_STRING:      break;
+    case AST_CHAR:        break;
     case AST_IDENT:       break;
     case AST_STRUCT:      break;
         // clang-format on
@@ -769,6 +775,13 @@ AST* make_ast_string(Loc_Info loc_info, char* value) {
     AST* e = make_ast(AST_STRING, loc_info);
     e->type = make_type_pointer(make_type_int(1, 1));
     e->String.val = value;
+    return e;
+}
+
+AST* make_ast_char(Loc_Info loc_info, char value) {
+    AST* e = make_ast(AST_CHAR, loc_info);
+    e->type = make_type_int(1, true);
+    e->Char.val = value;
     return e;
 }
 

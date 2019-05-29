@@ -872,7 +872,7 @@ AST* parse_float(Parser_Context* ctx) {
 AST* parse_char(Parser_Context* ctx) {
     DEBUG_START;
     Loc_Info lc = loc(ctx);
-    AST* res = make_ast_int(lc, get_integer(ctx), make_type_int(1, true));
+    AST* res = make_ast_char(lc, (char)get_integer(ctx));
     return res;
 }
 

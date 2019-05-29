@@ -145,6 +145,7 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
     case AST_INT:         break;
     case AST_FLOAT:       break;
     case AST_STRING:      break;
+    case AST_CHAR:      break;
     case AST_IDENT: {
         AST* var = get_symbol_in_scope(ctx, node->Ident.name);
         if (!var) {

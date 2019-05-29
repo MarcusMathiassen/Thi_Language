@@ -51,6 +51,7 @@ typedef enum {
     AST_INT,
     AST_FLOAT,
     AST_STRING,
+    AST_CHAR,
     AST_IDENT,
     AST_CALL,
     AST_UNARY,
@@ -161,6 +162,10 @@ struct AST {
         {
             char* val;
         } String;
+        struct
+        {
+            char val;
+        } Char;
         struct
         {
             char* name;
@@ -280,6 +285,7 @@ AST* make_ast_note(Loc_Info loc_info, AST* node);
 AST* make_ast_int(Loc_Info loc_info, s64 value, Type* type);
 AST* make_ast_float(Loc_Info loc_info, f64 value);
 AST* make_ast_string(Loc_Info loc_info, char* value);
+AST* make_ast_char(Loc_Info loc_info, char value);
 AST* make_ast_ident(Loc_Info loc_info, char* ident);
 AST* make_ast_struct(Loc_Info loc_info, char* name, List* members);
 AST* make_ast_enum(Loc_Info loc_info, char* name, List* members);

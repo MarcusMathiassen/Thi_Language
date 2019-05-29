@@ -90,6 +90,7 @@ Value* codegen_node(Codegen_Context* ctx, AST* node) {
     case AST_INT: return codegen_int(ctx, node);
     case AST_FLOAT: return codegen_float(ctx, node);
     case AST_STRING: return codegen_string(ctx, node);
+    case AST_CHAR: return codegen_node(ctx, make_ast_int(node->loc_info, node->Char.val, node->type));
     case AST_IDENT: return codegen_ident(ctx, node);
     case AST_CALL: return codegen_call(ctx, node);
     case AST_UNARY: return codegen_unary(ctx, node);
