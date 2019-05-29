@@ -143,6 +143,7 @@ char* get_file_extension(char* filename) {
     s64 i   = 0;
     while (filename[len - (++i)] != '.')
         continue;
+    if(i > len) return NULL;
     ++len; // skip the '.'
     char* str = xmalloc(i + 1);
     memcpy(str, filename + len - i, i);
@@ -156,6 +157,7 @@ char* remove_file_extension(char* filename) {
     s64 i   = 0;
     while (filename[len - (++i)] != '.')
         continue;
+    if(i == len) return NULL;
     char* str = xmalloc(len - i + 1);
     memcpy(str, filename, len - i);
     str[len - i] = 0;
@@ -393,6 +395,7 @@ void utility_tests(void) {
 
     // get_file_extension
     assert(strcmp(get_file_extension("./b/m.thi"), "thi") == 0);
+    assert(get_file_extension("fefem") == NULL);
     assert(strcmp(get_file_extension("./b/m.thigegerg/o.hrifj"), "hrifj") == 0);
 
     // get_file_name

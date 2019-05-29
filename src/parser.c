@@ -356,7 +356,9 @@ AST* parse_load(Parser_Context* ctx) {
     DEBUG_START;
     Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_LOAD);
-    char* file = strf("%s.thi", tokValue(ctx));
+    char* file =  tokValue(ctx);
+    char* ext = get_file_extension(file);
+    if (!ext) file = strf("%s.thi", file);
     eat_kind(ctx, TOKEN_STRING);
     AST* module = parse(ctx, file);
     return make_ast_load(lc, file, module);
