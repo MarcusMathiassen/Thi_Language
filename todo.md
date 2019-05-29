@@ -18,4 +18,4 @@
 [ ] - X64 commented by statements and expressions.
 [ ] - Fix ';' terminator handling in parser.
 [ ] - Remove all unused nodes from the AST
-
+[x] - in Sema, orderless decls are not implemented.

@@ -311,7 +311,7 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         LIST_FOREACH(node->Struct.members) {
             string_append(s, get_indentation_as_str(ctx->indentation_level));
             ast_to_str_r(ctx, it->data);
-            string_append(s, "\n");
+            if (it->next) string_append(s, "\n");
         }
         ctx->indentation_level -= DEFAULT_INDENT_LEVEL;
         break;
@@ -378,7 +378,7 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         LIST_FOREACH(node->Block.stmts) {
             string_append(s, get_indentation_as_str(ctx->indentation_level));
             ast_to_str_r(ctx, it->data);
-            string_append(s, "\n");
+            if (it->next) string_append(s, "\n");
         }
         ctx->indentation_level -= DEFAULT_INDENT_LEVEL;
         break;

@@ -103,6 +103,25 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
     // clang-format off
     case AST_MODULE: 
         ctx->module = node;
+
+        // To support unordered decls we need to find all before we jump into scopes.
+        // So we do a preliminary pass to find all decls and add them to the scope.
+        LIST_FOREACH(node->Module.top_level) {
+            AST* decl = it->data;
+            switch(decl->kind) {
+                default: error("[%s:%s] illegal top level construct %s", get_ast_name(ctx->module), get_ast_loc_str(decl), ucolor(ast_to_str(decl)));
+                case AST_LINK: break;
+                case AST_LOAD: break;
+                case AST_EXTERN: // fallthrough
+                case AST_FUNCTION: // fallthrough
+                case AST_CONSTANT_DECL: // fallthrough
+                case AST_VARIABLE_DECL:// fallthrough
+                case AST_ENUM:// fallthrough
+                case AST_STRUCT:
+                    add_node_to_scope(ctx, decl);
+                    break;
+            }
+        }
         LIST_FOREACH(node->Module.top_level) {
             sema_check_node(ctx, it->data);
         }

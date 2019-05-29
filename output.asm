@@ -80,22 +80,6 @@ section .data
 	d19: dq `typeof x = %s\n`, 0 
 global _main
 section .text
-_change:
-		push rbp
-		mov rbp, rsp
-		sub rsp, 16; 8 alloc, 8 padding
-.begin:
-		mov [rbp-8], rdi; store_r x at 8
-		mov rax, 53
-		push rax
-		mov rax, [rbp-8]; load x of type 's64*' from 8
-		pop rcx
-		mov [rax], rcx; store x
-		mov rax, [rbp-8]; load x of type 's64*' from 8
-.end:
-		add rsp, 16; 8 alloc, 8 padding
-		leave
-		ret
 _main:
 		push rbp
 		mov rbp, rsp
@@ -337,5 +321,21 @@ _main:
 		jmp .end
 .end:
 		add rsp, 80; 69 alloc, 11 padding
+		leave
+		ret
+_change:
+		push rbp
+		mov rbp, rsp
+		sub rsp, 16; 8 alloc, 8 padding
+.begin:
+		mov [rbp-8], rdi; store_r x at 8
+		mov rax, 53
+		push rax
+		mov rax, [rbp-8]; load x of type 's64*' from 8
+		pop rcx
+		mov [rax], rcx; store x
+		mov rax, [rbp-8]; load x of type 's64*' from 8
+.end:
+		add rsp, 16; 8 alloc, 8 padding
 		leave
 		ret

@@ -1,12 +1,5 @@
 load "includes/cstdio.thi"
 load "includes/cstdlib.thi"
-def change(x s64*) void
-    *x = 53
-
-def v2
-    x f64
-    y f64
-
 def main(argc s32, argv u8**) s32
     i s64 = 1
     k s64* = &i
@@ -14,7 +7,6 @@ def main(argc s32, argv u8**) s32
     for x s64 = 0 x < argc ++x
         printf("%s\n", *(argv + 8 * x))
         printf("%s\n", *(argv + 8 * x))
-
     v v2
     *(&v + 0) = 53.350000
     *(&v + 8) = 14.010000
@@ -32,4 +24,8 @@ def main(argc s32, argv u8**) s32
     printf("typeof x = %s\n", "f64")
     change(k)
     return i
-
+def change(x s64*) void
+    *x = 53
+def v2
+    x f64
+    y f64
