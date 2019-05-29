@@ -1,9 +1,9 @@
 load "includes/cstdio"
-load "includes/cstdlib.thi"
+load "includes/cstdlib"
 
 def main(argc s32, argv u8**) s32
-    i = 1
-    k = &i
+    i s64 = 1
+    k s64* = &i
     
     *k = 42
     for x = 0 x < argc ++x

@@ -333,7 +333,6 @@ AST* parse_identifier(Parser_Context* ctx) {
     switch (tokKind(ctx)) {
     // case TOKEN_COLON:       // fallthrough
     case TOKEN_IDENTIFIER:  return parse_variable_decl(ctx, lc, ident);
-    case TOKEN_COLON_EQ:    return parse_variable_decl(ctx, lc, ident);
     case TOKEN_COLON_COLON: return parse_constant_decl(ctx, lc, ident);
     case TOKEN_OPEN_PAREN:  return parse_function_call(ctx, lc, ident);
     default:                return make_ast_ident(lc, ident);
@@ -687,12 +686,13 @@ AST* parse_def(Parser_Context* ctx) {
 
 AST* parse_variable_decl(Parser_Context* ctx, Loc_Info lc, char* ident) {
     DEBUG_START;
+    Type* type = get_type(ctx);
     AST* value = NULL;
-    if (tok_is(ctx, TOKEN_COLON_EQ)) {
+    if (tok_is(ctx, TOKEN_EQ)) {
         eat(ctx);
         value = parse_expression(ctx);
     }
-    return make_ast_variable_decl(lc, ident, get_type(ctx), value);
+    return make_ast_variable_decl(lc, ident, type, value);
 }
 
 AST* parse_binary(Parser_Context* ctx, s8 expr_prec, AST* lhs) {
