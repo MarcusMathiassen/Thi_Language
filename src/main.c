@@ -504,7 +504,7 @@ int main(int argc, char** argv) {
     thi_run_pass(&thi, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);
 
     // Write Unoptimized AST out
-    write_to_file("output.thi", ast_to_str(ast));
+    write_to_file("output.thi", ast_to_source(ast));
 
     // Run all passes
     push_timer(&thi, "Run all passes");

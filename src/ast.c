@@ -139,6 +139,17 @@ char* get_ast_name(AST* node) {
 
 char* ast_to_str(AST* node) {
     String_Context ctx;
+    ctx.with_newlines = false;
+    ctx.last.line_pos = 0;
+    ctx.last.col_pos = 0;
+    ctx.str = string_create("");
+    ctx.indentation_level = DEFAULT_INDENT_LEVEL;
+    return ast_to_str_r(&ctx, node);
+}
+
+char* ast_to_source(AST* node) {
+    String_Context ctx;
+    ctx.with_newlines = true;
     ctx.last.line_pos = 0;
     ctx.last.col_pos = 0;
     ctx.str = string_create("");
@@ -159,14 +170,15 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
 
     assert(node->kind < AST_COUNT && node->kind >= 0);
 
-    // Add some newlines if we have too :)
-
-    // If there is a difference in line position. Add
-    // that many newlines.
-    s64 diff = node->loc_info.line_pos - ctx->last.line_pos;
-    while (--diff > 0) string_append_f(s, "\n%s", get_indentation_as_str(ctx->indentation_level));
-    ctx->last = node->loc_info;
-    //
+    if (ctx->with_newlines) {
+        // Add some newlines if we have too :)
+        // If there is a difference in line position. Add
+        // that many newlines.
+        s64 diff = node->loc_info.line_pos - ctx->last.line_pos;
+        while (--diff > 0) string_append_f(s, "\n%s", get_indentation_as_str(ctx->indentation_level));
+        ctx->last = node->loc_info;
+        //
+    }
 
 
     switch (node->kind) {

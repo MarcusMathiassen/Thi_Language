@@ -695,6 +695,7 @@ AST* parse_variable_decl(Parser_Context* ctx, Loc_Info lc, char* ident) {
 
 AST* parse_binary(Parser_Context* ctx, s8 expr_prec, AST* lhs) {
     DEBUG_START;
+    warning("missing loc_info for binary nodes");
 
     AST* expr = NULL;
 
