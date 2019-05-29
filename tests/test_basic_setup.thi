@@ -19,7 +19,7 @@ def main(argc s32, argv u8**) s32
     f =            3.0
     printf          ("f = %f x = %f\n", f, x)
 
-    c char = 'H'
+    c = 'H'
     printf("c = %c, sizeof c = %d\n", c, sizeof c)
     printf("typeof v = %s\n",          typeof         v)
     printf("typeof v.x = %s\n", typeof v.x)
