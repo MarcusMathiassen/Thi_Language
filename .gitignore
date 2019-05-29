@@ -1,4 +1,6 @@
 # Specify filepatterns you want git to ignore.
 thi
+output
 output.asm
+output.thi
 .DS_Store
