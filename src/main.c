@@ -369,12 +369,14 @@ int main(int argc, char** argv) {
     list_tests();
     stack_tests();
     lexer_test();
-    //    cst_tests();
 
     Thi thi = make_thi();
 
+    set_source_file(&thi, argv[1]);
+    info("filename: %s\n", argv[1]);
+
     s32 opt;
-    while ((opt = getopt(argc, argv, "f:hdv:")) != -1) {
+    while ((opt = getopt(argc, argv, ":hdv:")) != -1) {
         switch (opt) {
         case 'h': {
             info("--- Thi Compiler ---");
@@ -385,12 +387,8 @@ int main(int argc, char** argv) {
         } break;
         case 'v': thi.detailed_print = true; break;
         case 'd': thi.debug_mode = true; break;
-        case 'f':
-            set_source_file(&thi, optarg);
-            info("filename: %s\n", optarg);
-            break;
-        case ':': info("option needs a value\n"); break;
-        case '?': info("unknown option: %c\n", optopt); break;
+        case ':': info("option needs a value\n"); return 0;
+        case '?': info("unknown option: %c\n", optopt); return 0;
         }
     }
 
@@ -556,19 +554,19 @@ int main(int argc, char** argv) {
     thi_run_pass(&thi, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);
 
     // Remove unused externs
-    List* externs = ast_find_all_of_kind(AST_EXTERN, ast);
-    List* calls = ast_find_all_of_kind(AST_CALL, ast);
-    LIST_FOREACH(externs) {
-        AST* node_e = it->data;
-        bool used = false;
-        LIST_FOREACH(calls) {
-            AST* node_c = it->data;
-            if (strcmp(node_e->Extern.type->Function.name, node_c->Call.callee) == 0) {
-                used = true;
-            }
-        }
-        if (!used) ast_replace(node_e, make_ast_nop(node_e->loc_info));
-    }
+    // List* externs = ast_find_all_of_kind(AST_EXTERN, ast);
+    // List* calls = ast_find_all_of_kind(AST_CALL, ast);
+    // LIST_FOREACH(externs) {
+    //     AST* node_e = it->data;
+    //     bool used = false;
+    //     LIST_FOREACH(calls) {
+    //         AST* node_c = it->data;
+    //         if (strcmp(node_e->Extern.type->Function.name, node_c->Call.callee) == 0) {
+    //             used = true;
+    //         }
+    //     }
+    //     if (!used) ast_replace(node_e, make_ast_nop(node_e->loc_info));
+    // }
 
     // char* json = ast_to_json(ast);
     // write_to_file("ast.json", json);
@@ -614,6 +612,7 @@ int main(int argc, char** argv) {
         s64 padding = w.ws_col - len - ms_l - 1; // -1 is the ':'
         info(give_unique_color(strf("%s:%*s%s", tm->desc, padding, "", ms)));
     }
+    write_to_file("output.thi", ast_to_str(ast));
     info("---------------------------");
 
     return 0;

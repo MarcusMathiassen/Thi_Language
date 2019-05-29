@@ -131,13 +131,14 @@ char* get_ast_name(AST* node) {
         break;
     }
     }
-    return result ? result : "---";
+    assert(result);
+    return result;
 }
 
 char* ast_to_str(AST* node) {
     String_Context ctx;
     ctx.str = string_create("");
-    ctx.indentation_level = 0;
+    ctx.indentation_level = DEFAULT_INDENT_LEVEL;
     return ast_to_str_r(&ctx, node);
 }
 
@@ -177,7 +178,7 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         string_append_f(s, "# %s\n", get_ast_name(node));
         LIST_FOREACH(node->Module.top_level) {
             ast_to_str_r(ctx, it->data);
-            string_append(s, "\n");
+            if (it->next) string_append(s, "\n");
         }
         break;
     }
@@ -220,11 +221,11 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         break;
     }
     case AST_LOAD: {
-        string_append_f(s, "load %s", node->Load.str);
+        string_append_f(s, "load  \"%s\"", node->Load.str);
         break;
     }
     case AST_LINK: {
-        string_append_f(s, "link %s", node->Link.str);
+        string_append_f(s, "link \"%s\"", node->Link.str);
         break;
     }
     case AST_DEFER: {
@@ -306,8 +307,14 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         break;
     }
     case AST_STRUCT: {
-        string_append(s, "def ");
-        type_to_str_r(ctx, node->type);
+        string_append_f(s, "def %s\n", get_ast_name(node));
+        ctx->indentation_level += DEFAULT_INDENT_LEVEL;
+        LIST_FOREACH(node->Struct.members) {
+            string_append(s, get_indentation_as_str(ctx->indentation_level));
+            ast_to_str_r(ctx, it->data);
+            if (it->next) string_append(s, "\n");
+        }
+        ctx->indentation_level -= DEFAULT_INDENT_LEVEL;
         break;
     }
     case AST_ENUM: {
@@ -373,11 +380,9 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         LIST_FOREACH(node->Block.stmts) {
             string_append(s, get_indentation_as_str(ctx->indentation_level));
             ast_to_str_r(ctx, it->data);
-            string_append(s, "\n");
+            if (it->next) string_append(s, "\n");
         }
         ctx->indentation_level -= DEFAULT_INDENT_LEVEL;
-        // string_append(s, get_indentation_as_str(ctx->indentation_level));
-        // string_append(s, "}");
         break;
     }
     case AST_CALL: {

@@ -27,20 +27,17 @@
 //                               list.h
 //------------------------------------------------------------------------------
 
-typedef struct List List;
-typedef struct List_Node List_Node;
-
-struct List_Node {
+typedef struct List_Node_t {
     void* data;
-    List_Node* next;
-    List_Node* prev;
-};
+    struct List_Node_t* next;
+    struct List_Node_t* prev;
+} List_Node;
 
-struct List {
+typedef struct {
     List_Node* head;
     List_Node* tail;
     s64 count;
-};
+} List;
 
 #define LIST_FOREACH_REVERSE(list) for (List_Node* it = (list->tail); (it); (it) = (it)->prev)
 #define LIST_FOREACH(list) for (List_Node* it = (list->head); (it); (it) = (it)->next)

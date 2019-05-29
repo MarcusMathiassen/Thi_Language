@@ -207,6 +207,28 @@ AST* parse_top_level(Parser_Context* ctx) {
     return NULL;
 }
 
+AST* parse_delimited(Parser_Context* ctx, Token_Kind delimiter) {
+    Token_Kind kind = tokKind(ctx);
+    if (kind == delimiter) return NULL;
+    switch(tokKind(ctx)) {
+        default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
+    }
+    UNREACHABLE;
+    return NULL;
+}
+
+// List* top_level = parse_delimited_and_terminated_list(ctx, TOKEN_NEWLINE, TOKEN_EOF);
+// List* stmts = parse_delimited_and_terminated_list(ctx, TOKEN_NEWLINE, TOKEN_BLOCK_END);
+
+List* parse_delimited_and_terminated_list(Parser_Context* ctx, AST* (*parseFunc)(Parser_Context*, Token_Kind), Token_Kind delimiter, Token_Kind terminator) {
+    List* nodes = make_list();
+    while (!tok_is(ctx, terminator)) {
+        AST* node = (*parseFunc)(ctx, delimiter);
+        if (node) list_append(nodes, node);
+    }
+    return nodes;
+}
+
 List* parse_delimited_list(Parser_Context* ctx, AST* (*parseFunc)(Parser_Context*), Token_Kind delimiter) {
     List* nodes = make_list();
     while (!tok_is(ctx, delimiter)) {

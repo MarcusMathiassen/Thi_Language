@@ -7,7 +7,7 @@ flags=-Wall\ -Wextra\ -Wno-unused-function\ -Wno-unused-parameter\ -Werror #-DND
 std=c99
 
 $compiler $src -std=$std $olvl $flags -o $output # -g -fsanitize=address -fno-omit-frame-pointer
-
+c
 test_files=$@
 if [ ${#test_files} == 0 ]; then
     test_files="./tests/*.thi"
@@ -170,4 +170,4 @@ if [ $? == 0 ]; then
 fi
 
 #if debug
-rm ./thi
+# rm ./thi

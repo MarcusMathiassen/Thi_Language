@@ -116,14 +116,8 @@ char* get_type_name(Type* type) {
     case TYPE_POINTER:
     case TYPE_ARRAY:
     case TYPE_VOID: return type_to_str(type);
-    case TYPE_FUNCTION: return type->Function.name ? type->Function.name : "---";
+    case TYPE_FUNCTION: return type->Function.name;
     case TYPE_UNRESOLVED: return type->Unresolved.name;
-    //     Type* t = type->Pointer.pointee;
-    //     while (t->kind == TYPE_POINTER) {
-    //         t = type->Pointer.pointee;
-    //     }
-    //     return get_type_name(t);
-    // }
     case TYPE_STRUCT: return type->Struct.name;
     case TYPE_ENUM: return type->Enum.name;
     case TYPE_VAR_ARGS: return "...";
@@ -198,7 +192,7 @@ s64 type_array_get_count(Type* type) {
 char* type_to_str(Type* type) {
     String_Context ctx;
     ctx.str = string_create("");
-    ctx.indentation_level = 0;
+    ctx.indentation_level = DEFAULT_INDENT_LEVEL;
     return type_to_str_r(&ctx, type);
 }
 
@@ -251,7 +245,7 @@ char* type_to_str_r(String_Context* ctx, Type* type) {
     }
     case TYPE_ENUM: // fallthrough
     case TYPE_STRUCT: {
-        string_append_f(s, "%s { ", get_type_name(type));
+        string_append_f(s, "%s\n", get_type_name(type));
         ctx->indentation_level += DEFAULT_INDENT_LEVEL;
         LIST_FOREACH(type_get_members(type)) {
             Type_Name_Pair* mem = it->data;
@@ -262,7 +256,6 @@ char* type_to_str_r(String_Context* ctx, Type* type) {
                 string_append_f(s, "%s", get_type_name(mem->type));
             if (it->next) string_append(s, ", ");
         }
-        string_append(s, " }");
         ctx->indentation_level -= DEFAULT_INDENT_LEVEL;
         break;
     };

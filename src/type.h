@@ -118,8 +118,7 @@ typedef struct
     s64 allocated;
 } Type_Ref_List;
 
-Type_Ref_List
-make_type_ref_list(void);
+Type_Ref_List make_type_ref_list(void);
 void type_ref_list_append(Type_Ref_List* l, Type* t);
 
 bool is_same_type(Type* a, Type* b);

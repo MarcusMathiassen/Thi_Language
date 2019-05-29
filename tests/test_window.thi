@@ -21,25 +21,25 @@ def main()
     glfwWindowHint(GLFW_BLUE_BITS, 8)
     glfwWindowHint(GLFW_ALPHA_BITS, 8)
 
-    window := glfwCreateWindow(640, 480, DEFAULT_WINDOW_TITLE, NULL, NULL)
+    window = glfwCreateWindow(640, 480, DEFAULT_WINDOW_TITLE, NULL, NULL)
     glfwMakeContextCurrent(window)
 
     if glfwInit() != GLEW_OK puts("GLEW init failed.")
 
-    shorten_filenames_in_error_messages := false
-    warnings_is_errors := false
+    shorten_filenames_in_error_messages = false
+    warnings_is_errors = false
 
-    x := 0.0
-    y := 0.0
-    scale := 1.0
+    x = 0.0
+    y = 0.0
+    scale = 1.0
 
-    running := true
+    running = true
 
     while running
 
-        r := 1.0
-        g := 0.0
-        b := 1.0
+        r = 1.0
+        g = 0.0
+        b = 1.0
 
         #if glfwGetKey(window, GLFW_KEY_M) is GLFW_PRESS mode = (mode == Mode.light ? Mode.dark : Mode.light)
 
@@ -61,7 +61,7 @@ def main()
         glClear(GL_COLOR_BUFFER_BIT)
         glfwPollEvents()
 
-        key := glfwGetKey(window, GLFW_KEY_LEFT)
+        key = glfwGetKey(window, GLFW_KEY_LEFT)
 
         # This is a switch, kinda..
         if key is GLFW_PRESS x += -0.01

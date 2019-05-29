@@ -32,7 +32,7 @@ do
     fi
 
     # Compile the file
-    $thi_executable -f $tf -v -d
+    $thi_executable $tf -v -d
     ((test_counter++))
 
     filename="${tf##*/}"                      # Strip longest match of */ from start

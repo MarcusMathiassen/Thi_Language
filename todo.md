@@ -7,7 +7,7 @@
 [ ] - solve circular dependencies, and any other dependencies.
 [ ] - remove duplicate data tables in assembly output.
 [ ] - find a better way to remove unused externs
-[ ] - sema on AST_IDENT should print an error on undefined identifiers
+[x] - sema on AST_IDENT should print an error on undefined identifiers
 [ ] - fix 'for in' it's hardcoded atm
 [x] - implement pointer increment
 [ ] - Remove unused load when in addresof
@@ -17,4 +17,5 @@
 [ ] - X64 colored by statements and expressions.
 [ ] - X64 commented by statements and expressions.
 [ ] - Fix ';' terminator handling in parser.
+[ ] - Remove all unused nodes from the AST
 

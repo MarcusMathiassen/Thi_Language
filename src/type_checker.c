@@ -190,10 +190,6 @@ Type* type_check_function(Typer_Context* ctx, AST* node) {
     AST* func_body = node->Function.body;
     List* args = node->Function.parameters;
 
-    if (func_type->Function.return_type->kind == TYPE_UNRESOLVED) {
-        func_type->Function.return_type = map_get(ctx->symbol_table, get_type_name(func_type->Function.return_type));
-    }
-
     ctx->active_function = node;
 
     LIST_FOREACH(args) {
