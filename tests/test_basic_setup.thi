@@ -14,14 +14,14 @@ def main(argc s32, argv u8**) s32
     v.x = 53.35
     *(&v + 8) = 14.01
     f = 3.0
-    printf("v.x = %f v.x = %f\n", v.x, v.y)
+    printf       ("v.x = %f v.x = %f\n", v.x, v.y)
     x = 5.0
-    f = 3.0
-    printf("f = %f x = %f\n", f, x)
+    f =            3.0
+    printf          ("f = %f x = %f\n", f, x)
 
     c char = 'H'
     printf("c = %c, sizeof c = %d\n", c, sizeof c)
-    printf("typeof v = %s\n", typeof v)
+    printf("typeof v = %s\n",          typeof         v)
     printf("typeof v.x = %s\n", typeof v.x)
     printf("typeof v.y = %s\n", typeof v.y)
     printf("typeof f = %s\n", typeof f)

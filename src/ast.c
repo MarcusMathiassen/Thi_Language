@@ -285,7 +285,11 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         break;
     }
     case AST_FLOAT: {
-        string_append_f(s, "%f", node->Float.val);
+        // @Checkout(marcus): not to sure about the fmt.
+        char* str = strf("%.14g", node->Float.val);
+        s32 n = strlen(str);
+        // This makes sure there is at least a single decimal point.
+        string_append_f(s, "%s", n == 1 ? strf("%s.0", str) : str);
         break;
     }
     case AST_STRING: {
