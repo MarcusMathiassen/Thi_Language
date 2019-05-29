@@ -28,6 +28,7 @@
 #include "lexer.h" // Token_Kind, Token
 #include "list.h"  // List
 #include "type.h"  // Type
+#include "utility.h"  // Loc_Info
 
 typedef enum {
     CST_TOKEN,
@@ -42,11 +43,6 @@ typedef enum {
 //------------------------------------------------------------------------------
 
 typedef struct CST CST;
-
-typedef struct {
-    s64 line_pos;
-    s64 col_pos;
-} Loc_Info;
 
 struct CST {
     CST_Kind kind;

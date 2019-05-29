@@ -57,6 +57,10 @@ void* _realloc(void* ptr, s64 bytes, char* file, int line);
 #define xcalloc(n, m) _calloc(n, m, __FILE__, __LINE__)
 char* strf(char* fmt, ...);
 char* get_indentation_as_str(u64 indent_level);
+typedef struct {
+    s64 line_pos;
+    s64 col_pos;
+} Loc_Info;
 //------------------------------------------------------------------------------
 //                               Colors
 //------------------------------------------------------------------------------

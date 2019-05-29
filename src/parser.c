@@ -72,10 +72,10 @@ AST* parse_identifier               (Parser_Context* ctx);
 AST* parse_top_level_identifier     (Parser_Context* ctx);
 AST* parse_expression_identifier    (Parser_Context* ctx);
 AST* parse_def                      (Parser_Context* ctx);
-AST* parse_variable_decl            (Parser_Context* ctx, char* ident);
-AST* parse_constant_decl            (Parser_Context* ctx, char* ident);
-AST* parse_function_decl            (Parser_Context* ctx, char* ident);
-AST* parse_function_call            (Parser_Context* ctx, char* ident);
+AST* parse_variable_decl            (Parser_Context* ctx, Loc_Info lc, char* ident);
+AST* parse_constant_decl            (Parser_Context* ctx, Loc_Info lc, char* ident);
+AST* parse_function_decl            (Parser_Context* ctx, Loc_Info lc, char* ident);
+AST* parse_function_call            (Parser_Context* ctx, Loc_Info lc, char* ident);
 AST* parse_block                    (Parser_Context* ctx);
 AST* parse_return                   (Parser_Context* ctx);
 AST* parse_note                     (Parser_Context* ctx);
@@ -127,6 +127,8 @@ AST* parse(Parser_Context* ctx, char* file) {
 
     info("Parsing %s", file);
 
+    Loc_Info lc = loc(ctx);
+
     // Save state
     Token* saved_tokens = ctx->tokens;
     char* saved_file = ctx->file;
@@ -163,7 +165,7 @@ AST* parse(Parser_Context* ctx, char* file) {
     ctx->comments += lf.comments;
 
     List* top_level_ast = generate_ast_from_tokens(ctx);
-    AST* ast = make_ast_module(loc(ctx), file_path, top_level_ast);
+    AST* ast = make_ast_module(lc, file_path, top_level_ast);
 
     // Restore state
     ctx->tokens = saved_tokens;
@@ -285,9 +287,9 @@ start:
         eat(ctx); 
         if (!ctx->inside_parens) { result = NULL; break;}
         else goto start;
-    case TOKEN_DOT_DOT_DOT: eat(ctx); result = make_ast_var_args(loc(ctx)); break;
-    case TOKEN_TRUE:        eat(ctx); result = make_ast_int(loc(ctx), 1, make_type_int(1, 1)); break;
-    case TOKEN_FALSE:       eat(ctx); result = make_ast_int(loc(ctx), 0, make_type_int(1, 1)); break;
+    case TOKEN_DOT_DOT_DOT: result = make_ast_var_args(loc(ctx)); eat(ctx); break;
+    case TOKEN_TRUE:        result = make_ast_int(loc(ctx), 1, make_type_int(1, 1)); eat(ctx); break;
+    case TOKEN_FALSE:       result = make_ast_int(loc(ctx), 0, make_type_int(1, 1)); eat(ctx); break;
     case TOKEN_IDENTIFIER:  result = parse_identifier(ctx); break;
     case TOKEN_DOLLAR_SIGN: result = parse_note(ctx); break;
     case TOKEN_FLOAT:       result = parse_float(ctx); break;
@@ -304,14 +306,15 @@ start:
 AST* parse_top_level_identifier(Parser_Context* ctx) {
     DEBUG_START;
 
+    Loc_Info lc = loc(ctx);
     char* ident = tokValue(ctx);
     eat_kind(ctx, TOKEN_IDENTIFIER);
 
     // clang-format off
     switch (tokKind(ctx)) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
-    case TOKEN_COLON_COLON: return parse_constant_decl(ctx, ident);
-    case TOKEN_OPEN_PAREN:  return parse_function_decl(ctx, ident);
+    case TOKEN_COLON_COLON: return parse_constant_decl(ctx, lc, ident);
+    case TOKEN_OPEN_PAREN:  return parse_function_decl(ctx, lc, ident);
     }
     // clang-format on
     UNREACHABLE;
@@ -329,10 +332,10 @@ AST* parse_identifier(Parser_Context* ctx) {
     // clang-format off
     switch (tokKind(ctx)) {
     // case TOKEN_COLON:       // fallthrough
-    case TOKEN_IDENTIFIER:  return parse_variable_decl(ctx, ident);
-    case TOKEN_COLON_EQ:    return parse_variable_decl(ctx, ident);
-    case TOKEN_COLON_COLON: return parse_constant_decl(ctx, ident);
-    case TOKEN_OPEN_PAREN:  return parse_function_call(ctx, ident);
+    case TOKEN_IDENTIFIER:  return parse_variable_decl(ctx, lc, ident);
+    case TOKEN_COLON_EQ:    return parse_variable_decl(ctx, lc, ident);
+    case TOKEN_COLON_COLON: return parse_constant_decl(ctx, lc, ident);
+    case TOKEN_OPEN_PAREN:  return parse_function_call(ctx, lc, ident);
     default:                return make_ast_ident(lc, ident);
     }
     // clang-format on
@@ -345,7 +348,7 @@ AST* parse_expression_identifier(Parser_Context* ctx) {
     Loc_Info lc = loc(ctx);
     char* ident = tokValue(ctx);
     eat_kind(ctx, TOKEN_IDENTIFIER);
-    if (tokKind(ctx) == TOKEN_OPEN_PAREN) return parse_function_call(ctx, ident);
+    if (tokKind(ctx) == TOKEN_OPEN_PAREN) return parse_function_call(ctx, lc, ident);
     return make_ast_ident(lc, ident);
 }
 
@@ -591,7 +594,7 @@ AST* parse_return(Parser_Context* ctx) {
     return make_ast_return(lc, expr);
 }
 
-AST* parse_function_call(Parser_Context* ctx, char* ident) {
+AST* parse_function_call(Parser_Context* ctx, Loc_Info lc, char* ident) {
     DEBUG_START;
     eat_kind(ctx, TOKEN_OPEN_PAREN);
     List* args = make_list();
@@ -605,10 +608,10 @@ AST* parse_function_call(Parser_Context* ctx, char* ident) {
     }
     ctx->inside_parens = false;
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
-    return make_ast_call(loc(ctx), ident, args);
+    return make_ast_call(lc, ident, args);
 }
 
-AST* parse_function_decl(Parser_Context* ctx, char* ident) {
+AST* parse_function_decl(Parser_Context* ctx, Loc_Info lc, char* ident) {
     DEBUG_START;
 
     eat_kind(ctx, TOKEN_OPEN_PAREN);
@@ -637,14 +640,14 @@ AST* parse_function_decl(Parser_Context* ctx, char* ident) {
     Type* func_type = make_type_function(func_name, params_t, ret_type, flags);
     AST* func_body = parse_block(ctx);
 
-    return make_ast_function(loc(ctx), func_name, params, func_type, func_body);
+    return make_ast_function(lc, func_name, params, func_type, func_body);
 }
 
-AST* parse_constant_decl(Parser_Context* ctx, char* ident) {
+AST* parse_constant_decl(Parser_Context* ctx, Loc_Info lc, char* ident) {
     DEBUG_START;
     eat_kind(ctx, TOKEN_COLON_COLON);
     AST* value = parse_expression(ctx);
-    return make_ast_constant_decl(loc(ctx), ident, value);
+    return make_ast_constant_decl(lc, ident, value);
 }
 
 AST* parse_def(Parser_Context* ctx) {
@@ -657,7 +660,7 @@ AST* parse_def(Parser_Context* ctx) {
     eat_kind(ctx, TOKEN_IDENTIFIER);
 
     if (tok_is(ctx, TOKEN_OPEN_PAREN)) {
-        return parse_function_decl(ctx, ident);
+        return parse_function_decl(ctx, lc, ident);
     }
 
     AST* body = parse_block(ctx);
@@ -680,9 +683,8 @@ AST* parse_def(Parser_Context* ctx) {
     return is_enum ? make_ast_enum(lc, ident, members) : make_ast_struct(lc, ident, members);
 }
 
-AST* parse_variable_decl(Parser_Context* ctx, char* ident) {
+AST* parse_variable_decl(Parser_Context* ctx, Loc_Info lc, char* ident) {
     DEBUG_START;
-    Loc_Info lc = loc(ctx);
     AST* value = NULL;
     if (tok_is(ctx, TOKEN_COLON_EQ)) {
         eat(ctx);

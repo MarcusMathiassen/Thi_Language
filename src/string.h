@@ -25,6 +25,7 @@
 #ifndef STRING_H
 #define STRING_H
 #include "typedefs.h"
+#include "utility.h"
 
 typedef struct {
     char* c_str;
@@ -34,6 +35,7 @@ typedef struct {
 
 typedef struct {
     string* str;
+    Loc_Info last;
     u64 indentation_level;
 } String_Context;
 

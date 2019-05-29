@@ -25,10 +25,10 @@
 #ifndef AST_H
 #define AST_H
 
-#include "cst.h"    // CST
 #include "lexer.h"  // Token_Kind
 #include "list.h"   // List
 #include "string.h" // string
+#include "utility.h" // Loc_Info
 #include "type.h"   // Type
 
 typedef enum {
@@ -268,8 +268,6 @@ struct AST {
         } Typeof;
     };
 };
-
-List* generate_ast_from_cst(List* cst);
 
 AST* make_ast_comment(Loc_Info loc_info, char* text);
 AST* make_ast_nop(Loc_Info loc_info);

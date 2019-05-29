@@ -138,6 +138,8 @@ char* get_ast_name(AST* node) {
 
 char* ast_to_str(AST* node) {
     String_Context ctx;
+    ctx.last.line_pos = 0;
+    ctx.last.col_pos = 0;
     ctx.str = string_create("");
     ctx.indentation_level = DEFAULT_INDENT_LEVEL;
     return ast_to_str_r(&ctx, node);
@@ -155,6 +157,16 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
     }
 
     assert(node->kind < AST_COUNT && node->kind >= 0);
+
+    // Add some newlines if we have too :)
+
+    // If there is a difference in line position. Add
+    // that many newlines.
+    s64 diff = node->loc_info.line_pos - ctx->last.line_pos;
+    while (--diff > 0) string_append(s, "\n");
+    ctx->last = node->loc_info;
+    //
+
 
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
@@ -180,24 +192,10 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
     }
     case AST_MODULE: {
         // string_append_f(s, "# %s\n", get_ast_name(node));
-        AST* last_stmt = NULL;
         LIST_FOREACH(node->Module.top_level) {
             AST* stmt = it->data;
-            if (last_stmt) {
-                if(last_stmt->kind != AST_MODULE) {
-                    // If there is a difference in line position. Add
-                    // that many newlines.
-                    s64 diff = stmt->loc_info.line_pos - last_stmt->loc_info.line_pos;
-                    // if (diff > 1) error("stmt = %d | last = %d", stmt->loc_info.line_pos, last_stmt->loc_info.line_pos);
-                    while (--diff > 0) {
-                        warning("Adding a newline!");
-                        string_append(s, "\n");
-                    }
-                }
-            }
             ast_to_str_r(ctx, stmt);
             string_append(s, "\n");
-            last_stmt = stmt;
         }
         break;
     }
@@ -392,33 +390,16 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         break;
     }
     case AST_BLOCK: {
-        string_append(s, "\n");
+        string_append(s, " {\n");
         ctx->indentation_level += DEFAULT_INDENT_LEVEL;
-        AST* last_stmt = NULL;
         LIST_FOREACH(node->Block.stmts) {
             string_append(s, get_indentation_as_str(ctx->indentation_level));
-
             AST* stmt = it->data;
             ast_to_str_r(ctx, stmt);
             if (it->next) string_append(s, "\n");
-
-            if (last_stmt) {
-                if(last_stmt->kind != AST_MODULE) {
-                    // If there is a difference in line position. Add
-                    // that many newlines.
-                    s64 diff = stmt->loc_info.line_pos - last_stmt->loc_info.line_pos;
-                    // if (diff > 1) error("stmt = %d | last = %d", stmt->loc_info.line_pos, last_stmt->loc_info.line_pos);
-                    while (--diff > 0) {
-                        warning("Adding a newline!");
-                        string_append(s, "\n");
-                    }
-                }
-            }
-
-            last_stmt = stmt;
-
         }
         ctx->indentation_level -= DEFAULT_INDENT_LEVEL;
+        string_append_f(s, "\n%s}", get_indentation_as_str(ctx->indentation_level) );
         break;
     }
     case AST_CALL: {
