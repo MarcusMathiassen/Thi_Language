@@ -172,15 +172,10 @@ _main:
 		movsd xmm0, [rel d2]; float_ref
 		sub rsp, 8
 		movsd [rsp], xmm0
-		mov rax, 0
-		push rax
 		mov rax, [rbp-44]; load v of type 'v2' from 44
-		lea rax, [rbp-44]; addrsof 'v'
-		pop rcx
-		add rax, rcx
 		movsd xmm1, [rsp]
 		add rsp, 8
-		mov [rax], rcx; store v
+		mov [rbp-44], rcx; store v of type 'v2' at 44
 		mov rax, [rbp-44]; load v of type 'v2' from 44
 		movsd xmm0, [rel d3]; float_ref
 		sub rsp, 8
@@ -211,13 +206,7 @@ _main:
 		add rax, rcx
 		mov rax, [rax]; deref 'v'
 		push rax
-		mov rax, 0
-		push rax
 		mov rax, [rbp-44]; load v of type 'v2' from 44
-		lea rax, [rbp-44]; addrsof 'v'
-		pop rcx
-		add rax, rcx
-		mov rax, [rax]; deref 'v'
 		push rax
 		mov rax, d5; string_ref
 		push rax

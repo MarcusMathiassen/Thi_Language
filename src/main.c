@@ -243,30 +243,30 @@ void constant_fold_binary(AST* node) {
     AST* rhs = node->Binary.rhs;
     if (lhs->kind == AST_GROUPING) lhs = lhs->Grouping.node;
     if (rhs->kind == AST_GROUPING) rhs = rhs->Grouping.node;
+
+    // Remove any + or - where lhs or rhs is 0.
+    if ((lhs->kind == AST_INT && lhs->Int.val == 0) || (lhs->kind == AST_FLOAT && lhs->Float.val == 0.0)) {
+        switch(op) {
+        default: break;
+        case TOKEN_MINUS: // fallthrough
+        case TOKEN_PLUS: 
+            ast_replace(node, rhs); 
+            return;
+        }
+    } else if ((rhs->kind == AST_INT && rhs->Int.val == 0) || (rhs->kind == AST_FLOAT && rhs->Float.val == 0.0)) {
+        switch(op) {
+        default: break;
+        case TOKEN_MINUS: // fallthrough
+        case TOKEN_PLUS: 
+            ast_replace(node, lhs); 
+            return;
+        }
+    }
+
+
     if (lhs->kind == AST_INT && rhs->kind == AST_INT) {
         s64 lhs_v = lhs->Int.val;
         s64 rhs_v = rhs->Int.val;
-
-        // Ignore 0
-        if (lhs_v == 0) {
-            switch(op) {
-            case TOKEN_MINUS: // fallthrough
-            case TOKEN_PLUS: 
-                ast_replace(node, rhs); 
-                break;
-            }
-        }
-        if (rhs_v == 0) {
-            switch(op) {
-            case TOKEN_MINUS: // fallthrough
-            case TOKEN_PLUS: 
-                ast_replace(node, lhs); 
-                break;
-            }
-        }
-
-
-
         s64 value = 0;
         // clang-format off
         switch (op) {
@@ -296,28 +296,6 @@ void constant_fold_binary(AST* node) {
     } else if (lhs->kind == AST_FLOAT && rhs->kind == AST_FLOAT) {
         f64 lhs_v = lhs->Float.val;
         f64 rhs_v = rhs->Float.val;
-
-
-        // Ignore 0.0
-        if (lhs_v == 0.0) {
-            switch(op) {
-            case TOKEN_MINUS: // fallthrough
-            case TOKEN_PLUS: 
-                ast_replace(node, rhs); 
-                break;
-            }
-        }
-        if (rhs_v == 0.0) {
-            switch(op) {
-            case TOKEN_MINUS: // fallthrough
-            case TOKEN_PLUS: 
-                ast_replace(node, lhs); 
-                break;
-            }
-        }
-
-
-
         f64 value = 0.0;
         // clang-format off
         switch (op) {
