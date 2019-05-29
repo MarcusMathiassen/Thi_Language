@@ -78,6 +78,7 @@ void resolve_subscript(void* dont_care, AST* node) {
 
     sub = make_ast_binary(node->loc_info, TOKEN_ASTERISK, make_ast_int(node->loc_info, size), sub);
     sub = make_ast_binary(node->loc_info, TOKEN_PLUS, load, sub);
+    sub = make_ast_grouping(node->loc_info, sub);
     sub = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, sub);
 
     sub->type = type_of_field;
@@ -95,10 +96,11 @@ void resolve_field_access(void* dont_care, AST* node) {
 
     AST* res = make_ast_unary(node->loc_info, THI_SYNTAX_ADDRESS, load);
     res = make_ast_binary(node->loc_info, TOKEN_PLUS, res, offset);
+    res = make_ast_grouping(node->loc_info, res);
     res = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, res);
     res->type = type_of_field;
 
-    ast_replace(node, res);
+    ast_replace(node, res); 
 }
 
 void pass_initilize_enums(void* thi, AST* node) {

@@ -1,4 +1,5 @@
-# ./output.thi
+# tests/test_basic_setup.thi
+# tests/includes/cstdio.thi
 link "-lc"
 EOF :: -1
 SEEK_SET :: 0
@@ -44,6 +45,8 @@ extern scanf(u8*, ...) s32
 extern fscanf(void*, u8*, ...) s32
 extern sscanf(u8*, u8*, ...) s32
 extern perror(u8*) void
+
+# tests/includes/cstdlib.thi
 link "-lc"
 link "-lSystem"
 extern atoi(u8*) s32
@@ -77,6 +80,7 @@ NULL :: 0
 EXIT_FAILURE :: 1
 EXIT_SUCCESS :: 0
 RAND_MAX :: 2147483647
+
 def change(x s64*) void
     *x = 53
 
@@ -84,19 +88,19 @@ def v2
     x f64
     y f64
 
-def main(argc s64, argv u8**) s64
+def main(argc s32, argv u8**) s32
     i s64 = 1
     k s64* = &i
     *k = 42
     for x s64 = 0 x < argc ++x
         printf("%s\n", *(argv + 8 * x))
-        printf("%s\n", 8 * x)
+        printf("%s\n", *(argv + 8 * x))
 
     v v2
     v = 53.350000
     *(&v + 8) = 14.010000
     f f64 = 3.000000
-    printf("v.x = %f v.x = %f\n", v, 8)
+    printf("v.x = %f v.x = %f\n", v, *&v + 8)
     x f64 = 5.000000
     f = 3.000000
     printf("f = %f x = %f\n", f, x)

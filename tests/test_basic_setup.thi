@@ -1,14 +1,14 @@
 load "includes/cstdio"
 load "includes/cstdlib"
 
-def change(x s64*) void
+def change(x s64*)
     *x = 53
 
 def v2
     x f64
     y f64
 
-def main(argc int, argv char**) s64
+def main(argc s32, argv u8**) s32
     i = 1
     k = &i
     *k = 42
