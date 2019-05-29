@@ -94,31 +94,28 @@ _main:
 		mov [rbp-16], rsi; store_r argv at 16
 		mov rax, 1
 		push rax
-		mov rax, [rbp-24]; load i of type 's64' from 24
 		pop rcx
-		mov [rbp-24], rcx; store i of type 's64' at 24
-		mov rax, [rbp-24]; load i of type 's64' from 24
-		mov rax, [rbp-24]; load i of type 's64' from 24
-		lea rax, [rbp-24]; addrsof 'i'
+		mov [rbp-32], rcx; store i of type 's64' at 32
+		mov rax, [rbp-32]; load i of type 's64' from 32
+		mov rax, [rbp-32]; load i of type 's64' from 32
+		lea rax, [rbp-32]; addrsof 'i'
 		push rax
-		mov rax, [rbp-32]; load k of type 's64*' from 32
 		pop rcx
-		mov [rbp-32], rcx; store k of type 's64*' at 32
-		mov rax, [rbp-32]; load k of type 's64*' from 32
+		mov [rbp-40], rcx; store k of type 's64*' at 40
+		mov rax, [rbp-40]; load k of type 's64*' from 40
 		mov rax, 42
 		push rax
-		mov rax, [rbp-32]; load k of type 's64*' from 32
+		mov rax, [rbp-40]; load k of type 's64*' from 40
 		pop rcx
 		mov [rax], rcx; store k
-		mov rax, [rbp-32]; load k of type 's64*' from 32
+		mov rax, [rbp-40]; load k of type 's64*' from 40
 		mov rax, 0
 		push rax
-		mov rax, [rbp-40]; load x of type 's64' from 40
 		pop rcx
-		mov [rbp-40], rcx; store x of type 's64' at 40
-		mov rax, [rbp-40]; load x of type 's64' from 40
+		mov [rbp-48], rcx; store x of type 's64' at 48
+		mov rax, [rbp-48]; load x of type 's64' from 48
 .l0:
-		mov rax, [rbp-40]; load x of type 's64' from 40
+		mov rax, [rbp-48]; load x of type 's64' from 48
 		push rax
 		mov rax, [rbp-8]; load argc of type 's64' from 8
 		pop rcx
@@ -128,7 +125,7 @@ _main:
 		je .l2
 		mov rax, 8
 		push rax
-		mov rax, [rbp-40]; load x of type 's64' from 40
+		mov rax, [rbp-48]; load x of type 's64' from 48
 		pop rcx
 		imul rax, rcx
 		push rax
@@ -145,14 +142,9 @@ _main:
 		call _printf
 		mov rax, 8
 		push rax
-		mov rax, [rbp-40]; load x of type 's64' from 40
+		mov rax, [rbp-48]; load x of type 's64' from 48
 		pop rcx
 		imul rax, rcx
-		push rax
-		mov rax, [rbp-16]; load argv of type 'u8**' from 16
-		pop rcx
-		add rax, rcx
-		mov rax, [rax]; deref 'argv'
 		push rax
 		mov rax, d1; string_ref
 		push rax
@@ -161,17 +153,17 @@ _main:
 		mov al, 2; var_arg_count
 		call _printf
 .l1:
-		mov rax, [rbp-40]; load x of type 's64' from 40
+		mov rax, [rbp-48]; load x of type 's64' from 48
 		mov rax, 1
 		push rax
-		mov rax, [rbp-40]; load x of type 's64' from 40
+		mov rax, [rbp-48]; load x of type 's64' from 48
 		pop rcx
 		add rax, rcx
 		push rax
-		mov rax, [rbp-40]; load x of type 's64' from 40
+		mov rax, [rbp-48]; load x of type 's64' from 48
 		pop rcx
-		mov [rbp-40], rcx; store x of type 's64' at 40
-		mov rax, [rbp-40]; load x of type 's64' from 40
+		mov [rbp-48], rcx; store x of type 's64' at 48
+		mov rax, [rbp-48]; load x of type 's64' from 48
 		jmp .l0
 .l2:
 		movsd xmm0, [rel d2]; float_ref
@@ -198,18 +190,11 @@ _main:
 		movsd xmm0, [rel d4]; float_ref
 		sub rsp, 8
 		movsd [rsp], xmm0
-		movsd xmm0, [rbp-56]; load f of type 'f64' from 56
 		movsd xmm1, [rsp]
 		add rsp, 8
-		movsd [rbp-56], xmm1; store f of type 'f64' at 56
-		movsd xmm0, [rbp-56]; load f of type 'f64' from 56
+		movsd [rbp-64], xmm1; store f of type 'f64' at 64
+		movsd xmm0, [rbp-64]; load f of type 'f64' from 64
 		mov rax, 8
-		push rax
-		mov rax, [rbp-48]; load v of type 'v2' from 48
-		lea rax, [rbp-48]; addrsof 'v'
-		pop rcx
-		add rax, rcx
-		mov rax, [rax]; deref 'v'
 		push rax
 		mov rax, [rbp-48]; load v of type 'v2' from 48
 		push rax
@@ -223,23 +208,22 @@ _main:
 		movsd xmm0, [rel d6]; float_ref
 		sub rsp, 8
 		movsd [rsp], xmm0
-		movsd xmm0, [rbp-64]; load x of type 'f64' from 64
 		movsd xmm1, [rsp]
 		add rsp, 8
-		movsd [rbp-64], xmm1; store x of type 'f64' at 64
-		movsd xmm0, [rbp-64]; load x of type 'f64' from 64
+		movsd [rbp-72], xmm1; store x of type 'f64' at 72
+		movsd xmm0, [rbp-72]; load x of type 'f64' from 72
 		movsd xmm0, [rel d7]; float_ref
 		sub rsp, 8
 		movsd [rsp], xmm0
-		movsd xmm0, [rbp-56]; load f of type 'f64' from 56
+		movsd xmm0, [rbp-64]; load f of type 'f64' from 64
 		movsd xmm1, [rsp]
 		add rsp, 8
-		movsd [rbp-56], xmm1; store f of type 'f64' at 56
-		movsd xmm0, [rbp-56]; load f of type 'f64' from 56
-		movsd xmm0, [rbp-64]; load x of type 'f64' from 64
+		movsd [rbp-64], xmm1; store f of type 'f64' at 64
+		movsd xmm0, [rbp-64]; load f of type 'f64' from 64
+		movsd xmm0, [rbp-72]; load x of type 'f64' from 72
 		sub rsp, 8
 		movsd [rsp], xmm0
-		movsd xmm0, [rbp-56]; load f of type 'f64' from 56
+		movsd xmm0, [rbp-64]; load f of type 'f64' from 64
 		sub rsp, 8
 		movsd [rsp], xmm0
 		mov rax, d8; string_ref
@@ -251,11 +235,11 @@ _main:
 		add rsp, 8
 		mov al, 3; var_arg_count
 		call _printf
-		mov rax, [rbp-32]; load k of type 's64*' from 32
+		mov rax, [rbp-40]; load k of type 's64*' from 40
 		push rax
 		pop rdi
 		call _change
-		mov rax, [rbp-24]; load i of type 's64' from 24
+		mov rax, [rbp-32]; load i of type 's64' from 32
 		jmp .end
 .end:
 		add rsp, 80; 72 alloc, 8 padding

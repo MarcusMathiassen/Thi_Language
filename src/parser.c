@@ -616,7 +616,7 @@ AST* parse_function_decl(Parser_Context* ctx, char* ident) {
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
 
     char* func_name = ident;
-    Type* ret_type = tok_is_on_same_line(ctx) ? get_type(ctx) : make_type_void();
+    Type* ret_type = (tok_is_on_same_line(ctx) && !tok_is(ctx, TOKEN_NEWLINE)) ? get_type(ctx) : make_type_void();
     Type* func_type = make_type_function(func_name, params_t, ret_type, flags);
     AST* func_body = parse_block(ctx);
 
@@ -905,7 +905,7 @@ Type* parse_extern_function_signature(Parser_Context* ctx, char* func_name) {
         has_multiple_arguments = true;
     }
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
-    Type* ret_type = tok_is_on_same_line(ctx) ? get_type(ctx) : make_type_void();
+    Type* ret_type = (tok_is_on_same_line(ctx) && !tok_is(ctx, TOKEN_NEWLINE)) ? get_type(ctx) : make_type_void();
     return make_type_function(func_name, params, ret_type, flags);
 }
 
@@ -946,7 +946,7 @@ Type* get_type(Parser_Context* ctx) {
             has_multiple_arguments = true;
         }
         eat_kind(ctx, TOKEN_CLOSE_PAREN);
-        Type* ret_type = tok_is_on_same_line(ctx) ? get_type(ctx) : make_type_void();
+        Type* ret_type = (tok_is_on_same_line(ctx) && !tok_is(ctx, TOKEN_NEWLINE)) ? get_type(ctx) : make_type_void();
         type = make_type_function(NULL, args, ret_type, has_var_args);
     }
 
@@ -971,5 +971,6 @@ Type* get_type(Parser_Context* ctx) {
     default: break;
     }
 
+    assert(type);
     return type;
 }

@@ -1,5 +1,4 @@
-# tests/test_basic_setup.thi
-# tests/includes/cstdio.thi
+# ./output.thi
 link "-lc"
 EOF :: -1
 SEEK_SET :: 0
@@ -13,91 +12,94 @@ FILENAME_MAX :: 4096
 FOPEN_MAX :: 1000
 TMP_MAX :: 10000
 L_tmpnam :: 20
-extern def fopen(u8*, u8*) void*
-extern def freopen(u8*, u8*, void*) void*
-extern def fclose(void*) s32
-extern def remove(u8*) s32
-extern def rename(u8*, u8*) s32
-extern def feof(void*) s32
-extern def ferror(void*) s32
-extern def fflush(void*) s32
-extern def clearerr(void*) ---
-extern def fseek(void*, s32, s32) s32
-extern def ftell(void*) s32
-extern def rewind(void*) ---
-extern def fread(void*, u32, u32, void*) u32
-extern def fwrite(void*, u32, u32, void*) u32
-extern def fgetc(void*) s32
-extern def getc(void*) s32
-extern def getchar(void) s32
-extern def ungetc(s32, void*) s32
-extern def fputc(s32, void*) s32
-extern def putc(s32, void*) s32
-extern def putchar(s32) s32
-extern def fgets(u8*, s32, void*) u8*
-extern def fputs(u8*, void*) s32
-extern def puts(u8*) s32
-extern def printf(u8*, ...) s32
-extern def fprintf(void*, u8*, ...) s32
-extern def sprintf(u8*, u8*, ...) s32
-extern def snprintf(u8*, u32, u8*, ...) s32
-extern def scanf(u8*, ...) s32
-extern def fscanf(void*, u8*, ...) s32
-extern def sscanf(u8*, u8*, ...) s32
-extern def perror(u8*) ---
-# tests/includes/cstdlib.thi
+extern fopen(u8*, u8*) void*
+extern freopen(u8*, u8*, void*) void*
+extern fclose(void*) s32
+extern remove(u8*) s32
+extern rename(u8*, u8*) s32
+extern feof(void*) s32
+extern ferror(void*) s32
+extern fflush(void*) s32
+extern clearerr(void*) void
+extern fseek(void*, s32, s32) s32
+extern ftell(void*) s32
+extern rewind(void*) void
+extern fread(void*, u32, u32, void*) u32
+extern fwrite(void*, u32, u32, void*) u32
+extern fgetc(void*) s32
+extern getc(void*) s32
+extern getchar(void) s32
+extern ungetc(s32, void*) s32
+extern fputc(s32, void*) s32
+extern putc(s32, void*) s32
+extern putchar(s32) s32
+extern fgets(u8*, s32, void*) u8*
+extern fputs(u8*, void*) s32
+extern puts(u8*) s32
+extern printf(u8*, ...) s32
+extern fprintf(void*, u8*, ...) s32
+extern sprintf(u8*, u8*, ...) s32
+extern snprintf(u8*, u32, u8*, ...) s32
+extern scanf(u8*, ...) s32
+extern fscanf(void*, u8*, ...) s32
+extern sscanf(u8*, u8*, ...) s32
+extern perror(u8*) void
 link "-lc"
 link "-lSystem"
-extern def atoi(u8*) s32
-extern def atol(u8*) s32
-extern def atoll(u8*) s64
-extern def atof(u8*) f64
-extern def strtof(u8*, u8**) f32
-extern def strtod(u8*, u8**) f64
-extern def strtold(u8*, u8**) f64
-extern def strtol(u8*, u8**, s32) s32
-extern def strtoul(u8*, u8**, s32) u32
-extern def strtoll(u8*, u8**, s32) s32
-extern def strtoull(u8*, u8**, s32) u64
-extern def rand() s32
-extern def srand(u32) ---
-extern def malloc(u32) void*
-extern def calloc(u32, u32) void*
-extern def realloc(void*, u32) void*
-extern def free(void*) void
-extern def aligned_alloc(u32, u32) void*
-extern def abort() ---
-extern def exit(s32) ---
-extern def _Exit(s32) ---
-extern def quick_exit(s32) ---
-extern def getenv(u8*) u8*
-extern def system(u8*) s32
-extern def abs(s32) s32
-extern def labs(s32) s32
-extern def llabs(s64) s64
+extern atoi(u8*) s32
+extern atol(u8*) s32
+extern atoll(u8*) s64
+extern atof(u8*) f64
+extern strtof(u8*, u8**) f32
+extern strtod(u8*, u8**) f64
+extern strtold(u8*, u8**) f64
+extern strtol(u8*, u8**, s32) s32
+extern strtoul(u8*, u8**, s32) u32
+extern strtoll(u8*, u8**, s32) s32
+extern strtoull(u8*, u8**, s32) u64
+extern rand() s32
+extern srand(u32) void
+extern malloc(u32) void*
+extern calloc(u32, u32) void*
+extern realloc(void*, u32) void*
+extern free(void*) void
+extern aligned_alloc(u32, u32) void*
+extern abort() void
+extern exit(s32) void
+extern _Exit(s32) void
+extern quick_exit(s32) void
+extern getenv(u8*) u8*
+extern system(u8*) s32
+extern abs(s32) s32
+extern labs(s32) s32
+extern llabs(s64) s64
 NULL :: 0
 EXIT_FAILURE :: 1
 EXIT_SUCCESS :: 0
 RAND_MAX :: 2147483647
 def change(x s64*) void
-    *(x) = 53
+    *x = 53
+
 def v2
     x f64
     y f64
+
 def main(argc s64, argv u8**) s64
     i s64 = 1
-    k s64* = &(i)
-    *(k) = 42
-    for x s64 = 0, x < argc, ++(x) 
-        printf("%s\n", *((argv + 8 * x)))
+    k s64* = &i
+    *k = 42
+    for x s64 = 0 x < argc ++x
         printf("%s\n", *(argv + 8 * x))
+        printf("%s\n", 8 * x)
+
     v v2
     v = 53.350000
-    *((&(v) + 8)) = 14.010000
+    *(&v + 8) = 14.010000
     f f64 = 3.000000
-    printf("v.x = %f v.x = %f\n", v, *(&(v) + 8))
+    printf("v.x = %f v.x = %f\n", v, 8)
     x f64 = 5.000000
     f = 3.000000
     printf("f = %f x = %f\n", f, x)
     change(k)
     return i
+

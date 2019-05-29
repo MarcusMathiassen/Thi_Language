@@ -475,6 +475,8 @@ Type* make_type_struct(char* name, List* members) {
 
 Type* make_type_function(char* name, List* parameters, Type* return_type, u32 flags) {
     assert(name);
+    assert(parameters);
+    assert(return_type);
     Type* t = make_type(TYPE_FUNCTION, flags);
     t->name = name;
     t->Function.name = name;
