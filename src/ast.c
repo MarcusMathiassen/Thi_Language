@@ -333,9 +333,9 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         break;
     }
     case AST_GROUPING: {
-        string_append(s, "(");
+        // string_append(s, "(");
         ast_to_str_r(ctx, node->Grouping.node);
-        string_append(s, ")");
+        // string_append(s, ")");
         break;
     }
     case AST_SUBSCRIPT: {
