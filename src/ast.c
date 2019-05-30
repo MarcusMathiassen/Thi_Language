@@ -175,11 +175,11 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         // If there is a difference in line position. Add
         // that many newlines.
         s64 diff = node->loc_info.line_pos - ctx->last.line_pos;
-        while (--diff > 0) string_append_f(s, "\n%s", get_indentation_as_str(ctx->indentation_level));
+        while (--diff > 0)
+            string_append_f(s, "\n%s", get_indentation_as_str(ctx->indentation_level));
         ctx->last = node->loc_info;
         //
     }
-
 
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));

@@ -35,7 +35,7 @@
 //------------------------------------------------------------------------------
 
 char* cst_kind_to_str(CST_Kind kind) {
-    // clang-format off
+    
     switch (kind) {
     default:                                  ERROR_UNHANDLED_KIND(strf("%d", kind));
     case CST_TOKEN:                           return "CST_TOKEN";
@@ -44,14 +44,14 @@ char* cst_kind_to_str(CST_Kind kind) {
     case CST_COMMA_SEPARATED_LIST:            return "CST_COMMA_SEPARATED_LIST";
     case CST_COUNT:                           return "CST_COUNT";
     }
-    // clang-format on
+    
     UNREACHABLE;
     return NULL;
 }
 
 char* cst_to_str(CST* node) {
     if (!node) return "---";
-    // clang-format off
+    
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(cst_kind_to_str(node->kind));
     case CST_TOKEN: return  node->token.value;
@@ -73,7 +73,7 @@ char* cst_to_str(CST* node) {
         return string_data(s);
     }
     }
-    // clang-format on
+    
     UNREACHABLE;
     return NULL;
 }

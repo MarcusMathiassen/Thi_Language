@@ -37,36 +37,34 @@ typedef struct {
     Type* expected_type;
 } Typer_Context;
 
-// clang-format off
-Type* type_check_node           (Typer_Context* ctx, AST* node);
-Type* type_check_module         (Typer_Context* ctx, AST* node);
-Type* type_check_typeof         (Typer_Context* ctx, AST* node);
-Type* type_check_sizeof         (Typer_Context* ctx, AST* node);
-Type* type_check_switch         (Typer_Context* ctx, AST* node);
-Type* type_check_extern         (Typer_Context* ctx, AST* node);
-Type* type_check_struct         (Typer_Context* ctx, AST* node);
-Type* type_check_enum           (Typer_Context* ctx, AST* node);
-Type* type_check_function       (Typer_Context* ctx, AST* node);
-Type* type_check_note           (Typer_Context* ctx, AST* node);
-Type* type_check_ident          (Typer_Context* ctx, AST* node);
-Type* type_check_call           (Typer_Context* ctx, AST* node);
-Type* type_check_unary          (Typer_Context* ctx, AST* node);
-Type* type_check_binary         (Typer_Context* ctx, AST* node);
-Type* type_check_variable_decl  (Typer_Context* ctx, AST* node);
-Type* type_check_constant_decl  (Typer_Context* ctx, AST* node);
-Type* type_check_block          (Typer_Context* ctx, AST* node);
-Type* type_check_subscript      (Typer_Context* ctx, AST* node);
-Type* type_check_field_access   (Typer_Context* ctx, AST* node);
-Type* type_check_if             (Typer_Context* ctx, AST* node);
-Type* type_check_for            (Typer_Context* ctx, AST* node);
-Type* type_check_while          (Typer_Context* ctx, AST* node);
-Type* type_check_return         (Typer_Context* ctx, AST* node);
-Type* type_check_defer          (Typer_Context* ctx, AST* node);
-Type* type_check_break          (Typer_Context* ctx, AST* node);
-Type* type_check_continue       (Typer_Context* ctx, AST* node);
-Type* type_check_as             (Typer_Context* ctx, AST* node);
-Type* type_check_is             (Typer_Context* ctx, AST* node);
-// clang-format on
+Type* type_check_node(Typer_Context* ctx, AST* node);
+Type* type_check_module(Typer_Context* ctx, AST* node);
+Type* type_check_typeof(Typer_Context* ctx, AST* node);
+Type* type_check_sizeof(Typer_Context* ctx, AST* node);
+Type* type_check_switch(Typer_Context* ctx, AST* node);
+Type* type_check_extern(Typer_Context* ctx, AST* node);
+Type* type_check_struct(Typer_Context* ctx, AST* node);
+Type* type_check_enum(Typer_Context* ctx, AST* node);
+Type* type_check_function(Typer_Context* ctx, AST* node);
+Type* type_check_note(Typer_Context* ctx, AST* node);
+Type* type_check_ident(Typer_Context* ctx, AST* node);
+Type* type_check_call(Typer_Context* ctx, AST* node);
+Type* type_check_unary(Typer_Context* ctx, AST* node);
+Type* type_check_binary(Typer_Context* ctx, AST* node);
+Type* type_check_variable_decl(Typer_Context* ctx, AST* node);
+Type* type_check_constant_decl(Typer_Context* ctx, AST* node);
+Type* type_check_block(Typer_Context* ctx, AST* node);
+Type* type_check_subscript(Typer_Context* ctx, AST* node);
+Type* type_check_field_access(Typer_Context* ctx, AST* node);
+Type* type_check_if(Typer_Context* ctx, AST* node);
+Type* type_check_for(Typer_Context* ctx, AST* node);
+Type* type_check_while(Typer_Context* ctx, AST* node);
+Type* type_check_return(Typer_Context* ctx, AST* node);
+Type* type_check_defer(Typer_Context* ctx, AST* node);
+Type* type_check_break(Typer_Context* ctx, AST* node);
+Type* type_check_continue(Typer_Context* ctx, AST* node);
+Type* type_check_as(Typer_Context* ctx, AST* node);
+Type* type_check_is(Typer_Context* ctx, AST* node);
 
 static Type* get_symbol(Typer_Context* ctx, char* name) {
     return (Type*)map_get(ctx->symbol_table, name);
@@ -83,55 +81,55 @@ Type* type_check_node(Typer_Context* ctx, AST* node) {
     if (!node) return NULL;
     DEBUG_START;
     Type* result = node->type;
-    // clang-format off
+
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
-    case AST_COMMENT:            result = NULL;                                                   break;
-    case AST_NOP:            result = NULL;                                                   break;
-    case AST_FALLTHROUGH:    result = NULL;                                                   break;
-    case AST_LOAD:           result = type_check_node(ctx, node->Load.module);                                                   break;
-    case AST_LINK:           result = NULL;                                                   break;
-    case AST_TYPEOF:         result = type_check_typeof        (ctx, node);                   break;
-    case AST_SIZEOF:         result = type_check_sizeof        (ctx, node);                   break;
-    case AST_SWITCH:         result = type_check_switch        (ctx, node);                   break;
-    case AST_EXTERN:         result = type_check_extern        (ctx, node);                   break;
-    case AST_STRUCT:         result = type_check_struct        (ctx, node);                   break;
-    case AST_ENUM:           result = type_check_enum          (ctx, node);                   break;
-    case AST_FUNCTION:       result = type_check_function      (ctx, node);                   break;
-    case AST_NOTE:           result = type_check_note          (ctx, node);                   break;
+    case AST_COMMENT: result = NULL; break;
+    case AST_NOP: result = NULL; break;
+    case AST_FALLTHROUGH: result = NULL; break;
+    case AST_LOAD: result = type_check_node(ctx, node->Load.module); break;
+    case AST_LINK: result = NULL; break;
+    case AST_TYPEOF: result = type_check_typeof(ctx, node); break;
+    case AST_SIZEOF: result = type_check_sizeof(ctx, node); break;
+    case AST_SWITCH: result = type_check_switch(ctx, node); break;
+    case AST_EXTERN: result = type_check_extern(ctx, node); break;
+    case AST_STRUCT: result = type_check_struct(ctx, node); break;
+    case AST_ENUM: result = type_check_enum(ctx, node); break;
+    case AST_FUNCTION: result = type_check_function(ctx, node); break;
+    case AST_NOTE: result = type_check_note(ctx, node); break;
     case AST_INT: break;
     case AST_FLOAT: break;
     case AST_STRING: break;
     case AST_CHAR: break;
-    case AST_IDENT:          result = type_check_ident         (ctx, node);                   break;
-    case AST_CALL:           result = type_check_call          (ctx, node);                   break;
-    case AST_UNARY:          result = type_check_unary         (ctx, node);                   break;
-    case AST_BINARY:         result = type_check_binary        (ctx, node);                   break;
-    case AST_VARIABLE_DECL:  result = type_check_variable_decl (ctx, node);                   break;
-    case AST_CONSTANT_DECL:  result = type_check_constant_decl (ctx, node);                   break;
-    case AST_BLOCK:          result = type_check_block         (ctx, node);                   break;
-    case AST_GROUPING:       result = type_check_node          (ctx, node->Grouping.node);    break;
-    case AST_SUBSCRIPT:      result = type_check_subscript     (ctx, node);                   break;
-    case AST_FIELD_ACCESS:   result = type_check_field_access  (ctx, node);                   break;
-    case AST_IF:             result = type_check_if            (ctx, node);                   break;
-    case AST_FOR:            result = type_check_for           (ctx, node);                   break;
-    case AST_WHILE:          result = type_check_while         (ctx, node);                   break;
-    case AST_RETURN:         result = type_check_return        (ctx, node);                   break;
-    case AST_DEFER:          result = type_check_defer         (ctx, node);                   break;
-    case AST_BREAK:          result = type_check_break         (ctx, node);                   break;
-    case AST_CONTINUE:       result = type_check_continue      (ctx, node);                   break;
-    case AST_AS:             result = type_check_as            (ctx, node);                   break;
-    case AST_IS:             result = type_check_is            (ctx, node);                   break;
-    case AST_MODULE:         result = type_check_module        (ctx, node);                   break;
+    case AST_IDENT: result = type_check_ident(ctx, node); break;
+    case AST_CALL: result = type_check_call(ctx, node); break;
+    case AST_UNARY: result = type_check_unary(ctx, node); break;
+    case AST_BINARY: result = type_check_binary(ctx, node); break;
+    case AST_VARIABLE_DECL: result = type_check_variable_decl(ctx, node); break;
+    case AST_CONSTANT_DECL: result = type_check_constant_decl(ctx, node); break;
+    case AST_BLOCK: result = type_check_block(ctx, node); break;
+    case AST_GROUPING: result = type_check_node(ctx, node->Grouping.node); break;
+    case AST_SUBSCRIPT: result = type_check_subscript(ctx, node); break;
+    case AST_FIELD_ACCESS: result = type_check_field_access(ctx, node); break;
+    case AST_IF: result = type_check_if(ctx, node); break;
+    case AST_FOR: result = type_check_for(ctx, node); break;
+    case AST_WHILE: result = type_check_while(ctx, node); break;
+    case AST_RETURN: result = type_check_return(ctx, node); break;
+    case AST_DEFER: result = type_check_defer(ctx, node); break;
+    case AST_BREAK: result = type_check_break(ctx, node); break;
+    case AST_CONTINUE: result = type_check_continue(ctx, node); break;
+    case AST_AS: result = type_check_as(ctx, node); break;
+    case AST_IS: result = type_check_is(ctx, node); break;
+    case AST_MODULE: result = type_check_module(ctx, node); break;
     }
-    // clang-format on
+
     node->type = result;
     return result;
 }
 
 Type* type_check_sizeof(Typer_Context* ctx, AST* node) {
     type_check_node(ctx, node->Sizeof.node);
-    return get_symbol(ctx, DEFAULT_BIG_INT_TYPE_AS_STRING);
+    return node->Sizeof.node->type;
 }
 Type* type_check_module(Typer_Context* ctx, AST* node) {
     ctx->module = node;

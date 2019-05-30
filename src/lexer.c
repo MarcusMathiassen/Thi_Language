@@ -326,7 +326,7 @@ Lexed_File generate_tokens_from_source(char* source) {
 Token get_token(Lexer_Context* ctx) {
     char* c = ctx->stream;
 
-// entry:
+    // entry:
     skip_whitespace(c);
 
     Token token;

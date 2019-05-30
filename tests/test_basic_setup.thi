@@ -2,8 +2,8 @@ load "includes/cstdio"
 load "includes/cstdlib"
 
 def main(argc s32, argv u8**) s32
-    i s64 = 1
-    k s64* = &i
+    i = 1
+    k = &i
     
     *k = 42
     for x = 0 x < argc ++x
@@ -25,6 +25,12 @@ def main(argc s32, argv u8**) s32
     printf("typeof v.x = %s\n", typeof v.x)
     printf("typeof v.y = %s\n", typeof v.y)
     printf("typeof f = %s\n", typeof f)
+
+    if argv
+        puts("argv is not null")
+
+    if sizeof c != 1
+        puts("Hey! sizeof c should be 1!")
     
     ## There is a bug here. When you run this with it seems
     ## the string is corrupted resulting in a crash.

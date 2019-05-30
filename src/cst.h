@@ -25,10 +25,10 @@
 #ifndef CST_H
 #define CST_H
 
-#include "lexer.h" // Token_Kind, Token
-#include "list.h"  // List
-#include "type.h"  // Type
-#include "utility.h"  // Loc_Info
+#include "lexer.h"   // Token_Kind, Token
+#include "list.h"    // List
+#include "type.h"    // Type
+#include "utility.h" // Loc_Info
 
 typedef enum {
     CST_TOKEN,

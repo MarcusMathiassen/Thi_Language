@@ -102,7 +102,7 @@ void resolve_field_access(void* dont_care, AST* node) {
     res = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, res);
     res->type = type_of_field;
 
-    ast_replace(node, res); 
+    ast_replace(node, res);
 }
 
 void pass_initilize_enums(void* thi, AST* node) {
@@ -166,29 +166,87 @@ void run_all_passes(void* thi, AST* node) {
     }
 }
 
+void pass_typeify(void* ctx, AST* node) {
+    if (!node) return;
+    Type* result_t = NULL;
+    switch (node->kind) {
+    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
+    case AST_COMMENT: break;
+    case AST_NOP: break;
+    case AST_SPACE_SEPARATED_IDENTIFIER_LIST: break;
+    case AST_COMMA_SEPARATED_LIST: break;
+    case AST_MODULE: break;
+    case AST_IS: break;
+    case AST_FALLTHROUGH: break;
+    case AST_VAR_ARGS: break;
+    case AST_EXTERN: break;
+    case AST_LOAD: break;
+    case AST_LINK: break;
+    case AST_NOTE: break;
+    case AST_INT: break;
+    case AST_FLOAT: break;
+    case AST_STRING: break;
+    case AST_CHAR: break;
+    case AST_IDENT: break;
+    case AST_CALL: break;
+    case AST_UNARY: break;
+    case AST_BINARY: break;
+    case AST_GROUPING: break;
+    case AST_SUBSCRIPT: break;
+    case AST_FIELD_ACCESS: break;
+    case AST_AS: break;
+    case AST_BLOCK: break;
+    case AST_STRUCT: break;
+    case AST_ENUM: break;
+    case AST_FUNCTION: break;
+    case AST_VARIABLE_DECL: break;
+    case AST_CONSTANT_DECL: break;
+    case AST_IF: break;
+    case AST_FOR: break;
+    case AST_WHILE: break;
+    case AST_RETURN: break;
+    case AST_DEFER: break;
+    case AST_BREAK: break;
+    case AST_CONTINUE: 
+        
+        break;
+    case AST_TYPEOF:
+        result_t = node->Typeof.node->type;
+        break;
+    case AST_SIZEOF: break;
+    case AST_SWITCH: {
+        // The cases type is the type that is returned. Therefor the switches resulting type
+        // is that same type.
+        result_t = node->Switch.cases->type;
+        break;
+    }
+    }
+    node->type = result_t;
+}
+
 void make_sure_all_nodes_have_a_valid_type(void* dont_care, AST* node) {
     assert(node);
-    // clang-format off
+
     switch (node->kind) {
-    case AST_COMMENT:     // fallthrough
-    case AST_NOP:         // fallthrough
-    case AST_MODULE:      // fallthrough
-    case AST_LOAD:        // fallthrough
-    case AST_LINK:        // fallthrough
-    case AST_BLOCK:       // fallthrough
-    case AST_WHILE:       // fallthrough
-    case AST_IF:          // fallthrough
-    case AST_FOR:         // fallthrough
-    case AST_SWITCH:      // fallthrough
-    case AST_IS:          // fallthrough
-    case AST_DEFER:       // fallthrough
-    case AST_BREAK:       // fallthrough
-    case AST_CONTINUE:    // fallthrough
+    case AST_COMMENT:  // fallthrough
+    case AST_NOP:      // fallthrough
+    case AST_MODULE:   // fallthrough
+    case AST_LOAD:     // fallthrough
+    case AST_LINK:     // fallthrough
+    case AST_BLOCK:    // fallthrough
+    case AST_WHILE:    // fallthrough
+    case AST_IF:       // fallthrough
+    case AST_FOR:      // fallthrough
+    case AST_SWITCH:   // fallthrough
+    case AST_IS:       // fallthrough
+    case AST_DEFER:    // fallthrough
+    case AST_BREAK:    // fallthrough
+    case AST_CONTINUE: // fallthrough
     case AST_FALLTHROUGH: return;
     default: break;
     }
     info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(node)), give_unique_color(type_to_str(node->type)));
-    // clang-format on
+
     if (!node->type) {
         error(
             "[make_sure_all_nodes_have_a_valid_type]: missing type for "
@@ -225,15 +283,15 @@ void constant_fold_unary(AST* node) {
         Token_Kind op = node->Unary.op;
         s64 oper_v = operand->Int.val;
         s64 value = 0;
-        // clang-format off
+
         switch (op) {
         default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
-        case TOKEN_BANG:    value = !oper_v; break;
-        case TOKEN_PLUS:    value =  oper_v;  break;
-        case TOKEN_TILDE:   value = ~oper_v; break;
-        case TOKEN_MINUS:   value = -oper_v; break;
+        case TOKEN_BANG: value = !oper_v; break;
+        case TOKEN_PLUS: value = oper_v; break;
+        case TOKEN_TILDE: value = ~oper_v; break;
+        case TOKEN_MINUS: value = -oper_v; break;
         }
-        // clang-format on
+
         operand->Int.val = value;
         ast_replace(node, operand);
     }
@@ -248,10 +306,10 @@ void constant_fold_binary(AST* node) {
     // Remove any + or - where lhs or rhs is 0.
     if (op == TOKEN_MINUS || op == TOKEN_PLUS) {
         if ((lhs->kind == AST_INT && lhs->Int.val == 0) || (lhs->kind == AST_FLOAT && lhs->Float.val == 0.0)) {
-            ast_replace(node, rhs); 
+            ast_replace(node, rhs);
             return;
         } else if ((rhs->kind == AST_INT && rhs->Int.val == 0) || (rhs->kind == AST_FLOAT && rhs->Float.val == 0.0)) {
-            ast_replace(node, lhs); 
+            ast_replace(node, lhs);
             return;
         }
     }
@@ -260,50 +318,50 @@ void constant_fold_binary(AST* node) {
         s64 lhs_v = lhs->Int.val;
         s64 rhs_v = rhs->Int.val;
         s64 value = 0;
-        // clang-format off
+
         switch (op) {
         default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
-        case TOKEN_EQ_EQ:         value = (lhs_v == rhs_v); break;
-        case TOKEN_BANG_EQ:       value = (lhs_v != rhs_v); break;
-        case TOKEN_PLUS:          value = (lhs_v + rhs_v);  break;
-        case TOKEN_MINUS:         value = (lhs_v - rhs_v);  break;
-        case TOKEN_ASTERISK:      value = (lhs_v * rhs_v);  break;
-        case TOKEN_FWSLASH:       value = (lhs_v / rhs_v);  break;
-        case TOKEN_AND:           value = (lhs_v & rhs_v);  break;
-        case TOKEN_PIPE:          value = (lhs_v | rhs_v);  break;
-        case TOKEN_LT:            value = (lhs_v < rhs_v);  break;
-        case TOKEN_GT:            value = (lhs_v > rhs_v);  break;
-        case TOKEN_GT_GT:         value = (lhs_v >> rhs_v); break;
-        case TOKEN_LT_LT:         value = (lhs_v << rhs_v); break;
-        case TOKEN_PERCENT:       value = (lhs_v % rhs_v);  break;
-        case TOKEN_HAT:           value = (lhs_v ^ rhs_v);  break;
-        case TOKEN_AND_AND:       value = (lhs_v && rhs_v); break;
-        case TOKEN_PIPE_PIPE:     value = (lhs_v || rhs_v); break;
+        case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
+        case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
+        case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
+        case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
+        case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
+        case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
+        case TOKEN_AND: value = (lhs_v & rhs_v); break;
+        case TOKEN_PIPE: value = (lhs_v | rhs_v); break;
+        case TOKEN_LT: value = (lhs_v < rhs_v); break;
+        case TOKEN_GT: value = (lhs_v > rhs_v); break;
+        case TOKEN_GT_GT: value = (lhs_v >> rhs_v); break;
+        case TOKEN_LT_LT: value = (lhs_v << rhs_v); break;
+        case TOKEN_PERCENT: value = (lhs_v % rhs_v); break;
+        case TOKEN_HAT: value = (lhs_v ^ rhs_v); break;
+        case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
+        case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
         case TOKEN_QUESTION_MARK: return;
-        case TOKEN_COLON:         return;
+        case TOKEN_COLON: return;
         }
-        // clang-format on
+
         lhs->Int.val = value;
         ast_replace(node, lhs);
     } else if (lhs->kind == AST_FLOAT && rhs->kind == AST_FLOAT) {
         f64 lhs_v = lhs->Float.val;
         f64 rhs_v = rhs->Float.val;
         f64 value = 0.0;
-        // clang-format off
+
         switch (op) {
         default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
-        case TOKEN_EQ_EQ:     value = (lhs_v == rhs_v); break;
-        case TOKEN_BANG_EQ:   value = (lhs_v != rhs_v); break;
-        case TOKEN_PLUS:      value = (lhs_v + rhs_v);  break;
-        case TOKEN_MINUS:     value = (lhs_v - rhs_v);  break;
-        case TOKEN_ASTERISK:  value = (lhs_v * rhs_v);  break;
-        case TOKEN_FWSLASH:   value = (lhs_v / rhs_v);  break;
-        case TOKEN_LT:        value = (lhs_v < rhs_v);  break;
-        case TOKEN_GT:        value = (lhs_v > rhs_v);  break;
-        case TOKEN_AND_AND:   value = (lhs_v && rhs_v); break;
+        case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
+        case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
+        case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
+        case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
+        case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
+        case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
+        case TOKEN_LT: value = (lhs_v < rhs_v); break;
+        case TOKEN_GT: value = (lhs_v > rhs_v); break;
+        case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
         case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
         }
-        // clang-format on
+
         lhs->Float.val = value;
         ast_replace(node, lhs);
     }

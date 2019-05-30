@@ -30,37 +30,37 @@
 //------------------------------------------------------------------------------
 
 char* type_kind_to_str(Type_Kind kind) {
-    // clang-format off
+
     assert(kind < _TYPE_COUNT_);
     switch (kind) {
     default: ERROR_UNHANDLED_KIND(strf("%d", kind));
     case TYPE_UNRESOLVED: return "TYPE_UNRESOLVED";
-    case TYPE_VOID:       return "TYPE_VOID";
-    case TYPE_INT:        return "TYPE_INT";
-    case TYPE_FLOAT:      return "TYPE_FLOAT";
-    case TYPE_STRING:     return "TYPE_STRING";
-    case TYPE_POINTER:    return "TYPE_POINTER";
-    case TYPE_ARRAY:      return "TYPE_ARRAY";
-    case TYPE_ENUM:       return "TYPE_ENUM";
-    case TYPE_STRUCT:     return "TYPE_STRUCT";
-    case TYPE_FUNCTION:   return "TYPE_FUNCTION";
-    case TYPE_VAR_ARGS:   return "TYPE_VAR_ARGS";
-    case _TYPE_COUNT_:    return "_TYPE_COUNT_";
+    case TYPE_VOID: return "TYPE_VOID";
+    case TYPE_INT: return "TYPE_INT";
+    case TYPE_FLOAT: return "TYPE_FLOAT";
+    case TYPE_STRING: return "TYPE_STRING";
+    case TYPE_POINTER: return "TYPE_POINTER";
+    case TYPE_ARRAY: return "TYPE_ARRAY";
+    case TYPE_ENUM: return "TYPE_ENUM";
+    case TYPE_STRUCT: return "TYPE_STRUCT";
+    case TYPE_FUNCTION: return "TYPE_FUNCTION";
+    case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
+    case _TYPE_COUNT_: return "_TYPE_COUNT_";
     }
-    // clang-format on
+
     UNREACHABLE;
     return NULL;
 }
 
 List* type_get_members(Type* type) {
     assert(type);
-    // clang-format off
-    switch(type->kind) {
+
+    switch (type->kind) {
     default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
-    case TYPE_ENUM:       return type->Enum.members;
-    case TYPE_STRUCT:     return type->Struct.members;
+    case TYPE_ENUM: return type->Enum.members;
+    case TYPE_STRUCT: return type->Struct.members;
     }
-    // clang-format on
+
     UNREACHABLE;
     return NULL;
 }
@@ -75,26 +75,26 @@ void type_replace(Type* a, Type* b) {
 
 Type* get_underlying_type_if_any(Type* type) {
     assert(type);
-    // clang-format off
+
     switch (type->kind) {
-    default:           return type;
+    default: return type;
     case TYPE_POINTER: return type->Pointer.pointee;
-    case TYPE_ARRAY:   return type->Array.type;
+    case TYPE_ARRAY: return type->Array.type;
     }
-    // clang-format on
+
     UNREACHABLE;
     return NULL;
 }
 
 s64 get_size_of_underlying_type_if_any(Type* type) {
     assert(type);
-    // clang-format off
+
     switch (type->kind) {
-    default:           return get_size_of_type(type);
+    default: return get_size_of_type(type);
     case TYPE_POINTER: return get_size_of_type(type->Pointer.pointee);
-    case TYPE_ARRAY:   return get_size_of_type(type->Array.type);
+    case TYPE_ARRAY: return get_size_of_type(type->Array.type);
     }
-    // clang-format on
+
     UNREACHABLE;
     return 0;
 }
@@ -128,18 +128,18 @@ char* get_type_name(Type* type) {
 
 s64 get_size_of_type(Type* type) {
     assert(type);
-    // clang-format off
+
     switch (type->kind) {
     default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
-    case TYPE_VAR_ARGS:   return 0;
+    case TYPE_VAR_ARGS: return 0;
     case TYPE_UNRESOLVED: return 0;
-    case TYPE_VOID:       return 0;
-    case TYPE_INT:        return type->Int.bytes;
-    case TYPE_FLOAT:      return type->Float.bytes;
-    case TYPE_STRING:     return type->String.len;
-    case TYPE_POINTER:    return DEFAULT_POINTER_SIZE;
-    case TYPE_ENUM:       return DEFAULT_ENUM_SIZE;
-    case TYPE_ARRAY:      return get_size_of_type(type->Array.type) * type->Array.size;
+    case TYPE_VOID: return 0;
+    case TYPE_INT: return type->Int.bytes;
+    case TYPE_FLOAT: return type->Float.bytes;
+    case TYPE_STRING: return type->String.len;
+    case TYPE_POINTER: return DEFAULT_POINTER_SIZE;
+    case TYPE_ENUM: return DEFAULT_ENUM_SIZE;
+    case TYPE_ARRAY: return get_size_of_type(type->Array.type) * type->Array.size;
     case TYPE_STRUCT: {
         s64 accum_size = 0;
         LIST_FOREACH(type_get_members(type)) {
@@ -158,7 +158,7 @@ s64 get_size_of_type(Type* type) {
         return accum_size;
     }
     }
-    // clang-format on
+
     UNREACHABLE;
     return 0;
 }

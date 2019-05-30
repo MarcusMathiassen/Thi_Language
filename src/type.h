@@ -136,19 +136,18 @@ char* type_to_json(Type* type);
 char* type_kind_to_str(Type_Kind kind);
 void type_replace(Type* a, Type* b);
 
-// clang-format off
-Type*   make_type_unresolved    (char* name);
-Type*   make_type_void          (void);
-Type*   make_type_int           (s8 bytes, bool is_unsigned);
-Type*   make_type_float         (s8 bytes);
-Type*   make_type_string        (s64 len);
-Type*   make_type_pointer       (Type* pointee);
-Type*   make_type_array         (Type* type, s64 size);
-Type*   make_type_struct        (char* name, List* members);
-Type*   make_type_enum          (char* name, List* members);
-Type*   make_type_function      (char* name, List* parameters, Type* return_type, u32 flags);
-Type*   make_type_var_args      (void);
-// clang-format on
+Type* make_type_unresolved(char* name);
+Type* make_type_void(void);
+Type* make_type_int(s8 bytes, bool is_unsigned);
+Type* make_type_float(s8 bytes);
+Type* make_type_string(s64 len);
+Type* make_type_pointer(Type* pointee);
+Type* make_type_array(Type* type, s64 size);
+Type* make_type_struct(char* name, List* members);
+Type* make_type_enum(char* name, List* members);
+Type* make_type_function(char* name, List* parameters, Type* return_type, u32 flags);
+Type* make_type_var_args(void);
+
 s64 type_function_get_arg_count(Type* type);
 s64 type_array_get_count(Type* type);
 

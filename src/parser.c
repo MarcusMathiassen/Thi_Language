@@ -215,8 +215,8 @@ AST* parse_top_level(Parser_Context* ctx) {
 AST* parse_delimited(Parser_Context* ctx, Token_Kind delimiter) {
     Token_Kind kind = tokKind(ctx);
     if (kind == delimiter) return NULL;
-    switch(tokKind(ctx)) {
-        default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
+    switch (tokKind(ctx)) {
+    default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
     }
     UNREACHABLE;
     return NULL;
@@ -355,7 +355,7 @@ AST* parse_load(Parser_Context* ctx) {
     DEBUG_START;
     Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_LOAD);
-    char* file =  tokValue(ctx);
+    char* file = tokValue(ctx);
     char* ext = get_file_extension(file);
     if (!ext) file = strf("%s.thi", file);
     eat_kind(ctx, TOKEN_STRING);

@@ -87,24 +87,24 @@ void add_node_to_scope(Sema_Context* ctx, AST* node) {
 void add_all_decls_in_module(Sema_Context* ctx, AST* node) {
     LIST_FOREACH(node->Module.top_level) {
         AST* decl = it->data;
-        switch(decl->kind) {
-            default: error("[%s:%s] illegal top level construct %s", get_ast_name(ctx->module), get_ast_loc_str(decl), ucolor(ast_to_str(decl)));
-            case AST_COMMENT: break;
-            case AST_LINK: break;
-            case AST_LOAD:
-                add_all_decls_in_module(ctx, decl->Load.module);
-                break;
-            case AST_EXTERN: // fallthrough
-            case AST_FUNCTION: // fallthrough
-            case AST_CONSTANT_DECL: // fallthrough
-            case AST_VARIABLE_DECL:// fallthrough
-            case AST_ENUM:// fallthrough
-            case AST_STRUCT:
-                add_node_to_scope(ctx, decl);
-                break;
+        switch (decl->kind) {
+        default: error("[%s:%s] illegal top level construct %s", get_ast_name(ctx->module), get_ast_loc_str(decl), ucolor(ast_to_str(decl)));
+        case AST_COMMENT: break;
+        case AST_LINK: break;
+        case AST_LOAD:
+            add_all_decls_in_module(ctx, decl->Load.module);
+            break;
+        case AST_EXTERN:        // fallthrough
+        case AST_FUNCTION:      // fallthrough
+        case AST_CONSTANT_DECL: // fallthrough
+        case AST_VARIABLE_DECL: // fallthrough
+        case AST_ENUM:          // fallthrough
+        case AST_STRUCT:
+            add_node_to_scope(ctx, decl);
+            break;
         }
     }
-} 
+}
 void sema_check_node(Sema_Context* ctx, AST* node) {
     assert(ctx);
     if (!node) return;

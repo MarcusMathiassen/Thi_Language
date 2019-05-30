@@ -124,10 +124,10 @@ void error_no_newline(char* fmt, ...) {
 char* get_file_path_from_directory(char* dir, char* filename) {
     assert(dir);
     assert(filename);
-    u8  strbuf[1000];
+    u8 strbuf[1000];
     s64 d_len = strlen(dir);
     s64 f_len = strlen(filename);
-    s64 len   = d_len + f_len;
+    s64 len = d_len + f_len;
     assert(len < 1000);
     memcpy(strbuf, dir, d_len);              // copy dir into strbuf
     memcpy(strbuf + d_len, filename, f_len); // append filename
@@ -140,10 +140,10 @@ char* get_file_path_from_directory(char* dir, char* filename) {
 char* get_file_extension(char* filename) {
     assert(filename);
     s64 len = strlen(filename);
-    s64 i   = 0;
+    s64 i = 0;
     while (filename[len - (++i)] != '.')
         continue;
-    if(i > len) return NULL;
+    if (i > len) return NULL;
     ++len; // skip the '.'
     char* str = xmalloc(i + 1);
     memcpy(str, filename + len - i, i);
@@ -154,10 +154,10 @@ char* get_file_extension(char* filename) {
 char* remove_file_extension(char* filename) {
     assert(filename);
     s64 len = strlen(filename);
-    s64 i   = 0;
+    s64 i = 0;
     while (filename[len - (++i)] != '.')
         continue;
-    if(i == len) return NULL;
+    if (i == len) return NULL;
     char* str = xmalloc(len - i + 1);
     memcpy(str, filename, len - i);
     str[len - i] = 0;
@@ -178,7 +178,7 @@ char* get_file_directory(char* filename) {
 char* get_file_name(char* filename) {
     assert(filename);
     s64 len = strlen(filename);
-    s64 i   = 0;
+    s64 i = 0;
     while (filename[len - (++i)] != '/')
         continue;
     ++len; // skip the '/'
@@ -202,7 +202,7 @@ void write_to_file(char* filename, char* buffer) {
 char* get_file_content(char* filename) {
     assert(filename);
     char* buffer = NULL;
-    s64   string_size, read_size;
+    s64 string_size, read_size;
     FILE* f = fopen(filename, "r");
     if (!f) error("failed to open file: %s", filename);
 
@@ -308,8 +308,8 @@ char* colors[6] = {
     "\033[35m", // magenta
     "\033[36m", // cyan,
 };
-int   counter      = 0;
-int   colors_count = 6;
+int counter = 0;
+int colors_count = 6;
 char* get_previous_color(void) {
     if (counter == 0) counter = 6;
     return colors[--counter];
@@ -359,22 +359,22 @@ linux, compile with: gcc -o testo test.c -lrt
 #endif
 
 f64 get_time(void) {
-    f64             ms;
-    time_t          s;
+    f64 ms;
+    time_t s;
     struct timespec ts;
 
 #ifdef __MACH__ // OS X does not have clock_gettime, use clock_get_time
-    clock_serv_t    cclock;
+    clock_serv_t cclock;
     mach_timespec_t mts;
     host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
     clock_get_time(cclock, &mts);
     mach_port_deallocate(mach_task_self(), cclock);
-    ts.tv_sec  = mts.tv_sec;
+    ts.tv_sec = mts.tv_sec;
     ts.tv_nsec = mts.tv_nsec;
 #else
     clock_gettime(CLOCK_REALTIME, &ts);
 #endif
-    s  = ts.tv_sec;
+    s = ts.tv_sec;
     ms = ts.tv_nsec / 1.0e6;
     if (ms > 999.0) {
         ++s;

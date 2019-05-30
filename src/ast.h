@@ -25,11 +25,11 @@
 #ifndef AST_H
 #define AST_H
 
-#include "lexer.h"  // Token_Kind
-#include "list.h"   // List
-#include "string.h" // string
+#include "lexer.h"   // Token_Kind
+#include "list.h"    // List
+#include "string.h"  // string
+#include "type.h"    // Type
 #include "utility.h" // Loc_Info
-#include "type.h"   // Type
 
 typedef enum {
     BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED,
