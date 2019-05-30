@@ -3,9 +3,10 @@ load "includes/cstdlib"
 
 # This is a comment
 def main(argc s32, argv u8**) s32
-    {j = 1;k = &j;}
-    
-    *k = 42
+    j = 1 k = &j; *k = 42 
+    # You see the semicolon up there? If removed, the deref would be turned into a
+    # binary multiply. Meaning, 'k = &j * k = 42'. And we dont want that.
+
     for x = 0 x < argc ++x
         printf("%s\n", *(argv + sizeof (*argv) * x))
         printf("%s\n", argv[x])
@@ -26,9 +27,11 @@ def main(argc s32, argv u8**) s32
     printf("typeof v.y = %s\n", typeof v.y)
     printf("typeof f = %s\n", typeof f)
 
-    if argv {
-        puts("argv is not null");
-    }
+    # Do we really need braces here?
+    if argv { puts("argv is not null") }
+    
+    # Couldn't we write it like?
+    # if argv puts("argv is not null")
 
     if sizeof c != 1 {
         puts("Hey! sizeof c should be 1!");

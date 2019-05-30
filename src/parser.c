@@ -253,7 +253,7 @@ AST* parse_statement(Parser_Context* ctx) {
     switch (tokKind(ctx)) {
     default:                        result =  parse_expression(ctx);    break;
     case TOKEN_EOF:                 eat(ctx); break;
-    case TOKEN_TERMINAL: // fallthrough
+    case TOKEN_TERMINAL: break;// fallthrough
     case TOKEN_NEWLINE:             eat(ctx); result = NULL; break;
     case TOKEN_COMMENT:             result = make_ast_comment(loc(ctx), tokValue(ctx)); eat(ctx); break;
     case TOKEN_DEF:                 result =  parse_def(ctx);           break;
@@ -274,8 +274,8 @@ AST* parse_statement(Parser_Context* ctx) {
     case TOKEN_EXTERN:              result =  parse_extern(ctx);        break;
     }
 
-    // Eat extranous terminals
-    // if (tok_is(ctx, TOKEN_TERMINAL)) eat(ctx);
+    // If we've parsed a statement, the next terminal is extranous.
+    if (result && tok_is(ctx, TOKEN_TERMINAL)) eat(ctx);
 
     // clang-format on
     return result;
@@ -284,18 +284,18 @@ AST* parse_statement(Parser_Context* ctx) {
 AST* parse_primary(Parser_Context* ctx) {
     DEBUG_START;
     AST* result = NULL;
-start:
+// start:
     // clang-format off
     switch (tokKind(ctx)) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
     case TOKEN_COMMENT:             result = make_ast_comment(loc(ctx), tokValue(ctx)); eat(ctx); break;
 
     // @Audit: Should a primary expression really eat terminal tokens? I belive only the parse_statement should handle that.
-    case TOKEN_TERMINAL: // fallthrough
-    case TOKEN_NEWLINE:
-        eat(ctx); 
-        if (!ctx->inside_parens) { result = NULL; break;}
-        else goto start;
+    case TOKEN_TERMINAL: break; // fallthrough
+    // case TOKEN_NEWLINE:
+    //     eat(ctx); 
+    //     if (!ctx->inside_parens) { result = NULL; break;}
+    //     else goto start;
     case TOKEN_DOT_DOT_DOT: result = make_ast_var_args(loc(ctx)); eat(ctx); break;
     case TOKEN_TRUE:        result = make_ast_int(loc(ctx), 1, make_type_int(1, 1)); eat(ctx); break;
     case TOKEN_FALSE:       result = make_ast_int(loc(ctx), 0, make_type_int(1, 1)); eat(ctx); break;
@@ -312,7 +312,7 @@ start:
     }
 
     // Eat extranous terminals
-    if (tok_is(ctx, TOKEN_TERMINAL)) eat(ctx);
+    // if (tok_is(ctx, TOKEN_TERMINAL)) eat(ctx);
 
     // clang-format on
     return result;
@@ -455,7 +455,7 @@ AST* parse_for(Parser_Context* ctx) {
         // // Place the 'param' variable at the start of the block
         // list_prepend(then_block->Block.stmts, it_var);
     } else {
-        cond = parse_expression(ctx);
+        cond = parse_statement(ctx);
         step = parse_statement(ctx);
         then_block = parse_block(ctx);
     }
