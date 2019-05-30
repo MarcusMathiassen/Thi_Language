@@ -289,6 +289,8 @@ start:
     switch (tokKind(ctx)) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
     case TOKEN_COMMENT:             result = make_ast_comment(loc(ctx), tokValue(ctx)); eat(ctx); break;
+
+    // @Audit: Should a primary expression really eat terminal tokens? I belive only the parse_statement should handle that.
     case TOKEN_TERMINAL: // fallthrough
     case TOKEN_NEWLINE:
         eat(ctx); 
@@ -308,7 +310,7 @@ start:
 
     case TOKEN_BLOCK_START:  result = parse_block(ctx); break;
     }
-    
+
     // Eat extranous terminals
     if (tok_is(ctx, TOKEN_TERMINAL)) eat(ctx);
 

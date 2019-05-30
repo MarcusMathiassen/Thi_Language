@@ -27,19 +27,22 @@ def main(argc s32, argv u8**) s32
     printf("typeof v.y = %s\n", typeof v.y)
     printf("typeof f = %s\n", typeof f)
 
-    if argv
-        puts("argv is not null")
+    if argv {
+        puts("argv is not null");
+    }
 
-    if sizeof c != 1
-        puts("Hey! sizeof c should be 1!")
+    if sizeof c != 1 {
+        puts("Hey! sizeof c should be 1!");
+    }
     
-    printf("typeof x = %s\n", typeof x)
-    change(k)
+    printf("typeof x = %s\n", typeof x);
+    change(k);
 
-    count = 10
-    array s64* = malloc(sizeof *array * count)
-    for i = 0 i < count ++i
-        array[i] = i
+    count = 10;
+    array s64* = malloc(sizeof *array * count);
+    for i = 0; i < count; ++i; {
+        array[i] = i;
+    }
 
     for i = 0 i < count ++i
         printf("array[%lld] = %lld\n", i, array[i])
