@@ -179,7 +179,7 @@ Lexed_File generate_tokens_from_file(char* file) {
     ctx.stream = source;
     ctx.position_of_newline = source;
     ctx.start_of_line = source;
-    ctx.line_count = 0;
+    ctx.line_count = 1;
     ctx.comment_count = 0;
     ctx.previous_indentation_level = 0;
     ctx.current_indentation_level = 0;
@@ -354,7 +354,7 @@ Token get_token(Lexer_Context* ctx) {
     }
 
     switch (*c) {
-    default: ERROR_UNHANDLED_KIND(strf("%c", *c));
+    default: error("[%s:%d:%d] %s", ctx->file, token.line_pos, token.col_pos, strf("unknown character '%c'", *c));
         CASE_SINGLE_TOKEN('\0', TOKEN_EOF);
         break;
         CASE_SINGLE_TOKEN('(', TOKEN_OPEN_PAREN);

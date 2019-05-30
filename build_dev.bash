@@ -15,6 +15,8 @@ fi
 
 if [ $? == 0 ]; then
     # ./test.bash
+    # ./test.bash ./tests/test_struct_passed_as_argument_to_func.thi
+    # ./test.bash ./tests/test_types.thi
     # ./test.bash ./tests/test_optional_semicolon.thi
     # ./test.bash ./tests/test_optional_braces.thi
     # ./test.bash ./tests/test_struct.thi

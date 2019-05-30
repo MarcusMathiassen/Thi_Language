@@ -4,7 +4,9 @@ load "includes/cstdlib"
 
 def lex(source u8*) char*
     c = source
-    while *c != 0 { printf("%c", *c) ++c }
+    while *c != 0 
+        printf("%c", *c)
+        ++c
 
 def main(argc s32, argv char**) s32
     if argc < 2 { puts("too few arguments.") exit(0) }
@@ -14,11 +16,14 @@ def main(argc s32, argv char**) s32
     lex(content)
     return 1
 
-def get_file_content(filename char*) char* {
+
+# Reads an entire file into a zero terminated C style string
+def get_file_content(filename char*) char*
+
     buffer char*
     buffer = 0
 
-    if handler = fopen(filename, "r") {
+    if handler = fopen(filename, "r")
 
         # Seek the last byte of the file
         fseek(handler, 0, 2)
@@ -47,16 +52,15 @@ def get_file_content(filename char*) char* {
 
         # Always remember to close the file.
         fclose(handler)
-    }
 
     return buffer
-}
+
 
 def write_to_file(filename char*, buffer char*)
-    f = fopen(filename, "w")
-    if !f
+    if f = fopen(filename, "w")
+        fputs(buffer, f)
+        fclose(f)
+    else 
         puts("Error opening file!")
         exit(1)
-    fputs(buffer, f)
-    fclose(f)
 

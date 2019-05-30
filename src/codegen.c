@@ -18,6 +18,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
+
+// [1] System V Application Binary Interface AMD64 Architecture Processor Supplement (With LP64 and ILP32 Programming Models) Version 1.0
+
 #include "codegen.h"
 #include "ast.h" // AST*, ast_to_str
 #include "codegen_utility.h"
@@ -877,6 +880,84 @@ Value* codegen_struct(Codegen_Context* ctx, AST* node) {
     warning("struct incomplete?");
     return make_value_struct(node->type);
 }
+//
+// -- Classification
+//  The size of each argument gets rounded up to eightbytes.
+//  The basic types are assigned their natural classes:
+//
+//      - Arguments of types (signed and unsigned) _Bool, char, short, int, long,long long,andpointersareintheINTEGERclass.     
+//      - Arguments of types float, double, _Decimal32, _Decimal64 and __m64 are in class SSE.
+//      - Arguments of types __float128, _Decimal128 and __m128 are split into two halves. The least significant ones belong to class SSE, the most significant one to class SSEUP.
+//      - Arguments of type __m256 are split into four eightbyte chunks. The least significant one belongs to class SSE and all the others to class SSEUP.
+//      - Arguments of type __m512 are split into eight eightbyte chunks. The least significant one belongs to class SSE and all the others to class SSEUP.
+//      - The 64-bit mantissa of arguments of type long double
+//      - The 64-bit mantissa of arguments of type long double belongs to class X87, the 16-bit exponent plus 6 bytes of padding belongs to class X87UP.
+//      - Arguments of type __int128 offer the same operations as INTEGERs, yet they do not fit into one general purpose register but require two registers.
+//              For classification purposes __int128 is treated as if it were implemented as:  typedef struct { long low, high; } __int128;
+//              with the exception that arguments of type __int128 that are stored in memory must be aligned on a 16-byte boundary.
+//      - Arguments of complex T where T is one of the types float or double are treated as if they are implemented as:    struct complexT { T real; T imag; };
+//      - A variable of type complex long double is classified as type COM- PLEX_X87.
+//
+//  The classification of aggregate (structures and arrays) and union types works as follows:
+// 
+//      1. If the size of an object is larger than eight eightbytes, or it contains un- aligned fields, it has class MEMORY 12.
+//      2. If a C++ object is non-trivial for the purpose of calls, as specified in the C++ ABI 13, it is passed by invisible reference (the object is replaced in the parameter list by a pointer that has class INTEGER) 14.
+//      3. If the size of the aggregate exceeds a single eightbyte, each is classified separately. Each eightbyte gets initialized to class NO_CLASS.
+//      4. Each field of an object is classified recursively so that always two fields are considered. The resulting class is calculated according to the classes of the fields in the eightbyte:
+//
+//              (a) If both classes are equal, this is the resulting class.
+//              (b) If one of the classes is NO_CLASS, the resulting class is the other class.
+//              (c) If one of the classes is MEMORY, the result is the MEMORY class.
+//              (d) If one of the classes is INTEGER, the result is the INTEGER.
+//              (e) If one of the classes is X87, X87UP, COMPLEX_X87 class, MEM- ORY is used as class.
+//              (f) Otherwise class SSE is used.
+//
+//      5. Then a post merger cleanup is done:
+//
+//              (a) If one of the classes is MEMORY, the whole argument is passed in memory.
+//              (b) If X87UP is not preceded by X87, the whole argument is passed in memory.
+//              (c) If the size of the aggregate exceeds two eightbytes and the first eight- byte isn’t SSE or any other eightbyte isn’t SSEUP, the whole argument is passed in memory.
+//              (d) If SSEUP is not preceded by SSE or SSEUP, it is converted to SSE.
+//
+// -- Passing
+//  Once arguments are classified, the registers get assigned(in left-to-right order) for passing as follows:
+// 
+//      1. If the class is MEMORY, pass the argument on the stack.
+//      2. If the class is INTEGER, the next available register of the sequence %rdi, %rsi, %rdx, %rcx, %r8 and %r9 is used15.
+//      3. If the class is SSE, the next available vector register is used, the registers are taken in the order from %xmm0 to %xmm7.
+//      4. If the class is SSEUP, the eightbyte is passed in the next available eightbyte chunk of the last used vector register.
+//      5. If the class is X87, X87UP or COMPLEX_X87, it is passed in memory.
+//
+//      When a value of type _Bool is returned or passed in a register or on the stack, bit 0 contains the truth value and bits 1 to 7 shall be zero16.
+// 
+//  If there are no registers available for any eightbyte of an argument, the whole argument is passed on the stack. If registers have already been assigned for
+//  some eightbyte of such argument, the assignments get reverted.
+//
+//  Once registers are assigned, the arguments passed in memory are pushed on the stack in reversed (right-to-left) order.
+//  For calls that may call functions that use varargs or stdargs (prototype-less calls or calls to functions containing ellipsis (...) in the declaration) %al is used 
+//  as hidden argument to specify the number of vector registers used. The contents of %al do not need to match exactly the number of registers, but must be an upper bound
+//  on the number of vector registers used and is in the range 0-8 inclusive. When passing __m256 or __m512 arguments to functions that use varargs or stdargs, function
+//  prototypes must be provided. Otherwise, the run-time behavior is undefined.
+//
+// -- Returning of Values
+//  The returning of values is done according to the following algorithm:
+//      1. Classify the return type with the classification algorithm.
+//      2. If the type has class MEMORY, then the caller provides space for the return value and passes the address of this storage in %rdi as if it were the first argument to the function.
+//         In effect, this address becomes a “hidden” first ar- gument. This storage must not overlap any data visible to the callee through other names than this argument.
+//         On return %rax will contain the address that has been passed in by the caller in %rdi.
+//      3. If the class is INTEGER, the next available register of the sequence %rax, %rdx is used.
+//      4. If the class is SSE, the next available vector register of the sequence %xmm0, %xmm1 is used.
+//      5. If the class is SSEUP, the eightbyte is returned in the next available eightbyte chunk of the last used vector register.
+
+typedef enum {
+    CLASS_INTEGER,          // This class consists of integral types that fit into one of the general purpose registers.
+    CLASS_SSE,              // The class consists of types that fit into a vector register.
+    CLASS_SSEUP,            // The class consists of types that fit into a vector register and can be passed and returned in the upper bytes of it.
+    CLASS_X87, CLASS_X87UP, // These classes consists of types that will be returned via the x87 FPU.
+    CLASS_COMPLEX_X87,      // This class consists of types that will be returned via the x87 FPU.
+    CLASS_NO_CLASS,         // This class is used as initializer in the algorithms. It will be used for padding and empty structures and unions.
+    CLASS_MEMORY,           // This class consists of types that will be passed and returned in mem- ory via the stack.
+} Class_Kind;
 
 Value* codegen_function(Codegen_Context* ctx, AST* node) {
     DEBUG_START;

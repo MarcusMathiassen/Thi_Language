@@ -1,0 +1,16 @@
+
+
+
+
+
+def v2
+    x f64
+    y f64
+
+def change(v v2) v2
+    v.x = 6.0
+    v.y = 2.0
+    return v
+
+def main()
+    return 3

@@ -8,9 +8,9 @@ load "includes/cmath"
 DEFAULT_WINDOW_TITLE :: "Hello Triangle"
 
 def main()
-    if !glfwInit() puts("GLFW init failed.")
-    defer glfwTerminate()
-    defer puts("Closing..")
+    if !glfwInit() { puts("GLFW init failed.") }
+    defer { glfwTerminate() }
+    defer { puts("Closing..") }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1)
@@ -24,7 +24,7 @@ def main()
     window = glfwCreateWindow(640, 480, DEFAULT_WINDOW_TITLE, NULL, NULL)
     glfwMakeContextCurrent(window)
 
-    if glfwInit() != GLEW_OK puts("GLEW init failed.")
+    if glfwInit() != GLEW_OK { puts("GLEW init failed.") }
 
     shorten_filenames_in_error_messages = false
     warnings_is_errors = false
@@ -55,8 +55,8 @@ def main()
 
         glClearColor(r, g, b, 1.0)
 
-        if glfwWindowShouldClose(window) running = false
-        if glfwGetKey(window, GLFW_KEY_ESCAPE) is GLFW_PRESS  running = false
+        if glfwWindowShouldClose(window) { running = false }
+        if glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS { running = false }
 
         glClear(GL_COLOR_BUFFER_BIT)
         glfwPollEvents()
@@ -64,14 +64,13 @@ def main()
         key = glfwGetKey(window, GLFW_KEY_LEFT)
 
         # This is a switch, kinda..
-        if key is GLFW_PRESS x += -0.01
+        if key == GLFW_PRESS { x += -0.01 }
 
-        if glfwGetKey(window, GLFW_KEY_RIGHT) is GLFW_PRESS x +=  0.01
-        if glfwGetKey(window, GLFW_KEY_DOWN) is GLFW_PRESS y += -0.01
-        if glfwGetKey(window, GLFW_KEY_UP) is GLFW_PRESS y +=  0.01
-
-        if glfwGetKey(window, GLFW_KEY_X) is GLFW_PRESS scale +=  0.01
-        if glfwGetKey(window, GLFW_KEY_Z) is GLFW_PRESS scale +=  -0.01
+        if glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS { x +=  0.01 }
+        if glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS { y += -0.01 }
+        if glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS { y +=  0.01 }
+        if glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS { scale +=  0.01 }
+        if glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS { scale +=  -0.01 }
 
         w int
         h int
@@ -91,7 +90,7 @@ def main()
 
 def drawTriangle(x f32, y f32, s f32)
     glBegin(GL_TRIANGLES)
-    defer glEnd()
+    defer { glEnd() }
     glColor3f(1.0, 0.0, 0.0)
     glVertex2f(x + -0.5 *s, y + -0.5*s )
     glColor3f(0.0, 1.0, 0.0)

@@ -1,6 +1,6 @@
 # How to compile
-Just run the build script in the root folder.
-There are no dependencies. Not yet tested on Windows but should compile fine on latest macOS.
+Run the build script in the root folder.
+There are no dependencies. Not yet tested on Windows, but should compile fine on latest macOS.
 
 ## Program:
         extern puts (u8*)  s32

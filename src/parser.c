@@ -307,7 +307,7 @@ AST* parse_primary(Parser_Context* ctx) {
     case TOKEN_INTEGER:     result = parse_integer(ctx); break;
     case TOKEN_STRING:      result = parse_string(ctx); break;
     case TOKEN_OPEN_PAREN:  result = parse_parens(ctx); break;
-
+    case TOKEN_CLOSE_PAREN: eat(ctx); break;
     case TOKEN_BLOCK_START:  result = parse_block(ctx); break;
     }
 

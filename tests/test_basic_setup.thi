@@ -10,7 +10,7 @@ def main(argc s32, argv u8**) s32
     for x = 0 x < argc ++x
         printf("%s\n", *(argv + sizeof (*argv) * x))
         printf("%s\n", argv[x])
-    
+
     v v2
     v.x = 53.35
     *(&v + 8) = 14.01
@@ -29,7 +29,7 @@ def main(argc s32, argv u8**) s32
 
     # Do we really need braces here?
     if argv { puts("argv is not null") }
-    
+
     # Couldn't we write it like?
     # if argv puts("argv is not null")
 
@@ -50,6 +50,8 @@ def main(argc s32, argv u8**) s32
         printf("array[%lld] = %lld\n", i, array[i])
 
     return j - 52
+
+# change(x) => *x = 53
 
 def change(x s64*)
     *x = 53
