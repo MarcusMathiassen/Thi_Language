@@ -55,8 +55,6 @@ void linking_stage(Thi* thi, char* exec_name);
 // Replaces 'sizeof <expr>' calls with the size of the resulting expr.
 void resolve_sizeofs(void* dont_care, AST* node) {
     s64 size = get_size_of_type(node->type);
-    warning("%d", size);
-    warning("%d", get_size_of_type(make_type_int(1, false)));
     AST* constant_value = make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, false));
     ast_replace(node, constant_value);
 }
