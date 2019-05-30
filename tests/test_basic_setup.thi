@@ -3,8 +3,7 @@ load "includes/cstdlib"
 
 # This is a comment
 def main(argc s32, argv u8**) s32
-    j = 1
-    k = &j
+    {j = 1;k = &j;}
     
     *k = 42
     for x = 0 x < argc ++x
