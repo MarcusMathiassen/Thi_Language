@@ -216,15 +216,16 @@ Lexed_File generate_tokens_from_file(char* file) {
             t.col_pos = ctx.stream - ctx.position_of_newline;
             ctx.previous_indentation_level = ctx.current_indentation_level;
             token_array_append(&tokens, t);
-        }
-        while (ctx.current_indentation_level < ctx.previous_indentation_level) {
-            Token t;
-            t.kind = TOKEN_BLOCK_END;
-            t.value = "}";
-            t.line_pos = ctx.line_count;
-            t.col_pos = ctx.stream - ctx.position_of_newline;
-            ctx.previous_indentation_level -= DEFAULT_INDENT_LEVEL;
-            token_array_append(&tokens, t);
+        } else {
+            while (ctx.current_indentation_level < ctx.previous_indentation_level) {
+                Token t;
+                t.kind = TOKEN_BLOCK_END;
+                t.value = "}";
+                t.line_pos = ctx.line_count;
+                t.col_pos = ctx.stream - ctx.position_of_newline;
+                ctx.previous_indentation_level -= DEFAULT_INDENT_LEVEL;
+                token_array_append(&tokens, t);
+            }
         }
 
         if (token.kind != TOKEN_UNKNOWN)
@@ -353,38 +354,7 @@ Token get_token(Lexer_Context* ctx) {
     }
 
     switch (*c) {
-    default:
-        ERROR_UNHANDLED_KIND(strf("%c", *c));
-
-        // case '\r': /* fallthrough */
-        // case '\t': {
-        //     // Skip whitespace
-        //     bool has_newline = false;
-        // skip:
-        //     while (*c == ' ' || *c == '\n' || *c == '\r' || *c == '\t') {
-        //         if (*c == '\n') {
-        //             has_newline = true;
-        //             ctx->line_count += 1;
-        //             ctx->position_of_newline = c;
-        //         }
-        //         ++c;
-        //     }
-        //     // HACK
-        //     if (*c == '#') {
-        //         ++c;
-        //         while (*c != '\n') {
-        //             ++c;
-        //         }
-        //         ctx->comment_count += 1;
-        //         goto skip;
-        //     }
-
-        //     ctx->start_of_line = c;
-        //     if (has_newline) {
-        //         ctx->current_indentation_level = c - ctx->position_of_newline - 1;
-        //     }
-        // } break;
-
+    default: ERROR_UNHANDLED_KIND(strf("%c", *c));
         CASE_SINGLE_TOKEN('\0', TOKEN_EOF);
         break;
         CASE_SINGLE_TOKEN('(', TOKEN_OPEN_PAREN);
@@ -409,7 +379,7 @@ Token get_token(Lexer_Context* ctx) {
         break;
         CASE_SINGLE_TOKEN('^', TOKEN_HAT);
         break;
-        CASE_SINGLE_TOKEN(';', TOKEN_SEMICOLON);
+        CASE_SINGLE_TOKEN(';', TOKEN_TERMINAL);
         break;
         CASE_SINGLE_TOKEN('?', TOKEN_QUESTION_MARK);
         break;

@@ -159,7 +159,6 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         if (!var) {
             error("[%s:%s] undefined identifier %s", get_ast_name(ctx->module), get_ast_loc_str(node), ucolor(ast_to_str(node)));
         }
-
         // Since the variable must have been defined before this. It must also have a type.
         assert(var->type);
         node_t = var->type;

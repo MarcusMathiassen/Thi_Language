@@ -3,8 +3,8 @@ load "includes/cstdlib"
 
 # This is a comment
 def main(argc s32, argv u8**) s32
-    i = 1
-    k = &i
+    j = 1
+    k = &j
     
     *k = 42
     for x = 0 x < argc ++x
@@ -15,7 +15,7 @@ def main(argc s32, argv u8**) s32
     v.x = 53.35
     *(&v + 8) = 14.01
     f = 3.0
-    printf("v.x = %f v.x = %f\n", v.x, v.y)
+    printf("v.x = %f v.x = %f\n", v.x, v.y) # this prints 3.0, 3.0 because of f = 3.0. BUG!!!
     x = 5.0
     f = 3.0
     printf("f = %f x = %f\n", f, x)
@@ -35,7 +35,16 @@ def main(argc s32, argv u8**) s32
     
     printf("typeof x = %s\n", typeof x)
     change(k)
-    return i - 52
+
+    count = 10
+    array s64* = malloc(sizeof *array * count)
+    for i = 0 i < count ++i
+        array[i] = i
+
+    for i = 0 i < count ++i
+        printf("array[%lld] = %lld\n", i, array[i])
+
+    return j - 52
 
 def change(x s64*)
     *x = 53

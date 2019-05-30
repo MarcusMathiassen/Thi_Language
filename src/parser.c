@@ -159,7 +159,8 @@ AST* parse(Parser_Context* ctx, char* file) {
     list_append(ctx->loads, file_path);
 
     Lexed_File lf = generate_tokens_from_file(file_path);
-
+    print_tokens(lf.tokens);
+    // exit(1);
     ctx->tokens = lf.tokens.data;
     ctx->lines += lf.lines;
     ctx->comments += lf.comments;
@@ -252,6 +253,7 @@ AST* parse_statement(Parser_Context* ctx) {
     switch (tokKind(ctx)) {
     default:                        result =  parse_expression(ctx);    break;
     case TOKEN_EOF:                 eat(ctx); break;
+    case TOKEN_TERMINAL: // fallthrough
     case TOKEN_NEWLINE:             eat(ctx); result = NULL; break;
     case TOKEN_COMMENT:             result = make_ast_comment(loc(ctx), tokValue(ctx)); eat(ctx); break;
     case TOKEN_DEF:                 result =  parse_def(ctx);           break;
@@ -271,6 +273,10 @@ AST* parse_statement(Parser_Context* ctx) {
     case TOKEN_LINK:                result =  parse_link(ctx);          break;
     case TOKEN_EXTERN:              result =  parse_extern(ctx);        break;
     }
+
+    // Eat extranous terminals
+    // if (tok_is(ctx, TOKEN_TERMINAL)) eat(ctx);
+
     // clang-format on
     return result;
 }
@@ -283,6 +289,7 @@ start:
     switch (tokKind(ctx)) {
     default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
     case TOKEN_COMMENT:             result = make_ast_comment(loc(ctx), tokValue(ctx)); eat(ctx); break;
+    case TOKEN_TERMINAL: // fallthrough
     case TOKEN_NEWLINE:
         eat(ctx); 
         if (!ctx->inside_parens) { result = NULL; break;}
@@ -298,7 +305,13 @@ start:
     case TOKEN_INTEGER:     result = parse_integer(ctx); break;
     case TOKEN_STRING:      result = parse_string(ctx); break;
     case TOKEN_OPEN_PAREN:  result = parse_parens(ctx); break;
+
+    case TOKEN_BLOCK_START:  result = parse_block(ctx); break;
     }
+    
+    // Eat extranous terminals
+    if (tok_is(ctx, TOKEN_TERMINAL)) eat(ctx);
+
     // clang-format on
     return result;
 }
@@ -637,7 +650,8 @@ AST* parse_function_decl(Parser_Context* ctx, Loc_Info lc, char* ident) {
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
 
     char* func_name = ident;
-    Type* ret_type = (tok_is_on_same_line(ctx) && !tok_is(ctx, TOKEN_NEWLINE)) ? get_type(ctx) : make_type_void();
+
+    Type* ret_type = (tok_is_on_same_line(ctx) && !tok_is(ctx, TOKEN_NEWLINE) && !tok_is(ctx, TOKEN_BLOCK_START)) ? get_type(ctx) : make_type_void();
     Type* func_type = make_type_function(func_name, params_t, ret_type, flags);
     AST* func_body = parse_block(ctx);
 
@@ -949,7 +963,7 @@ Type* parse_extern_function_signature(Parser_Context* ctx, char* func_name) {
         has_multiple_arguments = true;
     }
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
-    Type* ret_type = (tok_is_on_same_line(ctx) && !tok_is(ctx, TOKEN_NEWLINE)) ? get_type(ctx) : make_type_void();
+    Type* ret_type = (tok_is_on_same_line(ctx) && !tok_is(ctx, TOKEN_NEWLINE) && !tok_is(ctx, TOKEN_BLOCK_START)) ? get_type(ctx) : make_type_void();
     return make_type_function(func_name, params, ret_type, flags);
 }
 
@@ -990,7 +1004,7 @@ Type* get_type(Parser_Context* ctx) {
             has_multiple_arguments = true;
         }
         eat_kind(ctx, TOKEN_CLOSE_PAREN);
-        Type* ret_type = (tok_is_on_same_line(ctx) && !tok_is(ctx, TOKEN_NEWLINE)) ? get_type(ctx) : make_type_void();
+        Type* ret_type = (tok_is_on_same_line(ctx) && !tok_is(ctx, TOKEN_NEWLINE) && !tok_is(ctx, TOKEN_BLOCK_START)) ? get_type(ctx) : make_type_void();
         type = make_type_function(NULL, args, ret_type, has_var_args);
     }
 

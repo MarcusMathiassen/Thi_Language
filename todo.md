@@ -21,6 +21,7 @@
 [x] - sizeof char returns 8 instead of 1. Why?  
 [x] - variable 'k s64* = &i' doesnt work. But 'k = &i' does. ?
 [ ] - there seems to be a bug in the ast_to_source printer. Comments get the wrong indentation after a block
+[ ] - Handle optional braces
 
 ## Bugs
 [ ] - in Sema, AST_GROUPING seems to cause a crash. Removing any grouping expressions in the source removes the crash.

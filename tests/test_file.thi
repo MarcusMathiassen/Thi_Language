@@ -1,29 +1,27 @@
+
 load "includes/cstdio"
 load "includes/cstdlib"
 
-main(argc: int, argv: char**)
+def lex(source u8*) char*
+    c = source
+    while *c != 0 { printf("%c", *c) ++c }
 
-    if argc < 2 
-        puts("too few arguments.")
-        exit(0)
-
-    source_file := argv[1]
-    content := get_file_content(source_file)
-    puts(content)
-
+def main(argc s32, argv char**) s32
+    if argc < 2 { puts("too few arguments.") exit(0) }
+    source_file = argv[1]
+    content = get_file_content(source_file)
+    if !content { printf("Failed to get content of file '%s'\n", source_file) }
+    lex(content)
     return 1
 
-get_file_content(filename: char*)
+def get_file_content(filename char*) char* {
+    buffer char*
+    buffer = 0
 
-    buffer: char*
-    string_size: s64
-    read_size: s64
-    handler := fopen(filename, "r")
-
-    if handler
+    if handler = fopen(filename, "r") {
 
         # Seek the last byte of the file
-        fseek(handler, 0, SEEK_END)
+        fseek(handler, 0, 2)
 
         # Offset from the first to the last byte, or in other words, filesize
         string_size = ftell(handler)
@@ -45,17 +43,20 @@ get_file_content(filename: char*)
             # Something went wrong, throw away the memory and set
             # the buffer to NULL
             free(buffer)
-            buffer = NULL
+            buffer = 0
 
         # Always remember to close the file.
         fclose(handler)
+    }
 
     return buffer
+}
 
-write_to_file(filename: char*, buffer: char* )
-    f := fopen(filename, "w")
+def write_to_file(filename char*, buffer char*)
+    f = fopen(filename, "w")
     if !f
         puts("Error opening file!")
         exit(1)
     fputs(buffer, f)
     fclose(f)
+
