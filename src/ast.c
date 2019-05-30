@@ -139,7 +139,7 @@ char* get_ast_name(AST* node) {
 
 char* ast_to_str(AST* node) {
     String_Context ctx;
-    ctx.with_newlines = false;
+    ctx.as_source = false;
     ctx.last.line_pos = 0;
     ctx.last.col_pos = 0;
     ctx.str = string_create("");
@@ -149,7 +149,7 @@ char* ast_to_str(AST* node) {
 
 char* ast_to_source(AST* node) {
     String_Context ctx;
-    ctx.with_newlines = true;
+    ctx.as_source = true;
     ctx.last.line_pos = 0;
     ctx.last.col_pos = 0;
     ctx.str = string_create("");
@@ -170,7 +170,7 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
 
     assert(node->kind < AST_COUNT && node->kind >= 0);
 
-    if (ctx->with_newlines) {
+    if (ctx->as_source) {
         // Add some newlines if we have too :)
         // If there is a difference in line position. Add
         // that many newlines.
@@ -251,7 +251,9 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         break;
     }
     case AST_LOAD: {
-        string_append_f(s, "load \"%s\"", node->Load.str);
+        if (!ctx->as_source)
+            string_append_f(s, "load \"%s\"", node->Load.str);
+        else ast_to_str_r(ctx, node->Load.module); 
         break;
     }
     case AST_LINK: {

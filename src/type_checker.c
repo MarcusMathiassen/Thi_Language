@@ -303,7 +303,7 @@ Type* type_check_block(Typer_Context* ctx, AST* node) {
             // ..raise an error if not
 
             if (!is_same_type(a_t, b_t)) {
-                error("[%s] Type_Error. Differing return types in block.\n%s <- %s\n!=\n%s <- %s", LOCATION_OF_ast_to_str(ctx->module, node), type_to_str(a_t), ast_to_str(a), type_to_str(b_t), ast_to_str(b));
+                error("[%s] Type_Error. Differing return types in block.\n%s <- %s\n!=\n%s <- %s", LOCATION_OF(ctx->module, node), type_to_str(a_t), ast_to_str(a), type_to_str(b_t), ast_to_str(b));
             }
         }
         result_t = a_t;

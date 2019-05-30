@@ -42,7 +42,7 @@ typedef s8 bool;
 #define ERROR_UNHANDLED_KIND(str) error("[%s:%s:%d] Unhandled case '%s'", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color(str));
 #define UNREACHABLE error("[%s:%s:%d] %s", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color("UNREACHABLE"));
 #define UNFINISHED error("[%s:%s:%d] %s", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color("UNFINISHED"));
-#define LOCATION_OF_ast_to_str(module, node) strf("%s:%d:%d", module->Module.name, node->loc_info.line_pos, node->loc_info.col_pos)
+#define LOCATION_OF(module, node) strf("%s:%d:%d", module->Module.name, node->loc_info.line_pos, node->loc_info.col_pos)
 
 #define true 1
 #define false 0

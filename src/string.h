@@ -35,7 +35,7 @@ typedef struct {
 
 typedef struct {
     string* str;
-    bool with_newlines;
+    bool as_source;
     Loc_Info last;
     u64 indentation_level;
 } String_Context;

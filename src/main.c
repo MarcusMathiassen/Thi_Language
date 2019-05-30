@@ -166,64 +166,6 @@ void run_all_passes(void* thi, AST* node) {
     }
 }
 
-void pass_typeify(void* ctx, AST* node) {
-    if (!node) return;
-    Type* result_t = NULL;
-    switch (node->kind) {
-    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
-    case AST_COMMENT: break;
-    case AST_NOP: break;
-    case AST_SPACE_SEPARATED_IDENTIFIER_LIST: break;
-    case AST_COMMA_SEPARATED_LIST: break;
-    case AST_MODULE: break;
-    case AST_IS: break;
-    case AST_FALLTHROUGH: break;
-    case AST_VAR_ARGS: break;
-    case AST_EXTERN: break;
-    case AST_LOAD: break;
-    case AST_LINK: break;
-    case AST_NOTE: break;
-    case AST_INT: break;
-    case AST_FLOAT: break;
-    case AST_STRING: break;
-    case AST_CHAR: break;
-    case AST_IDENT: break;
-    case AST_CALL: break;
-    case AST_UNARY: break;
-    case AST_BINARY: break;
-    case AST_GROUPING: break;
-    case AST_SUBSCRIPT: break;
-    case AST_FIELD_ACCESS: break;
-    case AST_AS: break;
-    case AST_BLOCK: break;
-    case AST_STRUCT: break;
-    case AST_ENUM: break;
-    case AST_FUNCTION: break;
-    case AST_VARIABLE_DECL: break;
-    case AST_CONSTANT_DECL: break;
-    case AST_IF: break;
-    case AST_FOR: break;
-    case AST_WHILE: break;
-    case AST_RETURN: break;
-    case AST_DEFER: break;
-    case AST_BREAK: break;
-    case AST_CONTINUE: 
-        
-        break;
-    case AST_TYPEOF:
-        result_t = node->Typeof.node->type;
-        break;
-    case AST_SIZEOF: break;
-    case AST_SWITCH: {
-        // The cases type is the type that is returned. Therefor the switches resulting type
-        // is that same type.
-        result_t = node->Switch.cases->type;
-        break;
-    }
-    }
-    node->type = result_t;
-}
-
 void make_sure_all_nodes_have_a_valid_type(void* dont_care, AST* node) {
     assert(node);
 
@@ -549,13 +491,12 @@ int main(int argc, char** argv) {
     //
     semantic_analysis(ast);
 
-    //
-    // Typer
-    //
-    //      Typifies the AST by top down traversal.
-    //      After this pass all nodes are typed.
+    // Run all passes
+    push_timer(&thi, "Run all passes");
+    ast_visit(run_all_passes, &thi, ast);
+    pop_timer(&thi);
 
-    // Give every node a type and do some checking
+    // typechecking pass
     type_checker(thi.symbol_map, ast);
 
     // Sanity check.. Make sure the typer did what it was supposed to do.
@@ -563,15 +504,7 @@ int main(int argc, char** argv) {
 
     // Write Unoptimized AST out
     write_to_file("output.thi", ast_to_source(ast));
-
-    // Run all passes
-    push_timer(&thi, "Run all passes");
-    ast_visit(run_all_passes, &thi, ast);
-    pop_timer(&thi);
-
-    // Second typechecking pass
-    type_checker(thi.symbol_map, ast);
-
+    
     //
     // Optimization Pass:
     //      Constant propogation.
