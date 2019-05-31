@@ -552,8 +552,8 @@ Value* codegen_block(Codegen_Context* ctx, AST* node) {
 }
 
 Value* codegen_ident(Codegen_Context* ctx, AST* node) {
-    assert(node->kind == AST_IDENT);
     DEBUG_START;
+    assert(node->kind == AST_IDENT);
     Value* var = get_variable(ctx, node);
     emit_load(ctx, var);
     return var;
@@ -682,7 +682,7 @@ Value* codegen_defer(Codegen_Context* ctx, AST* node) {
     list_append(ctx->current_function->Function.defers, defer_expr);
     return NULL;
 }
-
+// From the System V Application Binary Interface Manual
 // -- Returning of Values
 //  The returning of values is done according to the following algorithm:
 //      1. Classify the return type with the classification algorithm.
@@ -702,7 +702,7 @@ Value* codegen_return(Codegen_Context* ctx, AST* node) {
     if (ret_e) {
 
         Class_Kind class = classify(ret_e);
-        
+
         ret_v = codegen_node(ctx, ret_e);
 
         s64 size = get_size_of_value(ret_v);
@@ -715,8 +715,10 @@ Value* codegen_return(Codegen_Context* ctx, AST* node) {
         default: ERROR_UNHANDLED_KIND(class_kind_to_str(class));
         // case CLASS_MEMORY: break;
         case CLASS_INTEGER: return_reg = get_return_reg_int(class_integer_counter++, size); break;
-        case CLASS_SSE: return_reg = get_return_reg_float(class_sse_counter++); break;
-        // case CLASS_SSEUP: break;
+        case CLASS_SSE:
+            return_reg = get_return_reg_float(class_sse_counter++);
+            break;
+            // case CLASS_SSEUP: break;
         }
 
         char* mov_op = get_move_op(ret_v->type);
@@ -830,6 +832,7 @@ Value* codegen_struct(Codegen_Context* ctx, AST* node) {
     return make_value_struct(node->type);
 }
 
+// From the System V Application Binary Interface Manual
 // -- Passing
 //  Once arguments are classified, the registers get assigned(in left-to-right order) for passing as follows:
 //      1. If the class is MEMORY, pass the argument on the stack.

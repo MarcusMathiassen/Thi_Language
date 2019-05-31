@@ -9,6 +9,14 @@ load "includes/cstdlib"
 
 # This is a comment
 
+def strlen(str char*) s64
+    i = 0
+    if str == 0
+        puts("argument to 'strlen' was NULL")
+    while str[i] != '\0'
+        ++i
+    return i
+
 def getFloat() f64
     return 13.313
 
@@ -20,6 +28,9 @@ def main(argc s32, argv u8**) s32
     for x = 0 x < argc ++x
         printf("%s\n", *(argv + sizeof (*argv) * x))
         printf("%s\n", argv[x])
+
+    len = strlen(argv[1])
+    printf("strlen(%s) = %d\n", argv[1], len)
 
     v v2
 

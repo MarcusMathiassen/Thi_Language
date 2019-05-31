@@ -5,7 +5,6 @@ compiler=clang
 src=./src/*.c
 flags=-Wall\ -Wextra\ -Wno-unused-function\ -Wno-unused-parameter\ -Werror #\ -DNDEBUG
 std=c99
-
 $compiler $src -std=$std $olvl $flags -o $output  -g -fsanitize=address -fno-omit-frame-pointer
 
 test_files=$@

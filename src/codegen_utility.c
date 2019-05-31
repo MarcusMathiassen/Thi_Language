@@ -122,7 +122,6 @@ void emit(Codegen_Context* ctx, char* fmt, ...) {
     va_end(args);
 
     bool is_label = false;
-
     for (int i = 0; i < str_len; ++i) {
         if (str[i] == ':') {
             is_label = true;
@@ -182,6 +181,7 @@ void pop_type_2(Codegen_Context* ctx, Type* type) {
 void pop_type(Codegen_Context* ctx, Type* type) {
     assert(type);
     switch (type->kind) {
+    default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
     case TYPE_ARRAY: {
         // Push each element in the array
         s64 size = type->Array.size;
@@ -203,7 +203,6 @@ void pop_type(Codegen_Context* ctx, Type* type) {
     case TYPE_POINTER: // fallthrough
     case TYPE_INT: pop(ctx, RAX); break;
     case TYPE_FLOAT: pop(ctx, XMM0); break;
-    default: error("Unhandled pop_type %s", type_to_str(type));
     }
 }
 
@@ -233,7 +232,7 @@ void pop(Codegen_Context* ctx, int reg) {
 }
 
 char* get_op_size(s8 bytes) {
-    assert(bytes >= 0);
+    assert(bytes >= 1 && bytes <= 8);
     switch (bytes) {
     case 1: return "byte";
     case 2: return "word";
@@ -247,79 +246,64 @@ char* get_op_size(s8 bytes) {
 
 char* get_result_reg_2(Type* type) {
     assert(type);
-    s64 bytes = get_size_of_type(type);
+    s64 size = get_size_of_type(type);
+    tassert(size >= 1 && size <= 8, "size = %d", size);
     switch (type->kind) {
-    default:
-        error("get_result_reg unhandled case: %s",
-              type_kind_to_str(type->kind));
-    case TYPE_FLOAT:
-        switch (bytes) {
-        case 4: return "xmm1";
-        case 8: return "xmm1";
-        }
+    default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
+    // case TYPE_ARRAY:   // return get_reg(RCX);
+    // case TYPE_STRUCT:  // fallthrough
+    // case TYPE_ENUM:    // fallthrough
+    // case TYPE_VOID:    // fallthrough
     case TYPE_POINTER: // fallthrough
-    case TYPE_ARRAY:   // return get_reg(RCX);
-    case TYPE_STRUCT:  // fallthrough
-    case TYPE_ENUM:    // fallthrough
-    case TYPE_VOID:    // fallthrough
-    case TYPE_INT: return get_reg(get_rax_reg_of_byte_size(bytes, 'c'));
+    case TYPE_INT: return get_reg(get_rax_reg_of_byte_size(size, 'c'));
+    case TYPE_FLOAT: return "xmm1";
     }
     UNREACHABLE;
     return NULL;
 }
 
+
 char* get_result_reg_of_size(Type* type, s8 size) {
     assert(type);
-    s64 bytes = size;
+    tassert(size >= 1 && size <= 8, "a register cant be more than 8 or less than 1 bytes.");
     switch (type->kind) {
-    case TYPE_FLOAT:
-        switch (bytes) {
-        case 4: return "xmm0";
-        case 8: return "xmm0";
-        }
+    default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
+    // case TYPE_ARRAY:   // return get_reg(RCX);
+    // case TYPE_STRUCT:  // fallthrough
+    // case TYPE_ENUM:    // fallthrough
+    // case TYPE_VOID:    // fallthrough
     case TYPE_POINTER: // fallthrough
-    case TYPE_ARRAY:   // return get_reg(RCX);
-    case TYPE_STRUCT:  // fallthrough
-    case TYPE_ENUM:    // fallthrough
-    case TYPE_VOID:    // fallthrough
-    case TYPE_INT: return get_reg(get_rax_reg_of_byte_size(bytes, 'a'));
-    default:
-        error("get_result_reg unhandled case: %s",
-              type_kind_to_str(type->kind));
+    case TYPE_INT: return get_reg(get_rax_reg_of_byte_size(size, 'a'));
+    case TYPE_FLOAT: return "xmm0";
     }
-
     UNREACHABLE;
     return NULL;
 }
 
 char* get_result_reg(Type* type) {
     assert(type);
-    s64 bytes = get_size_of_type(type);
+    s64 size = get_size_of_type(type);
+    // dassert(size >= 1 && size <= 8, strf("size is %d", size));
+    assert(size >= 1 && size <= 8);
     switch (type->kind) {
-    case TYPE_FLOAT:
-        switch (bytes) {
-        case 4: return "xmm0";
-        case 8: return "xmm0";
-        }
+    default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
+    // case TYPE_ARRAY:   // return get_reg(RCX);
+    // case TYPE_STRUCT:  // fallthrough
+    // case TYPE_ENUM:    // fallthrough
+    // case TYPE_VOID:    // fallthrough
     case TYPE_POINTER: // fallthrough
-    case TYPE_ARRAY:   // return get_reg(RCX);
-    case TYPE_STRUCT:  // fallthrough
-    case TYPE_ENUM:    // fallthrough
-    case TYPE_VOID:    // fallthrough
-    case TYPE_INT: return get_reg(get_rax_reg_of_byte_size(bytes, 'a'));
-    default:
-        error("get_result_reg unhandled case: %s",
-              type_kind_to_str(type->kind));
+    case TYPE_INT: return get_reg(get_rax_reg_of_byte_size(size, 'a'));
+    case TYPE_FLOAT: return "xmm0";
     }
-
     UNREACHABLE;
     return NULL;
 }
 
 char* get_db_op(Type* type) {
     assert(type);
-    s64 bytes = get_size_of_type(type);
-    switch (bytes) {
+    s64 size = get_size_of_type(type);
+    assert(size >= 1 && size <= 8);
+    switch (size) {
     case 1: return "db";
     case 2: return "dw";
     case 4: return "dd";
@@ -749,7 +733,6 @@ void emit_pop(Codegen_Context* ctx, s8 reg) {
     if (reg >= XMM0 && reg <= XMM7) {
         emit(ctx, "movss %s, [rsp]", r);
         emit(ctx, "add rsp, 8");
-
     } else {
         emit(ctx, "pop %s", r);
     }
@@ -779,26 +762,28 @@ void emit_lea_reg64_mem(Codegen_Context* ctx, s8 reg64, char* mem) {
 }
 
 void visitor_get_all_alloca_in_block(void* sum, AST* node) {
+    assert(sum);
+    assert(node);
     if (node->kind == AST_VARIABLE_DECL) {
         *((s64*)sum) += get_size_of_type(node->type);
     }
 }
 
 s64 get_all_alloca_in_block(AST* block) {
+    assert(block);
     s64 sum = 0;
     ast_visit(visitor_get_all_alloca_in_block, &sum, block);
     return sum;
 }
 
 List* classify_arguments(List* arguments) {
+    assert(arguments);
     List* classified_argument_list = make_list();
     LIST_FOREACH(arguments) {
         AST* arg = it->data;
-
         ClassifiedArgument* ca = xmalloc(sizeof(ClassifiedArgument));
         ca->class = classify(arg);
         ca->argument = arg;
-
         list_append(classified_argument_list, ca);
     }
     return classified_argument_list;
@@ -806,6 +791,7 @@ List* classify_arguments(List* arguments) {
 
 char* class_kind_to_str(Class_Kind kind) {
     switch (kind) {
+    default: ERROR_UNHANDLED_KIND(strf("%d", kind));
     case CLASS_INTEGER: return "CLASS_INTEGER";
     case CLASS_SSE: return "CLASS_SSE";
     case CLASS_SSEUP: return "CLASS_SSEUP";
@@ -819,7 +805,7 @@ char* class_kind_to_str(Class_Kind kind) {
     return NULL;
 }
 
-//
+// From the System V Application Binary Interface Manual
 // -- Classification
 //  The size of each argument gets rounded up to eightbytes.
 //  The basic types are assigned their natural classes:
@@ -858,14 +844,15 @@ char* class_kind_to_str(Class_Kind kind) {
 //              (d) If SSEUP is not preceded by SSE or SSEUP, it is converted to SSE.
 //
 Class_Kind classify(AST* argument) {
+    assert(argument);
     Type_Kind type_kind = argument->type->kind;
     switch (type_kind) {
     default: ERROR_UNHANDLED_KIND(type_kind_to_str(type_kind));
-    case TYPE_INT:
+    case TYPE_INT: // fallthrough
     case TYPE_POINTER: return CLASS_INTEGER;
     case TYPE_FLOAT: return CLASS_SSE;
-    case TYPE_STRUCT:
-    case TYPE_ARRAY:
+    case TYPE_STRUCT: // fallthrough
+    case TYPE_ARRAY: // fallthrough
     case TYPE_UNION: {
         s64 size = get_size_of_type(argument->type);
         bool is_aligned = argument->type->flags & TYPE_FLAG_IS_ALIGNED;

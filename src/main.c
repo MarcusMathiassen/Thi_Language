@@ -348,6 +348,8 @@ int main(int argc, char** argv) {
     // Argument validation
     if (argc < 2) error("too few arguments.");
 
+    tassert(argc == 0, "argc is %d", argc);
+
     utility_tests();
     string_tests();
     map_tests();

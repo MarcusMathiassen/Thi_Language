@@ -360,6 +360,20 @@ char* give_unique_color(char* str) {
 char* get_unique_color(void) {
     return get_next_color();
 }
+
+void _tassert(char* expr_str, char* file, char* func, int line, char* fmt, ...) {
+    assert(fmt);
+    va_list args;
+    va_start(args, fmt);
+    s64 n = 1 + vsnprintf(0, 0, fmt, args);
+    va_end(args);
+    char* str = xmalloc(n);
+    va_start(args, fmt);
+    vsnprintf(str, n, fmt, args);
+    va_end(args);
+    error("[%s:%s:%s] ASSERT %s %s", ucolor(file), ucolor(func), ucolor(strf("%d",line)), ucolor(expr_str),  str);
+}
+
 //
 
 //------------------------------------------------------------------------------
