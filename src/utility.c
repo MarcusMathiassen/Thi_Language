@@ -32,8 +32,7 @@
 //                               Printing Functions
 //------------------------------------------------------------------------------
 
-void info(char* fmt, ...) {
-#ifndef NDEBUG
+void _info(char* fmt, ...) {
     assert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -41,7 +40,6 @@ void info(char* fmt, ...) {
     vprintf(fmt, args);
     puts(RESET);
     va_end(args);
-#endif
 }
 
 void warning(char* fmt, ...) {
@@ -75,8 +73,7 @@ void error(char* fmt, ...) {
     exit(1);
 }
 
-void info_no_newline(char* fmt, ...) {
-#ifndef NDEBUG
+void _info_no_newline(char* fmt, ...) {
     assert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -84,7 +81,6 @@ void info_no_newline(char* fmt, ...) {
     vprintf(fmt, args);
     printf(RESET);
     va_end(args);
-#endif
 }
 
 void warning_no_newline(char* fmt, ...) {
@@ -371,7 +367,7 @@ void _tassert(char* expr_str, char* file, char* func, int line, char* fmt, ...) 
     va_start(args, fmt);
     vsnprintf(str, n, fmt, args);
     va_end(args);
-    error("[%s:%s:%s] ASSERT %s %s", ucolor(file), ucolor(func), ucolor(strf("%d",line)), ucolor(expr_str),  str);
+    error("[%s:%s:%s] ASSERT %s -> %s", ucolor(file), ucolor(func), ucolor(strf("%d",line)), ucolor(expr_str),  str);
 }
 
 //

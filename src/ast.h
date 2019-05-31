@@ -317,7 +317,9 @@ AST* make_ast_comma_separated_list(Loc_Info loc_info, List* nodes);
 
 AST* get_arg_from_func(Type* func_t, s64 arg_index);
 void ast_tests(void);
-void ast_visit(void (*func)(void*, AST*), void* ctx, AST* node);
+
+typedef void ast_callback(void*, AST*);
+void ast_visit(ast_callback* func, void* ctx, AST* node);
 void ast_replace(AST* a, AST* b);
 char* ast_to_json(AST* node);
 char* get_ast_name(AST* node);

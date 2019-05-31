@@ -205,7 +205,7 @@ Lexed_File generate_tokens_from_file(char* file) {
             token.kind != TOKEN_COMMENT) {
             if (token.col_pos % DEFAULT_INDENT_LEVEL != 0) LEXER_ERROR("indentation error.");
             ctx.current_indentation_level = token.col_pos;
-            warning("token.col_pos: %d", token.col_pos);
+            info("token.col_pos: %d", token.col_pos);
         }
 
         if (ctx.current_indentation_level > ctx.previous_indentation_level) {
@@ -788,7 +788,7 @@ Token_Array make_token_array() {
 }
 
 void token_array_append(Token_Array* l, Token t) {
-    if (l->count >= l->allocated) {
+    if (l->count == l->allocated) {
         l->allocated *= PHI;
         l->data = xrealloc(l->data, l->allocated * sizeof(Token));
     }
@@ -804,7 +804,7 @@ Intern_Array make_intern_array() {
 }
 
 void intern_array_append(Intern_Array* l, Intern intern) {
-    if (l->count >= l->allocated) {
+    if (l->count == l->allocated) {
         l->allocated *= PHI;
         l->data = xrealloc(l->data, l->allocated * sizeof(Intern));
     }

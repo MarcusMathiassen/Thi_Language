@@ -154,4 +154,7 @@ Type* make_type_var_args(void);
 s64 type_function_get_arg_count(Type* type);
 s64 type_array_get_count(Type* type);
 
+#define ERROR_UNHANDLED_TYPE ERROR_UNHANDLED_KIND(type_to_str(type->kind))
+#define ERROR_UNHANDLED_TYPE_KIND ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind))
+
 #endif

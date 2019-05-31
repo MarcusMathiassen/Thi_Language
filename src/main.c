@@ -335,7 +335,7 @@ List* ast_find_all_of_kind(AST_Kind kind, AST* ast) {
     return list;
 }
 
-void thi_run_pass(Thi* thi, char* pass_description, void (*visitor_func)(void*, AST*), void* visitor_func_arg) {
+void thi_run_pass(Thi* thi, char* pass_description, ast_callback* visitor_func, void* visitor_func_arg) {
     success("running pass: %s", pass_description);
     push_timer(thi, pass_description);
     ast_visit(visitor_func, visitor_func_arg, thi->ast);
@@ -347,8 +347,6 @@ int main(int argc, char** argv) {
     // @Todo(marcus) do more robust argument handling
     // Argument validation
     if (argc < 2) error("too few arguments.");
-
-    tassert(argc == 0, "argc is %d", argc);
 
     utility_tests();
     string_tests();

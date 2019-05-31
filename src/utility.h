@@ -27,12 +27,21 @@
 // These must always be called with a fmt.
 // ex. 'info(my_str)' will crash if 'my_str' contains format specifiers.
 //      so always do this 'info("%s", my_str)' instead.
-void info(char* fmt, ...);
+
+#ifdef NDEBUG
+#define info(fmt, ...)
+#define info_no_newline(fmt, ...)
+#else
+#define info(fmt, ...) (_info(fmt, ## __VA_ARGS__))
+#define info_no_newline(fmt, ...) (_info_no_newline(fmt, ## __VA_ARGS__))
+#endif
+
+void _info(char* fmt, ...);
 void warning(char* fmt, ...);
 void success(char* fmt, ...);
 void error(char* fmt, ...);
 
-void info_no_newline(char* fmt, ...);
+void _info_no_newline(char* fmt, ...);
 void warning_no_newline(char* fmt, ...);
 void success_no_newline(char* fmt, ...);
 void error_no_newline(char* fmt, ...);

@@ -70,6 +70,7 @@ Value* codegen_node(Codegen_Context* ctx, AST* node);
 
 // @Hotpath @Recursive
 Value* codegen_node(Codegen_Context* ctx, AST* node) {
+    assert(ctx);
     if (!node) return NULL;
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
@@ -115,6 +116,7 @@ Value* codegen_node(Codegen_Context* ctx, AST* node) {
 }
 
 char* generate_code_from_ast(AST* ast) {
+    assert(ast);
     info("Generating code from ast");
 
     Codegen_Context ctx = make_codegen_context();
@@ -481,11 +483,6 @@ Value* codegen_binary(Codegen_Context* ctx, AST* node) {
 
 Value* codegen_constant_decl(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    // assert(0);
-    // assert(node->kind == AST_CONSTANT_DECL);
-    // char* name            = node->Constant_Decl.name;
-    // AST*  assignment_expr = node->Constant_Decl.value;
-    // add_macro_def(name, assignment_expr);
     return NULL;
 }
 
@@ -701,7 +698,7 @@ Value* codegen_return(Codegen_Context* ctx, AST* node) {
 
     if (ret_e) {
 
-        Class_Kind class = classify(ret_e);
+        Class_Kind class = classify(ret_e->type);
 
         ret_v = codegen_node(ctx, ret_e);
 

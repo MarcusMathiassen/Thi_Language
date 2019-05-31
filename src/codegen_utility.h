@@ -30,6 +30,7 @@
 #include "value.h"  // Value
 
 typedef enum {
+    _CLASS_NONE_,
     CLASS_INTEGER, // This class consists of integral types that fit into one of the general purpose registers.
     CLASS_SSE,     // The class consists of types that fit into a vector register.
     CLASS_SSEUP,   // The class consists of types that fit into a vector register and can be passed and returned in the upper bytes of it.
@@ -38,6 +39,7 @@ typedef enum {
     CLASS_COMPLEX_X87, // This class consists of types that will be returned via the x87 FPU.
     CLASS_NO_CLASS,    // This class is used as initializer in the algorithms. It will be used for padding and empty structures and unions.
     CLASS_MEMORY,      // This class consists of types that will be passed and returned in memory via the stack.
+    _CLASS_COUNT_,
 } Class_Kind;
 
 typedef struct {
@@ -73,7 +75,7 @@ typedef struct
 } Codegen_Context;
 
 char* class_kind_to_str(Class_Kind kind);
-Class_Kind classify(AST* argument);
+Class_Kind classify(Type* type);
 List* classify_arguments(List* arguments);
 
 Codegen_Context make_codegen_context(void);

@@ -512,7 +512,7 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
 //     return NULL;
 // }
 
-void ast_visit(void (*func)(void*, AST*), void* ctx, AST* node) {
+void ast_visit(ast_callback* func, void* ctx, AST* node) {
     if (!node) return;
     assert(func);
     switch (node->kind) {
@@ -665,8 +665,8 @@ AST_Ref_List make_ast_ref_list() {
 }
 
 void ast_ref_list_append(AST_Ref_List* l, AST* a) {
-    if (l->count >= l->allocated) {
-        l->allocated *= 1.5;
+    if (l->count == l->allocated) {
+        l->allocated *= PHI;
         l->data = xrealloc(l->data, l->allocated * sizeof(AST*));
     }
     l->data[l->count++] = a;
