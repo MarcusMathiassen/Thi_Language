@@ -102,6 +102,7 @@ s64 get_integer(Parser_Context* ctx) {
 
     s64 value = 0;
     switch (ctx->curr_tok.kind) {
+    ERROR_UNHANDLED_TOKEN_KIND(ctx->curr_tok.kind);
     case TOKEN_CHAR: {
         u8 c = ctx->curr_tok.value[0];
         if (c == '\\') {
@@ -120,7 +121,6 @@ s64 get_integer(Parser_Context* ctx) {
     }
     case TOKEN_INTEGER: value = atoll(ctx->curr_tok.value); break;
     case TOKEN_HEX: value = strtoll(ctx->curr_tok.value, NULL, 0); break;
-    default: ERROR_UNHANDLED_KIND(token_kind_to_str(ctx->curr_tok.kind));
     }
     eat(ctx);
 

@@ -34,7 +34,7 @@ char* type_kind_to_str(Type_Kind kind) {
     TASSERT_KIND_IN_RANGE(TYPE, kind);
     // clang-format off
     switch (kind) {
-    default: ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
+    ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
     case TYPE_UNRESOLVED: return "TYPE_UNRESOLVED";
     case TYPE_VOID:       return "TYPE_VOID";
     case TYPE_INT:        return "TYPE_INT";
@@ -55,7 +55,7 @@ char* type_kind_to_str(Type_Kind kind) {
 List* type_get_members(Type* type) {
     assert(type);
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_ENUM: return type->Enum.members;
     case TYPE_STRUCT: return type->Struct.members;
     }
@@ -106,7 +106,7 @@ bool is_same_type(Type* a, Type* b) {
 char* get_type_name(Type* type) {
     if (!type) return "---";
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_INT:   // fallthrough
     case TYPE_FLOAT: // fallthrough
     case TYPE_POINTER:
@@ -126,7 +126,7 @@ s64 get_size_of_type(Type* type) {
     assert(type);
 
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_VAR_ARGS: return 0;
     case TYPE_UNRESOLVED: return 0;
     case TYPE_VOID: return 0;
@@ -207,7 +207,7 @@ char* type_to_str_r(String_Context* ctx, Type* type) {
     TASSERT_KIND_IN_RANGE(TYPE, kind);
 
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND(kind);
+    ERROR_UNHANDLED_TYPE_KIND(kind);
     case TYPE_VAR_ARGS: {
         string_append(s, "...");
         break;

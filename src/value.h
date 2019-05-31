@@ -24,6 +24,7 @@
 #include "list.h"   // list
 #include "string.h" // string
 #include "type.h"   // Type
+#include "typedefs.h"
 
 typedef struct Value Value;
 
@@ -38,6 +39,7 @@ typedef enum {
     VALUE_STRUCT,
     VALUE_LOAD_INST,
     VALUE_STORE_INST,
+    _VALUE_COUNT_,
 } Value_Kind;
 
 //------------------------------------------------------------------------------
@@ -92,6 +94,7 @@ struct Value {
     };
 };
 
+char* value_to_str(Value* value);
 char* value_kind_to_str(Value_Kind kind);
 
 Value*
@@ -115,6 +118,15 @@ make_value_struct(Type* type);
 
 s64 get_size_of_value(Value* value);
 s64 get_stack_pos_of_variable(Value* variable);
+
+#ifdef NDEBUG
+#define ERROR_UNHANDLED_VALUE(x) 
+#define ERROR_UNHANDLED_VALUE_KIND(x) 
+#else 
+#define ERROR_UNHANDLED_VALUE(x) ERROR_UNHANDLED_KIND(value_to_str(x))
+#define ERROR_UNHANDLED_VALUE_KIND(x) ERROR_UNHANDLED_KIND(value_kind_to_str(x))
+#endif
+
 
 //------------------------------------------------------------------------------
 //                               Scope

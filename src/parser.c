@@ -202,7 +202,7 @@ AST* parse_top_level(Parser_Context* ctx) {
     ctx->top_tok = ctx->curr_tok;
     // clang-format off
     switch (tokKind(ctx)) {
-    default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
+    ERROR_UNHANDLED_TOKEN_KIND(tokKind(ctx));
     case TOKEN_IDENTIFIER:          return parse_top_level_identifier(ctx);
     case TOKEN_EXTERN:              return parse_extern(ctx);
     case TOKEN_LOAD:                return parse_load(ctx);
@@ -217,7 +217,7 @@ AST* parse_delimited(Parser_Context* ctx, Token_Kind delimiter) {
     Token_Kind kind = tokKind(ctx);
     if (kind == delimiter) return NULL;
     switch (tokKind(ctx)) {
-    default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
+    ERROR_UNHANDLED_TOKEN_KIND(tokKind(ctx));
     }
     UNREACHABLE;
     return NULL;
@@ -287,7 +287,7 @@ AST* parse_primary(Parser_Context* ctx) {
     // start:
     // clang-format off
     switch (tokKind(ctx)) {
-    default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
+    ERROR_UNHANDLED_TOKEN_KIND(tokKind(ctx));
     case TOKEN_COMMENT:             result = make_ast_comment(loc(ctx), tokValue(ctx)); eat(ctx); break;
 
     // @Audit: Should a primary expression really eat terminal tokens? I belive only the parse_statement should handle that.
@@ -327,7 +327,7 @@ AST* parse_top_level_identifier(Parser_Context* ctx) {
 
     // clang-format off
     switch (tokKind(ctx)) {
-    default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
+    ERROR_UNHANDLED_TOKEN_KIND(tokKind(ctx));
     case TOKEN_COLON_COLON: return parse_constant_decl(ctx, lc, ident);
     case TOKEN_OPEN_PAREN:  return parse_function_decl(ctx, lc, ident);
     }
@@ -858,7 +858,7 @@ AST* parse_note(Parser_Context* ctx) {
     AST* expr = NULL;
     // clang-format off
     switch (tokKind(ctx)) {
-    default: ERROR_UNHANDLED_KIND(token_kind_to_str(tokKind(ctx)));
+    ERROR_UNHANDLED_TOKEN_KIND(tokKind(ctx));
     case TOKEN_HEX:         expr = parse_integer(ctx); break;
     case TOKEN_INTEGER:     expr = parse_integer(ctx); break;
     }

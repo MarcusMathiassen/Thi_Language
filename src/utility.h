@@ -21,6 +21,7 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 #include "typedefs.h"
+#include <stdlib.h>  // malloc, calloc, realloc
 //------------------------------------------------------------------------------
 //                               Printing Functions
 //------------------------------------------------------------------------------

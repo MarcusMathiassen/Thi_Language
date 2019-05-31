@@ -354,8 +354,7 @@ Token get_token(Lexer_Context* ctx) {
     }
 
     switch (*c) {
-    default:
-        error("[%s:%d:%d] %s", ctx->file, token.line_pos, token.col_pos, strf("unknown character '%c'", *c));
+    default: error("[%s:%d:%d] %s", ctx->file, token.line_pos, token.col_pos, strf("unknown character '%c'", *c));
         CASE_SINGLE_TOKEN('\0', TOKEN_EOF);
         break;
         CASE_SINGLE_TOKEN('(', TOKEN_OPEN_PAREN);
@@ -657,7 +656,7 @@ char* token_kind_to_str(Token_Kind kind) {
     TASSERT_KIND_IN_RANGE(TOKEN, kind);
     // clang-format off
     switch (kind) {
-    default: ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
+    ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
     case TOKEN_UNKNOWN:           return "TOKEN_UNKNOWN";
     case TOKEN_EOF:               return "TOKEN_EOF";
     case TOKEN_COMMENT:           return "TOKEN_COMMENT";

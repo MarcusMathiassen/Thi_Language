@@ -36,7 +36,9 @@
 //------------------------------------------------------------------------------
 
 char* value_kind_to_str(Value_Kind kind) {
+    TASSERT_KIND_IN_RANGE(VALUE, kind);
     switch (kind) {
+    ERROR_UNHANDLED_VALUE_KIND(kind);
     case VALUE_INT: return "VALUE_INT";
     case VALUE_FLOAT: return "VALUE_FLOAT";
     case VALUE_POINTER: return "VALUE_POINTER";
@@ -48,6 +50,13 @@ char* value_kind_to_str(Value_Kind kind) {
     case VALUE_LOAD_INST: return "VALUE_LOAD_INST";
     case VALUE_STORE_INST: return "VALUE_STORE_INST";
     }
+    UNREACHABLE;
+    return NULL;
+}
+
+char* value_to_str(Value* value) {
+    UNFINISHED;
+    return NULL;
 }
 
 s64 get_size_of_value(Value* value) {
@@ -152,8 +161,7 @@ make_value_call(char* callee, Type* type) {
     v->Call.callee = callee;
     return v;
 }
-Value*
-make_value_function(Type* type) {
+Value* make_value_function(Type* type) {
     assert(type);
     assert(type->kind == TYPE_FUNCTION);
 
@@ -163,8 +171,7 @@ make_value_function(Type* type) {
     v->Function.stack_allocated = 0;
     return v;
 }
-Value*
-make_value_struct(Type* type) {
+Value* make_value_struct(Type* type) {
     assert(type);
     assert(type->kind == TYPE_STRUCT);
     Value* v = make_value(VALUE_STRUCT);
@@ -178,7 +185,7 @@ make_value_struct(Type* type) {
 
 s64 get_stack_pos_of_variable(Value* variable) {
     switch (variable->kind) {
-    default: ERROR_UNHANDLED_KIND(value_kind_to_str(variable->kind));
+    ERROR_UNHANDLED_VALUE_KIND(variable->kind);
     case VALUE_LOAD_INST: return get_stack_pos_of_variable(variable->LoadInst.variable);
     case VALUE_VARIABLE: return variable->Variable.stack_pos;
     }
@@ -189,8 +196,7 @@ s64 get_stack_pos_of_variable(Value* variable) {
 //                               Scope
 //------------------------------------------------------------------------------
 
-Scope*
-make_scope() {
+Scope* make_scope() {
     Scope* s = xmalloc(sizeof(Scope));
     s->local_variables = make_list();
     return s;

@@ -115,8 +115,7 @@ void pass_initilize_enums(void* thi, AST* node) {
             AST* m = it->data;
             // Turn idents into constant decls
             switch (m->kind) {
-            default:
-                error("unhandled case: %s, %s, %s", ast_kind_to_str(m->kind), __func__, __LINE__);
+            ERROR_UNHANDLED_AST_KIND(m->kind);
             case AST_IDENT:
                 it->data = make_ast_constant_decl(m->loc_info, m->Ident.name, make_ast_int(m->loc_info, counter, make_type_int(DEFAULT_INT_BYTE_SIZE, 0)));
                 break;
@@ -226,7 +225,7 @@ void constant_fold_unary(AST* node) {
         s64 value = 0;
 
         switch (op) {
-        default: ERROR_UNHANDLED_TOKEN_KIND(op);
+        ERROR_UNHANDLED_TOKEN_KIND(op);
         case TOKEN_BANG: value = !oper_v; break;
         case TOKEN_PLUS: value = oper_v; break;
         case TOKEN_TILDE: value = ~oper_v; break;
@@ -261,7 +260,7 @@ void constant_fold_binary(AST* node) {
         s64 value = 0;
 
         switch (op) {
-        default: ERROR_UNHANDLED_TOKEN_KIND(op);
+        ERROR_UNHANDLED_TOKEN_KIND(op);
         case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
         case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
         case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
@@ -290,7 +289,7 @@ void constant_fold_binary(AST* node) {
         f64 value = 0.0;
 
         switch (op) {
-        default: ERROR_UNHANDLED_TOKEN_KIND(op);
+        ERROR_UNHANDLED_TOKEN_KIND(op);
         case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
         case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
         case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
@@ -336,18 +335,18 @@ List* ast_find_all_of_kind(AST_Kind kind, AST* ast) {
 }
 
 void thi_run_pass(Thi* thi, char* pass_description, ast_callback* visitor_func, void* visitor_func_arg) {
-    success("running pass: %s", pass_description);
+    info("running pass: %s", pass_description);
     push_timer(thi, pass_description);
     ast_visit(visitor_func, visitor_func_arg, thi->ast);
     pop_timer(thi);
-    success("... COMPLETED.");
+    info("... COMPLETED.");
 }
 
 int main(int argc, char** argv) {
     // @Todo(marcus) do more robust argument handling
     // Argument validation
     if (argc < 2) error("too few arguments.");
-    
+
     info("Compiler was last compiled: "__TIME__);
 
     utility_tests();
@@ -443,9 +442,9 @@ int main(int argc, char** argv) {
 
     // ast = make_ast_module(ast->loc_info, source_file, ast);
 
-    success("all loaded files");
+    info("all loaded files");
     LIST_FOREACH(pctx.loads) {
-        success("file: %s", it->data);
+        info("file: %s", it->data);
     }
 
     info("%s", ast_to_str(ast));
@@ -584,18 +583,19 @@ int main(int argc, char** argv) {
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
-    success("--- Compiler timings ---");
-    success("lines %s%s comments %s", give_unique_color(strf("%lld", pctx.lines)), RGB_GRAY, give_unique_color(strf("%lld", pctx.comments)));
+#ifndef NDEBUG
+    info("--- Compiler timings ---");
+    info("lines %s%s comments %s", give_unique_color(strf("%lld", pctx.lines)), RGB_GRAY, give_unique_color(strf("%lld", pctx.comments)));
     LIST_FOREACH(get_timers(&thi)) {
         Timer* tm = (Timer*)it->data;
         s64 len = strlen(tm->desc);
         char* ms = strf("%f seconds", tm->ms / 1e3);
         s64 ms_l = strlen(ms);
         s64 padding = w.ws_col - len - ms_l - 1; // -1 is the ':'
-        success("%s", give_unique_color(strf("%s:%*s%s", tm->desc, padding, "", ms)));
+        info("%s", give_unique_color(strf("%s:%*s%s", tm->desc, padding, "", ms)));
     }
-    success("---------------------------");
-
+    info("---------------------------");
+#endif
 
     return 0;
 }

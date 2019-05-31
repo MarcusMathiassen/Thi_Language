@@ -28,8 +28,6 @@
 //------------------------------------------------------------------------------
 
 typedef enum {
-    _TOKEN_NONE_,
-
     TOKEN_UNKNOWN,
     TOKEN_EOF,
 
@@ -178,7 +176,13 @@ void lexer_test(void);
 #define THI_SYNTAX_VARIABLE_DECL_TYPE_INF TOKEN_CLOSE_BRACE
 #define THI_SYNTAX_ASSIGNMENT TOKEN_EQ
 
-#define ERROR_UNHANDLED_TOKEN(token) ERROR_UNHANDLED_KIND(token_to_str(token))
-#define ERROR_UNHANDLED_TOKEN_KIND(kind) ERROR_UNHANDLED_KIND(token_kind_to_str(kind))
+#ifdef NDEBUG
+#define ERROR_UNHANDLED_TOKEN(x) 
+#define ERROR_UNHANDLED_TOKEN_KIND(x)
+#else 
+#define ERROR_UNHANDLED_TOKEN(x) ERROR_UNHANDLED_KIND(token_to_str(x))
+#define ERROR_UNHANDLED_TOKEN_KIND(x) ERROR_UNHANDLED_KIND(token_kind_to_str(x))
+#endif
+
 
 #endif

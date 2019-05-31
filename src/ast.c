@@ -39,7 +39,7 @@ char* ast_kind_to_str(AST_Kind kind) {
     TASSERT_KIND_IN_RANGE(AST, kind);
     // clang-format off
     switch (kind) {
-    default: ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
+    ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
     case AST_COMMENT:                         return "AST_COMMENT";
     case AST_NOP:                             return "AST_NOP";
     case AST_SPACE_SEPARATED_IDENTIFIER_LIST: return "AST_SPACE_SEPARATED_IDENTIFIER_LIST";
@@ -94,7 +94,7 @@ char* get_ast_name(AST* node) {
     if (!node) return "---";
     char* result = NULL;
     switch (node->kind) {
-    default: ERROR_UNHANDLED_AST_KIND(node->kind);
+    ERROR_UNHANDLED_AST_KIND(node->kind);
     case AST_NOP:
         result = "nop";
         break;
@@ -180,8 +180,8 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         //
     }
 
-    switch (node->kind) {
-    default: ERROR_UNHANDLED_AST_KIND(node->kind);
+    switch (kind) {
+    ERROR_UNHANDLED_AST_KIND(kind);
     case AST_COMMENT:
         string_append(s, node->Comment.text);
         break;
@@ -442,7 +442,7 @@ void ast_visit(ast_callback* func, void* ctx, AST* node) {
     assert(func);
     if (!node) return;
     switch (node->kind) {
-    default: ERROR_UNHANDLED_AST_KIND(node->kind);
+    ERROR_UNHANDLED_AST_KIND(node->kind);
 
     case AST_COMMENT: break;
     case AST_NOP: break;

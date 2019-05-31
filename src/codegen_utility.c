@@ -144,7 +144,7 @@ void emit(Codegen_Context* ctx, char* fmt, ...) {
 void push_type(Codegen_Context* ctx, Type* type) {
     assert(type);
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_ARRAY: {
         // Push each element in the array
         s64 size = type->Array.size;
@@ -172,7 +172,7 @@ void push_type(Codegen_Context* ctx, Type* type) {
 void pop_type_2(Codegen_Context* ctx, Type* type) {
     assert(type);
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_ARRAY:   // fallthrough
     case TYPE_POINTER: // fallthrough
     case TYPE_STRUCT:  // fallthrough
@@ -185,7 +185,7 @@ void pop_type(Codegen_Context* ctx, Type* type) {
     assert(ctx);
     assert(type);
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_ARRAY: {
         // Push each element in the array
         s64 size = type->Array.size;
@@ -255,7 +255,7 @@ char* get_result_reg_2(Type* type) {
     s64 size = get_size_of_type(type);
     tassert(size >= 1 && size <= 8, "size = %d", size);
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    ERROR_UNHANDLED_TYPE_KIND(type->kind);
     // case TYPE_ARRAY:   // return get_reg(RCX);
     // case TYPE_STRUCT:  // fallthrough
     // case TYPE_ENUM:    // fallthrough
@@ -272,7 +272,7 @@ char* get_result_reg_of_size(Type* type, s8 size) {
     assert(type);
     tassert(size >= 1 && size <= 8, "size = %d", size);
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    ERROR_UNHANDLED_TYPE_KIND(type->kind);
     // case TYPE_ARRAY:   // return get_reg(RCX);
     // case TYPE_STRUCT:  // fallthrough
     // case TYPE_ENUM:    // fallthrough
@@ -290,7 +290,7 @@ char* get_result_reg(Type* type) {
     s64 size = get_size_of_type(type);
     tassert(size >= 1 && size <= 8, "size = %d", size);
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    ERROR_UNHANDLED_TYPE_KIND(type->kind);
     // case TYPE_ARRAY:   // return get_reg(RCX);
     // case TYPE_STRUCT:  // fallthrough
     // case TYPE_ENUM:    // fallthrough
@@ -322,7 +322,7 @@ char* get_move_op(Type* type) {
     s64 size = get_size_of_type(type);
     tassert(size >= 1 && size <= 8, "size = %d", size);
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    ERROR_UNHANDLED_TYPE_KIND(type->kind);
     // case TYPE_ARRAY:   // return "lea";
     // case TYPE_STRUCT:  // fallthrough
     // case TYPE_ENUM:    // fallthrough
@@ -454,7 +454,7 @@ void emit_cast(Codegen_Context* ctx, Value* variable, Type* desired_type) {
     Type* type = variable->type;
     char* reg = get_result_reg(type);
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_INT: {
         if (desired_type->kind == TYPE_INT) {
             emit_cast_int_to_int(ctx, reg, desired_type);
@@ -596,11 +596,11 @@ char* get_instr(Token_Kind op, Type* type) {
     assert(type);
     char* inst = NULL;
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_INT: {
         bool usig = type->Int.is_unsigned;
         switch (op) {
-        default: ERROR_UNHANDLED_TOKEN_KIND(op);
+        ERROR_UNHANDLED_TOKEN_KIND(op);
         case TOKEN_PLUS: inst = "add"; break;
         case TOKEN_MINUS: inst = "sub"; break;
         case TOKEN_ASTERISK: inst = "imul"; break;
@@ -611,7 +611,7 @@ char* get_instr(Token_Kind op, Type* type) {
         s64 size = get_size_of_type(type);
         tassert(size == 4 || size == 8, "size = %d", size);
         switch (op) {
-        default: ERROR_UNHANDLED_TOKEN_KIND(op);
+        ERROR_UNHANDLED_TOKEN_KIND(op);
         case TOKEN_PLUS: inst = (size == 8 ? "addsd" : "addss"); break;
         case TOKEN_MINUS: inst = (size == 8 ? "subsd" : "subss"); break;
         case TOKEN_ASTERISK: inst = (size == 8 ? "mulsd" : "mulss"); break;
@@ -626,11 +626,11 @@ char* get_next_available_reg_fitting(Codegen_Context* ctx, Type* type) {
     s64 size = get_size_of_type(type);
     s8 r = -1;
     switch (type->kind) {
+    ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_ARRAY:   // fallthrough
     case TYPE_POINTER: // fallthrough
     case TYPE_INT: r = get_next_available_rax_reg_fitting(ctx, size); break;
     case TYPE_FLOAT: r = get_next_available_xmm_reg_fitting(ctx); break;
-    default: error("Unhandled get_next_available_reg_fitting");
     }
     return get_reg(r);
 }
@@ -810,7 +810,7 @@ char* class_kind_to_str(Class_Kind kind) {
     TASSERT_KIND_IN_RANGE(CLASS, kind);
     // clang-format off
     switch (kind) {
-    default: ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
+    ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
     case CLASS_INTEGER:     return "CLASS_INTEGER";
     case CLASS_SSE:         return "CLASS_SSE";
     case CLASS_SSEUP:       return "CLASS_SSEUP";
@@ -866,7 +866,7 @@ char* class_kind_to_str(Class_Kind kind) {
 Class_Kind classify(Type* type) {
     assert(type);
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_INT: // fallthrough
     case TYPE_POINTER: return CLASS_INTEGER;
     case TYPE_FLOAT: return CLASS_SSE;

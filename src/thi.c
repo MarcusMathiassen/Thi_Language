@@ -58,99 +58,25 @@ Thi make_thi() {
     thi.enums = make_ast_ref_list();
     thi.field_access = make_ast_ref_list();
 
-    // AST_Kind
-    map_set(thi.all_passes_for_all_kinds, "AST_COMMENT", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_NOP", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_SPACE_SEPARATED_IDENTIFIER_LIST", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_COMMA_SEPARATED_LIST", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_MODULE", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_IS", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_FALLTHROUGH", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_VAR_ARGS", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_EXTERN", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_LOAD", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_LINK", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_NOTE", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_INT", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_FLOAT", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_STRING", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_CHAR", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_IDENT", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_CALL", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_UNARY", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_BINARY", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_GROUPING", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_SUBSCRIPT", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_FIELD_ACCESS", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_AS", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_BLOCK", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_STRUCT", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_ENUM", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_FUNCTION", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_VARIABLE_DECL", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_CONSTANT_DECL", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_IF", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_FOR", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_WHILE", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_RETURN", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_DEFER", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_BREAK", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_CONTINUE", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_TYPEOF", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_SIZEOF", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_SWITCH", make_list());
+    for (s32 kind = 0; kind < _AST_COUNT_; ++kind) {
+        map_set(thi.all_passes_for_all_kinds, ast_kind_to_str(kind), make_list());
+    }
+
+    tassert(thi.all_passes_for_all_kinds->size == _AST_COUNT_,  "Missing some AST decl in our map.");
 
     return thi;
 }
 
 List* thi_get_visitors_for_kind(Thi* thi, AST_Kind kind) {
     List* res = map_get(thi->all_passes_for_all_kinds, ast_kind_to_str(kind));
-    if (!res) ERROR_UNHANDLED_KIND(ast_kind_to_str(kind));
+    if (!res) error("no visitor map for %s", ast_kind_to_str(kind));
     return res;
 }
 
 void thi_remove_all_passes(Thi* thi) {
-    // AST_Kind
-    map_set(thi->all_passes_for_all_kinds, "AST_COMMENT", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_NOP", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_SPACE_SEPARATED_IDENTIFIER_LIST", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_COMMA_SEPARATED_LIST", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_MODULE", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_IS", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_FALLTHROUGH", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_VAR_ARGS", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_EXTERN", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_LOAD", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_LINK", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_NOTE", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_INT", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_FLOAT", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_STRING", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_CHAR", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_IDENT", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_CALL", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_UNARY", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_BINARY", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_GROUPING", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_SUBSCRIPT", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_FIELD_ACCESS", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_AS", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_BLOCK", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_STRUCT", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_ENUM", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_FUNCTION", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_VARIABLE_DECL", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_CONSTANT_DECL", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_IF", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_FOR", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_WHILE", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_RETURN", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_DEFER", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_BREAK", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_CONTINUE", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_TYPEOF", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_SIZEOF", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_SWITCH", make_list());
+    for (s32 kind = 0; kind < _AST_COUNT_; ++kind) {
+        map_set(thi->all_passes_for_all_kinds, ast_kind_to_str(kind), make_list());
+    }
 }
 
 void thi_install_pass(Thi* thi, PassDescriptor passDesc) {

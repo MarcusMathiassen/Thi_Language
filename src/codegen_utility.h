@@ -30,7 +30,6 @@
 #include "value.h"  // Value
 
 typedef enum {
-    _CLASS_NONE_,
     CLASS_INTEGER, // This class consists of integral types that fit into one of the general purpose registers.
     CLASS_SSE,     // The class consists of types that fit into a vector register.
     CLASS_SSEUP,   // The class consists of types that fit into a vector register and can be passed and returned in the upper bytes of it.
@@ -47,7 +46,11 @@ typedef struct {
     AST* argument;
 } ClassifiedArgument;
 
+#ifdef NDEBUG
+#define ERROR_UNHANDLED_CLASS_KIND(x)
+#else 
 #define ERROR_UNHANDLED_CLASS_KIND(x) ERROR_UNHANDLED_KIND(class_kind_to_str(x))
+#endif
 
 typedef struct
 {
