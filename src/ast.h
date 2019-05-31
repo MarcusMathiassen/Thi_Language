@@ -81,7 +81,7 @@ typedef enum {
     AST_TYPEOF,
     AST_SIZEOF,
     AST_SWITCH,
-    AST_POST_INC,
+    AST_POST_INC_OR_DEC,
     _AST_COUNT_
 } AST_Kind;
 
@@ -280,8 +280,9 @@ struct AST {
         } Typeof;
         struct
         {
+            Token_Kind op;
             AST* node;
-        } Post_Inc;
+        } Post_Inc_or_Dec;
     };
 };
 
@@ -325,7 +326,7 @@ AST* make_ast_break(Loc_Info loc_info);
 AST* make_ast_continue(Loc_Info loc_info);
 AST* make_ast_space_separated_identifier_list(Loc_Info loc_info, List* identifiers);
 AST* make_ast_comma_separated_list(Loc_Info loc_info, List* nodes);
-AST* make_ast_post_inc(Loc_Info loc_info, AST* node);
+AST* make_ast_post_inc_or_dec(Loc_Info loc_info, Token_Kind op, AST* node);
 
 AST* get_arg_from_func(Type* func_t, s64 arg_index);
 void ast_tests(void);

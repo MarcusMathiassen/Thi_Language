@@ -84,7 +84,7 @@ Type* type_check_node(Typer_Context* ctx, AST* node) {
 
     switch (node->kind) {
         ERROR_UNHANDLED_AST_KIND(node->kind);
-    case AST_POST_INC:  result = type_check_node(ctx, node->Post_Inc.node); break;
+    case AST_POST_INC_OR_DEC:  result = type_check_node(ctx, node->Post_Inc_or_Dec.node); break;
     case AST_COMMENT: result = NULL; break;
     case AST_NOP: result = NULL; break;
     case AST_FALLTHROUGH: result = NULL; break;

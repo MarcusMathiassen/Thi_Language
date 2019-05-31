@@ -154,9 +154,9 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
 
     case AST_COMMENT: break;
     case AST_NOP: break;
-    case AST_POST_INC: 
-        sema_check_node(ctx, node->Post_Inc.node);
-        node_t = node->Post_Inc.node->type;
+    case AST_POST_INC_OR_DEC: 
+        sema_check_node(ctx, node->Post_Inc_or_Dec.node);
+        node_t = node->Post_Inc_or_Dec.node->type;
         break;
     case AST_FALLTHROUGH: break;
     case AST_LOAD:

@@ -66,7 +66,7 @@ Value* codegen_enum(Codegen_Context* ctx, AST* node);
 Value* codegen_function(Codegen_Context* ctx, AST* node);
 Value* codegen_as(Codegen_Context* ctx, AST* node);
 Value* codegen_switch(Codegen_Context* ctx, AST* node);
-Value* codegen_post_inc(Codegen_Context* ctx, AST* node);
+Value* codegen_post_inc_or_dec(Codegen_Context* ctx, AST* node);
 Value* codegen_node(Codegen_Context* ctx, AST* node);
 
 // @Hotpath @Recursive
@@ -80,7 +80,7 @@ Value* codegen_node(Codegen_Context* ctx, AST* node) {
             codegen_node(ctx, it->data);
         }
         return NULL;
-    case AST_POST_INC: return codegen_post_inc(ctx, node);
+    case AST_POST_INC_OR_DEC: return codegen_post_inc_or_dec(ctx, node);
     case AST_COMMENT: return NULL;
     case AST_NOP: return NULL;
     case AST_FALLTHROUGH: return NULL;
@@ -149,6 +149,12 @@ Value* codegen_unary(Codegen_Context* ctx, AST* node) {
 
     switch (op) {
         ERROR_UNHANDLED_TOKEN_KIND(op);
+    case TOKEN_MINUS_MINUS: {
+        s64 size = 1;
+        if (operand->type->kind == TYPE_POINTER)
+            size = get_size_of_underlying_type_if_any(operand->type);
+        result = codegen_node(ctx, make_ast_binary(node->loc_info, TOKEN_MINUS_EQ, operand, make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, 0))));
+    } break;
     case TOKEN_PLUS_PLUS: {
         s64 size = 1;
         if (operand->type->kind == TYPE_POINTER)
@@ -746,12 +752,12 @@ Value* codegen_break(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
-Value* codegen_post_inc(Codegen_Context* ctx, AST* node) {
+Value* codegen_post_inc_or_dec(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->kind == AST_POST_INC);
-    Value* v = codegen_node(ctx, node->Post_Inc.node);
+    assert(node->kind == AST_POST_INC_OR_DEC);
+    Value* v = codegen_node(ctx, node->Post_Inc_or_Dec.node);
     push_type(ctx, v->type);
-    v = codegen_node(ctx, make_ast_unary(node->loc_info, TOKEN_PLUS_PLUS, node->Post_Inc.node));
+    v = codegen_node(ctx, make_ast_unary(node->loc_info, node->Post_Inc_or_Dec.op, node->Post_Inc_or_Dec.node));
     pop_type(ctx, v->type);
     return v;
 }

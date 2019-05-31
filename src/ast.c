@@ -80,7 +80,7 @@ char* ast_kind_to_str(AST_Kind kind) {
     case AST_TYPEOF:                          return "AST_TYPEOF";
     case AST_SIZEOF:                          return "AST_SIZEOF";
     case AST_SWITCH:                          return "AST_SWITCH";
-    case AST_POST_INC:                        return "AST_POST_INC";
+    case AST_POST_INC_OR_DEC:                 return "AST_POST_INC_OR_DEC";
     }
     // clang-format on
     UNREACHABLE;
@@ -189,9 +189,9 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
     case AST_NOP:
         string_append(s, "nop");
         break;
-    case AST_POST_INC:
-        ast_to_str_r(ctx, node->Post_Inc.node);
-        string_append(s, "++");
+    case AST_POST_INC_OR_DEC:
+        ast_to_str_r(ctx, node->Post_Inc_or_Dec.node);
+        string_append(s, token_kind_to_str(node->Post_Inc_or_Dec.op));
         break;
     case AST_SPACE_SEPARATED_IDENTIFIER_LIST: {
         LIST_FOREACH(node->Space_Separated_Identifier_List.identifiers) {
@@ -482,8 +482,8 @@ void ast_visit(ast_callback* func, void* ctx, AST* node) {
     case AST_CHAR: break;
     case AST_IDENT: break;
     case AST_STRUCT: break;
-    case AST_POST_INC: 
-        ast_visit(func, ctx, node->Post_Inc.node);
+    case AST_POST_INC_OR_DEC: 
+        ast_visit(func, ctx, node->Post_Inc_or_Dec.node);
         break;
 
     case AST_UNARY:
@@ -967,9 +967,10 @@ AST* make_ast_comma_separated_list(Loc_Info loc_info, List* nodes) {
     return e;
 }
 
-AST* make_ast_post_inc(Loc_Info loc_info, AST* node) {
+AST* make_ast_post_inc_or_dec(Loc_Info loc_info, Token_Kind op, AST* node) {
     assert(node);
-    AST* e = make_ast(AST_POST_INC, loc_info);
-    e->Post_Inc.node = node;
+    AST* e = make_ast(AST_POST_INC_OR_DEC, loc_info);
+    e->Post_Inc_or_Dec.op = op;
+    e->Post_Inc_or_Dec.node = node;
     return e;   
 }
