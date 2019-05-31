@@ -9,6 +9,9 @@ load "includes/cstdlib"
 
 # This is a comment
 
+def getFloat() f64
+    return 13333.333
+
 def main(argc s32, argv u8**) s32
     #j = 1 k = &j; *k = 42 
     #You see the semicolon up there? If removed, the deref would be turned into a
@@ -50,6 +53,8 @@ def main(argc s32, argv u8**) s32
     #j = 5
     #f = 53.1
     #change(&k, &j, f);
+
+    printf("getFloat() = %f\n", getFloat());
 
     #printf("k = %d\n", k)
     #printf("j = %d\n", j)
