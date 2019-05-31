@@ -1,5 +1,6 @@
 # Specify filepatterns you want git to ignore.
 thi
+ast.json
 .vscode
 output
 thi.dSYM
