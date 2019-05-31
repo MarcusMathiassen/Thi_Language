@@ -18,7 +18,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-
 // [1] System V Application Binary Interface AMD64 Architecture Processor Supplement (With LP64 and ILP32 Programming Models) Version 1.0
 
 #include "codegen.h"
@@ -154,12 +153,12 @@ Value* codegen_unary(Codegen_Context* ctx, AST* node) {
     } break;
     case THI_SYNTAX_ADDRESS: {
         s64 stack_pos = get_stack_pos_of_variable(operand_val);
-        emit(ctx, "lea rax, [rbp-%lld]; addrsof '%s'", stack_pos, operand_val->Variable.name);
+        emit(ctx, "lea rax, [rbp-%lld]; addrsof", stack_pos);
     } break;
     case THI_SYNTAX_POINTER: {
-        Type* t = operand_val->type;
+        Type* t = operand->type;
         char* reg = get_result_reg(t);
-        emit(ctx, "mov %s, [rax]; deref '%s'", reg, operand_val->Variable.name);
+        emit(ctx, "mov %s, [rax]; deref ", reg);
         // A deref expects an lvalue and returns an lvalue
     } break;
     case TOKEN_BANG: {
@@ -174,7 +173,7 @@ Value* codegen_unary(Codegen_Context* ctx, AST* node) {
     case TOKEN_DOT: {
     } break;
     case TOKEN_MINUS: {
-        Type_Kind tk = operand_val->type->kind;
+        Type_Kind tk = operand->type->kind;
         switch (tk) {
         default: ERROR_UNHANDLED_KIND(type_kind_to_str(tk));
         case TYPE_INT:
@@ -213,6 +212,7 @@ Value* codegen_binary(Codegen_Context* ctx, AST* node) {
             lhs = lhs->Unary.operand;
             is_deref = true;
         }
+
         Value* rhs_v = codegen_node(ctx, rhs);
         push_type(ctx, rhs_v->type);
         Value* lhs_v = codegen_node(ctx, lhs);
@@ -500,7 +500,7 @@ Value* codegen_variable_decl(Codegen_Context* ctx, AST* node) {
     s64 type_size = get_size_of_type(type);
     s64 stack_pos = type_size + ctx->stack_index;
 
-    warning("name: %s stack_pos: %d type_size: %d", name, stack_pos, type_size);
+    info("name: %s stack_pos: %d type_size: %d", name, stack_pos, type_size);
 
     Value* variable = make_value_variable(name, type, stack_pos);
     add_variable(ctx, variable);
@@ -510,77 +510,6 @@ Value* codegen_variable_decl(Codegen_Context* ctx, AST* node) {
     }
 
     return variable;
-}
-
-Value* codegen_call(Codegen_Context* ctx, AST* node) {
-    DEBUG_START;
-    char* callee = node->Call.callee;
-    List* args = node->Call.args;
-    Type* ret_type = node->type;
-
-    List* values = make_list();
-    // List* ints   = make_list();
-    // List* floats  = make_list();
-    // List* structs = make_list();
-
-    s8 total = 0;
-    s8 int_arg_counter = 0;
-    s8 float_arg_counter = 0;
-    // s8 other_counter     = 0;
-
-    LIST_FOREACH_REVERSE(args) {
-        AST* arg = it->data;
-        Value* v = codegen_node(ctx, arg);
-        push_type(ctx, v->type);
-        list_append(values, v);
-        total += 1;
-    }
-
-    LIST_FOREACH_REVERSE(values) {
-        Value* v = it->data;
-        switch (v->type->kind) {
-        default: ERROR_UNHANDLED_KIND(type_kind_to_str(v->type->kind));
-        case TYPE_POINTER:
-        case TYPE_ARRAY:
-        case TYPE_ENUM:
-        case TYPE_STRUCT:
-        case TYPE_INT: {
-            switch (int_arg_counter) {
-            default: ERROR_UNHANDLED_KIND(type_kind_to_str(v->type->kind));
-            case 0: pop(ctx, RDI); break;
-            case 1: pop(ctx, RSI); break;
-            case 2: pop(ctx, RDX); break;
-            case 3: pop(ctx, RCX); break;
-            case 4: pop(ctx, R8); break;
-            case 5: pop(ctx, R9); break;
-            }
-            int_arg_counter += 1;
-        } break;
-        case TYPE_FLOAT: {
-            switch (float_arg_counter) {
-            default: ERROR_UNHANDLED_KIND(type_kind_to_str(v->type->kind));
-            case 0: pop(ctx, XMM0); break;
-            case 1: pop(ctx, XMM1); break;
-            case 2: pop(ctx, XMM2); break;
-            case 3: pop(ctx, XMM3); break;
-            case 4: pop(ctx, XMM4); break;
-            case 5: pop(ctx, XMM5); break;
-            case 6: pop(ctx, XMM6); break;
-            case 7: pop(ctx, XMM7); break;
-            }
-            float_arg_counter += 1;
-        } break;
-        }
-    }
-
-    // error(type_to_str( node->type));
-    if (node->type->flags & TYPE_FLAG_HAS_VAR_ARG) {
-        emit(ctx, "mov al, %lld; var_arg_count", total);
-    }
-
-    emit(ctx, "call _%s", callee);
-
-    return make_value_call(callee, ret_type);
 }
 
 Value* codegen_float(Codegen_Context* ctx, AST* node) {
@@ -754,6 +683,15 @@ Value* codegen_defer(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
+// -- Returning of Values
+//  The returning of values is done according to the following algorithm:
+//      1. Classify the return type with the classification algorithm.
+//      2. If the type has class MEMORY, then the caller provides space for the return value and passes the address of this storage in %rdi as if it were the first argument to the function.
+//         In effect, this address becomes a “hidden” first ar- gument. This storage must not overlap any data visible to the callee through other names than this argument.
+//         On return %rax will contain the address that has been passed in by the caller in %rdi.
+//      3. If the class is INTEGER, the next available register of the sequence %rax, %rdx is used.
+//      4. If the class is SSE, the next available vector register of the sequence %xmm0, %xmm1 is used.
+//      5. If the class is SSEUP, the eightbyte is returned in the next available eightbyte chunk of the last used vector register.
 Value* codegen_return(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_RETURN);
@@ -880,88 +818,81 @@ Value* codegen_struct(Codegen_Context* ctx, AST* node) {
     warning("struct incomplete?");
     return make_value_struct(node->type);
 }
-//
-// -- Classification
-//  The size of each argument gets rounded up to eightbytes.
-//  The basic types are assigned their natural classes:
-//
-//      - Arguments of types (signed and unsigned) _Bool, char, short, int, long,long long,andpointersareintheINTEGERclass.     
-//      - Arguments of types float, double, _Decimal32, _Decimal64 and __m64 are in class SSE.
-//      - Arguments of types __float128, _Decimal128 and __m128 are split into two halves. The least significant ones belong to class SSE, the most significant one to class SSEUP.
-//      - Arguments of type __m256 are split into four eightbyte chunks. The least significant one belongs to class SSE and all the others to class SSEUP.
-//      - Arguments of type __m512 are split into eight eightbyte chunks. The least significant one belongs to class SSE and all the others to class SSEUP.
-//      - The 64-bit mantissa of arguments of type long double
-//      - The 64-bit mantissa of arguments of type long double belongs to class X87, the 16-bit exponent plus 6 bytes of padding belongs to class X87UP.
-//      - Arguments of type __int128 offer the same operations as INTEGERs, yet they do not fit into one general purpose register but require two registers.
-//              For classification purposes __int128 is treated as if it were implemented as:  typedef struct { long low, high; } __int128;
-//              with the exception that arguments of type __int128 that are stored in memory must be aligned on a 16-byte boundary.
-//      - Arguments of complex T where T is one of the types float or double are treated as if they are implemented as:    struct complexT { T real; T imag; };
-//      - A variable of type complex long double is classified as type COM- PLEX_X87.
-//
-//  The classification of aggregate (structures and arrays) and union types works as follows:
-// 
-//      1. If the size of an object is larger than eight eightbytes, or it contains un- aligned fields, it has class MEMORY 12.
-//      2. If a C++ object is non-trivial for the purpose of calls, as specified in the C++ ABI 13, it is passed by invisible reference (the object is replaced in the parameter list by a pointer that has class INTEGER) 14.
-//      3. If the size of the aggregate exceeds a single eightbyte, each is classified separately. Each eightbyte gets initialized to class NO_CLASS.
-//      4. Each field of an object is classified recursively so that always two fields are considered. The resulting class is calculated according to the classes of the fields in the eightbyte:
-//
-//              (a) If both classes are equal, this is the resulting class.
-//              (b) If one of the classes is NO_CLASS, the resulting class is the other class.
-//              (c) If one of the classes is MEMORY, the result is the MEMORY class.
-//              (d) If one of the classes is INTEGER, the result is the INTEGER.
-//              (e) If one of the classes is X87, X87UP, COMPLEX_X87 class, MEM- ORY is used as class.
-//              (f) Otherwise class SSE is used.
-//
-//      5. Then a post merger cleanup is done:
-//
-//              (a) If one of the classes is MEMORY, the whole argument is passed in memory.
-//              (b) If X87UP is not preceded by X87, the whole argument is passed in memory.
-//              (c) If the size of the aggregate exceeds two eightbytes and the first eight- byte isn’t SSE or any other eightbyte isn’t SSEUP, the whole argument is passed in memory.
-//              (d) If SSEUP is not preceded by SSE or SSEUP, it is converted to SSE.
-//
-// -- Passing
-//  Once arguments are classified, the registers get assigned(in left-to-right order) for passing as follows:
-// 
-//      1. If the class is MEMORY, pass the argument on the stack.
-//      2. If the class is INTEGER, the next available register of the sequence %rdi, %rsi, %rdx, %rcx, %r8 and %r9 is used15.
-//      3. If the class is SSE, the next available vector register is used, the registers are taken in the order from %xmm0 to %xmm7.
-//      4. If the class is SSEUP, the eightbyte is passed in the next available eightbyte chunk of the last used vector register.
-//      5. If the class is X87, X87UP or COMPLEX_X87, it is passed in memory.
-//
-//      When a value of type _Bool is returned or passed in a register or on the stack, bit 0 contains the truth value and bits 1 to 7 shall be zero16.
-// 
-//  If there are no registers available for any eightbyte of an argument, the whole argument is passed on the stack. If registers have already been assigned for
-//  some eightbyte of such argument, the assignments get reverted.
-//
-//  Once registers are assigned, the arguments passed in memory are pushed on the stack in reversed (right-to-left) order.
-//  For calls that may call functions that use varargs or stdargs (prototype-less calls or calls to functions containing ellipsis (...) in the declaration) %al is used 
-//  as hidden argument to specify the number of vector registers used. The contents of %al do not need to match exactly the number of registers, but must be an upper bound
-//  on the number of vector registers used and is in the range 0-8 inclusive. When passing __m256 or __m512 arguments to functions that use varargs or stdargs, function
-//  prototypes must be provided. Otherwise, the run-time behavior is undefined.
-//
-// -- Returning of Values
-//  The returning of values is done according to the following algorithm:
-//      1. Classify the return type with the classification algorithm.
-//      2. If the type has class MEMORY, then the caller provides space for the return value and passes the address of this storage in %rdi as if it were the first argument to the function.
-//         In effect, this address becomes a “hidden” first ar- gument. This storage must not overlap any data visible to the callee through other names than this argument.
-//         On return %rax will contain the address that has been passed in by the caller in %rdi.
-//      3. If the class is INTEGER, the next available register of the sequence %rax, %rdx is used.
-//      4. If the class is SSE, the next available vector register of the sequence %xmm0, %xmm1 is used.
-//      5. If the class is SSEUP, the eightbyte is returned in the next available eightbyte chunk of the last used vector register.
 
-typedef enum {
-    CLASS_INTEGER,          // This class consists of integral types that fit into one of the general purpose registers.
-    CLASS_SSE,              // The class consists of types that fit into a vector register.
-    CLASS_SSEUP,            // The class consists of types that fit into a vector register and can be passed and returned in the upper bytes of it.
-    CLASS_X87, CLASS_X87UP, // These classes consists of types that will be returned via the x87 FPU.
-    CLASS_COMPLEX_X87,      // This class consists of types that will be returned via the x87 FPU.
-    CLASS_NO_CLASS,         // This class is used as initializer in the algorithms. It will be used for padding and empty structures and unions.
-    CLASS_MEMORY,           // This class consists of types that will be passed and returned in mem- ory via the stack.
-} Class_Kind;
-
-Value* codegen_function(Codegen_Context* ctx, AST* node) {
+Value* codegen_call(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->kind == AST_FUNCTION);
+    // -- Passing
+    //  Once arguments are classified, the registers get assigned(in left-to-right order) for passing as follows:
+    //      1. If the class is MEMORY, pass the argument on the stack.
+    //      2. If the class is INTEGER, the next available register of the sequence %rdi, %rsi, %rdx, %rcx, %r8 and %r9 is used15.
+    //      3. If the class is SSE, the next available vector register is used, the registers are taken in the order from %xmm0 to %xmm7.
+    //      4. If the class is SSEUP, the eightbyte is passed in the next available eightbyte chunk of the last used vector register.
+    //      5. If the class is X87, X87UP or COMPLEX_X87, it is passed in memory.
+    //
+    //  When a value of type _Bool is returned or passed in a register or on the stack, bit 0 contains the truth value and bits 1 to 7 shall be zero.
+    //
+    //  If there are no registers available for any eightbyte of an argument, the whole argument is passed on the stack. If registers have already been assigned for
+    //  some eightbyte of such argument, the assignments get reverted.
+    //
+    //  Once registers are assigned, the arguments passed in memory are pushed on the stack in reversed (right-to-left) order.
+    //  For calls that may call functions that use varargs or stdargs (prototype-less calls or calls to functions containing ellipsis (...) in the declaration) %al is used
+    //  as hidden argument to specify the number of vector registers used. The contents of %al do not need to match exactly the number of registers, but must be an upper bound
+    //  on the number of vector registers used and is in the range 0-8 inclusive. When passing __m256 or __m512 arguments to functions that use varargs or stdargs, function
+    //  prototypes must be provided. Otherwise, the run-time behavior is undefined.
+    //
+    List* args = node->Call.args;
+
+    s8 class_integer_counter = 0; // used for getting the next available register
+    s8 class_sse_counter = 0;     // used for getting the next available register
+
+    List* classified_arguments = classify_arguments(args);
+    LIST_FOREACH(classified_arguments) {
+
+        ClassifiedArgument* ca = it->data;
+        AST* arg = ca->argument;
+        Class_Kind class = ca->class;
+
+        Value* arg_v = codegen_node(ctx, arg);
+        s8 param_reg = -1;
+
+        // clang-format off
+        switch (class) {
+        default: ERROR_UNHANDLED_KIND(class_kind_to_str(class));
+        // case CLASS_MEMORY:          break;
+        case CLASS_INTEGER:         param_reg = get_parameter_reg_int(class_integer_counter++, 8);  break;
+        case CLASS_SSE:             param_reg = get_parameter_reg_float(class_sse_counter++);       break;
+        // case CLASS_SSEUP:           break;
+        // case CLASS_X87:             // fallthrough
+        // case CLASS_X87UP:           // fallthrough
+        // case CLASS_COMPLEX_X87:     break;
+        }
+        // clang-format on
+
+        char* mov_op = get_move_op(arg_v->type);
+        char* result_reg = get_result_reg_of_size(arg_v->type, 8);
+        emit(ctx, "%s %s, %s", mov_op, get_reg(param_reg), result_reg);
+
+        //  When a value of type _Bool is returned or passed in a register or on the stack,
+        //  bit 0 contains the truth value and bits 1 to 7 shall be zero.
+        // if (arg_v->type->kind == TYPE_INT && arg_v->type->Int.bytes == 1) {
+        //     emit(ctx, "and %s, 00000001b", get_reg(param_reg));
+        // }
+    }
+
+    if (node->type->flags & TYPE_FLAG_HAS_VAR_ARG) {
+        emit(ctx, "mov al, %lld; var_arg_count", args->count);
+    }
+
+    char* callee = node->Call.callee;
+    emit(ctx, "call _%s", callee);
+
+    Type* return_type = node->type;
+    return make_value_call(callee, return_type);
+}
+
+Value*
+codegen_function(Codegen_Context* ctx, AST* node) {
+    DEBUG_START;
 
     set_current_function_expr(ctx, node);
 
@@ -979,8 +910,6 @@ Value* codegen_function(Codegen_Context* ctx, AST* node) {
 
     sum += get_all_alloca_in_block(func_body);
 
-    warning("%d", sum);
-
     s64 stack_allocated = sum;
     s32 padding = X64_ASM_MACOS_STACK_PADDING - (stack_allocated % X64_ASM_MACOS_STACK_PADDING);
     if (stack_allocated + padding)
@@ -991,48 +920,40 @@ Value* codegen_function(Codegen_Context* ctx, AST* node) {
     reset_stack(ctx);
 
     List* args = node->Function.parameters;
-    s8 int_arg_counter = 0;
-    s8 float_arg_counter = 0;
-    s8 rest = 0;
 
-    LIST_FOREACH(args) {
-        AST* arg = it->data;
-        Value* v = codegen_node(ctx, arg);
-        s64 size = get_size_of_value(v);
+    s8 class_integer_counter = 0; // used for getting the next available register
+    s8 class_sse_counter = 0;     // used for getting the next available register
 
+    List* classified_arguments = classify_arguments(args);
+    LIST_FOREACH(classified_arguments) {
+
+        ClassifiedArgument* ca = it->data;
+        AST* arg = ca->argument;
+        Class_Kind class = ca->class;
+
+        Value* arg_v = codegen_node(ctx, arg);
+        s64 size = get_size_of_value(arg_v);
         s8 param_reg = -1;
 
-        switch (v->type->kind) {
-        default: ERROR_UNHANDLED_KIND(ast_kind_to_str(arg->kind));
-        case TYPE_ARRAY:   // fallthrough
-        case TYPE_POINTER: // fallthrough
-        case TYPE_INT: {
-            param_reg = get_parameter_reg(int_arg_counter, size);
-            int_arg_counter += 1;
-        } break;
-        case TYPE_FLOAT: {
-            switch (float_arg_counter) {
-            case 0: param_reg = XMM0; break;
-            case 1: param_reg = XMM1; break;
-            case 2: param_reg = XMM2; break;
-            case 3: param_reg = XMM3; break;
-            case 4: param_reg = XMM4; break;
-            case 5: param_reg = XMM5; break;
-            case 6: param_reg = XMM6; break;
-            case 7: param_reg = XMM7; break;
-            }
-            float_arg_counter += 1;
-        } break;
-        case TYPE_STRUCT: {
-            rest += 8;
+        // clang-format off
+        switch (class) {
+        default: ERROR_UNHANDLED_KIND(strf("%d", class));
+        case CLASS_MEMORY:
+            pop_type(ctx, arg_v->type);
+            emit_store_r(ctx, arg_v, RAX);
             continue;
-        } break;
+
+        case CLASS_INTEGER:     param_reg = get_parameter_reg_int(class_integer_counter++, size);    break;
+        case CLASS_SSE:         param_reg = get_parameter_reg_float(class_sse_counter++);            break;
+        case CLASS_SSEUP:       break;
+        case CLASS_X87:         // fallthrough
+        case CLASS_X87UP:       // fallthrough
+        case CLASS_COMPLEX_X87: break;
         }
+        // clang-format on
 
-        emit_store_r(ctx, v, param_reg);
+        emit_store_r(ctx, arg_v, param_reg);
     }
-
-    // emit(ctx, "add rsp, %lld; rest", rest);
 
     push_scope(ctx);
     List* stmts = func_body->Block.stmts;

@@ -246,7 +246,7 @@ Type* type_check_binary(Typer_Context* ctx, AST* node) {
     type_check_node(ctx, rhs);
 
     // if (!is_same_type(a, b)) {
-        // error("[type_missmatch] %s -> %s != %s ", ast_to_str(node), type_to_str( a), type_to_str( b));
+    // error("[type_missmatch] %s -> %s != %s ", ast_to_str(node), type_to_str( a), type_to_str( b));
     // }
 
     // 'a' and 'b' are the same so just return any one of them
@@ -259,13 +259,13 @@ Type* type_check_variable_decl(Typer_Context* ctx, AST* node) {
 
     ctx->expected_type = variable_type ? variable_type : NULL;
 
-    Type* assigned_type = type_check_node(ctx, assignment_expr);
+    type_check_node(ctx, assignment_expr);
 
     // Make sure the set type and assigned type is the same
     // if (variable_type && assigned_type && !is_same_type(variable_type, assigned_type)) {
     //     error("[type_missmatch] %s -> %s != %s ", ast_to_str(node), type_to_str(variable_type), type_to_str(assigned_type));
     // }
-    variable_type = assigned_type ? assigned_type : variable_type;
+    // variable_type = assigned_type ? assigned_type : variable_type;
     ctx->expected_type = variable_type;
     map_set_overwrite(ctx->symbol_table, variable_name, variable_type);
     return variable_type;

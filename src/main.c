@@ -76,13 +76,13 @@ void resolve_subscript(void* dont_care, AST* node) {
 
     s64 size = get_size_of_underlying_type_if_any(load->type);
 
-    sub = make_ast_binary(node->loc_info, TOKEN_ASTERISK, make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, 0)), sub);
-    sub = make_ast_binary(node->loc_info, TOKEN_PLUS, load, sub);
-    sub = make_ast_grouping(node->loc_info, sub);
-    sub = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, sub);
+    sub = make_ast_binary(node->loc_info, TOKEN_ASTERISK, make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, false)), sub);
+    load = make_ast_binary(node->loc_info, TOKEN_PLUS, load, sub);
+    load = make_ast_grouping(node->loc_info, load);
+    load = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, load);
+    load->type = type_of_field;
 
-    sub->type = type_of_field;
-    ast_replace(node, sub);
+    ast_replace(node, load);
 }
 
 void resolve_field_access(void* dont_care, AST* node) {
@@ -94,13 +94,14 @@ void resolve_field_access(void* dont_care, AST* node) {
     s64 offset_size = get_offset_in_struct_to_field(load->type, field_name);
     AST* offset = make_ast_int(node->loc_info, offset_size, make_type_int(DEFAULT_INT_BYTE_SIZE, 0));
 
-    AST* res = make_ast_unary(node->loc_info, THI_SYNTAX_ADDRESS, load);
-    res = make_ast_binary(node->loc_info, TOKEN_PLUS, res, offset);
-    res = make_ast_grouping(node->loc_info, res);
-    res = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, res);
-    res->type = type_of_field;
+    load = make_ast_unary(node->loc_info, THI_SYNTAX_ADDRESS, load);
+    load = make_ast_binary(node->loc_info, TOKEN_PLUS, load, offset);
+    load = make_ast_grouping(node->loc_info, load);
+    load = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, load);
 
-    ast_replace(node, res);
+    load->type = type_of_field;
+
+    ast_replace(node, load);
 }
 
 void pass_initilize_enums(void* thi, AST* node) {
@@ -502,7 +503,7 @@ int main(int argc, char** argv) {
 
     // Write Unoptimized AST out
     write_to_file("output.thi", ast_to_source(ast));
-    
+
     //
     // Optimization Pass:
     //      Constant propogation.

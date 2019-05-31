@@ -35,29 +35,29 @@
 //------------------------------------------------------------------------------
 
 char* cst_kind_to_str(CST_Kind kind) {
-    
+
     switch (kind) {
-    default:                                  ERROR_UNHANDLED_KIND(strf("%d", kind));
-    case CST_TOKEN:                           return "CST_TOKEN";
-    case CST_IDENTIFIER:                      return "CST_IDENTIFIER";
+    default: ERROR_UNHANDLED_KIND(strf("%d", kind));
+    case CST_TOKEN: return "CST_TOKEN";
+    case CST_IDENTIFIER: return "CST_IDENTIFIER";
     case CST_SPACE_SEPARATED_IDENTIFIER_LIST: return "CST_SPACE_SEPARATED_IDENTIFIER_LIST";
-    case CST_COMMA_SEPARATED_LIST:            return "CST_COMMA_SEPARATED_LIST";
-    case CST_COUNT:                           return "CST_COUNT";
+    case CST_COMMA_SEPARATED_LIST: return "CST_COMMA_SEPARATED_LIST";
+    case CST_COUNT: return "CST_COUNT";
     }
-    
+
     UNREACHABLE;
     return NULL;
 }
 
 char* cst_to_str(CST* node) {
     if (!node) return "---";
-    
+
     switch (node->kind) {
     default: ERROR_UNHANDLED_KIND(cst_kind_to_str(node->kind));
-    case CST_TOKEN: return  node->token.value;
+    case CST_TOKEN: return node->token.value;
     case CST_IDENTIFIER: return node->Identifier.name;
     case CST_SPACE_SEPARATED_IDENTIFIER_LIST: {
-        string *s = string_create("");
+        string* s = string_create("");
         LIST_FOREACH(node->Space_Separated_Identifier_List.identifiers) {
             string_append(s, cst_to_str(it->data));
             if (it->next) string_append(s, " ");
@@ -65,7 +65,7 @@ char* cst_to_str(CST* node) {
         return string_data(s);
     }
     case CST_COMMA_SEPARATED_LIST: {
-        string *s = string_create("");
+        string* s = string_create("");
         LIST_FOREACH(node->Comma_Separated_List.nodes) {
             string_append(s, cst_to_str(it->data));
             if (it->next) string_append(s, ", ");
@@ -73,7 +73,7 @@ char* cst_to_str(CST* node) {
         return string_data(s);
     }
     }
-    
+
     UNREACHABLE;
     return NULL;
 }

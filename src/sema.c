@@ -237,7 +237,7 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
     }
 
     case AST_FIELD_ACCESS: {
-        AST* load =  node->Field_Access.load;
+        AST* load = node->Field_Access.load;
         char* field_name = node->Field_Access.field;
         sema_check_node(ctx, load);
         switch (load->type->kind) {
@@ -248,12 +248,12 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
                 info_no_newline("on %s ", mem->name);
                 if (strcmp(mem->name, field_name) == 0) {
                     info_no_newline("FOUND -> %s of %s\n", mem->name, type_to_str(mem->type));
-                    node_t =  mem->type;
+                    node_t = mem->type;
                     break;
                 }
             }
             break;
-        } 
+        }
         }
         break;
     }
@@ -381,7 +381,6 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         SCOPE_END;
         break;
     }
-
 
     // @Debug(marcus): remove this later
     switch (node->kind) {

@@ -1,11 +1,18 @@
 load "includes/cstdio"
 load "includes/cstdlib"
 
+#def printv2(v v2) 
+#    puts("Printing v2..")
+#    printf("v.x = %f\n", v.x)
+#    printf("v.y = %f\n", v.y)
+#    puts("..done")
+
 # This is a comment
+
 def main(argc s32, argv u8**) s32
-    j = 1 k = &j; *k = 42 
-    # You see the semicolon up there? If removed, the deref would be turned into a
-    # binary multiply. Meaning, 'k = &j * k = 42'. And we dont want that.
+    #j = 1 k = &j; *k = 42 
+    #You see the semicolon up there? If removed, the deref would be turned into a
+    #binary multiply. Meaning, 'k = &j * k = 42'. And we dont want that.
 
     for x = 0 x < argc ++x
         printf("%s\n", *(argv + sizeof (*argv) * x))
@@ -14,47 +21,55 @@ def main(argc s32, argv u8**) s32
     v v2
     v.x = 53.35
     *(&v + 8) = 14.01
+    #printv2(v)
     f = 3.0
     printf("v.x = %f v.x = %f\n", v.x, v.y) # this prints 3.0, 3.0 because of f = 3.0. BUG!!!
-    x = 5.0
-    f = 3.0
-    printf("f = %f x = %f\n", f, x)
+    #x = 5.0
+    #f = 3.0
+    #printf("f = %f x = %f\n", f, x)
     
     c = 'H'
     printf("c = %c, sizeof c = %d\n", c, sizeof c)
-    printf("typeof v = %s\n", typeof v)
-    printf("typeof v.x = %s\n", typeof v.x)
-    printf("typeof v.y = %s\n", typeof v.y)
-    printf("typeof f = %s\n", typeof f)
+    #printf("typeof v = %s\n", typeof v)
+    #printf("typeof v.x = %s\n", typeof v.x)
+    #printf("typeof v.y = %s\n", typeof v.y)
+    #printf("typeof f = %s\n", typeof f)
 
-    # Do we really need braces here?
-    if argv { puts("argv is not null") }
+    ## Do we really need braces here?
+    #if argv { puts("argv is not null") }
 
-    # Couldn't we write it like?
-    # if argv puts("argv is not null")
+    ## Couldn't we write it like?
+    # #if argv puts("argv is not null")
 
-    if sizeof c != 1 {
-        puts("Hey! sizeof c should be 1!");
-    }
+    #if sizeof c != 1 {
+    #    puts("Hey! sizeof c should be 1!");
+    #}
     
-    printf("typeof x = %s\n", typeof x);
-    change(k);
+    ##printf("typeof x = %s\n", typeof x);
+    #k = 3
+    #j = 5
+    #f = 53.1
+    #change(&k, &j, f);
 
-    count = 10;
-    array s64* = malloc(sizeof *array * count);
-    for i = 0; i < count; ++i; {
-        array[i] = i;
-    }
+    #printf("k = %d\n", k)
+    #printf("j = %d\n", j)
+    #printf("f = %f\n", f)
 
-    for i = 0 i < count ++i
-        printf("array[%lld] = %lld\n", i, array[i])
+    #count = 10;
+    #array s64* = malloc(sizeof *array * count);
+    #for i = 0; i < count; ++i; {
+    #    array[i] = i;
+    #}
 
-    return j - 52
+    #for i = 0 i < count ++i
+    #    printf("array[%lld] = %lld\n", i, array[i])
 
-# change(x) => *x = 53
+    #return j
 
-def change(x s64*)
+def change(x s64*, y s64*, f f64)
     *x = 53
+    *y = 24
+    f = 41.2
 
 def v2
     x f64

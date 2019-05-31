@@ -60,7 +60,6 @@ List* type_get_members(Type* type) {
     case TYPE_ENUM: return type->Enum.members;
     case TYPE_STRUCT: return type->Struct.members;
     }
-
     UNREACHABLE;
     return NULL;
 }

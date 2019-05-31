@@ -29,6 +29,22 @@
 #include "type.h"   // Type
 #include "value.h"  // Value
 
+typedef enum {
+    CLASS_INTEGER, // This class consists of integral types that fit into one of the general purpose registers.
+    CLASS_SSE,     // The class consists of types that fit into a vector register.
+    CLASS_SSEUP,   // The class consists of types that fit into a vector register and can be passed and returned in the upper bytes of it.
+    CLASS_X87,
+    CLASS_X87UP,       // These classes consists of types that will be returned via the x87 FPU.
+    CLASS_COMPLEX_X87, // This class consists of types that will be returned via the x87 FPU.
+    CLASS_NO_CLASS,    // This class is used as initializer in the algorithms. It will be used for padding and empty structures and unions.
+    CLASS_MEMORY,      // This class consists of types that will be passed and returned in memory via the stack.
+} Class_Kind;
+
+typedef struct {
+    Class_Kind class;
+    AST* argument;
+} ClassifiedArgument;
+
 typedef struct
 {
     AST* current_function;
@@ -55,6 +71,10 @@ typedef struct
     s8 next_available_xmm_reg_counter;
     s8 next_available_rax_reg_counter;
 } Codegen_Context;
+
+char* class_kind_to_str(Class_Kind kind);
+Class_Kind classify(AST* argument);
+List* classify_arguments(List* arguments);
 
 Codegen_Context make_codegen_context(void);
 void set_temp_labels(Codegen_Context* ctx, char* l0, char* l1);
@@ -83,6 +103,7 @@ void pop_type(Codegen_Context* ctx, Type* type);
 void pop_type_2(Codegen_Context* ctx, Type* type);
 void push_scope(Codegen_Context* ctx);
 void pop_scope(Codegen_Context* ctx);
+char* get_result_reg_of_size(Type* type, s8 size);
 char* get_result_reg(Type* type);
 char* get_result_reg_2(Type* type);
 char* get_op_size(s8 bytes);

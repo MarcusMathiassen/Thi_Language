@@ -133,7 +133,7 @@ s8 get_rax_reg_of_byte_size(u8 bytes, char c) {
     return -1;
 }
 
-s8 get_parameter_reg(s8 i, s8 size) {
+s8 get_parameter_reg_int(s8 i, s8 size) {
     switch (i) {
     case 0:
         switch (size) {
@@ -180,6 +180,22 @@ s8 get_parameter_reg(s8 i, s8 size) {
     default: error("we only support upto 6 parameters per function.");
     }
     return -1; // to silence warning
+};
+
+s8 get_parameter_reg_float(s8 i) {
+    switch (i) {
+    case 0: return XMM0;
+    case 1: return XMM1;
+    case 2: return XMM2;
+    case 3: return XMM3;
+    case 4: return XMM4;
+    case 5: return XMM5;
+    case 6: return XMM6;
+    case 7: return XMM7;
+    default: error("we only support upto 6 parameters per function.");
+    }
+    UNREACHABLE;
+    return 0;
 };
 
 s8 get_size_of_reg(s8 reg) {

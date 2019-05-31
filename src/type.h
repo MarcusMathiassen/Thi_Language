@@ -32,6 +32,7 @@
 typedef struct Type Type;
 
 typedef enum {
+    _TYPE_NONE_,
     TYPE_UNRESOLVED,
     TYPE_VOID,
     TYPE_INT,
@@ -41,6 +42,7 @@ typedef enum {
     TYPE_ARRAY,
     TYPE_ENUM,
     TYPE_STRUCT,
+    TYPE_UNION,
     TYPE_FUNCTION,
     TYPE_VAR_ARGS,
     _TYPE_COUNT_,
@@ -51,6 +53,7 @@ typedef enum {
     TYPE_FLAG_IMPLICIT_RETURN = 1 << 1,
     TYPE_FLAG_IN_NEED_OF_TYPE_INFERENCE = 1 << 2,
     TYPE_FLAG_QUICK_LAMBDA = 1 << 3,
+    TYPE_FLAG_IS_ALIGNED = 1 << 4,
 } Type_Flag;
 
 typedef struct {
@@ -60,7 +63,7 @@ typedef struct {
 
 struct Type {
     Type_Kind kind;
-    u8 flags;
+    u32 flags;
     char* name;
     union {
         struct

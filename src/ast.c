@@ -253,7 +253,8 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
     case AST_LOAD: {
         if (!ctx->as_source)
             string_append_f(s, "load \"%s\"", node->Load.str);
-        else ast_to_str_r(ctx, node->Load.module); 
+        else
+            ast_to_str_r(ctx, node->Load.module);
         break;
     }
     case AST_LINK: {

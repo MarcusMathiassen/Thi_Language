@@ -143,10 +143,25 @@ void push_type(Codegen_Context* ctx, Type* type) {
     assert(type);
     switch (type->kind) {
     default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
-    case TYPE_ARRAY:   // fallthrough
+    case TYPE_ARRAY: {
+        // Push each element in the array
+        s64 size = type->Array.size;
+        Type* contained_type = type->Array.type;
+        for (int i = 0; i < size; ++i) {
+            push_type(ctx, contained_type);
+        }
+        break;
+    }
+    case TYPE_ENUM: // fallthrough
+    case TYPE_STRUCT: {
+        // Push each member recursivly onto the stack
+        LIST_FOREACH(type_get_members(type)) {
+            Type_Name_Pair* member = it->data;
+            push_type(ctx, member->type);
+        }
+        break;
+    }
     case TYPE_POINTER: // fallthrough
-    case TYPE_STRUCT:  // fallthrough
-    case TYPE_ENUM:    // fallthrough
     case TYPE_INT: push(ctx, RAX); break;
     case TYPE_FLOAT: push(ctx, XMM0); break;
     }
@@ -167,10 +182,25 @@ void pop_type_2(Codegen_Context* ctx, Type* type) {
 void pop_type(Codegen_Context* ctx, Type* type) {
     assert(type);
     switch (type->kind) {
-    case TYPE_ARRAY:   // fallthrough
+    case TYPE_ARRAY: {
+        // Push each element in the array
+        s64 size = type->Array.size;
+        Type* contained_type = type->Array.type;
+        for (int i = 0; i < size; ++i) {
+            pop_type(ctx, contained_type);
+        }
+        break;
+    }
+    case TYPE_ENUM: // fallthrough
+    case TYPE_STRUCT: {
+        // Push each member recursivly onto the stack
+        LIST_FOREACH(type_get_members(type)) {
+            Type_Name_Pair* member = it->data;
+            pop_type(ctx, member->type);
+        }
+        break;
+    }
     case TYPE_POINTER: // fallthrough
-    case TYPE_STRUCT:  // fallthrough
-    case TYPE_ENUM:    // fallthrough
     case TYPE_INT: pop(ctx, RAX); break;
     case TYPE_FLOAT: pop(ctx, XMM0); break;
     default: error("Unhandled pop_type %s", type_to_str(type));
@@ -234,6 +264,30 @@ char* get_result_reg_2(Type* type) {
     case TYPE_VOID:    // fallthrough
     case TYPE_INT: return get_reg(get_rax_reg_of_byte_size(bytes, 'c'));
     }
+    UNREACHABLE;
+    return NULL;
+}
+
+char* get_result_reg_of_size(Type* type, s8 size) {
+    assert(type);
+    s64 bytes = size;
+    switch (type->kind) {
+    case TYPE_FLOAT:
+        switch (bytes) {
+        case 4: return "xmm0";
+        case 8: return "xmm0";
+        }
+    case TYPE_POINTER: // fallthrough
+    case TYPE_ARRAY:   // return get_reg(RCX);
+    case TYPE_STRUCT:  // fallthrough
+    case TYPE_ENUM:    // fallthrough
+    case TYPE_VOID:    // fallthrough
+    case TYPE_INT: return get_reg(get_rax_reg_of_byte_size(bytes, 'a'));
+    default:
+        error("get_result_reg unhandled case: %s",
+              type_kind_to_str(type->kind));
+    }
+
     UNREACHABLE;
     return NULL;
 }
@@ -435,7 +489,7 @@ void emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg) {
     //     emit(ctx, "%s [rax], %s; store_r %s", mov_op, reg_c, (variable->Variable.name));
     //     break;
     default:
-        emit(ctx, "%s [rbp-%lld], %s; store_r %s at %lld", mov_op, stack_pos, reg_c, (variable->Variable.name), stack_pos);
+        emit(ctx, "%s [rbp-%lld], %s; store_r %s", mov_op, stack_pos, reg_c, (variable->Variable.name));
         break;
     }
 }
@@ -460,7 +514,7 @@ void emit_store(Codegen_Context* ctx, Value* variable) {
     //     emit(ctx, "%s [rax], %s; store %s of type '%s'", mov_op, reg, (variable->Variable.name), get_type_name(variable->type));
     //     break;
     default:
-        emit(ctx, "%s [rbp-%lld], %s; store %s of type '%s' at %lld", mov_op, stack_pos, reg, (variable->Variable.name), get_type_name(variable->type), stack_pos);
+        emit(ctx, "%s [rbp-%lld], %s; store %s", mov_op, stack_pos, reg, (variable->Variable.name));
         break;
     }
 }
@@ -471,7 +525,7 @@ void emit_load(Codegen_Context* ctx, Value* variable) {
     s64 stack_pos = get_stack_pos_of_variable(variable);
     char* reg = get_result_reg(variable->type);
     char* mov_op = get_move_op(variable->type);
-    emit(ctx, "%s %s, [rbp-%lld]; load %s of type '%s' from %lld", mov_op, reg, stack_pos, variable->Variable.name, get_type_name(variable->type), stack_pos);
+    emit(ctx, "%s %s, [rbp-%lld]; load %s", mov_op, reg, stack_pos, variable->Variable.name);
 }
 
 void set_break_label(Codegen_Context* ctx, char* break_l) {
@@ -734,4 +788,91 @@ s64 get_all_alloca_in_block(AST* block) {
     s64 sum = 0;
     ast_visit(visitor_get_all_alloca_in_block, &sum, block);
     return sum;
+}
+
+List* classify_arguments(List* arguments) {
+    List* classified_argument_list = make_list();
+    LIST_FOREACH(arguments) {
+        AST* arg = it->data;
+
+        ClassifiedArgument* ca = xmalloc(sizeof(ClassifiedArgument));
+        ca->class = classify(arg);
+        ca->argument = arg;
+
+        list_append(classified_argument_list, ca);
+    }
+    return classified_argument_list;
+}
+
+char* class_kind_to_str(Class_Kind kind) {
+    switch (kind) {
+    case CLASS_INTEGER: return "CLASS_INTEGER";
+    case CLASS_SSE: return "CLASS_SSE";
+    case CLASS_SSEUP: return "CLASS_SSEUP";
+    case CLASS_X87: return "CLASS_X87";
+    case CLASS_X87UP: return "CLASS_X87UP";
+    case CLASS_COMPLEX_X87: return "CLASS_COMPLEX_X87";
+    case CLASS_NO_CLASS: return "CLASS_NO_CLASS";
+    case CLASS_MEMORY: return "CLASS_MEMORY";
+    }
+    UNREACHABLE;
+    return NULL;
+}
+
+//
+// -- Classification
+//  The size of each argument gets rounded up to eightbytes.
+//  The basic types are assigned their natural classes:
+//      - Arguments of types (signed and unsigned) _Bool, char, short, int, long,long long, and pointers are in the INTEGER class.
+//      - Arguments of types float, double, _Decimal32, _Decimal64 and __m64 are in class SSE.
+//      - Arguments of types __float128, _Decimal128 and __m128 are split into two halves. The least significant ones belong to class SSE, the most significant one to class SSEUP.
+//      - Arguments of type __m256 are split into four eightbyte chunks. The least significant one belongs to class SSE and all the others to class SSEUP.
+//      - Arguments of type __m512 are split into eight eightbyte chunks. The least significant one belongs to class SSE and all the others to class SSEUP.
+//      - The 64-bit mantissa of arguments of type long double
+//      - The 64-bit mantissa of arguments of type long double belongs to class X87, the 16-bit exponent plus 6 bytes of padding belongs to class X87UP.
+//      - Arguments of type __int128 offer the same operations as INTEGERs, yet they do not fit into one general purpose register but require two registers.
+//              For classification purposes __int128 is treated as if it were implemented as:  typedef struct { long low, high; } __int128;
+//              with the exception that arguments of type __int128 that are stored in memory must be aligned on a 16-byte boundary.
+//      - Arguments of complex T where T is one of the types float or double are treated as if they are implemented as:    struct complexT { T real; T imag; };
+//      - A variable of type complex long double is classified as type COM- PLEX_X87.
+//
+//  The classification of aggregate (structures and arrays) and union types works as follows:
+//      1. If the size of an object is larger than eight eightbytes, or it contains un- aligned fields, it has class MEMORY.
+//
+//      2. If a C++ object is non-trivial for the purpose of calls, as specified in the C++ ABI 13, it is passed by invisible reference (the object is replaced in the parameter list by a pointer that has class INTEGER).
+//      3. If the size of the aggregate exceeds a single eightbyte, each is classified separately. Each eightbyte gets initialized to class NO_CLASS.
+//      4. Each field of an object is classified recursively so that always two fields are considered. The resulting class is calculated according to the classes of the fields in the eightbyte:
+//
+//              (a) If both classes are equal, this is the resulting class.
+//              (b) If one of the classes is NO_CLASS, the resulting class is the other class.
+//              (c) If one of the classes is MEMORY, the result is the MEMORY class.
+//              (d) If one of the classes is INTEGER, the result is the INTEGER.
+//              (e) If one of the classes is X87, X87UP, COMPLEX_X87 class, MEM- ORY is used as class.
+//              (f) Otherwise class SSE is used.
+//
+//      5. Then a post merger cleanup is done:
+//
+//              (a) If one of the classes is MEMORY, the whole argument is passed in memory.
+//              (b) If X87UP is not preceded by X87, the whole argument is passed in memory.
+//              (c) If the size of the aggregate exceeds two eightbytes and the first eight- byte isn’t SSE or any other eightbyte isn’t SSEUP, the whole argument is passed in memory.
+//              (d) If SSEUP is not preceded by SSE or SSEUP, it is converted to SSE.
+//
+Class_Kind classify(AST* argument) {
+    Type_Kind type_kind = argument->type->kind;
+    switch (type_kind) {
+    default: ERROR_UNHANDLED_KIND(type_kind_to_str(type_kind));
+    case TYPE_INT:
+    case TYPE_POINTER: return CLASS_INTEGER;
+    case TYPE_FLOAT: return CLASS_SSE;
+    case TYPE_STRUCT:
+    case TYPE_ARRAY:
+    case TYPE_UNION: {
+        s64 size = get_size_of_type(argument->type);
+        bool is_aligned = argument->type->flags & TYPE_FLAG_IS_ALIGNED;
+        if (size > 8 || !is_aligned) {
+            return CLASS_MEMORY;
+        }
+    }
+    }
+    return CLASS_NO_CLASS;
 }
