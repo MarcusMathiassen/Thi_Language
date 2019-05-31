@@ -102,7 +102,7 @@ s64 get_integer(Parser_Context* ctx) {
 
     s64 value = 0;
     switch (ctx->curr_tok.kind) {
-    ERROR_UNHANDLED_TOKEN_KIND(ctx->curr_tok.kind);
+        ERROR_UNHANDLED_TOKEN_KIND(ctx->curr_tok.kind);
     case TOKEN_CHAR: {
         u8 c = ctx->curr_tok.value[0];
         if (c == '\\') {

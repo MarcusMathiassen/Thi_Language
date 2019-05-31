@@ -339,9 +339,9 @@ AST_Ref_List make_ast_ref_list(void);
 void ast_ref_list_append(AST_Ref_List* l, AST* a);
 
 #ifdef NDEBUG
-#define ERROR_UNHANDLED_AST(x) 
+#define ERROR_UNHANDLED_AST(x)
 #define ERROR_UNHANDLED_AST_KIND(x)
-#else 
+#else
 #define ERROR_UNHANDLED_AST(x) ERROR_UNHANDLED_KIND(ast_to_str(x))
 #define ERROR_UNHANDLED_AST_KIND(x) ERROR_UNHANDLED_KIND(ast_kind_to_str(x))
 #endif

@@ -21,6 +21,9 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+
+#define COMPILER_VERSION "0.1"
+
 #define RESET "\033[0m"
 #define GRAY "\033[30m"
 #define RED "\033[31m"

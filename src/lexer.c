@@ -354,7 +354,8 @@ Token get_token(Lexer_Context* ctx) {
     }
 
     switch (*c) {
-    default: error("[%s:%d:%d] %s", ctx->file, token.line_pos, token.col_pos, strf("unknown character '%c'", *c));
+    default:
+        error("[%s:%d:%d] %s", ctx->file, token.line_pos, token.col_pos, strf("unknown character '%c'", *c));
         CASE_SINGLE_TOKEN('\0', TOKEN_EOF);
         break;
         CASE_SINGLE_TOKEN('(', TOKEN_OPEN_PAREN);

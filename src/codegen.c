@@ -73,7 +73,7 @@ Value* codegen_node(Codegen_Context* ctx, AST* node) {
     assert(ctx);
     if (!node) return NULL;
     switch (node->kind) {
-    ERROR_UNHANDLED_AST_KIND(node->kind);
+        ERROR_UNHANDLED_AST_KIND(node->kind);
     case AST_MODULE:
         LIST_FOREACH(node->Module.top_level) {
             codegen_node(ctx, it->data);
@@ -146,7 +146,7 @@ Value* codegen_unary(Codegen_Context* ctx, AST* node) {
     Value* result = operand_val;
 
     switch (op) {
-    ERROR_UNHANDLED_TOKEN_KIND(op);
+        ERROR_UNHANDLED_TOKEN_KIND(op);
     case TOKEN_PLUS_PLUS: {
         s64 size = 1;
         if (operand->type->kind == TYPE_POINTER)
@@ -177,7 +177,7 @@ Value* codegen_unary(Codegen_Context* ctx, AST* node) {
     case TOKEN_MINUS: {
         Type_Kind tk = operand->type->kind;
         switch (tk) {
-        ERROR_UNHANDLED_TYPE_KIND(tk);
+            ERROR_UNHANDLED_TYPE_KIND(tk);
         case TYPE_INT:
             emit(ctx, "neg %s", reg);
             break;
@@ -205,7 +205,7 @@ Value* codegen_binary(Codegen_Context* ctx, AST* node) {
     AST* rhs = node->Binary.rhs;
 
     switch (op) {
-    ERROR_UNHANDLED_TOKEN_KIND(op);
+        ERROR_UNHANDLED_TOKEN_KIND(op);
     case THI_SYNTAX_ASSIGNMENT: {
 
         bool is_deref = false;
@@ -384,7 +384,7 @@ Value* codegen_binary(Codegen_Context* ctx, AST* node) {
             emit(ctx, "cmp rcx, rax");
         }
         switch (op) {
-        ERROR_UNHANDLED_TOKEN_KIND(op);
+            ERROR_UNHANDLED_TOKEN_KIND(op);
         case TOKEN_LT:
             lhs_v->type->kind == TYPE_FLOAT ? emit(ctx, "setb al")
                                             : emit(ctx, "setl al");
@@ -709,7 +709,7 @@ Value* codegen_return(Codegen_Context* ctx, AST* node) {
         s8 class_sse_counter = 0;
 
         switch (class) {
-        ERROR_UNHANDLED_CLASS_KIND(class);
+            ERROR_UNHANDLED_CLASS_KIND(class);
         // case CLASS_MEMORY: break;
         case CLASS_INTEGER: return_reg = get_return_reg_int(class_integer_counter++, size); break;
         case CLASS_SSE:
@@ -825,7 +825,7 @@ Value* codegen_extern(Codegen_Context* ctx, AST* node) {
 Value* codegen_struct(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_STRUCT);
-    warning("struct incomplete?");
+    info("struct incomplete?");
     return make_value_struct(node->type);
 }
 
@@ -867,7 +867,7 @@ Value* codegen_call(Codegen_Context* ctx, AST* node) {
         s8 param_reg = -1;
 
         switch (class) {
-        ERROR_UNHANDLED_CLASS_KIND(class);
+            ERROR_UNHANDLED_CLASS_KIND(class);
         // case CLASS_MEMORY:          break;
         case CLASS_INTEGER: param_reg = get_parameter_reg_int(class_integer_counter++, 8); break;
         case CLASS_SSE:
@@ -946,7 +946,7 @@ Value* codegen_function(Codegen_Context* ctx, AST* node) {
         s8 param_reg = -1;
 
         switch (class) {
-        ERROR_UNHANDLED_CLASS_KIND(class);
+            ERROR_UNHANDLED_CLASS_KIND(class);
         // case CLASS_MEMORY: break;
         case CLASS_INTEGER: param_reg = get_parameter_reg_int(class_integer_counter++, size); break;
         case CLASS_SSE:

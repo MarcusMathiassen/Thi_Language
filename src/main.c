@@ -115,7 +115,7 @@ void pass_initilize_enums(void* thi, AST* node) {
             AST* m = it->data;
             // Turn idents into constant decls
             switch (m->kind) {
-            ERROR_UNHANDLED_AST_KIND(m->kind);
+                ERROR_UNHANDLED_AST_KIND(m->kind);
             case AST_IDENT:
                 it->data = make_ast_constant_decl(m->loc_info, m->Ident.name, make_ast_int(m->loc_info, counter, make_type_int(DEFAULT_INT_BYTE_SIZE, 0)));
                 break;
@@ -225,7 +225,7 @@ void constant_fold_unary(AST* node) {
         s64 value = 0;
 
         switch (op) {
-        ERROR_UNHANDLED_TOKEN_KIND(op);
+            ERROR_UNHANDLED_TOKEN_KIND(op);
         case TOKEN_BANG: value = !oper_v; break;
         case TOKEN_PLUS: value = oper_v; break;
         case TOKEN_TILDE: value = ~oper_v; break;
@@ -260,7 +260,7 @@ void constant_fold_binary(AST* node) {
         s64 value = 0;
 
         switch (op) {
-        ERROR_UNHANDLED_TOKEN_KIND(op);
+            ERROR_UNHANDLED_TOKEN_KIND(op);
         case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
         case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
         case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
@@ -289,7 +289,7 @@ void constant_fold_binary(AST* node) {
         f64 value = 0.0;
 
         switch (op) {
-        ERROR_UNHANDLED_TOKEN_KIND(op);
+            ERROR_UNHANDLED_TOKEN_KIND(op);
         case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
         case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
         case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
@@ -349,34 +349,34 @@ int main(int argc, char** argv) {
 
     info("Compiler was last compiled: "__TIME__);
 
+#ifdef NDEBUG
     utility_tests();
     string_tests();
     map_tests();
     list_tests();
     stack_tests();
     lexer_test();
+#endif
 
     Thi thi = make_thi();
 
-    set_source_file(&thi, argv[1]);
-    info("filename: %s\n", argv[1]);
-
     s32 opt;
-    while ((opt = getopt(argc, argv, ":hdv:")) != -1) {
+    while ((opt = getopt(argc, argv, "hv")) != -1) {
         switch (opt) {
         case 'h': {
-            info("--- Thi Compiler ---");
-            info("Usage:");
-            info("      thi -f <file>");
-            info("      thi -v");
+            puts("Usage:");
+            puts("      thi <file>");
+            puts("      thi -v");
             return 0;
         } break;
-        case 'v': thi.detailed_print = true; break;
-        case 'd': thi.debug_mode = true; break;
+        case 'v': puts(COMPILER_VERSION); return 0;
         case ':': info("option needs a value\n"); return 0;
         case '?': info("unknown option: %c\n", optopt); return 0;
         }
     }
+
+    set_source_file(&thi, argv[optind]);
+    info("filename: %s\n", argv[optind]);
 
     if (thi.debug_mode) {
         thi.detailed_print = true;

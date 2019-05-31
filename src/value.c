@@ -38,7 +38,7 @@
 char* value_kind_to_str(Value_Kind kind) {
     TASSERT_KIND_IN_RANGE(VALUE, kind);
     switch (kind) {
-    ERROR_UNHANDLED_VALUE_KIND(kind);
+        ERROR_UNHANDLED_VALUE_KIND(kind);
     case VALUE_INT: return "VALUE_INT";
     case VALUE_FLOAT: return "VALUE_FLOAT";
     case VALUE_POINTER: return "VALUE_POINTER";
@@ -185,7 +185,7 @@ Value* make_value_struct(Type* type) {
 
 s64 get_stack_pos_of_variable(Value* variable) {
     switch (variable->kind) {
-    ERROR_UNHANDLED_VALUE_KIND(variable->kind);
+        ERROR_UNHANDLED_VALUE_KIND(variable->kind);
     case VALUE_LOAD_INST: return get_stack_pos_of_variable(variable->LoadInst.variable);
     case VALUE_VARIABLE: return variable->Variable.stack_pos;
     }

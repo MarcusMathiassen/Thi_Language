@@ -28,6 +28,7 @@
       them up in the symbol table to determine if they are type or not. This will make parsing easier.
       And let us drop 'def' as a keyword.
 - [ ] Implement 'union'
+- [ ] Implement a REAL map. The one in use now is just name lookup badoodo.
 
 ## Bugs
 - [ ] Typechecker shouldnt change the types of things. Only check. 

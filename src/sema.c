@@ -111,7 +111,7 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
     DEBUG_START;
     Type* node_t = node->type;
     switch (node->kind) {
-    ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
+        ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
     case AST_SPACE_SEPARATED_IDENTIFIER_LIST:
         LIST_FOREACH(node->Space_Separated_Identifier_List.identifiers) {
             sema_check_node(ctx, it->data);
@@ -241,7 +241,7 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         char* field_name = node->Field_Access.field;
         sema_check_node(ctx, load);
         switch (load->type->kind) {
-        ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
+            ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
         case TYPE_STRUCT: {
             LIST_FOREACH(load->type->Struct.members) {
                 Type_Name_Pair* mem = it->data;

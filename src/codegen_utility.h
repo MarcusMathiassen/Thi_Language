@@ -48,7 +48,7 @@ typedef struct {
 
 #ifdef NDEBUG
 #define ERROR_UNHANDLED_CLASS_KIND(x)
-#else 
+#else
 #define ERROR_UNHANDLED_CLASS_KIND(x) ERROR_UNHANDLED_KIND(class_kind_to_str(x))
 #endif
 

@@ -39,9 +39,11 @@ typedef double f64;
 
 typedef s8 bool;
 
-#define TASSERT_KIND_IN_RANGE(ENUM, kind) tassert(0 <= kind && kind < _ ##ENUM ##_COUNT_, "kind = %d", kind)
+#define TASSERT_KIND_IN_RANGE(ENUM, kind) tassert(0 <= kind && kind < _##ENUM##_COUNT_, "kind = %d", kind)
 
-#define ERROR_UNHANDLED_KIND(str) default: error("[%s:%s:%d] Unhandled case '%s'", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color(str));
+#define ERROR_UNHANDLED_KIND(str) \
+    default:                      \
+        error("[%s:%s:%d] Unhandled case '%s'", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color(str));
 #define UNREACHABLE error("[%s:%s:%d] %s", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color("UNREACHABLE"));
 #define UNFINISHED error("[%s:%s:%d] %s", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color("UNFINISHED"));
 #define LOCATION_OF(module, node) strf("%s:%d:%d", module->Module.name, node->loc_info.line_pos, node->loc_info.col_pos)

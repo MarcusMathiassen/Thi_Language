@@ -177,12 +177,11 @@ void lexer_test(void);
 #define THI_SYNTAX_ASSIGNMENT TOKEN_EQ
 
 #ifdef NDEBUG
-#define ERROR_UNHANDLED_TOKEN(x) 
+#define ERROR_UNHANDLED_TOKEN(x)
 #define ERROR_UNHANDLED_TOKEN_KIND(x)
-#else 
+#else
 #define ERROR_UNHANDLED_TOKEN(x) ERROR_UNHANDLED_KIND(token_to_str(x))
 #define ERROR_UNHANDLED_TOKEN_KIND(x) ERROR_UNHANDLED_KIND(token_kind_to_str(x))
 #endif
-
 
 #endif

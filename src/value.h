@@ -120,13 +120,12 @@ s64 get_size_of_value(Value* value);
 s64 get_stack_pos_of_variable(Value* variable);
 
 #ifdef NDEBUG
-#define ERROR_UNHANDLED_VALUE(x) 
-#define ERROR_UNHANDLED_VALUE_KIND(x) 
-#else 
+#define ERROR_UNHANDLED_VALUE(x)
+#define ERROR_UNHANDLED_VALUE_KIND(x)
+#else
 #define ERROR_UNHANDLED_VALUE(x) ERROR_UNHANDLED_KIND(value_to_str(x))
 #define ERROR_UNHANDLED_VALUE_KIND(x) ERROR_UNHANDLED_KIND(value_kind_to_str(x))
 #endif
-
 
 //------------------------------------------------------------------------------
 //                               Scope

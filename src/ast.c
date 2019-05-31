@@ -94,7 +94,7 @@ char* get_ast_name(AST* node) {
     if (!node) return "---";
     char* result = NULL;
     switch (node->kind) {
-    ERROR_UNHANDLED_AST_KIND(node->kind);
+        ERROR_UNHANDLED_AST_KIND(node->kind);
     case AST_NOP:
         result = "nop";
         break;
@@ -181,7 +181,7 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
     }
 
     switch (kind) {
-    ERROR_UNHANDLED_AST_KIND(kind);
+        ERROR_UNHANDLED_AST_KIND(kind);
     case AST_COMMENT:
         string_append(s, node->Comment.text);
         break;
@@ -301,7 +301,7 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
     case AST_FLOAT: {
         // @Checkout(marcus): not to sure about the fmt.
         char* str = strf("%.14g", node->Float.val);
-        s32 n = strlen(str);
+        u64 n = strlen(str);
         // This makes sure there is at least a single decimal point.
         string_append_f(s, "%s", n == 1 ? strf("%s.0", str) : str);
         break;
@@ -442,7 +442,7 @@ void ast_visit(ast_callback* func, void* ctx, AST* node) {
     assert(func);
     if (!node) return;
     switch (node->kind) {
-    ERROR_UNHANDLED_AST_KIND(node->kind);
+        ERROR_UNHANDLED_AST_KIND(node->kind);
 
     case AST_COMMENT: break;
     case AST_NOP: break;

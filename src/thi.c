@@ -62,7 +62,7 @@ Thi make_thi() {
         map_set(thi.all_passes_for_all_kinds, ast_kind_to_str(kind), make_list());
     }
 
-    tassert(thi.all_passes_for_all_kinds->size == _AST_COUNT_,  "Missing some AST decl in our map.");
+    tassert(thi.all_passes_for_all_kinds->size == _AST_COUNT_, "Missing some AST decl in our map.");
 
     return thi;
 }

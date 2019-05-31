@@ -153,9 +153,9 @@ s64 type_function_get_arg_count(Type* type);
 s64 type_array_get_count(Type* type);
 
 #ifdef NDEBUG
-#define ERROR_UNHANDLED_TYPE(x) 
-#define ERROR_UNHANDLED_TYPE_KIND(x) 
-#else 
+#define ERROR_UNHANDLED_TYPE(x)
+#define ERROR_UNHANDLED_TYPE_KIND(x)
+#else
 #define ERROR_UNHANDLED_TYPE(x) ERROR_UNHANDLED_KIND(type_to_str(x))
 #define ERROR_UNHANDLED_TYPE_KIND(x) ERROR_UNHANDLED_KIND(type_kind_to_str(x))
 #endif

@@ -21,7 +21,7 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 #include "typedefs.h"
-#include <stdlib.h>  // malloc, calloc, realloc
+#include <stdlib.h> // malloc, calloc, realloc
 //------------------------------------------------------------------------------
 //                               Printing Functions
 //------------------------------------------------------------------------------
@@ -33,8 +33,8 @@
 #define info(fmt, ...)
 #define info_no_newline(fmt, ...)
 #else
-#define info(fmt, ...) (_info(fmt, ## __VA_ARGS__))
-#define info_no_newline(fmt, ...) (_info_no_newline(fmt, ## __VA_ARGS__))
+#define info(fmt, ...) (_info(fmt, ##__VA_ARGS__))
+#define info_no_newline(fmt, ...) (_info_no_newline(fmt, ##__VA_ARGS__))
 #endif
 
 void _info(char* fmt, ...);
@@ -82,7 +82,7 @@ typedef struct {
 #ifdef NDEBUG
 #define tassert(EX, FMT, ...)
 #else
-#define tassert(EX, FMT, ...) (void)((EX) || (_tassert (#EX, __FILE__, (char*)__func__, __LINE__, FMT, ## __VA_ARGS__),0))
+#define tassert(EX, FMT, ...) (void)((EX) || (_tassert(#EX, __FILE__, (char*)__func__, __LINE__, FMT, ##__VA_ARGS__), 0))
 #endif
 void _tassert(char* expr_str, char* file, char* func, int line, char* fmt, ...);
 

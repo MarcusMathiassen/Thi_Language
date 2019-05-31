@@ -24,9 +24,8 @@
 
 #include "parser.h"
 
-#include "ast.h"       // AST, ast_make_*
-#include "constants.h" // DEFAULT_INT_BYTE_SIZE, etc.
-// #include "cst.h"            // CST
+#include "ast.h"            // AST, ast_make_*
+#include "constants.h"      // DEFAULT_INT_BYTE_SIZE, etc.
 #include "lexer.h"          // Token, Token_Kind, generate_tokens_from_source, token_array_get_info_of
 #include "map.h"            // Map
 #include "parser_utility.h" // utility funcs
@@ -217,7 +216,7 @@ AST* parse_delimited(Parser_Context* ctx, Token_Kind delimiter) {
     Token_Kind kind = tokKind(ctx);
     if (kind == delimiter) return NULL;
     switch (tokKind(ctx)) {
-    ERROR_UNHANDLED_TOKEN_KIND(tokKind(ctx));
+        ERROR_UNHANDLED_TOKEN_KIND(tokKind(ctx));
     }
     UNREACHABLE;
     return NULL;
@@ -372,7 +371,8 @@ AST* parse_load(Parser_Context* ctx) {
     eat_kind(ctx, TOKEN_LOAD);
     char* file = tokValue(ctx);
     char* ext = get_file_extension(file);
-    if (!ext) file = strf("%s.thi", file);
+    if (!ext)
+        file = strf("%s.thi", file);
     else if (strcmp(ext, ".thi") != 0) {
         Loc_Info la = loc(ctx);
         error("[%s:%s:%s] '%s' is not a .thi file.", ctx->file, la.line_pos, la.col_pos, file);

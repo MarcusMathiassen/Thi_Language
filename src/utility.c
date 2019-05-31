@@ -140,7 +140,7 @@ char* get_file_extension(char* filename) {
         return NULL; // we didnt find any
     }
     s64 start_of_ext = len - last_dot_pos;
-    char* str = xmalloc(start_of_ext+2);
+    char* str = xmalloc(start_of_ext + 2);
     memcpy(str, filename + len - start_of_ext, start_of_ext);
     str[start_of_ext] = 0;
     DEBUG_PRINT_EXIT;
@@ -179,7 +179,7 @@ char* get_file_directory(char* filename) {
         DEBUG_PRINT_NONE_FOUND;
         return NULL; // we didnt find any
     }
-    ++len;                     // we preserve the '/'
+    ++len; // we preserve the '/'
     char* str = xmalloc(len + 1);
     memcpy(str, filename, len);
     str[len] = 0;
@@ -265,7 +265,7 @@ void* _malloc(s64 bytes, char* file, char* func, s64 line) {
     assert(bytes != 0);
     void* alloc = malloc(bytes);
     if (!alloc) error("[%s:%s:%lld] malloc(%lld) failed", file, func, line, bytes);
-    info("[%s:%s:%lld] malloc(%lld) called", file, func, line, bytes);
+    // info("[%s:%s:%lld] malloc(%lld) called", file, func, line, bytes);
     return alloc;
 }
 
@@ -274,7 +274,7 @@ void* _calloc(s64 size, s64 bytes, char* file, char* func, s64 line) {
     assert(bytes != 0);
     void* alloc = calloc(size, bytes);
     if (!alloc) error("[%s:%s:%lld] calloc(%lld, %lld) failed", file, func, line, size, bytes);
-    info("[%s:%s:%lld] calloc(%lld, %lld) called", file, func, line, size, bytes);
+    // info("[%s:%s:%lld] calloc(%lld, %lld) called", file, func, line, size, bytes);
     return alloc;
 }
 
@@ -283,7 +283,7 @@ void* _realloc(void* ptr, s64 bytes, char* file, char* func, s64 line) {
     assert(bytes != 0);
     void* alloc = realloc(ptr, bytes);
     if (!alloc) error("[%s:%s:%lld] realloc(%lld, %llu) failed", file, func, line, (u64)ptr, bytes);
-    info("[%s:%s:%lld] realloc(%lld, %llu) called", file, func, line, (u64)ptr, bytes);
+    // info("[%s:%s:%lld] realloc(%lld, %llu) called", file, func, line, (u64)ptr, bytes);
     return alloc;
 }
 
@@ -362,7 +362,7 @@ void _tassert(char* expr_str, char* file, char* func, int line, char* fmt, ...) 
     va_start(args, fmt);
     vsnprintf(str, n, fmt, args);
     va_end(args);
-    error("[%s:%s:%s] ASSERT %s -> %s", ucolor(file), ucolor(func), ucolor(strf("%d",line)), ucolor(expr_str),  str);
+    error("[%s:%s:%s] ASSERT %s -> %s", ucolor(file), ucolor(func), ucolor(strf("%d", line)), ucolor(expr_str), str);
 }
 
 //
@@ -427,7 +427,6 @@ void utility_tests(void) {
     assert(strcmp(get_file_extension(".rcx.txt"), ".txt") == 0);
     assert(get_file_extension("fefem") == NULL);
     assert(strcmp(get_file_extension("./b/mthigegerg/o.hrifj"), ".hrifj") == 0);
-
 
     // remove_file_extension
     assert(strcmp(remove_file_extension("./b/m.thi"), "./b/m") == 0);

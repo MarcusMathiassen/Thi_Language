@@ -83,7 +83,7 @@ Type* type_check_node(Typer_Context* ctx, AST* node) {
     Type* result = node->type;
 
     switch (node->kind) {
-    ERROR_UNHANDLED_AST_KIND(node->kind);
+        ERROR_UNHANDLED_AST_KIND(node->kind);
     case AST_COMMENT: result = NULL; break;
     case AST_NOP: result = NULL; break;
     case AST_FALLTHROUGH: result = NULL; break;
@@ -359,7 +359,7 @@ Type* type_check_field_access(Typer_Context* ctx, AST* node) {
             }
         }
     } break;
-    ERROR_UNHANDLED_AST_KIND(node->kind);
+        ERROR_UNHANDLED_AST_KIND(node->kind);
     }
     return res;
 }

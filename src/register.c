@@ -21,7 +21,7 @@
 #include "register.h"
 #include "utility.h" // error
 
-char* reg[TOTAL_REG_COUNT] = {
+static char* reg[TOTAL_REG_COUNT] = {
     "rax",
     "eax",
     "ax",
@@ -135,7 +135,7 @@ s8 get_rax_reg_of_byte_size(u8 bytes, char c) {
 
 s8 get_return_reg_int(s8 i, s8 size) {
     switch (i) {
-    ERROR_UNHANDLED_KIND(strf("i = %d, s = %d", i, size));
+        ERROR_UNHANDLED_KIND(strf("i = %d, s = %d", i, size));
     case 0:
         switch (size) {
         case 8: return RAX;
@@ -157,7 +157,7 @@ s8 get_return_reg_int(s8 i, s8 size) {
 
 s8 get_return_reg_float(s8 i) {
     switch (i) {
-    ERROR_UNHANDLED_KIND(strf("i = %d", i));
+        ERROR_UNHANDLED_KIND(strf("i = %d", i));
     case 0: return XMM0;
     case 1: return XMM1;
     }
