@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 output=./thi
-olvl=
+olvl=-O3
 compiler=clang
 src=./src/*.c
 flags=-Wall\ -Wextra\ -Wno-unused-function\ -Wno-unused-parameter\ -Werror #-DNDEBUG

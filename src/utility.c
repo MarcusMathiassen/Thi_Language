@@ -141,9 +141,11 @@ char* get_file_extension(char* filename) {
     assert(filename);
     s64 len = strlen(filename);
     s64 i = 0;
-    while (filename[len - (++i)] != '.')
+    while (filename[len - (i)] != '.' && i < len) {
+        ++i;
         continue;
-    if (i > len) return NULL;
+    }
+    if (i == len) return NULL; // we didnt find any
     ++len; // skip the '.'
     char* str = xmalloc(i + 1);
     memcpy(str, filename + len - i, i);
@@ -155,9 +157,11 @@ char* remove_file_extension(char* filename) {
     assert(filename);
     s64 len = strlen(filename);
     s64 i = 0;
-    while (filename[len - (++i)] != '.')
+    while (filename[len - (i)] != '.' || i < len) {
+        ++i;
         continue;
-    if (i == len) return NULL;
+    }
+    if (i == len) return NULL;  // we didnt find any
     char* str = xmalloc(len - i + 1);
     memcpy(str, filename, len - i);
     str[len - i] = 0;
@@ -167,8 +171,11 @@ char* remove_file_extension(char* filename) {
 char* get_file_directory(char* filename) {
     assert(filename);
     s64 len = strlen(filename);
-    while (filename[--len] != '/')
+    while (filename[len] != '/' || len > 0) {
+        --len;
         continue;
+    }
+    if (len == 0) return NULL; // we didnt find any
     ++len; // we preserve the '/'
     char* str = xmalloc(len + 1);
     memcpy(str, filename, len);
@@ -179,8 +186,10 @@ char* get_file_name(char* filename) {
     assert(filename);
     s64 len = strlen(filename);
     s64 i = 0;
-    while (filename[len - (++i)] != '/')
+    while (filename[len - (i)] != '/' || i < len) {
+        ++i;
         continue;
+    }
     ++len; // skip the '/'
     char* str = xmalloc(i + 1);
     memcpy(str, filename + len - i, i);
