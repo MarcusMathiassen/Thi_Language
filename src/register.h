@@ -33,6 +33,9 @@ s8 get_parameter_reg_int(s8 i, s8 size);
 s8 get_parameter_reg_float(s8 i);
 s8 get_reg_as_another_size(s8 reg, s8 size);
 
+s8 get_return_reg_int(s8 i, s8 size);
+s8 get_return_reg_float(s8 i);
+
 s8 get_size_of_reg(s8 reg);
 
 #define RAX 0

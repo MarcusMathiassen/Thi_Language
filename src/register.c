@@ -133,6 +133,38 @@ s8 get_rax_reg_of_byte_size(u8 bytes, char c) {
     return -1;
 }
 
+s8 get_return_reg_int(s8 i, s8 size) {
+    switch (i) {
+    default: ERROR_UNHANDLED_KIND(strf("i = %d, s = %d", i, size));
+    case 0:
+        switch (size) {
+        case 8: return RAX;
+        case 4: return EAX;
+        case 2: return AX;
+        case 1: return AL;
+        }
+    case 1:
+        switch (size) {
+        case 8: return RDX;
+        case 4: return EDX;
+        case 2: return DX;
+        case 1: return DL;
+        }
+    }
+    UNREACHABLE;
+    return 0;
+}
+
+s8 get_return_reg_float(s8 i) {
+    switch (i) {
+    default: ERROR_UNHANDLED_KIND(strf("i = %d", i));
+    case 0: return XMM0;
+    case 1: return XMM1;
+    }
+    UNREACHABLE;
+    return 0;
+}
+
 s8 get_parameter_reg_int(s8 i, s8 size) {
     switch (i) {
     case 0:
