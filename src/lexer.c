@@ -568,7 +568,7 @@ Token get_token(Lexer_Context* ctx) {
     case 'r':
     case 's':
     case 't':
-    case 'u':
+    case 'u': 
     case 'v':
     case 'w':
     case 'x':
@@ -693,6 +693,12 @@ char* token_kind_to_str(Token_Kind kind) {
     case TOKEN_STRING:            return "TOKEN_STRING";
     case TOKEN_CHAR:              return "TOKEN_CHAR";
     case TOKEN_INTEGER:           return "TOKEN_INTEGER";
+    case TOKEN_INTEGER_SUFFIX_u:  return "TOKEN_INTEGER_SUFFIX_u";
+    case TOKEN_INTEGER_SUFFIX_U:  return "TOKEN_INTEGER_SUFFIX_U";
+    case TOKEN_INTEGER_SUFFIX_l:  return "TOKEN_INTEGER_SUFFIX_l";
+    case TOKEN_INTEGER_SUFFIX_L:  return "TOKEN_INTEGER_SUFFIX_L";
+    case TOKEN_INTEGER_SUFFIX_ll: return "TOKEN_INTEGER_SUFFIX_ll";
+    case TOKEN_INTEGER_SUFFIX_LL: return "TOKEN_INTEGER_SUFFIX_LL";
     case TOKEN_NUMBER:            return "TOKEN_NUMBER";
     case TOKEN_HEX:               return "TOKEN_HEX";
     case TOKEN_FLOAT:             return "TOKEN_FLOAT";

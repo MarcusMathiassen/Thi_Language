@@ -9,13 +9,8 @@ load "includes/cstdlib"
 
 # This is a comment
 
-def strlen(str char*) s64
-    i = 0
-    if str == 0
-        puts("argument to 'strlen' was NULL")
-    while str[i] != '\0'
-        ++i
-    return i
+# This is just to show that braces and semicolons work
+def strlen(str char*) s64 { if str == 0 { puts("argument to 'strlen' was NULL"); } i = 0; while str[++i] != '\0' {} return i; }
 
 def getFloat() f64
     return 13.313
@@ -24,6 +19,11 @@ def main(argc s32, argv u8**) s32
     #j = 1 k = &j; *k = 42 
     #You see the semicolon up there? If removed, the deref would be turned into a
     #binary multiply. Meaning, 'k = &j * k = 42'. And we dont want that.
+
+    z = 1Llu
+    printf("typeof z = %s\n", typeof z)
+    return 0
+
 
     for x = 0 x < argc ++x
         printf("%s\n", *(argv + sizeof (*argv) * x))

@@ -245,9 +245,9 @@ void constant_fold_unary(AST* node) {
     }
 }
 
-bool expr_is_0(AST* expr) {
-    if ((expr->kind == AST_INT && expr->Int.val == 0) || 
-        (expr->kind == AST_FLOAT && expr->Float.val == 0.0)) {
+bool expr_is_literal_value(AST* expr, float val) {
+    if ((expr->kind == AST_INT && expr->Int.val == (s64)val) || 
+        (expr->kind == AST_FLOAT && expr->Float.val == val)) {
         return true;
     }
     return false;
@@ -263,10 +263,10 @@ void constant_fold_binary(AST* node) {
 
     // Remove lhs or rhs of expressions with + or - with 0 on either side
     if (op == TOKEN_MINUS || op == TOKEN_PLUS) {
-        if (expr_is_0(lhs)) {
+        if (expr_is_literal_value(lhs, 0.0)) {
             ast_replace(node, rhs);
             return;
-        } else if (expr_is_0(rhs)) {
+        } else if (expr_is_literal_value(rhs, 0.0)) {
             ast_replace(node, lhs);
             return;
         }
@@ -274,7 +274,7 @@ void constant_fold_binary(AST* node) {
 
     // Totally remove expressions where either lhs or rhs is 0 in multiplication
     bool lhs_is_0 = false; // used to skip recalc
-    if ((lhs_is_0 = expr_is_0(lhs)) || expr_is_0(rhs)) {
+    if ((lhs_is_0 = expr_is_literal_value(lhs, 0.0)) || expr_is_literal_value(rhs, 0.0)) {
         if (op == TOKEN_ASTERISK) { 
             ast_replace(node, lhs_is_0 ? lhs : rhs);
             return; 
@@ -336,6 +336,22 @@ void constant_fold_binary(AST* node) {
         // clang-format on
 
         lhs->Float.val = value;
+        ast_replace(node, lhs);
+    }
+
+
+    // -- Replace any expression matching:
+    //      1 * x => x
+    //      x * 1 => x
+    //      x / 1 => x
+    //    With the non literal value 'x'.
+    if (op == TOKEN_ASTERISK) {
+        if (expr_is_literal_value(lhs, 1.0)) {
+            ast_replace(node, rhs);
+        } else if (expr_is_literal_value(rhs, 1.0)) {
+            ast_replace(node, lhs);
+        }
+    } else if (op == TOKEN_FWSLASH && expr_is_literal_value(rhs, 1.0)) {
         ast_replace(node, lhs);
     }
 }
@@ -532,12 +548,6 @@ int main(int argc, char** argv) {
     // typechecking pass
     type_checker(thi.symbol_map, ast);
 
-
-    // Write Unoptimized AST out
-#ifdef NDEBUG
-    write_to_file("output.thi", ast_to_source(ast));
-#endif
-
     //
     // Optimization Pass:
     //      Constant propogation.
@@ -631,7 +641,11 @@ int main(int argc, char** argv) {
     }
     info("---------------------------");
 #endif
-
+    // Write Unoptimized AST out
+    #ifndef NDEBUG
+        write_to_file("output.thi", ast_to_source(ast));
+    #endif
+        
     return 0;
 }
 

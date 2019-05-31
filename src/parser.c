@@ -799,18 +799,20 @@ AST* parse_postfix_tail(Parser_Context* ctx, AST* primary_expr) {
     for (;;) {
         switch(tokKind(ctx)) {
         default: return primary_expr;
-        case TOKEN_MINUS_MINUS: // fallthrough
-        case TOKEN_PLUS_PLUS: {
-            Token_Kind op = tokKind(ctx);
-            eat(ctx);
-            primary_expr = make_ast_post_inc_or_dec(primary_expr->loc_info, op, primary_expr);
-            break;
-        }
+        // @Bug: this is causing endless loop in basic_setup.thi
+        // case TOKEN_MINUS_MINUS: // fallthrough
+        // case TOKEN_PLUS_PLUS: {
+        //     Token_Kind op = tokKind(ctx);
+        //     eat(ctx);
+        //     primary_expr = make_ast_post_inc_or_dec(primary_expr->loc_info, op, primary_expr);
+        //     break;
+        // }
         case TOKEN_AS:
             primary_expr = read_as(ctx, primary_expr);
-            break;;
-        case TOKEN_OPEN_BRACKET: 
+            break;
+        case TOKEN_OPEN_BRACKET:
             primary_expr = read_subscript_expr(ctx, primary_expr);
+            break;
         case TOKEN_DOT:
             primary_expr = read_field_access(ctx, primary_expr);
             break;
@@ -910,7 +912,51 @@ AST* parse_char(Parser_Context* ctx) {
 AST* parse_integer(Parser_Context* ctx) {
     DEBUG_START;
     Loc_Info lc = loc(ctx);
-    AST* res = make_ast_int(lc, get_integer(ctx), make_type_int(DEFAULT_INT_BYTE_SIZE, 0));
+    s64 value = get_integer(ctx);
+    Type* type = type = make_type_int(DEFAULT_INT_BYTE_SIZE, false);
+    // Check for a suffix
+    // u32: u U
+    // s32: l L
+    // s64: ll LL 
+    // Suffix can be ex. 532llU
+    if (tok_is(ctx, TOKEN_IDENTIFIER))
+    {
+        char* tok_val = tokValue(ctx);
+
+        int i = 0;
+        char c;
+        while((c = tok_val[i++])) {
+            switch(c) {
+            case 'u': // fallthrough
+            case 'U': 
+                type->Int.is_unsigned = true;
+                break;
+            // Might be 'll'
+            case 'l': {
+                if (tok_val[i] == 'l') {
+                    type->Int.bytes = 8;
+                    ++i;
+                } else {
+                    type->Int.bytes = 4;
+                }
+                break;
+            }
+            case 'L': {
+                if (tok_val[i] == 'L') {
+                    type->Int.bytes = 8;
+                    ++i;
+                } else {
+                    type->Int.bytes = 4;
+                }
+                break;
+            }
+            }
+        }
+        // if i has been changed, we have gotten a suffix.
+        // Eat it.c
+        if (i != 0) eat(ctx);
+    }
+    AST* res = make_ast_int(lc, value, type);
     return res;
 }
 
