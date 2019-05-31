@@ -16,7 +16,8 @@ if [ $? == 0 ]; then
     # ./test.bash
     # ./test.bash ./ tests/test_window.thi
     # ./test.bash ./ tests/test_basic_setup.thicl
-    ./test.bash ./ tests/test_global_variable.thi
+    # ./test.bash ./ tests/test_global_variable.thi
+    ./test.bash ./ tests/test_post_inc.thi
 fi
 
 #if debug

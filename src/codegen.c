@@ -66,6 +66,7 @@ Value* codegen_enum(Codegen_Context* ctx, AST* node);
 Value* codegen_function(Codegen_Context* ctx, AST* node);
 Value* codegen_as(Codegen_Context* ctx, AST* node);
 Value* codegen_switch(Codegen_Context* ctx, AST* node);
+Value* codegen_post_inc(Codegen_Context* ctx, AST* node);
 Value* codegen_node(Codegen_Context* ctx, AST* node);
 
 // @Hotpath @Recursive
@@ -79,6 +80,7 @@ Value* codegen_node(Codegen_Context* ctx, AST* node) {
             codegen_node(ctx, it->data);
         }
         return NULL;
+    case AST_POST_INC: return codegen_post_inc(ctx, node);
     case AST_COMMENT: return NULL;
     case AST_NOP: return NULL;
     case AST_FALLTHROUGH: return NULL;
@@ -742,6 +744,16 @@ Value* codegen_break(Codegen_Context* ctx, AST* node) {
     assert(node->kind == AST_BREAK);
     emit(ctx, "jmp %s", ctx->lbreak);
     return NULL;
+}
+
+Value* codegen_post_inc(Codegen_Context* ctx, AST* node) {
+    DEBUG_START;
+    assert(node->kind == AST_POST_INC);
+    Value* v = codegen_node(ctx, node->Post_Inc.node);
+    push_type(ctx, v->type);
+    v = codegen_node(ctx, make_ast_unary(node->loc_info, TOKEN_PLUS_PLUS, node->Post_Inc.node));
+    pop_type(ctx, v->type);
+    return v;
 }
 
 Value* codegen_switch(Codegen_Context* ctx, AST* node) {

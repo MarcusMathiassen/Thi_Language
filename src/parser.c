@@ -796,17 +796,21 @@ AST* parse_postfix_tail(Parser_Context* ctx, AST* primary_expr) {
     DEBUG_START;
     // assert(primary_expr);
     for (;;) {
-        if (tok_is(ctx, TOKEN_AS)) {
+        switch(tokKind(ctx)) {
+        default: return primary_expr;
+        case TOKEN_PLUS_PLUS:
+            eat(ctx);
+            primary_expr = make_ast_post_inc(primary_expr->loc_info, primary_expr);
+            break;;
+        case TOKEN_AS:
             primary_expr = read_as(ctx, primary_expr);
-            continue;
-        } else if (tok_is(ctx, TOKEN_OPEN_BRACKET)) {
+            break;;
+        case TOKEN_OPEN_BRACKET: 
             primary_expr = read_subscript_expr(ctx, primary_expr);
-            continue;
-        } else if (tok_is(ctx, TOKEN_DOT)) {
+        case TOKEN_DOT:
             primary_expr = read_field_access(ctx, primary_expr);
-            continue;
+            break;
         }
-        return primary_expr;
     }
     UNREACHABLE;
     return NULL;

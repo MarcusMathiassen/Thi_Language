@@ -1,6 +1,10 @@
 
 i = 1
-k = i
-def main() s32
-    return k
+#k = i
 
+def main() s32
+    inc()
+    return i
+
+def inc()
+    ++i
