@@ -39,6 +39,8 @@ typedef double f64;
 
 typedef s8 bool;
 
+#define TASSERT_KIND_IN_RANGE(ENUM, kind) tassert(_ ##ENUM ##_NONE_ < kind && kind < _ ##ENUM ##_COUNT_, "kind = %d", kind)
+
 #define ERROR_UNHANDLED_KIND(str) error("[%s:%s:%d] Unhandled case '%s'", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color(str));
 #define UNREACHABLE error("[%s:%s:%d] %s", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color("UNREACHABLE"));
 #define UNFINISHED error("[%s:%s:%d] %s", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color("UNFINISHED"));

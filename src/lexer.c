@@ -654,9 +654,10 @@ end:
 }
 
 char* token_kind_to_str(Token_Kind kind) {
+    TASSERT_KIND_IN_RANGE(TOKEN, kind);
     // clang-format off
     switch (kind) {
-    default: ERROR_UNHANDLED_KIND(strf("%d", kind));
+    default: ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
     case TOKEN_UNKNOWN:           return "TOKEN_UNKNOWN";
     case TOKEN_EOF:               return "TOKEN_EOF";
     case TOKEN_COMMENT:           return "TOKEN_COMMENT";

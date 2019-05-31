@@ -99,7 +99,6 @@ Thi make_thi() {
     map_set(thi.all_passes_for_all_kinds, "AST_TYPEOF", make_list());
     map_set(thi.all_passes_for_all_kinds, "AST_SIZEOF", make_list());
     map_set(thi.all_passes_for_all_kinds, "AST_SWITCH", make_list());
-    map_set(thi.all_passes_for_all_kinds, "AST_COUNT", make_list());
 
     return thi;
 }
@@ -152,7 +151,6 @@ void thi_remove_all_passes(Thi* thi) {
     map_set(thi->all_passes_for_all_kinds, "AST_TYPEOF", make_list());
     map_set(thi->all_passes_for_all_kinds, "AST_SIZEOF", make_list());
     map_set(thi->all_passes_for_all_kinds, "AST_SWITCH", make_list());
-    map_set(thi->all_passes_for_all_kinds, "AST_COUNT", make_list());
 }
 
 void thi_install_pass(Thi* thi, PassDescriptor passDesc) {

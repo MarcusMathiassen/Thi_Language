@@ -47,6 +47,8 @@ typedef struct {
     AST* argument;
 } ClassifiedArgument;
 
+#define ERROR_UNHANDLED_CLASS_KIND(x) ERROR_UNHANDLED_KIND(class_kind_to_str(x))
+
 typedef struct
 {
     AST* current_function;

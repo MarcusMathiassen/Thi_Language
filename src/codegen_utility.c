@@ -144,7 +144,7 @@ void emit(Codegen_Context* ctx, char* fmt, ...) {
 void push_type(Codegen_Context* ctx, Type* type) {
     assert(type);
     switch (type->kind) {
-    default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
+    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_ARRAY: {
         // Push each element in the array
         s64 size = type->Array.size;
@@ -172,7 +172,7 @@ void push_type(Codegen_Context* ctx, Type* type) {
 void pop_type_2(Codegen_Context* ctx, Type* type) {
     assert(type);
     switch (type->kind) {
-    default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
+    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_ARRAY:   // fallthrough
     case TYPE_POINTER: // fallthrough
     case TYPE_STRUCT:  // fallthrough
@@ -185,7 +185,7 @@ void pop_type(Codegen_Context* ctx, Type* type) {
     assert(ctx);
     assert(type);
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND;
+    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_ARRAY: {
         // Push each element in the array
         s64 size = type->Array.size;
@@ -255,7 +255,7 @@ char* get_result_reg_2(Type* type) {
     s64 size = get_size_of_type(type);
     tassert(size >= 1 && size <= 8, "size = %d", size);
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND;
+    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
     // case TYPE_ARRAY:   // return get_reg(RCX);
     // case TYPE_STRUCT:  // fallthrough
     // case TYPE_ENUM:    // fallthrough
@@ -272,7 +272,7 @@ char* get_result_reg_of_size(Type* type, s8 size) {
     assert(type);
     tassert(size >= 1 && size <= 8, "size = %d", size);
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND;
+    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
     // case TYPE_ARRAY:   // return get_reg(RCX);
     // case TYPE_STRUCT:  // fallthrough
     // case TYPE_ENUM:    // fallthrough
@@ -290,7 +290,7 @@ char* get_result_reg(Type* type) {
     s64 size = get_size_of_type(type);
     tassert(size >= 1 && size <= 8, "size = %d", size);
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND;
+    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
     // case TYPE_ARRAY:   // return get_reg(RCX);
     // case TYPE_STRUCT:  // fallthrough
     // case TYPE_ENUM:    // fallthrough
@@ -322,7 +322,7 @@ char* get_move_op(Type* type) {
     s64 size = get_size_of_type(type);
     tassert(size >= 1 && size <= 8, "size = %d", size);
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND;
+    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
     // case TYPE_ARRAY:   // return "lea";
     // case TYPE_STRUCT:  // fallthrough
     // case TYPE_ENUM:    // fallthrough
@@ -448,12 +448,13 @@ void emit_cast_int_to_int(Codegen_Context* ctx, char* reg, Type* type) {
 }
 
 void emit_cast(Codegen_Context* ctx, Value* variable, Type* desired_type) {
+    assert(ctx);
     assert(variable);
     assert(desired_type);
     Type* type = variable->type;
     char* reg = get_result_reg(type);
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND;
+    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_INT: {
         if (desired_type->kind == TYPE_INT) {
             emit_cast_int_to_int(ctx, reg, desired_type);
@@ -468,6 +469,7 @@ void emit_cast(Codegen_Context* ctx, Value* variable, Type* desired_type) {
 }
 
 void emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg) {
+    assert(ctx);
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     tassert(reg >= 0 && reg <= TOTAL_REG_COUNT, "reg = %d", reg);
@@ -478,6 +480,7 @@ void emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg) {
 }
 
 void emit_store_deref(Codegen_Context* ctx, Value* variable) {
+    assert(ctx);
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     char* reg = get_result_reg_2(variable->type);
@@ -486,6 +489,7 @@ void emit_store_deref(Codegen_Context* ctx, Value* variable) {
 }
 
 void emit_store(Codegen_Context* ctx, Value* variable) {
+    assert(ctx);
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     s64 stack_pos = get_stack_pos_of_variable(variable);
@@ -495,6 +499,7 @@ void emit_store(Codegen_Context* ctx, Value* variable) {
 }
 
 void emit_load(Codegen_Context* ctx, Value* variable) {
+    assert(ctx);
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     s64 stack_pos = get_stack_pos_of_variable(variable);
@@ -504,64 +509,82 @@ void emit_load(Codegen_Context* ctx, Value* variable) {
 }
 
 void set_break_label(Codegen_Context* ctx, char* break_l) {
+    assert(ctx);
     ctx->obreak = ctx->lbreak;
     ctx->lbreak = break_l;
 }
 void restore_break_label(Codegen_Context* ctx) {
+    assert(ctx);
     ctx->lbreak = ctx->obreak;
 }
 
 void set_continue_label(Codegen_Context* ctx, char* continue_l) {
+    assert(ctx);
+    assert(continue_l);
     ctx->ocontinue = ctx->lcontinue;
     ctx->lcontinue = continue_l;
 }
 void restore_continue_label(Codegen_Context* ctx) {
+    assert(ctx);
     ctx->lcontinue = ctx->ocontinue;
 }
 
 void set_jump_labels(Codegen_Context* ctx, char* continue_l, char* break_l) {
+    assert(ctx);
     set_continue_label(ctx, continue_l);
     set_break_label(ctx, break_l);
 }
 
 void restore_jump_labels(Codegen_Context* ctx) {
+    assert(ctx);
     restore_continue_label(ctx);
     restore_break_label(ctx);
 }
 
 void set_temp_labels(Codegen_Context* ctx, char* l0, char* l1) {
+    assert(ctx);
+    assert(l0);
+    assert(l1);
     ctx->o0 = ctx->l0;
     ctx->o1 = ctx->l1;
     ctx->l0 = l0;
     ctx->l1 = l1;
 }
 void restore_temp_labels(Codegen_Context* ctx) {
+    assert(ctx);
     ctx->l0 = ctx->o0;
     ctx->l1 = ctx->o1;
 }
 char* make_text_label(Codegen_Context* ctx) {
+    assert(ctx);
     char* l = strf(".l%d", ctx->text_label_counter);
     ctx->text_label_counter += 1;
     return l;
 }
 
 char* make_data_label(Codegen_Context* ctx) {
+    assert(ctx);
     char* l = strf("d%d", ctx->data_label_counter);
     ctx->data_label_counter += 1;
     return l;
 }
 
 void reset_text_label_counter(Codegen_Context* ctx) {
+    assert(ctx);
     ctx->text_label_counter = 0;
 }
 void reset_stack(Codegen_Context* ctx) {
+    assert(ctx);
     ctx->stack_index = 0;
 }
 void set_current_function_expr(Codegen_Context* ctx, AST* func_expr) {
+    assert(ctx);
     ctx->current_function = func_expr;
 }
 
 char* emit_save_result(Codegen_Context* ctx, Value* value) {
+    assert(ctx);
+    assert(value);
     char* mov_op = get_move_op(value->type);
     char* reg = get_next_available_reg_fitting(ctx, value->type);
     char* result_reg = get_result_reg(value->type);
@@ -570,13 +593,14 @@ char* emit_save_result(Codegen_Context* ctx, Value* value) {
 }
 
 char* get_instr(Token_Kind op, Type* type) {
+    assert(type);
     char* inst = NULL;
     switch (type->kind) {
-    default: error("unhandled case: %s, %s", __func__, __LINE__);
+    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_INT: {
         bool usig = type->Int.is_unsigned;
         switch (op) {
-        default: error("unhandled case: %s, %s", __func__, __LINE__);
+        default: ERROR_UNHANDLED_TOKEN_KIND(op);
         case TOKEN_PLUS: inst = "add"; break;
         case TOKEN_MINUS: inst = "sub"; break;
         case TOKEN_ASTERISK: inst = "imul"; break;
@@ -585,8 +609,9 @@ char* get_instr(Token_Kind op, Type* type) {
     } break;
     case TYPE_FLOAT: {
         s64 size = get_size_of_type(type);
+        tassert(size == 4 || size == 8, "size = %d", size);
         switch (op) {
-        default: error("unhandled case: %s, %s", __func__, __LINE__);
+        default: ERROR_UNHANDLED_TOKEN_KIND(op);
         case TOKEN_PLUS: inst = (size == 8 ? "addsd" : "addss"); break;
         case TOKEN_MINUS: inst = (size == 8 ? "subsd" : "subss"); break;
         case TOKEN_ASTERISK: inst = (size == 8 ? "mulsd" : "mulss"); break;
@@ -782,18 +807,20 @@ List* classify_arguments(List* arguments) {
 }
 
 char* class_kind_to_str(Class_Kind kind) {
-    tassert(kind > _CLASS_NONE_ && kind < _CLASS_COUNT_, "class = %d", kind);
+    TASSERT_KIND_IN_RANGE(CLASS, kind);
+    // clang-format off
     switch (kind) {
-    default: ERROR_UNHANDLED_KIND(strf("%d", kind));
-    case CLASS_INTEGER: return "CLASS_INTEGER";
-    case CLASS_SSE: return "CLASS_SSE";
-    case CLASS_SSEUP: return "CLASS_SSEUP";
-    case CLASS_X87: return "CLASS_X87";
-    case CLASS_X87UP: return "CLASS_X87UP";
+    default: ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
+    case CLASS_INTEGER:     return "CLASS_INTEGER";
+    case CLASS_SSE:         return "CLASS_SSE";
+    case CLASS_SSEUP:       return "CLASS_SSEUP";
+    case CLASS_X87:         return "CLASS_X87";
+    case CLASS_X87UP:       return "CLASS_X87UP";
     case CLASS_COMPLEX_X87: return "CLASS_COMPLEX_X87";
-    case CLASS_NO_CLASS: return "CLASS_NO_CLASS";
-    case CLASS_MEMORY: return "CLASS_MEMORY";
+    case CLASS_NO_CLASS:    return "CLASS_NO_CLASS";
+    case CLASS_MEMORY:      return "CLASS_MEMORY";
     }
+    // clang-format on
     UNREACHABLE;
     return NULL;
 }
@@ -839,7 +866,7 @@ char* class_kind_to_str(Class_Kind kind) {
 Class_Kind classify(Type* type) {
     assert(type);
     switch (type->kind) {
-    default: ERROR_UNHANDLED_TYPE_KIND;
+    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_INT: // fallthrough
     case TYPE_POINTER: return CLASS_INTEGER;
     case TYPE_FLOAT: return CLASS_SSE;

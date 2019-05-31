@@ -226,7 +226,7 @@ void constant_fold_unary(AST* node) {
         s64 value = 0;
 
         switch (op) {
-        default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
+        default: ERROR_UNHANDLED_TOKEN_KIND(op);
         case TOKEN_BANG: value = !oper_v; break;
         case TOKEN_PLUS: value = oper_v; break;
         case TOKEN_TILDE: value = ~oper_v; break;
@@ -261,7 +261,7 @@ void constant_fold_binary(AST* node) {
         s64 value = 0;
 
         switch (op) {
-        default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
+        default: ERROR_UNHANDLED_TOKEN_KIND(op);
         case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
         case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
         case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
@@ -290,7 +290,7 @@ void constant_fold_binary(AST* node) {
         f64 value = 0.0;
 
         switch (op) {
-        default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
+        default: ERROR_UNHANDLED_TOKEN_KIND(op);
         case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
         case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
         case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
@@ -347,6 +347,8 @@ int main(int argc, char** argv) {
     // @Todo(marcus) do more robust argument handling
     // Argument validation
     if (argc < 2) error("too few arguments.");
+    
+    info("Compiler was last compiled: "__TIME__);
 
     utility_tests();
     string_tests();
@@ -593,6 +595,7 @@ int main(int argc, char** argv) {
         success("%s", give_unique_color(strf("%s:%*s%s", tm->desc, padding, "", ms)));
     }
     success("---------------------------");
+
 
     return 0;
 }

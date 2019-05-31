@@ -36,6 +36,7 @@ typedef enum {
 } BlockFlags;
 
 typedef enum {
+    _AST_NONE_,
     AST_COMMENT,
     AST_NOP,
     AST_SPACE_SEPARATED_IDENTIFIER_LIST,
@@ -76,7 +77,7 @@ typedef enum {
     AST_TYPEOF,
     AST_SIZEOF,
     AST_SWITCH,
-    AST_COUNT
+    _AST_COUNT_
 } AST_Kind;
 
 //------------------------------------------------------------------------------
@@ -321,7 +322,6 @@ void ast_tests(void);
 typedef void ast_callback(void*, AST*);
 void ast_visit(ast_callback* func, void* ctx, AST* node);
 void ast_replace(AST* a, AST* b);
-char* ast_to_json(AST* node);
 char* get_ast_name(AST* node);
 
 char* get_ast_loc_str(AST* node);
@@ -338,5 +338,8 @@ typedef struct {
 
 AST_Ref_List make_ast_ref_list(void);
 void ast_ref_list_append(AST_Ref_List* l, AST* a);
+
+#define ERROR_UNHANDLED_AST(x) ERROR_UNHANDLED_KIND(ast_to_str(x))
+#define ERROR_UNHANDLED_AST_KIND(x) ERROR_UNHANDLED_KIND(ast_kind_to_str(x))
 
 #endif

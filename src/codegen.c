@@ -73,7 +73,7 @@ Value* codegen_node(Codegen_Context* ctx, AST* node) {
     assert(ctx);
     if (!node) return NULL;
     switch (node->kind) {
-    default: ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
+    default: ERROR_UNHANDLED_AST_KIND(node->kind);
     case AST_MODULE:
         LIST_FOREACH(node->Module.top_level) {
             codegen_node(ctx, it->data);
@@ -146,7 +146,7 @@ Value* codegen_unary(Codegen_Context* ctx, AST* node) {
     Value* result = operand_val;
 
     switch (op) {
-    default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
+    default: ERROR_UNHANDLED_TOKEN_KIND(op);
     case TOKEN_PLUS_PLUS: {
         s64 size = 1;
         if (operand->type->kind == TYPE_POINTER)
@@ -177,7 +177,7 @@ Value* codegen_unary(Codegen_Context* ctx, AST* node) {
     case TOKEN_MINUS: {
         Type_Kind tk = operand->type->kind;
         switch (tk) {
-        default: ERROR_UNHANDLED_KIND(type_kind_to_str(tk));
+        default: ERROR_UNHANDLED_TYPE_KIND(tk);
         case TYPE_INT:
             emit(ctx, "neg %s", reg);
             break;
@@ -205,7 +205,7 @@ Value* codegen_binary(Codegen_Context* ctx, AST* node) {
     AST* rhs = node->Binary.rhs;
 
     switch (op) {
-    default: ERROR_UNHANDLED_KIND(token_kind_to_str(op));
+    default: ERROR_UNHANDLED_TOKEN_KIND(op);
     case THI_SYNTAX_ASSIGNMENT: {
 
         bool is_deref = false;
@@ -709,7 +709,7 @@ Value* codegen_return(Codegen_Context* ctx, AST* node) {
         s8 class_sse_counter = 0;
 
         switch (class) {
-        default: ERROR_UNHANDLED_KIND(class_kind_to_str(class));
+        default: ERROR_UNHANDLED_CLASS_KIND(class);
         // case CLASS_MEMORY: break;
         case CLASS_INTEGER: return_reg = get_return_reg_int(class_integer_counter++, size); break;
         case CLASS_SSE:
@@ -867,7 +867,7 @@ Value* codegen_call(Codegen_Context* ctx, AST* node) {
         s8 param_reg = -1;
 
         switch (class) {
-        default: ERROR_UNHANDLED_KIND(class_kind_to_str(class));
+        default: ERROR_UNHANDLED_CLASS_KIND(class);
         // case CLASS_MEMORY:          break;
         case CLASS_INTEGER: param_reg = get_parameter_reg_int(class_integer_counter++, 8); break;
         case CLASS_SSE:
@@ -946,7 +946,7 @@ Value* codegen_function(Codegen_Context* ctx, AST* node) {
         s8 param_reg = -1;
 
         switch (class) {
-        default: ERROR_UNHANDLED_KIND(strf("%d", class));
+        default: ERROR_UNHANDLED_CLASS_KIND(class);
         // case CLASS_MEMORY: break;
         case CLASS_INTEGER: param_reg = get_parameter_reg_int(class_integer_counter++, size); break;
         case CLASS_SSE:

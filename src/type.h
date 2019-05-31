@@ -135,7 +135,6 @@ char* get_type_name(Type* Type);
 
 char* type_to_str(Type* type);
 char* type_to_str_r(String_Context* ctx, Type* type);
-char* type_to_json(Type* type);
 char* type_kind_to_str(Type_Kind kind);
 void type_replace(Type* a, Type* b);
 
@@ -154,7 +153,7 @@ Type* make_type_var_args(void);
 s64 type_function_get_arg_count(Type* type);
 s64 type_array_get_count(Type* type);
 
-#define ERROR_UNHANDLED_TYPE ERROR_UNHANDLED_KIND(type_to_str(type->kind))
-#define ERROR_UNHANDLED_TYPE_KIND ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind))
+#define ERROR_UNHANDLED_TYPE(x) ERROR_UNHANDLED_KIND(type_to_str(x))
+#define ERROR_UNHANDLED_TYPE_KIND(x) ERROR_UNHANDLED_KIND(type_kind_to_str(x))
 
 #endif

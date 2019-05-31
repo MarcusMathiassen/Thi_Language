@@ -21,42 +21,41 @@
 #include "type.h"
 #include "constants.h" // TYPE_LIST_STARTING_ALLOC
 #include "string.h"    // strf, string_append, string
-#include "utility.h"   // error
-#include <assert.h>    // assert
-#include <string.h>    // strcmp
+#include "typedefs.h"
+#include "utility.h" // error
+#include <assert.h>  // assert
+#include <string.h>  // strcmp
 
 //------------------------------------------------------------------------------
 //                               type.c
 //------------------------------------------------------------------------------
 
 char* type_kind_to_str(Type_Kind kind) {
-
-    assert(kind < _TYPE_COUNT_);
+    TASSERT_KIND_IN_RANGE(TYPE, kind);
+    // clang-format off
     switch (kind) {
-    default: ERROR_UNHANDLED_KIND(strf("%d", kind));
+    default: ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
     case TYPE_UNRESOLVED: return "TYPE_UNRESOLVED";
-    case TYPE_VOID: return "TYPE_VOID";
-    case TYPE_INT: return "TYPE_INT";
-    case TYPE_FLOAT: return "TYPE_FLOAT";
-    case TYPE_STRING: return "TYPE_STRING";
-    case TYPE_POINTER: return "TYPE_POINTER";
-    case TYPE_ARRAY: return "TYPE_ARRAY";
-    case TYPE_ENUM: return "TYPE_ENUM";
-    case TYPE_STRUCT: return "TYPE_STRUCT";
-    case TYPE_FUNCTION: return "TYPE_FUNCTION";
-    case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
-    case _TYPE_COUNT_: return "_TYPE_COUNT_";
+    case TYPE_VOID:       return "TYPE_VOID";
+    case TYPE_INT:        return "TYPE_INT";
+    case TYPE_FLOAT:      return "TYPE_FLOAT";
+    case TYPE_STRING:     return "TYPE_STRING";
+    case TYPE_POINTER:    return "TYPE_POINTER";
+    case TYPE_ARRAY:      return "TYPE_ARRAY";
+    case TYPE_ENUM:       return "TYPE_ENUM";
+    case TYPE_STRUCT:     return "TYPE_STRUCT";
+    case TYPE_FUNCTION:   return "TYPE_FUNCTION";
+    case TYPE_VAR_ARGS:   return "TYPE_VAR_ARGS";
     }
-
+    // clang-format on
     UNREACHABLE;
     return NULL;
 }
 
 List* type_get_members(Type* type) {
     assert(type);
-
     switch (type->kind) {
-    default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
+    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_ENUM: return type->Enum.members;
     case TYPE_STRUCT: return type->Struct.members;
     }
@@ -87,13 +86,11 @@ Type* get_underlying_type_if_any(Type* type) {
 
 s64 get_size_of_underlying_type_if_any(Type* type) {
     assert(type);
-
     switch (type->kind) {
     default: return get_size_of_type(type);
     case TYPE_POINTER: return get_size_of_type(type->Pointer.pointee);
     case TYPE_ARRAY: return get_size_of_type(type->Array.type);
     }
-
     UNREACHABLE;
     return 0;
 }
@@ -109,7 +106,7 @@ bool is_same_type(Type* a, Type* b) {
 char* get_type_name(Type* type) {
     if (!type) return "---";
     switch (type->kind) {
-    default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
+    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_INT:   // fallthrough
     case TYPE_FLOAT: // fallthrough
     case TYPE_POINTER:
@@ -129,7 +126,7 @@ s64 get_size_of_type(Type* type) {
     assert(type);
 
     switch (type->kind) {
-    default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
+    default: ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_VAR_ARGS: return 0;
     case TYPE_UNRESOLVED: return 0;
     case TYPE_VOID: return 0;
@@ -206,8 +203,11 @@ char* type_to_str_r(String_Context* ctx, Type* type) {
         return string_data(s);
     }
 
+    Type_Kind kind = type->kind;
+    TASSERT_KIND_IN_RANGE(TYPE, kind);
+
     switch (type->kind) {
-    default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
+    default: ERROR_UNHANDLED_TYPE_KIND(kind);
     case TYPE_VAR_ARGS: {
         string_append(s, "...");
         break;
@@ -273,98 +273,6 @@ char* type_to_str_r(String_Context* ctx, Type* type) {
     }
     return string_data(s);
 }
-
-// char* type_to_json(Type* type) {
-//     // @Unfinished(marcus): This function will crash becuase of type_to_str.
-//     error("@Unfinished(marcus): This function will crash becuase of type_to_str.");
-//     if (!type) return "\"---\"";
-//     char* result = NULL;
-//     switch (type->kind) {
-//     default: ERROR_UNHANDLED_KIND(type_kind_to_str(type->kind));
-//     case TYPE_VAR_ARGS: return "TYPE_VAR_ARGS";
-//     case TYPE_VOID: return "void";
-//     case TYPE_UNRESOLVED: {
-//         result = strf("{\"%s\": {\"name\": \"%s\"}}",
-//                       type_kind_to_str(type->kind),
-//                       type->Unresolved.name);
-//     } break;
-//     case TYPE_ARRAY: {
-//         result = strf("{\"%s\": {\"type\": %s, \"size\": %d}}",
-//                       type_kind_to_str(type->kind),
-//                       type_to_json(type->Array.type),
-//                       type->Array.size);
-//     } break;
-//     case TYPE_INT: {
-//         result = strf("{\"%s\": {\"bytes\": %d, \"is_signed\":%s}}",
-//                       type_kind_to_str(type->kind),
-//                       type->Int.bytes,
-//                       type->Int.is_unsigned ? "true" : "false");
-//     } break;
-//     case TYPE_POINTER: {
-//         result =
-//             strf("{\"%s\": {\"pointee\": %s}}", type_kind_to_str(type->kind), type_to_json(type->Pointer.pointee));
-//     } break;
-//     case TYPE_FLOAT: {
-//         result = strf("{\"%s\": {\"bytes\": %d}}", type_kind_to_str(type->kind), type->Float.bytes);
-//     } break;
-//     case TYPE_STRING: {
-//         result = strf("{\"%s\": {\"len\": %d}}", type_kind_to_str(type->kind), type->String.len);
-//     } break;
-//     case TYPE_STRUCT: {
-//         return strf("{\"%s\": {\"name\": \"%s\"}}", type_kind_to_str(type->kind), type->Struct.name);
-//         string* str = string_create("");
-//         string_append_f(str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Struct.name);
-//         string_append(str, "\"args\": [");
-//         s64 arg_count = type->Struct.members->count;
-//         s64 counter   = 0;
-//         LIST_FOREACH(type->Struct.members) {
-//             string_append(str, ast_to_json(it->data));
-//             if (counter != arg_count - 1) string_append(str, ",");
-//             counter += 1;
-//         }
-//         string_append(str, "]}}");
-//         result = string_data(str);
-//     } break;
-
-//     case TYPE_ENUM: {
-//         return strf("{\"%s\": {\"name\": \"%s\"}}", type_kind_to_str(type->kind), type->Enum.name);
-//         string* str = string_create("");
-//         string_append_f(str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Enum.name);
-//         string_append(str, "\"args\": [");
-//         s64 arg_count = type->Enum.members->count;
-//         s64 counter   = 0;
-//         LIST_FOREACH(type->Enum.members) {
-//             string_append(str, ast_to_json(it->data));
-//             if (counter != arg_count - 1) string_append(str, ",");
-//             counter += 1;
-//         }
-//         string_append(str, "]}}");
-//         result = string_data(str);
-//     };
-
-//     case TYPE_FUNCTION: {
-//         string* str = string_create("");
-//         string_append_f(str, "{\"%s\": {\"name\": \"%s\", ", type_kind_to_str(type->kind), type->Enum.name);
-//         string_append(str, "\"args\": [");
-//         s64 arg_count = type->Function.parameters->count;
-//         s64 counter   = 0;
-//         LIST_FOREACH(type->Function.parameters) {
-//             string_append(str, ast_to_json(it->data));
-//             if (counter != arg_count - 1) string_append(str, ",");
-//             counter += 1;
-//         }
-//         // string_append(str, "]}}");
-//         // warning("BEGIN");
-//         // warning("%s", type_to_json(type->Function.ret_type));
-//         // warning("ED");
-//         string_append(str, strf("], \"ret_type\":%s}}", type_to_json(type->Function.return_type)));
-//         result = string_data(str);
-//     }
-//     }
-
-//     assert(result);
-//     return result;
-// }
 
 Type_Ref_List make_type_ref_list() {
     Type_Ref_List l;

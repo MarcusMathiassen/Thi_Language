@@ -57,12 +57,20 @@ void write_to_file(char* filename, char* buffer);
 //------------------------------------------------------------------------------
 //                               General Purpose
 //------------------------------------------------------------------------------
-void* _malloc(s64 bytes, char* file, int line);
-void* _calloc(s64 size, s64 bytes, char* file, int line);
-void* _realloc(void* ptr, s64 bytes, char* file, int line);
-#define xmalloc(n) _malloc(n, __FILE__, __LINE__)
-#define xrealloc(n, m) _realloc(n, m, __FILE__, __LINE__)
-#define xcalloc(n, m) _calloc(n, m, __FILE__, __LINE__)
+
+#ifdef NDEBUG
+#define xmalloc(bytes) malloc(bytes)
+#define xcalloc(size, bytes) calloc(size, bytes)
+#define xrealloc(ptr, bytes) realloc(ptr, bytes)
+#else
+#define xmalloc(bytes) (_malloc(bytes, __FILE__, (char*)__func__, __LINE__))
+#define xcalloc(size, bytes) (_calloc(size, bytes, __FILE__, (char*)__func__, __LINE__))
+#define xrealloc(ptr, bytes) (_realloc(ptr, bytes, __FILE__, (char*)__func__, __LINE__))
+#endif
+void* _malloc(s64 bytes, char* file, char* func, s64 line);
+void* _calloc(s64 size, s64 bytes, char* file, char* func, s64 line);
+void* _realloc(void* ptr, s64 bytes, char* file, char* func, s64 line);
+
 char* strf(char* fmt, ...);
 char* get_indentation_as_str(u64 indent_level);
 typedef struct {

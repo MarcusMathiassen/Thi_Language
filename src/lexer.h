@@ -28,6 +28,7 @@
 //------------------------------------------------------------------------------
 
 typedef enum {
+    _TOKEN_NONE_,
 
     TOKEN_UNKNOWN,
     TOKEN_EOF,
@@ -134,7 +135,7 @@ typedef enum {
     TOKEN_HASH,
     TOKEN_EQ,
     TOKEN_PIPE_GT,
-    __TOKEN_COUNT__
+    _TOKEN_COUNT_
 } Token_Kind;
 
 typedef struct
@@ -176,5 +177,8 @@ void lexer_test(void);
 #define THI_SYNTAX_CONSTANT_DEF TOKEN_COLON_COLON
 #define THI_SYNTAX_VARIABLE_DECL_TYPE_INF TOKEN_CLOSE_BRACE
 #define THI_SYNTAX_ASSIGNMENT TOKEN_EQ
+
+#define ERROR_UNHANDLED_TOKEN(token) ERROR_UNHANDLED_KIND(token_to_str(token))
+#define ERROR_UNHANDLED_TOKEN_KIND(kind) ERROR_UNHANDLED_KIND(token_kind_to_str(kind))
 
 #endif

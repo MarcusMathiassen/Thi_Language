@@ -261,34 +261,29 @@ char* get_file_content(char* filename) {
 //                               General Purpose
 //------------------------------------------------------------------------------
 
-void* _malloc(s64 bytes, char* file, s32 line) {
+void* _malloc(s64 bytes, char* file, char* func, s64 line) {
     assert(bytes != 0);
-    // info("malloc(%lld) called. file: %s line: %s", bytes, file, line);
     void* alloc = malloc(bytes);
-    if (!alloc)
-        error("malloc(%lld) failed. file: %s line: %s", bytes, file, line);
+    if (!alloc) error("[%s:%s:%lld] malloc(%lld) failed", file, func, line, bytes);
+    info("[%s:%s:%lld] malloc(%lld) called", file, func, line, bytes);
     return alloc;
 }
 
-void* _calloc(s64 size, s64 bytes, char* file, s32 line) {
+void* _calloc(s64 size, s64 bytes, char* file, char* func, s64 line) {
     assert(size != 0);
     assert(bytes != 0);
-    // info("calloc(%lld, %lld) called. file: %s line: %s", size, bytes, file,
-    // line);
     void* alloc = calloc(size, bytes);
-    if (!alloc)
-        error("calloc(%lld, %lld) failed. file: %s line: %s", size, bytes, file, line);
+    if (!alloc) error("[%s:%s:%lld] calloc(%lld, %lld) failed", file, func, line, size, bytes);
+    info("[%s:%s:%lld] calloc(%lld, %lld) called", file, func, line, size, bytes);
     return alloc;
 }
 
-void* _realloc(void* ptr, s64 bytes, char* file, s32 line) {
+void* _realloc(void* ptr, s64 bytes, char* file, char* func, s64 line) {
     assert(ptr);
     assert(bytes != 0);
-    // info("realloc(%lld, %lld) called. file: %s line: %s", (int)ptr, bytes,
-    // file, line);
     void* alloc = realloc(ptr, bytes);
-    if (!alloc)
-        error("realloc(%lld, %lld) failed. file: %s line: %s", ptr, bytes, file, line);
+    if (!alloc) error("[%s:%s:%lld] realloc(%lld, %llu) failed", file, func, line, (u64)ptr, bytes);
+    info("[%s:%s:%lld] realloc(%lld, %llu) called", file, func, line, (u64)ptr, bytes);
     return alloc;
 }
 
