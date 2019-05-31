@@ -534,19 +534,19 @@ int main(int argc, char** argv) {
     thi_run_pass(&thi, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);
 
     // Remove unused externs
-    // List* externs = ast_find_all_of_kind(AST_EXTERN, ast);
-    // List* calls = ast_find_all_of_kind(AST_CALL, ast);
-    // LIST_FOREACH(externs) {
-    //     AST* node_e = it->data;
-    //     bool used = false;
-    //     LIST_FOREACH(calls) {
-    //         AST* node_c = it->data;
-    //         if (strcmp(node_e->Extern.type->Function.name, node_c->Call.callee) == 0) {
-    //             used = true;
-    //         }
-    //     }
-    //     if (!used) ast_replace(node_e, make_ast_nop(node_e->loc_info));
-    // }
+    List* externs = ast_find_all_of_kind(AST_EXTERN, ast);
+    List* calls = ast_find_all_of_kind(AST_CALL, ast);
+    LIST_FOREACH(externs) {
+        AST* node_e = it->data;
+        bool used = false;
+        LIST_FOREACH(calls) {
+            AST* node_c = it->data;
+            if (strcmp(node_e->Extern.type->Function.name, node_c->Call.callee) == 0) {
+                used = true;
+            }
+        }
+        if (!used) ast_replace(node_e, make_ast_nop(node_e->loc_info));
+    }
 
     // char* json = ast_to_json(ast);
     // write_to_file("ast.json", json);
