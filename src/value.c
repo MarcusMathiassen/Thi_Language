@@ -38,12 +38,13 @@
 char* value_kind_to_str(Value_Kind kind) {
     TASSERT_KIND_IN_RANGE(VALUE, kind);
     switch (kind) {
-        ERROR_UNHANDLED_VALUE_KIND(kind);
+        ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
     case VALUE_INT: return "VALUE_INT";
     case VALUE_FLOAT: return "VALUE_FLOAT";
     case VALUE_POINTER: return "VALUE_POINTER";
     case VALUE_STRING: return "VALUE_STRING";
     case VALUE_VARIABLE: return "VALUE_VARIABLE";
+    case VALUE_GLOBAL_VARIABLE: return "VALUE_GLOBAL_VARIABLE";
     case VALUE_CALL: return "VALUE_CALL";
     case VALUE_FUNCTION: return "VALUE_FUNCTION";
     case VALUE_STRUCT: return "VALUE_STRUCT";
@@ -59,21 +60,84 @@ char* value_to_str(Value* value) {
     return NULL;
 }
 
+char* get_value_name(Value* value) {
+    assert(value);
+    Value_Kind kind = value->kind;
+    TASSERT_KIND_IN_RANGE(VALUE, kind);
+    switch (kind) {
+        ERROR_UNHANDLED_VALUE_KIND(kind);
+    // case VALUE_INT: return "VALUE_INT";
+    // case VALUE_FLOAT: return "VALUE_FLOAT";
+    // case VALUE_POINTER: return "VALUE_POINTER";
+    // case VALUE_STRING: return "VALUE_STRING";
+    case VALUE_VARIABLE: return value->Variable.name;
+    case VALUE_GLOBAL_VARIABLE: return value->Global_Variable.name;
+    case VALUE_CALL: return value->Call.callee;
+    case VALUE_FUNCTION:
+        return value->Function.name;
+        // case VALUE_STRUCT:
+        // case VALUE_LOAD_INST: return "VALUE_LOAD_INST";
+        // case VALUE_STORE_INST: return "VALUE_STORE_INST";
+    }
+    UNREACHABLE;
+    return NULL;
+}
+
+char* get_mem_loc(Value* value) {
+    assert(value);
+    Value_Kind kind = value->kind;
+    TASSERT_KIND_IN_RANGE(VALUE, kind);
+    switch (kind) {
+        ERROR_UNHANDLED_VALUE_KIND(kind);
+    // case VALUE_INT: return "VALUE_INT";
+    // case VALUE_FLOAT: return "VALUE_FLOAT";
+    // case VALUE_POINTER: return "VALUE_POINTER";
+    // case VALUE_STRING: return "VALUE_STRING";
+    case VALUE_VARIABLE: return strf("[rbp-%lld]", value->Variable.stack_pos);
+    case VALUE_GLOBAL_VARIABLE: return strf("[rel %s]", value->Global_Variable.label);
+        // case VALUE_CALL: return value->Call.callee;
+        // case VALUE_FUNCTION: return value->Function.name;
+        // case VALUE_STRUCT:
+        // case VALUE_LOAD_INST: return "VALUE_LOAD_INST";
+        // case VALUE_STORE_INST: return "VALUE_STORE_INST";
+    }
+    UNREACHABLE;
+    return NULL;
+}
+
+char* get_literal_value(Value* value) {
+    assert(value);
+    Value_Kind kind = value->kind;
+    TASSERT_KIND_IN_RANGE(VALUE, kind);
+    switch (kind) {
+    ERROR_UNHANDLED_VALUE_KIND(kind);
+    case VALUE_INT: return strf("%lld", value->Int.value);
+    case VALUE_FLOAT: return strf("%f", value->Float.value);
+    case VALUE_STRING: return strf("`%s`", value->String.value);
+    // case AST_ARRAY:
+    // case AST_CHAR:
+    }
+    UNREACHABLE;
+    return NULL;
+}
+
+
 s64 get_size_of_value(Value* value) {
     assert(value);
-    switch (value->kind) {
+    Value_Kind kind = value->kind;
+    TASSERT_KIND_IN_RANGE(VALUE, kind);
+    switch (kind) {
+        ERROR_UNHANDLED_VALUE_KIND(kind);
     case VALUE_FLOAT: return get_size_of_type(value->type);
     case VALUE_INT: return get_size_of_type(value->type);
     case VALUE_STRING: return value->String.len;
     case VALUE_VARIABLE: return get_size_of_type(value->type);
+    case VALUE_GLOBAL_VARIABLE: return get_size_of_type(value->type);
     case VALUE_FUNCTION: error("Asking for the size of a function? Why?");
     case VALUE_STRUCT: return get_size_of_type(value->type);
     case VALUE_CALL: return get_size_of_type(value->type);
-    case VALUE_LOAD_INST:
-        return get_size_of_type(value->LoadInst.variable->type);
-    case VALUE_STORE_INST:
-        return get_size_of_type(value->StoreInst.variable->type);
-    default: error("get_size_of_value: unhandled case %d", value->kind);
+    case VALUE_LOAD_INST: return get_size_of_type(value->LoadInst.variable->type);
+    case VALUE_STORE_INST: return get_size_of_type(value->StoreInst.variable->type);
     }
     return get_size_of_type(value->type);
 }
@@ -82,15 +146,14 @@ s64 get_size_of_value(Value* value) {
 //                               Value Maker Functions
 //------------------------------------------------------------------------------
 
-Value*
-make_value(Value_Kind kind) {
+Value* make_value(Value_Kind kind) {
     Value* v = xmalloc(sizeof(Value));
     v->kind = kind;
+    v->flags = 0;
     return v;
 }
 
-Value*
-make_value_load_inst(Value* variable, s64 offset) {
+Value* make_value_load_inst(Value* variable, s64 offset) {
     assert(variable);
     Value* v = make_value(VALUE_LOAD_INST);
     v->LoadInst.variable = variable;
@@ -99,8 +162,7 @@ make_value_load_inst(Value* variable, s64 offset) {
     return v;
 }
 
-Value*
-make_value_store_inst(Value* variable, s64 offset) {
+Value* make_value_store_inst(Value* variable, s64 offset) {
     assert(variable);
     Value* v = make_value(VALUE_STORE_INST);
     v->StoreInst.variable = variable;
@@ -109,8 +171,7 @@ make_value_store_inst(Value* variable, s64 offset) {
     return v;
 }
 
-Value*
-make_value_int(u8 bytes, Type* type, s64 value) {
+Value* make_value_int(u8 bytes, Type* type, s64 value) {
     assert(bytes > 0 && bytes < 9);
     assert(type);
     Value* v = make_value(VALUE_INT);
@@ -120,8 +181,7 @@ make_value_int(u8 bytes, Type* type, s64 value) {
     return v;
 }
 
-Value*
-make_value_float(Type* type, f64 value) {
+Value* make_value_float(Type* type, f64 value) {
     assert(type);
     Value* v = make_value(VALUE_FLOAT);
     v->type = type;
@@ -129,8 +189,7 @@ make_value_float(Type* type, f64 value) {
     return v;
 }
 
-Value*
-make_value_string(char* value, Type* type) {
+Value* make_value_string(char* value, Type* type) {
     assert(value);
     assert(type);
     Value* v = make_value(VALUE_STRING);
@@ -140,8 +199,7 @@ make_value_string(char* value, Type* type) {
     return v;
 }
 
-Value*
-make_value_variable(char* name, Type* type, s64 stack_pos) {
+Value* make_value_variable(char* name, Type* type, s64 stack_pos) {
     assert(name);
     assert(type);
     assert(stack_pos >= 0);
@@ -152,8 +210,18 @@ make_value_variable(char* name, Type* type, s64 stack_pos) {
     return v;
 }
 
-Value*
-make_value_call(char* callee, Type* type) {
+Value* make_value_global_variable(char* name, Type* type, char* label) {
+    assert(name);
+    assert(type);
+    assert(label);
+    Value* v = make_value(VALUE_GLOBAL_VARIABLE);
+    v->Global_Variable.name = name;
+    v->type = type;
+    v->Global_Variable.label = label;
+    return v;
+}
+
+Value* make_value_call(char* callee, Type* type) {
     assert(callee);
     assert(type);
     Value* v = make_value(VALUE_CALL);
@@ -161,6 +229,7 @@ make_value_call(char* callee, Type* type) {
     v->Call.callee = callee;
     return v;
 }
+
 Value* make_value_function(Type* type) {
     assert(type);
     assert(type->kind == TYPE_FUNCTION);
@@ -190,14 +259,4 @@ s64 get_stack_pos_of_variable(Value* variable) {
     case VALUE_VARIABLE: return variable->Variable.stack_pos;
     }
     return 0;
-}
-
-//------------------------------------------------------------------------------
-//                               Scope
-//------------------------------------------------------------------------------
-
-Scope* make_scope() {
-    Scope* s = xmalloc(sizeof(Scope));
-    s->local_variables = make_list();
-    return s;
 }

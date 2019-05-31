@@ -25,6 +25,7 @@
 #include "ast.h"    // AST
 #include "lexer.h"  // Token_Kind
 #include "stack.h"  // Stack
+#include "map.h"  // Map
 #include "string.h" // string
 #include "type.h"   // Type
 #include "value.h"  // Value
@@ -52,15 +53,26 @@ typedef struct {
 #define ERROR_UNHANDLED_CLASS_KIND(x) ERROR_UNHANDLED_KIND(class_kind_to_str(x))
 #endif
 
+typedef struct {
+    u64 stack_pos;
+    List* local_variables;
+} Scope;
+
 typedef struct
 {
+    AST* module;
+    Map* symbols;
+    Stack* scopes;
+
+    s64 stack_pos;
+
     AST* current_function;
     Type* expected_type;
-    Stack* scope_stack;
-    s64 stack_index;
+    
     string* section_text;
     string* section_data;
     string* section_extern;
+
     s64 text_label_counter;
     s64 data_label_counter;
 

@@ -36,6 +36,11 @@ typedef enum {
 } BlockFlags;
 
 typedef enum {
+    AST_FLAG_GLOBAL_VARIABLE = 1 << 0,
+    _AST_FLAG_COUNT_,
+} AST_Flag;
+
+typedef enum {
     AST_COMMENT,
     AST_NOP,
     AST_SPACE_SEPARATED_IDENTIFIER_LIST,
@@ -90,6 +95,7 @@ struct AST {
     Type* type;
     Loc_Info loc_info;
     List* edges;
+    u32 flags;
     union {
         struct
         {

@@ -36,15 +36,39 @@
 #include <stdlib.h>  // free
 #include <string.h>  // strcmp
 
+void push_scope(Codegen_Context* ctx) {
+    Scope* top = stack_peek(ctx->scopes);
+    Scope* s = xmalloc(sizeof(Scope));
+    s->stack_pos = top->stack_pos;
+    s->local_variables = make_list();
+    stack_push(ctx->scopes, s);
+}
+void pop_scope(Codegen_Context* ctx) {
+    Scope* s = stack_pop(ctx->scopes);
+    ctx->stack_pos = s->stack_pos;
+}
+static void add_variable_to_current_scope(Codegen_Context* ctx, Value* variable) {
+    info("Adding variable %s of %s to scope", get_value_name(variable), value_kind_to_str(variable->kind));
+    Scope* top = stack_peek(ctx->scopes);
+    top->stack_pos += get_size_of_value(variable);
+    list_append(top->local_variables, variable);
+}
+
 Codegen_Context make_codegen_context() {
     Codegen_Context ctx;
-    ctx.scope_stack = make_stack();
+    
+    ctx.scopes = make_stack();
+    Scope* s = xmalloc(sizeof(Scope));
+    s->stack_pos = 0;
+    s->local_variables = make_list();
+    stack_push(ctx.scopes,  s);
+
     ctx.current_function = NULL;
     ctx.expected_type = NULL;
     ctx.section_extern = string_create("");
     ctx.section_text = string_create("");
     ctx.section_data = string_create("");
-    ctx.stack_index = 0;
+    ctx.stack_pos = 0;
     ctx.text_label_counter = 0;
     ctx.data_label_counter = 0;
     ctx.ocontinue = NULL;
@@ -220,7 +244,7 @@ void push(Codegen_Context* ctx, int reg) {
     } else {
         emit(ctx, "push %s", r);
     }
-    ctx->stack_index += 8;
+    ctx->stack_pos += 8;
 }
 
 void pop(Codegen_Context* ctx, int reg) {
@@ -233,8 +257,8 @@ void pop(Codegen_Context* ctx, int reg) {
     } else {
         emit(ctx, "pop %s", r);
     }
-    ctx->stack_index -= 8;
-    assert(ctx->stack_index >= 0);
+    ctx->stack_pos -= 8;
+    assert(ctx->stack_pos >= 0);
 }
 
 char* get_op_size(s8 bytes) {
@@ -346,7 +370,7 @@ void alloc_variable(Codegen_Context* ctx, Value* variable) {
          variable->Variable.name,
          get_type_name(variable->type),
          size);
-    ctx->stack_index += size;
+    ctx->stack_pos += size;
 }
 
 void dealloc_variable(Codegen_Context* ctx, Value* variable) {
@@ -357,21 +381,8 @@ void dealloc_variable(Codegen_Context* ctx, Value* variable) {
          variable->Variable.name,
          get_type_name(variable->type),
          size);
-    ctx->stack_index -= size;
-    assert(ctx->stack_index >= 0);
-}
-
-void push_scope(Codegen_Context* ctx) {
-    Scope* new_scope = make_scope();
-    stack_push(ctx->scope_stack, new_scope);
-}
-
-void pop_scope(Codegen_Context* ctx) {
-    Scope* scope = (Scope*)stack_pop(ctx->scope_stack);
-    LIST_FOREACH(scope->local_variables) {
-        Value* v = (Value*)it->data;
-        dealloc_variable(ctx, v);
-    }
+    ctx->stack_pos -= size;
+    assert(ctx->stack_pos >= 0);
 }
 
 Value* get_variable_in_scope(Scope* scope, char* name) {
@@ -385,23 +396,41 @@ Value* get_variable_in_scope(Scope* scope, char* name) {
 }
 
 Value* get_variable(Codegen_Context* ctx, AST* ident) {
+    assert(ctx);
     assert(ident);
-    STACK_FOREACH(ctx->scope_stack) {
-        Scope* scope = (Scope*)it->data;
-        Value* res = get_variable_in_scope(scope, ident->Ident.name);
-        if (res) return res;
+    char* name = ident->Ident.name;
+    info("looking for %s", ucolor(name));
+    STACK_FOREACH(ctx->scopes) {
+        Scope* scope = it->data;
+
+        // @Debug(marcus): remove this later
+        // info_no_newline("..scope change. listing scope.. ");
+        // LIST_FOREACH_REVERSE(symbols) {
+        // AST* v = it->data;
+        // info_no_newline("%s ", ucolor(get_ast_name(v)));
+        // }
+
+        // info(".listing done.");
+        LIST_FOREACH_REVERSE(scope->local_variables) {
+            Value* v = it->data;
+            // info("..on %s", ucolor(get_ast_name(v)));
+            if (get_value_name(v) == name) {
+                return v;
+            }
+        }
     }
-    error("no variable with name '%s'", ident->Ident.name);
+    error("no variable with name '%s'", name);
+    UNREACHABLE;
     return NULL;
 }
 
 void add_variable(Codegen_Context* ctx, Value* variable) {
     assert(variable);
-    assert(variable->kind == VALUE_VARIABLE);
-    alloc_variable(ctx, variable);
-    info("Adding variable: '%s' to scope", variable->Variable.name);
-    Scope* top = (Scope*)stack_peek(ctx->scope_stack);
-    list_append(top->local_variables, variable);
+    assert(variable->kind == VALUE_VARIABLE || variable->kind == VALUE_GLOBAL_VARIABLE);
+    if (variable->kind != VALUE_GLOBAL_VARIABLE) {
+        alloc_variable(ctx, variable);
+    }
+    add_variable_to_current_scope(ctx, variable);
 }
 
 int align(int n, s32 m) {
@@ -491,21 +520,21 @@ void emit_store_deref(Codegen_Context* ctx, Value* variable) {
 void emit_store(Codegen_Context* ctx, Value* variable) {
     assert(ctx);
     assert(variable);
-    assert(variable->kind == VALUE_VARIABLE);
-    s64 stack_pos = get_stack_pos_of_variable(variable);
+    assert(variable->kind == VALUE_VARIABLE || variable->kind == VALUE_GLOBAL_VARIABLE);
+    char* mem = get_mem_loc(variable);
     char* reg = get_result_reg_2(variable->type);
     char* mov_op = get_move_op(variable->type);
-    emit(ctx, "%s [rbp-%lld], %s; store %s", mov_op, stack_pos, reg, (variable->Variable.name));
+    emit(ctx, "%s %s, %s; store %s", mov_op, mem, reg, get_value_name(variable));
 }
 
 void emit_load(Codegen_Context* ctx, Value* variable) {
     assert(ctx);
     assert(variable);
-    assert(variable->kind == VALUE_VARIABLE);
-    s64 stack_pos = get_stack_pos_of_variable(variable);
+    assert(variable->kind == VALUE_VARIABLE || variable->kind == VALUE_GLOBAL_VARIABLE);
+    char* mem = get_mem_loc(variable);
     char* reg = get_result_reg(variable->type);
     char* mov_op = get_move_op(variable->type);
-    emit(ctx, "%s %s, [rbp-%lld]; load %s", mov_op, reg, stack_pos, variable->Variable.name);
+    emit(ctx, "%s %s, %s; load %s", mov_op, reg, mem, get_value_name(variable));
 }
 
 void set_break_label(Codegen_Context* ctx, char* break_l) {
@@ -575,7 +604,7 @@ void reset_text_label_counter(Codegen_Context* ctx) {
 }
 void reset_stack(Codegen_Context* ctx) {
     assert(ctx);
-    ctx->stack_index = 0;
+    ctx->stack_pos = 0;
 }
 void set_current_function_expr(Codegen_Context* ctx, AST* func_expr) {
     assert(ctx);
@@ -739,7 +768,7 @@ void emit_push(Codegen_Context* ctx, s8 reg) {
     } else {
         emit(ctx, "push %s", r);
     }
-    ctx->stack_index += 8;
+    ctx->stack_pos += 8;
 }
 
 void emit_pop(Codegen_Context* ctx, s8 reg) {
@@ -752,8 +781,8 @@ void emit_pop(Codegen_Context* ctx, s8 reg) {
     } else {
         emit(ctx, "pop %s", r);
     }
-    ctx->stack_index -= 8;
-    assert(ctx->stack_index >= 0);
+    ctx->stack_pos -= 8;
+    assert(ctx->stack_pos >= 0);
 }
 
 bool is_reg8(s8 reg) {

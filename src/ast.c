@@ -621,6 +621,7 @@ AST* make_ast(AST_Kind kind, Loc_Info loc_info) {
     e->loc_info = loc_info;
     e->type = NULL;
     e->edges = make_list();
+    e->flags = 0;
     return e;
 }
 

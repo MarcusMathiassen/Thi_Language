@@ -34,6 +34,7 @@ typedef enum {
     VALUE_POINTER,
     VALUE_STRING,
     VALUE_VARIABLE,
+    VALUE_GLOBAL_VARIABLE,
     VALUE_CALL,
     VALUE_FUNCTION,
     VALUE_STRUCT,
@@ -46,15 +47,26 @@ typedef enum {
 //                          Value Structures
 //------------------------------------------------------------------------------
 
+typedef enum {
+    VALUE_FLAG_GLOBAL_VARIABLE = 1 << 0,
+    _VALUE_FLAG_COUNT_,
+} Value_Flag;
+
 struct Value {
     Value_Kind kind;
     Type* type;
+    u32 flags;
     union {
         struct
         {
             char* name;
             s64 stack_pos;
         } Variable;
+        struct
+        {
+            char* name;
+            char* label;
+        } Global_Variable;
         struct
         {
             char* name;
@@ -96,25 +108,20 @@ struct Value {
 
 char* value_to_str(Value* value);
 char* value_kind_to_str(Value_Kind kind);
+char* get_value_name(Value* value);
+char* get_mem_loc(Value* value);
+char* get_literal_value(Value* value);
 
-Value*
-make_value_load_inst(Value* variable, s64 offset);
-Value*
-make_value_store_inst(Value* variable, s64 offset);
-Value*
-make_value_int(u8 bytes, Type* type, s64 value);
-Value*
-make_value_float(Type* type, f64 value);
-Value*
-make_value_string(char* value, Type* type);
-Value*
-make_value_variable(char* name, Type* type, s64 stack_pos);
-Value*
-make_value_call(char* callee, Type* type);
-Value*
-make_value_function(Type* type);
-Value*
-make_value_struct(Type* type);
+Value* make_value_load_inst(Value* variable, s64 offset);
+Value* make_value_store_inst(Value* variable, s64 offset);
+Value* make_value_int(u8 bytes, Type* type, s64 value);
+Value* make_value_float(Type* type, f64 value);
+Value* make_value_string(char* value, Type* type);
+Value* make_value_variable(char* name, Type* type, s64 stack_pos);
+Value* make_value_global_variable(char* name, Type* type, char* label);
+Value* make_value_call(char* callee, Type* type);
+Value* make_value_function(Type* type);
+Value* make_value_struct(Type* type);
 
 s64 get_size_of_value(Value* value);
 s64 get_stack_pos_of_variable(Value* variable);
@@ -126,15 +133,5 @@ s64 get_stack_pos_of_variable(Value* variable);
 #define ERROR_UNHANDLED_VALUE(x) ERROR_UNHANDLED_KIND(value_to_str(x))
 #define ERROR_UNHANDLED_VALUE_KIND(x) ERROR_UNHANDLED_KIND(value_kind_to_str(x))
 #endif
-
-//------------------------------------------------------------------------------
-//                               Scope
-//------------------------------------------------------------------------------
-typedef struct
-{
-    List* local_variables;
-} Scope;
-Scope*
-make_scope(void);
 
 #endif

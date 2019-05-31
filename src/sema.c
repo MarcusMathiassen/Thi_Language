@@ -78,9 +78,10 @@ static AST* get_symbol_in_scope(Sema_Context* ctx, char* name) {
 
 #define SCOPE_START stack_push(ctx->scopes, make_list())
 #define SCOPE_END stack_pop(ctx->scopes)
+#define SCOPE_ADD(x) list_append(stack_peek(ctx->scopes), x)
 
 void add_node_to_scope(Sema_Context* ctx, AST* node) {
-    list_append(stack_peek(ctx->scopes), node);
+    SCOPE_ADD(node);
     info("added %s to scope.", ucolor(get_ast_name(node)));
 }
 
@@ -94,6 +95,14 @@ void add_all_decls_in_module(Sema_Context* ctx, AST* node) {
         case AST_LOAD:
             add_all_decls_in_module(ctx, decl->Load.module);
             break;
+        case AST_BINARY: {
+            sema_check_node(ctx, decl);
+            if (decl->kind != AST_VARIABLE_DECL) {
+                error("[%s:%s] illegal top level construct %s", get_ast_name(ctx->module), get_ast_loc_str(decl), ucolor(ast_to_str(decl)));
+            }
+            decl->flags |= AST_FLAG_GLOBAL_VARIABLE;
+            // fallthrough
+        }
         case AST_EXTERN:        // fallthrough
         case AST_FUNCTION:      // fallthrough
         case AST_CONSTANT_DECL: // fallthrough

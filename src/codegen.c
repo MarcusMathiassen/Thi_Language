@@ -493,16 +493,26 @@ Value* codegen_variable_decl(Codegen_Context* ctx, AST* node) {
     char* name = node->Variable_Decl.name;
     Type* type = node->type;
     AST* assignment_expr = node->Variable_Decl.value;
+    bool is_global = node->flags & AST_FLAG_GLOBAL_VARIABLE;
+    Value* variable = NULL;
 
-    s64 type_size = get_size_of_type(type);
-    s64 stack_pos = type_size + ctx->stack_index;
+    // Set the label for it..
+    if (is_global) {
+        char* label = make_data_label(ctx);
+        char* db_op = get_db_op(type);
+        char* initial_value = assignment_expr ? get_literal_value(codegen_node(ctx, assignment_expr)) : "0";
+        emit_data(ctx, "%s: %s %s", label, db_op, initial_value);
+        variable = make_value_global_variable(name, type, label);
+    } else {
+        s64 type_size = get_size_of_type(type);
+        s64 stack_pos = type_size + ctx->stack_pos;
+        info("name: %s stack_pos: %d type_size: %d", name, stack_pos, type_size);
+        variable = make_value_variable(name, type, stack_pos);
+    }
 
-    info("name: %s stack_pos: %d type_size: %d", name, stack_pos, type_size);
-
-    Value* variable = make_value_variable(name, type, stack_pos);
     add_variable(ctx, variable);
 
-    if (assignment_expr) {
+    if (assignment_expr && !is_global) {
         codegen_node(ctx, make_ast_binary(node->loc_info, TOKEN_EQ, make_ast_ident(node->loc_info, name), assignment_expr));
     }
 
