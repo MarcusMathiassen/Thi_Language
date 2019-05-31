@@ -31,6 +31,11 @@ def main(argc s32, argv u8**) s32
 
     len = strlen(argv[1])
     printf("strlen(%s) = %d\n", argv[1], len)
+    printf("strlen(%s) = %d\n", argv[1], len)
+    printf("strlen(%s) = %d\n", argv[1], len)
+    printf("strlen(%s) = %d\n", argv[1], len)
+    printf("strlen(%s) = %d\n", argv[1], len)
+    printf("strlen(%s) = %d\n", argv[1], len)
 
     #v v2
     #v.x = 53.35

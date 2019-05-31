@@ -588,10 +588,8 @@ AST_Ref_List make_ast_ref_list() {
 }
 
 void ast_ref_list_append(AST_Ref_List* l, AST* a) {
-    if (l->count == l->allocated) {
-        l->allocated *= PHI;
-        l->data = xrealloc(l->data, l->allocated * sizeof(AST*));
-    }
+    if (l->count == l->allocated) 
+        l->data = xrealloc(l->data, (l->allocated *= PHI) * sizeof(a));
     l->data[l->count++] = a;
 }
 

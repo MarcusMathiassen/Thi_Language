@@ -104,6 +104,14 @@ void resolve_field_access(void* dont_care, AST* node) {
     ast_replace(node, load);
 }
 
+void resolve_constant_decls(void* dont_care, AST* node) {
+    AST* decl = node;
+
+    if (decl->Constant_Decl.value->kind == AST_IDENT) {
+        // it must be another constant decl.
+    }
+}
+
 void pass_initilize_enums(void* thi, AST* node) {
     switch (node->kind) {
     default: break;
@@ -236,6 +244,16 @@ void constant_fold_unary(AST* node) {
         ast_replace(node, operand);
     }
 }
+
+bool expr_is_0(AST* expr) {
+    if ((expr->kind == AST_INT && expr->Int.val == 0) || 
+        (expr->kind == AST_FLOAT && expr->Float.val == 0.0)) {
+        return true;
+    }
+    return false;
+}
+
+
 void constant_fold_binary(AST* node) {
     Token_Kind op = node->Binary.op;
     AST* lhs = node->Binary.lhs;
@@ -243,14 +261,25 @@ void constant_fold_binary(AST* node) {
     if (lhs->kind == AST_GROUPING) lhs = lhs->Grouping.node;
     if (rhs->kind == AST_GROUPING) rhs = rhs->Grouping.node;
 
-    // Remove any + or - where lhs or rhs is 0.
+    // Remove lhs or rhs of expressions with + or - with 0 on either side
     if (op == TOKEN_MINUS || op == TOKEN_PLUS) {
-        if ((lhs->kind == AST_INT && lhs->Int.val == 0) || (lhs->kind == AST_FLOAT && lhs->Float.val == 0.0)) {
+        if (expr_is_0(lhs)) {
             ast_replace(node, rhs);
             return;
-        } else if ((rhs->kind == AST_INT && rhs->Int.val == 0) || (rhs->kind == AST_FLOAT && rhs->Float.val == 0.0)) {
+        } else if (expr_is_0(rhs)) {
             ast_replace(node, lhs);
             return;
+        }
+    }
+
+    // Totally remove expressions where either lhs or rhs is 0 in multiplication
+    bool lhs_is_0 = false; // used to skip recalc
+    if ((lhs_is_0 = expr_is_0(lhs)) || expr_is_0(rhs)) {
+        if (op == TOKEN_ASTERISK) { 
+            ast_replace(node, lhs_is_0 ? lhs : rhs);
+            return; 
+        } else if (op == TOKEN_FWSLASH) {
+            error("[%d:%d] divide by 0", node->loc_info.line_pos, node->loc_info.col_pos);
         }
     }
 
@@ -259,27 +288,29 @@ void constant_fold_binary(AST* node) {
         s64 rhs_v = rhs->Int.val;
         s64 value = 0;
 
+        // clang-format off
         switch (op) {
-            ERROR_UNHANDLED_TOKEN_KIND(op);
-        case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
-        case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
-        case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
-        case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
-        case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
-        case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
-        case TOKEN_AND: value = (lhs_v & rhs_v); break;
-        case TOKEN_PIPE: value = (lhs_v | rhs_v); break;
-        case TOKEN_LT: value = (lhs_v < rhs_v); break;
-        case TOKEN_GT: value = (lhs_v > rhs_v); break;
-        case TOKEN_GT_GT: value = (lhs_v >> rhs_v); break;
-        case TOKEN_LT_LT: value = (lhs_v << rhs_v); break;
-        case TOKEN_PERCENT: value = (lhs_v % rhs_v); break;
-        case TOKEN_HAT: value = (lhs_v ^ rhs_v); break;
-        case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
-        case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
+        ERROR_UNHANDLED_TOKEN_KIND(op);
+        case TOKEN_EQ_EQ:         value = (lhs_v == rhs_v); break;
+        case TOKEN_BANG_EQ:       value = (lhs_v != rhs_v); break;
+        case TOKEN_PLUS:          value = (lhs_v + rhs_v);  break;
+        case TOKEN_MINUS:         value = (lhs_v - rhs_v);  break;
+        case TOKEN_ASTERISK:      value = (lhs_v * rhs_v);  break;
+        case TOKEN_FWSLASH:       value = (lhs_v / rhs_v);  break;
+        case TOKEN_AND:           value = (lhs_v & rhs_v);  break;
+        case TOKEN_PIPE:          value = (lhs_v | rhs_v);  break;
+        case TOKEN_LT:            value = (lhs_v < rhs_v);  break;
+        case TOKEN_GT:            value = (lhs_v > rhs_v);  break;
+        case TOKEN_GT_GT:         value = (lhs_v >> rhs_v); break;
+        case TOKEN_LT_LT:         value = (lhs_v << rhs_v); break;
+        case TOKEN_PERCENT:       value = (lhs_v % rhs_v);  break;
+        case TOKEN_HAT:           value = (lhs_v ^ rhs_v);  break;
+        case TOKEN_AND_AND:       value = (lhs_v && rhs_v); break;
+        case TOKEN_PIPE_PIPE:     value = (lhs_v || rhs_v); break;
         case TOKEN_QUESTION_MARK: return;
-        case TOKEN_COLON: return;
+        case TOKEN_COLON:         return;
         }
+        // clang-format on
 
         lhs->Int.val = value;
         ast_replace(node, lhs);
@@ -288,19 +319,21 @@ void constant_fold_binary(AST* node) {
         f64 rhs_v = rhs->Float.val;
         f64 value = 0.0;
 
+        // clang-format off
         switch (op) {
-            ERROR_UNHANDLED_TOKEN_KIND(op);
-        case TOKEN_EQ_EQ: value = (lhs_v == rhs_v); break;
-        case TOKEN_BANG_EQ: value = (lhs_v != rhs_v); break;
-        case TOKEN_PLUS: value = (lhs_v + rhs_v); break;
-        case TOKEN_MINUS: value = (lhs_v - rhs_v); break;
-        case TOKEN_ASTERISK: value = (lhs_v * rhs_v); break;
-        case TOKEN_FWSLASH: value = (lhs_v / rhs_v); break;
-        case TOKEN_LT: value = (lhs_v < rhs_v); break;
-        case TOKEN_GT: value = (lhs_v > rhs_v); break;
-        case TOKEN_AND_AND: value = (lhs_v && rhs_v); break;
+        ERROR_UNHANDLED_TOKEN_KIND(op);
+        case TOKEN_EQ_EQ:     value = (lhs_v == rhs_v); break;
+        case TOKEN_BANG_EQ:   value = (lhs_v != rhs_v); break;
+        case TOKEN_PLUS:      value = (lhs_v + rhs_v);  break;
+        case TOKEN_MINUS:     value = (lhs_v - rhs_v);  break;
+        case TOKEN_ASTERISK:  value = (lhs_v * rhs_v);  break;
+        case TOKEN_FWSLASH:   value = (lhs_v / rhs_v);  break;
+        case TOKEN_LT:        value = (lhs_v < rhs_v);  break;
+        case TOKEN_GT:        value = (lhs_v > rhs_v);  break;
+        case TOKEN_AND_AND:   value = (lhs_v && rhs_v); break;
         case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
         }
+        // clang-format on
 
         lhs->Float.val = value;
         ast_replace(node, lhs);
@@ -499,11 +532,11 @@ int main(int argc, char** argv) {
     // typechecking pass
     type_checker(thi.symbol_map, ast);
 
-    // Sanity check.. Make sure the typer did what it was supposed to do.
-    thi_run_pass(&thi, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);
 
     // Write Unoptimized AST out
+#ifdef NDEBUG
     write_to_file("output.thi", ast_to_source(ast));
+#endif
 
     //
     // Optimization Pass:
@@ -518,14 +551,16 @@ int main(int argc, char** argv) {
         AST* ident = it->data;
         LIST_FOREACH(constant_decls) {
             AST* const_decl = it->data;
-            if (strcmp(ident->Ident.name, const_decl->Constant_Decl.name) ==
-                0) {
+            if (get_ast_name(ident) == get_ast_name(const_decl)) {
                 ast_replace(ident, const_decl->Constant_Decl.value);
                 ident->type = const_decl->type;
                 break;
             }
         }
     }
+
+    // Sanity check.. Make sure the typer did what it was supposed to do.
+    thi_run_pass(&thi, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);
 
     //  Optimization passes
     thi_run_pass(&thi, "constant_fold", constant_fold, NULL);

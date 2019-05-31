@@ -14,8 +14,9 @@ fi
 
 if [ $? == 0 ]; then
     # ./test.bash
+    # ./test.bash ./ tests/test_window.thi
     ./test.bash ./ tests/test_basic_setup.thi
 fi
 
 #if debug
-rm ./thi
+# rm ./thi
