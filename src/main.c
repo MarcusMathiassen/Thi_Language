@@ -406,7 +406,7 @@ int main(int argc, char** argv) {
     info("exec_name: %s", exec_name);
 
     // Make sure it's actually a .thi file
-    if (strcmp(ext, "thi") != 0) {
+    if (strcmp(ext, ".thi") != 0) {
         error("thats not a thi file...");
     }
 

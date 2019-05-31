@@ -39,7 +39,6 @@ void error_no_newline(char* fmt, ...);
 //------------------------------------------------------------------------------
 //                               File Functions
 //------------------------------------------------------------------------------
-char* get_file_path_from_directory(char* dir, char* filename);
 char* get_file_extension(char* filename);
 char* remove_file_extension(char* filename);
 char* get_file_directory(char* filename);

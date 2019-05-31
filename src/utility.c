@@ -121,79 +121,93 @@ void error_no_newline(char* fmt, ...) {
 //                               File Utility Functions
 //------------------------------------------------------------------------------
 
-char* get_file_path_from_directory(char* dir, char* filename) {
-    assert(dir);
-    assert(filename);
-    u8 strbuf[1000];
-    s64 d_len = strlen(dir);
-    s64 f_len = strlen(filename);
-    s64 len = d_len + f_len;
-    assert(len < 1000);
-    memcpy(strbuf, dir, d_len);              // copy dir into strbuf
-    memcpy(strbuf + d_len, filename, f_len); // append filename
-    char* str = xmalloc(len + 1);
-    memcpy(str, strbuf, len);
-    str[len] = 0;
-    return str;
-}
+#define DEBUG_PRINT_ENTRY info_no_newline("%s: %s", __func__, filename);
+#define DEBUG_PRINT_NONE_FOUND info(" -> NONE FOUND.");
+#define DEBUG_PRINT_EXIT info(" -> %s", str);
 
 char* get_file_extension(char* filename) {
     assert(filename);
+    DEBUG_PRINT_ENTRY;
     s64 len = strlen(filename);
     s64 i = 0;
-    while (filename[len - (i)] != '.' && i < len) {
+    // myfile.txt => txt
+    // start from the back..
+    // ./myfile.txt => txt ..
+    s64 last_dot_pos = 0;
+    // Find the position of the last dot from starting from the back
+    while (len - i > 0) {
+        if (filename[len - i] == '.') last_dot_pos = len - i;
         ++i;
-        continue;
     }
-    if (i == len) return NULL; // we didnt find any
-    ++len; // skip the '.'
-    char* str = xmalloc(i + 1);
-    memcpy(str, filename + len - i, i);
+    if (last_dot_pos == 0) { // dot files are not seen as extensions
+        DEBUG_PRINT_NONE_FOUND;
+        return NULL; // we didnt find any
+    }
+    s64 start_of_ext = len - last_dot_pos ;
+    char* str = xmalloc(start_of_ext + 1);
+    memcpy(str, filename + len - start_of_ext, start_of_ext);
     str[i] = 0;
+    DEBUG_PRINT_EXIT;
     return str;
 }
 
 char* remove_file_extension(char* filename) {
     assert(filename);
+    DEBUG_PRINT_ENTRY;
     s64 len = strlen(filename);
     s64 i = 0;
-    while (filename[len - (i)] != '.' || i < len) {
+    while (i < len) {
+        if (filename[len - (i)] == '.') break;
         ++i;
-        continue;
     }
-    if (i == len) return NULL;  // we didnt find any
+    if (i == 0 || i == len) {
+        DEBUG_PRINT_NONE_FOUND;
+        return NULL; // we didnt find any
+    }
     char* str = xmalloc(len - i + 1);
     memcpy(str, filename, len - i);
     str[len - i] = 0;
+    DEBUG_PRINT_EXIT;
     return str;
 }
 
 char* get_file_directory(char* filename) {
     assert(filename);
+    DEBUG_PRINT_ENTRY;
     s64 len = strlen(filename);
-    while (filename[len] != '/' || len > 0) {
+    while (len > 0) {
+        if (filename[len] == '/') break;
         --len;
-        continue;
     }
-    if (len == 0) return NULL; // we didnt find any
-    ++len; // we preserve the '/'
+    if (len == 0) {
+        DEBUG_PRINT_NONE_FOUND;
+        return NULL; // we didnt find any
+    }
+    ++len;                     // we preserve the '/'
     char* str = xmalloc(len + 1);
     memcpy(str, filename, len);
     str[len] = 0;
+    DEBUG_PRINT_EXIT;
     return str;
 }
+
 char* get_file_name(char* filename) {
     assert(filename);
+    DEBUG_PRINT_ENTRY;
     s64 len = strlen(filename);
-    s64 i = 0;
-    while (filename[len - (i)] != '/' || i < len) {
+    s64 i = 1;
+    while (i < len) {
+        if (filename[len - i] == '/') break;
         ++i;
-        continue;
     }
-    ++len; // skip the '/'
+    if (i == 1) {
+        DEBUG_PRINT_NONE_FOUND;
+        return NULL; // we didnt find any
+    }
     char* str = xmalloc(i + 1);
-    memcpy(str, filename + len - i, i);
+    memcpy(str, filename + len + 1 - i, i); // +1 skips the '/'
     str[i] = 0;
+    DEBUG_PRINT_EXIT;
     return str;
 }
 void write_to_file(char* filename, char* buffer) {
@@ -400,21 +414,24 @@ void utility_tests(void) {
 
     // get_file_directory
     assert(strcmp(get_file_directory("./b/m.thi"), "./b/") == 0);
+    assert(get_file_directory("m.thi") == NULL);
     assert(strcmp(get_file_directory("./b/m/m.thi"), "./b/m/") == 0);
 
     // get_file_extension
-    assert(strcmp(get_file_extension("./b/m.thi"), "thi") == 0);
+    assert(strcmp(get_file_extension("./b/m.thi"), ".thi") == 0);
+    assert(strcmp(get_file_extension(".rcx.txt"), ".txt") == 0);
     assert(get_file_extension("fefem") == NULL);
-    assert(strcmp(get_file_extension("./b/m.thigegerg/o.hrifj"), "hrifj") == 0);
+    assert(strcmp(get_file_extension("./b/mthigegerg/o.hrifj"), ".hrifj") == 0);
+
+
+    // remove_file_extension
+    assert(strcmp(remove_file_extension("./b/m.thi"), "./b/m") == 0);
+    assert(strcmp(remove_file_extension(".rcx.txt"), ".rcx") == 0);
+    assert(remove_file_extension("fefem") == NULL);
+    assert(strcmp(remove_file_extension("./b/mthigegerg/o.hrifj"), "./b/mthigegerg/o") == 0);
 
     // get_file_name
     assert(strcmp(get_file_name("./b/m.thi"), "m.thi") == 0);
-    assert(strcmp(get_file_name("./b/m/hergergerg.thi"), "hergergerg.thi") ==
-           0);
-
-    // get_file_path_from_directory
-    assert(strcmp(get_file_path_from_directory("./b/", "test.thi"),
-                  "./b/test.thi") == 0);
-    assert(strcmp(get_file_path_from_directory("./b/b/", "test.thi"),
-                  "./b/b/test.thi") == 0);
+    assert(strcmp(get_file_name("./b/m/hergergerg.thi"), "hergergerg.thi") == 0);
+    assert(get_file_name("./b/m/") == NULL);
 }
