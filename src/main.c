@@ -582,17 +582,17 @@ int main(int argc, char** argv) {
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
-    info("--- Compiler timings ---");
-    info("lines %s%s comments %s", give_unique_color(strf("%lld", pctx.lines)), RGB_GRAY, give_unique_color(strf("%lld", pctx.comments)));
+    success("--- Compiler timings ---");
+    success("lines %s%s comments %s", give_unique_color(strf("%lld", pctx.lines)), RGB_GRAY, give_unique_color(strf("%lld", pctx.comments)));
     LIST_FOREACH(get_timers(&thi)) {
         Timer* tm = (Timer*)it->data;
         s64 len = strlen(tm->desc);
         char* ms = strf("%f seconds", tm->ms / 1e3);
         s64 ms_l = strlen(ms);
         s64 padding = w.ws_col - len - ms_l - 1; // -1 is the ':'
-        info("%s", give_unique_color(strf("%s:%*s%s", tm->desc, padding, "", ms)));
+        success("%s", give_unique_color(strf("%s:%*s%s", tm->desc, padding, "", ms)));
     }
-    info("---------------------------");
+    success("---------------------------");
 
     return 0;
 }

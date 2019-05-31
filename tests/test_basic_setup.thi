@@ -10,7 +10,7 @@ load "includes/cstdlib"
 # This is a comment
 
 def getFloat() f64
-    return 13333.333
+    return 13.313
 
 def main(argc s32, argv u8**) s32
     #j = 1 k = &j; *k = 42 
@@ -21,55 +21,56 @@ def main(argc s32, argv u8**) s32
         printf("%s\n", *(argv + sizeof (*argv) * x))
         printf("%s\n", argv[x])
 
-    #v v2
-    #v.x = 53.35
-    #*(&v + 8) = 14.01
+    v v2
+
+    v.x = 53.35
+    *(&v + 8) = 14.01
     #printv2(v)
-    #f = 3.0
+    f = 3.0
     #printf("v.x = %f v.x = %f\n", v.x, v.y) # this prints 3.0, 3.0 because of f = 3.0. BUG!!!
-    #x = 5.0
-    #f = 3.0
-    #printf("f = %f x = %f\n", f, x)
+    x = 5.0
+    f = 3.0
+    printf("f = %f x = %f\n", f, x)
     
-    #c = 'H'
-    #printf("c = %c, sizeof c = %d\n", c, sizeof c)
-    #printf("typeof v = %s\n", typeof v)
-    #printf("typeof v.x = %s\n", typeof v.x)
-    #printf("typeof v.y = %s\n", typeof v.y)
-    #printf("typeof f = %s\n", typeof f)
+    c = 'H'
+    printf("c = %c, sizeof c = %d\n", c, sizeof c)
+    printf("typeof v = %s\n", typeof v)
+    printf("typeof v.x = %s\n", typeof v.x)
+    printf("typeof v.y = %s\n", typeof v.y)
+    printf("typeof f = %s\n", typeof f)
 
-    ## Do we really need braces here?
-    #if argv { puts("argv is not null") }
+    # Do we really need braces here?
+    if argv { puts("argv is not null") }
 
-    ## Couldn't we write it like?
-    # #if argv puts("argv is not null")
+    # Couldn't we write it like?
+     #if argv puts("argv is not null")
 
-    #if sizeof c != 1 {
-    #    puts("Hey! sizeof c should be 1!");
-    #}
+    if sizeof c != 1 {
+        puts("Hey! sizeof c should be 1!");
+    }
     
-    ##printf("typeof x = %s\n", typeof x);
-    #k = 3
-    #j = 5
-    #f = 53.1
-    #change(&k, &j, f);
+    #printf("typeof x = %s\n", typeof x);
+    k = 3
+    j = 5
+    f = 53.1
+    change(&k, &j, f);
 
     printf("getFloat() = %f\n", getFloat());
 
-    #printf("k = %d\n", k)
-    #printf("j = %d\n", j)
-    #printf("f = %f\n", f)
+    printf("k = %d\n", k)
+    printf("j = %d\n", j)
+    printf("f = %f\n", f)
 
-    #count = 10;
-    #array s64* = malloc(sizeof *array * count);
-    #for i = 0; i < count; ++i; {
-    #    array[i] = i;
-    #}
+    count = 10;
+    array s64* = malloc(sizeof *array * count);
+    for i = 0; i < count; ++i; {
+        array[i] = i;
+    }
 
-    #for i = 0 i < count ++i
-    #    printf("array[%lld] = %lld\n", i, array[i])
+    for i = 0 i < count ++i
+        printf("array[%lld] = %lld\n", i, array[i])
 
-    #return j
+    return j
 
 def change(x s64*, y s64*, f f64)
     *x = 53

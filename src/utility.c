@@ -143,10 +143,10 @@ char* get_file_extension(char* filename) {
         DEBUG_PRINT_NONE_FOUND;
         return NULL; // we didnt find any
     }
-    s64 start_of_ext = len - last_dot_pos ;
-    char* str = xmalloc(start_of_ext + 1);
+    s64 start_of_ext = len - last_dot_pos;
+    char* str = xmalloc(start_of_ext+2);
     memcpy(str, filename + len - start_of_ext, start_of_ext);
-    str[i] = 0;
+    str[start_of_ext] = 0;
     DEBUG_PRINT_EXIT;
     return str;
 }

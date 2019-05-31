@@ -67,7 +67,7 @@ void string_append(string* this, char* str) {
     s64 str_len = strlen(str);
     if (str_len == 0) return;
     assert(this->len <= this->cap);
-    while (this->len + str_len + 1 > this->cap) {
+    while (this->len + str_len >= this->cap) {
         this->cap *= PHI;
         this->c_str = xrealloc(this->c_str, this->cap * sizeof(char));
     }
