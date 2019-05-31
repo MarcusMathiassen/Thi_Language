@@ -21,7 +21,11 @@ def main(argc s32, argv u8**) s32
     #binary multiply. Meaning, 'k = &j * k = 42'. And we dont want that.
 
     z = 1Llu
+    ge = 1.053
+    hh = 1.053Ff
     printf("typeof z = %s\n", typeof z)
+    printf("typeof ge = %s\n", typeof ge)
+    printf("typeof hh = %s\n", typeof hh)
     return 0
 
 

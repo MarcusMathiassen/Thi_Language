@@ -708,14 +708,13 @@ AST* make_ast_note(Loc_Info loc_info, AST* node) {
 AST* make_ast_int(Loc_Info loc_info, s64 value, Type* type) {
     AST* e = make_ast(AST_INT, loc_info);
     e->type = type;
-    // e->type = make_type_int(DEFAULT_INT_BYTE_SIZE, 0);
     e->Int.val = value;
     return e;
 }
 
-AST* make_ast_float(Loc_Info loc_info, f64 value) {
+AST* make_ast_float(Loc_Info loc_info, f64 value, Type* type) {
     AST* e = make_ast(AST_FLOAT, loc_info);
-    e->type = make_type_float(DEFAULT_FLOAT_BYTE_SIZE);
+    e->type = type;
     e->Float.val = value;
     return e;
 }

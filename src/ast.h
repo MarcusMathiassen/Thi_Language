@@ -295,7 +295,7 @@ AST* make_ast_link(Loc_Info loc_info, char* str);
 AST* make_ast_var_args(Loc_Info loc_info);
 AST* make_ast_note(Loc_Info loc_info, AST* node);
 AST* make_ast_int(Loc_Info loc_info, s64 value, Type* type);
-AST* make_ast_float(Loc_Info loc_info, f64 value);
+AST* make_ast_float(Loc_Info loc_info, f64 value, Type* type);
 AST* make_ast_string(Loc_Info loc_info, char* value);
 AST* make_ast_char(Loc_Info loc_info, char value);
 AST* make_ast_ident(Loc_Info loc_info, char* ident);

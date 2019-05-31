@@ -898,7 +898,29 @@ AST* parse_expression(Parser_Context* ctx) {
 AST* parse_float(Parser_Context* ctx) {
     DEBUG_START;
     Loc_Info lc = loc(ctx);
-    AST* res = make_ast_float(lc, get_float(ctx));
+    f64 value = get_float(ctx);
+    Type* type = make_type_float(DEFAULT_FLOAT_BYTE_SIZE);
+    // Check for a suffix
+    // f32: f F
+    // Suffix can be ex. 1.53f or 53.50FFFFFF
+    if (tok_is(ctx, TOKEN_IDENTIFIER))
+    {
+        char* tok_val = tokValue(ctx);
+        int i = 0;
+        char c;
+        while((c = tok_val[i++])) {
+            switch(c) {
+            case 'f': // fallthrough
+            case 'F': 
+                type->Float.bytes = 4;
+                break;
+            }
+        }
+        // if i has been changed, we have gotten a suffix.
+        // Eat it.c
+        if (i != 0) eat(ctx);
+    }
+    AST* res = make_ast_float(lc, value, type);
     return res;
 }
 
