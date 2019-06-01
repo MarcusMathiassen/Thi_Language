@@ -27,7 +27,7 @@ extern system (u8*)  s32
 extern abs (s32)  s32
 extern labs (s32)  s32
 extern llabs (s64)  s64
-NULL :: 0
-EXIT_FAILURE :: 1
-EXIT_SUCCESS :: 0
-RAND_MAX :: 0x7fffffff
+NULL = 0
+EXIT_FAILURE = 1
+EXIT_SUCCESS = 0
+RAND_MAX = 0x7fffffff

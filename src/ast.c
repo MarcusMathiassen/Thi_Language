@@ -305,10 +305,11 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
     }
     case AST_FLOAT: {
         // @Checkout(marcus): not to sure about the fmt.
-        char* str = strf("%.14g", node->Float.val);
-        u64 n = strlen(str);
-        // This makes sure there is at least a single decimal point.
-        string_append_f(s, "%s", n == 1 ? strf("%s.0", str) : str);
+        // char* str = strf("%.14g", node->Float.val);
+        // u64 n = strlen(str);
+        // // This makes sure there is at least a single decimal point.
+        // string_append_f(s, "%s", n == 1 ? strf("%s.00", str) : str);
+        return strf("%f", node->Float.val);
         break;
     }
     case AST_STRING: {
@@ -599,6 +600,22 @@ void ast_ref_list_append(AST_Ref_List* l, AST* a) {
     if (l->count == l->allocated) 
         l->data = xrealloc(l->data, (l->allocated *= PHI) * sizeof(a));
     l->data[l->count++] = a;
+}
+
+char* ast_get_literal_value_as_str(AST* node) {
+    AST_Kind kind = node->kind;
+    TASSERT_KIND_IN_RANGE(AST, kind);
+    // clang-format off
+    switch (kind) {
+    ERROR_UNHANDLED_AST_KIND(kind);
+    case AST_INT:    return ast_to_str(node);
+    case AST_FLOAT:  return ast_to_str(node);
+    case AST_STRING: return strf("`%s`, 0", node->String.val);
+    case AST_CHAR:   return ast_to_str(node);
+    }
+    // clang-format on
+    UNREACHABLE;
+    return NULL;
 }
 
 void ast_add_edge(AST* a, AST* dep) {

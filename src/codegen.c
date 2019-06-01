@@ -508,7 +508,10 @@ Value* codegen_variable_decl(Codegen_Context* ctx, AST* node) {
     if (is_global) {
         char* label = make_data_label(ctx);
         char* db_op = get_db_op(type);
-        char* initial_value = assignment_expr ? get_literal_value(codegen_node(ctx, assignment_expr)) : "0";
+        char* initial_value = NULL;
+        if (assignment_expr) 
+            initial_value = ast_get_literal_value_as_str(assignment_expr);
+        else initial_value = "0";
         emit_data(ctx, "%s: %s %s", label, db_op, initial_value);
         variable = make_value_global_variable(name, type, label);
     } else {
@@ -580,8 +583,7 @@ Value* codegen_string(Codegen_Context* ctx, AST* node) {
     char* val = node->String.val;
     Type* t = make_type_pointer(make_type_int(8, 1));
     char* slabel = make_data_label(ctx);
-    char* db_op = get_db_op(t);
-    emit_data(ctx, "%s: %s `%s`, 0 ", slabel, db_op, val);
+    emit_data(ctx, "%s: db `%s`, 0 ", slabel, val);
     char* mov_op = get_move_op(t);
     char* reg = get_result_reg(t);
     emit(ctx, "%s %s, %s; string_ref", mov_op, reg, slabel);
@@ -884,14 +886,20 @@ Value* codegen_call(Codegen_Context* ctx, AST* node) {
     s8 class_integer_counter = 0; // used for getting the next available register
     s8 class_sse_counter = 0;     // used for getting the next available register
 
-    List* classified_arguments = classify_arguments(args);
-    LIST_FOREACH(classified_arguments) {
+    // List* classified_arguments = classify_arguments(args);
 
-        ClassifiedArgument* ca = it->data;
-        AST* arg = ca->argument;
-        Class_Kind class = ca->class;
+    List* values = make_list();
+    LIST_FOREACH_REVERSE(args) {
+        Value* v = codegen_node(ctx, it->data);
+        push_type(ctx, v->type);
+        list_append(values, v);
+    }
 
-        Value* arg_v = codegen_node(ctx, arg);
+    LIST_FOREACH_REVERSE(values) {
+        Value* arg_v = it->data;
+        Class_Kind class = classify(arg_v->type);
+        // pop_type(ctx, arg_v->type);
+
         s8 param_reg = -1;
 
         switch (class) {
@@ -907,16 +915,46 @@ Value* codegen_call(Codegen_Context* ctx, AST* node) {
             // case CLASS_COMPLEX_X87:     break;
         }
 
-        char* mov_op = get_move_op(arg_v->type);
-        char* result_reg = get_result_reg_of_size(arg_v->type, 8);
-        emit(ctx, "%s %s, %s", mov_op, get_reg(param_reg), result_reg);
+        // char* mov_op = get_move_op(arg_v->type);
+        // char* result_reg = get_result_reg_of_size(arg_v->type, 8);
+        // emit(ctx, "%s %s, %s", mov_op, get_reg(param_reg), result_reg);
 
-        //  When a value of type _Bool is returned or passed in a register or on the stack,
-        //  bit 0 contains the truth value and bits 1 to 7 shall be zero.
-        // if (arg_v->type->kind == TYPE_INT && arg_v->type->Int.bytes == 1) {
-        //     emit(ctx, "and %s, 00000001b", get_reg(param_reg));
-        // }
+        // @FixMe!
+        pop(ctx, param_reg);
     }
+
+    // LIST_FOREACH(classified_arguments) {
+
+    //     ClassifiedArgument* ca = it->data;
+    //     AST* arg = ca->argument;
+    //     Class_Kind class = ca->class;
+
+    //     Value* arg_v = codegen_node(ctx, arg);
+    //     s8 param_reg = -1;
+
+    //     switch (class) {
+    //         ERROR_UNHANDLED_CLASS_KIND(class);
+    //     // case CLASS_MEMORY:          break;
+    //     case CLASS_INTEGER: param_reg = get_parameter_reg_int(class_integer_counter++, 8); break;
+    //     case CLASS_SSE:
+    //         param_reg = get_parameter_reg_float(class_sse_counter++);
+    //         break;
+    //         // case CLASS_SSEUP:           break;
+    //         // case CLASS_X87:             // fallthrough
+    //         // case CLASS_X87UP:           // fallthrough
+    //         // case CLASS_COMPLEX_X87:     break;
+    //     }
+
+    //     char* mov_op = get_move_op(arg_v->type);
+    //     char* result_reg = get_result_reg_of_size(arg_v->type, 8);
+    //     emit(ctx, "%s %s, %s", mov_op, get_reg(param_reg), result_reg);
+
+    //     //  When a value of type _Bool is returned or passed in a register or on the stack,
+    //     //  bit 0 contains the truth value and bits 1 to 7 shall be zero.
+    //     // if (arg_v->type->kind == TYPE_INT && arg_v->type->Int.bytes == 1) {
+    //     //     emit(ctx, "and %s, 00000001b", get_reg(param_reg));
+    //     // }
+    // }
 
     if (node->type->flags & TYPE_FLAG_HAS_VAR_ARG) {
         emit(ctx, "mov al, %lld; var_arg_count", args->count);
@@ -1015,4 +1053,3 @@ Value* codegen_function(Codegen_Context* ctx, AST* node) {
     pop_scope(ctx);
     return NULL;
 }
-

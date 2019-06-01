@@ -39,7 +39,7 @@ typedef struct {
     Stack* scopes;
 } Sema_Context;
 
-void sema_check_node(Sema_Context* ctx, AST* node);
+Type* sema_check_node(Sema_Context* ctx, AST* node);
 
 void semantic_analysis(AST* ast) {
     info("Semantic Analysis...");
@@ -114,11 +114,11 @@ void add_all_decls_in_module(Sema_Context* ctx, AST* node) {
         }
     }
 }
-void sema_check_node(Sema_Context* ctx, AST* node) {
+Type* sema_check_node(Sema_Context* ctx, AST* node) {
     assert(ctx);
-    if (!node) return;
+    if (!node) return NULL;
     DEBUG_START;
-    Type* node_t = node->type;
+    Type* result_t = node->type;
     switch (node->kind) {
         ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
     case AST_SPACE_SEPARATED_IDENTIFIER_LIST:
@@ -142,25 +142,23 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         break;
 
     case AST_TYPEOF:
-        sema_check_node(ctx, node->Typeof.node);
-        node_t = node->Typeof.node->type;
+        result_t = sema_check_node(ctx, node->Typeof.node);
         break;
 
     case AST_SIZEOF:
-        sema_check_node(ctx, node->Sizeof.node);
-        node_t = node->Sizeof.node->type;
+        result_t = sema_check_node(ctx, node->Sizeof.node);
         break;
-    case AST_NOTE: sema_check_node(ctx, node->Note.node); break;
-
+    case AST_NOTE: 
+        result_t = sema_check_node(ctx, node->Note.node); 
+        break;
     case AST_COMMENT: break;
     case AST_NOP: break;
     case AST_POST_INC_OR_DEC: 
-        sema_check_node(ctx, node->Post_Inc_or_Dec.node);
-        node_t = node->Post_Inc_or_Dec.node->type;
+        result_t = sema_check_node(ctx, node->Post_Inc_or_Dec.node);
         break;
     case AST_FALLTHROUGH: break;
     case AST_LOAD:
-        sema_check_node(ctx, node->Load.module);
+        result_t = sema_check_node(ctx, node->Load.module);
         break;
     case AST_LINK: break;
     case AST_INT: break;
@@ -174,27 +172,27 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         }
         // Since the variable must have been defined before this. It must also have a type.
         assert(var->type);
-        node_t = var->type;
+        result_t = var->type;
         break;
     }
     case AST_STRUCT:
         break;
     case AST_UNARY: {
-        Token_Kind op = node->Unary.op;
-        AST* operand = node->Unary.operand;
 
+        AST* operand = node->Unary.operand;
         sema_check_node(ctx, operand);
         assert(operand->type);
 
-        node_t = operand->type;
+        result_t = operand->type;
 
+        Token_Kind op = node->Unary.op;
         switch (op) {
         default: break;
         case THI_SYNTAX_POINTER:
-            node_t = node_t->Pointer.pointee;
+            result_t = result_t->Pointer.pointee;
             break;
         case THI_SYNTAX_ADDRESS:
-            node_t = make_type_pointer(node_t);
+            result_t = make_type_pointer(result_t);
             break;
         }
         break;
@@ -203,7 +201,7 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         Token_Kind op = node->Binary.op;
         AST* rhs = node->Binary.rhs;
         AST* lhs = node->Binary.lhs;
-        sema_check_node(ctx, rhs);
+        result_t = sema_check_node(ctx, rhs);
         bool replaced = false;
         if (op == THI_SYNTAX_ASSIGNMENT && lhs->kind == AST_IDENT) {
             // Look for it in the current scope and any parent scope.
@@ -214,45 +212,50 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
                 add_node_to_scope(ctx, node);
             }
         }
-        if (!replaced) sema_check_node(ctx, lhs);
-        node_t = rhs->type;
+        if (!replaced) result_t = sema_check_node(ctx, lhs);
+        else result_t = rhs->type;
         break;
     }
     case AST_VARIABLE_DECL: {
-        Type* type = node->Variable_Decl.type;
-        AST* value = node->Variable_Decl.value;
+        // Type* type = node->Variable_Decl.type;
+        // AST* value = node->Variable_Decl.value;
+        if (node->Variable_Decl.value && (node->Variable_Decl.value->kind == AST_IDENT)) {
+            AST* s = get_symbol_in_scope(ctx, node->Variable_Decl.value->Ident.name);
+            node->Variable_Decl.value = s->Variable_Decl.value;
+        }
         add_node_to_scope(ctx, node);
-        sema_check_node(ctx, value);
-        node_t = type;
+        sema_check_node(ctx, node->Variable_Decl.value);
+        result_t = node->Variable_Decl.value ? node->Variable_Decl.value->type : node->type;
         break;
     }
     case AST_CONSTANT_DECL: {
-        AST* value = node->Constant_Decl.value;
+        error("groregoiergj");
+        if (node->Constant_Decl.value->kind == AST_IDENT) {
+            AST* s = get_symbol_in_scope(ctx, node->Constant_Decl.value->Ident.name);
+            node->Constant_Decl.value = s->Constant_Decl.value;
+        }
         add_node_to_scope(ctx, node);
-        sema_check_node(ctx, value);
-        node_t = value->type;
+        result_t = sema_check_node(ctx, node->Constant_Decl.value);
         break;
     }
     case AST_ENUM: break;
     case AST_GROUPING: {
         AST* group = node->Grouping.node;
-        sema_check_node(ctx, group);
-        node_t = group->type;
+        result_t = sema_check_node(ctx, group);
         break;
     }
     case AST_SUBSCRIPT: {
         AST* load = node->Subscript.load;
         AST* sub = node->Subscript.sub;
-        sema_check_node(ctx, load);
+        result_t = sema_check_node(ctx, load);
         sema_check_node(ctx, sub);
-        node_t = get_underlying_type_if_any(load->type);
         break;
     }
 
     case AST_FIELD_ACCESS: {
         AST* load = node->Field_Access.load;
         char* field_name = node->Field_Access.field;
-        sema_check_node(ctx, load);
+        result_t = sema_check_node(ctx, load);
         switch (load->type->kind) {
             ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
         case TYPE_STRUCT: {
@@ -261,7 +264,7 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
                 info_no_newline("on %s ", mem->name);
                 if (strcmp(mem->name, field_name) == 0) {
                     info_no_newline("FOUND -> %s of %s\n", mem->name, type_to_str(mem->type));
-                    node_t = mem->type;
+                    result_t = mem->type;
                     break;
                 }
             }
@@ -289,30 +292,28 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         sema_check_node(ctx, node->While.then_block);
         break;
     case AST_RETURN:
-        sema_check_node(ctx, node->Return.node);
-        // Typeify
-        node_t = node->Return.node->type;
+        result_t = sema_check_node(ctx, node->Return.node);
         break;
     case AST_DEFER:
-        sema_check_node(ctx, node->Defer.node);
+        result_t = sema_check_node(ctx, node->Defer.node);
         break;
     case AST_BREAK:
-        sema_check_node(ctx, node->Break.node);
+        result_t = sema_check_node(ctx, node->Break.node);
         break;
     case AST_CONTINUE:
-        sema_check_node(ctx, node->Continue.node);
+        result_t = sema_check_node(ctx, node->Continue.node);
         break;
     case AST_AS:
-        sema_check_node(ctx, node->As.node);
-        sema_check_node(ctx, node->As.type_node);
+        result_t = sema_check_node(ctx, node->As.node);
+        result_t = sema_check_node(ctx, node->As.type_node);
         break;
     case AST_IS:
-        sema_check_node(ctx, node->Is.node);
-        sema_check_node(ctx, node->Is.body);
+        result_t = sema_check_node(ctx, node->Is.node);
+        result_t = sema_check_node(ctx, node->Is.body);
         break;
     case AST_SWITCH:
         sema_check_node(ctx, node->Switch.cond);
-        sema_check_node(ctx, node->Switch.cases);
+        result_t = sema_check_node(ctx, node->Switch.cases);
         sema_check_node(ctx, node->Switch.default_case);
         break;
     case AST_EXTERN:
@@ -328,7 +329,7 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         LIST_FOREACH(node->Function.parameters) {
             sema_check_node(ctx, it->data);
         }
-        sema_check_node(ctx, node->Function.body);
+        result_t = sema_check_node(ctx, node->Function.body);
         LIST_FOREACH(node->Function.defers) {
             sema_check_node(ctx, it->data);
         }
@@ -354,7 +355,7 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
         // Typeify
         Type* callee_t = callee_f->type;
         callee_t->Function.return_type->flags = callee_t->flags; // @HACK
-        node_t = callee_t->Function.return_type;
+        result_t = callee_t->Function.return_type;
         break;
     }
 
@@ -388,7 +389,7 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
                     error("[%s] Type_Error. Differing return types in block.\n%s <- %s\n!=\n%s <- %s", LOCATION_OF(ctx->module, node), type_to_str(a_t), ast_to_str(a), type_to_str(b_t), ast_to_str(b));
                 }
             }
-            node_t = a_t;
+            result_t = a_t;
         }
 
         SCOPE_END;
@@ -412,7 +413,9 @@ void sema_check_node(Sema_Context* ctx, AST* node) {
     case AST_BREAK:    // fallthrough
     case AST_CONTINUE: // fallthrough
     case AST_FALLTHROUGH: break;
-    default: assert(node_t);
+    default: assert(result_t);
     }
-    node->type = node_t;
+
+    node->type = result_t;
+    return result_t;
 }

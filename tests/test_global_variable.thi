@@ -1,10 +1,16 @@
+link "-lSystem"
 
-i = 1
-#k = i
+extern printf(u8*, ...) s32
+
+
+def v2
+    x f32
+    y f32
 
 def main() s32
-    inc()
-    return i
+    
+    v v2
+    *(&v + 0) = 53.35f
+    *(&v + 8) = 14.01f
 
-def inc()
-    ++i
+    return 1

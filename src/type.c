@@ -73,13 +73,11 @@ void type_replace(Type* a, Type* b) {
 
 Type* get_underlying_type_if_any(Type* type) {
     assert(type);
-
     switch (type->kind) {
     default: return type;
     case TYPE_POINTER: return type->Pointer.pointee;
     case TYPE_ARRAY: return type->Array.type;
     }
-
     UNREACHABLE;
     return NULL;
 }
@@ -107,6 +105,7 @@ char* get_type_name(Type* type) {
     if (!type) return "---";
     switch (type->kind) {
         ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    case TYPE_STRING:   // fallthrough
     case TYPE_INT:   // fallthrough
     case TYPE_FLOAT: // fallthrough
     case TYPE_POINTER:

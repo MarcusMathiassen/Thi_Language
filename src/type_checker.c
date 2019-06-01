@@ -81,7 +81,6 @@ Type* type_check_node(Typer_Context* ctx, AST* node) {
     if (!node) return NULL;
     DEBUG_START;
     Type* result = node->type;
-
     switch (node->kind) {
         ERROR_UNHANDLED_AST_KIND(node->kind);
     case AST_POST_INC_OR_DEC:  result = type_check_node(ctx, node->Post_Inc_or_Dec.node); break;
@@ -124,7 +123,7 @@ Type* type_check_node(Typer_Context* ctx, AST* node) {
     case AST_MODULE: result = type_check_module(ctx, node); break;
     }
 
-    node->type = result;
+    // node->type = result;
     return result;
 }
 

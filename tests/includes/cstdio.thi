@@ -1,16 +1,16 @@
 link "-lc"
-EOF :: -1
-SEEK_SET :: 0
-SEEK_CUR :: 1
-SEEK_END :: 2
-_IOFBF :: 0
-_IOLBF :: 1
-_IONBF :: 2
-BUFSIZ :: 1024
-FILENAME_MAX :: 4096
-FOPEN_MAX :: 1000
-TMP_MAX :: 10000
-L_tmpnam :: 20
+EOF = -1
+SEEK_SET = 0
+SEEK_CUR = 1
+SEEK_END = 2
+_IOFBF = 0
+_IOLBF = 1
+_IONBF = 2
+BUFSIZ = 1024
+FILENAME_MAX = 4096
+FOPEN_MAX = 1000
+TMP_MAX = 10000
+L_tmpnam = 20
 extern fopen(u8*, u8*) void*
 extern freopen(u8*,  u8*, void*) void*
 extern fclose(void*) s32

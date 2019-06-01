@@ -50,7 +50,8 @@ void pop_scope(Codegen_Context* ctx) {
 static void add_variable_to_current_scope(Codegen_Context* ctx, Value* variable) {
     info("Adding variable %s of %s to scope", get_value_name(variable), value_kind_to_str(variable->kind));
     Scope* top = stack_peek(ctx->scopes);
-    top->stack_pos += get_size_of_value(variable);
+    if (variable->kind != VALUE_GLOBAL_VARIABLE)
+        top->stack_pos += get_size_of_value(variable);
     list_append(top->local_variables, variable);
 }
 
@@ -402,19 +403,9 @@ Value* get_variable(Codegen_Context* ctx, AST* ident) {
     info("looking for %s", ucolor(name));
     STACK_FOREACH(ctx->scopes) {
         Scope* scope = it->data;
-
-        // @Debug(marcus): remove this later
-        // info_no_newline("..scope change. listing scope.. ");
-        // LIST_FOREACH_REVERSE(symbols) {
-        // AST* v = it->data;
-        // info_no_newline("%s ", ucolor(get_ast_name(v)));
-        // }
-
-        // info(".listing done.");
         LIST_FOREACH_REVERSE(scope->local_variables) {
             Value* v = it->data;
-            // info("..on %s", ucolor(get_ast_name(v)));
-            if (get_value_name(v) == name) {
+            if (strcmp(get_value_name(v), name) == 0) {
                 return v;
             }
         }
@@ -502,10 +493,10 @@ void emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg) {
     assert(variable);
     assert(variable->kind == VALUE_VARIABLE);
     tassert(reg >= 0 && reg <= TOTAL_REG_COUNT, "reg = %d", reg);
-    s64 stack_pos = get_stack_pos_of_variable(variable);
+    char* mem = get_mem_loc(variable);
     char* reg_c = get_reg(reg);
     char* mov_op = get_move_op(variable->type);
-    emit(ctx, "%s [rbp-%lld], %s; store_r %s", mov_op, stack_pos, reg_c, (variable->Variable.name));
+    emit(ctx, "%s %s, %s; store_r %s", mov_op, mem, reg_c, (variable->Variable.name));
 }
 
 void emit_store_deref(Codegen_Context* ctx, Value* variable) {

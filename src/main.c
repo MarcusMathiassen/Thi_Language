@@ -100,7 +100,6 @@ void resolve_field_access(void* dont_care, AST* node) {
     load = make_ast_binary(node->loc_info, TOKEN_PLUS, load, offset);
     load = make_ast_grouping(node->loc_info, load);
     load = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, load);
-
     load->type = type_of_field;
 
     ast_replace(node, load);
@@ -159,9 +158,7 @@ void pass_resolve_all_symbols(void* thi, AST* node) {
 
 void check_for_unresolved_types(void* ctx, AST* node) {
     if (node->type && node->type->kind == TYPE_UNRESOLVED) {
-        error(
-            "[check_for_unresolved_types]: unresolved type found for node: %s",
-            ast_to_str(node));
+        error("[check_for_unresolved_types]: unresolved type found for node: %s", ast_to_str(node));
     }
 }
 
@@ -494,6 +491,8 @@ int main(int argc, char** argv) {
 
     // ast = make_ast_module(ast->loc_info, source_file, ast);
 
+
+    thi.links =  ast_find_all_of_kind(AST_LINK, ast);
     info("all loaded files");
     LIST_FOREACH(pctx.loads) {
         info("file: %s", it->data);
@@ -555,7 +554,7 @@ int main(int argc, char** argv) {
     pop_timer(&thi);
 
     // typechecking pass
-    type_checker(thi.symbol_map, ast);
+    // type_checker(thi.symbol_map, ast);
 
     //
     // Optimization Pass:
@@ -655,6 +654,8 @@ int main(int argc, char** argv) {
     write_to_file("output.thi", ast_to_source(ast));
 #endif
 
+    write_syntax_file(&thi);
+
     return 0;
 }
 
@@ -673,8 +674,8 @@ void linking_stage(Thi* thi, char* exec_name) {
                            exec_name);
     List* links = get_link_list(thi);
     LIST_FOREACH(links) {
-        char* l = (char*)it->data;
-        link_call = strf("%s %s", link_call, l);
+        AST* link = it->data;
+        link_call = strf("%s %s", link_call, link->Link.str);
     }
     info("Linking with options '%s'", link_call);
     push_timer(thi, "Linker");
@@ -863,5 +864,6 @@ void write_syntax_file(Thi* thi) {
     string_append(s, "          pop: true\n");
 
     write_to_file("thi.sublime-syntax", string_data(s));
+    system("perl -pi -e 's/[^[:ascii:]]//g' ./thi.sublime-syntax");
     system("cp ./thi.sublime-syntax /Users/marcusmathiassen/Library/Mobile\\ Documents/com~apple~CloudDocs/Sublime/User/thi.sublime-syntax");
 }

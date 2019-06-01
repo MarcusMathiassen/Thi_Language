@@ -1,105 +1,22 @@
-load "includes/cstdio"
-load "includes/cstdlib"
+link "-lSystem"
 
-#def printv2(v v2)
-#    puts("Printing v2..")
-#    printf("v.x = %f\n", v.x)
-#    printf("v.y = %f\n", v.y)
-#    puts("..done")
+extern printf(u8*, ...) s32
+extern puts(u8*) s32
 
-# This is a comment
-
-# This is just to show that braces and semicolons work
-def strlen(str char*) s64 { if str == 0 { puts("argument to 'strlen' was NULL"); } i = 0; while str[++i] != '\0' {} return i; }
-
-def getFloat() f64
-    return 13.313
-
-z = 1LL # global variable
-
-def Parser
-    i s64
-
-def Lexer
-    cursor char*
-
-def main(argc s32, argv u8**) s32
-    #j = 1 k = &j; *k = 42
-    #You see the semicolon up there? If removed, the deref would be turned into a
-    #binary multiply. Meaning, 'k = &j * k = 42'. And we dont want that.
-
-    ge = 1.053FF
-    hh = 1.053Ff
-    printf("typeof z = %s\n", typeof z)
-    printf("typeof ge = %s\n", typeof ge)
-    printf("typeof hh = %s\n", typeof hh)
-
-    for x = 0; x < argc; ++x
-        printf("%s\n", *(argv + sizeof (*argv) * x))
-        printf("%s\n", argv[x])
-
-    len = strlen(argv[1])
-    printf("strlen(%s) = %d\n", argv[1], len)
-    printf("strlen(%s) = %d\n", argv[1], len)
-    printf("strlen(%s) = %d\n", argv[1], len)
-    printf("strlen(%s) = %d\n", argv[1], len)
-    printf("strlen(%s) = %d\n", argv[1], len)
-    printf("strlen(%s) = %d\n", argv[1], len)
-
-    v v2
-    #v.x = 53.35
-    #*(&v + 8) = 14.01
-    #printv2(v)
-    f = 3.0
-    #printf("v.x = %f v.x = %f\n", v.x, v.y) # this prints 3.0, 3.0 because of f = 3.0. BUG!!!
-    x = 5.0
-    f = 3.0
-    printf("f = %f x = %f\n", f, x)
-
-    c = 'H'
-    printf("c = %c, sizeof c = %d\n", c, sizeof c)
-    #printf("typeof v = %s\n", typeof v)
-    #printf("typeof v.x = %s\n", typeof v.x)
-    #printf("typeof v.y = %s\n", typeof v.y)
-    printf("typeof f = %s\n", typeof f)
-
-    # Do we really need braces here?
-    if argv { puts("argv is not null") }
-
-    # Couldn't we write it like?
-     #if argv puts("argv is not null")
-
-    if sizeof c != 1 {
-        puts("Hey! sizeof c should be 1!");
-    }
-
-    #printf("typeof x = %s\n", typeof x);
-    k = 3
-    j = 5
-    f = 53.1
-    change(&k, &j, f);
-
-    printf("getFloat() = %f\n", getFloat());
-
-    printf("k = %d\n", k)
-    printf("j = %d\n", j)
-    printf("f = %f\n", f)
-
-    count = 10;
-    array s64* = malloc(sizeof *array * count);
-    for i = 0; i < count ++i
-        array[i] = i
-
-    for i = 0; i < count; ++i
-        printf("array[%lld] = %lld\n", i, array[i])
-
-    return j
-
-def change(x s64*, y s64*, f f64)
-    *x = 53
-    *y = 24
-    f = 41.2
 
 def v2
-    x f64
-    y f64
+    x f32
+    y f32
+
+s = "t4o0"
+f = 324.0
+
+def main() s32
+
+    printf("%f%s", f, s)
+
+    v v2
+    #*(&v + 0) = 53.35f
+    #*(&v + 8) = 14.01f
+
+    return 1
