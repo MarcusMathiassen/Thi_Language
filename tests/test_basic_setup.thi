@@ -1,7 +1,7 @@
 load "includes/cstdio"
 load "includes/cstdlib"
 
-#def printv2(v v2) 
+# def printv2(v v2)
 #    puts("Printing v2..")
 #    printf("v.x = %f\n", v.x)
 #    printf("v.y = %f\n", v.y)
@@ -16,12 +16,12 @@ def getFloat() f64
     return 13.313
 
 def main(argc s32, argv u8**) s32
-    #j = 1 k = &j; *k = 42 
+    #j = 1 k = &j; *k = 42
     #You see the semicolon up there? If removed, the deref would be turned into a
     #binary multiply. Meaning, 'k = &j * k = 42'. And we dont want that.
 
     z = 1
-    ge = 1.053
+    ge = 1.053f
     hh = 1.053Ff
     printf("typeof z = %s\n", typeof z)
     printf("typeof ge = %s\n", typeof ge)
@@ -50,7 +50,7 @@ def main(argc s32, argv u8**) s32
     x = 5.0
     f = 3.0
     printf("f = %f x = %f\n", f, x)
-    
+
     c = 'H'
     printf("c = %c, sizeof c = %d\n", c, sizeof c)
     #printf("typeof v = %s\n", typeof v)
@@ -67,7 +67,7 @@ def main(argc s32, argv u8**) s32
     if sizeof c != 1 {
         puts("Hey! sizeof c should be 1!");
     }
-    
+
     #printf("typeof x = %s\n", typeof x);
     k = 3
     j = 5
@@ -82,9 +82,8 @@ def main(argc s32, argv u8**) s32
 
     count = 10;
     array s64* = malloc(sizeof *array * count);
-    for i = 0; i < count; ++i; {
-        array[i] = i;
-    }
+    for i = 0; i < count ++i
+        array[i] = i
 
     for i = 0; i < count; ++i
         printf("array[%lld] = %lld\n", i, array[i])

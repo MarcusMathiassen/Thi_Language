@@ -960,7 +960,7 @@ AST* parse_integer(Parser_Context* ctx) {
                 break;
             // Might be 'll'
             case 'l': {
-                if (tok_val[i] == 'l') {
+                if (tok_val[i+1] == 'l') {
                     type->Int.bytes = 8;
                     ++i;
                 } else {
@@ -969,7 +969,7 @@ AST* parse_integer(Parser_Context* ctx) {
                 break;
             }
             case 'L': {
-                if (tok_val[i] == 'L') {
+                if (tok_val[i+1] == 'L') {
                     type->Int.bytes = 8;
                     ++i;
                 } else {

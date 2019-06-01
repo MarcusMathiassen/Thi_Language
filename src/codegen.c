@@ -1015,3 +1015,4 @@ Value* codegen_function(Codegen_Context* ctx, AST* node) {
     pop_scope(ctx);
     return NULL;
 }
+

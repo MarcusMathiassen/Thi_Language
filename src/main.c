@@ -106,7 +106,6 @@ void resolve_field_access(void* dont_care, AST* node) {
 
 void resolve_constant_decls(void* dont_care, AST* node) {
     AST* decl = node;
-
     if (decl->Constant_Decl.value->kind == AST_IDENT) {
         // it must be another constant decl.
     }
@@ -174,7 +173,6 @@ void run_all_passes(void* thi, AST* node) {
 
 void make_sure_all_nodes_have_a_valid_type(void* dont_care, AST* node) {
     assert(node);
-
     switch (node->kind) {
     case AST_COMMENT:  // fallthrough
     case AST_NOP:      // fallthrough
@@ -246,13 +244,12 @@ void constant_fold_unary(AST* node) {
 }
 
 bool expr_is_literal_value(AST* expr, float val) {
-    if ((expr->kind == AST_INT && expr->Int.val == (s64)val) || 
+    if ((expr->kind == AST_INT && expr->Int.val == (s64)val) ||
         (expr->kind == AST_FLOAT && expr->Float.val == val)) {
         return true;
     }
     return false;
 }
-
 
 void constant_fold_binary(AST* node) {
     Token_Kind op = node->Binary.op;
@@ -275,9 +272,9 @@ void constant_fold_binary(AST* node) {
     // Totally remove expressions where either lhs or rhs is 0 in multiplication
     bool lhs_is_0 = false; // used to skip recalc
     if ((lhs_is_0 = expr_is_literal_value(lhs, 0.0)) || expr_is_literal_value(rhs, 0.0)) {
-        if (op == TOKEN_ASTERISK) { 
+        if (op == TOKEN_ASTERISK) {
             ast_replace(node, lhs_is_0 ? lhs : rhs);
-            return; 
+            return;
         } else if (op == TOKEN_FWSLASH) {
             error("[%d:%d] divide by 0", node->loc_info.line_pos, node->loc_info.col_pos);
         }
@@ -338,7 +335,6 @@ void constant_fold_binary(AST* node) {
         lhs->Float.val = value;
         ast_replace(node, lhs);
     }
-
 
     // -- Replace any expression matching:
     //      1 * x => x
@@ -632,7 +628,7 @@ int main(int argc, char** argv) {
     info("--- Compiler timings ---");
     info("lines %s%s comments %s", give_unique_color(strf("%lld", pctx.lines)), RGB_GRAY, give_unique_color(strf("%lld", pctx.comments)));
     LIST_FOREACH(get_timers(&thi)) {
-        Timer* tm = (Timer*)it->data;
+        Timer* tm = it->data;
         s64 len = strlen(tm->desc);
         char* ms = strf("%f seconds", tm->ms / 1e3);
         s64 ms_l = strlen(ms);
@@ -641,11 +637,11 @@ int main(int argc, char** argv) {
     }
     info("---------------------------");
 #endif
-    // Write Unoptimized AST out
-    #ifndef NDEBUG
-        write_to_file("output.thi", ast_to_source(ast));
-    #endif
-        
+// Write Unoptimized AST out
+#ifndef NDEBUG
+    write_to_file("output.thi", ast_to_source(ast));
+#endif
+
     return 0;
 }
 
