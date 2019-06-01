@@ -804,9 +804,9 @@ void write_syntax_file(Thi* thi) {
     string_append(s, "\n");
     string_append(s, "  numbers:\n");
     string_append(s, "    - match: '[+-]?[0-9_]+(e[0-9]+)?([lL|LL|uU])*'\n");
-    string_append(s, "      scope: constant.numeric.integer.decimal.thi\n");
+    string_append(s, "      scope: constant.numeric\n");
     string_append(s, "    - match: '[+-]?[0-9_]+.+(e[0-9.]+)?([fF])*'\n");
-    string_append(s, "      scope: constant.numeric.float.decimal.thi\n");
+    string_append(s, "      scope: constant.numeric\n");
     string_append(s, "\n");
     string_append(s, "  hex:\n");
     string_append(s, "    - match: '\\b0x(-)?[0-9A-Za-z]+\\b'\n");

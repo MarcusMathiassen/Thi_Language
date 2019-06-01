@@ -38,9 +38,9 @@ contexts:
 
   numbers:
     - match: '[+-]?[0-9_]+(e[0-9]+)?([lL|LL|uU])*'
-      scope: constant.numeric.integer.decimal.thi
+      scope: constant.numeric
     - match: '[+-]?[0-9_]+.+(e[0-9.]+)?([fF])*'
-      scope: constant.numeric.float.decimal.thi
+      scope: constant.numeric
 
   hex:
     - match: '\b0x(-)?[0-9A-Za-z]+\b'

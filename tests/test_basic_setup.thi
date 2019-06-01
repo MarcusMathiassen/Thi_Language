@@ -1,7 +1,7 @@
 load "includes/cstdio"
 load "includes/cstdlib"
 
-# def printv2(v v2)
+#def printv2(v v2)
 #    puts("Printing v2..")
 #    printf("v.x = %f\n", v.x)
 #    printf("v.y = %f\n", v.y)
@@ -16,7 +16,6 @@ def getFloat() f64
     return 13.313
 
 z = 1LL # global variable
-
 
 def Parser
     i s64
