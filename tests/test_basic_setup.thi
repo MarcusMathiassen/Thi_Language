@@ -20,7 +20,7 @@ def main(argc s32, argv u8**) s32
     #You see the semicolon up there? If removed, the deref would be turned into a
     #binary multiply. Meaning, 'k = &j * k = 42'. And we dont want that.
 
-    z = 1Llu
+    z = 1
     ge = 1.053
     hh = 1.053Ff
     printf("typeof z = %s\n", typeof z)
@@ -29,7 +29,7 @@ def main(argc s32, argv u8**) s32
     return 0
 
 
-    for x = 0 x < argc ++x
+    for x = 0; x < argc; ++x
         printf("%s\n", *(argv + sizeof (*argv) * x))
         printf("%s\n", argv[x])
 
@@ -86,7 +86,7 @@ def main(argc s32, argv u8**) s32
         array[i] = i;
     }
 
-    for i = 0 i < count ++i
+    for i = 0; i < count; ++i
         printf("array[%lld] = %lld\n", i, array[i])
 
     return j

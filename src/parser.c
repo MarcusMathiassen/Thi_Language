@@ -906,19 +906,23 @@ AST* parse_float(Parser_Context* ctx) {
     if (tok_is(ctx, TOKEN_IDENTIFIER))
     {
         char* tok_val = tokValue(ctx);
-        int i = 0;
+        u64 i = 0;
         char c;
-        while((c = tok_val[i++])) {
+        while((c = tok_val[i]) == 'f' || c == 'F') {
             switch(c) {
             case 'f': // fallthrough
             case 'F': 
                 type->Float.bytes = 4;
                 break;
             }
+            ++i;
         }
         // if i has been changed, we have gotten a suffix.
         // Eat it.c
         if (i != 0) eat(ctx);
+        if (strlen(tok_val) != i) {
+            error("[%s:%d:%d] unknown character '%c' in float suffix ", ctx->file, lc.line_pos, lc.col_pos, tok_val[i]);
+        }
     }
     AST* res = make_ast_float(lc, value, type);
     return res;
@@ -945,10 +949,11 @@ AST* parse_integer(Parser_Context* ctx) {
     {
         char* tok_val = tokValue(ctx);
 
-        int i = 0;
+        u64 i = 0;
         char c;
-        while((c = tok_val[i++])) {
+        while((c = tok_val[i]) == 'u' || c == 'U' || c == 'l' || c == 'L' ) {
             switch(c) {
+            default: break;
             case 'u': // fallthrough
             case 'U': 
                 type->Int.is_unsigned = true;
@@ -973,10 +978,14 @@ AST* parse_integer(Parser_Context* ctx) {
                 break;
             }
             }
+            ++i;
         }
         // if i has been changed, we have gotten a suffix.
         // Eat it.c
         if (i != 0) eat(ctx);
+        if (strlen(tok_val) != i) {
+            error("[%s:%d:%d] unknown character '%c' in integer suffix ", ctx->file, lc.line_pos, lc.col_pos, tok_val[i]);
+        }
     }
     AST* res = make_ast_int(lc, value, type);
     return res;
