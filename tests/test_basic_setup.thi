@@ -15,19 +15,25 @@ def strlen(str char*) s64 { if str == 0 { puts("argument to 'strlen' was NULL");
 def getFloat() f64
     return 13.313
 
+z = 1LL # global variable
+
+
+def Parser
+    i s64
+
+def Lexer
+    cursor char*
+
 def main(argc s32, argv u8**) s32
     #j = 1 k = &j; *k = 42
     #You see the semicolon up there? If removed, the deref would be turned into a
     #binary multiply. Meaning, 'k = &j * k = 42'. And we dont want that.
 
-    z = 1
-    ge = 1.053f
+    ge = 1.053FF
     hh = 1.053Ff
     printf("typeof z = %s\n", typeof z)
     printf("typeof ge = %s\n", typeof ge)
     printf("typeof hh = %s\n", typeof hh)
-    return 0
-
 
     for x = 0; x < argc; ++x
         printf("%s\n", *(argv + sizeof (*argv) * x))
@@ -41,7 +47,7 @@ def main(argc s32, argv u8**) s32
     printf("strlen(%s) = %d\n", argv[1], len)
     printf("strlen(%s) = %d\n", argv[1], len)
 
-    #v v2
+    v v2
     #v.x = 53.35
     #*(&v + 8) = 14.01
     #printv2(v)

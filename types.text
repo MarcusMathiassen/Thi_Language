@@ -1,0 +1,2 @@
+#types:void u8 u8 s64 f64 f64 s8 s16 s32 s64 u8 u16 u32 u64 f32 f64 Parser v2 s64 s64 f64 s32 f32 f32 s64 f64 u8 s64 s64 s64 f64 
+#funcs:fopen freopen fclose remove rename feof ferror fflush clearerr fseek ftell rewind fread fwrite fgetc getc getchar ungetc fputc putc putchar fgets fputs puts printf fprintf sprintf snprintf scanf fscanf sscanf perror atoi atol atoll atof strtof strtod strtold strtol strtoul strtoll strtoull rand srand malloc calloc realloc free aligned_alloc abort exit _Exit quick_exit getenv system abs labs llabs strlen getFloat main change 

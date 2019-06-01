@@ -48,6 +48,8 @@
 void assemble(Thi* thi, char* asm_file, char* exec_name);
 void linking_stage(Thi* thi, char* exec_name);
 
+void write_syntax_file(Thi* thi);
+
 //------------------------------------------------------------------------------
 //                               Passes
 //------------------------------------------------------------------------------
@@ -405,8 +407,10 @@ int main(int argc, char** argv) {
 
     Thi thi = make_thi();
 
+    bool listen_mode = false;
+
     s32 opt;
-    while ((opt = getopt(argc, argv, "hv")) != -1) {
+    while ((opt = getopt(argc, argv, "lhv")) != -1) {
         switch (opt) {
         case 'h': {
             puts("Usage:");
@@ -415,10 +419,13 @@ int main(int argc, char** argv) {
             return 0;
         } break;
         case 'v': puts(COMPILER_VERSION); return 0;
+        case 'l': listen_mode = true; break;
         case ':': info("option needs a value\n"); return 0;
         case '?': info("unknown option: %c\n", optopt); return 0;
         }
     }
+
+    success("listen mode: %d", listen_mode);
 
     set_source_file(&thi, argv[optind]);
     info("filename: %s\n", argv[optind]);
@@ -499,6 +506,12 @@ int main(int argc, char** argv) {
 
     thi_run_pass(&thi, "pass_initilize_enums", pass_initilize_enums, &thi);
     thi_run_pass(&thi, "pass_add_all_symbols", pass_add_all_symbols, &thi);
+
+    if (listen_mode) {
+        success("writing syntax file...");
+        write_syntax_file(&thi);
+        return 0;
+    }
 
     // Run all passes
     print_symbol_map(&thi);
@@ -670,4 +683,185 @@ void linking_stage(Thi* thi, char* exec_name) {
 
     // Cleanup object files
     system(strf("rm %s.o", exec_name));
+}
+
+List* string_split(string* this, char delimiter) {
+    List* list_of_delimited_strings = make_list();
+
+    char* cursor = this->c_str;
+    char* start_of_word = this->c_str;
+
+    while (*cursor) {
+        if (*cursor == delimiter) {
+            u64 len = cursor - start_of_word;
+            char* str = xmalloc(len); // cursor is at the delimiter so we dont need a +1
+            memcpy(str, start_of_word, len);
+            str[len] = 0;
+
+            list_append(list_of_delimited_strings, str);
+
+            start_of_word = cursor+1; // +1 skips the delimiter
+        }
+        ++cursor;
+    }
+    
+    // u64 len = cursor - start_of_word;
+    // char* str = xmalloc(len+1); // cursor is at the delimiter so we dont need a +1
+    // memcpy(str, start_of_word, len);
+    // str[len] = 0;
+
+    // list_append(list_of_delimited_strings, str);
+
+    return list_of_delimited_strings;
+}
+
+List* string_list_remove_duplicates(List* list) {
+    List* res = make_list();
+    LIST_FOREACH(list) {
+        char* a = it->data;
+        bool dup = false;
+        LIST_FOREACH(res) {
+            char* b = it->data;
+            if (strcmp(a, b) == 0) {
+                dup = true;
+            } 
+        }
+        if (!dup) list_append(res, a);
+    }
+    return res;
+}
+
+void write_syntax_file(Thi* thi) {
+
+    // Write out all types and funcs
+    s64 count = thi->symbol_map->size;
+    string* known_types = string_create("");
+    string* known_funcs = string_create("");
+    for (s64 i = 0; i < count; ++i) {
+        Type* type = thi->symbol_map->data[i].data;
+        switch(type->kind) {
+            case TYPE_POINTER: break;
+            case TYPE_FUNCTION:
+                string_append_f(known_funcs, "%s ", get_type_name(type));
+                break;
+            default:
+                string_append_f(known_types, "%s ", get_type_name(type));
+                break;
+        }
+    }
+    List* unique_type_string_list = string_list_remove_duplicates(string_split(known_types, ' '));
+    List* unique_func_string_list = string_list_remove_duplicates(string_split(known_funcs, ' '));
+
+    string* t = string_create("");
+    string* f = string_create("");
+    LIST_FOREACH(unique_type_string_list) {
+        string_append_f(t, "%s", it->data);
+        if (it->next) string_append(t, "|");
+    }
+    LIST_FOREACH(unique_func_string_list) {
+        string_append_f(f, "%s", it->data);
+        if (it->next) string_append(f, "|");
+    }
+
+    string* s = string_create("");
+    string_append(s, "%YAML 1.2\n");
+    string_append(s, "---\n");
+    string_append(s, "# See http://www.sublimetext.com/docs/3/syntax.html\n");
+    string_append(s, "file_extensions:\n");
+    string_append(s, "  - thi\n");
+    string_append(s, "scope: source.thi\n");
+    string_append(s, "\n");
+    string_append(s, "contexts:\n");
+    string_append(s, "  # The prototype context is prepended to all contexts but those setting\n");
+    string_append(s, "  # meta_include_prototype: false.\n");
+    string_append(s, "  prototype:\n");
+    string_append(s, "    - include: singleline_comments\n");
+    string_append(s, "\n");
+    string_append(s, "  main:\n");
+    string_append(s, "    # The main context is the initial starting point of our syntax.\n");
+    string_append(s, "    # Include other contexts from here (or specify them directly).\n");
+    string_append(s, "    - include: keywords\n");
+    string_append(s, "    - include: function_def\n");
+    string_append(s, "    - include: numbers\n");
+    string_append(s, "    - include: hex\n");
+    string_append(s, "    - include: strings\n");
+    string_append(s, "    - include: character_literal\n");
+    string_append(s, "    - include: basic_types\n");
+    string_append(s, "    - include: operators\n");
+    string_append(s, "\n");
+    string_append(s, "  keywords:\n");
+    string_append(s, "    # Keywords are if, else for and while.\n");
+    string_append(s, "    # Note that blackslashes don't need to be escaped within single quoted\n");
+    string_append(s, "    # strings in YAML. When using single quoted strings, only single quotes\n");
+    string_append(s, "    # need to be escaped: this is done by using two single quotes next to each\n");
+    string_append(s, "    # other.\n");
+    string_append(s, "    - match: '\\b(interface|enum|struct|class|def|sizeof|typeof|fallthrough|in|true|false|extern|link|union|is|load|if|else|for|while|return|break|continue|defer)\\b'\n");
+    string_append(s, "      scope: keyword.control\n");
+    string_append(s, "\n");
+    string_append(s, "  function_def:\n");
+    string_append_f(s, "    - match: '\\b(%s)\\b'\n", string_data(f));
+    string_append(s, "      scope: entity.name.function\n");
+    string_append(s, "\n");
+    string_append(s, "  numbers:\n");
+    string_append(s, "    - match: '[+-]?[0-9_]+(e[0-9]+)?([lL|LL|uU])*'\n");
+    string_append(s, "      scope: constant.numeric.integer.decimal.thi\n");
+    string_append(s, "    - match: '[+-]?[0-9_]+.+(e[0-9.]+)?([fF])*'\n");
+    string_append(s, "      scope: constant.numeric.float.decimal.thi\n");
+    string_append(s, "\n");
+    string_append(s, "  hex:\n");
+    string_append(s, "    - match: '\\b0x(-)?[0-9A-Za-z]+\\b'\n");
+    string_append(s, "      scope: constant.numeric\n");
+    string_append(s, "\n");
+    string_append(s, "  operators:\n");
+    string_append(s, "    - match: '[\\.!:=+-?;{},-><&*$\\[\\]]+'\n");
+    string_append(s, "      scope: keyword.operator\n");
+    string_append(s, "\n");
+    string_append(s, "  basic_types:\n");
+    string_append_f(s, "    - match: '\\b(%s)\\b'\n", string_data(t));
+    string_append(s, "      scope: storage.type\n");
+    string_append(s, "\n");
+    string_append(s, "  strings:\n");
+    string_append(s, "    # Strings begin and end with quotes, and use backslashes as an escape\n");
+    string_append(s, "    # character.\n");
+    string_append(s, "    - match: \"\\\"\"\n");
+    string_append(s, "      scope: punctuation.definition.string.begin.example-c\n");
+    string_append(s, "      push: inside_string\n");
+    string_append(s, "\n");
+    string_append(s, "  inside_string:\n");
+    string_append(s, "    - meta_include_prototype: false\n");
+    string_append(s, "    - meta_scope: string.quoted.double.example-c\n");
+    string_append(s, "    - match: '\\.'\n");
+    string_append(s, "      scope: constant.character.escape.example-c\n");
+    string_append(s, "    - match: '\"'\n");
+    string_append(s, "      scope: punctuation.definition.string.end.example-c\n");
+    string_append(s, "      pop: true\n");
+    string_append(s, "\n");
+    string_append(s, "  character_literal:\n");
+    string_append(s, "    # Strings begin and end with quotes, and use backslashes as an escape\n");
+    string_append(s, "    # character.\n");
+    string_append(s, "    - match: '\'''\n");
+    string_append(s, "      scope: punctuation.definition.string.begin.example-c\n");
+    string_append(s, "      push: inside_character_literal\n");
+    string_append(s, "\n");
+    string_append(s, "  inside_character_literal:\n");
+    string_append(s, "    - meta_include_prototype: false\n");
+    string_append(s, "    - meta_scope: string.quoted.double.example\n");
+    string_append(s, "    - match: '\\.'\n");
+    string_append(s, "      scope: constant.character.escape.example\n");
+    string_append(s, "    - match: '\'''\n");
+    string_append(s, "      scope: punctuation.definition.string.end.example\n");
+    string_append(s, "      pop: true\n");
+    string_append(s, "\n");
+    string_append(s, "  singleline_comments:\n");
+    string_append(s, "    # Comments begin with a '#' and finish at the end of the line.\n");
+    string_append(s, "    - match: '#'\n");
+    string_append(s, "      scope: comment.line.double-slash\n");
+    string_append(s, "      push:\n");
+    string_append(s, "        # This is an anonymous context push for brevity.\n");
+    string_append(s, "        - meta_scope: comment.line.double-slash\n");
+    string_append(s, "        - match: $\\w?\n");
+    string_append(s, "          pop: true\n");
+
+    write_to_file("thi.sublime-syntax", string_data(s));
+    system("cp ./thi.sublime-syntax /Users/marcusmathiassen/Library/Mobile\\ Documents/com~apple~CloudDocs/Sublime/User/thi.sublime-syntax");
 }
