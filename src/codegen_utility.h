@@ -68,6 +68,8 @@ typedef struct
 
     AST* current_function;
     Type* expected_type;
+
+    List* data_list;
     
     string* section_text;
     string* section_data;
@@ -112,7 +114,7 @@ void set_current_function_expr(Codegen_Context* ctx, AST* func_expr);
 
 void emit_no_tab(Codegen_Context* ctx, char* fmt, ...);
 void emit_extern(Codegen_Context* ctx, char* fmt, ...);
-void emit_data(Codegen_Context* ctx, char* fmt, ...);
+char* emit_data(Codegen_Context* ctx, char* fmt, ...);
 void emit(Codegen_Context* ctx, char* fmt, ...);
 
 void push(Codegen_Context* ctx, int reg);

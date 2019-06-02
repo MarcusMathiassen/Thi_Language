@@ -36,6 +36,11 @@
 #include <stdlib.h>  // free
 #include <string.h>  // strcmp
 
+typedef struct {
+    char* label;
+    char* str;
+} Data;
+
 void push_scope(Codegen_Context* ctx) {
     Scope* top = stack_peek(ctx->scopes);
     Scope* s = xmalloc(sizeof(Scope));
@@ -64,6 +69,7 @@ Codegen_Context make_codegen_context() {
     s->local_variables = make_list();
     stack_push(ctx.scopes,  s);
 
+    ctx.data_list = make_list();
     ctx.current_function = NULL;
     ctx.expected_type = NULL;
     ctx.section_extern = string_create("");
@@ -120,7 +126,8 @@ void emit_extern(Codegen_Context* ctx, char* fmt, ...) {
     free(str);
 }
 
-void emit_data(Codegen_Context* ctx, char* fmt, ...) {
+
+char* emit_data(Codegen_Context* ctx, char* fmt, ...) {
     assert(ctx);
     va_list args;
     va_start(args, fmt);
@@ -132,10 +139,42 @@ void emit_data(Codegen_Context* ctx, char* fmt, ...) {
     vsnprintf(str, str_len, fmt, args);
     va_end(args);
 
-    string_append_f(ctx->section_data, "\t%s\n", str);
+    char* label = NULL;
+    LIST_FOREACH(ctx->data_list) {
+        Data* s = it->data;
+        if (strcmp(s->str, str) == 0) {
+            label = s->label;
+            break;
+        }
+    }
+    if (!label) {
+        label = make_data_label(ctx);
+        Data* d = xmalloc(sizeof(Data));
+        d->label = label;
+        d->str = str;
+        list_append(ctx->data_list, d);
+        string_append_f(ctx->section_data, "\t%s: %s\n", label, str);
+    }
 
-    free(str);
+    return label;
 }
+
+// void emit_data(Codegen_Context* ctx, char* fmt, ...) {
+//     assert(ctx);
+//     va_list args;
+//     va_start(args, fmt);
+//     s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
+//     va_end(args);
+//     char* str = xmalloc(str_len);
+
+//     va_start(args, fmt);
+//     vsnprintf(str, str_len, fmt, args);
+//     va_end(args);
+
+//     string_append_f(ctx->section_data, "\t%s\n", str);
+
+//     free(str);
+// }
 
 void emit(Codegen_Context* ctx, char* fmt, ...) {
     assert(ctx);

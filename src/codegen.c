@@ -506,12 +506,11 @@ Value* codegen_variable_decl(Codegen_Context* ctx, AST* node) {
 
     // Set the label for it..
     if (is_global) {
-        char* label = make_data_label(ctx);
-        char* db_op = get_db_op(type);
         char* initial_value = NULL;
         if (assignment_expr) initial_value = ast_get_literal_value_as_str(assignment_expr);
         else initial_value = "0";
-        emit_data(ctx, "%s: %s %s", label, db_op, initial_value);
+        char* db_op = get_db_op(type);
+        char* label = emit_data(ctx, "%s %s", db_op, initial_value);
         variable = make_value_global_variable(name, type, label);
     } else {
         s64 type_size = get_size_of_type(type);
@@ -533,9 +532,8 @@ Value* codegen_float(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_FLOAT);
     Value* val = make_value_float(node->type, node->Float.val);
-    char* flabel = make_data_label(ctx);
     char* db_op = get_db_op(val->type);
-    emit_data(ctx, "%s: %s %f", flabel, db_op, val->Float.value);
+    char* flabel = emit_data(ctx, "%s %f", db_op, val->Float.value);
     char* mov_op = get_move_op(val->type);
     char* reg = get_result_reg(val->type);
     emit(ctx, "%s %s, [rel %s]; float_ref", mov_op, reg, flabel);
@@ -581,8 +579,7 @@ Value* codegen_string(Codegen_Context* ctx, AST* node) {
     assert(node->kind == AST_STRING);
     char* val = node->String.val;
     Type* t = make_type_pointer(make_type_int(8, 1));
-    char* slabel = make_data_label(ctx);
-    emit_data(ctx, "%s: db `%s`, 0 ", slabel, val);
+    char* slabel = emit_data(ctx, "db `%s`, 0 ", val);
     char* mov_op = get_move_op(t);
     char* reg = get_result_reg(t);
     emit(ctx, "%s %s, %s; string_ref", mov_op, reg, slabel);
