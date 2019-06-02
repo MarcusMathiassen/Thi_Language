@@ -1004,3 +1004,36 @@ Value* codegen_function(Codegen_Context* ctx, AST* node) {
     pop_scope(ctx);
     return NULL;
 }
+
+typedef enum {
+    OPER_MEM,
+    OPER_REG,
+    OPER_IMM,
+    _OPER_COUNT_,
+} Operand_Kind;
+
+typedef struct {
+    Operand_Kind kind;
+} Operand;
+
+typedef enum {
+    INSTRUCTION_MOV,
+    INSTRUCTION_ADD,
+    INSTRUCTION_SUB,
+    INSTRUCTION_IMUL,
+    INSTRUCTION_MUL,
+    INSTRUCTION_IDIV,
+    INSTRUCTION_DIV,
+    INSTRUCTION_PUSH,
+    INSTRUCTION_POP,
+    INSTRUCTION_JMP,
+    INSTRUCTION_JE,
+    _INSTRUCTION_COUNT_,
+} Instruction_Kind;
+
+typedef struct {
+    char* label;
+    Instruction_Kind instr;
+    Operand o1, o2;
+    char* comment;
+} NASM_Line;
