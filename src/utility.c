@@ -234,7 +234,7 @@ char* get_file_content(char* filename) {
         rewind(f);
 
         // Allocate a string that can hold it all
-        buffer = (char*)xmalloc(sizeof(u8) * (string_size + 1));
+        buffer = xmalloc(string_size + 1);
 
         // Read it all in one operation
         read_size = fread(buffer, sizeof(u8), string_size, f);

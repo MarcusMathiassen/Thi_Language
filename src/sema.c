@@ -142,13 +142,15 @@ Type* sema_check_node(Sema_Context* ctx, AST* node) {
         break;
 
     case AST_TYPEOF:
-        result_t = sema_check_node(ctx, node->Typeof.node);
+        sema_check_node(ctx, node->Typeof.node);
+        result_t = make_type_pointer(make_type_int(1, true));
         break;
 
     case AST_SIZEOF:
-        result_t = sema_check_node(ctx, node->Sizeof.node);
+        sema_check_node(ctx, node->Sizeof.node);
+        result_t = make_type_int(DEFAULT_INT_BYTE_SIZE, false);
         break;
-    case AST_NOTE: 
+    case AST_NOTE:
         result_t = sema_check_node(ctx, node->Note.node); 
         break;
     case AST_COMMENT: break;

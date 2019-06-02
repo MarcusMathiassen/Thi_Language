@@ -709,21 +709,14 @@ Value* codegen_return(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_RETURN);
     AST* ret_e = node->Return.node;
-
     Value* ret_v = NULL;
-
     if (ret_e) {
-
         Class_Kind class = classify(ret_e->type);
-
         ret_v = codegen_node(ctx, ret_e);
-
         s64 size = get_size_of_value(ret_v);
         s8 return_reg = -1;
-
         s8 class_integer_counter = 0;
         s8 class_sse_counter = 0;
-
         switch (class) {
             ERROR_UNHANDLED_CLASS_KIND(class);
         // case CLASS_MEMORY: break;
@@ -733,12 +726,10 @@ Value* codegen_return(Codegen_Context* ctx, AST* node) {
             break;
             // case CLASS_SSEUP: break;
         }
-
         char* mov_op = get_move_op(ret_v->type);
         char* result_reg = get_result_reg(ret_v->type);
         emit(ctx, "%s %s, %s", mov_op, get_reg(return_reg), result_reg);
     }
-
     emit(ctx, "jmp %s", DEFAULT_FUNCTION_END_LABEL_NAME);
     return ret_v;
 }
@@ -882,8 +873,6 @@ Value* codegen_call(Codegen_Context* ctx, AST* node) {
     s8 class_integer_counter = 0; // used for getting the next available register
     s8 class_sse_counter = 0;     // used for getting the next available register
 
-    // List* classified_arguments = classify_arguments(args);
-
     List* values = make_list();
     LIST_FOREACH_REVERSE(args) {
         Value* v = codegen_node(ctx, it->data);
@@ -894,7 +883,6 @@ Value* codegen_call(Codegen_Context* ctx, AST* node) {
     LIST_FOREACH_REVERSE(values) {
         Value* arg_v = it->data;
         Class_Kind class = classify(arg_v->type);
-        // pop_type(ctx, arg_v->type);
 
         s8 param_reg = -1;
 
@@ -918,39 +906,6 @@ Value* codegen_call(Codegen_Context* ctx, AST* node) {
         // @FixMe!
         pop(ctx, param_reg);
     }
-
-    // LIST_FOREACH(classified_arguments) {
-
-    //     ClassifiedArgument* ca = it->data;
-    //     AST* arg = ca->argument;
-    //     Class_Kind class = ca->class;
-
-    //     Value* arg_v = codegen_node(ctx, arg);
-    //     s8 param_reg = -1;
-
-    //     switch (class) {
-    //         ERROR_UNHANDLED_CLASS_KIND(class);
-    //     // case CLASS_MEMORY:          break;
-    //     case CLASS_INTEGER: param_reg = get_parameter_reg_int(class_integer_counter++, 8); break;
-    //     case CLASS_SSE:
-    //         param_reg = get_parameter_reg_float(class_sse_counter++);
-    //         break;
-    //         // case CLASS_SSEUP:           break;
-    //         // case CLASS_X87:             // fallthrough
-    //         // case CLASS_X87UP:           // fallthrough
-    //         // case CLASS_COMPLEX_X87:     break;
-    //     }
-
-    //     char* mov_op = get_move_op(arg_v->type);
-    //     char* result_reg = get_result_reg_of_size(arg_v->type, 8);
-    //     emit(ctx, "%s %s, %s", mov_op, get_reg(param_reg), result_reg);
-
-    //     //  When a value of type _Bool is returned or passed in a register or on the stack,
-    //     //  bit 0 contains the truth value and bits 1 to 7 shall be zero.
-    //     // if (arg_v->type->kind == TYPE_INT && arg_v->type->Int.bytes == 1) {
-    //     //     emit(ctx, "and %s, 00000001b", get_reg(param_reg));
-    //     // }
-    // }
 
     if (node->type->flags & TYPE_FLAG_HAS_VAR_ARG) {
         emit(ctx, "mov al, %lld; var_arg_count", args->count);

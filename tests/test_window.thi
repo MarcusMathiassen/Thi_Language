@@ -7,6 +7,9 @@ load "includes/cmath"
 
 WINDOW_TITLE = "Hello Triangle"
 
+def Window
+    handle s32*
+
 def main() s32
     if !glfwInit() { puts("GLFW init failed.") }
     defer { glfwTerminate() }
@@ -19,9 +22,6 @@ def main() s32
     glfwMakeContextCurrent(window)
 
     if glewInit() != GLEW_OK { puts("GLEW init failed.") }
-
-    shorten_filenames_in_error_messages = false
-    warnings_is_errors = false
 
     running = true
 
@@ -36,20 +36,27 @@ def main() s32
 
     while running
 
-
-        glClearColor(r, g, b, a)
-        if glfwWindowShouldClose(window) { running = false }
-        if glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS { running = false }
-
-        glClear(GL_COLOR_BUFFER_BIT)
-        glfwPollEvents()
-
         if glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS { r += 0.001f }
         if glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS { g += 0.001f }
         if glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS { b += 0.001f }
         if glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS { r -= 0.001f }
         if glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS { g -= 0.001f }
         if glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS { b -= 0.001f }
+
+        r = clamp0to1(r)
+        g = clamp0to1(g)
+        b = clamp0to1(b)
+        a = clamp0to1(a)
+
+        glClearColor(r, g, b, a)
+
+        #printf("rgb(%f, %f, %f, %f)\n", r, g, b, a)
+
+        if glfwWindowShouldClose(window) { running = false }
+        if glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS { running = false }
+
+        glClear(GL_COLOR_BUFFER_BIT)
+        glfwPollEvents()
 
         if glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS { y += 0.1f }
         if glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS { y -= 0.1f }
@@ -58,9 +65,7 @@ def main() s32
         if glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS { scale -= 0.01f }
         if glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS { scale += 0.01f }
 
-        printf("rgb(%f, %f, %f, %f)\n", r, g, b, a))
-
-        drawTriangle(x * 0.1f, y * 0.1f, scale)
+        drawTriangle(x * 0.01f, y * 0.01f, scale)
 
         glfwSwapBuffers(window)
 
@@ -80,3 +85,9 @@ def drawTriangle(x f32, y f32, s f32)
     glColor3f(0.0f, 0.0f, 1.0f)
     glVertex2f(x + 0.5f*s, y -0.5f*s)
     glEnd()
+
+def clamp0to1(x f32) f32
+    # @Currently doesnt work? 
+    #if x < 0.0f { return 0.0f }
+    #if x > 1.0f { return 1.0f }
+    return x

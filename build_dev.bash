@@ -13,8 +13,8 @@ if [ $? == 0 ]; then
     fi
     if [ $? == 0 ]; then
         # ./test.bash
-        ./test.bash ./tests/test_window.thi
-        # ./test.bash ./tests/test_basic_setup.thi
+        # ./test.bash ./tests/test_window.thi
+        ./test.bash ./tests/test_basic_setup.thi
         # ./test.bash ./tests/test_global_variable.thi
     fi
 fi

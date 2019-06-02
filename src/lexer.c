@@ -340,6 +340,7 @@ Token get_token(Lexer_Context* ctx) {
     switch (*c) {
     default: break;
     case '#':
+        ++c; // skip the hash
         token.value = c;
         token.kind = TOKEN_COMMENT;
         skip_comment(c);

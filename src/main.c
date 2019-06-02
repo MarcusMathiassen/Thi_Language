@@ -367,7 +367,7 @@ typedef struct
 void ast_query(void* query, AST* node) {
     AST_FindAll_Query* q = query;
     if (node->kind == q->kind) {
-        list_append((List*)q->list, node);
+        list_append(q->list, node);
     }
 }
 
@@ -636,19 +636,17 @@ int main(int argc, char** argv) {
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
-#ifndef NDEBUG
-    info("--- Compiler timings ---");
-    info("lines %s%s comments %s", give_unique_color(strf("%lld", pctx.lines)), RGB_GRAY, give_unique_color(strf("%lld", pctx.comments)));
+    success("--- Compiler timings ---");
+    success("lines %s%s comments %s", give_unique_color(strf("%lld", pctx.lines)), RGB_GRAY, give_unique_color(strf("%lld", pctx.comments)));
     LIST_FOREACH(get_timers(&thi)) {
         Timer* tm = it->data;
         s64 len = strlen(tm->desc);
         char* ms = strf("%f seconds", tm->ms / 1e3);
         s64 ms_l = strlen(ms);
         s64 padding = w.ws_col - len - ms_l - 1; // -1 is the ':'
-        info("%s", give_unique_color(strf("%s:%*s%s", tm->desc, padding, "", ms)));
+        success("%s", give_unique_color(strf("%s:%*s%s", tm->desc, padding, "", ms)));
     }
-    info("---------------------------");
-#endif
+    success("---------------------------");
 // Write Unoptimized AST out
 #ifndef NDEBUG
     write_to_file("output.thi", ast_to_source(ast));
@@ -698,9 +696,7 @@ List* string_split(string* this, char delimiter) {
             char* str = xmalloc(len); // cursor is at the delimiter so we dont need a +1
             memcpy(str, start_of_word, len);
             str[len] = 0;
-
             list_append(list_of_delimited_strings, str);
-
             start_of_word = cursor+1; // +1 skips the delimiter
         }
         ++cursor;
@@ -733,8 +729,6 @@ List* string_list_remove_duplicates(List* list) {
 }
 
 void write_syntax_file(Thi* thi) {
-
-    // Write out all types and funcs
     s64 count = thi->symbol_map->size;
     string* known_types = string_create("");
     string* known_funcs = string_create("");
@@ -785,6 +779,7 @@ void write_syntax_file(Thi* thi) {
     string_append(s, "    - include: function_def\n");
     string_append(s, "    - include: numbers\n");
     string_append(s, "    - include: hex\n");
+    string_append(s, "    - include: globals\n");
     string_append(s, "    - include: strings\n");
     string_append(s, "    - include: character_literal\n");
     string_append(s, "    - include: basic_types\n");
@@ -796,7 +791,7 @@ void write_syntax_file(Thi* thi) {
     string_append(s, "    # strings in YAML. When using single quoted strings, only single quotes\n");
     string_append(s, "    # need to be escaped: this is done by using two single quotes next to each\n");
     string_append(s, "    # other.\n");
-    string_append(s, "    - match: '\\b(interface|enum|struct|class|def|sizeof|typeof|fallthrough|in|true|false|extern|link|union|is|load|if|else|for|while|return|break|continue|defer)\\b'\n");
+    string_append(s, "    - match: '\\b(interface|enum|struct|class|def|astof|sizeof|typeof|fallthrough|in|true|false|extern|link|union|is|load|if|else|for|while|return|break|continue|defer)\\b'\n");
     string_append(s, "      scope: keyword.control\n");
     string_append(s, "\n");
     string_append(s, "  function_def:\n");

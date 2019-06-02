@@ -184,7 +184,7 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
     switch (kind) {
         ERROR_UNHANDLED_AST_KIND(kind);
     case AST_COMMENT:
-        string_append(s, node->Comment.text);
+        string_append_f(s, "#%s", node->Comment.text);
         break;
     case AST_NOP:
         string_append(s, "nop");

@@ -18,6 +18,7 @@ contexts:
     - include: function_def
     - include: numbers
     - include: hex
+    - include: globals
     - include: strings
     - include: character_literal
     - include: basic_types
@@ -29,11 +30,11 @@ contexts:
     # strings in YAML. When using single quoted strings, only single quotes
     # need to be escaped: this is done by using two single quotes next to each
     # other.
-    - match: '\b(interface|enum|struct|class|def|sizeof|typeof|fallthrough|in|true|false|extern|link|union|is|load|if|else|for|while|return|break|continue|defer)\b'
+    - match: '\b(interface|enum|struct|class|def|astof|sizeof|typeof|fallthrough|in|true|false|extern|link|union|is|load|if|else|for|while|return|break|continue|defer)\b'
       scope: keyword.control
 
   function_def:
-    - match: '\b(fopen|freopen|fclose|remove|rename|feof|ferror|fflush|clearerr|fseek|ftell|rewind|fread|fwrite|fgetc|getc|getchar|ungetc|fputc|putc|putchar|fgets|fputs|puts|printf|fprintf|sprintf|snprintf|scanf|fscanf|sscanf|perror|atoi|atol|atoll|atof|strtof|strtod|strtold|strtol|strtoul|strtoll|strtoull|rand|srand|malloc|calloc|realloc|free|aligned_alloc|abort|exit|_Exit|quick_exit|getenv|system|abs|labs|llabs|glClear|glClearColor|glBegin|glEnd|glFinish|glBlendFunc|glEnable|glDisable|glGenTextures|glDeleteTextures0|glTexParameteri|glTexParameterf|glBindTexture|glLoadIdentity|glViewport|glOrtho|glColor3f|glColor4f|glVertex2f|glVertex3f|glGetError|glGetString|glGetIntegerv|glTexCoord2f|glTexImage2D|glGenBuffers|glGenVertexArrays|glGenSamplers|glDeleteBuffers|glBindBuffer|glBindVertexArray|glDeleteVertexArrays|glBindSampler|glBufferData|glBufferSubData|glDrawArrays|glDrawElements|glMapBuffer|glUnmapBuffer|VertexAttribPointer|EnableVertexAttribArray|glCreateShader|glShaderSource|glCompileShader|glCreateProgram|glAttachShader|glDetachShader|glDeleteShader|glLinkProgram|glUseProgram|glDeleteProgram|glGetShaderiv|glGetProgramiv|glGetShaderInfoLog|glGetProgramInfoLog|glActiveTexture|glGenerateMipmapp|glSamplerParameteri|glSamplerParameterf|glSamplerParameteriv|glSamplerParameterfv|glSamplerParameterIiv|glSamplerParameterIuiv|glUniform1i|glUniform2i|glUniform3i|glUniform4i|glUniform1f|glUniform2f|glUniform3f|glUniform4f|glUniformMatrix4fv|glGetUniformLocation|glewInit|glewIsSupported|glewGetExtension|glewGetErrorString|glewGetString|glfwCreateWindow |glfwInit|glfwTerminate|glfwGetVersion|glfwGetPrimaryMonitor|glfwGetMonitors|glfwGetMonitorPos|glfwGetMonitorPhysicalSize|glfwGetVideoMode|glfwSetGamma|glfwGetGammaRamp0|glfwSetGammaRamp`|glfwDestroyWindow|glfwWindowHint|glfwDefaultWindowHints|glfwWindowShouldClose|glfwSetWindowShouldClose|glfwSwapInterval|glfwSwapBuffers|glfwMakeContextCurrent|glfwGetCurrentContext|glfwGetProcAddress|glfwExtensionSupported|glfwGetKey|glfwSetWindowTitle|glfwSetWindowIcon|glfwSetWindowPos|glfwSetWindowSizeLimits|glfwSetWindowAspectRatio|glfwSetWindowSize|glfwGetWindowPos|glfwGetWindowSize|glfwGetFramebufferSize|glfwGetWindowFrameSize|glfwIconifyWindow|glfwRestoreWindow|glfwMaximizeWindow|glfwShowWindow|glfwHideWindow|glfwFocusWindow|glfwGetWindowMonitor|glfwSetWindowMonitor|glfwGetWindowAttrib|glfwSetWindowUserPointer|glfwGetWindowUserPointer|glfwPollEvents|glfwWaitEvents|glfwWaitEventsTimeout|glfwPostEmptyEvent|glfwGetInputMode |glfwSetInputModeP|glfwGetMouseButton|glfwGetCursorPos|glfwSetCursorPos|glfwCreateCursor |glfwDestroyCursor|glfwSetCursor|glfwCreateStandardCursor|glfwGetJoystickAxes|glfwGetJoystickButtons|glfwSetClipboardString|glfwGetTime|glfwSetTime|glfwGetTimerValue|glfwGetTimerFrequency|glfwGetRequiredInstanceExtensions|acos|asin|atan|atan2|cos|cosh|sin|sinh|tanh|exp|frexp|ldexp|log|log10|modf|pow|sqrt|ceil|fabs|floor|fmod|main|drawTriangle)\b'
+    - match: '\b(printf|puts|main|sqrt)\b'
       scope: entity.name.function
 
   numbers:
@@ -51,7 +52,7 @@ contexts:
       scope: keyword.operator
 
   basic_types:
-    - match: '\b(void|u8|s64|f64|s8|s16|s32|u16|u32|u64|f32|GLFWvidmode|GLFWgammaramp|GLFWimage)\b'
+    - match: '\b(void|u8|s64|f64|s8|s16|s32|u16|u32|u64|f32)\b'
       scope: storage.type
 
   strings:

@@ -30,7 +30,6 @@
 //------------------------------------------------------------------------------
 
 typedef struct Type Type;
-
 typedef enum {
     TYPE_UNRESOLVED,
     TYPE_VOID,
