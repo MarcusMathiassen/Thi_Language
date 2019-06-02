@@ -7,19 +7,13 @@ load "includes/cmath"
 
 WINDOW_TITLE = "Hello Triangle"
 
-def main() s64
+def main() s32
     if !glfwInit() { puts("GLFW init failed.") }
     defer { glfwTerminate() }
     defer { puts("Closing..") }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1)
-
-    glfwWindowHint(GLFW_SAMPLES, 4)
-    glfwWindowHint(GLFW_RED_BITS, 8)
-    glfwWindowHint(GLFW_GREEN_BITS, 8)
-    glfwWindowHint(GLFW_BLUE_BITS, 8)
-    glfwWindowHint(GLFW_ALPHA_BITS, 8)
 
     window = glfwCreateWindow(640, 480, WINDOW_TITLE, NULL, NULL)
     glfwMakeContextCurrent(window)
@@ -50,32 +44,23 @@ def main() s64
         glClear(GL_COLOR_BUFFER_BIT)
         glfwPollEvents()
 
-        if glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS { 
-            y += 0.01f
-        }
+        if glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS { r += 0.001f }
+        if glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS { g += 0.001f }
+        if glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS { b += 0.001f }
+        if glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS { r -= 0.001f }
+        if glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS { g -= 0.001f }
+        if glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS { b -= 0.001f }
 
-        if glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS { 
-            y -= 0.01f
-        }
+        if glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS { y += 0.1f }
+        if glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS { y -= 0.1f }
+        if glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS { x += 0.1f }
+        if glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS { x -= 0.1f }
+        if glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS { scale -= 0.01f }
+        if glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS { scale += 0.01f }
 
-        if glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS { 
-            x += 0.01f
-        }
+        printf("rgb(%f, %f, %f, %f)\n", r, g, b, a))
 
-        if glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS { 
-            x -= 0.01f
-        }
-
-        if glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS { 
-            scale -= 0.01f
-        }
-        if glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS { 
-            scale += 0.01f
-        }
-
-        #printf("rgb(%f, %f, %f, %f)\n", r, g, b, a))
-
-        drawTriangle(x * 0.01f, y * 0.01f, scale)
+        drawTriangle(x * 0.1f, y * 0.1f, scale)
 
         glfwSwapBuffers(window)
 
@@ -86,7 +71,7 @@ def main() s64
     #  is in 'RAX' when all defers have run.
     return 1
 
-def drawTriangle(x f64, y f64, s f64)
+def drawTriangle(x f32, y f32, s f32)
     glBegin(GL_TRIANGLES)
     glColor3f(1.0f, 0.0f, 0.0f)
     glVertex2f(x + -0.5f *s, y + -0.5f*s )
