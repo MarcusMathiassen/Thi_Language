@@ -1,15 +1,23 @@
-	.section	__TEXT,__text,regular,pure_instructions
-	.macosx_version_min 10, 14
-	.globl	_main                   ## -- Begin function main
-	.p2align	4, 0x90
-_main:                                  ## @main
-	.cfi_startproc
-## %bb.0:
-	movl	$0, -4(%rsp)
-	movl	$3, -8(%rsp)
-	movl	$3, %eax
-	retq
-	.cfi_endproc
-                                        ## -- End function
-
-.subsections_via_symbols
+section .data
+global _main
+section .text
+_main:
+		push rbp; PUSH
+		mov rbp, rsp
+		sub rsp, 32; 20 alloc, 12 padding
+.begin:
+		mov [rbp-4], edi; store_r argc
+		mov [rbp-12], rsi; store_r argv
+		mov rax, 341
+		push rax; PUSH
+		mov rax, [rbp-20]; load i
+		pop rcx; POP
+		mov [rbp-20], rcx; store i
+		mov rax, [rbp-20]; load i
+		mov rax, 1
+		mov rax, rax
+		jmp .end
+.end:
+		add rsp, 32; 20 alloc, 12 padding
+		leave
+		ret

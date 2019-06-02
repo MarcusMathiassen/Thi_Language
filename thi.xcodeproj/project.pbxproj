@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		9039BBBF2297383600518F14 /* sema.c in Sources */ = {isa = PBXBuildFile; fileRef = 9039BBBD2297383600518F14 /* sema.c */; };
+		90A50C6922A45A45008C2632 /* codegen_llvm.c in Sources */ = {isa = PBXBuildFile; fileRef = 90A50C6722A45A45008C2632 /* codegen_llvm.c */; };
 		90E9F30722907A5E00F80AF9 /* ast.c in Sources */ = {isa = PBXBuildFile; fileRef = 90E9F2E422907A5E00F80AF9 /* ast.c */; };
 		90E9F30822907A5E00F80AF9 /* thi.c in Sources */ = {isa = PBXBuildFile; fileRef = 90E9F2E522907A5E00F80AF9 /* thi.c */; };
 		90E9F30922907A5E00F80AF9 /* codegen_utility.c in Sources */ = {isa = PBXBuildFile; fileRef = 90E9F2E622907A5E00F80AF9 /* codegen_utility.c */; };
@@ -42,6 +43,9 @@
 /* Begin PBXFileReference section */
 		9039BBBB2297383600518F14 /* sema.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sema.h; sourceTree = "<group>"; };
 		9039BBBD2297383600518F14 /* sema.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sema.c; sourceTree = "<group>"; };
+		90A50C6622A45A45008C2632 /* ir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ir.h; sourceTree = "<group>"; };
+		90A50C6722A45A45008C2632 /* codegen_llvm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = codegen_llvm.c; sourceTree = "<group>"; };
+		90A50C6822A45A45008C2632 /* codegen_llvm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = codegen_llvm.h; sourceTree = "<group>"; };
 		90E9F2D62290799100F80AF9 /* thi */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = thi; sourceTree = BUILT_PRODUCTS_DIR; };
 		90E9F2E322907A5E00F80AF9 /* type.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = type.h; sourceTree = "<group>"; };
 		90E9F2E422907A5E00F80AF9 /* ast.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ast.c; sourceTree = "<group>"; };
@@ -119,6 +123,9 @@
 		90E9F2E222907A5E00F80AF9 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				90A50C6722A45A45008C2632 /* codegen_llvm.c */,
+				90A50C6822A45A45008C2632 /* codegen_llvm.h */,
+				90A50C6622A45A45008C2632 /* ir.h */,
 				9039BBBD2297383600518F14 /* sema.c */,
 				9039BBBB2297383600518F14 /* sema.h */,
 				90E9F2FF22907A5E00F80AF9 /* .clang-format */,
@@ -222,6 +229,7 @@
 				90E9F31022907A5E00F80AF9 /* parser_utility.c in Sources */,
 				90E9F30C22907A5E00F80AF9 /* stack.c in Sources */,
 				90E9F30722907A5E00F80AF9 /* ast.c in Sources */,
+				90A50C6922A45A45008C2632 /* codegen_llvm.c in Sources */,
 				90E9F31422907A5E00F80AF9 /* type_checker.c in Sources */,
 				90E9F31622907A5E00F80AF9 /* parser.c in Sources */,
 				90E9F31722907A5E00F80AF9 /* value.c in Sources */,

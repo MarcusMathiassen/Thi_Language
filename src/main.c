@@ -46,6 +46,7 @@
 #include <sys/ioctl.h>    // NOTE(marcus): what do i use this for?
 #include <unistd.h>       // NOTE(marcus): what do i use this for?
 
+
 void assemble(Thi* thi, char* asm_file, char* exec_name);
 void linking_stage(Thi* thi, char* exec_name);
 
@@ -104,13 +105,6 @@ void resolve_field_access(void* dont_care, AST* node) {
     load->type = type_of_field;
 
     ast_replace(node, load);
-}
-
-void resolve_constant_decls(void* dont_care, AST* node) {
-    AST* decl = node;
-    if (decl->Constant_Decl.value->kind == AST_IDENT) {
-        // it must be another constant decl.
-    }
 }
 
 void pass_initilize_enums(void* thi, AST* node) {
@@ -658,18 +652,12 @@ int main(int argc, char** argv) {
 }
 
 void assemble(Thi* thi, char* asm_file, char* exec_name) {
-    string* comp_call;
-    switch (thi->backend) {
-    case BACKEND_LLVM:
+    if (thi->backend == BACKEND_LLVM) {
         push_timer(thi, "LLVM");
-        system(PATH_TO_LLC " ./output.ll");
+        system(PATH_TO_LLC " ./output.ll --x86-asm-syntax=intel");
         pop_timer(thi);
-        comp_call = string_create_f("as %s.s -o %s.o", asm_file, exec_name);
-        break;
-    case BACKEND_X64:
-        comp_call = string_create_f("nasm -f macho64 -g %s.s -o %s.o", asm_file, exec_name);
-        break;
     }
+    string* comp_call = string_create_f("nasm -f macho64 -g %s.s -o %s.o", asm_file, exec_name);
     info("Assembling with options '%s'", string_data(comp_call));
     push_timer(thi, "Assembler");
     system(string_data(comp_call));

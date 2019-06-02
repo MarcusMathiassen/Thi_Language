@@ -34,7 +34,7 @@ contexts:
       scope: keyword.control
 
   function_def:
-    - match: '\b(main)\b'
+    - match: '\b(printf|main)\b'
       scope: entity.name.function
 
   numbers:
@@ -52,7 +52,7 @@ contexts:
       scope: keyword.operator
 
   basic_types:
-    - match: '\b(void|u8|s64|f64|s8|s16|s32|u16|u32|u64|f32)\b'
+    - match: '\b(void|u8|s64|f64|s8|s16|s32|u16|u32|u64|f32|v2)\b'
       scope: storage.type
 
   strings:

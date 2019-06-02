@@ -56,7 +56,44 @@ static char* codegen_node(Codegen_Context* ctx, AST* node) {
     case AST_FALLTHROUGH: return NULL;
     case AST_LOAD: return codegen_node(ctx, node->Load.module);
     case AST_LINK: return NULL;
-    case AST_FUNCTION:return NULL;
+    case AST_IDENT: {
+        string* s = string_create("%%1 = load i32, i32* %%0");
+        emit_no_tab(ctx, string_data(s));
+        return NULL;
+    }
+    case AST_VARIABLE_DECL: {
+        string* s = string_create("%%0 = alloca ");
+        string_append_f(s, "%s", get_type_name(node->Variable_Decl.type));
+        emit_no_tab(ctx, string_data(s));
+        return NULL;
+    }
+    case AST_RETURN: {
+        codegen_node(ctx, node->Return.node);
+        return NULL;
+    }
+    case AST_BLOCK: {
+        string* s = string_create("{\n");
+        emit_no_tab(ctx, string_data(s));
+        LIST_FOREACH(node->Block.stmts) {
+            codegen_node(ctx, it->data);
+        }
+        emit_no_tab(ctx, "\n}");
+        return NULL;
+    }
+    case AST_FUNCTION: {
+        AST* func = node;
+        Type* return_type = func->type->Function.return_type;
+        string* s = string_create_f("define %s @%s(", get_type_name(return_type), func->Function.name);
+        LIST_FOREACH(func->Function.parameters) {
+            AST* mem = it->data;
+            string_append(s, get_type_name(mem->type));
+            if (it->next) string_append(s, ", ");
+        }
+        string_append(s, ")");
+        emit_no_tab(ctx, string_data(s));
+        codegen_node(ctx, func->Function.body);
+        return NULL;
+    }
     case AST_INT: {
         return NULL;
     }
@@ -68,24 +105,9 @@ static char* codegen_node(Codegen_Context* ctx, AST* node) {
 char* generate_llvm_from_ast(AST* ast) {
     assert(ast);
     info("Generating code from ast");
-
     Codegen_Context ctx = make_codegen_context();
-
-    string_append(ctx.section_data, "section .data\n");
-    emit_no_tab(&ctx, "section .text");
-
     codegen_node(&ctx, ast);
-
-    char* output = "define i32 @main() {\n"
-      "\t%1 = alloca i32, align 4\n"
-      "\t%2 = alloca i32, align 4\n"
-      "\tstore i32 0, i32* %1, align 4\n"
-      "\tstore i32 3, i32* %2, align 4\n"
-      "\t%3 = load i32, i32* %2, align 4\n"
-      "\tret i32 %3\n"
-    "}\n";
-
+    char* output = string_data(ctx.section_text);
     info("%s", output);
-
     return output;
 }
