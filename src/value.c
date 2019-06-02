@@ -94,7 +94,12 @@ char* get_mem_loc(Value* value) {
     // case VALUE_POINTER: return "VALUE_POINTER";
     // case VALUE_STRING: return "VALUE_STRING";
     case VALUE_VARIABLE: return strf("[rbp-%lld]", value->Variable.stack_pos);
-    case VALUE_GLOBAL_VARIABLE: return strf("[rel %s]", value->Global_Variable.label);
+    case VALUE_GLOBAL_VARIABLE: {
+        // @Audit
+        if (value->type->kind == TYPE_POINTER)
+            return strf("%s", value->Global_Variable.label);
+        return strf("[rel %s]", value->Global_Variable.label);
+    }
         // case VALUE_CALL: return value->Call.callee;
         // case VALUE_FUNCTION: return value->Function.name;
         // case VALUE_STRUCT:

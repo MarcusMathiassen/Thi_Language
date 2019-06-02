@@ -40,7 +40,7 @@
 
 #define DEBUG_START \
     assert(ctx);    \
-    info("%s: %s", __func__, token_to_str(currTok(ctx)));
+    // info("%s: %s", __func__, token_to_str(currTok(ctx)));
 
 #define UNARY_OP_COUNT 11
 Token_Kind unary_ops[UNARY_OP_COUNT] = {
@@ -159,7 +159,7 @@ AST* parse(Parser_Context* ctx, char* file) {
     list_append(ctx->loads, file_path);
 
     Lexed_File lf = generate_tokens_from_file(file_path);
-    print_tokens(lf.tokens);
+    // print_tokens(lf.tokens);
     // exit(1);
     ctx->tokens = lf.tokens.data;
     ctx->lines += lf.lines;

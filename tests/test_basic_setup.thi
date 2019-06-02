@@ -3,20 +3,12 @@ link "-lSystem"
 extern printf(u8*, ...) s32
 extern puts(u8*) s32
 
-
-def v2
-    x f32
-    y f32
-
 s = "t4o0"
 f = 324.0
+
 
 def main() s32
 
     printf("%f%s", f, s)
-
-    v v2
-    #*(&v + 0) = 53.35f
-    #*(&v + 8) = 14.01f
 
     return 1

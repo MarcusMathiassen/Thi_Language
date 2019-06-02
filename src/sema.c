@@ -180,10 +180,8 @@ Type* sema_check_node(Sema_Context* ctx, AST* node) {
     case AST_UNARY: {
 
         AST* operand = node->Unary.operand;
-        sema_check_node(ctx, operand);
+        result_t = sema_check_node(ctx, operand);
         assert(operand->type);
-
-        result_t = operand->type;
 
         Token_Kind op = node->Unary.op;
         switch (op) {
@@ -217,8 +215,6 @@ Type* sema_check_node(Sema_Context* ctx, AST* node) {
         break;
     }
     case AST_VARIABLE_DECL: {
-        // Type* type = node->Variable_Decl.type;
-        // AST* value = node->Variable_Decl.value;
         if (node->Variable_Decl.value && (node->Variable_Decl.value->kind == AST_IDENT)) {
             AST* s = get_symbol_in_scope(ctx, node->Variable_Decl.value->Ident.name);
             node->Variable_Decl.value = s->Variable_Decl.value;
@@ -319,9 +315,6 @@ Type* sema_check_node(Sema_Context* ctx, AST* node) {
     case AST_EXTERN:
         add_node_to_scope(ctx, node);
         // @Todo(marcus): we need to check the parameters if they make sense.
-        // LIST_FOREACH(node->Extern.type->Function.parameters) {
-        //     sema_check_node(ctx, it->data);
-        // }
         break;
     case AST_FUNCTION:
         add_node_to_scope(ctx, node);
@@ -329,18 +322,11 @@ Type* sema_check_node(Sema_Context* ctx, AST* node) {
         LIST_FOREACH(node->Function.parameters) {
             sema_check_node(ctx, it->data);
         }
-        result_t = sema_check_node(ctx, node->Function.body);
+        sema_check_node(ctx, node->Function.body);
         LIST_FOREACH(node->Function.defers) {
             sema_check_node(ctx, it->data);
         }
         SCOPE_END;
-        // info_no_newline("scopes: %d -> ", ctx->scopes->count);
-        // List* vars = (List*)stack_peek(ctx->scopes);
-        // LIST_FOREACH_REVERSE(vars) {
-        // AST* v = it->data;
-        // info_no_newline("%s ", ucolor(v->Variable_Decl.name));
-        // }
-        // info("");
         break;
 
     case AST_CALL: {
@@ -351,8 +337,6 @@ Type* sema_check_node(Sema_Context* ctx, AST* node) {
             AST* arg = it->data;
             sema_check_node(ctx, arg);
         }
-
-        // Typeify
         Type* callee_t = callee_f->type;
         callee_t->Function.return_type->flags = callee_t->flags; // @HACK
         result_t = callee_t->Function.return_type;
@@ -392,6 +376,8 @@ Type* sema_check_node(Sema_Context* ctx, AST* node) {
             result_t = a_t;
         }
 
+        if (!result_t) result_t = make_type_void();
+
         SCOPE_END;
         break;
     }
@@ -413,9 +399,9 @@ Type* sema_check_node(Sema_Context* ctx, AST* node) {
     case AST_BREAK:    // fallthrough
     case AST_CONTINUE: // fallthrough
     case AST_FALLTHROUGH: break;
-    default: assert(result_t);
+    default: tassert(result_t, "%s", ast_to_str(node));
     }
-
+    info("%s -> REPLACED %s WITH %s", ast_to_str(node), ucolor(type_to_str(node->type)), ucolor(type_to_str(result_t)));
     node->type = result_t;
     return result_t;
 }
