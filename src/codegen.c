@@ -509,8 +509,7 @@ Value* codegen_variable_decl(Codegen_Context* ctx, AST* node) {
         char* label = make_data_label(ctx);
         char* db_op = get_db_op(type);
         char* initial_value = NULL;
-        if (assignment_expr) 
-            initial_value = ast_get_literal_value_as_str(assignment_expr);
+        if (assignment_expr) initial_value = ast_get_literal_value_as_str(assignment_expr);
         else initial_value = "0";
         emit_data(ctx, "%s: %s %s", label, db_op, initial_value);
         variable = make_value_global_variable(name, type, label);

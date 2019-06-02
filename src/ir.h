@@ -26,13 +26,13 @@
 #define IR_H
 
 typedef enum {
-    IR_NOP,   // does nothing.
-    IR_ADD,   // add r0 r1 r2 => r0  r1 * r2
-    IR_NEG,   // neg r0 r1 => additive inverse of value in r1
-    IR_LOAD,  // load  <bytes> r0 r1   => gets <bytes> of bytes from memory stores in r1.
-    IR_STORE, // store <bytes> r0 r1   => stores <bytes> from r1 into r0. ex. 'store 1 r0 r1' will get 1 byte from r1 and put it into memory address of r0
-    IR_EQ,    // eq r0 r1 r2 => if r1 == r2, r0 is 1, otherwise 0
-    IR_IFNZ,  // if r1 label else label
+    IR_NOP,
+    IR_ADD,
+    IR_NEG,
+    IR_LOAD,
+    IR_STORE,
+    IR_EQ,
+    IR_IFNZ,
     _IR_COUNT_
 } IR_Kind;
 

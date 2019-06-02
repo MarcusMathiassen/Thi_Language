@@ -5,6 +5,8 @@ load "includes/glew"
 load "includes/glfw"
 load "includes/cmath"
 
+WINDOW_TITLE = "Hello Triangle"
+
 def main() s64
     if !glfwInit() { puts("GLFW init failed.") }
     defer { glfwTerminate() }
@@ -19,7 +21,7 @@ def main() s64
     glfwWindowHint(GLFW_BLUE_BITS, 8)
     glfwWindowHint(GLFW_ALPHA_BITS, 8)
 
-    window = glfwCreateWindow(640, 480, "Hello Triangle", NULL, NULL)
+    window = glfwCreateWindow(640, 480, WINDOW_TITLE, NULL, NULL)
     glfwMakeContextCurrent(window)
 
     if glewInit() != GLEW_OK { puts("GLEW init failed.") }
