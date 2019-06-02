@@ -40,6 +40,11 @@ typedef enum {
     PASS_UNSAFE
 } PassKind;
 
+typedef enum {
+    BACKEND_X64,
+    BACKEND_LLVM
+} Backend_Kind;
+
 typedef struct {
     char* description;
     AST_Kind kind;
@@ -50,6 +55,8 @@ typedef struct {
 
 typedef struct
 {
+    Backend_Kind backend;
+
     bool detailed_print;
     bool debug_mode;
     bool enable_constant_folding;

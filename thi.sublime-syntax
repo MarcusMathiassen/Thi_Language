@@ -34,7 +34,7 @@ contexts:
       scope: keyword.control
 
   function_def:
-    - match: '\b(printf|puts|main|sqrt)\b'
+    - match: '\b(main)\b'
       scope: entity.name.function
 
   numbers:

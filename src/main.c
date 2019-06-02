@@ -24,6 +24,7 @@
 
 #include "ast.h"          // AST, AST_Kind
 #include "codegen.h"      // generate_code_from_ast
+#include "codegen_llvm.h" // generate_llvm_from_ast
 #include "constants.h"    // all constnats
 #include "lexer.h"        // generate_tokens_from_source, print_tokens
 #include "list.h"         // list_tests
@@ -491,8 +492,7 @@ int main(int argc, char** argv) {
 
     // ast = make_ast_module(ast->loc_info, source_file, ast);
 
-
-    thi.links =  ast_find_all_of_kind(AST_LINK, ast);
+    thi.links = ast_find_all_of_kind(AST_LINK, ast);
     info("all loaded files");
     LIST_FOREACH(pctx.loads) {
         info("file: %s", it->data);
@@ -609,14 +609,14 @@ int main(int argc, char** argv) {
 
     // Codegen
     push_timer(&thi, "Codegen");
-    char* output = generate_code_from_ast(ast);
+    char* output = thi.backend == BACKEND_X64 ? generate_code_from_ast(ast) : generate_llvm_from_ast(ast);
     pop_timer(&thi);
 
     // Write to file
     if (output) {
-        char* output_filename = "output.asm";
+        char* output_filename = thi.backend == BACKEND_X64 ? "output.s" : "output.ll";
         write_to_file(output_filename, output);
-        assemble(&thi, output_filename, exec_name);
+        assemble(&thi, "output", exec_name);
         linking_stage(&thi, exec_name);
     } else
         error("generating code from ast failed.");
@@ -658,18 +658,26 @@ int main(int argc, char** argv) {
 }
 
 void assemble(Thi* thi, char* asm_file, char* exec_name) {
-    string* comp_call = string_create_f("nasm -f macho64 -g %s -o %s.o", asm_file, exec_name);
+    string* comp_call;
+    switch (thi->backend) {
+    case BACKEND_LLVM:
+        push_timer(thi, "LLVM");
+        system(PATH_TO_LLC " ./output.ll");
+        pop_timer(thi);
+        comp_call = string_create_f("as %s.s -o %s.o", asm_file, exec_name);
+        break;
+    case BACKEND_X64:
+        comp_call = string_create_f("nasm -f macho64 -g %s.s -o %s.o", asm_file, exec_name);
+        break;
+    }
+    info("Assembling with options '%s'", string_data(comp_call));
     push_timer(thi, "Assembler");
     system(string_data(comp_call));
     pop_timer(thi);
 }
 
 void linking_stage(Thi* thi, char* exec_name) {
-    // char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _%s",
-    // exec_name, exec_name, exec_name);
-    char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _main",
-                           exec_name,
-                           exec_name);
+    char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _main", exec_name, exec_name);
     List* links = get_link_list(thi);
     LIST_FOREACH(links) {
         AST* link = it->data;
@@ -697,11 +705,11 @@ List* string_split(string* this, char delimiter) {
             memcpy(str, start_of_word, len);
             str[len] = 0;
             list_append(list_of_delimited_strings, str);
-            start_of_word = cursor+1; // +1 skips the delimiter
+            start_of_word = cursor + 1; // +1 skips the delimiter
         }
         ++cursor;
     }
-    
+
     // u64 len = cursor - start_of_word;
     // char* str = xmalloc(len+1); // cursor is at the delimiter so we dont need a +1
     // memcpy(str, start_of_word, len);
@@ -721,7 +729,7 @@ List* string_list_remove_duplicates(List* list) {
             char* b = it->data;
             if (strcmp(a, b) == 0) {
                 dup = true;
-            } 
+            }
         }
         if (!dup) list_append(res, a);
     }
@@ -734,14 +742,14 @@ void write_syntax_file(Thi* thi) {
     string* known_funcs = string_create("");
     for (s64 i = 0; i < count; ++i) {
         Type* type = thi->symbol_map->data[i].data;
-        switch(type->kind) {
-            case TYPE_POINTER: break;
-            case TYPE_FUNCTION:
-                string_append_f(known_funcs, "%s ", get_type_name(type));
-                break;
-            default:
-                string_append_f(known_types, "%s ", get_type_name(type));
-                break;
+        switch (type->kind) {
+        case TYPE_POINTER: break;
+        case TYPE_FUNCTION:
+            string_append_f(known_funcs, "%s ", get_type_name(type));
+            break;
+        default:
+            string_append_f(known_types, "%s ", get_type_name(type));
+            break;
         }
     }
     List* unique_type_string_list = string_list_remove_duplicates(string_split(known_types, ' '));

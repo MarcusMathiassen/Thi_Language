@@ -1,25 +1,3 @@
 link "-lSystem"
-
-extern printf(u8*, ...) s32
-extern puts(u8*) s32
-
-s = "t4o0"
-f = 324.0
-
 def main() s32
-    #printf("%f%s", f, s)
-    printf("%f\n", sqrt(9.0))
     return 1
-
-def sqrt(n f64) f64
-    lo = 0.0
-    hi = 0.0
-    mi = 0.0
-    for i = 0; i < 1000; ++i
-        if mi*mi == n
-            return mi
-        if mi*mi > n 
-            hi = mi
-        else 
-            lo = mi
-    return mi

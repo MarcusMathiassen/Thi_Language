@@ -26,6 +26,7 @@
 
 Thi make_thi() {
     Thi thi;
+    thi.backend = BACKEND_LLVM;
     thi.lines = 0;
     thi.comments = 0;
     thi.detailed_print = false;

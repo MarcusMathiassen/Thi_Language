@@ -23,6 +23,8 @@
 
 #define COMPILER_VERSION "0.1"
 
+#define PATH_TO_LLC "/usr/local/Cellar/llvm/8.0.0_1/bin/llc"
+
 #define RESET "\033[0m"
 #define GRAY "\033[30m"
 #define RED "\033[31m"
