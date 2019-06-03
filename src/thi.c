@@ -63,7 +63,7 @@ Thi make_thi() {
         map_set(thi.all_passes_for_all_kinds, ast_kind_to_str(kind), make_list());
     }
 
-    tassert(thi.all_passes_for_all_kinds->size == _AST_COUNT_, "Missing some AST decl in our map.");
+    tassert(map_count(thi.all_passes_for_all_kinds) == _AST_COUNT_, "Missing some AST decl in our map.");
 
     return thi;
 }
@@ -143,11 +143,11 @@ List* get_link_list(Thi* thi) {
 }
 
 void print_symbol_map(Thi* thi) {
-    s64 count = thi->symbol_map->size;
-    info("symbol_map count: %d", count);
-    for (s64 i = 0; i < count; ++i) {
-        info("key %s value %s", ucolor(strf("%lld", thi->symbol_map->data[i].key)), ucolor(type_to_str(thi->symbol_map->data[i].data)));
-    }
+    // s64 count = map_count(thi->symbol_map);
+    // info("symbol_map count: %d", count);
+    // for (s64 i = 0; i < count; ++i) {
+    //     info("key %s value %s", ucolor(strf("%lld", thi->symbol_map->data[i].key)), ucolor(type_to_str(thi->symbol_map->data[i].data)));
+    // }
 }
 
 Type* add_symbol(Thi* thi, char* name, Type* type) {

@@ -46,7 +46,6 @@
 #include <sys/ioctl.h>    // NOTE(marcus): what do i use this for?
 #include <unistd.h>       // NOTE(marcus): what do i use this for?
 
-
 void assemble(Thi* thi, char* asm_file, char* exec_name);
 void linking_stage(Thi* thi, char* exec_name);
 
@@ -127,7 +126,7 @@ void pass_initilize_enums(void* thi, AST* node) {
                 counter = m->Constant_Decl.value->Int.val;
                 break;
             }
-            counter += 1;
+            ++counter;
         }
 
     } break;
@@ -388,7 +387,7 @@ int main(int argc, char** argv) {
 
     info("Compiler was last compiled: "__TIME__);
 
-#ifdef NDEBUG
+#ifndef NDEBUG
     utility_tests();
     string_tests();
     map_tests();
@@ -514,6 +513,11 @@ int main(int argc, char** argv) {
     //
     thi_run_pass(&thi, "resolve_unresolved_types", visitor_resolve_unresolved_types, &thi);
 
+    //
+    // Semantic analysis
+    //
+    semantic_analysis(ast);
+
     PassDescriptor passDesc; // We reuse this one
     passDesc.description = "Resolve sizeofs";
     passDesc.kind = AST_SIZEOF;
@@ -536,11 +540,6 @@ int main(int argc, char** argv) {
     passDesc.kind = AST_FIELD_ACCESS;
     passDesc.visitor_func = resolve_field_access;
     thi_install_pass(&thi, passDesc);
-
-    //
-    // Semantic analysis
-    //
-    semantic_analysis(ast);
 
     // Run all passes
     push_timer(&thi, "Run all passes");
@@ -725,136 +724,136 @@ List* string_list_remove_duplicates(List* list) {
 }
 
 void write_syntax_file(Thi* thi) {
-    s64 count = thi->symbol_map->size;
-    string* known_types = string_create("");
-    string* known_funcs = string_create("");
-    for (s64 i = 0; i < count; ++i) {
-        Type* type = thi->symbol_map->data[i].data;
-        switch (type->kind) {
-        case TYPE_POINTER: break;
-        case TYPE_FUNCTION:
-            string_append_f(known_funcs, "%s ", get_type_name(type));
-            break;
-        default:
-            string_append_f(known_types, "%s ", get_type_name(type));
-            break;
-        }
-    }
-    List* unique_type_string_list = string_list_remove_duplicates(string_split(known_types, ' '));
-    List* unique_func_string_list = string_list_remove_duplicates(string_split(known_funcs, ' '));
+    // s64 count = map_count(thi->symbol_map);
+    // string* known_types = string_create("");
+    // string* known_funcs = string_create("");
+    // for (s64 i = 0; i < count; ++i) {
+    //     Type* type = thi->symbol_map->data[i].data;
+    //     switch (type->kind) {
+    //     case TYPE_POINTER: break;
+    //     case TYPE_FUNCTION:
+    //         string_append_f(known_funcs, "%s ", get_type_name(type));
+    //         break;
+    //     default:
+    //         string_append_f(known_types, "%s ", get_type_name(type));
+    //         break;
+    //     }
+    // }
+    // List* unique_type_string_list = string_list_remove_duplicates(string_split(known_types, ' '));
+    // List* unique_func_string_list = string_list_remove_duplicates(string_split(known_funcs, ' '));
 
-    string* t = string_create("");
-    string* f = string_create("");
-    LIST_FOREACH(unique_type_string_list) {
-        string_append_f(t, "%s", it->data);
-        if (it->next) string_append(t, "|");
-    }
-    LIST_FOREACH(unique_func_string_list) {
-        string_append_f(f, "%s", it->data);
-        if (it->next) string_append(f, "|");
-    }
+    // string* t = string_create("");
+    // string* f = string_create("");
+    // LIST_FOREACH(unique_type_string_list) {
+    //     string_append_f(t, "%s", it->data);
+    //     if (it->next) string_append(t, "|");
+    // }
+    // LIST_FOREACH(unique_func_string_list) {
+    //     string_append_f(f, "%s", it->data);
+    //     if (it->next) string_append(f, "|");
+    // }
 
-    string* s = string_create("");
-    string_append(s, "%YAML 1.2\n");
-    string_append(s, "---\n");
-    string_append(s, "# See http://www.sublimetext.com/docs/3/syntax.html\n");
-    string_append(s, "file_extensions:\n");
-    string_append(s, "  - thi\n");
-    string_append(s, "scope: source.thi\n");
-    string_append(s, "\n");
-    string_append(s, "contexts:\n");
-    string_append(s, "  # The prototype context is prepended to all contexts but those setting\n");
-    string_append(s, "  # meta_include_prototype: false.\n");
-    string_append(s, "  prototype:\n");
-    string_append(s, "    - include: singleline_comments\n");
-    string_append(s, "\n");
-    string_append(s, "  main:\n");
-    string_append(s, "    # The main context is the initial starting point of our syntax.\n");
-    string_append(s, "    # Include other contexts from here (or specify them directly).\n");
-    string_append(s, "    - include: keywords\n");
-    string_append(s, "    - include: function_def\n");
-    string_append(s, "    - include: numbers\n");
-    string_append(s, "    - include: hex\n");
-    string_append(s, "    - include: globals\n");
-    string_append(s, "    - include: strings\n");
-    string_append(s, "    - include: character_literal\n");
-    string_append(s, "    - include: basic_types\n");
-    string_append(s, "    - include: operators\n");
-    string_append(s, "\n");
-    string_append(s, "  keywords:\n");
-    string_append(s, "    # Keywords are if, else for and while.\n");
-    string_append(s, "    # Note that blackslashes don't need to be escaped within single quoted\n");
-    string_append(s, "    # strings in YAML. When using single quoted strings, only single quotes\n");
-    string_append(s, "    # need to be escaped: this is done by using two single quotes next to each\n");
-    string_append(s, "    # other.\n");
-    string_append(s, "    - match: '\\b(interface|enum|struct|class|def|astof|sizeof|typeof|fallthrough|in|true|false|extern|link|union|is|load|if|else|for|while|return|break|continue|defer)\\b'\n");
-    string_append(s, "      scope: keyword.control\n");
-    string_append(s, "\n");
-    string_append(s, "  function_def:\n");
-    string_append_f(s, "    - match: '\\b(%s)\\b'\n", string_data(f));
-    string_append(s, "      scope: entity.name.function\n");
-    string_append(s, "\n");
-    string_append(s, "  numbers:\n");
-    string_append(s, "    - match: '[+-]?[0-9_]+(e[0-9]+)?([lL|LL|uU])*'\n");
-    string_append(s, "      scope: constant.numeric\n");
-    string_append(s, "    - match: '[+-]?[0-9_]+.+(e[0-9.]+)?([fF])*'\n");
-    string_append(s, "      scope: constant.numeric\n");
-    string_append(s, "\n");
-    string_append(s, "  hex:\n");
-    string_append(s, "    - match: '\\b0x(-)?[0-9A-Za-z]+\\b'\n");
-    string_append(s, "      scope: constant.numeric\n");
-    string_append(s, "\n");
-    string_append(s, "  operators:\n");
-    string_append(s, "    - match: '[\\.!:=+-?;{},-><&*$\\[\\]]+'\n");
-    string_append(s, "      scope: keyword.operator\n");
-    string_append(s, "\n");
-    string_append(s, "  basic_types:\n");
-    string_append_f(s, "    - match: '\\b(%s)\\b'\n", string_data(t));
-    string_append(s, "      scope: storage.type\n");
-    string_append(s, "\n");
-    string_append(s, "  strings:\n");
-    string_append(s, "    # Strings begin and end with quotes, and use backslashes as an escape\n");
-    string_append(s, "    # character.\n");
-    string_append(s, "    - match: \"\\\"\"\n");
-    string_append(s, "      scope: punctuation.definition.string.begin.example-c\n");
-    string_append(s, "      push: inside_string\n");
-    string_append(s, "\n");
-    string_append(s, "  inside_string:\n");
-    string_append(s, "    - meta_include_prototype: false\n");
-    string_append(s, "    - meta_scope: string.quoted.double.example-c\n");
-    string_append(s, "    - match: '\\.'\n");
-    string_append(s, "      scope: constant.character.escape.example-c\n");
-    string_append(s, "    - match: '\"'\n");
-    string_append(s, "      scope: punctuation.definition.string.end.example-c\n");
-    string_append(s, "      pop: true\n");
-    string_append(s, "\n");
-    string_append(s, "  character_literal:\n");
-    string_append(s, "    # Strings begin and end with quotes, and use backslashes as an escape\n");
-    string_append(s, "    # character.\n");
-    string_append(s, "    - match: '\'''\n");
-    string_append(s, "      scope: punctuation.definition.string.begin.example-c\n");
-    string_append(s, "      push: inside_character_literal\n");
-    string_append(s, "\n");
-    string_append(s, "  inside_character_literal:\n");
-    string_append(s, "    - meta_include_prototype: false\n");
-    string_append(s, "    - meta_scope: string.quoted.double.example\n");
-    string_append(s, "    - match: '\\.'\n");
-    string_append(s, "      scope: constant.character.escape.example\n");
-    string_append(s, "    - match: '\'''\n");
-    string_append(s, "      scope: punctuation.definition.string.end.example\n");
-    string_append(s, "      pop: true\n");
-    string_append(s, "\n");
-    string_append(s, "  singleline_comments:\n");
-    string_append(s, "    # Comments begin with a '#' and finish at the end of the line.\n");
-    string_append(s, "    - match: '#'\n");
-    string_append(s, "      scope: comment.line.double-slash\n");
-    string_append(s, "      push:\n");
-    string_append(s, "        # This is an anonymous context push for brevity.\n");
-    string_append(s, "        - meta_scope: comment.line.double-slash\n");
-    string_append(s, "        - match: $\\w?\n");
-    string_append(s, "          pop: true\n");
+    // string* s = string_create("");
+    // string_append(s, "%YAML 1.2\n");
+    // string_append(s, "---\n");
+    // string_append(s, "# See http://www.sublimetext.com/docs/3/syntax.html\n");
+    // string_append(s, "file_extensions:\n");
+    // string_append(s, "  - thi\n");
+    // string_append(s, "scope: source.thi\n");
+    // string_append(s, "\n");
+    // string_append(s, "contexts:\n");
+    // string_append(s, "  # The prototype context is prepended to all contexts but those setting\n");
+    // string_append(s, "  # meta_include_prototype: false.\n");
+    // string_append(s, "  prototype:\n");
+    // string_append(s, "    - include: singleline_comments\n");
+    // string_append(s, "\n");
+    // string_append(s, "  main:\n");
+    // string_append(s, "    # The main context is the initial starting point of our syntax.\n");
+    // string_append(s, "    # Include other contexts from here (or specify them directly).\n");
+    // string_append(s, "    - include: keywords\n");
+    // string_append(s, "    - include: function_def\n");
+    // string_append(s, "    - include: numbers\n");
+    // string_append(s, "    - include: hex\n");
+    // string_append(s, "    - include: globals\n");
+    // string_append(s, "    - include: strings\n");
+    // string_append(s, "    - include: character_literal\n");
+    // string_append(s, "    - include: basic_types\n");
+    // string_append(s, "    - include: operators\n");
+    // string_append(s, "\n");
+    // string_append(s, "  keywords:\n");
+    // string_append(s, "    # Keywords are if, else for and while.\n");
+    // string_append(s, "    # Note that blackslashes don't need to be escaped within single quoted\n");
+    // string_append(s, "    # strings in YAML. When using single quoted strings, only single quotes\n");
+    // string_append(s, "    # need to be escaped: this is done by using two single quotes next to each\n");
+    // string_append(s, "    # other.\n");
+    // string_append(s, "    - match: '\\b(interface|enum|struct|class|def|astof|sizeof|typeof|fallthrough|in|true|false|extern|link|union|is|load|if|else|for|while|return|break|continue|defer)\\b'\n");
+    // string_append(s, "      scope: keyword.control\n");
+    // string_append(s, "\n");
+    // string_append(s, "  function_def:\n");
+    // string_append_f(s, "    - match: '\\b(%s)\\b'\n", string_data(f));
+    // string_append(s, "      scope: entity.name.function\n");
+    // string_append(s, "\n");
+    // string_append(s, "  numbers:\n");
+    // string_append(s, "    - match: '[+-]?[0-9_]+(e[0-9]+)?([lL|LL|uU])*'\n");
+    // string_append(s, "      scope: constant.numeric\n");
+    // string_append(s, "    - match: '[+-]?[0-9_]+.+(e[0-9.]+)?([fF])*'\n");
+    // string_append(s, "      scope: constant.numeric\n");
+    // string_append(s, "\n");
+    // string_append(s, "  hex:\n");
+    // string_append(s, "    - match: '\\b0x(-)?[0-9A-Za-z]+\\b'\n");
+    // string_append(s, "      scope: constant.numeric\n");
+    // string_append(s, "\n");
+    // string_append(s, "  operators:\n");
+    // string_append(s, "    - match: '[\\.!:=+-?;{},-><&*$\\[\\]]+'\n");
+    // string_append(s, "      scope: keyword.operator\n");
+    // string_append(s, "\n");
+    // string_append(s, "  basic_types:\n");
+    // string_append_f(s, "    - match: '\\b(%s)\\b'\n", string_data(t));
+    // string_append(s, "      scope: storage.type\n");
+    // string_append(s, "\n");
+    // string_append(s, "  strings:\n");
+    // string_append(s, "    # Strings begin and end with quotes, and use backslashes as an escape\n");
+    // string_append(s, "    # character.\n");
+    // string_append(s, "    - match: \"\\\"\"\n");
+    // string_append(s, "      scope: punctuation.definition.string.begin.example-c\n");
+    // string_append(s, "      push: inside_string\n");
+    // string_append(s, "\n");
+    // string_append(s, "  inside_string:\n");
+    // string_append(s, "    - meta_include_prototype: false\n");
+    // string_append(s, "    - meta_scope: string.quoted.double.example-c\n");
+    // string_append(s, "    - match: '\\.'\n");
+    // string_append(s, "      scope: constant.character.escape.example-c\n");
+    // string_append(s, "    - match: '\"'\n");
+    // string_append(s, "      scope: punctuation.definition.string.end.example-c\n");
+    // string_append(s, "      pop: true\n");
+    // string_append(s, "\n");
+    // string_append(s, "  character_literal:\n");
+    // string_append(s, "    # Strings begin and end with quotes, and use backslashes as an escape\n");
+    // string_append(s, "    # character.\n");
+    // string_append(s, "    - match: '\'''\n");
+    // string_append(s, "      scope: punctuation.definition.string.begin.example-c\n");
+    // string_append(s, "      push: inside_character_literal\n");
+    // string_append(s, "\n");
+    // string_append(s, "  inside_character_literal:\n");
+    // string_append(s, "    - meta_include_prototype: false\n");
+    // string_append(s, "    - meta_scope: string.quoted.double.example\n");
+    // string_append(s, "    - match: '\\.'\n");
+    // string_append(s, "      scope: constant.character.escape.example\n");
+    // string_append(s, "    - match: '\'''\n");
+    // string_append(s, "      scope: punctuation.definition.string.end.example\n");
+    // string_append(s, "      pop: true\n");
+    // string_append(s, "\n");
+    // string_append(s, "  singleline_comments:\n");
+    // string_append(s, "    # Comments begin with a '#' and finish at the end of the line.\n");
+    // string_append(s, "    - match: '#'\n");
+    // string_append(s, "      scope: comment.line.double-slash\n");
+    // string_append(s, "      push:\n");
+    // string_append(s, "        # This is an anonymous context push for brevity.\n");
+    // string_append(s, "        - meta_scope: comment.line.double-slash\n");
+    // string_append(s, "        - match: $\\w?\n");
+    // string_append(s, "          pop: true\n");
 
-    write_to_file("thi.sublime-syntax", string_data(s));
-    system("perl -pi -e 's/[^[:ascii:]]//g' ./thi.sublime-syntax");
-    system("cp ./thi.sublime-syntax /Users/marcusmathiassen/Library/Mobile\\ Documents/com~apple~CloudDocs/Sublime/User/thi.sublime-syntax");
+    // write_to_file("thi.sublime-syntax", string_data(s));
+    // system("perl -pi -e 's/[^[:ascii:]]//g' ./thi.sublime-syntax");
+    // system("cp ./thi.sublime-syntax /Users/marcusmathiassen/Library/Mobile\\ Documents/com~apple~CloudDocs/Sublime/User/thi.sublime-syntax");
 }

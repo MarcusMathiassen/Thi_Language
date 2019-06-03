@@ -83,7 +83,7 @@ Type* type_check_node(Typer_Context* ctx, AST* node) {
     Type* result = node->type;
     switch (node->kind) {
         ERROR_UNHANDLED_AST_KIND(node->kind);
-    case AST_POST_INC_OR_DEC:  result = type_check_node(ctx, node->Post_Inc_or_Dec.node); break;
+    case AST_POST_INC_OR_DEC: result = type_check_node(ctx, node->Post_Inc_or_Dec.node); break;
     case AST_COMMENT: result = NULL; break;
     case AST_NOP: result = NULL; break;
     case AST_FALLTHROUGH: result = NULL; break;
@@ -267,7 +267,7 @@ Type* type_check_variable_decl(Typer_Context* ctx, AST* node) {
     // }
     // variable_type = assigned_type ? assigned_type : variable_type;
     ctx->expected_type = variable_type;
-    map_set_overwrite(ctx->symbol_table, variable_name, variable_type);
+    map_set(ctx->symbol_table, variable_name, variable_type);
     return variable_type;
 }
 

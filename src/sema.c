@@ -31,7 +31,7 @@
 
 #define DEBUG_START \
     assert(node);   \
-    info("%s: %s", give_unique_color(ast_kind_to_str(node->kind)), wrap_with_colored_parens(ast_to_str(node)));
+    // info("%s: %s", give_unique_color(ast_kind_to_str(node->kind)), wrap_with_colored_parens(ast_to_str(node)));
 
 typedef struct {
     AST* module;
@@ -403,7 +403,7 @@ Type* sema_check_node(Sema_Context* ctx, AST* node) {
     case AST_FALLTHROUGH: break;
     default: tassert(result_t, "%s", ast_to_str(node));
     }
-    info("%s -> REPLACED %s WITH %s", ast_to_str(node), ucolor(type_to_str(node->type)), ucolor(type_to_str(result_t)));
+    info("%s: %s -> SEMA REPLACED %s WITH %s", give_unique_color(ast_kind_to_str(node->kind)), ast_to_str(node), ucolor(type_to_str(node->type)), ucolor(type_to_str(result_t)));
     node->type = result_t;
     return result_t;
 }

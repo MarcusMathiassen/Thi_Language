@@ -27,24 +27,34 @@
 //                               map.h
 //------------------------------------------------------------------------------
 
-typedef struct Map Map;
-typedef struct Map_Element Map_Element;
+#ifdef NDEBUG
+#define map_get(map, key) (p_map_get(map, key))
+#define map_set(map, key, value) (p_map_set(map, key, value))
+#define map_count(map) (p_map_count(map))
+#else
+#define map_get(map, key) (d_map_get(map, key, __FILE__, (char*)__func__, __LINE__))
+#define map_set(map, key, value) (d_map_set(map, key, value, __FILE__, (char*)__func__, __LINE__))
+#define map_count(map) (d_map_count(map, __FILE__, (char*)__func__, __LINE__))
+#endif
 
-struct Map_Element {
-    s64 key;
-    void* data;
-};
-
-struct Map {
+typedef struct {
+    char* key;
+    void* value;
+} Map_Element;
+typedef struct {
     s64 table_size;
-    s64 size;
-    Map_Element* data;
-};
+    s64 count;
+    Map_Element* elements;
+} Map;
 
+Map map_create(void);
 Map* make_map(void);
 void map_tests(void);
-void* map_get(Map* map, char* key);
-void* map_set(Map* map, char* key, void* value);
-void* map_set_overwrite(Map* map, char* key, void* value);
 
+s64 p_map_count(Map* map);
+void* p_map_get(Map* map, char* key);
+void* p_map_set(Map* map, char* key, void* value);
+s64 d_map_count(Map* map, char* file, char* func, int line);
+void* d_map_get(Map* map, char* key, char* file, char* func, int line);
+void* d_map_set(Map* map, char* key, void* value, char* file, char* func, int line);
 #endif

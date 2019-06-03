@@ -1,29 +1,3 @@
 link "-lSystem"
-
-extern printf(u8*, ...) s32
-
-#def changeInt(f s64*)
-#    *f = 987
-
-#def changeFloat(f f64*)
-#    *f = 123.324
-
-def main(argc s32, argv u8**) s32
-    #f = 0.053
-    #x = 513.1
-    i = 341
-    #printf("%d %f %f\n", i, f, x)
-    #changeFloat(&f)
-    #changeInt(&i)
-    #printf("%d %f %f\n", i, f, x)
-    
-    #v v2
-    #v.x = 0.235
-    #v.y = 5.130
-    
+def main(argc s32, argv u8**) s64
     return 1
-
-
-def v2
-    x f64
-    y f64

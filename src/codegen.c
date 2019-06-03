@@ -120,18 +120,12 @@ Value* codegen_node(Codegen_Context* ctx, AST* node) {
 char* generate_code_from_ast(AST* ast) {
     assert(ast);
     info("Generating code from ast");
-
     Codegen_Context ctx = make_codegen_context();
-
     string_append(ctx.section_data, "section .data\n");
     emit_no_tab(&ctx, "section .text");
-
     codegen_node(&ctx, ast);
-
     char* output = strf("%s%sglobal _main\n%s", string_data(ctx.section_extern), string_data(ctx.section_data), string_data(ctx.section_text));
-
     info("%s", output);
-
     return output;
 }
 
@@ -201,9 +195,6 @@ Value* codegen_unary(Codegen_Context* ctx, AST* node) {
     }
     return result;
 }
-
-// *<lvalue> ::= deref
-// &<lvalue> ::= addressof
 
 Value* codegen_binary(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
@@ -497,18 +488,18 @@ Value* codegen_constant_decl(Codegen_Context* ctx, AST* node) {
 Value* codegen_variable_decl(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     assert(node->kind == AST_VARIABLE_DECL);
-
     char* name = node->Variable_Decl.name;
     Type* type = node->type;
     AST* assignment_expr = node->Variable_Decl.value;
     bool is_global = node->flags & AST_FLAG_GLOBAL_VARIABLE;
     Value* variable = NULL;
-
     // Set the label for it..
     if (is_global) {
         char* initial_value = NULL;
-        if (assignment_expr) initial_value = ast_get_literal_value_as_str(assignment_expr);
-        else initial_value = "0";
+        if (assignment_expr)
+            initial_value = ast_get_literal_value_as_str(assignment_expr);
+        else
+            initial_value = "0";
         char* db_op = get_db_op(type);
         char* label = emit_data(ctx, "%s %s", db_op, initial_value);
         variable = make_value_global_variable(name, type, label);
@@ -518,13 +509,10 @@ Value* codegen_variable_decl(Codegen_Context* ctx, AST* node) {
         info("name: %s stack_pos: %d type_size: %d", name, stack_pos, type_size);
         variable = make_value_variable(name, type, stack_pos);
     }
-
     add_variable(ctx, variable);
-
     if (assignment_expr && !is_global) {
         codegen_node(ctx, make_ast_binary(node->loc_info, TOKEN_EQ, make_ast_ident(node->loc_info, name), assignment_expr));
     }
-
     return variable;
 }
 
