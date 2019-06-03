@@ -24,8 +24,6 @@
 #include <assert.h>
 #include <string.h>
 
-#define INITIAL_SIZE 1
-
 static u32 hash(char* str) {
     assert(str);
     u32 hash = 5381;
@@ -41,10 +39,18 @@ typedef struct
     float val;
 } Test_Type;
 
+static Map map_create_with_custom_size(s64 initial_size) {
+    Map map;
+    map.count = 0;
+    map.table_size = initial_size;
+    map.elements = xcalloc(map.table_size, map.table_size * sizeof(Map_Element));
+    return map;
+}
+
 Map map_create() {
     Map map;
     map.count = 0;
-    map.table_size = INITIAL_SIZE;
+    map.table_size = DEFAULT_MAP_STARTING_TABLE_SIZE;
     map.elements = xcalloc(map.table_size, map.table_size * sizeof(Map_Element));
     return map;
 }
@@ -52,7 +58,7 @@ Map map_create() {
 Map* make_map() {
     Map* map = xmalloc(sizeof(Map));
     map->count = 0;
-    map->table_size = INITIAL_SIZE;
+    map->table_size = DEFAULT_MAP_STARTING_TABLE_SIZE;
     map->elements = xcalloc(map->table_size, map->table_size * sizeof(Map_Element));
     return map;
 }
@@ -93,11 +99,11 @@ void map_tests(void) {
 void* p_map_get(Map* map, char* key) {
     assert(map && key);
     u32 index = hash(key);
-    info("map_get -- key: %s, hash: %d:", key, index);
+    // info("map_get -- key: %s, hash: %d:", key, index);
     Map_Element* probe = NULL;
     u32 i = 0;
     while (i < map->table_size && (probe = &map->elements[(index + i++) % map->table_size])->key) {
-        info("on key: %s, value: %zu", probe->key, probe->value);
+        // info("on key: %s, value: %zu", probe->key, probe->value);
         if (strcmp(key, probe->key) == 0) break;
     }
     if (i == map->table_size) error("no element with key %s", key);
@@ -112,26 +118,21 @@ void* p_map_set(Map* map, char* key, void* value) {
     if ((float)map->count / map->table_size > 0.75) {
         s64 last_table_size = map->table_size;
         map->table_size <<= 1;
-        info("map_set -- allocated %d more space", map->table_size);
-
-        Map* nmap = xmalloc(sizeof(Map));
-        nmap->count = 0;
-        nmap->table_size = map->table_size;
-        nmap->elements = xcalloc(nmap->table_size, nmap->table_size * sizeof(Map_Element));
-
+        // info("map_set -- allocated %d more space", map->table_size);
+        Map nmap = map_create_with_custom_size(map->table_size);
         for (int k = 0; k < last_table_size; ++k) {
             Map_Element* probe = &map->elements[k];
             if (probe->key) {
-                map_set(nmap, probe->key, probe->value);
+                map_set(&nmap, probe->key, probe->value);
             }
         }
         free(map->elements);
-        assert(map->count == nmap->count);
-        *map = *nmap;
+        assert(map->count == nmap.count);
+        *map = nmap;
     }
 
     u32 index = hash(key);
-    info("\nmap_set -- key: %s, value: %zu, hash: %d:", key, value, index);
+    // info("\nmap_set -- key: %s, value: %zu, hash: %d:", key, value, index);
 
     // Look for an open slot..
     u32 i = 0; // we hold an iterator to make sure we'
@@ -147,11 +148,11 @@ void* p_map_set(Map* map, char* key, void* value) {
     probe->key = key;
     probe->value = value;
 
-    for (u32 j = 0; j < map->table_size; ++j) {
-        Map_Element* probe = &map->elements[j];
-        info("%d: key: %s, value: %s", j, probe->key ? ucolor(probe->key) : probe->key, ucolor(strf("%zu", probe->value)));
-    }
-    info("");
+    // for (u32 j = 0; j < map->table_size; ++j) {
+    //     Map_Element* probe = &map->elements[j];
+    //     info("%d: key: %s, value: %s", j, probe->key ? ucolor(probe->key) : probe->key, ucolor(strf("%zu", probe->value)));
+    // }
+    // info("");
 
     ++map->count;
 

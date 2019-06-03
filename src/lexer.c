@@ -205,7 +205,7 @@ Lexed_File generate_tokens_from_file(char* file) {
             token.kind != TOKEN_COMMENT) {
             if (token.col_pos % DEFAULT_INDENT_LEVEL != 0) LEXER_ERROR("indentation error.");
             ctx.current_indentation_level = token.col_pos;
-            info("token.col_pos: %d", token.col_pos);
+            // info("token.col_pos: %d", token.col_pos);
         }
 
         if (ctx.current_indentation_level > ctx.previous_indentation_level) {
@@ -569,7 +569,7 @@ Token get_token(Lexer_Context* ctx) {
     case 'r':
     case 's':
     case 't':
-    case 'u': 
+    case 'u':
     case 'v':
     case 'w':
     case 'x':
