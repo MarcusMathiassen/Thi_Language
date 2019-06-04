@@ -194,7 +194,7 @@
 		90E9F2CE2290799100F80AF9 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1020;
+				LastUpgradeCheck = 1100;
 				ORGANIZATIONNAME = "Marcus Mathiassen";
 				TargetAttributes = {
 					90E9F2D52290799100F80AF9 = {
@@ -208,6 +208,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = 90E9F2CD2290799100F80AF9;
 			productRefGroup = 90E9F2D72290799100F80AF9 /* Products */;
@@ -363,6 +364,7 @@
 		90E9F2DE2290799200F80AF9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6D77ZFXSCS;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -372,6 +374,7 @@
 		90E9F2DF2290799200F80AF9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6D77ZFXSCS;
 				PRODUCT_NAME = "$(TARGET_NAME)";

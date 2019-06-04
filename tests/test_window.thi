@@ -10,7 +10,7 @@ WINDOW_TITLE = "Hello Triangle"
 def Window
     handle s32*
 
-def main() s32
+def main(): s32
     if !glfwInit() { puts("GLFW init failed.") }
     defer { glfwTerminate() }
     defer { puts("Closing..") }

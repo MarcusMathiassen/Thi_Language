@@ -1,4 +1,6 @@
+extern _printf
 section .data
+	d0: db `Hello!\n`, 0 
 global _main
 section .text
 _main:
@@ -8,6 +10,11 @@ _main:
 .begin:
 		mov [rbp-4], edi; store_r argc
 		mov [rbp-12], rsi; store_r argv
+		mov rax, d0; string_ref
+		push rax; PUSH
+		pop rdi; POP
+		mov al, 1; var_arg_count
+		call _printf
 		mov rax, 1
 		mov rax, rax
 		jmp .end

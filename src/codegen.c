@@ -1025,4 +1025,3 @@ typedef struct {
     Operand o1, o2;
     char* comment;
 } NASM_Line;
-™

@@ -1,4 +1,4 @@
-© // Copyright (c) 2019 Marcus Mathiassen
+// Copyright (c) 2019 Marcus Mathiassen
 
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -43,12 +43,26 @@
 #include <stdlib.h>       // free
 #include <string.h>       // strcmp
 #include <sys/ioctl.h>    // NOTE(marcus): what do i use this for?
-#include <unistd.h>       // NOTE(marcus): what do i use this for?
+#include <unistd.h>       // NOTE(marcus): what do i use this
+ 
+/*
+    -- Types
+    
+ 
+    TypeSystem holds a unique copy of every type found.
+    So whenever you ask for a type or create a type, 
+    the type table will give you back a pointer to that type.
+    
+    If the type is not found, the typer creates the type and then
+    gives you back a pointer like before.
 
-    void
-    assemble(Thi* thi, char* asm_file, char* exec_name);
+    This means we can contain a single source for all types and
+    make comparisons between types as simple as comparing two pointers.
+*/
+
+
+void assemble(Thi* thi, char* asm_file, char* exec_name);
 void linking_stage(Thi* thi, char* exec_name);
-
 void write_syntax_file(Thi* thi);
 
 //------------------------------------------------------------------------------
