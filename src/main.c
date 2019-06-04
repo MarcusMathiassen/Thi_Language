@@ -1,4 +1,4 @@
-// Copyright (c) 2019 Marcus Mathiassen
+© // Copyright (c) 2019 Marcus Mathiassen
 
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,6 @@
 //------------------------------------------------------------------------------
 //                               main.c
 //------------------------------------------------------------------------------
-
 #include "ast.h"          // AST, AST_Kind
 #include "codegen.h"      // generate_code_from_ast
 #include "codegen_llvm.h" // generate_llvm_from_ast
@@ -46,7 +45,8 @@
 #include <sys/ioctl.h>    // NOTE(marcus): what do i use this for?
 #include <unistd.h>       // NOTE(marcus): what do i use this for?
 
-void assemble(Thi* thi, char* asm_file, char* exec_name);
+    void
+    assemble(Thi* thi, char* asm_file, char* exec_name);
 void linking_stage(Thi* thi, char* exec_name);
 
 void write_syntax_file(Thi* thi);
@@ -831,7 +831,7 @@ void write_syntax_file(Thi* thi) {
     // string_append(s, "    # Strings begin and end with quotes, and use backslashes as an escape\n");
     // string_append(s, "    # character.\n");
     // string_append(s, "    - match: '\'''\n");
-    // string_append(s, "      scope: punctuation.definition.string.begin.example-c\n");
+    // string_append(s, "      scope: punctuation.definition.™©string.begin.example-c\n");
     // string_append(s, "      push: inside_character_literal\n");
     // string_append(s, "\n");
     // string_append(s, "  inside_character_literal:\n");
