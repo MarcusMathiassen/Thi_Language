@@ -28,33 +28,11 @@
 #include <assert.h>
 #include <string.h>
 
-static u32 hash(char* str) {
-    assert(str);
-    u32 hash = 5381;
-    s32 c;
-    while ((c = *str++))
-        hash = ((hash << 5) + hash) + c;
-    return hash;
-}
-
 typedef struct
 {
     s32 id;
     float val;
 } Test_Type;
-
-Map* make_map_with_initial_size(s64 initial_size) {
-    tassert(initial_size > 0, "initial_size = %lld", initial_size);
-    Map* map = xmalloc(sizeof(Map));
-    map->count = 0;
-    map->table_size = initial_size;
-    map->elements = xcalloc(map->table_size, map->table_size * sizeof(Map_Element));
-    return map;
-}
-
-Map* make_map() {
-    return make_map_with_initial_size(DEFAULT_MAP_STARTING_TABLE_SIZE);
-}
 
 void map_tests(void) {
 
@@ -86,6 +64,15 @@ void map_tests(void) {
     assert(((Test_Type*)map_get(map, "t2"))->val == 6.41f);
 }
 
+static u32 hash(char* str) {
+    assert(str);
+    u32 hash = 5381;
+    s32 c;
+    while ((c = *str++))
+        hash = ((hash << 5) + hash) + c;
+    return hash;
+}
+
 static inline Map_Element* find_slot_with_key(Map* map, char* key) {
     assert(map && key);
     u32 index = hash(key);
@@ -105,6 +92,19 @@ static inline Map_Element* find_empty_slot(Map* map, char* key) {
     return probe;
 }
 
+Map* make_map_with_initial_size(s64 initial_size) {
+    tassert(initial_size > 0, "initial_size = %lld", initial_size);
+    Map* map = xmalloc(sizeof(Map));
+    map->count = 0;
+    map->table_size = initial_size;
+    map->elements = xcalloc(map->table_size, map->table_size * sizeof(Map_Element));
+    return map;
+}
+
+Map* make_map() {
+    return make_map_with_initial_size(DEFAULT_MAP_STARTING_TABLE_SIZE);
+}
+
 void* map_get(Map* map, char* key) {
     assert(map && key);
     Map_Element* slot = find_slot_with_key(map, key);
@@ -118,11 +118,10 @@ void* map_set(Map* map, char* key, void* value) {
         s64 last_table_size = map->table_size;
         map->table_size <<= 1;
         Map* nmap = make_map_with_initial_size(map->table_size);
-        for (s64 k = 0; k < last_table_size; ++k) {
+        for (u32 k = 0; k < last_table_size; ++k) {
             Map_Element* probe = &map->elements[k];
-            if (probe->key) {
+            if (probe->key) 
                 map_set(nmap, probe->key, probe->value);
-            }
         }
         free(map->elements);
         assert(map_count(map) == map_count(nmap));

@@ -703,7 +703,7 @@ AST* parse_variable_decl(Parser_Context* ctx, Loc_Info lc, char* ident) {
 
 AST* parse_binary(Parser_Context* ctx, s8 expr_prec, AST* lhs) {
     DEBUG_START;
-    info("missing loc_info for binary nodes");
+    // info("missing loc_info for binary nodes");
 
     AST* expr = NULL;
 
@@ -1053,15 +1053,15 @@ Type* get_type(Parser_Context* ctx) {
     if (tok_is(ctx, TOKEN_IDENTIFIER)) {
         char* type_name = ctx->curr_tok.value;
         eat_kind(ctx, TOKEN_IDENTIFIER);
-        info_no_newline("..looking for %s", type_name);
+        // info_no_newline("..looking for %s", type_name);
         type = map_get(ctx->symbols, type_name);
         if (!type) {
-            info("..didn't find it. Saved to unresolved types");
+            // info("..didn't find it. Saved to unresolved types");
             type = make_type_unresolved(type_name);
             type->name = type_name;
-            info("found unknown type %s. will resolve later", type_name);
-        } else
-            info("..Found it.");
+            // info("found unknown type %s. will resolve later", type_name);
+        } 
+        // else info("..Found it.");
         type->name = type_name;
     } else if (tok_is(ctx, TOKEN_OPEN_PAREN)) {
         eat_kind(ctx, TOKEN_OPEN_PAREN);
