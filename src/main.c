@@ -45,21 +45,33 @@
 #include <sys/ioctl.h>    // NOTE(marcus): what do i use this for?
 #include <unistd.h>       // NOTE(marcus): what do i use this
  
-/*
-    -- Types
-    
- 
-    TypeSystem holds a unique copy of every type found.
-    So whenever you ask for a type or create a type, 
-    the type table will give you back a pointer to that type.
-    
-    If the type is not found, the typer creates the type and then
-    gives you back a pointer like before.
-
-    This means we can contain a single source for all types and
-    make comparisons between types as simple as comparing two pointers.
-*/
-
+//  
+//  --  06/05/19 Marcus Mathiassen
+//  
+//  Need to find a way to handle data..
+//  
+//  -- AST
+//
+//      -- The Problem --
+//      AST creation functions are not memory mangaged. We just create them where we see fit.
+//
+//      -- The Solution --
+//      ASTBuilder. Like a string builder, a typebuilder, or any other builder. 
+//
+//  -- Types
+//
+//      -- The Problem --
+//      Right now types are created in-place at the point it is needed with no memory management and no cleanups
+//      When we reassign a type the original pointer is lost to the void. Must be a better way.
+//      
+//      -- The Solution --
+//      Single representation. We can store one version of every type found in the system in an associative array.
+//      A map in this case. This gives us the following abilities:
+//          1. manage when types are created and where (debug checks)
+//          2. skips the need for cleanup when resassigning types (the memory is not theirs to cleanup)
+//          3. directly compare pointers when testing for equality between types (excluding pointer+pointer checks. Indirection also needs to be checked).
+// 
+// 
 
 void assemble(Thi* thi, char* asm_file, char* exec_name);
 void linking_stage(Thi* thi, char* exec_name);
@@ -553,7 +565,7 @@ int main(int argc, char** argv) {
     passDesc.description = "Resolve field access";
     passDesc.kind = AST_FIELD_ACCESS;
     passDesc.visitor_func = resolve_field_access;
-    thi_install_pass(&thi, passDesc);
+    thi_install_pass(&thi, passDesc);  
 
     // Run all passes
     push_timer(&thi, "Run all passes");
