@@ -685,11 +685,11 @@ char* get_next_available_reg_fitting(Codegen_Context* ctx, Type* type) {
     s64 size = get_size_of_type(type);
     s8 r = -1;
     switch (type->kind) {
-        ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_ARRAY:   // fallthrough
     case TYPE_POINTER: // fallthrough
-    case TYPE_INT: r = get_next_available_rax_reg_fitting(ctx, size); break;
-    case TYPE_FLOAT: r = get_next_available_xmm_reg_fitting(ctx); break;
+    case TYPE_INT:     r = get_next_available_rax_reg_fitting(ctx, size);  break;
+    case TYPE_FLOAT:   r = get_next_available_xmm_reg_fitting(ctx);        break;
     }
     return get_reg(r);
 }
@@ -851,37 +851,6 @@ s64 get_all_alloca_in_block(AST* block) {
     return sum;
 }
 
-List* classify_arguments(List* arguments) {
-    assert(arguments);
-    List* classified_argument_list = make_list();
-    LIST_FOREACH(arguments) {
-        AST* arg = it->data;
-        assert(arg);
-        ClassifiedArgument* ca = xmalloc(sizeof(ClassifiedArgument));
-        ca->class = classify(arg->type);
-        ca->argument = arg;
-        list_append(classified_argument_list, ca);
-    }
-    return classified_argument_list;
-}
-
-char* class_kind_to_str(Class_Kind kind) {
-    TASSERT_KIND_IN_RANGE(CLASS, kind);
-    switch (kind) {
-    ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
-    case CLASS_INTEGER:     return "CLASS_INTEGER";
-    case CLASS_SSE:         return "CLASS_SSE";
-    case CLASS_SSEUP:       return "CLASS_SSEUP";
-    case CLASS_X87:         return "CLASS_X87";
-    case CLASS_X87UP:       return "CLASS_X87UP";
-    case CLASS_COMPLEX_X87: return "CLASS_COMPLEX_X87";
-    case CLASS_NO_CLASS:    return "CLASS_NO_CLASS";
-    case CLASS_MEMORY:      return "CLASS_MEMORY";
-    }
-    UNREACHABLE;
-    return NULL;
-}
-
 // From the System V Application Binary Interface Manual
 // -- Classification
 //  The size of each argument gets rounded up to eightbytes.
@@ -924,18 +893,49 @@ Class_Kind classify(Type* type) {
     assert(type);
     switch (type->kind) {
         ERROR_UNHANDLED_TYPE_KIND(type->kind);
-    case TYPE_INT: // fallthrough
-    case TYPE_POINTER: return CLASS_INTEGER;
-    case TYPE_FLOAT: return CLASS_SSE;
-    case TYPE_STRUCT: // fallthrough
-    case TYPE_ARRAY:  // fallthrough
-    case TYPE_UNION: {
-        s64 size = get_size_of_type(type);
-        bool is_aligned = type->flags & TYPE_FLAG_IS_ALIGNED;
-        if (size > 8 || !is_aligned) {
-            return CLASS_MEMORY;
+        case TYPE_INT:      // fallthrough
+        case TYPE_POINTER:  return CLASS_INTEGER;
+        case TYPE_FLOAT:    return CLASS_SSE;
+        case TYPE_STRUCT:   // fallthrough
+        case TYPE_ARRAY:    // fallthrough
+        case TYPE_UNION: {
+            s64 size = get_size_of_type(type);
+            bool is_aligned = type->flags & TYPE_FLAG_IS_ALIGNED;
+            if (size > 8 || !is_aligned) {
+                return CLASS_MEMORY;
+            }
         }
     }
-    }
     return CLASS_NO_CLASS;
+}
+
+List* classify_arguments(List* arguments) {
+    assert(arguments);
+    List* classified_argument_list = make_list();
+    LIST_FOREACH(arguments) {
+        AST* arg = it->data;
+        assert(arg);
+        ClassifiedArgument* ca = xmalloc(sizeof(ClassifiedArgument));
+        ca->class = classify(arg->type);
+        ca->argument = arg;
+        list_append(classified_argument_list, ca);
+    }
+    return classified_argument_list;
+}
+
+char* class_kind_to_str(Class_Kind kind) {
+    TASSERT_KIND_IN_RANGE(CLASS, kind);
+    switch (kind) {
+        ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
+        case CLASS_INTEGER:     return "CLASS_INTEGER";
+        case CLASS_SSE:         return "CLASS_SSE";
+        case CLASS_SSEUP:       return "CLASS_SSEUP";
+        case CLASS_X87:         return "CLASS_X87";
+        case CLASS_X87UP:       return "CLASS_X87UP";
+        case CLASS_COMPLEX_X87: return "CLASS_COMPLEX_X87";
+        case CLASS_NO_CLASS:    return "CLASS_NO_CLASS";
+        case CLASS_MEMORY:      return "CLASS_MEMORY";
+    }
+    UNREACHABLE;
+    return NULL;
 }

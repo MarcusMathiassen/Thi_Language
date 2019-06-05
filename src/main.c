@@ -539,6 +539,7 @@ int main(int argc, char** argv) {
     semantic_analysis(ast);
 
     PassDescriptor passDesc; // We reuse this one
+    
     passDesc.description = "Resolve sizeofs";
     passDesc.kind = AST_SIZEOF;
     passDesc.passKind = PASS_UNSAFE;
@@ -677,22 +678,22 @@ void assemble(Thi* thi, char* asm_file, char* exec_name) {
         pop_timer(thi);
     }
     string* comp_call = string_create_f("nasm -f macho64 -g %s.s -o %s.o", asm_file, exec_name);
-    info("Assembling with options '%s'", string_data(comp_call));
+    info("Assembling with options '%s'", ucolor(string_data(comp_call)));
     push_timer(thi, "Assembler");
     system(string_data(comp_call));
     pop_timer(thi);
 }
 
 void linking_stage(Thi* thi, char* exec_name) {
-    char* link_call = strf("ld -macosx_version_min 10.14 -o %s %s.o -e _main", exec_name, exec_name);
+    string* link_call = string_create_f("ld -macosx_version_min 10.14 -o %s %s.o -e _main", exec_name, exec_name);
     List* links = get_link_list(thi);
     LIST_FOREACH(links) {
         AST* link = it->data;
-        link_call = strf("%s %s", link_call, link->Link.str);
+        string_append_f(link_call, " %s", link->Link.str);
     }
-    info("Linking with options '%s'", link_call);
+    info("Linking with options '%s'", ucolor(string_data(link_call)));
     push_timer(thi, "Linker");
-    system(link_call);
+    system(string_data(link_call));
     pop_timer(thi);
 
     // Cleanup object files

@@ -27,7 +27,8 @@
       they are type or not. This will make parsing easier. And let us drop 'def'
       as a keyword.
 - [ ] Implement 'union'
-- [ ] Implement a REAL map. The one in use now is just name lookup badoodo.
+- [x] Implement a REAL map. The one in use now is just name lookup badoodo.
+- [ ] In Codegen_Binary. Redesign it to for code reuse. Right now it's very ugly.
 
 ## Bugs
 
