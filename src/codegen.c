@@ -875,16 +875,14 @@ Value* codegen_call(Codegen_Context* ctx, AST* node) {
         s8 param_reg = -1;
 
         switch (class) {
-            ERROR_UNHANDLED_CLASS_KIND(class);
+        ERROR_UNHANDLED_CLASS_KIND(class);
         // case CLASS_MEMORY:          break;
         case CLASS_INTEGER: param_reg = get_parameter_reg_int(class_integer_counter++, 8); break;
-        case CLASS_SSE:
-            param_reg = get_parameter_reg_float(class_sse_counter++);
-            break;
-            // case CLASS_SSEUP:           break;
-            // case CLASS_X87:             // fallthrough
-            // case CLASS_X87UP:           // fallthrough
-            // case CLASS_COMPLEX_X87:     break;
+        case CLASS_SSE:     param_reg = get_parameter_reg_float(class_sse_counter++);      break;
+        // case CLASS_SSEUP:           break;
+        // case CLASS_X87:             // fallthrough
+        // case CLASS_X87UP:           // fallthrough
+        // case CLASS_COMPLEX_X87:     break;
         }
 
         // char* mov_op = get_move_op(arg_v->type);
@@ -951,16 +949,14 @@ Value* codegen_function(Codegen_Context* ctx, AST* node) {
         s8 param_reg = -1;
 
         switch (class) {
-            ERROR_UNHANDLED_CLASS_KIND(class);
+        ERROR_UNHANDLED_CLASS_KIND(class);
         // case CLASS_MEMORY: break;
         case CLASS_INTEGER: param_reg = get_parameter_reg_int(class_integer_counter++, size); break;
-        case CLASS_SSE:
-            param_reg = get_parameter_reg_float(class_sse_counter++);
-            break;
-            // case CLASS_SSEUP:       break;
-            // case CLASS_X87:         // fallthrough
-            // case CLASS_X87UP:       // fallthrough
-            // case CLASS_COMPLEX_X87: break;
+        case CLASS_SSE:     param_reg = get_parameter_reg_float(class_sse_counter++);         break;
+        // case CLASS_SSEUP:       break;
+        // case CLASS_X87:         // fallthrough
+        // case CLASS_X87UP:       // fallthrough
+        // case CLASS_COMPLEX_X87: break;
         }
 
         emit_store_r(ctx, arg_v, param_reg);

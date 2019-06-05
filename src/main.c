@@ -436,8 +436,6 @@ int main(int argc, char** argv) {
         }
     }
 
-    success("listen mode: %d", listen_mode);
-
     set_source_file(&thi, argv[optind]);
     info("filename: %s\n", argv[optind]);
 

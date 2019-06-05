@@ -44,6 +44,7 @@ typedef struct
 } Test_Type;
 
 Map* make_map_with_initial_size(s64 initial_size) {
+    tassert(initial_size > 0, "initial_size = %lld", initial_size);
     Map* map = xmalloc(sizeof(Map));
     map->count = 0;
     map->table_size = initial_size;
@@ -85,28 +86,37 @@ void map_tests(void) {
     assert(((Test_Type*)map_get(map, "t2"))->val == 6.41f);
 }
 
-void* map_get(Map* map, char* key) {
+static inline Map_Element* find_slot_with_key(Map* map, char* key) {
     assert(map && key);
     u32 index = hash(key);
     Map_Element* probe = NULL;
-    u32 i = 0;
-    while (i < map->table_size && (probe = &map->elements[(index + i++) % map->table_size])->key) {
-        // @Todo(marcus): when we've made sure to intern all keys, we can swap this with a pointer comparison
-        if (strcmp(key, probe->key) == 0) break;
-    }
-    assert(i != map->table_size);
-    tassert(probe->value, "key %s value was NULL.", key);
-    return probe->value;
+    while ((probe = &map->elements[index++ % map->table_size])->key)
+        if (strcmp(key, probe->key) == 0)
+            break;
+    return probe;
+}
+
+static inline Map_Element* find_empty_slot(Map* map, char* key) {
+    assert(map && key);
+    u32 index = hash(key);
+    Map_Element* probe = NULL;
+    while ((probe = &map->elements[index++ % map->table_size])->key)
+        tassert(strcmp(key, probe->key) != 0, "key %s already exists in map %zu", key, map);
+    return probe;
+}
+
+void* map_get(Map* map, char* key) {
+    assert(map && key);
+    Map_Element* slot = find_slot_with_key(map, key);
+    tassert(slot->value, "key %s value was NULL.", key);
+    return slot->value;
 }
 
 void* map_set(Map* map, char* key, void* value) {
     assert(map && key && value);
-
-    // make sure the load factor is under 0.75
     if ((float)map->count / map->table_size > 0.75f) {
         s64 last_table_size = map->table_size;
         map->table_size <<= 1;
-        // info("map_set -- allocated %d more space", map->table_size);
         Map* nmap = make_map_with_initial_size(map->table_size);
         for (s64 k = 0; k < last_table_size; ++k) {
             Map_Element* probe = &map->elements[k];
@@ -118,32 +128,10 @@ void* map_set(Map* map, char* key, void* value) {
         assert(map_count(map) == map_count(nmap));
         *map = *nmap;
     }
-
-    u32 index = hash(key);
-    // info("\nmap_set -- key: %s, value: %zu, hash: %d:", key, value, index);
-
-    // ..look for an open slot..
-    u32 i = 0; // we hold an iterator to make sure we don't loop forever
-    Map_Element* probe = NULL;
-    while (i != map->table_size && (probe = &map->elements[(index + i++) % map->table_size])->key) {
-        // info("on key: %s, value: %zu", probe->key, probe->value);
-        if (strcmp(key, probe->key) == 0) {
-            error("key %s already exists in map %zu", key, map);
-        }
-    }
-
-    // We've found our open slot. Drop it right in.
-    probe->key = key;
-    probe->value = value;
-
-    // for (u32 j = 0; j < map->table_size; ++j) {
-    //     Map_Element* probe = &map->elements[j];
-    //     info("%d: key: %s, value: %s", j, probe->key ? ucolor(probe->key) : probe->key, ucolor(strf("%zu", probe->value)));
-    // }
-    // info("");
-
+    Map_Element* slot = find_empty_slot(map, key);
+    slot->key = key;
+    slot->value = value;
     ++map->count;
-
     return value;
 }
 

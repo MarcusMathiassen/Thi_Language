@@ -24,9 +24,20 @@
 
 #ifndef MAP_H
 #define MAP_H
+
 #include "typedefs.h"
-typedef struct { char* key; void* value; } Map_Element;
-typedef struct { s64 table_size; s64 count; Map_Element* elements; } Map;
+
+typedef struct {
+     char* key;
+    void* value;
+} Map_Element;
+
+typedef struct {
+    s64 table_size;
+    s64 count;
+    Map_Element* elements;
+} Map;
+
 Map* make_map(void);
 Map* make_map_with_initial_size(s64 initial_size);
 s64 map_count(Map* map);
