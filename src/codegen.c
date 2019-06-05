@@ -856,7 +856,9 @@ Value* codegen_struct(Codegen_Context* ctx, AST* node) {
 Value* codegen_call(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
 
+    char* callee = node->Call.callee;
     List* args = node->Call.args;
+    Type* return_type = node->type;
 
     s8 class_integer_counter = 0; // used for getting the next available register
     s8 class_sse_counter = 0;     // used for getting the next available register
@@ -897,13 +899,11 @@ Value* codegen_call(Codegen_Context* ctx, AST* node) {
         emit(ctx, "mov al, %lld; var_arg_count", args->count);
     }
 
-    char* callee = node->Call.callee;
     emit(ctx, "call _%s", callee);
-
-    Type* return_type = node->type;
     return make_value_call(callee, return_type);
 }
 
+// @Cleanup
 Value* codegen_function(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
 

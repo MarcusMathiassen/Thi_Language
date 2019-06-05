@@ -659,7 +659,7 @@ int main(int argc, char** argv) {
         success("%s", give_unique_color(strf("%s:%*s%s", tm->desc, padding, "", ms)));
     }
     success("---------------------------");
-// Write Unoptimized AST out
+
 #ifndef NDEBUG
     write_to_file("output.thi", ast_to_source(ast));
 #endif
@@ -719,14 +719,6 @@ List* string_split(string* this, char delimiter) {
         }
         ++cursor;
     }
-
-    // u64 len = cursor - start_of_word;
-    // char* str = xmalloc(len+1); // cursor is at the delimiter so we dont need a +1
-    // memcpy(str, start_of_word, len);
-    // str[len] = 0;
-
-    // list_append(list_of_delimited_strings, str);
-
     return list_of_delimited_strings;
 }
 
