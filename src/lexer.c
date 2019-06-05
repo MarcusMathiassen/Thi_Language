@@ -618,7 +618,6 @@ end:
             }
             i += 1;
         }
-        // clang-format off
         switch (i) {
         case KEY_IN:          token.kind = TOKEN_IN;          break;
         case KEY_DEF:         token.kind = TOKEN_DEF;         break;
@@ -644,7 +643,6 @@ end:
         case KEY_FALLTHROUGH: token.kind = TOKEN_FALLTHROUGH; break;
         case KEY_TYPEOF:      token.kind = TOKEN_TYPEOF;      break;
         }
-        // clang-format on
     } else if (token.kind == TOKEN_CHAR || token.kind == TOKEN_STRING) {
         ++c; // we skip the last '
     }
@@ -656,7 +654,6 @@ end:
 
 char* token_kind_to_str(Token_Kind kind) {
     TASSERT_KIND_IN_RANGE(TOKEN, kind);
-    // clang-format off
     switch (kind) {
     ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
     case TOKEN_UNKNOWN:           return "TOKEN_UNKNOWN";
@@ -763,7 +760,6 @@ char* token_kind_to_str(Token_Kind kind) {
     case TOKEN_EQ:                return "=";
     case TOKEN_PIPE_GT:           return "|>";
     }
-    // clang-format on
     UNREACHABLE;
     return NULL;
 }

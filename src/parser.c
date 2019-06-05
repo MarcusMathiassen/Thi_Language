@@ -64,7 +64,6 @@ Token_Kind unary_ops[UNARY_OP_COUNT] = {
 //              Each construct of the language gets its own function
 //------------------------------------------------------------------------------
 
-// clang-format off
 AST* parse_top_level                (Parser_Context* ctx);
 AST* parse_statement                (Parser_Context* ctx);
 AST* parse_primary                  (Parser_Context* ctx);
@@ -105,19 +104,15 @@ AST* parse_postfix                  (Parser_Context* ctx);
 
 void skip_comments_or_newlines(Parser_Context* ctx);
 
-// clang-format on
-
 //------------------------------------------------------------------------------
 //                               Helpers
 //------------------------------------------------------------------------------
 
-// clang-format off
 Type* parse_enum_signature             (Parser_Context* ctx, char* enum_name);
 Type* parse_type_signature             (Parser_Context* ctx, char* struct_name);
 Type* parse_extern_function_signature  (Parser_Context* ctx, char* func_name);
 List* generate_ast_from_tokens         (Parser_Context* ctx);
 Type* get_type                         (Parser_Context* ctx);
-// clang-format on
 
 //------------------------------------------------------------------------------
 //                               Public
@@ -200,7 +195,6 @@ List* generate_ast_from_tokens(Parser_Context* ctx) {
 AST* parse_top_level(Parser_Context* ctx) {
     DEBUG_START;
     ctx->top_tok = ctx->curr_tok;
-    // clang-format off
     switch (tokKind(ctx)) {
     ERROR_UNHANDLED_TOKEN_KIND(tokKind(ctx));
     case TOKEN_IDENTIFIER:          return parse_top_level_identifier(ctx);
@@ -208,7 +202,6 @@ AST* parse_top_level(Parser_Context* ctx) {
     case TOKEN_LOAD:                return parse_load(ctx);
     case TOKEN_LINK:                return parse_link(ctx);
     }
-    // clang-format on
     UNREACHABLE;
     return NULL;
 }
@@ -249,7 +242,6 @@ AST* parse_statement(Parser_Context* ctx) {
     ctx->top_tok = ctx->curr_tok;
 
     AST* result = NULL;
-    // clang-format off
     switch (tokKind(ctx)) {
     default:                        result =  parse_expression(ctx);    break;
     case TOKEN_EOF:                 eat(ctx); break;
@@ -277,7 +269,6 @@ AST* parse_statement(Parser_Context* ctx) {
     // If we've parsed a statement, the next terminal is extranous.
     if (result && tok_is(ctx, TOKEN_TERMINAL)) eat(ctx);
 
-    // clang-format on
     return result;
 }
 
@@ -285,7 +276,6 @@ AST* parse_primary(Parser_Context* ctx) {
     DEBUG_START;
     AST* result = NULL;
     // start:
-    // clang-format off
     switch (tokKind(ctx)) {
     ERROR_UNHANDLED_TOKEN_KIND(tokKind(ctx));
     case TOKEN_COMMENT:             result = make_ast_comment(loc(ctx), tokValue(ctx)); eat(ctx); break;
@@ -314,7 +304,6 @@ AST* parse_primary(Parser_Context* ctx) {
     // Eat extranous terminals
     // if (tok_is(ctx, TOKEN_TERMINAL)) eat(ctx);
 
-    // clang-format on
     return result;
 }
 
@@ -325,13 +314,11 @@ AST* parse_top_level_identifier(Parser_Context* ctx) {
     char* ident = tokValue(ctx);
     eat_kind(ctx, TOKEN_IDENTIFIER);
 
-    // clang-format off
     switch (tokKind(ctx)) {
     ERROR_UNHANDLED_TOKEN_KIND(tokKind(ctx));
     case TOKEN_COLON_COLON: return parse_constant_decl(ctx, lc, ident);
     case TOKEN_OPEN_PAREN:  return parse_function_decl(ctx, lc, ident);
     }
-    // clang-format on
     UNREACHABLE;
     return NULL;
 }
@@ -344,7 +331,6 @@ AST* parse_identifier(Parser_Context* ctx) {
     char* ident = tokValue(ctx);
     eat_kind(ctx, TOKEN_IDENTIFIER);
 
-    // clang-format off
     switch (tokKind(ctx)) {
     // case TOKEN_COLON:       // fallthrough
     case TOKEN_IDENTIFIER:  return parse_variable_decl(ctx, lc, ident);
@@ -352,7 +338,6 @@ AST* parse_identifier(Parser_Context* ctx) {
     case TOKEN_OPEN_PAREN:  return parse_function_call(ctx, lc, ident);
     default:                return make_ast_ident(lc, ident);
     }
-    // clang-format on
     UNREACHABLE;
     return NULL;
 }
@@ -866,13 +851,13 @@ AST* parse_note(Parser_Context* ctx) {
     Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_DOLLAR_SIGN);
     AST* expr = NULL;
-    // clang-format off
+    
     switch (tokKind(ctx)) {
     ERROR_UNHANDLED_TOKEN_KIND(tokKind(ctx));
     case TOKEN_HEX:         expr = parse_integer(ctx); break;
     case TOKEN_INTEGER:     expr = parse_integer(ctx); break;
     }
-    // clang-format on
+    
     return make_ast_note(lc, expr);
 }
 

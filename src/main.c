@@ -303,7 +303,6 @@ void constant_fold_binary(AST* node) {
         s64 rhs_v = rhs->Int.val;
         s64 value = 0;
 
-        // clang-format off
         switch (op) {
         ERROR_UNHANDLED_TOKEN_KIND(op);
         case TOKEN_EQ_EQ:         value = (lhs_v == rhs_v); break;
@@ -325,7 +324,6 @@ void constant_fold_binary(AST* node) {
         case TOKEN_QUESTION_MARK: return;
         case TOKEN_COLON:         return;
         }
-        // clang-format on
 
         lhs->Int.val = value;
         ast_replace(node, lhs);
@@ -334,7 +332,6 @@ void constant_fold_binary(AST* node) {
         f64 rhs_v = rhs->Float.val;
         f64 value = 0.0;
 
-        // clang-format off
         switch (op) {
         ERROR_UNHANDLED_TOKEN_KIND(op);
         case TOKEN_EQ_EQ:     value = (lhs_v == rhs_v); break;
@@ -348,7 +345,6 @@ void constant_fold_binary(AST* node) {
         case TOKEN_AND_AND:   value = (lhs_v && rhs_v); break;
         case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
         }
-        // clang-format on
 
         lhs->Float.val = value;
         ast_replace(node, lhs);
@@ -377,8 +373,7 @@ void constant_fold(void* dont_care, AST* node) {
     }
 }
 
-typedef struct
-{
+typedef struct {
     AST_Kind kind;
     void* list;
 } AST_FindAll_Query;

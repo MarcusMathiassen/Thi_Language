@@ -32,7 +32,7 @@
 
 char* type_kind_to_str(Type_Kind kind) {
     TASSERT_KIND_IN_RANGE(TYPE, kind);
-    // clang-format off
+    
     switch (kind) {
     ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
     case TYPE_UNRESOLVED: return "TYPE_UNRESOLVED";
@@ -47,7 +47,7 @@ char* type_kind_to_str(Type_Kind kind) {
     case TYPE_FUNCTION:   return "TYPE_FUNCTION";
     case TYPE_VAR_ARGS:   return "TYPE_VAR_ARGS";
     }
-    // clang-format on
+    
     UNREACHABLE;
     return NULL;
 }

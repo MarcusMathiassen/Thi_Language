@@ -18,6 +18,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
+//------------------------------------------------------------------------------
+//                               map.c
+//------------------------------------------------------------------------------
+
 #include "map.h"
 #include "constants.h"
 #include "utility.h"
@@ -39,33 +43,21 @@ typedef struct
     float val;
 } Test_Type;
 
-static Map map_create_with_custom_size(s64 initial_size) {
-    Map map;
-    map.count = 0;
-    map.table_size = initial_size;
-    map.elements = xcalloc(map.table_size, map.table_size * sizeof(Map_Element));
-    return map;
-}
-
-Map map_create() {
-    Map map;
-    map.count = 0;
-    map.table_size = DEFAULT_MAP_STARTING_TABLE_SIZE;
-    map.elements = xcalloc(map.table_size, map.table_size * sizeof(Map_Element));
-    return map;
-}
-
-Map* make_map() {
+Map* make_map_with_initial_size(s64 initial_size) {
     Map* map = xmalloc(sizeof(Map));
     map->count = 0;
-    map->table_size = DEFAULT_MAP_STARTING_TABLE_SIZE;
+    map->table_size = initial_size;
     map->elements = xcalloc(map->table_size, map->table_size * sizeof(Map_Element));
     return map;
 }
 
+Map* make_map() {
+    return make_map_with_initial_size(DEFAULT_MAP_STARTING_TABLE_SIZE);
+}
+
 void map_tests(void) {
 
-    Map map = map_create();
+    Map* map = make_map();
 
     Test_Type t1;
     t1.id = 0;
@@ -75,28 +67,26 @@ void map_tests(void) {
     t2.id = 1;
     t2.val = 6.41f;
 
-    map_set(&map, "t1", &t1);
-    map_set(&map, "t2", &t2);
-    map_set(&map, "t3", &t2);
-    map_set(&map, "t4", &t2);
-    map_set(&map, "t5", &t2);
-    map_set(&map, "t6", &t2);
-    map_set(&map, "t7", &t2);
-    map_set(&map, "t8", &t2);
-    map_set(&map, "t9", &t2);
-    map_set(&map, "t10", &t2);
-    map_set(&map, "t11", &t2);
-    map_set(&map, "t12", &t2);
-    map_set(&map, "t13", &t2);
+    map_set(map, "t1", &t1);
+    map_set(map, "t2", &t2);
+    map_set(map, "t3", &t2);
+    map_set(map, "t4", &t2);
+    map_set(map, "t5", &t2);
+    map_set(map, "t6", &t2);
+    map_set(map, "t7", &t2);
+    map_set(map, "t8", &t2);
+    map_set(map, "t9", &t2);
+    map_set(map, "t10", &t2);
+    map_set(map, "t11", &t2);
+    map_set(map, "t12", &t2);
+    map_set(map, "t13", &t2);
 
-    assert(((Test_Type*)map_get(&map, "t1"))->val == 3.43f);
-    assert(((Test_Type*)map_get(&map, "t2"))->val == 6.41f);
-
-    // error("gerg");
+    assert(((Test_Type*)map_get(map, "t1"))->val == 3.43f);
+    assert(((Test_Type*)map_get(map, "t2"))->val == 6.41f);
 }
 
 // Get your pointer out of the hashmap with a key
-void* p_map_get(Map* map, char* key) {
+void* map_get(Map* map, char* key) {
     assert(map && key);
     u32 index = hash(key);
     Map_Element* probe = NULL;
@@ -105,29 +95,29 @@ void* p_map_get(Map* map, char* key) {
         // @Todo(marcus): when we've made sure to intern all keys, we can swap this with a pointer comparison
         if (strcmp(key, probe->key) == 0) break;
     }
-    if (i == map->table_size) error("no element with key %s", key);
+    assert(i != map->table_size);
     tassert(probe->value, "key %s value was NULL.", key);
     return probe->value;
 }
 
-void* p_map_set(Map* map, char* key, void* value) {
+void* map_set(Map* map, char* key, void* value) {
     assert(map && key && value);
 
     // We make sure to keep the load under 75%
-    if ((float)map->count / map->table_size > 0.75) {
+    if ((float)map->count / map->table_size > 0.75f) {
         s64 last_table_size = map->table_size;
         map->table_size <<= 1;
         // info("map_set -- allocated %d more space", map->table_size);
-        Map nmap = map_create_with_custom_size(map->table_size);
-        for (int k = 0; k < last_table_size; ++k) {
+        Map* nmap = make_map_with_initial_size(map->table_size);
+        for (s64 k = 0; k < last_table_size; ++k) {
             Map_Element* probe = &map->elements[k];
             if (probe->key) {
-                map_set(&nmap, probe->key, probe->value);
+                map_set(nmap, probe->key, probe->value);
             }
         }
         free(map->elements);
-        assert(map->count == nmap.count);
-        *map = nmap;
+        assert(map_count(map) == map_count(nmap));
+        *map = *nmap;
     }
 
     u32 index = hash(key);
@@ -158,19 +148,6 @@ void* p_map_set(Map* map, char* key, void* value) {
     return value;
 }
 
-s64 p_map_count(Map* map) {
+s64 map_count(Map* map) {
     return map->count;
-}
-s64 d_map_count(Map* map, char* file, char* func, int line) {
-    tassert(map, "%s:%s:%d", file, func, line);
-    return p_map_count(map);
-}
-
-void* d_map_get(Map* map, char* key, char* file, char* func, int line) {
-    tassert(map && key, "%s:%s:%d", file, func, line);
-    return p_map_get(map, key);
-}
-void* d_map_set(Map* map, char* key, void* value, char* file, char* func, int line) {
-    tassert(map && key && value, "%s:%s:%d", file, func, line);
-    return p_map_set(map, key, value);
 }

@@ -867,7 +867,6 @@ List* classify_arguments(List* arguments) {
 
 char* class_kind_to_str(Class_Kind kind) {
     TASSERT_KIND_IN_RANGE(CLASS, kind);
-    // clang-format off
     switch (kind) {
     ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
     case CLASS_INTEGER:     return "CLASS_INTEGER";
@@ -879,7 +878,6 @@ char* class_kind_to_str(Class_Kind kind) {
     case CLASS_NO_CLASS:    return "CLASS_NO_CLASS";
     case CLASS_MEMORY:      return "CLASS_MEMORY";
     }
-    // clang-format on
     UNREACHABLE;
     return NULL;
 }

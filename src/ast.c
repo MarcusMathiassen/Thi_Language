@@ -37,7 +37,6 @@
 
 char* ast_kind_to_str(AST_Kind kind) {
     TASSERT_KIND_IN_RANGE(AST, kind);
-    // clang-format off
     switch (kind) {
     ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
     case AST_COMMENT:                         return "AST_COMMENT";
@@ -82,7 +81,6 @@ char* ast_kind_to_str(AST_Kind kind) {
     case AST_SWITCH:                          return "AST_SWITCH";
     case AST_POST_INC_OR_DEC:                 return "AST_POST_INC_OR_DEC";
     }
-    // clang-format on
     UNREACHABLE;
     return NULL;
 }
@@ -605,7 +603,6 @@ void ast_ref_list_append(AST_Ref_List* l, AST* a) {
 char* ast_get_literal_value_as_str(AST* node) {
     AST_Kind kind = node->kind;
     TASSERT_KIND_IN_RANGE(AST, kind);
-    // clang-format off
     switch (kind) {
     ERROR_UNHANDLED_AST_KIND(kind);
     case AST_INT:    return ast_to_str(node);
@@ -613,7 +610,6 @@ char* ast_get_literal_value_as_str(AST* node) {
     case AST_STRING: return strf("`%s`, 0", node->String.val);
     case AST_CHAR:   return ast_to_str(node);
     }
-    // clang-format on
     UNREACHABLE;
     return NULL;
 }
