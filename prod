@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 output=./thi
 olvl=-O3
 compiler=clang

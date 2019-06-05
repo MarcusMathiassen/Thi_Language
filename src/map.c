@@ -85,7 +85,6 @@ void map_tests(void) {
     assert(((Test_Type*)map_get(map, "t2"))->val == 6.41f);
 }
 
-// Get your pointer out of the hashmap with a key
 void* map_get(Map* map, char* key) {
     assert(map && key);
     u32 index = hash(key);
@@ -103,7 +102,7 @@ void* map_get(Map* map, char* key) {
 void* map_set(Map* map, char* key, void* value) {
     assert(map && key && value);
 
-    // We make sure to keep the load under 75%
+    // make sure the load factor is under 0.75
     if ((float)map->count / map->table_size > 0.75f) {
         s64 last_table_size = map->table_size;
         map->table_size <<= 1;
@@ -123,8 +122,8 @@ void* map_set(Map* map, char* key, void* value) {
     u32 index = hash(key);
     // info("\nmap_set -- key: %s, value: %zu, hash: %d:", key, value, index);
 
-    // Look for an open slot..
-    u32 i = 0; // we hold an iterator to make sure we'
+    // ..look for an open slot..
+    u32 i = 0; // we hold an iterator to make sure we don't loop forever
     Map_Element* probe = NULL;
     while (i != map->table_size && (probe = &map->elements[(index + i++) % map->table_size])->key) {
         // info("on key: %s, value: %zu", probe->key, probe->value);

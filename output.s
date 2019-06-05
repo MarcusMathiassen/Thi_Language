@@ -4,15 +4,15 @@ section .data
 global _main
 section .text
 _main:
-		push rbp; PUSH
+		push rbp
 		mov rbp, rsp
 		sub rsp, 16; 12 alloc, 4 padding
 .begin:
 		mov [rbp-4], edi; store_r argc
 		mov [rbp-12], rsi; store_r argv
 		mov rax, d0; string_ref
-		push rax; PUSH
-		pop rdi; POP
+		push rax
+		pop rdi
 		mov al, 1; var_arg_count
 		call _printf
 		mov rax, 1

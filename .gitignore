@@ -7,4 +7,5 @@ thi.dSYM
 output.s
 output.asm
 output.thi
+output.ll
 .DS_Store

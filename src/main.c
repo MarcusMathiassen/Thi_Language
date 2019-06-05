@@ -539,7 +539,7 @@ int main(int argc, char** argv) {
     semantic_analysis(ast);
 
     PassDescriptor passDesc; // We reuse this one
-    
+
     passDesc.description = "Resolve sizeofs";
     passDesc.kind = AST_SIZEOF;
     passDesc.passKind = PASS_UNSAFE;
@@ -677,7 +677,11 @@ void assemble(Thi* thi, char* asm_file, char* exec_name) {
         system(PATH_TO_LLC " ./output.ll --x86-asm-syntax=intel");
         pop_timer(thi);
     }
-    string* comp_call = string_create_f("nasm -f macho64 -g %s.s -o %s.o", asm_file, exec_name);
+#ifndef NDEBUG
+    string* comp_call = string_create_f("nasm -f macho64 -w+all -g %s.s -o %s.o", asm_file, exec_name);
+#else 
+    string* comp_call = string_create_f("nasm -f macho64 %s.s -o %s.o", asm_file, exec_name);
+#endif
     info("Assembling with options '%s'", ucolor(string_data(comp_call)));
     push_timer(thi, "Assembler");
     system(string_data(comp_call));

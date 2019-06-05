@@ -279,10 +279,10 @@ void push(Codegen_Context* ctx, int reg) {
     tassert(reg >= 0 && reg <= TOTAL_REG_COUNT, "reg = %d", reg);
     char* r = get_reg(reg);
     if (reg >= XMM0 && reg <= XMM7) {
-        emit(ctx, "sub rsp, 8; --> PUSH");
-        emit(ctx, "movsd [rsp], %s;^^^^", r);
+        emit(ctx, "sub rsp, 8");
+        emit(ctx, "movsd [rsp], %s", r);
     } else {
-        emit(ctx, "push %s; PUSH", r);
+        emit(ctx, "push %s", r);
     }
     ctx->stack_pos += 8;
 }
@@ -292,10 +292,10 @@ void pop(Codegen_Context* ctx, int reg) {
     tassert(reg >= 0 && reg <= TOTAL_REG_COUNT, "reg = %d", reg);
     char* r = get_reg(reg);
     if (reg >= XMM0 && reg <= XMM7) {
-        emit(ctx, "movsd %s, [rsp]; --> POP", r);
-        emit(ctx, "add rsp, 8;          ^^^");
+        emit(ctx, "movsd %s, [rsp]", r);
+        emit(ctx, "add rsp, 8");
     } else {
-        emit(ctx, "pop %s; POP", r);
+        emit(ctx, "pop %s", r);
     }
     ctx->stack_pos -= 8;
     assert(ctx->stack_pos >= 0);

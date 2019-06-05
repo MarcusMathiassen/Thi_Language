@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 output=./thi
 olvl=
 compiler=clang
@@ -12,9 +12,7 @@ if [ $? == 0 ]; then
         test_files="./tests/*.thi"
     fi
     if [ $? == 0 ]; then
-        # ./test.bash
-        # ./test.bash ./tests/test_window.thi
-        ./test.bash ./tests/test_basic_setup.thi
-        # ./test.bash ./tests/test_global_variable.thi
+        # runtest
+        runtest ./tests/test_basic_setup.thi
     fi
 fi
