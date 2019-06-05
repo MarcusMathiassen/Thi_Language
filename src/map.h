@@ -41,6 +41,7 @@ typedef struct {
     char* key;
     void* value;
 } Map_Element;
+
 typedef struct {
     s64 table_size;
     s64 count;

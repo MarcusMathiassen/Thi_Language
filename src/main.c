@@ -34,7 +34,6 @@
 #include "string.h"       // strcmp
 #include "thi.h"          // Thi
 #include "type.h"         // Type
-#include "type_checker.h" // type_checker
 #include "typedefs.h"     // u8, u16, s32, etc.
 #include "utility.h"      // get_file_content, success, info, get_time
 #include "value.h"        // Value

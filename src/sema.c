@@ -31,7 +31,7 @@
 
 #define DEBUG_START \
     assert(node);   \
-    // info("%s: %s", give_unique_color(ast_kind_to_str(node->kind)), wrap_with_colored_parens(ast_to_str(node)));
+    info("%s: %s", give_unique_color(ast_kind_to_str(node->kind)), wrap_with_colored_parens(ast_to_str(node)));
 
 typedef struct {
     AST* module;
@@ -140,7 +140,6 @@ Type* sema_check_node(Sema_Context* ctx, AST* node) {
             sema_check_node(ctx, it->data);
         }
         break;
-
     case AST_TYPEOF:
         sema_check_node(ctx, node->Typeof.node);
         result_t = make_type_pointer(make_type_int(1, true));

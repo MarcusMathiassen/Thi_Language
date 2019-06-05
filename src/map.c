@@ -99,11 +99,10 @@ void map_tests(void) {
 void* p_map_get(Map* map, char* key) {
     assert(map && key);
     u32 index = hash(key);
-    // info("map_get -- key: %s, hash: %d:", key, index);
     Map_Element* probe = NULL;
     u32 i = 0;
     while (i < map->table_size && (probe = &map->elements[(index + i++) % map->table_size])->key) {
-        // info("on key: %s, value: %zu", probe->key, probe->value);
+        // @Todo(marcus): when we've made sure to intern all keys, we can swap this with a pointer comparison
         if (strcmp(key, probe->key) == 0) break;
     }
     if (i == map->table_size) error("no element with key %s", key);
