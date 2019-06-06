@@ -507,6 +507,7 @@ static void add_all_decls_in_module(Sema_Context* ctx, AST* node) {
         AST* decl = it->data;
         switch (decl->kind) {
         default: error("[%s:%s] illegal top level construct %s", get_ast_name(ctx->module), get_ast_loc_str(decl), ucolor(ast_to_str(decl)));
+        case AST_ASM: break;
         case AST_COMMENT: break;
         case AST_LINK: break;
         case AST_LOAD:

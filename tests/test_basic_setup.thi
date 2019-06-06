@@ -1,10 +1,25 @@
 link "-lSystem"
 
-extern printf(u8*, ...) s32
+def add(a s64, b s64) s64
+    asm
+        "mov rax, %b"
+        "add %a, rax"
+    return a
 
-def not(x s64) s64
-    asm { "add qword %x, 2" }
-    return x
+asm
+    "extern _printf"
+
+
+asm
+    "my_string: db 'Marcus Mathiassen', 0"
+
+def print(a char*)
+    asm
+        "mov rdi, %a"
+        "mov qword rsi, my_string"
+        "mov byte al, 3"
+        "call _printf"
 
 def main(argc s32, argv u8**) s64
-    return not(2)
+    print("Hello, %s\n")
+    return add(5, 3)

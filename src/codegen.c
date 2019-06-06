@@ -948,6 +948,7 @@ Value* codegen_function(Codegen_Context* ctx, AST* node) {
 }
 
 // @Cleanup: this is wholly ugly
+// @Todo: we do not yet support multiple '%' inside a string
 Value* codegen_asm(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     ctx->inside_asm = true;
@@ -957,7 +958,6 @@ Value* codegen_asm(Codegen_Context* ctx, AST* node) {
         AST* stmt = it->data;
         switch (stmt->kind) {
         ERROR_UNHANDLED_AST_KIND(stmt->kind);
-        case AST_BLOCK: codegen_node(ctx, stmt); break;
         case AST_STRING: {
             char* ss = stmt->String.val;
             char* str = stmt->String.val;
@@ -965,8 +965,10 @@ Value* codegen_asm(Codegen_Context* ctx, AST* node) {
             info("%s", str);
             char* substart;
             char* subend;
+            bool has_sub  = false;
             while ((c = *str)) {
                 if (c == '%') {
+                    has_sub = true;
                     substart = str;
                     ++str;
 
@@ -984,11 +986,12 @@ Value* codegen_asm(Codegen_Context* ctx, AST* node) {
                 ++str;
             }
 
-            char* s1 = strn(stmt->String.val, substart);
-            char* s2 = ss;
-            char* s3 = strn(subend, str);
-
-            emit(ctx, "%s%s%s", s1, s2, s3);
+            if (has_sub) {
+                char* s1 = strn(stmt->String.val, substart);
+                char* s2 = ss;
+                char* s3 = strn(subend, str);
+                emit(ctx, "%s%s%s", s1, s2, s3);
+            } else emit(ctx, "%s", ss);
         } break;
         }
 
