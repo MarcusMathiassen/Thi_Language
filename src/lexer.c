@@ -32,6 +32,7 @@
 //------------------------------------------------------------------------------
 
 typedef enum {
+    KEY_ASM,
     KEY_IN,
     KEY_DEF,
     KEY_LINK,
@@ -108,6 +109,7 @@ char* intern(Intern_Array* intern_array, char* str);
 //------------------------------------------------------------------------------
 
 char* STATIC_KEYWORDS_ARRAY[__KEY_COUNT__] = {
+    "asm",
     "in",
     "def",
     "link",
@@ -619,6 +621,7 @@ end:
             i += 1;
         }
         switch (i) {
+        case KEY_ASM:         token.kind = TOKEN_ASM;         break;
         case KEY_IN:          token.kind = TOKEN_IN;          break;
         case KEY_DEF:         token.kind = TOKEN_DEF;         break;
         case KEY_LINK:        token.kind = TOKEN_LINK;        break;
@@ -656,6 +659,7 @@ char* token_kind_to_str(Token_Kind kind) {
     TASSERT_KIND_IN_RANGE(TOKEN, kind);
     switch (kind) {
     ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
+    case TOKEN_ASM:               return "asm";
     case TOKEN_UNKNOWN:           return "TOKEN_UNKNOWN";
     case TOKEN_EOF:               return "TOKEN_EOF";
     case TOKEN_COMMENT:           return "TOKEN_COMMENT";
@@ -691,12 +695,6 @@ char* token_kind_to_str(Token_Kind kind) {
     case TOKEN_STRING:            return "TOKEN_STRING";
     case TOKEN_CHAR:              return "TOKEN_CHAR";
     case TOKEN_INTEGER:           return "TOKEN_INTEGER";
-    case TOKEN_INTEGER_SUFFIX_u:  return "TOKEN_INTEGER_SUFFIX_u";
-    case TOKEN_INTEGER_SUFFIX_U:  return "TOKEN_INTEGER_SUFFIX_U";
-    case TOKEN_INTEGER_SUFFIX_l:  return "TOKEN_INTEGER_SUFFIX_l";
-    case TOKEN_INTEGER_SUFFIX_L:  return "TOKEN_INTEGER_SUFFIX_L";
-    case TOKEN_INTEGER_SUFFIX_ll: return "TOKEN_INTEGER_SUFFIX_ll";
-    case TOKEN_INTEGER_SUFFIX_LL: return "TOKEN_INTEGER_SUFFIX_LL";
     case TOKEN_NUMBER:            return "TOKEN_NUMBER";
     case TOKEN_HEX:               return "TOKEN_HEX";
     case TOKEN_FLOAT:             return "TOKEN_FLOAT";

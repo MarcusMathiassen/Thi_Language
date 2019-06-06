@@ -28,18 +28,16 @@
 //------------------------------------------------------------------------------
 
 typedef enum {
+    TOKEN_ASM,
     TOKEN_UNKNOWN,
     TOKEN_EOF,
-
     TOKEN_BLOCK_START,
     TOKEN_BLOCK_END,
     TOKEN_TERMINAL,
-
     TOKEN_COMMENT,
     TOKEN_WHITESPACE,
     TOKEN_NEWLINE,
     TOKEN_IDENTIFIER,
-
     TOKEN_DEF,
     TOKEN_IS,
     TOKEN_IN,
@@ -63,15 +61,6 @@ typedef enum {
     TOKEN_BREAK,
     TOKEN_CONTINUE,
     TOKEN_AS,
-
-    TOKEN_INTEGER_SUFFIX_u,
-    TOKEN_INTEGER_SUFFIX_U,
-
-    TOKEN_INTEGER_SUFFIX_l,
-    TOKEN_INTEGER_SUFFIX_L,
-    TOKEN_INTEGER_SUFFIX_ll,
-    TOKEN_INTEGER_SUFFIX_LL,
-
     TOKEN_NUMBER,
     TOKEN_CHAR,
     TOKEN_INTEGER,

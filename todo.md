@@ -28,15 +28,17 @@
       as a keyword.
 - [ ] Implement 'union'
 - [x] Implement a REAL map. The one in use now is just name lookup badoodo.
-- [ ] In Codegen_Binary. Redesign it to for code reuse. Right now it's very ugly.
+- [-] In Codegen_Binary. Redesign it to for code reuse. Right now it's very ugly. #edit1: moved some into a generic function, but needs more work
+- [ ] Redo literals! AST_Literal should hold all type of literals.
+- [ ] Redo decls! Instead of AST_Variabel_Decl and AST_Function,
+      consolidate them into a single AST_Decl. 
 
 ## Bugs
-
 - [ ] Typechecker shouldnt change the types of things. Only check.
 - [ ] there seems to be a bug in the ast_to_source printer. Comments get the
       wrong indentation after a block
-- [ ] in Sema, AST_GROUPING seems to cause a crash. Removing any grouping
-      expressions in the source removes the crash.
-- [ ] GLFW_KEY_LAST :: GLFW_KEY_MENU is not handled correctly. We need to do
+- [x] in Sema, AST_GROUPING seems to cause a crash. Removing any grouping
+      expressions in the source removes the crash. #fixed: the problem was that the unary following was not doing the right thing
+- [x] GLFW_KEY_LAST :: GLFW_KEY_MENU is not handled correctly. We need to do
       constant propogation. Or change all constants into variables with a stack
-      position.
+      position. #fixed: all constants are now varibles. ??

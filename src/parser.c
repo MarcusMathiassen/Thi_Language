@@ -100,6 +100,7 @@ AST* parse_string                   (Parser_Context* ctx);
 AST* parse_comma_delim_list         (Parser_Context* ctx);
 AST* parse_prefix                   (Parser_Context* ctx);
 AST* parse_postfix                  (Parser_Context* ctx);
+AST* parse_asm                      (Parser_Context* ctx);
 
 void skip_comments_or_newlines(Parser_Context* ctx);
 
@@ -248,6 +249,7 @@ AST* parse_statement(Parser_Context* ctx) {
     case TOKEN_NEWLINE:             eat(ctx); result = NULL; break;
     case TOKEN_COMMENT:             result = make_ast_comment(loc(ctx), tokValue(ctx)); eat(ctx); break;
     case TOKEN_DEF:                 result =  parse_def(ctx);           break;
+    case TOKEN_ASM:                 result =  parse_asm(ctx);           break;
 
     case TOKEN_IF:                  result =  parse_if(ctx);            break;
     case TOKEN_IS:                  result =  parse_is(ctx);            break;
@@ -290,6 +292,7 @@ AST* parse_primary(Parser_Context* ctx) {
     case TOKEN_FALSE:       result = make_ast_int(loc(ctx), 0, make_type_int(1, 1)); eat(ctx); break;
     case TOKEN_IDENTIFIER:  result = parse_identifier(ctx); break;
     case TOKEN_DOLLAR_SIGN: result = parse_note(ctx); break;
+    case TOKEN_ASM:         result = parse_asm(ctx); break;
     case TOKEN_FLOAT:       result = parse_float(ctx); break;
     case TOKEN_CHAR:        result = parse_char(ctx); break;
     case TOKEN_HEX:         // fallthrough
@@ -974,6 +977,16 @@ AST* parse_parens(Parser_Context* ctx) {
     ctx->inside_parens = false;
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
     return make_ast_grouping(lc, expr);
+}
+
+AST* parse_asm(Parser_Context* ctx) {
+    DEBUG_START;
+    Loc_Info lc = loc(ctx);
+    eat_kind(ctx, TOKEN_ASM);
+    ctx->inside_asm = true;
+    AST* block = parse_block(ctx);
+    ctx->inside_asm = false;
+    return make_ast_asm(lc, block);
 }
 
 //------------------------------------------------------------------------------

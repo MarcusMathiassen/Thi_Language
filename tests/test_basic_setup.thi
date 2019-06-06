@@ -2,49 +2,9 @@ link "-lSystem"
 
 extern printf(u8*, ...) s32
 
+def not(x s64) s64
+    asm { "add qword %x, 2" }
+    return x
+
 def main(argc s32, argv u8**) s64
-    printf("argc = %d\n*argv = %s\n", $1, *$2)
-    return 1
-
-
-#### in C
-
-#char* type_kind_to_str(Type_Kind kind) {
-#    TASSERT_KIND_IN_RANGE(TYPE, kind);
-#    switch (kind) {
-#    ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
-#    case TYPE_UNRESOLVED: return "TYPE_UNRESOLVED";
-#    case TYPE_VOID:       return "TYPE_VOID";
-#    case TYPE_INT:        return "TYPE_INT";
-#    case TYPE_FLOAT:      return "TYPE_FLOAT";
-#    case TYPE_STRING:     return "TYPE_STRING";
-#    case TYPE_POINTER:    return "TYPE_POINTER";
-#    case TYPE_ARRAY:      return "TYPE_ARRAY";
-#    case TYPE_ENUM:       return "TYPE_ENUM";
-#    case TYPE_STRUCT:     return "TYPE_STRUCT";
-#    case TYPE_FUNCTION:   return "TYPE_FUNCTION";
-#    case TYPE_VAR_ARGS:   return "TYPE_VAR_ARGS";
-#    }
-#    UNREACHABLE;
-#    return NULL;
-#}
-
-#### in Thi
-
-#def type_kind_to_str(kind Type_Kind) char*
-#    if kind
-#        is .Unresolved => "Unresolved"
-#        is .Void       => "Void"
-#        is .Int        => "Int"
-#        is .Float      => "Float"
-#        is .String     => "String"
-#        is .Pointer    => "Pointer"
-#        is .Array      => "Array"
-#        is .Enum       => "Enum"
-#        is .Struct     => "Struct"
-#        is .Function   => "Function"
-#        is .Var_args   => "Var_args"
-#    else ERROR_UNHANDLED_KIND(strf("kind = %d", kind))
-#    UNREACHABLE()
-#    return NULL
-
+    return not(2)

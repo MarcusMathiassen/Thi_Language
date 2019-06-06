@@ -72,6 +72,7 @@ Codegen_Context make_codegen_context() {
     ctx.data_list = make_list();
     ctx.current_function = NULL;
     ctx.expected_type = NULL;
+    ctx.inside_asm = false;
     ctx.section_extern = string_create("");
     ctx.section_text = string_create("");
     ctx.section_data = string_create("");

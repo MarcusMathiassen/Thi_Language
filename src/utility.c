@@ -287,6 +287,16 @@ void* _realloc(void* ptr, s64 bytes, char* file, char* func, s64 line) {
     return alloc;
 }
 
+char* strn(char* start, char* end) {
+    xassert(start && end);
+    s64 len = end - start;
+    char* str = xmalloc(len + 1);
+    memcpy(str, start, len);
+    str[len] = 0;
+    return str;
+}
+
+
 char* strf(char* fmt, ...) {
     xassert(fmt);
     va_list args;

@@ -68,6 +68,7 @@ Value* codegen_as              (Codegen_Context* ctx, AST* node);
 Value* codegen_switch          (Codegen_Context* ctx, AST* node);
 Value* codegen_post_inc_or_dec (Codegen_Context* ctx, AST* node);
 Value* codegen_node            (Codegen_Context* ctx, AST* node);
+Value* codegen_asm             (Codegen_Context* ctx, AST* node);
 
 // @Hotpath @Recursive
 Value* codegen_node(Codegen_Context* ctx, AST* node) {
@@ -111,6 +112,7 @@ Value* codegen_node(Codegen_Context* ctx, AST* node) {
     case AST_BREAK:           return codegen_break         (ctx, node);
     case AST_CONTINUE:        return codegen_continue      (ctx, node);
     case AST_AS:              return codegen_as            (ctx, node);
+    case AST_ASM:             return codegen_asm            (ctx, node);
     }
     UNREACHABLE;
     return NULL;
@@ -942,6 +944,56 @@ Value* codegen_function(Codegen_Context* ctx, AST* node) {
     reset_text_label_counter(ctx);
 
     pop_scope(ctx);
+    return NULL;
+}
+
+// @Cleanup: this is wholly ugly
+Value* codegen_asm(Codegen_Context* ctx, AST* node) {
+    DEBUG_START;
+    ctx->inside_asm = true;
+    AST* block = node->Asm.block;
+
+    LIST_FOREACH(block->Block.stmts) {
+        AST* stmt = it->data;
+        switch (stmt->kind) {
+        ERROR_UNHANDLED_AST_KIND(stmt->kind);
+        case AST_BLOCK: codegen_node(ctx, stmt); break;
+        case AST_STRING: {
+            char* ss = stmt->String.val;
+            char* str = stmt->String.val;
+            char c;
+            info("%s", str);
+            char* substart;
+            char* subend;
+            while ((c = *str)) {
+                if (c == '%') {
+                    substart = str;
+                    ++str;
+
+                    char* start = str;
+                    while (*str != '\0' && *str != ',' && *str != ' ' && *str != '"') ++str;
+                    char* end = str;
+                    char* identifier = strn(start, end);
+
+                    Value* var = get_variable(ctx, make_ast_ident(stmt->loc_info, identifier));
+                    char* mem = get_mem_loc(var);
+                    ss = mem;
+
+                    subend = end;
+                }
+                ++str;
+            }
+
+            char* s1 = strn(stmt->String.val, substart);
+            char* s2 = ss;
+            char* s3 = strn(subend, str);
+
+            emit(ctx, "%s%s%s", s1, s2, s3);
+        } break;
+        }
+
+    }
+    ctx->inside_asm = false;
     return NULL;
 }
 

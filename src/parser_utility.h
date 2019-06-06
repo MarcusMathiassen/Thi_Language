@@ -39,6 +39,7 @@ typedef struct
     u64 comments;
 
     bool inside_parens;
+    bool inside_asm;
 
     Map* symbols;
     List* loads;

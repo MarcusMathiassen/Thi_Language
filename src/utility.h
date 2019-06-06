@@ -72,6 +72,7 @@ void* _malloc(s64 bytes, char* file, char* func, s64 line);
 void* _calloc(s64 size, s64 bytes, char* file, char* func, s64 line);
 void* _realloc(void* ptr, s64 bytes, char* file, char* func, s64 line);
 
+char* strn(char* start, char* end);
 char* strf(char* fmt, ...);
 char* get_indentation_as_str(u64 indent_level);
 typedef struct {

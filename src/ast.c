@@ -81,6 +81,8 @@ char* ast_kind_to_str(AST_Kind kind) {
     case AST_SIZEOF:                          return "AST_SIZEOF";
     case AST_SWITCH:                          return "AST_SWITCH";
     case AST_POST_INC_OR_DEC:                 return "AST_POST_INC_OR_DEC";
+    case AST_LITERAL:                         return "AST_LITERAL";
+    case AST_ASM:                             return "AST_ASM";
     }
     UNREACHABLE;
     return NULL;
@@ -150,7 +152,6 @@ char* ast_to_str(AST* node) {
     ctx.indentation_level = DEFAULT_INDENT_LEVEL;
     return _ast_to_str(&ctx, node);
 }
-
 
 static char* _ast_to_str(String_Context* ctx, AST* node) {
     xassert(ctx);
@@ -436,6 +437,22 @@ static char* _ast_to_str(String_Context* ctx, AST* node) {
         string_append(s, ")");
         break;
     }
+    case AST_LITERAL: {
+        switch (node->Literal.kind) {
+        ERROR_UNHANDLED_LITERAL_KIND(node->Literal.kind);
+        case LITERAL_CHAR:     string_append_f(s, "%c", node->Literal.Char.value);       break;
+        case LITERAL_INTEGER:  string_append_f(s, "%lld", node->Literal.Integer.value);  break;
+        case LITERAL_HEX:      string_append_f(s, "%llu", node->Literal.Hex.value);      break;
+        case LITERAL_FLOAT:    string_append_f(s, "%f", node->Literal.Float.value);      break;
+        case LITERAL_STRING:   string_append_f(s, "%s", node->Literal.String.value);     break;
+        }
+        break;
+    }
+    case AST_ASM: {
+        string_append(s, "asm");
+        _ast_to_str(ctx, node->Asm.block);
+        break;
+    }
     }
     return string_data(s);
 }
@@ -568,6 +585,9 @@ void ast_visit(ast_callback* func, void* ctx, AST* node) {
         LIST_FOREACH(node->Block.stmts) {
             ast_visit(func, ctx, it->data);
         }
+        break;
+    case AST_ASM:
+        ast_visit(func, ctx, node->Asm.block);
         break;
     }
     (*func)(ctx, node);
@@ -973,4 +993,41 @@ AST* make_ast_post_inc_or_dec(Loc_Info loc_info, Token_Kind op, AST* node) {
     e->Post_Inc_or_Dec.op = op;
     e->Post_Inc_or_Dec.node = node;
     return e;   
+}
+
+AST* make_ast_literal(Loc_Info loc_info, Literal_Kind kind, char* value) {
+    xassert(value);
+    TASSERT_KIND_IN_RANGE(LITERAL, kind);
+    AST* e = make_ast(AST_LITERAL, loc_info);
+    e->Literal.kind = kind;
+    switch (kind) {
+    ERROR_UNHANDLED_LITERAL_KIND(kind);
+    case LITERAL_CHAR:    e->Literal.Char.value    = value[0];     break;
+    case LITERAL_INTEGER: e->Literal.Integer.value = atoll(value); break;
+    // case LITERAL_HEX:     
+    case LITERAL_FLOAT:   e->Literal.Float.value   = atof(value);  break;
+    case LITERAL_STRING:  e->Literal.String.value  = value;        break;
+    }
+    return e;      
+}
+
+AST* make_ast_asm(Loc_Info loc_info, AST* block) {
+    xassert(block);
+    AST* e = make_ast(AST_ASM, loc_info);
+    e->Asm.block = block;
+    return e;   
+}
+
+char* literal_kind_to_str(Literal_Kind kind) {
+    TASSERT_KIND_IN_RANGE(LITERAL, kind);
+    switch (kind) {
+    ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
+    case LITERAL_CHAR:    return "LITERAL_CHAR";
+    case LITERAL_INTEGER: return "LITERAL_INTEGER";
+    case LITERAL_HEX:     return "LITERAL_HEX";
+    case LITERAL_FLOAT:   return "LITERAL_FLOAT";
+    case LITERAL_STRING:  return "LITERAL_STRING";
+    }
+    UNREACHABLE;
+    return NULL;   
 }

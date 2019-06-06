@@ -76,6 +76,7 @@ make_parser_context(void) {
     Parser_Context ctx;
     ctx.tokens = NULL;
     ctx.inside_parens = false;
+    ctx.inside_asm = false;
     ctx.curr_tok.kind = TOKEN_UNKNOWN;
     ctx.llast_if_statement = NULL;
     ctx.olast_if_statement = NULL;

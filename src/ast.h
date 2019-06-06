@@ -35,6 +35,10 @@ typedef enum {
     BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED,
 } BlockFlags;
 
+//------------------------------------------------------------------------------
+//                                  AST Structures
+//------------------------------------------------------------------------------
+
 typedef enum {
     AST_FLAG_GLOBAL_VARIABLE = 1 << 0,
     _AST_FLAG_COUNT_,
@@ -81,12 +85,19 @@ typedef enum {
     AST_SIZEOF,
     AST_SWITCH,
     AST_POST_INC_OR_DEC,
+    AST_LITERAL,
+    AST_ASM,
     _AST_COUNT_
 } AST_Kind;
 
-//------------------------------------------------------------------------------
-//                                  AST Structures
-//------------------------------------------------------------------------------
+typedef enum {
+    LITERAL_CHAR,
+    LITERAL_INTEGER,
+    LITERAL_HEX,
+    LITERAL_FLOAT,
+    LITERAL_STRING,
+    _LITERAL_COUNT_,
+} Literal_Kind;
 
 typedef struct AST AST;
 
@@ -277,6 +288,21 @@ struct AST {
             Token_Kind op;
             AST* node;
         } Post_Inc_or_Dec;
+        struct
+        {
+            Literal_Kind kind;
+            union {
+                struct { char  value; } Char;
+                struct { s64   value; } Integer;
+                struct { u64   value; } Hex;
+                struct { f64   value; } Float;
+                struct { char* value; } String;
+            };
+        } Literal;
+        struct
+        {
+            AST* block;
+        } Asm;
     };
 };
 
@@ -320,23 +346,21 @@ AST* make_ast_continue(Loc_Info loc_info);
 AST* make_ast_space_separated_identifier_list(Loc_Info loc_info, List* identifiers);
 AST* make_ast_comma_separated_list(Loc_Info loc_info, List* nodes);
 AST* make_ast_post_inc_or_dec(Loc_Info loc_info, Token_Kind op, AST* node);
+AST* make_ast_literal(Loc_Info loc_info, Literal_Kind kind, char* value);
+AST* make_ast_asm(Loc_Info loc_info, AST* block);
 
 AST* get_arg_from_func(AST* func, s64 arg_index);
 void ast_tests(void);
-
 typedef void ast_callback(void*, AST*);
 void ast_visit(ast_callback* func, void* ctx, AST* node);
 void ast_replace(AST* a, AST* b);
 char* get_ast_name(AST* node);
-
 char* ast_get_literal_value_as_str(AST* node);
-
 char* get_ast_loc_str(AST* node);
 char* ast_to_source(AST* node);
-
 char* ast_to_str(AST* node);
-
 char* ast_kind_to_str(AST_Kind kind);
+char* literal_kind_to_str(Literal_Kind kind);
 
 typedef struct {
     AST** data;
@@ -350,9 +374,11 @@ void ast_ref_list_append(AST_Ref_List* l, AST* a);
 #ifdef NDEBUG
 #define ERROR_UNHANDLED_AST(x)
 #define ERROR_UNHANDLED_AST_KIND(x)
+#define ERROR_UNHANDLED_LITERAL_KIND(x)
 #else
 #define ERROR_UNHANDLED_AST(x) ERROR_UNHANDLED_KIND(ast_to_str(x))
 #define ERROR_UNHANDLED_AST_KIND(x) ERROR_UNHANDLED_KIND(ast_kind_to_str(x))
+#define ERROR_UNHANDLED_LITERAL_KIND(x) ERROR_UNHANDLED_KIND(literal_kind_to_str(x))
 #endif
 
 #endif

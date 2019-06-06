@@ -70,6 +70,8 @@ typedef struct
     Type* expected_type;
 
     List* data_list;
+
+    bool inside_asm;
     
     string* section_text;
     string* section_data;
