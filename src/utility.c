@@ -362,7 +362,7 @@ void _tassert(char* expr_str, char* file, char* func, int line, char* fmt, ...) 
     va_start(args, fmt);
     vsnprintf(str, n, fmt, args);
     va_end(args);
-    error("[%s:%s:%s] ASSERT %s -> %s", ucolor(file), ucolor(func), ucolor(strf("%d", line)), ucolor(expr_str), str);
+    error("[%s:%s:%s] ASSERT %s %s", ucolor(file), ucolor(func), ucolor(strf("%d", line)), ucolor(expr_str), str);
 }
 
 //
