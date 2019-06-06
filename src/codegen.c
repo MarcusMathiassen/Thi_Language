@@ -31,13 +31,13 @@
 #include "typedefs.h"
 #include "utility.h" // error warning info, wrap_with_colored_parens
 #include "value.h"   // Value, Scope
-#include <assert.h>  // assert
+  // assert
 #include <stdio.h>   //
 #include <string.h>  // strcmp
 
 #define DEBUG_START                                                              \
-    assert(ctx);                                                                 \
-    assert(node);                                                                \
+    xassert(ctx);                                                                 \
+    xassert(node);                                                                \
     info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(node))); \
     // emit(ctx, "; %s", ast_to_str(node));
 
@@ -71,7 +71,7 @@ Value* codegen_node            (Codegen_Context* ctx, AST* node);
 
 // @Hotpath @Recursive
 Value* codegen_node(Codegen_Context* ctx, AST* node) {
-    assert(ctx);
+    xassert(ctx);
     if (!node) return NULL;
     switch (node->kind) {
         ERROR_UNHANDLED_AST_KIND(node->kind);
@@ -133,7 +133,7 @@ Value* codegen_node(Codegen_Context* ctx, AST* node) {
 // call_function(char* function, arg1, arg2, arg2, ...)
 
 char* generate_code_from_ast(AST* ast) {
-    assert(ast);
+    xassert(ast);
     info("Generating code from ast");
     Codegen_Context ctx = make_codegen_context();
     string_append(ctx.section_data, "section .data\n");
@@ -297,13 +297,13 @@ Value* codegen_binary(Codegen_Context* ctx, AST* node) {
     }
     case TOKEN_LT_LT: {
         Value* lhs_v = codegen_node(ctx, lhs);
-        assert(rhs->kind == AST_INT);
+        xassert(rhs->kind == AST_INT);
         emit(ctx, "shl al, %lld", rhs->Int.val);
         return lhs_v;
     }
     case TOKEN_GT_GT: {
         Value* lhs_v = codegen_node(ctx, lhs);
-        assert(rhs->kind == AST_INT);
+        xassert(rhs->kind == AST_INT);
         emit(ctx, "shr al, %lld", rhs->Int.val);
         return lhs_v;
     }
@@ -449,7 +449,7 @@ Value* codegen_binary(Codegen_Context* ctx, AST* node) {
 
 Value* codegen_variable_decl(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->kind == AST_VARIABLE_DECL);
+    xassert(node->kind == AST_VARIABLE_DECL);
     char* name = node->Variable_Decl.name;
     Type* type = node->type;
     AST* assignment_expr = node->Variable_Decl.value;
@@ -480,7 +480,7 @@ Value* codegen_variable_decl(Codegen_Context* ctx, AST* node) {
 
 Value* codegen_float(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->kind == AST_FLOAT);
+    xassert(node->kind == AST_FLOAT);
     Value* val = make_value_float(node->type, node->Float.val);
     char* db_op = get_db_op(val->type);
     char* flabel = emit_data(ctx, "%s %f", db_op, val->Float.value);
@@ -492,7 +492,7 @@ Value* codegen_float(Codegen_Context* ctx, AST* node) {
 
 Value* codegen_int(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->kind == AST_INT);
+    xassert(node->kind == AST_INT);
     Value* val = make_value_int(DEFAULT_INT_BYTE_SIZE, node->type, node->Int.val);
     char* reg = get_result_reg(val->type);
     char* mov_op = get_move_op(val->type);
@@ -518,7 +518,7 @@ Value* codegen_block(Codegen_Context* ctx, AST* node) {
 
 Value* codegen_ident(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->kind == AST_IDENT);
+    xassert(node->kind == AST_IDENT);
     Value* var = get_variable(ctx, node);
     emit_load(ctx, var);
     return var;
@@ -526,7 +526,7 @@ Value* codegen_ident(Codegen_Context* ctx, AST* node) {
 
 Value* codegen_string(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->kind == AST_STRING);
+    xassert(node->kind == AST_STRING);
     char* val = node->String.val;
     Type* t = make_type_pointer(make_type_int(8, 1));
     char* slabel = emit_data(ctx, "db `%s`, 0 ", val);
@@ -538,7 +538,7 @@ Value* codegen_string(Codegen_Context* ctx, AST* node) {
 
 Value* codegen_note(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->Note.node->kind == AST_INT);
+    xassert(node->Note.node->kind == AST_INT);
     s64 integer_value = node->Note.node->Int.val;
     if (integer_value < 1) error("note parameters start at 1.");
     AST* arg = get_arg_from_func(ctx->current_function, integer_value - 1);
@@ -549,7 +549,7 @@ Value* codegen_note(Codegen_Context* ctx, AST* node) {
 
 Value* codegen_if(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->kind == AST_IF);
+    xassert(node->kind == AST_IF);
 
     char* else_l = make_text_label(ctx);
     char* end_l = make_text_label(ctx);
@@ -574,7 +574,7 @@ Value* codegen_if(Codegen_Context* ctx, AST* node) {
 
 Value* codegen_for(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->kind == AST_FOR);
+    xassert(node->kind == AST_FOR);
 
     push_scope(ctx);
 
@@ -609,7 +609,7 @@ Value* codegen_for(Codegen_Context* ctx, AST* node) {
 
 Value* codegen_while(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->kind == AST_WHILE);
+    xassert(node->kind == AST_WHILE);
 
     char* begin_l = make_text_label(ctx);
     char* end_l = make_text_label(ctx);
@@ -634,7 +634,7 @@ Value* codegen_while(Codegen_Context* ctx, AST* node) {
 
 Value* codegen_defer(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->kind == AST_DEFER);
+    xassert(node->kind == AST_DEFER);
     AST* defer_expr = node->Defer.node;
     list_append(ctx->current_function->Function.defers, defer_expr);
     return NULL;
@@ -651,7 +651,7 @@ Value* codegen_defer(Codegen_Context* ctx, AST* node) {
 //      5. If the class is SSEUP, the eightbyte is returned in the next available eightbyte chunk of the last used vector register.
 Value* codegen_return(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->kind == AST_RETURN);
+    xassert(node->kind == AST_RETURN);
     AST* ret_e = node->Return.node;
     Value* ret_v = NULL;
     if (ret_e) {
@@ -680,14 +680,14 @@ Value* codegen_return(Codegen_Context* ctx, AST* node) {
 
 Value* codegen_break(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->kind == AST_BREAK);
+    xassert(node->kind == AST_BREAK);
     emit(ctx, "jmp %s", ctx->lbreak);
     return NULL;
 }
 
 Value* codegen_post_inc_or_dec(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->kind == AST_POST_INC_OR_DEC);
+    xassert(node->kind == AST_POST_INC_OR_DEC);
     Value* v = codegen_node(ctx, node->Post_Inc_or_Dec.node);
     push_type(ctx, v->type);
     v = codegen_node(ctx, make_ast_unary(node->loc_info, node->Post_Inc_or_Dec.op, node->Post_Inc_or_Dec.node));
@@ -697,7 +697,7 @@ Value* codegen_post_inc_or_dec(Codegen_Context* ctx, AST* node) {
 
 Value* codegen_switch(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->kind == AST_SWITCH);
+    xassert(node->kind == AST_SWITCH);
 
     char* default_l = make_text_label(ctx);
     char* end_l = make_text_label(ctx);
@@ -753,7 +753,7 @@ Value* codegen_switch(Codegen_Context* ctx, AST* node) {
 
 Value* codegen_as(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->kind == AST_AS);
+    xassert(node->kind == AST_AS);
     AST* e = node->As.node;
     Type* t = node->As.type_node->type;
     Value* v = codegen_node(ctx, e);
@@ -763,21 +763,21 @@ Value* codegen_as(Codegen_Context* ctx, AST* node) {
 
 Value* codegen_continue(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->kind == AST_CONTINUE);
+    xassert(node->kind == AST_CONTINUE);
     emit(ctx, "jmp %s", ctx->lcontinue);
     return NULL;
 }
 
 Value* codegen_enum(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->kind == AST_ENUM);
+    xassert(node->kind == AST_ENUM);
     warning("enum incomplete?");
     return NULL;
 }
 
 Value* codegen_extern(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->kind == AST_EXTERN);
+    xassert(node->kind == AST_EXTERN);
     char* func_name = node->Extern.type->Function.name;
     emit_extern(ctx, func_name);
     return NULL;
@@ -785,7 +785,7 @@ Value* codegen_extern(Codegen_Context* ctx, AST* node) {
 
 Value* codegen_struct(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    assert(node->kind == AST_STRUCT);
+    xassert(node->kind == AST_STRUCT);
     info("struct incomplete?");
     return make_value_struct(node->type);
 }

@@ -23,7 +23,7 @@
 #include "constants.h"
 #include "typedefs.h"
 #include "utility.h" // info, warning, xmalloc, xrealloc
-#include <assert.h>  // assert
+  // assert
 #include <ctype.h>   // isalnum, isdigit
 #include <string.h>  // strncmp
 
@@ -140,33 +140,33 @@ void lexer_test(void) {
     // Token*     tokens = lf.tokens.data;
     // // info(source);
     // // print_tokens(lf.tokens);
-    // assert(tokens[0].kind == TOKEN_TYPE);         // type
-    // assert(tokens[1].kind == TOKEN_IDENTIFIER);   // v2
-    // assert(tokens[2].kind == TOKEN_BLOCK_START);  //
-    // assert(tokens[3].kind == TOKEN_IDENTIFIER);   // x
-    // assert(tokens[4].kind == TOKEN_COLON);        // :
-    // assert(tokens[5].kind == TOKEN_IDENTIFIER);   // f32
-    // assert(tokens[6].kind == TOKEN_IDENTIFIER);   // y
-    // assert(tokens[7].kind == TOKEN_COLON);        // :
-    // assert(tokens[8].kind == TOKEN_IDENTIFIER);   // f32
-    // assert(tokens[9].kind == TOKEN_IDENTIFIER);   // core
-    // assert(tokens[10].kind == TOKEN_OPEN_PAREN);  // (
-    // assert(tokens[11].kind == TOKEN_CLOSE_PAREN); // )
-    // assert(tokens[12].kind == TOKEN_BLOCK_START); //
-    // assert(tokens[13].kind == TOKEN_RETURN);      // return
-    // assert(tokens[14].kind == TOKEN_INTEGER);     // 1
-    // assert(tokens[15].kind == TOKEN_BLOCK_END);   //
-    // assert(tokens[16].kind == TOKEN_BLOCK_END);   //
-    // assert(tokens[17].kind == TOKEN_EOF);         //
+    // xassert(tokens[0].kind == TOKEN_TYPE);         // type
+    // xassert(tokens[1].kind == TOKEN_IDENTIFIER);   // v2
+    // xassert(tokens[2].kind == TOKEN_BLOCK_START);  //
+    // xassert(tokens[3].kind == TOKEN_IDENTIFIER);   // x
+    // xassert(tokens[4].kind == TOKEN_COLON);        // :
+    // xassert(tokens[5].kind == TOKEN_IDENTIFIER);   // f32
+    // xassert(tokens[6].kind == TOKEN_IDENTIFIER);   // y
+    // xassert(tokens[7].kind == TOKEN_COLON);        // :
+    // xassert(tokens[8].kind == TOKEN_IDENTIFIER);   // f32
+    // xassert(tokens[9].kind == TOKEN_IDENTIFIER);   // core
+    // xassert(tokens[10].kind == TOKEN_OPEN_PAREN);  // (
+    // xassert(tokens[11].kind == TOKEN_CLOSE_PAREN); // )
+    // xassert(tokens[12].kind == TOKEN_BLOCK_START); //
+    // xassert(tokens[13].kind == TOKEN_RETURN);      // return
+    // xassert(tokens[14].kind == TOKEN_INTEGER);     // 1
+    // xassert(tokens[15].kind == TOKEN_BLOCK_END);   //
+    // xassert(tokens[16].kind == TOKEN_BLOCK_END);   //
+    // xassert(tokens[17].kind == TOKEN_EOF);         //
 
     // lf     = generate_tokens_from_source("0.3453 1e3 0x043 'x' 100_000 100_000.00");
     // tokens = lf.tokens.data;
-    // assert(tokens[0].kind == TOKEN_FLOAT);
-    // assert(tokens[1].kind == TOKEN_INTEGER);
-    // assert(tokens[2].kind == TOKEN_HEX);
-    // assert(tokens[3].kind == TOKEN_CHAR);
-    // assert(tokens[4].kind == TOKEN_INTEGER);
-    // assert(tokens[5].kind == TOKEN_FLOAT);
+    // xassert(tokens[0].kind == TOKEN_FLOAT);
+    // xassert(tokens[1].kind == TOKEN_INTEGER);
+    // xassert(tokens[2].kind == TOKEN_HEX);
+    // xassert(tokens[3].kind == TOKEN_CHAR);
+    // xassert(tokens[4].kind == TOKEN_INTEGER);
+    // xassert(tokens[5].kind == TOKEN_FLOAT);
 }
 
 #define LEXER_ERROR(x) error("[%s:%d:%d] %s", ctx.file, token.line_pos, token.col_pos, x)

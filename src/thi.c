@@ -21,7 +21,7 @@
 #include "thi.h"
 #include "type.h"
 #include "utility.h"
-#include <assert.h> // assert
+ // assert
 #include <string.h> // strcmp
 
 Thi make_thi() {
@@ -115,7 +115,7 @@ List* get_load_list(Thi* thi) {
 }
 
 void add_load(Thi* thi, char* loaded_file) {
-    assert(loaded_file);
+    xassert(loaded_file);
     LIST_FOREACH(thi->loads) {
         char* l = (char*)it->data;
         if (strcmp(l, loaded_file) == 0) {
@@ -127,7 +127,7 @@ void add_load(Thi* thi, char* loaded_file) {
 }
 
 void add_link(Thi* thi, char* library_name) {
-    assert(library_name);
+    xassert(library_name);
     LIST_FOREACH(thi->links) {
         char* l = (char*)it->data;
         if (strcmp(l, library_name) == 0) {
@@ -151,8 +151,8 @@ void print_symbol_map(Thi* thi) {
 }
 
 Type* add_symbol(Thi* thi, char* name, Type* type) {
-    assert(name);
-    assert(type);
+    xassert(name);
+    xassert(type);
     Type* t = map_set(thi->symbol_map, name, type);
     if (!t) {
         error("symbol redecl: '%s'", name);
@@ -162,7 +162,7 @@ Type* add_symbol(Thi* thi, char* name, Type* type) {
 }
 
 Type* get_symbol(Thi* thi, char* name) {
-    assert(name);
+    xassert(name);
     Type* t = (Type*)map_get(thi->symbol_map, name);
     if (!t) {
         warning("no symbol with name %s", give_unique_color(name));
@@ -175,7 +175,7 @@ List* get_timers(Thi* thi) {
 }
 
 void push_timer(Thi* thi, char* desc) {
-    assert(desc);
+    xassert(desc);
     Timer* tm = xmalloc(sizeof(Timer));
     tm->ms = get_time();
     tm->desc = desc;

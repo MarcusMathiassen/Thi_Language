@@ -26,17 +26,8 @@
 #define SEMA_H
 
 #include "ast.h"
-#include "map.h"
-#include "stack.h"
 #include "type.h"
 
-typedef struct {
-    AST* module;
-    Map* symbols;
-    Stack* scopes;
-    AST* current_function;
-} Sema_Context;
-
-Type* sema(Sema_Context* ctx, AST* node);
+Type* sema(AST* node);
 
 #endif

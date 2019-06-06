@@ -23,7 +23,7 @@
 #include "string.h"    // strf, string_append, string
 #include "typedefs.h"
 #include "utility.h" // error
-#include <assert.h>  // assert
+  // assert
 #include <string.h>  // strcmp
 
 //------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ char* type_kind_to_str(Type_Kind kind) {
 }
 
 List* type_get_members(Type* type) {
-    assert(type);
+    xassert(type);
     switch (type->kind) {
         ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_ENUM: return type->Enum.members;
@@ -65,14 +65,14 @@ List* type_get_members(Type* type) {
 
 // @Cleanup(marcus) we're leaking memory here.
 void type_replace(Type* a, Type* b) {
-    assert(a);
-    assert(b);
+    xassert(a);
+    xassert(b);
     info("REPLACED %s WITH %s", give_unique_color(type_to_str(a)), give_unique_color(type_to_str(b)));
     *a = *b;
 }
 
 Type* get_underlying_type_if_any(Type* type) {
-    assert(type);
+    xassert(type);
     switch (type->kind) {
     default: return type;
     case TYPE_POINTER: return type->Pointer.pointee;
@@ -83,7 +83,7 @@ Type* get_underlying_type_if_any(Type* type) {
 }
 
 s64 get_size_of_underlying_type_if_any(Type* type) {
-    assert(type);
+    xassert(type);
     switch (type->kind) {
     default: return get_size_of_type(type);
     case TYPE_POINTER: return get_size_of_type(type->Pointer.pointee);
@@ -94,8 +94,8 @@ s64 get_size_of_underlying_type_if_any(Type* type) {
 }
 
 bool is_same_type(Type* a, Type* b) {
-    assert(a);
-    assert(b);
+    xassert(a);
+    xassert(b);
     char* an = type_to_str(a);
     char* bn = type_to_str(b);
     return strcmp(an, bn) == 0;
@@ -122,7 +122,7 @@ char* get_type_name(Type* type) {
 }
 
 s64 get_size_of_type(Type* type) {
-    assert(type);
+    xassert(type);
 
     switch (type->kind) {
         ERROR_UNHANDLED_TYPE_KIND(type->kind);
@@ -159,8 +159,8 @@ s64 get_size_of_type(Type* type) {
 }
 
 s64 get_offset_in_struct_to_field(Type* type, char* name) {
-    assert(type);
-    assert(type->kind == TYPE_STRUCT);
+    xassert(type);
+    xassert(type->kind == TYPE_STRUCT);
     s64 accum_size = 0;
     LIST_FOREACH(type_get_members(type)) {
         Type_Name_Pair* mem = it->data;
@@ -173,14 +173,14 @@ s64 get_offset_in_struct_to_field(Type* type, char* name) {
 }
 
 s64 type_function_get_arg_count(Type* type) {
-    assert(type);
-    assert(type->kind == TYPE_FUNCTION);
+    xassert(type);
+    xassert(type->kind == TYPE_FUNCTION);
     return type->Function.parameters->count;
 }
 
 s64 type_array_get_count(Type* type) {
-    assert(type);
-    assert(type->kind == TYPE_ARRAY);
+    xassert(type);
+    xassert(type->kind == TYPE_ARRAY);
     return type->Array.size;
 }
 
@@ -192,7 +192,7 @@ char* type_to_str(Type* type) {
 }
 
 char* type_to_str_r(String_Context* ctx, Type* type) {
-    assert(ctx);
+    xassert(ctx);
 
     // Local alias
     string* s = ctx->str;
@@ -312,15 +312,15 @@ Type* make_type_var_args() {
 }
 
 Type* make_type_unresolved(char* name) {
-    assert(name);
+    xassert(name);
     Type* t = make_type(TYPE_UNRESOLVED, 0);
     t->Unresolved.name = name;
     return t;
 }
 
 Type* make_type_array(Type* type, s64 size) {
-    assert(type);
-    assert(size > 0);
+    xassert(type);
+    xassert(size > 0);
     Type* t = make_type(TYPE_ARRAY, 0);
     t->Array.type = type;
     t->Array.size = size;
@@ -328,8 +328,8 @@ Type* make_type_array(Type* type, s64 size) {
 }
 
 Type* make_type_int(s8 bytes, bool is_unsigned) {
-    assert(bytes > 0 && bytes < 9);
-    assert(is_unsigned == 1 || is_unsigned == 0);
+    xassert(bytes > 0 && bytes < 9);
+    xassert(is_unsigned == 1 || is_unsigned == 0);
     Type* t = make_type(TYPE_INT, 0);
     t->Int.bytes = bytes;
     t->Int.is_unsigned = is_unsigned;
@@ -337,29 +337,29 @@ Type* make_type_int(s8 bytes, bool is_unsigned) {
 }
 
 Type* make_type_float(s8 bytes) {
-    assert(bytes > 0 && bytes < 9);
+    xassert(bytes > 0 && bytes < 9);
     Type* t = make_type(TYPE_FLOAT, 0);
     t->Float.bytes = bytes;
     return t;
 }
 
 Type* make_type_string(s64 len) {
-    assert(len);
+    xassert(len);
     Type* t = make_type(TYPE_STRING, 0);
     t->String.len = len;
     return t;
 }
 
 Type* make_type_pointer(Type* pointee) {
-    assert(pointee);
+    xassert(pointee);
     Type* t = make_type(TYPE_POINTER, 0);
     t->Pointer.pointee = pointee;
     return t;
 }
 
 Type* make_type_enum(char* name, List* members) {
-    assert(name);
-    assert(members);
+    xassert(name);
+    xassert(members);
     Type* t = make_type(TYPE_ENUM, 0);
     t->name = name;
     t->Enum.name = name;
@@ -368,8 +368,8 @@ Type* make_type_enum(char* name, List* members) {
 }
 
 Type* make_type_struct(char* name, List* members) {
-    assert(name);
-    assert(members);
+    xassert(name);
+    xassert(members);
     Type* t = make_type(TYPE_STRUCT, 0);
     t->name = name;
     t->Struct.name = name;
@@ -378,9 +378,9 @@ Type* make_type_struct(char* name, List* members) {
 }
 
 Type* make_type_function(char* name, List* parameters, Type* return_type, u32 flags) {
-    assert(name);
-    assert(parameters);
-    assert(return_type);
+    xassert(name);
+    xassert(parameters);
+    xassert(return_type);
     Type* t = make_type(TYPE_FUNCTION, flags);
     t->name = name;
     t->Function.name = name;

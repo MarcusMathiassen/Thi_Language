@@ -37,7 +37,7 @@
 #include "typedefs.h"     // u8, u16, s32, etc.
 #include "utility.h"      // get_file_content, success, info, get_time
 #include "value.h"        // Value
-#include <assert.h>       // assert
+       // assert
 #include <stdio.h>        // sprintf
 #include <stdlib.h>       // free
 #include <string.h>       // strcmp
@@ -149,7 +149,7 @@ void pass_initilize_enums(void* thi, AST* node) {
     //             it->data = make_ast_constant_decl(m->loc_info, m->Ident.name, make_ast_int(m->loc_info, counter, make_type_int(DEFAULT_INT_BYTE_SIZE, 0)));
     //             break;
     //         case AST_CONSTANT_DECL:
-    //             assert(m->Constant_Decl.value->kind == AST_INT);
+    //             xassert(m->Constant_Decl.value->kind == AST_INT);
     //             counter = m->Constant_Decl.value->Int.val;
     //             break;
     //         }
@@ -192,7 +192,7 @@ void run_all_passes(void* thi, AST* node) {
 }
 
 void make_sure_all_nodes_have_a_valid_type(void* dont_care, AST* node) {
-    assert(node);
+    xassert(node);
     switch (node->kind) {
     case AST_COMMENT:  // fallthrough
     case AST_NOP:      // fallthrough
@@ -405,6 +405,7 @@ void thi_run_pass(Thi* thi, char* pass_description, ast_callback* visitor_func, 
 int main(int argc, char** argv) {
     // @Todo(marcus) do more robust argument handling
     // Argument validation
+
     if (argc < 2) error("too few arguments.");
 
     info("Compiler was last compiled: "__TIME__);
@@ -537,12 +538,9 @@ int main(int argc, char** argv) {
     // Semantic analysis
     //
     info("Semantic Analysis...");
-    Sema_Context sctx;
-    sctx.scopes = make_stack();
-    stack_push(sctx.scopes, make_list());
-    sema(&sctx, ast);
+    sema(ast);
     //
-    
+
     PassDescriptor passDesc; // We reuse this one
 
     passDesc.description = "Resolve sizeofs";

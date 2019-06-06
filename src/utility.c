@@ -20,7 +20,7 @@
 
 #include "utility.h"
 #include "constants.h"
-#include <assert.h> // assert
+ // assert
 #include <stdarg.h> // va_list, va_start, va_end
 #include <stdio.h>  // printf, vprintf
 #include <stdlib.h> // malloc, realloc, calloc
@@ -33,7 +33,7 @@
 //------------------------------------------------------------------------------
 
 void _info(char* fmt, ...) {
-    assert(fmt);
+    xassert(fmt);
     va_list args;
     va_start(args, fmt);
     printf("%s", RGB_GRAY);
@@ -43,7 +43,7 @@ void _info(char* fmt, ...) {
 }
 
 void warning(char* fmt, ...) {
-    assert(fmt);
+    xassert(fmt);
     va_list args;
     va_start(args, fmt);
     printf("%s", YELLOW);
@@ -53,7 +53,7 @@ void warning(char* fmt, ...) {
 }
 
 void success(char* fmt, ...) {
-    assert(fmt);
+    xassert(fmt);
     va_list args;
     va_start(args, fmt);
     printf("%s", GREEN);
@@ -63,7 +63,7 @@ void success(char* fmt, ...) {
 }
 
 void error(char* fmt, ...) {
-    assert(fmt);
+    xassert(fmt);
     va_list args;
     va_start(args, fmt);
     printf("%s", RED);
@@ -74,7 +74,7 @@ void error(char* fmt, ...) {
 }
 
 void _info_no_newline(char* fmt, ...) {
-    assert(fmt);
+    xassert(fmt);
     va_list args;
     va_start(args, fmt);
     printf("%s", RGB_GRAY);
@@ -84,7 +84,7 @@ void _info_no_newline(char* fmt, ...) {
 }
 
 void warning_no_newline(char* fmt, ...) {
-    assert(fmt);
+    xassert(fmt);
     va_list args;
     va_start(args, fmt);
     printf("%s", YELLOW);
@@ -94,7 +94,7 @@ void warning_no_newline(char* fmt, ...) {
 }
 
 void success_no_newline(char* fmt, ...) {
-    assert(fmt);
+    xassert(fmt);
     va_list args;
     va_start(args, fmt);
     printf("%s", GREEN);
@@ -104,7 +104,7 @@ void success_no_newline(char* fmt, ...) {
 }
 
 void error_no_newline(char* fmt, ...) {
-    assert(fmt);
+    xassert(fmt);
     va_list args;
     va_start(args, fmt);
     printf("%s", RED);
@@ -122,7 +122,7 @@ void error_no_newline(char* fmt, ...) {
 #define DEBUG_PRINT_EXIT info(" -> %s", str);
 
 char* get_file_extension(char* filename) {
-    assert(filename);
+    xassert(filename);
     DEBUG_PRINT_ENTRY;
     s64 len = strlen(filename);
     s64 i = 0;
@@ -148,7 +148,7 @@ char* get_file_extension(char* filename) {
 }
 
 char* remove_file_extension(char* filename) {
-    assert(filename);
+    xassert(filename);
     DEBUG_PRINT_ENTRY;
     s64 len = strlen(filename);
     s64 i = 0;
@@ -168,7 +168,7 @@ char* remove_file_extension(char* filename) {
 }
 
 char* get_file_directory(char* filename) {
-    assert(filename);
+    xassert(filename);
     DEBUG_PRINT_ENTRY;
     s64 len = strlen(filename);
     while (len > 0) {
@@ -188,7 +188,7 @@ char* get_file_directory(char* filename) {
 }
 
 char* get_file_name(char* filename) {
-    assert(filename);
+    xassert(filename);
     DEBUG_PRINT_ENTRY;
     s64 len = strlen(filename);
     s64 i = 1;
@@ -207,8 +207,8 @@ char* get_file_name(char* filename) {
     return str;
 }
 void write_to_file(char* filename, char* buffer) {
-    assert(filename);
-    assert(buffer);
+    xassert(filename);
+    xassert(buffer);
     FILE* f = fopen(filename, "w");
     if (!f) {
         printf("Error opening file!\n");
@@ -219,7 +219,7 @@ void write_to_file(char* filename, char* buffer) {
 }
 
 char* get_file_content(char* filename) {
-    assert(filename);
+    xassert(filename);
     char* buffer = NULL;
     s64 string_size, read_size;
     FILE* f = fopen(filename, "r");
@@ -262,7 +262,7 @@ char* get_file_content(char* filename) {
 //------------------------------------------------------------------------------
 
 void* _malloc(s64 bytes, char* file, char* func, s64 line) {
-    assert(bytes != 0);
+    xassert(bytes != 0);
     void* alloc = malloc(bytes);
     if (!alloc) error("[%s:%s:%lld] malloc(%lld) failed", file, func, line, bytes);
     // info("[%s:%s:%lld] malloc(%lld) called", file, func, line, bytes);
@@ -270,8 +270,8 @@ void* _malloc(s64 bytes, char* file, char* func, s64 line) {
 }
 
 void* _calloc(s64 size, s64 bytes, char* file, char* func, s64 line) {
-    assert(size != 0);
-    assert(bytes != 0);
+    xassert(size != 0);
+    xassert(bytes != 0);
     void* alloc = calloc(size, bytes);
     if (!alloc) error("[%s:%s:%lld] calloc(%lld, %lld) failed", file, func, line, size, bytes);
     // info("[%s:%s:%lld] calloc(%lld, %lld) called", file, func, line, size, bytes);
@@ -279,8 +279,8 @@ void* _calloc(s64 size, s64 bytes, char* file, char* func, s64 line) {
 }
 
 void* _realloc(void* ptr, s64 bytes, char* file, char* func, s64 line) {
-    assert(ptr);
-    assert(bytes != 0);
+    xassert(ptr);
+    xassert(bytes != 0);
     void* alloc = realloc(ptr, bytes);
     if (!alloc) error("[%s:%s:%lld] realloc(%lld, %llu) failed", file, func, line, (u64)ptr, bytes);
     // info("[%s:%s:%lld] realloc(%lld, %llu) called", file, func, line, (u64)ptr, bytes);
@@ -288,7 +288,7 @@ void* _realloc(void* ptr, s64 bytes, char* file, char* func, s64 line) {
 }
 
 char* strf(char* fmt, ...) {
-    assert(fmt);
+    xassert(fmt);
     va_list args;
     va_start(args, fmt);
     s64 n = 1 + vsnprintf(0, 0, fmt, args);
@@ -305,7 +305,7 @@ char* strf(char* fmt, ...) {
 
 char* get_indentation_as_str(u64 indent_level) {
     char* s = "";
-    assert(DEFAULT_INDENT_LEVEL == 4);
+    xassert(DEFAULT_INDENT_LEVEL == 4);
     while (indent_level > DEFAULT_INDENT_LEVEL) {
         s = strf("%s    ", s);
         indent_level -= DEFAULT_INDENT_LEVEL;
@@ -333,7 +333,7 @@ char* get_next_color(void) {
     return colors[counter++];
 }
 char* wrap_with_colored_parens(char* str) {
-    assert(str);
+    xassert(str);
     char* current_color = get_next_color();
     return strf("%s(\033[00m%s%s)\033[00m", current_color, str, current_color);
 }
@@ -343,9 +343,9 @@ char* ucolor(char* str) {
 }
 
 char* give_unique_color(char* str) {
-    assert(str);
+    xassert(str);
     char* current_color = get_next_color();
-    assert(current_color);
+    xassert(current_color);
     return strf("%s%s\033[00m", current_color, str);
 }
 char* get_unique_color(void) {
@@ -353,7 +353,7 @@ char* get_unique_color(void) {
 }
 
 void _tassert(char* expr_str, char* file, char* func, int line, char* fmt, ...) {
-    assert(fmt);
+    xassert(fmt);
     va_list args;
     va_start(args, fmt);
     s64 n = 1 + vsnprintf(0, 0, fmt, args);
@@ -418,24 +418,24 @@ void utility_tests(void) {
     // These leak memory.
 
     // get_file_directory
-    assert(strcmp(get_file_directory("./b/m.thi"), "./b/") == 0);
-    assert(get_file_directory("m.thi") == NULL);
-    assert(strcmp(get_file_directory("./b/m/m.thi"), "./b/m/") == 0);
+    xassert(strcmp(get_file_directory("./b/m.thi"), "./b/") == 0);
+    xassert(get_file_directory("m.thi") == NULL);
+    xassert(strcmp(get_file_directory("./b/m/m.thi"), "./b/m/") == 0);
 
     // get_file_extension
-    assert(strcmp(get_file_extension("./b/m.thi"), ".thi") == 0);
-    assert(strcmp(get_file_extension(".rcx.txt"), ".txt") == 0);
-    assert(get_file_extension("fefem") == NULL);
-    assert(strcmp(get_file_extension("./b/mthigegerg/o.hrifj"), ".hrifj") == 0);
+    xassert(strcmp(get_file_extension("./b/m.thi"), ".thi") == 0);
+    xassert(strcmp(get_file_extension(".rcx.txt"), ".txt") == 0);
+    xassert(get_file_extension("fefem") == NULL);
+    xassert(strcmp(get_file_extension("./b/mthigegerg/o.hrifj"), ".hrifj") == 0);
 
     // remove_file_extension
-    assert(strcmp(remove_file_extension("./b/m.thi"), "./b/m") == 0);
-    assert(strcmp(remove_file_extension(".rcx.txt"), ".rcx") == 0);
-    assert(remove_file_extension("fefem") == NULL);
-    assert(strcmp(remove_file_extension("./b/mthigegerg/o.hrifj"), "./b/mthigegerg/o") == 0);
+    xassert(strcmp(remove_file_extension("./b/m.thi"), "./b/m") == 0);
+    xassert(strcmp(remove_file_extension(".rcx.txt"), ".rcx") == 0);
+    xassert(remove_file_extension("fefem") == NULL);
+    xassert(strcmp(remove_file_extension("./b/mthigegerg/o.hrifj"), "./b/mthigegerg/o") == 0);
 
     // get_file_name
-    assert(strcmp(get_file_name("./b/m.thi"), "m.thi") == 0);
-    assert(strcmp(get_file_name("./b/m/hergergerg.thi"), "hergergerg.thi") == 0);
-    assert(get_file_name("./b/m/") == NULL);
+    xassert(strcmp(get_file_name("./b/m.thi"), "m.thi") == 0);
+    xassert(strcmp(get_file_name("./b/m/hergergerg.thi"), "hergergerg.thi") == 0);
+    xassert(get_file_name("./b/m/") == NULL);
 }

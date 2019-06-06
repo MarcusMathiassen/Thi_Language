@@ -27,14 +27,14 @@
 
 #include "typedefs.h"
 #include "utility.h" // xmalloc, xrealloc
-#include <assert.h>  // assert
+  // assert
 #include <stdarg.h>  // va_list, va_start, va_end
 #include <stdio.h>   // vsnprintf
 #include <stdlib.h>  // free
 #include <string.h>  // memcpy
 
 string* string_create(char* str) {
-    assert(str);
+    xassert(str);
     string* s = xmalloc(sizeof(string));
     s->c_str = xmalloc(STRING_STARTING_ALLOC);
     s->len = 0;
@@ -43,7 +43,7 @@ string* string_create(char* str) {
     return s;
 }
 string* string_create_f(char* fmt, ...) {
-    assert(fmt);
+    xassert(fmt);
     va_list args;
     va_start(args, fmt);
     s64 n = 1 + vsnprintf(0, 0, fmt, args);
@@ -57,16 +57,16 @@ string* string_create_f(char* fmt, ...) {
     return s;
 }
 char* string_data(string* this) {
-    assert(this);
-    assert(this->c_str);
+    xassert(this);
+    xassert(this->c_str);
     return this->c_str;
 }
 void string_append(string* this, char* str) {
-    assert(this);
+    xassert(this);
     if (!str) return;
     s64 str_len = strlen(str);
     if (str_len == 0) return;
-    assert(this->len <= this->cap);
+    xassert(this->len <= this->cap);
     while (this->len + str_len >= this->cap) {
         this->cap *= PHI;
         this->c_str = xrealloc(this->c_str, this->cap * sizeof(char));
@@ -77,8 +77,8 @@ void string_append(string* this, char* str) {
 }
 
 void string_append_f(string* this, char* fmt, ...) {
-    assert(this);
-    assert(fmt);
+    xassert(this);
+    xassert(fmt);
     va_list args;
     va_start(args, fmt);
     s64 n = 1 + vsnprintf(0, 0, fmt, args);
@@ -91,7 +91,7 @@ void string_append_f(string* this, char* fmt, ...) {
     free(str);
 }
 void string_destroy(string* this) {
-    assert(this);
+    xassert(this);
     free(this->c_str);
     free(this);
 }
@@ -103,14 +103,14 @@ void string_destroy(string* this) {
 void string_tests(void) {
     // string test
     string* s = string_create("Hello");
-    assert(s->len == 5);
-    assert(strcmp(string_data(s), "Hello") == 0);
+    xassert(s->len == 5);
+    xassert(strcmp(string_data(s), "Hello") == 0);
     string_append(s, ", Marcus Mathiasssen.");
-    assert(s->len == 26);
-    assert(strcmp(string_data(s), "Hello, Marcus Mathiasssen.") == 0);
+    xassert(s->len == 26);
+    xassert(strcmp(string_data(s), "Hello, Marcus Mathiasssen.") == 0);
     string_append(s, " It's nice to see you again. How are you?");
-    assert(s->len == 67);
-    assert(strcmp(string_data(s),
+    xassert(s->len == 67);
+    xassert(strcmp(string_data(s),
                   "Hello, Marcus Mathiasssen. It's nice to see you "
                   "again. How are you?") == 0);
 }

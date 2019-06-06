@@ -21,7 +21,7 @@
 #include "list.h"
 #include "stack.h"
 #include "utility.h" // error, xmalloc
-#include <assert.h>
+
 #include <stdlib.h> // xmalloc
 
 List* make_list(void) {
@@ -60,28 +60,28 @@ void list_tests(void) {
     list_append(list, &t2);
 
     // At
-    assert(((Test_Type*)list_first(list))->val == 3.43f);
-    assert(((Test_Type*)list_last(list))->val == 6.41f);
+    xassert(((Test_Type*)list_first(list))->val == 3.43f);
+    xassert(((Test_Type*)list_last(list))->val == 6.41f);
 
     // Prepend
     list_prepend(list, &t2);
-    assert(((Test_Type*)list_at(list, 0))->val == 6.41f);
+    xassert(((Test_Type*)list_at(list, 0))->val == 6.41f);
 
     // Remove
     list_remove_at(list, 0);
     // Test_Type* t = (Test_Type*)list_at(list, 0);
-    // assert(t->val == 3.43f);
-    // assert(((Test_Type*)list_at(list, 1))->val == 6.41f);
+    // xassert(t->val == 3.43f);
+    // xassert(((Test_Type*)list_at(list, 1))->val == 6.41f);
 
     Test_Type t3;
     t3.name = "t3";
     t3.val = 7.43f;
 
     list_insert_after(list, list->head, &t3);
-    assert(((Test_Type*)list_at(list, 1))->val == 7.43f);
+    xassert(((Test_Type*)list_at(list, 1))->val == 7.43f);
 
     list_insert_before(list, list->tail, &t3);
-    assert(((Test_Type*)list_at(list, list->count - 1))->val == 7.43f);
+    xassert(((Test_Type*)list_at(list, list->count - 1))->val == 7.43f);
 
     list_free(list);
 }
@@ -91,38 +91,38 @@ bool list_empty(List* list) {
 }
 
 void list_prepend_content_of_in_reverse(List* list, List* other_list) {
-    assert(list);
-    assert(other_list);
+    xassert(list);
+    xassert(other_list);
     LIST_FOREACH_REVERSE(other_list) {
         list_prepend(list, it->data);
     }
 }
 void list_prepend_content_of(List* list, List* other_list) {
-    assert(list);
-    assert(other_list);
+    xassert(list);
+    xassert(other_list);
     LIST_FOREACH(other_list) {
         list_prepend(list, it->data);
     }
 }
 
 void list_append_content_of_in_reverse(List* list, List* other_list) {
-    assert(list);
-    assert(other_list);
+    xassert(list);
+    xassert(other_list);
     LIST_FOREACH_REVERSE(other_list) {
         list_append(list, it->data);
     }
 }
 void list_append_content_of(List* list, List* other_list) {
-    assert(list);
-    assert(other_list);
+    xassert(list);
+    xassert(other_list);
     LIST_FOREACH(other_list) {
         list_append(list, it->data);
     }
 }
 
 void* list_remove_at(List* list, s64 index) {
-    assert(list);
-    assert(index >= 0 && index <= list->count);
+    xassert(list);
+    xassert(index >= 0 && index <= list->count);
 
     bool start_from_tail = (list->count - index) < index ? true : false;
 
@@ -152,7 +152,7 @@ void* list_remove_at(List* list, s64 index) {
 }
 
 void* list_remove_at_end(List* list) {
-    assert(list);
+    xassert(list);
     if (list_empty(list)) {
         return NULL;
     }
@@ -167,7 +167,7 @@ void* list_remove_at_end(List* list) {
 }
 
 void* list_remove_at_start(List* list) {
-    assert(list);
+    xassert(list);
     if (list_empty(list)) {
         return NULL;
     }
@@ -182,8 +182,8 @@ void* list_remove_at_start(List* list) {
 }
 
 void* list_remove(List* list, List_Node* node) {
-    assert(list);
-    assert(node);
+    xassert(list);
+    xassert(node);
 
     if (list_empty(list)) {
         return NULL;
@@ -212,8 +212,8 @@ void* list_remove(List* list, List_Node* node) {
 }
 
 void* list_at(List* list, s64 index) {
-    assert(list);
-    assert(index >= 0 && index <= list->count);
+    xassert(list);
+    xassert(index >= 0 && index <= list->count);
 
     bool start_from_tail = (list->count - index) < index ? true : false;
     void* data = NULL;
@@ -241,8 +241,8 @@ void* list_at(List* list, s64 index) {
 }
 
 void* list_prepend(List* list, void* data) {
-    assert(list);
-    // assert(data);
+    xassert(list);
+    // xassert(data);
     if (!data) return data;
     ++list->count;
     List_Node* new_node = xmalloc(sizeof(List_Node));
@@ -260,9 +260,8 @@ void* list_prepend(List* list, void* data) {
 }
 
 void* list_append(List* list, void* data) {
-    assert(list);
-    assert(data);
-    // assert(data);
+    tassert(list && data, "%zu, %zu", list, data);
+    // xassert(data);
     if (!data) return data;
     ++list->count;
     List_Node* new_node = xmalloc(sizeof(List_Node));
@@ -280,17 +279,17 @@ void* list_append(List* list, void* data) {
 }
 
 void* list_first(List* list) {
-    assert(list);
+    xassert(list);
     return list->head->data;
 }
 
 void* list_last(List* list) {
-    assert(list);
+    xassert(list);
     return list->tail->data;
 }
 
 void list_insert_after(List* list, List_Node* prev_node, void* data) {
-    assert(prev_node);
+    xassert(prev_node);
     List_Node* new_node = xmalloc(sizeof(List_Node));
     new_node->data = data;
     new_node->next = prev_node->next;
@@ -304,7 +303,7 @@ void list_insert_after(List* list, List_Node* prev_node, void* data) {
 }
 
 void list_insert_before(List* list, List_Node* next_node, void* data) {
-    assert(next_node);
+    xassert(next_node);
     List_Node* new_node = xmalloc(sizeof(List_Node));
     new_node->data = data;
     new_node->next = next_node;

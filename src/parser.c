@@ -32,14 +32,14 @@
 #include "type.h"           // Type, make_typspec_*,
 #include "typedefs.h"       // s32 , s64, etc.
 #include "utility.h"        // info, error, warning, success, strf, get_file_content
-#include <assert.h>         // assert
+         // assert
 #include <stdarg.h>         // va_list, va_start, va_end
 #include <stdio.h>          // printf, vprintf
 #include <stdlib.h>         // xmalloc
 #include <string.h>         // strcmp
 
 #define DEBUG_START \
-    assert(ctx);    \
+    xassert(ctx);    \
     // info("%s: %s", __func__, token_to_str(currTok(ctx)));
 
 #define UNARY_OP_COUNT 11
@@ -582,7 +582,7 @@ AST* parse_block(Parser_Context* ctx) {
 
     block->Block.flags |= flags;
 
-    assert(block);
+    xassert(block);
 
     restore_if_statement(ctx);
 
@@ -769,7 +769,7 @@ AST* read_field_access(Parser_Context* ctx, AST* expr) {
 
 AST* parse_postfix_tail(Parser_Context* ctx, AST* primary_expr) {
     DEBUG_START;
-    // assert(primary_expr);
+    // xassert(primary_expr);
     for (;;) {
         switch(tokKind(ctx)) {
         default: return primary_expr;
@@ -1094,6 +1094,6 @@ Type* get_type(Parser_Context* ctx) {
     default: break;
     }
 
-    assert(type);
+    xassert(type);
     return type;
 }

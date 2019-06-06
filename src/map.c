@@ -25,7 +25,7 @@
 #include "map.h"
 #include "constants.h"
 #include "utility.h"
-#include <assert.h>
+
 #include <string.h>
 
 typedef struct
@@ -60,12 +60,12 @@ void map_tests(void) {
     map_set(map, "t12", &t2);
     map_set(map, "t13", &t2);
 
-    assert(((Test_Type*)map_get(map, "t1"))->val == 3.43f);
-    assert(((Test_Type*)map_get(map, "t2"))->val == 6.41f);
+    xassert(((Test_Type*)map_get(map, "t1"))->val == 3.43f);
+    xassert(((Test_Type*)map_get(map, "t2"))->val == 6.41f);
 }
 
 static u32 hash(char* str) {
-    assert(str);
+    xassert(str);
     u32 hash = 5381;
     s32 c;
     while ((c = *str++))
@@ -74,7 +74,7 @@ static u32 hash(char* str) {
 }
 
 static inline Map_Element* find_slot_with_key(Map* map, char* key) {
-    assert(map && key);
+    xassert(map && key);
     u32 index = hash(key);
     Map_Element* probe = NULL;
     while ((probe = &map->elements[index++ % map->table_size])->key)
@@ -84,7 +84,7 @@ static inline Map_Element* find_slot_with_key(Map* map, char* key) {
 }
 
 static inline Map_Element* find_empty_slot(Map* map, char* key) {
-    assert(map && key);
+    xassert(map && key);
     u32 index = hash(key);
     Map_Element* probe = NULL;
     while ((probe = &map->elements[index++ % map->table_size])->key)
@@ -106,14 +106,14 @@ Map* make_map() {
 }
 
 void* map_get(Map* map, char* key) {
-    assert(map && key);
+    xassert(map && key);
     Map_Element* slot = find_slot_with_key(map, key);
     tassert(slot->value, "key %s value was NULL.", key);
     return slot->value;
 }
 
 void* map_set(Map* map, char* key, void* value) {
-    assert(map && key && value);
+    xassert(map && key && value);
     if ((float)map->count / map->table_size > 0.75f) {
         s64 last_table_size = map->table_size;
         map->table_size <<= 1;
@@ -124,7 +124,7 @@ void* map_set(Map* map, char* key, void* value) {
                 map_set(nmap, probe->key, probe->value);
         }
         free(map->elements);
-        assert(map_count(map) == map_count(nmap));
+        xassert(map_count(map) == map_count(nmap));
         *map = *nmap;
     }
     Map_Element* slot = find_empty_slot(map, key);

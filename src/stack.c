@@ -21,7 +21,7 @@
 #include "stack.h"
 #include "utility.h" // xmalloc, warning
 
-#include <assert.h>
+
 #include <stdlib.h> // free
 
 Stack*
@@ -57,18 +57,18 @@ void stack_tests(void) {
     t2.val = 6.41f;
 
     stack_push(&test_stack, &t1);
-    assert(((Test_Type*)stack_peek(&test_stack))->id == 0);
+    xassert(((Test_Type*)stack_peek(&test_stack))->id == 0);
     stack_push(&test_stack, &t2);
-    assert(((Test_Type*)stack_peek(&test_stack))->id == 1);
+    xassert(((Test_Type*)stack_peek(&test_stack))->id == 1);
 
-    assert(((Test_Type*)stack_pop(&test_stack))->val == 6.41f);
-    assert(((Test_Type*)stack_pop(&test_stack))->val == 3.43f);
-    assert((Test_Type*)stack_pop(&test_stack) == NULL);
+    xassert(((Test_Type*)stack_pop(&test_stack))->val == 6.41f);
+    xassert(((Test_Type*)stack_pop(&test_stack))->val == 3.43f);
+    xassert((Test_Type*)stack_pop(&test_stack) == NULL);
 }
 
 void* stack_push(Stack* stack, void* data) {
-    assert(stack);
-    assert(data);
+    xassert(stack);
+    xassert(data);
     Stack_Node* tmp = xmalloc(sizeof(Stack_Node));
     tmp->data = data;
     tmp->next = stack->head;
@@ -78,7 +78,7 @@ void* stack_push(Stack* stack, void* data) {
 }
 
 void* stack_pop(Stack* stack) {
-    assert(stack);
+    xassert(stack);
     if (!stack->head) return NULL;
     Stack_Node* tmp = stack->head;
     void* popped = tmp->data;

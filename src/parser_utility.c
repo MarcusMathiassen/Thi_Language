@@ -20,12 +20,12 @@
 
 #include "parser_utility.h"
 #include "utility.h"
-#include <assert.h>
+
 #include <ctype.h>  // atoll
 #include <stdlib.h> // xmalloc
 
 #define DEBUG_START \
-    assert(ctx);    \
+    xassert(ctx);    \
     // info("%s: %s", __func__, token_to_str(ctx->curr_tok));
 
 #define BIN_OP_COUNT 35

@@ -22,7 +22,7 @@
 #include "register.h" // error, xmallox
 #include "typedefs.h"
 #include "utility.h" // error, xmallox
-#include <assert.h>  // assert
+  // assert
 #include <stdarg.h>  // va_list, va_start, va_end
 #include <stdio.h>   //
 #include <string.h>  // strncat,
@@ -61,7 +61,7 @@ char* value_to_str(Value* value) {
 }
 
 char* get_value_name(Value* value) {
-    assert(value);
+    xassert(value);
     Value_Kind kind = value->kind;
     TASSERT_KIND_IN_RANGE(VALUE, kind);
     switch (kind) {
@@ -84,7 +84,7 @@ char* get_value_name(Value* value) {
 }
 
 char* get_mem_loc(Value* value) {
-    assert(value);
+    xassert(value);
     Value_Kind kind = value->kind;
     TASSERT_KIND_IN_RANGE(VALUE, kind);
     switch (kind) {
@@ -111,7 +111,7 @@ char* get_mem_loc(Value* value) {
 }
 
 char* get_literal_value(Value* value) {
-    assert(value);
+    xassert(value);
     Value_Kind kind = value->kind;
     TASSERT_KIND_IN_RANGE(VALUE, kind);
     switch (kind) {
@@ -128,7 +128,7 @@ char* get_literal_value(Value* value) {
 
 
 s64 get_size_of_value(Value* value) {
-    assert(value);
+    xassert(value);
     Value_Kind kind = value->kind;
     TASSERT_KIND_IN_RANGE(VALUE, kind);
     switch (kind) {
@@ -159,7 +159,7 @@ Value* make_value(Value_Kind kind) {
 }
 
 Value* make_value_load_inst(Value* variable, s64 offset) {
-    assert(variable);
+    xassert(variable);
     Value* v = make_value(VALUE_LOAD_INST);
     v->LoadInst.variable = variable;
     v->type = NULL;
@@ -168,7 +168,7 @@ Value* make_value_load_inst(Value* variable, s64 offset) {
 }
 
 Value* make_value_store_inst(Value* variable, s64 offset) {
-    assert(variable);
+    xassert(variable);
     Value* v = make_value(VALUE_STORE_INST);
     v->StoreInst.variable = variable;
     v->type = NULL;
@@ -177,8 +177,8 @@ Value* make_value_store_inst(Value* variable, s64 offset) {
 }
 
 Value* make_value_int(u8 bytes, Type* type, s64 value) {
-    assert(bytes > 0 && bytes < 9);
-    assert(type);
+    xassert(bytes > 0 && bytes < 9);
+    xassert(type);
     Value* v = make_value(VALUE_INT);
     v->type = type;
     v->Int.bytes = bytes;
@@ -187,7 +187,7 @@ Value* make_value_int(u8 bytes, Type* type, s64 value) {
 }
 
 Value* make_value_float(Type* type, f64 value) {
-    assert(type);
+    xassert(type);
     Value* v = make_value(VALUE_FLOAT);
     v->type = type;
     v->Float.value = value;
@@ -195,8 +195,8 @@ Value* make_value_float(Type* type, f64 value) {
 }
 
 Value* make_value_string(char* value, Type* type) {
-    assert(value);
-    assert(type);
+    xassert(value);
+    xassert(type);
     Value* v = make_value(VALUE_STRING);
     v->type = type;
     v->String.value = value;
@@ -205,9 +205,9 @@ Value* make_value_string(char* value, Type* type) {
 }
 
 Value* make_value_variable(char* name, Type* type, s64 stack_pos) {
-    assert(name);
-    assert(type);
-    assert(stack_pos >= 0);
+    xassert(name);
+    xassert(type);
+    xassert(stack_pos >= 0);
     Value* v = make_value(VALUE_VARIABLE);
     v->Variable.name = name;
     v->type = type;
@@ -216,9 +216,9 @@ Value* make_value_variable(char* name, Type* type, s64 stack_pos) {
 }
 
 Value* make_value_global_variable(char* name, Type* type, char* label) {
-    assert(name);
-    assert(type);
-    assert(label);
+    xassert(name);
+    xassert(type);
+    xassert(label);
     Value* v = make_value(VALUE_GLOBAL_VARIABLE);
     v->Global_Variable.name = name;
     v->type = type;
@@ -227,8 +227,8 @@ Value* make_value_global_variable(char* name, Type* type, char* label) {
 }
 
 Value* make_value_call(char* callee, Type* type) {
-    assert(callee);
-    assert(type);
+    xassert(callee);
+    xassert(type);
     Value* v = make_value(VALUE_CALL);
     v->type = type;
     v->Call.callee = callee;
@@ -236,8 +236,8 @@ Value* make_value_call(char* callee, Type* type) {
 }
 
 Value* make_value_function(Type* type) {
-    assert(type);
-    assert(type->kind == TYPE_FUNCTION);
+    xassert(type);
+    xassert(type->kind == TYPE_FUNCTION);
 
     Value* v = make_value(VALUE_FUNCTION);
     v->type = type;
@@ -246,8 +246,8 @@ Value* make_value_function(Type* type) {
     return v;
 }
 Value* make_value_struct(Type* type) {
-    assert(type);
-    assert(type->kind == TYPE_STRUCT);
+    xassert(type);
+    xassert(type->kind == TYPE_STRUCT);
     Value* v = make_value(VALUE_STRUCT);
     v->type = type;
     return v;

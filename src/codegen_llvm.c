@@ -30,19 +30,19 @@
 #include "typedefs.h"
 #include "utility.h" // error warning info, wrap_with_colored_parens
 #include "value.h"   // Value, Scope
-#include <assert.h>  // assert
+  // assert
 #include <stdio.h>   //
 #include <string.h>  // strcmp
 
 #define DEBUG_START                                                              \
-    assert(ctx);                                                                 \
-    assert(node);                                                                \
+    xassert(ctx);                                                                 \
+    xassert(node);                                                                \
     info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(node))); \
     // emit(ctx, "; %s", ast_to_str(node));
 
 
 static char* codegen_node(Codegen_Context* ctx, AST* node) {
-    assert(ctx);
+    xassert(ctx);
     if (!node) return NULL;
     switch (node->kind) {
     ERROR_UNHANDLED_AST_KIND(node->kind);
@@ -103,7 +103,7 @@ static char* codegen_node(Codegen_Context* ctx, AST* node) {
 }
 
 char* generate_llvm_from_ast(AST* ast) {
-    assert(ast);
+    xassert(ast);
     info("Generating code from ast");
     Codegen_Context ctx = make_codegen_context();
     codegen_node(&ctx, ast);
