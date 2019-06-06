@@ -132,30 +132,32 @@ void resolve_field_access(void* dont_care, AST* node) {
 }
 
 void pass_initilize_enums(void* thi, AST* node) {
-    switch (node->kind) {
-    default: break;
-    case AST_ENUM: {
 
-        s64 counter = 0;
-        AST* e = node;
-        LIST_FOREACH(e->Enum.members) {
-            AST* m = it->data;
-            // Turn idents into constant decls
-            switch (m->kind) {
-                ERROR_UNHANDLED_AST_KIND(m->kind);
-            case AST_IDENT:
-                it->data = make_ast_constant_decl(m->loc_info, m->Ident.name, make_ast_int(m->loc_info, counter, make_type_int(DEFAULT_INT_BYTE_SIZE, 0)));
-                break;
-            case AST_CONSTANT_DECL:
-                assert(m->Constant_Decl.value->kind == AST_INT);
-                counter = m->Constant_Decl.value->Int.val;
-                break;
-            }
-            ++counter;
-        }
+    error("iogjeroigjeriogj");
+    // switch (node->kind) {
+    // default: break;
+    // case AST_ENUM: {
 
-    } break;
-    }
+    //     s64 counter = 0;
+    //     AST* e = node;
+    //     LIST_FOREACH(e->Enum.members) {
+    //         AST* m = it->data;
+    //         // Turn idents into constant decls
+    //         switch (m->kind) {
+    //             ERROR_UNHANDLED_AST_KIND(m->kind);
+    //         case AST_IDENT:
+    //             it->data = make_ast_constant_decl(m->loc_info, m->Ident.name, make_ast_int(m->loc_info, counter, make_type_int(DEFAULT_INT_BYTE_SIZE, 0)));
+    //             break;
+    //         case AST_CONSTANT_DECL:
+    //             assert(m->Constant_Decl.value->kind == AST_INT);
+    //             counter = m->Constant_Decl.value->Int.val;
+    //             break;
+    //         }
+    //         ++counter;
+    //     }
+
+    // } break;
+    // }
 }
 void pass_add_all_symbols(void* thi, AST* node) {
     switch (node->kind) {
@@ -499,7 +501,7 @@ int main(int argc, char** argv) {
     Parser_Context pctx = make_parser_context();
     pctx.file = source_file;
     pctx.symbols = thi.symbol_map;
-    AST* ast = parse(&pctx, name);
+    AST* ast = parse_file(&pctx, name);
 
     // ast = make_ast_module(ast->loc_info, source_file, ast);
 
@@ -514,7 +516,7 @@ int main(int argc, char** argv) {
 
     info("Running passes");
 
-    thi_run_pass(&thi, "pass_initilize_enums", pass_initilize_enums, &thi);
+    // thi_run_pass(&thi, "pass_initilize_enums", pass_initilize_enums, &thi);
     thi_run_pass(&thi, "pass_add_all_symbols", pass_add_all_symbols, &thi);
 
     if (listen_mode) {
@@ -534,8 +536,13 @@ int main(int argc, char** argv) {
     //
     // Semantic analysis
     //
-    semantic_analysis(ast);
-
+    info("Semantic Analysis...");
+    Sema_Context sctx;
+    sctx.scopes = make_stack();
+    stack_push(sctx.scopes, make_list());
+    sema(&sctx, ast);
+    //
+    
     PassDescriptor passDesc; // We reuse this one
 
     passDesc.description = "Resolve sizeofs";
@@ -564,30 +571,6 @@ int main(int argc, char** argv) {
     push_timer(&thi, "Run all passes");
     ast_visit(run_all_passes, &thi, ast);
     pop_timer(&thi);
-
-    // typechecking pass
-    // type_checker(thi.symbol_map, ast);
-
-    //
-    // Optimization Pass:
-    //      Constant propogation.
-    //       References to constant variables are replaced by their constant
-    //       value.
-    //
-    List* idents = ast_find_all_of_kind(AST_IDENT, ast);
-    List* constant_decls =
-        ast_find_all_of_kind(AST_CONSTANT_DECL, ast);
-    LIST_FOREACH(idents) {
-        AST* ident = it->data;
-        LIST_FOREACH(constant_decls) {
-            AST* const_decl = it->data;
-            if (get_ast_name(ident) == get_ast_name(const_decl)) {
-                ast_replace(ident, const_decl->Constant_Decl.value);
-                ident->type = const_decl->type;
-                break;
-            }
-        }
-    }
 
     // Sanity check.. Make sure the typer did what it was supposed to do.
     thi_run_pass(&thi, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);

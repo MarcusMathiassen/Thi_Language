@@ -72,7 +72,6 @@ AST* parse_top_level_identifier     (Parser_Context* ctx);
 AST* parse_expression_identifier    (Parser_Context* ctx);
 AST* parse_def                      (Parser_Context* ctx);
 AST* parse_variable_decl            (Parser_Context* ctx, Loc_Info lc, char* ident);
-AST* parse_constant_decl            (Parser_Context* ctx, Loc_Info lc, char* ident);
 AST* parse_function_decl            (Parser_Context* ctx, Loc_Info lc, char* ident);
 AST* parse_function_call            (Parser_Context* ctx, Loc_Info lc, char* ident);
 AST* parse_block                    (Parser_Context* ctx);
@@ -118,9 +117,9 @@ Type* get_type                         (Parser_Context* ctx);
 //                               Public
 //------------------------------------------------------------------------------
 
-AST* parse(Parser_Context* ctx, char* file) {
+AST* parse_file(Parser_Context* ctx, char* file) {
 
-    info("Parsing %s", file);
+    info("Parsing file %s", file);
 
     Loc_Info lc = loc(ctx);
 
@@ -316,7 +315,6 @@ AST* parse_top_level_identifier(Parser_Context* ctx) {
 
     switch (tokKind(ctx)) {
     ERROR_UNHANDLED_TOKEN_KIND(tokKind(ctx));
-    case TOKEN_COLON_COLON: return parse_constant_decl(ctx, lc, ident);
     case TOKEN_OPEN_PAREN:  return parse_function_decl(ctx, lc, ident);
     }
     UNREACHABLE;
@@ -334,7 +332,6 @@ AST* parse_identifier(Parser_Context* ctx) {
     switch (tokKind(ctx)) {
     // case TOKEN_COLON:       // fallthrough
     case TOKEN_IDENTIFIER:  return parse_variable_decl(ctx, lc, ident);
-    case TOKEN_COLON_COLON: return parse_constant_decl(ctx, lc, ident);
     case TOKEN_OPEN_PAREN:  return parse_function_call(ctx, lc, ident);
     default:                return make_ast_ident(lc, ident);
     }
@@ -364,7 +361,7 @@ AST* parse_load(Parser_Context* ctx) {
         error("[%s:%s:%s] '%s' is not a .thi file.", ctx->file, la.line_pos, la.col_pos, file);
     }
     eat_kind(ctx, TOKEN_STRING);
-    AST* module = parse(ctx, file);
+    AST* module = parse_file(ctx, file);
     return make_ast_load(lc, file, module);
 }
 
@@ -650,13 +647,6 @@ AST* parse_function_decl(Parser_Context* ctx, Loc_Info lc, char* ident) {
     return make_ast_function(lc, func_name, params, func_type, func_body);
 }
 
-AST* parse_constant_decl(Parser_Context* ctx, Loc_Info lc, char* ident) {
-    DEBUG_START;
-    eat_kind(ctx, TOKEN_COLON_COLON);
-    AST* value = parse_expression(ctx);
-    return make_ast_constant_decl(lc, ident, value);
-}
-
 AST* parse_def(Parser_Context* ctx) {
     DEBUG_START;
 
@@ -680,7 +670,6 @@ AST* parse_def(Parser_Context* ctx) {
         AST* stmt = it->data;
         switch (stmt->kind) {
         case AST_IDENT: break;
-        case AST_CONSTANT_DECL: break;
         default:
             is_enum = false;
             break;

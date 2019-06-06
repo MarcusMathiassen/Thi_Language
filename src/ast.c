@@ -68,7 +68,6 @@ char* ast_kind_to_str(AST_Kind kind) {
     case AST_ENUM:                            return "AST_ENUM";
     case AST_FUNCTION:                        return "AST_FUNCTION";
     case AST_VARIABLE_DECL:                   return "AST_VARIABLE_DECL";
-    case AST_CONSTANT_DECL:                   return "AST_CONSTANT_DECL";
     case AST_IF:                              return "AST_IF";
     case AST_FOR:                             return "AST_FOR";
     case AST_WHILE:                           return "AST_WHILE";
@@ -103,10 +102,6 @@ char* get_ast_name(AST* node) {
     }
     case AST_VARIABLE_DECL: {
         result = node->Variable_Decl.name;
-        break;
-    }
-    case AST_CONSTANT_DECL: {
-        result = node->Constant_Decl.name;
         break;
     }
     case AST_EXTERN: {
@@ -344,11 +339,6 @@ char* ast_to_str_r(String_Context* ctx, AST* node) {
         }
         break;
     }
-    case AST_CONSTANT_DECL: {
-        string_append_f(s, "%s :: ", get_ast_name(node));
-        ast_to_str_r(ctx, node->Constant_Decl.value);
-        break;
-    }
     case AST_STRUCT: {
         string_append_f(s, "def %s\n", get_ast_name(node));
         ctx->indentation_level += DEFAULT_INDENT_LEVEL;
@@ -495,9 +485,6 @@ void ast_visit(ast_callback* func, void* ctx, AST* node) {
     case AST_VARIABLE_DECL:
         ast_visit(func, ctx, node->Variable_Decl.value);
         break;
-    case AST_CONSTANT_DECL:
-        ast_visit(func, ctx, node->Constant_Decl.value);
-        break;
     case AST_ENUM: break;
     case AST_GROUPING:
         ast_visit(func, ctx, node->Grouping.node);
@@ -577,13 +564,12 @@ void ast_visit(ast_callback* func, void* ctx, AST* node) {
     (*func)(ctx, node);
 }
 
-AST* get_arg_from_func(Type* func_t, s64 arg_index) {
-    assert(func_t);
-    assert(func_t->kind == TYPE_FUNCTION);
-    assert(arg_index >= 0 && arg_index <= type_function_get_arg_count(func_t));
-    AST* node = (AST*)list_at(func_t->Function.parameters, arg_index);
-    assert(node);
-    return node;
+AST* get_arg_from_func(AST* func, s64 arg_index) {
+    assert(func);
+    assert(arg_index >= 0 && arg_index <= func->Function.parameters->count);
+    AST* param = list_at(func->Function.parameters, arg_index);
+    assert(param);
+    return param;
 }
 
 AST_Ref_List make_ast_ref_list() {
@@ -881,15 +867,6 @@ AST* make_ast_variable_decl(Loc_Info loc_info, char* name, Type* type, AST* valu
     e->Variable_Decl.name = name;
     e->Variable_Decl.type = type;
     e->Variable_Decl.value = value;
-    return e;
-}
-
-AST* make_ast_constant_decl(Loc_Info loc_info, char* name, AST* value) {
-    assert(name);
-    assert(value);
-    AST* e = make_ast(AST_CONSTANT_DECL, loc_info);
-    e->Constant_Decl.name = name;
-    e->Constant_Decl.value = value;
     return e;
 }
 

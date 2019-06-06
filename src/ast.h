@@ -70,7 +70,6 @@ typedef enum {
     AST_ENUM,
     AST_FUNCTION,
     AST_VARIABLE_DECL,
-    AST_CONSTANT_DECL,
     AST_IF,
     AST_FOR,
     AST_WHILE,
@@ -218,11 +217,6 @@ struct AST {
         } Variable_Decl;
         struct
         {
-            char* name;
-            AST* value;
-        } Constant_Decl;
-        struct
-        {
             AST* load;
             AST* sub;
         } Subscript;
@@ -308,7 +302,6 @@ AST* make_ast_binary(Loc_Info loc_info, Token_Kind op, AST* lhs, AST* rhs);
 AST* make_ast_block(Loc_Info loc_info, List* stmts);
 AST* make_ast_grouping(Loc_Info loc_info, AST* node);
 AST* make_ast_variable_decl(Loc_Info loc_info, char* name, Type* type, AST* value);
-AST* make_ast_constant_decl(Loc_Info loc_info, char* name, AST* value);
 AST* make_ast_subscript(Loc_Info loc_info, AST* load, AST* sub);
 AST* make_ast_field_access(Loc_Info loc_info, AST* load, char* field);
 AST* make_ast_if(Loc_Info loc_info, AST* cond, AST* then_block, AST* else_block);
@@ -328,7 +321,7 @@ AST* make_ast_space_separated_identifier_list(Loc_Info loc_info, List* identifie
 AST* make_ast_comma_separated_list(Loc_Info loc_info, List* nodes);
 AST* make_ast_post_inc_or_dec(Loc_Info loc_info, Token_Kind op, AST* node);
 
-AST* get_arg_from_func(Type* func_t, s64 arg_index);
+AST* get_arg_from_func(AST* func, s64 arg_index);
 void ast_tests(void);
 
 typedef void ast_callback(void*, AST*);

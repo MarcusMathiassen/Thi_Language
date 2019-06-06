@@ -659,7 +659,7 @@ char* get_instr(Token_Kind op, Type* type) {
     case TYPE_INT: {
         bool usig = type->Int.is_unsigned;
         switch (op) {
-            ERROR_UNHANDLED_TOKEN_KIND(op);
+        ERROR_UNHANDLED_TOKEN_KIND(op);
         case TOKEN_PLUS: inst = "add"; break;
         case TOKEN_MINUS: inst = "sub"; break;
         case TOKEN_ASTERISK: inst = "imul"; break;
@@ -670,7 +670,7 @@ char* get_instr(Token_Kind op, Type* type) {
         s64 size = get_size_of_type(type);
         tassert(size == 4 || size == 8, "size = %d", size);
         switch (op) {
-            ERROR_UNHANDLED_TOKEN_KIND(op);
+        ERROR_UNHANDLED_TOKEN_KIND(op);
         case TOKEN_PLUS: inst = (size == 8 ? "addsd" : "addss"); break;
         case TOKEN_MINUS: inst = (size == 8 ? "subsd" : "subss"); break;
         case TOKEN_ASTERISK: inst = (size == 8 ? "mulsd" : "mulss"); break;
