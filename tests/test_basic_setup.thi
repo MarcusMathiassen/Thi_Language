@@ -9,7 +9,6 @@ def add(a s64, b s64) s64
 asm
     "extern _printf"
 
-
 asm
     "my_string: db 'Marcus Mathiassen', 0"
 
