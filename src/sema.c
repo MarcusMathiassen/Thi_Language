@@ -475,7 +475,7 @@ static Type* sema_post_inc_or_dec(Sema_Context* ctx, AST* node) {
 }
 
 //------------------------------------------------------------------------------
-//                              _sema Helpers
+//                              sema Helpers
 //------------------------------------------------------------------------------
 
 static AST* get_symbol_in_scope(Sema_Context* ctx, char* name) {

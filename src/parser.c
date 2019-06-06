@@ -627,7 +627,7 @@ AST* parse_function_decl(Parser_Context* ctx, Loc_Info lc, char* ident) {
         if (has_multiple_arguments) eat_kind(ctx, TOKEN_COMMA);
         AST* param = parse_expression(ctx);
 
-        Type_Name_Pair* tp = xmalloc(sizeof(Type_Name_Pair));
+        Type_Name_Pair* tp = xmalloc(sizeof(*tp));
         tp->name = get_ast_name(param);
         tp->type = param->type;
 
@@ -1017,7 +1017,7 @@ Type* parse_extern_function_signature(Parser_Context* ctx, char* func_name) {
     while (!tok_is(ctx, TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(ctx, TOKEN_COMMA);
 
-        Type_Name_Pair* tp = xmalloc(sizeof(Type_Name_Pair));
+        Type_Name_Pair* tp = xmalloc(sizeof(*tp));
         tp->name = NULL;
         tp->type = get_type(ctx);
 

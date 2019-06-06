@@ -69,7 +69,7 @@ void string_append(string* this, char* str) {
     xassert(this->len <= this->cap);
     while (this->len + str_len >= this->cap) {
         this->cap *= PHI;
-        this->c_str = xrealloc(this->c_str, this->cap * sizeof(char));
+        this->c_str = xrealloc(this->c_str, this->cap * sizeof(*this->c_str));
     }
     memcpy(this->c_str + this->len, str, str_len);
     this->len += str_len;

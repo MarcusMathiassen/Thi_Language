@@ -585,13 +585,15 @@ AST_Ref_List make_ast_ref_list() {
     AST_Ref_List l;
     l.count = 0;
     l.allocated = AST_REF_LIST_STARTING_ALLOC;
-    l.data = xmalloc(l.allocated * sizeof(AST*));
+    l.data = xmalloc(l.allocated * sizeof(*l.data));
     return l;
 }
 
 void ast_ref_list_append(AST_Ref_List* l, AST* a) {
-    if (l->count == l->allocated) 
-        l->data = xrealloc(l->data, (l->allocated *= PHI) * sizeof(a));
+    if (l->count == l->allocated) {
+        l->allocated *= PHI;
+        l->data = xrealloc(l->data, l->allocated * sizeof(*l->data));
+    }
     l->data[l->count++] = a;
 }
 
@@ -756,7 +758,7 @@ AST* make_ast_struct(Loc_Info loc_info, char* name, List* members) {
     List* tps = make_list();
     LIST_FOREACH(members) {
         AST* member = it->data;
-        Type_Name_Pair* tp = xmalloc(sizeof(Type_Name_Pair));
+        Type_Name_Pair* tp = xmalloc(sizeof(*tp));
         tp->name = get_ast_name(member);
         tp->type = member->type;
         list_append(tps, tp);
@@ -775,7 +777,7 @@ AST* make_ast_enum(Loc_Info loc_info, char* name, List* members) {
     List* tps = make_list();
     LIST_FOREACH(members) {
         AST* member = it->data;
-        Type_Name_Pair* tp = xmalloc(sizeof(Type_Name_Pair));
+        Type_Name_Pair* tp = xmalloc(sizeof(*tp));
         tp->name = get_ast_name(member);
         tp->type = member->type;
         list_append(tps, tp);
