@@ -224,19 +224,19 @@ static Type* sema_note(Sema_Context* ctx, AST* node) {
 }
 
 static Type* sema_int(Sema_Context* ctx, AST* node) {
-    return NULL;
+    return node->type;
 }
 
 static Type* sema_float(Sema_Context* ctx, AST* node) {
-    return NULL;
+    return node->type;
 }
 
 static Type* sema_string(Sema_Context* ctx, AST* node) {
-    return NULL;
+    return node->type;
 }
 
 static Type* sema_char(Sema_Context* ctx, AST* node) {
-    return NULL;
+    return node->type;
 }
 
 static Type* sema_ident(Sema_Context* ctx, AST* node) {
@@ -397,7 +397,7 @@ static Type* sema_function(Sema_Context* ctx, AST* node) {
         _sema(ctx, it->data);
     }
     SCOPE_END;
-    return NULL;
+    return node->type;
 }
 
 static Type* sema_variable_decl(Sema_Context* ctx, AST* node) {
