@@ -47,11 +47,11 @@ typedef enum {
 } Type_Kind;
 
 typedef enum {
-    TYPE_FLAG_HAS_VAR_ARG = 1 << 0,
-    TYPE_FLAG_IMPLICIT_RETURN = 1 << 1,
-    TYPE_FLAG_IN_NEED_OF_TYPE_INFERENCE = 1 << 2,
-    TYPE_FLAG_QUICK_LAMBDA = 1 << 3,
-    TYPE_FLAG_IS_ALIGNED = 1 << 4,
+    TYPE_FLAG_HAS_VAR_ARG                = 1 << 0,
+    TYPE_FLAG_IMPLICIT_RETURN            = 1 << 1,
+    TYPE_FLAG_IN_NEED_OF_TYPE_INFERENCE  = 1 << 2,
+    TYPE_FLAG_QUICK_LAMBDA               = 1 << 3,
+    TYPE_FLAG_IS_ALIGNED                 = 1 << 4,
 } Type_Flag;
 
 typedef struct {
@@ -132,7 +132,6 @@ s64 get_size_of_type(Type* Type);
 char* get_type_name(Type* Type);
 
 char* type_to_str(Type* type);
-char* type_to_str_r(String_Context* ctx, Type* type);
 char* type_kind_to_str(Type_Kind kind);
 void type_replace(Type* a, Type* b);
 

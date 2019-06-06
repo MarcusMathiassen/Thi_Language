@@ -95,10 +95,13 @@ static Type*  sema_post_inc_or_dec                  (Sema_Context* ctx, AST* nod
 
 Type* sema(AST* node) {
     xassert(node);
-    Sema_Context sctx;
-    sctx.scopes = make_stack();
-    stack_push(sctx.scopes, make_list());
-    return _sema(&sctx, node);
+    Sema_Context ctx;
+    ctx.scopes = make_stack();
+    ctx.module = NULL;
+    ctx.current_function = NULL;
+    ctx.symbols = make_map();
+    stack_push(ctx.scopes, make_list());
+    return _sema(&ctx, node);
 }
 
 static Type* _sema(Sema_Context* ctx, AST* node) {
@@ -106,7 +109,7 @@ static Type* _sema(Sema_Context* ctx, AST* node) {
     DEBUG_START;
     AST_Kind kind = node->kind;
     TASSERT_KIND_IN_RANGE(AST, kind);
-    Type* result_t = node->type;
+    Type* result_t = NULL;
     switch (kind) {
     ERROR_UNHANDLED_AST_KIND(kind);
     case AST_COMMENT:                           result_t = sema_comment                         (ctx, node); break;
@@ -150,8 +153,9 @@ static Type* _sema(Sema_Context* ctx, AST* node) {
     case AST_SWITCH:                            result_t = sema_switch                          (ctx, node); break;
     case AST_POST_INC_OR_DEC:                   result_t = sema_post_inc_or_dec                 (ctx, node); break;
     }
-    info("%s: %s -> SEMA REPLACED %s WITH %s", give_unique_color(ast_kind_to_str(node->kind)), ast_to_str(node), ucolor(type_to_str(node->type)), ucolor(type_to_str(result_t)));
+    result_t = result_t ? result_t : make_type_void();
     node->type = result_t;
+    info("%s: %s -> SEMA REPLACED TYPE %s WITH %s", give_unique_color(ast_kind_to_str(node->kind)), ast_to_str(node), ucolor(type_to_str(node->type)), ucolor(type_to_str(result_t)));
     return result_t;
 }
 
@@ -217,7 +221,7 @@ static Type* sema_link(Sema_Context* ctx, AST* node) {
 
 static Type* sema_note(Sema_Context* ctx, AST* node) {
     _sema(ctx, node->Note.node);
-    int val = node->Note.node->Int.val;
+    s64 val = node->Note.node->Int.val;
     AST* arg = get_arg_from_func(ctx->current_function, val - 1);
     ast_replace(node, make_ast_ident(arg->loc_info, get_ast_name(arg)));
     return arg->type;
@@ -259,7 +263,7 @@ static Type* sema_call(Sema_Context* ctx, AST* node) {
     }
     Type* callee_t = callee_f->type;
     callee_t->Function.return_type->flags = callee_t->flags; // @HACK
-    return callee_t->Function.return_type;;
+    return callee_t->Function.return_type;
 }
 
 static Type* sema_unary(Sema_Context* ctx, AST* node) {

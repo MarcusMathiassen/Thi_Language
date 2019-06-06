@@ -333,8 +333,9 @@ char* ast_get_literal_value_as_str(AST* node);
 
 char* get_ast_loc_str(AST* node);
 char* ast_to_source(AST* node);
+
 char* ast_to_str(AST* node);
-char* ast_to_str_r(String_Context* ctx, AST* node);
+
 char* ast_kind_to_str(AST_Kind kind);
 
 typedef struct {

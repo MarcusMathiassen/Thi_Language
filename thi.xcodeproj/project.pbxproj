@@ -22,7 +22,6 @@
 		90E9F31122907A5E00F80AF9 /* string.c in Sources */ = {isa = PBXBuildFile; fileRef = 90E9F2F222907A5E00F80AF9 /* string.c */; };
 		90E9F31222907A5E00F80AF9 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 90E9F2FA22907A5E00F80AF9 /* main.c */; };
 		90E9F31322907A5E00F80AF9 /* type.c in Sources */ = {isa = PBXBuildFile; fileRef = 90E9F2FB22907A5E00F80AF9 /* type.c */; };
-		90E9F31422907A5E00F80AF9 /* type_checker.c in Sources */ = {isa = PBXBuildFile; fileRef = 90E9F2FD22907A5E00F80AF9 /* type_checker.c */; };
 		90E9F31522907A5E00F80AF9 /* map.c in Sources */ = {isa = PBXBuildFile; fileRef = 90E9F2FE22907A5E00F80AF9 /* map.c */; };
 		90E9F31622907A5E00F80AF9 /* parser.c in Sources */ = {isa = PBXBuildFile; fileRef = 90E9F30322907A5E00F80AF9 /* parser.c */; };
 		90E9F31722907A5E00F80AF9 /* value.c in Sources */ = {isa = PBXBuildFile; fileRef = 90E9F30422907A5E00F80AF9 /* value.c */; };
@@ -54,7 +53,6 @@
 		90E9F2E722907A5E00F80AF9 /* list.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = list.c; sourceTree = "<group>"; };
 		90E9F2E822907A5E00F80AF9 /* codegen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = codegen.c; sourceTree = "<group>"; };
 		90E9F2E922907A5E00F80AF9 /* typedefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = typedefs.h; sourceTree = "<group>"; };
-		90E9F2EA22907A5E00F80AF9 /* type_checker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = type_checker.h; sourceTree = "<group>"; };
 		90E9F2EB22907A5E00F80AF9 /* map.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = map.h; sourceTree = "<group>"; };
 		90E9F2EC22907A5E00F80AF9 /* stack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stack.c; sourceTree = "<group>"; };
 		90E9F2ED22907A5E00F80AF9 /* utility.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = utility.c; sourceTree = "<group>"; };
@@ -73,7 +71,6 @@
 		90E9F2FA22907A5E00F80AF9 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		90E9F2FB22907A5E00F80AF9 /* type.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = type.c; sourceTree = "<group>"; };
 		90E9F2FC22907A5E00F80AF9 /* stack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stack.h; sourceTree = "<group>"; };
-		90E9F2FD22907A5E00F80AF9 /* type_checker.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = type_checker.c; sourceTree = "<group>"; };
 		90E9F2FE22907A5E00F80AF9 /* map.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = map.c; sourceTree = "<group>"; };
 		90E9F2FF22907A5E00F80AF9 /* .clang-format */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ".clang-format"; sourceTree = "<group>"; };
 		90E9F30022907A5E00F80AF9 /* lexer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lexer.h; sourceTree = "<group>"; };
@@ -155,8 +152,6 @@
 				90E9F30622907A5E00F80AF9 /* string.h */,
 				90E9F2E522907A5E00F80AF9 /* thi.c */,
 				90E9F2F922907A5E00F80AF9 /* thi.h */,
-				90E9F2FD22907A5E00F80AF9 /* type_checker.c */,
-				90E9F2EA22907A5E00F80AF9 /* type_checker.h */,
 				90E9F2FB22907A5E00F80AF9 /* type.c */,
 				90E9F2E322907A5E00F80AF9 /* type.h */,
 				90E9F2E922907A5E00F80AF9 /* typedefs.h */,
@@ -231,7 +226,6 @@
 				90E9F30C22907A5E00F80AF9 /* stack.c in Sources */,
 				90E9F30722907A5E00F80AF9 /* ast.c in Sources */,
 				90A50C6922A45A45008C2632 /* codegen_llvm.c in Sources */,
-				90E9F31422907A5E00F80AF9 /* type_checker.c in Sources */,
 				90E9F31622907A5E00F80AF9 /* parser.c in Sources */,
 				90E9F31722907A5E00F80AF9 /* value.c in Sources */,
 				90E9F30F22907A5E00F80AF9 /* lexer.c in Sources */,

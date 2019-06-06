@@ -23,7 +23,6 @@
 #include "string.h"    // strf, string_append, string
 #include "typedefs.h"
 #include "utility.h" // error
-  // assert
 #include <string.h>  // strcmp
 
 //------------------------------------------------------------------------------
@@ -51,6 +50,158 @@ char* type_kind_to_str(Type_Kind kind) {
     UNREACHABLE;
     return NULL;
 }
+
+//------------------------------------------------------------------------------
+//                               String Functions
+//------------------------------------------------------------------------------
+
+static inline void _type_to_str_unresolved (string* s, Type* type);
+static inline void _type_to_str_void       (string* s, Type* type);
+static inline void _type_to_str_int        (string* s, Type* type);
+static inline void _type_to_str_float      (string* s, Type* type);
+static inline void _type_to_str_string     (string* s, Type* type);
+static inline void _type_to_str_pointer    (string* s, Type* type);
+static inline void _type_to_str_array      (string* s, Type* type);
+static inline void _type_to_str_enum       (string* s, Type* type);
+static inline void _type_to_str_struct     (string* s, Type* type);
+static inline void _type_to_str_union      (string* s, Type* type);
+static inline void _type_to_str_function   (string* s, Type* type);
+static inline void _type_to_str_var_args   (string* s, Type* type);
+
+char* type_to_str(Type* type) {
+
+    string* s = string_create("");
+
+    if (!type) {
+        string_append(s, "---");
+        return string_data(s);
+    }
+
+    Type_Kind kind = type->kind;
+    TASSERT_KIND_IN_RANGE(TYPE, kind);
+
+    switch (kind) {
+    ERROR_UNHANDLED_TYPE_KIND(kind);
+    case TYPE_UNRESOLVED: _type_to_str_unresolved (s, type); break;
+    case TYPE_VOID:       _type_to_str_void       (s, type); break;
+    case TYPE_INT:        _type_to_str_int        (s, type); break;
+    case TYPE_FLOAT:      _type_to_str_float      (s, type); break;
+    case TYPE_STRING:     _type_to_str_string     (s, type); break;
+    case TYPE_POINTER:    _type_to_str_pointer    (s, type); break;
+    case TYPE_ARRAY:      _type_to_str_array      (s, type); break;
+    case TYPE_ENUM:       _type_to_str_enum       (s, type); break;
+    case TYPE_STRUCT:     _type_to_str_struct     (s, type); break;
+    case TYPE_UNION:      _type_to_str_union      (s, type); break;
+    case TYPE_FUNCTION:   _type_to_str_function   (s, type); break;
+    case TYPE_VAR_ARGS:   _type_to_str_var_args   (s, type); break;
+    }
+    return string_data(s);
+}
+
+static inline void _type_to_str_unresolved (string* s, Type* type) {
+    string_append_f(s, "%s?", get_type_name(type));
+}
+
+static inline void _type_to_str_void       (string* s, Type* type) {
+    string_append(s, "void");
+}
+
+static inline void _type_to_str_int        (string* s, Type* type) {
+    string_append_f(s, type->Int.is_unsigned ? "u%d" : "s%d", type->Int.bytes * 8);
+}
+
+static inline void _type_to_str_float      (string* s, Type* type) {
+    string_append_f(s, "f%d", type->Float.bytes * 8);
+}
+
+static inline void _type_to_str_string     (string* s, Type* type) {
+    string_append_f(s, "\"\", %d", type->String.len);
+}
+
+static inline void _type_to_str_pointer    (string* s, Type* type) {
+    type_to_str(type->Pointer.pointee);
+    string_append(s, "*");
+}
+
+static inline void _type_to_str_array      (string* s, Type* type) {
+    type_to_str(type->Array.type);
+    string_append_f(s, "[%d]", type->Array.size);
+}
+
+static inline void _type_to_str_enum       (string* s, Type* type) {
+    string_append_f(s, "%s = { ", get_type_name(type));
+    LIST_FOREACH(type_get_members(type)) {
+        Type_Name_Pair* mem = it->data;
+        if (mem->name)
+            string_append_f(s, "%s %s", mem->name, get_type_name(mem->type));
+        else
+            string_append_f(s, "%s", get_type_name(mem->type));
+        if (it->next) string_append(s, ", ");
+    }
+    string_append(s, " }");
+}
+
+static inline void _type_to_str_struct     (string* s, Type* type) {
+    string_append_f(s, "%s = { ", get_type_name(type));
+    LIST_FOREACH(type_get_members(type)) {
+        Type_Name_Pair* mem = it->data;
+        if (mem->name)
+            string_append_f(s, "%s %s", mem->name, get_type_name(mem->type));
+        else
+            string_append_f(s, "%s", get_type_name(mem->type));
+        if (it->next) string_append(s, ", ");
+    }
+    string_append(s, " }");
+}
+
+static inline void _type_to_str_union      (string* s, Type* type) {
+
+}
+
+static inline void _type_to_str_function   (string* s, Type* type) {
+    string_append(s, "(");
+    LIST_FOREACH(type->Function.parameters) {
+        Type_Name_Pair* param = it->data;
+        if (param->name)
+            string_append_f(s, "%s %s", param->name, get_type_name(param->type));
+        else
+            string_append_f(s, "%s", get_type_name(param->type));
+        if (it->next) string_append(s, ", ");
+    }
+    string_append_f(s, ") %s", get_type_name(type->Function.return_type));
+}
+
+static inline void _type_to_str_var_args   (string* s, Type* type) {
+    string_append(s, "...");
+}
+
+
+//------------------------------------------------------------------------------
+//                               Type Array Ref
+//------------------------------------------------------------------------------
+
+
+Type_Ref_List make_type_ref_list() {
+    Type_Ref_List l;
+    l.count = 0;
+    l.allocated = TYPE_REF_LIST_STARTING_ALLOC;
+    l.data = xmalloc(l.allocated * sizeof(Type*));
+    return l;
+}
+
+void type_ref_list_append(Type_Ref_List* l, Type* t) {
+    if (l->count >= l->allocated) {
+        l->allocated *= 2;
+        l->data = xrealloc(l->data, l->allocated * sizeof(Type*));
+    }
+    l->data[l->count] = t;
+    l->count += 1;
+}
+
+
+//------------------------------------------------------------------------------
+//                               Type Helpers
+//------------------------------------------------------------------------------
 
 List* type_get_members(Type* type) {
     xassert(type);
@@ -184,111 +335,6 @@ s64 type_array_get_count(Type* type) {
     return type->Array.size;
 }
 
-char* type_to_str(Type* type) {
-    String_Context ctx;
-    ctx.str = string_create("");
-    ctx.indentation_level = DEFAULT_INDENT_LEVEL;
-    return type_to_str_r(&ctx, type);
-}
-
-char* type_to_str_r(String_Context* ctx, Type* type) {
-    xassert(ctx);
-
-    // Local alias
-    string* s = ctx->str;
-
-    if (!type) {
-        string_append(s, "---");
-        return string_data(s);
-    }
-
-    Type_Kind kind = type->kind;
-    TASSERT_KIND_IN_RANGE(TYPE, kind);
-
-    switch (type->kind) {
-        ERROR_UNHANDLED_TYPE_KIND(kind);
-    case TYPE_VAR_ARGS: {
-        string_append(s, "...");
-        break;
-    }
-    case TYPE_VOID: {
-        string_append(s, "void");
-        break;
-    }
-    case TYPE_UNRESOLVED: {
-        string_append_f(s, "%s?", get_type_name(type));
-        break;
-    }
-    case TYPE_ARRAY: {
-        type_to_str_r(ctx, type->Array.type);
-        string_append_f(s, "[%d]", type->Array.size);
-        break;
-    }
-    case TYPE_INT: {
-        string_append_f(s, type->Int.is_unsigned ? "u%d" : "s%d", type->Int.bytes * 8);
-        break;
-    }
-    case TYPE_POINTER: {
-        type_to_str_r(ctx, type->Pointer.pointee);
-        string_append(s, "*");
-        break;
-    }
-    case TYPE_FLOAT: {
-        string_append_f(s, "f%d", type->Float.bytes * 8);
-        break;
-    }
-    case TYPE_STRING: {
-        string_append_f(s, "\"\", %d", type->String.len);
-        break;
-    }
-    case TYPE_ENUM: // fallthrough
-    case TYPE_STRUCT: {
-        string_append_f(s, "%s = { ", get_type_name(type));
-        LIST_FOREACH(type_get_members(type)) {
-            Type_Name_Pair* mem = it->data;
-            if (mem->name)
-                string_append_f(s, "%s %s", mem->name, get_type_name(mem->type));
-            else
-                string_append_f(s, "%s", get_type_name(mem->type));
-            if (it->next) string_append(s, ", ");
-        }
-        string_append(s, " }");
-        break;
-    };
-
-    case TYPE_FUNCTION: {
-        string_append(s, "(");
-        LIST_FOREACH(type->Function.parameters) {
-            Type_Name_Pair* param = it->data;
-            if (param->name)
-                string_append_f(s, "%s %s", param->name, get_type_name(param->type));
-            else
-                string_append_f(s, "%s", get_type_name(param->type));
-            if (it->next) string_append(s, ", ");
-        }
-        string_append_f(s, ") %s", get_type_name(type->Function.return_type));
-        break;
-    }
-    }
-    return string_data(s);
-}
-
-Type_Ref_List make_type_ref_list() {
-    Type_Ref_List l;
-    l.count = 0;
-    l.allocated = TYPE_REF_LIST_STARTING_ALLOC;
-    l.data = xmalloc(l.allocated * sizeof(Type*));
-    return l;
-}
-
-void type_ref_list_append(Type_Ref_List* l, Type* t) {
-    if (l->count >= l->allocated) {
-        l->allocated *= 2;
-        l->data = xrealloc(l->data, l->allocated * sizeof(Type*));
-    }
-    l->data[l->count] = t;
-    l->count += 1;
-}
 
 //------------------------------------------------------------------------------
 //                               Type Maker Functions

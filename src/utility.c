@@ -265,7 +265,7 @@ void* _malloc(s64 bytes, char* file, char* func, s64 line) {
     xassert(bytes != 0);
     void* alloc = malloc(bytes);
     if (!alloc) error("[%s:%s:%lld] malloc(%lld) failed", file, func, line, bytes);
-    // info("[%s:%s:%lld] malloc(%lld) called", file, func, line, bytes);
+    info("[%s:%s:%lld] malloc(%lld) called", file, func, line, bytes);
     return alloc;
 }
 
@@ -274,7 +274,7 @@ void* _calloc(s64 size, s64 bytes, char* file, char* func, s64 line) {
     xassert(bytes != 0);
     void* alloc = calloc(size, bytes);
     if (!alloc) error("[%s:%s:%lld] calloc(%lld, %lld) failed", file, func, line, size, bytes);
-    // info("[%s:%s:%lld] calloc(%lld, %lld) called", file, func, line, size, bytes);
+    info("[%s:%s:%lld] calloc(%lld, %lld) called", file, func, line, size, bytes);
     return alloc;
 }
 
@@ -283,7 +283,7 @@ void* _realloc(void* ptr, s64 bytes, char* file, char* func, s64 line) {
     xassert(bytes != 0);
     void* alloc = realloc(ptr, bytes);
     if (!alloc) error("[%s:%s:%lld] realloc(%lld, %llu) failed", file, func, line, (u64)ptr, bytes);
-    // info("[%s:%s:%lld] realloc(%lld, %llu) called", file, func, line, (u64)ptr, bytes);
+    info("[%s:%s:%lld] realloc(%lld, %llu) called", file, func, line, (u64)ptr, bytes);
     return alloc;
 }
 
