@@ -3,5 +3,5 @@ link "-lSystem"
 extern printf(u8*, ...) s32
 
 def main(argc s32, argv u8**) s64
-    #printf("Hello! %d %s\n", $1, *($1))
-    return 1
+    printf("Hello! %d %s\n", argc, *($2))
+    return 1 
