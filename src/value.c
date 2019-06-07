@@ -22,7 +22,6 @@
 #include "register.h" // error, xmallox
 #include "typedefs.h"
 #include "utility.h" // error, xmallox
-  // assert
 #include <stdarg.h>  // va_list, va_start, va_end
 #include <stdio.h>   //
 #include <string.h>  // strncat,
@@ -38,18 +37,18 @@
 char* value_kind_to_str(Value_Kind kind) {
     TASSERT_KIND_IN_RANGE(VALUE, kind);
     switch (kind) {
-        ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
-    case VALUE_INT: return "VALUE_INT";
-    case VALUE_FLOAT: return "VALUE_FLOAT";
-    case VALUE_POINTER: return "VALUE_POINTER";
-    case VALUE_STRING: return "VALUE_STRING";
-    case VALUE_VARIABLE: return "VALUE_VARIABLE";
+    ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
+    case VALUE_INT:             return "VALUE_INT";
+    case VALUE_FLOAT:           return "VALUE_FLOAT";
+    case VALUE_POINTER:         return "VALUE_POINTER";
+    case VALUE_STRING:          return "VALUE_STRING";
+    case VALUE_VARIABLE:        return "VALUE_VARIABLE";
     case VALUE_GLOBAL_VARIABLE: return "VALUE_GLOBAL_VARIABLE";
-    case VALUE_CALL: return "VALUE_CALL";
-    case VALUE_FUNCTION: return "VALUE_FUNCTION";
-    case VALUE_STRUCT: return "VALUE_STRUCT";
-    case VALUE_LOAD_INST: return "VALUE_LOAD_INST";
-    case VALUE_STORE_INST: return "VALUE_STORE_INST";
+    case VALUE_CALL:            return "VALUE_CALL";
+    case VALUE_FUNCTION:        return "VALUE_FUNCTION";
+    case VALUE_STRUCT:          return "VALUE_STRUCT";
+    case VALUE_LOAD_INST:       return "VALUE_LOAD_INST";
+    case VALUE_STORE_INST:      return "VALUE_STORE_INST";
     }
     UNREACHABLE;
     return NULL;
@@ -88,7 +87,7 @@ char* get_mem_loc(Value* value) {
     Value_Kind kind = value->kind;
     TASSERT_KIND_IN_RANGE(VALUE, kind);
     switch (kind) {
-        ERROR_UNHANDLED_VALUE_KIND(kind);
+    ERROR_UNHANDLED_VALUE_KIND(kind);
     // case VALUE_INT: return "VALUE_INT";
     // case VALUE_FLOAT: return "VALUE_FLOAT";
     // case VALUE_POINTER: return "VALUE_POINTER";
@@ -132,17 +131,17 @@ s64 get_size_of_value(Value* value) {
     Value_Kind kind = value->kind;
     TASSERT_KIND_IN_RANGE(VALUE, kind);
     switch (kind) {
-        ERROR_UNHANDLED_VALUE_KIND(kind);
-    case VALUE_FLOAT: return get_size_of_type(value->type);
-    case VALUE_INT: return get_size_of_type(value->type);
-    case VALUE_STRING: return value->String.len;
-    case VALUE_VARIABLE: return get_size_of_type(value->type);
+    ERROR_UNHANDLED_VALUE_KIND(kind);
+    case VALUE_FLOAT:           return get_size_of_type(value->type);
+    case VALUE_INT:             return get_size_of_type(value->type);
+    case VALUE_STRING:          return value->String.len;
+    case VALUE_VARIABLE:        return get_size_of_type(value->type);
     case VALUE_GLOBAL_VARIABLE: return get_size_of_type(value->type);
-    case VALUE_FUNCTION: error("Asking for the size of a function? Why?");
-    case VALUE_STRUCT: return get_size_of_type(value->type);
-    case VALUE_CALL: return get_size_of_type(value->type);
-    case VALUE_LOAD_INST: return get_size_of_type(value->LoadInst.variable->type);
-    case VALUE_STORE_INST: return get_size_of_type(value->StoreInst.variable->type);
+    case VALUE_FUNCTION:        error("Asking for the size of a function? Why?");
+    case VALUE_STRUCT:          return get_size_of_type(value->type);
+    case VALUE_CALL:            return get_size_of_type(value->type);
+    case VALUE_LOAD_INST:       return get_size_of_type(value->LoadInst.variable->type);
+    case VALUE_STORE_INST:      return get_size_of_type(value->StoreInst.variable->type);
     }
     return get_size_of_type(value->type);
 }
