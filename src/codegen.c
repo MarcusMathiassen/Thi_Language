@@ -31,13 +31,9 @@
 #include "typedefs.h"
 #include "utility.h" // error warning info, wrap_with_colored_parens
 #include "value.h"   // Value, Scope
-  // assert
-#include <stdio.h>   //
-#include <string.h>  // strcmp
 
 #define DEBUG_START                                                              \
-    xassert(ctx);                                                                 \
-    xassert(node);                                                                \
+    xassert(ctx && node);                                                        \
     info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(node))); 
     // emit(ctx, "; %s", ast_to_str(node));
 
