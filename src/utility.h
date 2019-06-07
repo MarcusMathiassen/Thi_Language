@@ -82,6 +82,7 @@ typedef struct {
 
 #ifdef NDEBUG
 #define tassert(EX, FMT, ...)
+#define xassert(EX)
 #else
 #define xassert(EX) (void)((EX) || (_tassert(#EX, __FILE__, (char*)__func__, __LINE__, ""), 0))
 #define tassert(EX, FMT, ...) (void)((EX) || (_tassert(#EX, __FILE__, (char*)__func__, __LINE__, FMT, ##__VA_ARGS__), 0))

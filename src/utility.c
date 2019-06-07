@@ -191,17 +191,18 @@ char* get_file_name(char* filename) {
     xassert(filename);
     DEBUG_PRINT_ENTRY;
     s64 len = strlen(filename);
-    s64 i = 1;
+    s64 i = 0;
     while (i < len) {
-        if (filename[len - i] == '/') break;
+        if (filename[len-i] == '/') break;
         ++i;
     }
-    if (i == 1) {
-        DEBUG_PRINT_NONE_FOUND;
-        return NULL; // we didnt find any
+    if (i == len) {
+        return filename;
+    } else if (i == 1) {
+        return NULL;
     }
     char* str = xmalloc(i + 1);
-    memcpy(str, filename + len + 1 - i, i); // +1 skips the '/'
+    memcpy(str, filename + (len-i+1), i); // +1 skips the '/'
     str[i] = 0;
     DEBUG_PRINT_EXIT;
     return str;
@@ -435,6 +436,7 @@ void utility_tests(void) {
     // get_file_extension
     xassert(strcmp(get_file_extension("./b/m.thi"), ".thi") == 0);
     xassert(strcmp(get_file_extension(".rcx.txt"), ".txt") == 0);
+    xassert(strcmp(get_file_extension("test.thi"), ".thi") == 0);
     xassert(get_file_extension("fefem") == NULL);
     xassert(strcmp(get_file_extension("./b/mthigegerg/o.hrifj"), ".hrifj") == 0);
 
@@ -446,6 +448,7 @@ void utility_tests(void) {
 
     // get_file_name
     xassert(strcmp(get_file_name("./b/m.thi"), "m.thi") == 0);
+    xassert(strcmp(get_file_name("test.thi"), "test.thi") == 0);
     xassert(strcmp(get_file_name("./b/m/hergergerg.thi"), "hergergerg.thi") == 0);
     xassert(get_file_name("./b/m/") == NULL);
 }

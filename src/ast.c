@@ -37,6 +37,7 @@
 
 static char* _ast_to_str(String_Context* ctx, AST* node);
 
+
 char* ast_kind_to_str(AST_Kind kind) {
     TASSERT_KIND_IN_RANGE(AST, kind);
     switch (kind) {
@@ -302,11 +303,11 @@ static char* _ast_to_str(String_Context* ctx, AST* node) {
     }
     case AST_FLOAT: {
         // @Checkout(marcus): not to sure about the fmt.
-        // char* str = strf("%.14g", node->Float.val);
-        // u64 n = strlen(str);
-        // // This makes sure there is at least a single decimal point.
-        // string_append_f(s, "%s", n == 1 ? strf("%s.00", str) : str);
-        return strf("%f", node->Float.val);
+        char* str = strf("%.14g", node->Float.val);
+        u64 n = strlen(str);
+        // This makes sure there is at least a single decimal point.
+        string_append_f(s, "%s", n == 1 ? strf("%s.00", str) : str);
+        // string_append_f(s, "%f", node->Float.val);
         break;
     }
     case AST_STRING: {

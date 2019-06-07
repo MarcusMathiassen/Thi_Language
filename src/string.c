@@ -61,6 +61,7 @@ char* string_data(string* this) {
     xassert(this->c_str);
     return this->c_str;
 }
+
 void string_append(string* this, char* str) {
     xassert(this);
     if (!str) return;

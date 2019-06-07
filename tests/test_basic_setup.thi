@@ -1,17 +1,19 @@
-link "-lSystem"
-
 extern printf(u8*, ...) s32
+
 
 def sayHi()
     printf("Hi\n")
 
-sayHi()
+def v2
+    x f32
+    y f32
+
 
 i = 3
 j = 42
 k = 73
 
-f = 714.340
+f = 714.340F
 x = 14.345353
 pi = 3.14159265359
 halfpi = pi / 2.0
@@ -20,10 +22,10 @@ twopi = pi * 2.0
 printf("argc = %d\n", argc)
 printf("*argv = %s\n", *argv)
 
+sayHi()
+
+
+
 
 
 return i - 2 
-
-def v2
-    x f32
-    y f32

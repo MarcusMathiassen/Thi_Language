@@ -352,16 +352,24 @@ inline static Type* sema_block(Sema_Context* ctx, AST* node) {
         AST* stmt = it->data; 
         _sema(ctx, stmt);
 
-        if (stmt->kind == AST_RETURN) {
+        switch(stmt->kind) {
+        default: break;
+        case AST_RETURN: {
             list_append(returned_nodes, stmt);
-        }
+        } break;
 
-        if (stmt->kind == AST_FUNCTION) {
+        case AST_FUNCTION: {
             xassert(ctx->module);
             list_prepend(ctx->module->Module.top_level, stmt);
             list_remove(stmts, it);
-        }
+        } break;
 
+        // case AST_EXTERN: {
+        //     xassert(ctx->module);
+        //     list_prepend(ctx->module->Module.top_level, stmt);
+        //     list_remove(stmts, it);
+        // } break;
+        }
     }
 
     // In case of the block has a return

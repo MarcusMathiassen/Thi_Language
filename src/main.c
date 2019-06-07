@@ -37,7 +37,6 @@
 #include "typedefs.h"     // u8, u16, s32, etc.
 #include "utility.h"      // get_file_content, success, info, get_time
 #include "value.h"        // Value
-       // assert
 #include <stdio.h>        // sprintf
 #include <stdlib.h>       // free
 #include <string.h>       // strcmp
@@ -159,6 +158,7 @@ void pass_initilize_enums(void* thi, AST* node) {
     // } break;
     // }
 }
+
 void pass_add_all_symbols(void* thi, AST* node) {
     switch (node->kind) {
     default: break;
@@ -307,24 +307,24 @@ void constant_fold_binary(AST* node) {
 
         switch (op) {
         ERROR_UNHANDLED_TOKEN_KIND(op);
-        case TOKEN_EQ_EQ:         value = (lhs_v == rhs_v); break;
-        case TOKEN_BANG_EQ:       value = (lhs_v != rhs_v); break;
-        case TOKEN_PLUS:          value = (lhs_v + rhs_v);  break;
-        case TOKEN_MINUS:         value = (lhs_v - rhs_v);  break;
-        case TOKEN_ASTERISK:      value = (lhs_v * rhs_v);  break;
-        case TOKEN_FWSLASH:       value = (lhs_v / rhs_v);  break;
-        case TOKEN_AND:           value = (lhs_v & rhs_v);  break;
-        case TOKEN_PIPE:          value = (lhs_v | rhs_v);  break;
-        case TOKEN_LT:            value = (lhs_v < rhs_v);  break;
-        case TOKEN_GT:            value = (lhs_v > rhs_v);  break;
-        case TOKEN_GT_GT:         value = (lhs_v >> rhs_v); break;
-        case TOKEN_LT_LT:         value = (lhs_v << rhs_v); break;
-        case TOKEN_PERCENT:       value = (lhs_v % rhs_v);  break;
-        case TOKEN_HAT:           value = (lhs_v ^ rhs_v);  break;
-        case TOKEN_AND_AND:       value = (lhs_v && rhs_v); break;
-        case TOKEN_PIPE_PIPE:     value = (lhs_v || rhs_v); break;
-        case TOKEN_QUESTION_MARK: return;
-        case TOKEN_COLON:         return;
+        case TOKEN_EQ_EQ:               value = (lhs_v == rhs_v);  break;
+        case TOKEN_BANG_EQ:             value = (lhs_v != rhs_v);  break;
+        case TOKEN_PLUS:                value = (lhs_v +  rhs_v);  break;
+        case TOKEN_MINUS:               value = (lhs_v -  rhs_v);  break;
+        case TOKEN_ASTERISK:            value = (lhs_v *  rhs_v);  break;
+        case TOKEN_FWSLASH:             value = (lhs_v /  rhs_v);  break;
+        case TOKEN_AND:                 value = (lhs_v &  rhs_v);  break;
+        case TOKEN_PIPE:                value = (lhs_v |  rhs_v);  break;
+        case TOKEN_LT:                  value = (lhs_v <  rhs_v);  break;
+        case TOKEN_GT:                  value = (lhs_v >  rhs_v);  break;
+        case TOKEN_GT_GT:               value = (lhs_v >> rhs_v);  break;
+        case TOKEN_LT_LT:               value = (lhs_v << rhs_v);  break;
+        case TOKEN_PERCENT:             value = (lhs_v %  rhs_v);  break;
+        case TOKEN_HAT:                 value = (lhs_v ^  rhs_v);  break;
+        case TOKEN_AND_AND:             value = (lhs_v && rhs_v);  break;
+        case TOKEN_PIPE_PIPE:           value = (lhs_v || rhs_v);  break;
+        case TOKEN_QUESTION_MARK:       return;
+        case TOKEN_COLON:               return;
         }
 
         lhs->Int.val = value;
@@ -336,16 +336,16 @@ void constant_fold_binary(AST* node) {
 
         switch (op) {
         ERROR_UNHANDLED_TOKEN_KIND(op);
-        case TOKEN_EQ_EQ:     value = (lhs_v == rhs_v); break;
-        case TOKEN_BANG_EQ:   value = (lhs_v != rhs_v); break;
-        case TOKEN_PLUS:      value = (lhs_v + rhs_v);  break;
-        case TOKEN_MINUS:     value = (lhs_v - rhs_v);  break;
-        case TOKEN_ASTERISK:  value = (lhs_v * rhs_v);  break;
-        case TOKEN_FWSLASH:   value = (lhs_v / rhs_v);  break;
-        case TOKEN_LT:        value = (lhs_v < rhs_v);  break;
-        case TOKEN_GT:        value = (lhs_v > rhs_v);  break;
-        case TOKEN_AND_AND:   value = (lhs_v && rhs_v); break;
-        case TOKEN_PIPE_PIPE: value = (lhs_v || rhs_v); break;
+        case TOKEN_EQ_EQ:               value = (lhs_v == rhs_v);   break;
+        case TOKEN_BANG_EQ:             value = (lhs_v != rhs_v);   break;
+        case TOKEN_PLUS:                value = (lhs_v +  rhs_v);   break;
+        case TOKEN_MINUS:               value = (lhs_v -  rhs_v);   break;
+        case TOKEN_ASTERISK:            value = (lhs_v *  rhs_v);   break;
+        case TOKEN_FWSLASH:             value = (lhs_v /  rhs_v);   break;
+        case TOKEN_LT:                  value = (lhs_v <  rhs_v);   break;
+        case TOKEN_GT:                  value = (lhs_v >  rhs_v);   break;
+        case TOKEN_AND_AND:             value = (lhs_v && rhs_v);   break;
+        case TOKEN_PIPE_PIPE:           value = (lhs_v || rhs_v);   break;
         }
 
         lhs->Float.val = value;
@@ -476,7 +476,6 @@ int main(int argc, char** argv) {
     }
 
     add_load(&thi, name);
-    add_link(&thi, "-lSystem");
 
     add_symbol(&thi, "void", make_type_void());
     add_symbol(&thi, "bool", make_type_int(1, true));
@@ -536,6 +535,7 @@ int main(int argc, char** argv) {
     ast = make_ast_module(ast->loc_info, "main", module_stmts);
 
     thi.links = ast_find_all_of_kind(AST_LINK, ast);
+    list_append(thi.links, make_ast_link(ast->loc_info, "-lSystem"));
     info("all loaded files");
     LIST_FOREACH(pctx.loads) {
         info("file: %s", it->data);
@@ -653,6 +653,7 @@ int main(int argc, char** argv) {
     info("size of Stack:   %lu bytes", sizeof(Stack));
     info("size of string:  %lu bytes", sizeof(string));
 
+
     pop_timer(&thi);
 
     struct winsize w;
@@ -745,6 +746,8 @@ List* string_list_remove_duplicates(List* list) {
         }
         if (!dup) list_append(res, a);
     }
+
+
     return res;
 }
 

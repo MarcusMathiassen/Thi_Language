@@ -996,7 +996,7 @@ Value* codegen_asm(Codegen_Context* ctx, AST* node) {
         }
 
     }
-    ctx->inside_asm = false;
+
     return NULL;
 }
 
