@@ -194,6 +194,7 @@ Value* make_value_float(Type* type, f64 value) {
     return v;
 }
 
+
 Value* make_value_string(char* value, Type* type) {
     xassert(value);
     xassert(type);

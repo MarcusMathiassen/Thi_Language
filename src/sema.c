@@ -386,11 +386,11 @@ inline static Type* sema_block(Sema_Context* ctx, AST* node) {
 }
 
 inline static Type* sema_struct(Sema_Context* ctx, AST* node) {
-    return NULL;
+    return node->type;
 }
 
 inline static Type* sema_enum(Sema_Context* ctx, AST* node) {
-    return NULL;
+    return node->type;
 }
 
 inline static Type* sema_function(Sema_Context* ctx, AST* node) {

@@ -1,5 +1,4 @@
 ## Feature/Todo
-
 - [ ] passing structs as parameters to function calls
 - [x] dereference '\*' syntax parsed correctly
 - [ ] implicit upcast type conversion for suitable expressions
@@ -7,7 +6,7 @@
 - [ ] struct braced initilization syntax with named parameters
 - [ ] support for variable arguments in in not just clibs.
 - [ ] solve circular dependencies, and any other dependencies.
-- [ ] remove duplicate data tables in assembly output.
+- [x] remove duplicate data tables in assembly output.
 - [ ] find a better way to remove unused externs
 - [x] sema on AST_IDENT should print an error on undefined identifiers
 - [ ] fix 'for in' it's hardcoded atm
@@ -29,7 +28,7 @@
 - [ ] Implement 'union'
 - [x] Implement a REAL map. The one in use now is just name lookup badoodo.
 - [-] In Codegen_Binary. Redesign it to for code reuse. Right now it's very ugly. #edit1: moved some into a generic function, but needs more work
-- [ ] Redo literals! AST_Literal should hold all type of literals.
+- [-] Redo literals! AST_Literal should hold all type of literals. #edit1: Literal stub is implemented but not yet changed over.
 - [ ] Redo decls! Instead of AST_Variabel_Decl and AST_Function,
       consolidate them into a single AST_Decl. 
 
@@ -42,3 +41,8 @@
 - [x] GLFW_KEY_LAST :: GLFW_KEY_MENU is not handled correctly. We need to do
       constant propogation. Or change all constants into variables with a stack
       position. #fixed: all constants are now varibles. ??
+
+## Optimizations
+- [ ] Turn 'i / 2.0' into ' i * 0.5'
+- [ ] Constant propagation
+

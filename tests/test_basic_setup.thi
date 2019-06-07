@@ -7,9 +7,23 @@ def sayHi()
 
 sayHi()
 
+i = 3
+j = 42
+k = 73
+
+f = 714.340
+x = 14.345353
+pi = 3.14159265359
+halfpi = pi / 2.0
+twopi = pi * 2.0
 
 printf("argc = %d\n", argc)
 printf("*argv = %s\n", *argv)
 
 
-return 1
+
+return i - 2 
+
+def v2
+    x f32
+    y f32
