@@ -501,8 +501,8 @@ static AST* get_symbol_in_scope(Sema_Context* ctx, char* name) {
         List* symbols = it->data;
         LIST_FOREACH_REVERSE(symbols) {
             AST* v = it->data;
-            // @Todo replace this one with a pointer comparison later
-            if (strcmp(get_ast_name(v), name) == 0) return v;
+            if (strcmp(get_ast_name(v), name) == 0) 
+                return v;
         }
     }
     return NULL;
@@ -518,6 +518,7 @@ static void add_node_to_scope(Sema_Context* ctx, AST* node) {
 static void add_all_decls_in_module(Sema_Context* ctx, AST* node) {
     tassert(ctx && node, "%zu, %zu", ctx, node);
     xassert(node->kind == AST_MODULE);
+    info("add_all_decls_in_module: %s", get_ast_name(node));
     List* decls = node->Module.top_level;
     LIST_FOREACH(decls) {
         AST* decl = it->data;
@@ -527,6 +528,9 @@ static void add_all_decls_in_module(Sema_Context* ctx, AST* node) {
         case AST_NOP:     break;
         case AST_ASM:     break;
         case AST_LINK:    break;
+        case AST_VARIABLE_DECL:
+            add_node_to_scope(ctx, decl);
+            break;
         case AST_MODULE:
             ctx->module = decl;
             add_all_decls_in_module(ctx, decl);

@@ -29,10 +29,10 @@ extern glfwGetPrimaryMonitor()
 extern glfwGetMonitors(s32*) void*
 extern glfwGetMonitorPos(void, s32*, s32*)
 extern glfwGetMonitorPhysicalSize(void, s32*, s32*)
-extern glfwGetVideoMode(void) GLFWvidmode*
+#extern glfwGetVideoMode(void) GLFWvidmode*
 extern glfwSetGamma(void, f32)
-extern glfwGetGammaRamp(void) GLFWgammaramp*
-extern glfwSetGammaRamp(void, GLFWgammaramp*)
+#extern glfwGetGammaRamp(void) GLFWgammaramp*
+#extern glfwSetGammaRamp(void, GLFWgammaramp*)
 extern glfwDestroyWindow(void*)
 extern glfwWindowHint(s32, s32)
 extern glfwDefaultWindowHints()
@@ -46,7 +46,7 @@ extern glfwGetProcAddress(s8*) void*
 extern glfwExtensionSupported(s8*) s32
 extern glfwGetKey(void*, s32) s32
 extern glfwSetWindowTitle(void*, s8*)
-extern glfwSetWindowIcon(void*, s32, GLFWimage*)
+#extern glfwSetWindowIcon(void*, s32, GLFWimage*)
 extern glfwSetWindowPos(void*, s32, s32)
 extern glfwSetWindowSizeLimits(void*, s32, s32, s32, s32)
 extern glfwSetWindowAspectRatio(void*, s32, s32)
@@ -75,7 +75,7 @@ extern glfwSetInputMode(void*, s32, s32)
 extern glfwGetMouseButton(void*, s32) s32
 extern glfwGetCursorPos(void*, f64*, f64*)
 extern glfwSetCursorPos(void*, f64, f64)
-extern glfwCreateCursor(GLFWimage*, s32, s32)
+#extern glfwCreateCursor(GLFWimage*, s32, s32)
 extern glfwDestroyCursor(void)
 extern glfwSetCursor(void*, void)
 extern glfwCreateStandardCursor(s32)

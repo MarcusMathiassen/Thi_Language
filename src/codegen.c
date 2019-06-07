@@ -137,7 +137,7 @@ static Value* codegen(Codegen_Context* ctx, AST* node) {
 char* generate_code_from_ast(AST* ast) {
     xassert(ast);
     info("Generating code from ast");
-    Codegen_Context ctx = makecodegen_context();
+    Codegen_Context ctx = make_codegen_context();
     string_append(ctx.section_data, "section .data\n");
     emit_no_tab(&ctx, "section .text");
     codegen(&ctx, ast);
@@ -148,13 +148,11 @@ char* generate_code_from_ast(AST* ast) {
 
 static Value* codegen_comment(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    UNFINISHED;
     return NULL;
 }
 
 static Value* codegen_nop(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    UNFINISHED;
     return NULL;
 }
 
@@ -210,7 +208,6 @@ static Value* codegen_load(Codegen_Context* ctx, AST* node) {
 
 static Value* codegen_link(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
-    UNFINISHED;
     return NULL;
 }
 

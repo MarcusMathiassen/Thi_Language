@@ -251,7 +251,7 @@ void constant_fold_unary(AST* node) {
         s64 value = 0;
 
         switch (op) {
-            ERROR_UNHANDLED_TOKEN_KIND(op);
+        ERROR_UNHANDLED_TOKEN_KIND(op);
         case TOKEN_BANG: value = !oper_v; break;
         case TOKEN_PLUS: value = oper_v; break;
         case TOKEN_TILDE: value = ~oper_v; break;
@@ -336,16 +336,16 @@ void constant_fold_binary(AST* node) {
 
         switch (op) {
         ERROR_UNHANDLED_TOKEN_KIND(op);
-        case TOKEN_EQ_EQ:               value = (lhs_v == rhs_v);   break;
-        case TOKEN_BANG_EQ:             value = (lhs_v != rhs_v);   break;
-        case TOKEN_PLUS:                value = (lhs_v +  rhs_v);   break;
-        case TOKEN_MINUS:               value = (lhs_v -  rhs_v);   break;
-        case TOKEN_ASTERISK:            value = (lhs_v *  rhs_v);   break;
-        case TOKEN_FWSLASH:             value = (lhs_v /  rhs_v);   break;
-        case TOKEN_LT:                  value = (lhs_v <  rhs_v);   break;
-        case TOKEN_GT:                  value = (lhs_v >  rhs_v);   break;
-        case TOKEN_AND_AND:             value = (lhs_v && rhs_v);   break;
-        case TOKEN_PIPE_PIPE:           value = (lhs_v || rhs_v);   break;
+        case TOKEN_EQ_EQ:              value = (lhs_v == rhs_v); break; 
+        case TOKEN_BANG_EQ:            value = (lhs_v != rhs_v); break; 
+        case TOKEN_PLUS:               value = (lhs_v +  rhs_v); break; 
+        case TOKEN_MINUS:              value = (lhs_v -  rhs_v); break; 
+        case TOKEN_ASTERISK:           value = (lhs_v *  rhs_v); break; 
+        case TOKEN_FWSLASH:            value = (lhs_v /  rhs_v); break; 
+        case TOKEN_LT:                 value = (lhs_v <  rhs_v); break; 
+        case TOKEN_GT:                 value = (lhs_v >  rhs_v); break; 
+        case TOKEN_AND_AND:            value = (lhs_v && rhs_v); break; 
+        case TOKEN_PIPE_PIPE:          value = (lhs_v || rhs_v); break; 
         }
 
         lhs->Float.val = value;
@@ -502,37 +502,6 @@ int main(int argc, char** argv) {
     pctx.file = source_file;
     pctx.symbols = thi.symbol_map;
     AST* ast = parse_file(&pctx, name);
-
-    List* main_params = make_list();
-    List* main_type_params = make_list();
-
-    Type* s32_t = get_symbol(&thi, "s32");
-    Type* u8pp_t = make_type_pointer(make_type_pointer(get_symbol(&thi, "u8")));
-    AST* argc_p = make_ast_variable_decl(ast->loc_info, "argc", s32_t, NULL);
-    AST* argv_p = make_ast_variable_decl(ast->loc_info, "argv", u8pp_t, NULL);
-
-    Type_Name_Pair* argc_tp = xmalloc(sizeof(*argc_tp));
-    argc_tp->name = get_ast_name(argc_p);
-    argc_tp->type = argc_p->type;
-
-    Type_Name_Pair* argv_tp = xmalloc(sizeof(*argv_tp));
-    argv_tp->name = get_ast_name(argv_p);
-    argv_tp->type = argv_p->type;
-
-    list_append(main_type_params, argv_tp);
-    list_append(main_type_params, argv_tp);
-    list_append(main_params, argc_p);
-    list_append(main_params, argv_p);
-
-    u32 flags = 0;
-    Type* return_type = get_symbol(&thi, "s32");
-    Type* main_type = make_type_function("main", main_type_params, return_type, flags);
-    AST* main_body = make_ast_block(ast->loc_info, ast->Module.top_level);
-
-    ast = make_ast_function(ast->loc_info, "main", main_params, main_type, main_body);
-    List* module_stmts = make_list();
-    list_append(module_stmts, ast);
-    ast = make_ast_module(ast->loc_info, "main", module_stmts);
 
     thi.links = ast_find_all_of_kind(AST_LINK, ast);
     list_append(thi.links, make_ast_link(ast->loc_info, "-lSystem"));
