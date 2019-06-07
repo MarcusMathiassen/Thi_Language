@@ -21,7 +21,6 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 #include "typedefs.h"
-#include <stdlib.h> // malloc, calloc, realloc
 //------------------------------------------------------------------------------
 //                               Printing Functions
 //------------------------------------------------------------------------------
@@ -63,14 +62,17 @@ void write_to_file(char* filename, char* buffer);
 #define xmalloc(bytes) malloc(bytes)
 #define xcalloc(size, bytes) calloc(size, bytes)
 #define xrealloc(ptr, bytes) realloc(ptr, bytes)
+#define xstrlen(str) strlen(str)
 #else
 #define xmalloc(bytes) (_malloc(bytes, __FILE__, (char*)__func__, __LINE__))
 #define xcalloc(size, bytes) (_calloc(size, bytes, __FILE__, (char*)__func__, __LINE__))
 #define xrealloc(ptr, bytes) (_realloc(ptr, bytes, __FILE__, (char*)__func__, __LINE__))
+#define xstrlen(str) (_strlen(str, __FILE__, (char*)__func__, __LINE__))
 #endif
 void* _malloc(s64 bytes, char* file, char* func, s64 line);
 void* _calloc(s64 size, s64 bytes, char* file, char* func, s64 line);
 void* _realloc(void* ptr, s64 bytes, char* file, char* func, s64 line);
+u64 _strlen(char* str, char* file, char* func, s64 line);
 
 char* strn(char* start, char* end);
 char* strf(char* fmt, ...);

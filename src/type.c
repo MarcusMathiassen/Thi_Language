@@ -24,7 +24,7 @@
 #include "typedefs.h"
 #include "utility.h" // error
 #include <string.h>  // strcmp
-
+#include <stdlib.h> // malloc, realloc, calloc
 //------------------------------------------------------------------------------
 //                               type.c
 //------------------------------------------------------------------------------

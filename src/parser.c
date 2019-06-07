@@ -897,7 +897,7 @@ AST* parse_float(Parser_Context* ctx) {
         // if i has been changed, we have gotten a suffix.
         // Eat it.c
         if (i != 0) eat(ctx);
-        if (strlen(tok_val) != i) {
+        if (xstrlen(tok_val) != i) {
             error("[%s:%d:%d] unknown character '%c' in float suffix ", ctx->file, lc.line_pos, lc.col_pos, tok_val[i]);
         }
     }
@@ -960,7 +960,7 @@ AST* parse_integer(Parser_Context* ctx) {
         // if i has been changed, we have gotten a suffix.
         // Eat it.c
         if (i != 0) eat(ctx);
-        if (strlen(tok_val) != i) {
+        if (xstrlen(tok_val) != i) {
             error("[%s:%d:%d] unknown character '%c' in integer suffix ", ctx->file, lc.line_pos, lc.col_pos, tok_val[i]);
         }
     }

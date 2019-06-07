@@ -97,7 +97,7 @@ void emit_no_tab(Codegen_Context* ctx, char* fmt, ...) {
     xassert(ctx);
     va_list args;
     va_start(args, fmt);
-    s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
+    s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // xstrlen + 1 for '\n'
     va_end(args);
     char* str = xmalloc(str_len);
 
@@ -114,7 +114,7 @@ void emit_extern(Codegen_Context* ctx, char* fmt, ...) {
     xassert(ctx);
     va_list args;
     va_start(args, fmt);
-    s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
+    s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // xstrlen + 1 for '\n'
     va_end(args);
     char* str = xmalloc(str_len);
 
@@ -132,7 +132,7 @@ char* emit_data(Codegen_Context* ctx, char* fmt, ...) {
     xassert(ctx);
     va_list args;
     va_start(args, fmt);
-    s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
+    s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // xstrlen + 1 for '\n'
     va_end(args);
     char* str = xmalloc(str_len);
 
@@ -164,7 +164,7 @@ char* emit_data(Codegen_Context* ctx, char* fmt, ...) {
 //     xassert(ctx);
 //     va_list args;
 //     va_start(args, fmt);
-//     s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
+//     s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // xstrlen + 1 for '\n'
 //     va_end(args);
 //     char* str = xmalloc(str_len);
 
@@ -181,7 +181,7 @@ void emit(Codegen_Context* ctx, char* fmt, ...) {
     xassert(ctx);
     va_list args;
     va_start(args, fmt);
-    s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // strlen + 1 for '\n'
+    s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // xstrlen + 1 for '\n'
     va_end(args);
     char* str = xmalloc(str_len);
 

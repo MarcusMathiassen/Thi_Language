@@ -22,10 +22,10 @@
 
 #include "constants.h"
 #include "typedefs.h"
-#include "utility.h" // info, warning, xmalloc, xrealloc
-  // assert
+#include "utility.h" // info, warning, xmalloc, xrealloc, xstrlen
 #include <ctype.h>   // isalnum, isdigit
 #include <string.h>  // strncmp
+#include <stdlib.h>  // malloc
 
 //------------------------------------------------------------------------------
 //                              lexer.c
@@ -814,14 +814,14 @@ void intern_array_append(Intern_Array* l, Intern intern) {
 }
 
 char* intern(Intern_Array* interns, char* str) {
-    return intern_range(interns, str, str + strlen(str));
+    return intern_range(interns, str, str + xstrlen(str));
 }
 
 char* intern_range(Intern_Array* interns, char* start, char* end) {
     s64 len = end - start;
 
     for (s64 i = 0; i < interns->count; ++i) {
-        Intern intern = (Intern)interns->data[i];
+        Intern intern = interns->data[i];
         if (intern.len == len && strncmp(intern.str, start, len) == 0) {
             return intern.str;
         }

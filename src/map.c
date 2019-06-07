@@ -27,6 +27,7 @@
 #include "utility.h"
 
 #include <string.h>
+#include <stdlib.h> // free
 
 typedef struct
 {

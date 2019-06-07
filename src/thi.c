@@ -21,8 +21,9 @@
 #include "thi.h"
 #include "type.h"
 #include "utility.h"
- // assert
 #include <string.h> // strcmp
+#include <stdlib.h> // malloc, realloc, calloc
+
 
 Thi make_thi() {
     Thi thi;

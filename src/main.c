@@ -663,9 +663,9 @@ int main(int argc, char** argv) {
     success("lines %s%s comments %s", give_unique_color(strf("%lld", pctx.lines)), RGB_GRAY, give_unique_color(strf("%lld", pctx.comments)));
     LIST_FOREACH(get_timers(&thi)) {
         Timer* tm = it->data;
-        s64 len = strlen(tm->desc);
+        s64 len = xstrlen(tm->desc);
         char* ms = strf("%f seconds", tm->ms / 1e3);
-        s64 ms_l = strlen(ms);
+        s64 ms_l = xstrlen(ms);
         s64 padding = w.ws_col - len - ms_l - 1; // -1 is the ':'
         success("%s", give_unique_color(strf("%s:%*s%s", tm->desc, padding, "", ms)));
     }

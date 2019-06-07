@@ -65,7 +65,7 @@ char* string_data(string* this) {
 void string_append(string* this, char* str) {
     xassert(this);
     if (!str) return;
-    s64 str_len = strlen(str);
+    s64 str_len = xstrlen(str);
     if (str_len == 0) return;
     xassert(this->len <= this->cap);
     while (this->len + str_len >= this->cap) {

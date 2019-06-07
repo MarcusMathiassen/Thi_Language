@@ -26,7 +26,7 @@
 #include <stdarg.h>  // va_list, va_start, va_end
 #include <stdio.h>   //
 #include <string.h>  // strncat,
-
+#include <stdlib.h> // malloc, realloc, calloc
 //------------------------------------------------------------------------------
 //                               value.c
 //------------------------------------------------------------------------------
@@ -201,7 +201,7 @@ Value* make_value_string(char* value, Type* type) {
     Value* v = make_value(VALUE_STRING);
     v->type = type;
     v->String.value = value;
-    v->String.len = strlen(value);
+    v->String.len = xstrlen(value);
     return v;
 }
 

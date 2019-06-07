@@ -27,9 +27,9 @@
 #include "lexer.h"  // token_kind_to_str,
 #include "string.h" // strf, string_append, string
 #include "typedefs.h"
-#include "utility.h" // info, success, error, warning, xmalloc, xrealloc
-  // assert
-#include <string.h>  // strlen
+#include "utility.h" // info, success, error, warning, xmalloc, xrealloc, xstrlen
+#include <stdlib.h> 
+#include <string.h> // strlen
 
 //------------------------------------------------------------------------------
 //                               AST Utility
@@ -304,7 +304,7 @@ static char* _ast_to_str(String_Context* ctx, AST* node) {
     case AST_FLOAT: {
         // @Checkout(marcus): not to sure about the fmt.
         char* str = strf("%.14g", node->Float.val);
-        u64 n = strlen(str);
+        u64 n = xstrlen(str);
         // This makes sure there is at least a single decimal point.
         string_append_f(s, "%s", n == 1 ? strf("%s.00", str) : str);
         // string_append_f(s, "%f", node->Float.val);

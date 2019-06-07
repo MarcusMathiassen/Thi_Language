@@ -24,7 +24,7 @@
 #include <stdarg.h> // va_list, va_start, va_end
 #include <stdio.h>  // printf, vprintf
 #include <stdlib.h> // malloc, realloc, calloc
-#include <string.h> // memcpy
+#include <string.h> // memcpy, strlen
 #include <time.h>   // timeval
 #include <unistd.h>
 
@@ -124,7 +124,7 @@ void error_no_newline(char* fmt, ...) {
 char* get_file_extension(char* filename) {
     xassert(filename);
     DEBUG_PRINT_ENTRY;
-    s64 len = strlen(filename);
+    s64 len = xstrlen(filename);
     s64 i = 0;
     // myfile.txt => txt
     // start from the back..
@@ -150,7 +150,7 @@ char* get_file_extension(char* filename) {
 char* remove_file_extension(char* filename) {
     xassert(filename);
     DEBUG_PRINT_ENTRY;
-    s64 len = strlen(filename);
+    s64 len = xstrlen(filename);
     s64 i = 0;
     while (i < len) {
         if (filename[len - (i)] == '.') break;
@@ -170,7 +170,7 @@ char* remove_file_extension(char* filename) {
 char* get_file_directory(char* filename) {
     xassert(filename);
     DEBUG_PRINT_ENTRY;
-    s64 len = strlen(filename);
+    s64 len = xstrlen(filename);
     while (len > 0) {
         if (filename[len] == '/') break;
         --len;
@@ -190,7 +190,7 @@ char* get_file_directory(char* filename) {
 char* get_file_name(char* filename) {
     xassert(filename);
     DEBUG_PRINT_ENTRY;
-    s64 len = strlen(filename);
+    s64 len = xstrlen(filename);
     s64 i = 0;
     while (i < len) {
         if (filename[len-i] == '/') break;
@@ -286,6 +286,14 @@ void* _realloc(void* ptr, s64 bytes, char* file, char* func, s64 line) {
     if (!alloc) error("[%s:%s:%lld] realloc(%lld, %llu) failed", file, func, line, (u64)ptr, bytes);
     // info("[%s:%s:%lld] realloc(%lld, %llu) called", file, func, line, (u64)ptr, bytes);
     return alloc;
+}
+
+u64 _strlen(char* str, char* file, char* func, s64 line) {
+    xassert(str);
+    u64 len = strlen(str);
+    // if (!len) error("[%s:%s:%lld] strlen(%s) failed", file, func, line, str);
+    // info("[%s:%s:%lld] strlen(%s) called", file, func, line, str);
+    return len;   
 }
 
 char* strn(char* start, char* end) {
