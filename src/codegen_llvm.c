@@ -41,20 +41,20 @@
     // emit(ctx, "; %s", ast_to_str(node));
 
 
-static char* codegen_node(Codegen_Context* ctx, AST* node) {
+static char* codegen(Codegen_Context* ctx, AST* node) {
     xassert(ctx);
     if (!node) return NULL;
     switch (node->kind) {
     ERROR_UNHANDLED_AST_KIND(node->kind);
     case AST_MODULE:
         LIST_FOREACH(node->Module.top_level) {
-            codegen_node(ctx, it->data);
+            codegen(ctx, it->data);
         }
         return NULL;
     case AST_COMMENT: return NULL;
     case AST_NOP: return NULL;
     case AST_FALLTHROUGH: return NULL;
-    case AST_LOAD: return codegen_node(ctx, node->Load.module);
+    case AST_LOAD: return codegen(ctx, node->Load.module);
     case AST_LINK: return NULL;
     case AST_IDENT: {
         string* s = string_create("%%1 = load i32, i32* %%0");
@@ -68,14 +68,14 @@ static char* codegen_node(Codegen_Context* ctx, AST* node) {
         return NULL;
     }
     case AST_RETURN: {
-        codegen_node(ctx, node->Return.node);
+        codegen(ctx, node->Return.node);
         return NULL;
     }
     case AST_BLOCK: {
         string* s = string_create("{\n");
         emit_no_tab(ctx, string_data(s));
         LIST_FOREACH(node->Block.stmts) {
-            codegen_node(ctx, it->data);
+            codegen(ctx, it->data);
         }
         emit_no_tab(ctx, "\n}");
         return NULL;
@@ -91,7 +91,7 @@ static char* codegen_node(Codegen_Context* ctx, AST* node) {
         }
         string_append(s, ")");
         emit_no_tab(ctx, string_data(s));
-        codegen_node(ctx, func->Function.body);
+        codegen(ctx, func->Function.body);
         return NULL;
     }
     case AST_INT: {
@@ -106,7 +106,7 @@ char* generate_llvm_from_ast(AST* ast) {
     xassert(ast);
     info("Generating code from ast");
     Codegen_Context ctx = make_codegen_context();
-    codegen_node(&ctx, ast);
+    codegen(&ctx, ast);
     char* output = string_data(ctx.section_text);
     info("%s", output);
     return output;
