@@ -53,18 +53,18 @@ char* type_kind_to_str(Type_Kind kind) {
 //                               String Functions
 //------------------------------------------------------------------------------
 
-static inline void _type_to_str_unresolved (string* s, Type* type);
-static inline void _type_to_str_void       (string* s, Type* type);
-static inline void _type_to_str_int        (string* s, Type* type);
-static inline void _type_to_str_float      (string* s, Type* type);
-static inline void _type_to_str_string     (string* s, Type* type);
-static inline void _type_to_str_pointer    (string* s, Type* type);
-static inline void _type_to_str_array      (string* s, Type* type);
-static inline void _type_to_str_enum       (string* s, Type* type);
-static inline void _type_to_str_struct     (string* s, Type* type);
-static inline void _type_to_str_union      (string* s, Type* type);
-static inline void _type_to_str_function   (string* s, Type* type);
-static inline void _type_to_str_var_args   (string* s, Type* type);
+static void type_to_str_unresolved (string* s, Type* type);
+static void type_to_str_void       (string* s, Type* type);
+static void type_to_str_int        (string* s, Type* type);
+static void type_to_str_float      (string* s, Type* type);
+static void type_to_str_string     (string* s, Type* type);
+static void type_to_str_pointer    (string* s, Type* type);
+static void type_to_str_array      (string* s, Type* type);
+static void type_to_str_enum       (string* s, Type* type);
+static void type_to_str_struct     (string* s, Type* type);
+static void type_to_str_union      (string* s, Type* type);
+static void type_to_str_function   (string* s, Type* type);
+static void type_to_str_var_args   (string* s, Type* type);
 
 char* type_to_str(Type* type) {
 
@@ -80,53 +80,53 @@ char* type_to_str(Type* type) {
 
     switch (kind) {
     ERROR_UNHANDLED_TYPE_KIND(kind);
-    case TYPE_UNRESOLVED: _type_to_str_unresolved (s, type); break;
-    case TYPE_VOID:       _type_to_str_void       (s, type); break;
-    case TYPE_INT:        _type_to_str_int        (s, type); break;
-    case TYPE_FLOAT:      _type_to_str_float      (s, type); break;
-    case TYPE_STRING:     _type_to_str_string     (s, type); break;
-    case TYPE_POINTER:    _type_to_str_pointer    (s, type); break;
-    case TYPE_ARRAY:      _type_to_str_array      (s, type); break;
-    case TYPE_ENUM:       _type_to_str_enum       (s, type); break;
-    case TYPE_STRUCT:     _type_to_str_struct     (s, type); break;
-    case TYPE_UNION:      _type_to_str_union      (s, type); break;
-    case TYPE_FUNCTION:   _type_to_str_function   (s, type); break;
-    case TYPE_VAR_ARGS:   _type_to_str_var_args   (s, type); break;
+    case TYPE_UNRESOLVED: type_to_str_unresolved (s, type); break;
+    case TYPE_VOID:       type_to_str_void       (s, type); break;
+    case TYPE_INT:        type_to_str_int        (s, type); break;
+    case TYPE_FLOAT:      type_to_str_float      (s, type); break;
+    case TYPE_STRING:     type_to_str_string     (s, type); break;
+    case TYPE_POINTER:    type_to_str_pointer    (s, type); break;
+    case TYPE_ARRAY:      type_to_str_array      (s, type); break;
+    case TYPE_ENUM:       type_to_str_enum       (s, type); break;
+    case TYPE_STRUCT:     type_to_str_struct     (s, type); break;
+    case TYPE_UNION:      type_to_str_union      (s, type); break;
+    case TYPE_FUNCTION:   type_to_str_function   (s, type); break;
+    case TYPE_VAR_ARGS:   type_to_str_var_args   (s, type); break;
     }
     return string_data(s);
 }
 
-static inline void _type_to_str_unresolved (string* s, Type* type) {
+static void type_to_str_unresolved (string* s, Type* type) {
     string_append_f(s, "%s?", get_type_name(type));
 }
 
-static inline void _type_to_str_void       (string* s, Type* type) {
+static void type_to_str_void       (string* s, Type* type) {
     string_append(s, "void");
 }
 
-static inline void _type_to_str_int        (string* s, Type* type) {
+static void type_to_str_int        (string* s, Type* type) {
     string_append_f(s, type->Int.is_unsigned ? "u%d" : "s%d", type->Int.bytes * 8);
 }
 
-static inline void _type_to_str_float      (string* s, Type* type) {
+static void type_to_str_float      (string* s, Type* type) {
     string_append_f(s, "f%d", type->Float.bytes * 8);
 }
 
-static inline void _type_to_str_string     (string* s, Type* type) {
+static void type_to_str_string     (string* s, Type* type) {
     string_append_f(s, "\"\", %d", type->String.len);
 }
 
-static inline void _type_to_str_pointer    (string* s, Type* type) {
+static void type_to_str_pointer    (string* s, Type* type) {
     string_append(s, type_to_str(type->Pointer.pointee));
     string_append(s, "*");
 }
 
-static inline void _type_to_str_array      (string* s, Type* type) {
+static void type_to_str_array      (string* s, Type* type) {
     type_to_str(type->Array.type);
     string_append_f(s, "[%d]", type->Array.size);
 }
 
-static inline void _type_to_str_enum       (string* s, Type* type) {
+static void type_to_str_enum       (string* s, Type* type) {
     string_append_f(s, "%s = { ", get_type_name(type));
     LIST_FOREACH(type_get_members(type)) {
         Type_Name_Pair* mem = it->data;
@@ -139,7 +139,7 @@ static inline void _type_to_str_enum       (string* s, Type* type) {
     string_append(s, " }");
 }
 
-static inline void _type_to_str_struct     (string* s, Type* type) {
+static void type_to_str_struct     (string* s, Type* type) {
     string_append_f(s, "%s = { ", get_type_name(type));
     LIST_FOREACH(type_get_members(type)) {
         Type_Name_Pair* mem = it->data;
@@ -152,11 +152,11 @@ static inline void _type_to_str_struct     (string* s, Type* type) {
     string_append(s, " }");
 }
 
-static inline void _type_to_str_union      (string* s, Type* type) {
+static void type_to_str_union      (string* s, Type* type) {
 
 }
 
-static inline void _type_to_str_function   (string* s, Type* type) {
+static void type_to_str_function   (string* s, Type* type) {
     string_append(s, "(");
     LIST_FOREACH(type->Function.parameters) {
         Type_Name_Pair* param = it->data;
@@ -169,7 +169,7 @@ static inline void _type_to_str_function   (string* s, Type* type) {
     string_append_f(s, ") %s", get_type_name(type->Function.return_type));
 }
 
-static inline void _type_to_str_var_args   (string* s, Type* type) {
+static void type_to_str_var_args   (string* s, Type* type) {
     string_append(s, "...");
 }
 

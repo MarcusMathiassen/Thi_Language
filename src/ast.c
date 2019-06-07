@@ -129,48 +129,48 @@ char* ast_to_str(AST* node) {
     return _ast_to_str(&ctx, node);
 }
 
-inline static void _ast_to_str_comment                         (String_Context* ctx, AST* node);
-inline static void _ast_to_str_nop                             (String_Context* ctx, AST* node);
-inline static void _ast_to_str_space_separated_identifier_list (String_Context* ctx, AST* node);
-inline static void _ast_to_str_comma_separated_list            (String_Context* ctx, AST* node);
-inline static void _ast_to_str_module                          (String_Context* ctx, AST* node);
-inline static void _ast_to_str_is                              (String_Context* ctx, AST* node);
-inline static void _ast_to_str_fallthrough                     (String_Context* ctx, AST* node);
-inline static void _ast_to_str_var_args                        (String_Context* ctx, AST* node);
-inline static void _ast_to_str_extern                          (String_Context* ctx, AST* node);
-inline static void _ast_to_str_load                            (String_Context* ctx, AST* node);
-inline static void _ast_to_str_link                            (String_Context* ctx, AST* node);
-inline static void _ast_to_str_note                            (String_Context* ctx, AST* node);
-inline static void _ast_to_str_int                             (String_Context* ctx, AST* node);
-inline static void _ast_to_str_float                           (String_Context* ctx, AST* node);
-inline static void _ast_to_str_string                          (String_Context* ctx, AST* node);
-inline static void _ast_to_str_char                            (String_Context* ctx, AST* node);
-inline static void _ast_to_str_ident                           (String_Context* ctx, AST* node);
-inline static void _ast_to_str_call                            (String_Context* ctx, AST* node);
-inline static void _ast_to_str_unary                           (String_Context* ctx, AST* node);
-inline static void _ast_to_str_binary                          (String_Context* ctx, AST* node);
-inline static void _ast_to_str_grouping                        (String_Context* ctx, AST* node);
-inline static void _ast_to_str_subscript                       (String_Context* ctx, AST* node);
-inline static void _ast_to_str_field_access                    (String_Context* ctx, AST* node);
-inline static void _ast_to_str_as                              (String_Context* ctx, AST* node);
-inline static void _ast_to_str_block                           (String_Context* ctx, AST* node);
-inline static void _ast_to_str_struct                          (String_Context* ctx, AST* node);
-inline static void _ast_to_str_enum                            (String_Context* ctx, AST* node);
-inline static void _ast_to_str_function                        (String_Context* ctx, AST* node);
-inline static void _ast_to_str_variable_decl                   (String_Context* ctx, AST* node);
-inline static void _ast_to_str_if                              (String_Context* ctx, AST* node);
-inline static void _ast_to_str_for                             (String_Context* ctx, AST* node);
-inline static void _ast_to_str_while                           (String_Context* ctx, AST* node);
-inline static void _ast_to_str_return                          (String_Context* ctx, AST* node);
-inline static void _ast_to_str_defer                           (String_Context* ctx, AST* node);
-inline static void _ast_to_str_break                           (String_Context* ctx, AST* node);
-inline static void _ast_to_str_continue                        (String_Context* ctx, AST* node);
-inline static void _ast_to_str_typeof                          (String_Context* ctx, AST* node);
-inline static void _ast_to_str_sizeof                          (String_Context* ctx, AST* node);
-inline static void _ast_to_str_switch                          (String_Context* ctx, AST* node);
-inline static void _ast_to_str_post_inc_or_dec                 (String_Context* ctx, AST* node);
-inline static void _ast_to_str_literal                         (String_Context* ctx, AST* node);
-inline static void _ast_to_str_asm                             (String_Context* ctx, AST* node);
+static void _ast_to_str_comment                         (String_Context* ctx, AST* node);
+static void _ast_to_str_nop                             (String_Context* ctx, AST* node);
+static void _ast_to_str_space_separated_identifier_list (String_Context* ctx, AST* node);
+static void _ast_to_str_comma_separated_list            (String_Context* ctx, AST* node);
+static void _ast_to_str_module                          (String_Context* ctx, AST* node);
+static void _ast_to_str_is                              (String_Context* ctx, AST* node);
+static void _ast_to_str_fallthrough                     (String_Context* ctx, AST* node);
+static void _ast_to_str_var_args                        (String_Context* ctx, AST* node);
+static void _ast_to_str_extern                          (String_Context* ctx, AST* node);
+static void _ast_to_str_load                            (String_Context* ctx, AST* node);
+static void _ast_to_str_link                            (String_Context* ctx, AST* node);
+static void _ast_to_str_note                            (String_Context* ctx, AST* node);
+static void _ast_to_str_int                             (String_Context* ctx, AST* node);
+static void _ast_to_str_float                           (String_Context* ctx, AST* node);
+static void _ast_to_str_string                          (String_Context* ctx, AST* node);
+static void _ast_to_str_char                            (String_Context* ctx, AST* node);
+static void _ast_to_str_ident                           (String_Context* ctx, AST* node);
+static void _ast_to_str_call                            (String_Context* ctx, AST* node);
+static void _ast_to_str_unary                           (String_Context* ctx, AST* node);
+static void _ast_to_str_binary                          (String_Context* ctx, AST* node);
+static void _ast_to_str_grouping                        (String_Context* ctx, AST* node);
+static void _ast_to_str_subscript                       (String_Context* ctx, AST* node);
+static void _ast_to_str_field_access                    (String_Context* ctx, AST* node);
+static void _ast_to_str_as                              (String_Context* ctx, AST* node);
+static void _ast_to_str_block                           (String_Context* ctx, AST* node);
+static void _ast_to_str_struct                          (String_Context* ctx, AST* node);
+static void _ast_to_str_enum                            (String_Context* ctx, AST* node);
+static void _ast_to_str_function                        (String_Context* ctx, AST* node);
+static void _ast_to_str_variable_decl                   (String_Context* ctx, AST* node);
+static void _ast_to_str_if                              (String_Context* ctx, AST* node);
+static void _ast_to_str_for                             (String_Context* ctx, AST* node);
+static void _ast_to_str_while                           (String_Context* ctx, AST* node);
+static void _ast_to_str_return                          (String_Context* ctx, AST* node);
+static void _ast_to_str_defer                           (String_Context* ctx, AST* node);
+static void _ast_to_str_break                           (String_Context* ctx, AST* node);
+static void _ast_to_str_continue                        (String_Context* ctx, AST* node);
+static void _ast_to_str_typeof                          (String_Context* ctx, AST* node);
+static void _ast_to_str_sizeof                          (String_Context* ctx, AST* node);
+static void _ast_to_str_switch                          (String_Context* ctx, AST* node);
+static void _ast_to_str_post_inc_or_dec                 (String_Context* ctx, AST* node);
+static void _ast_to_str_literal                         (String_Context* ctx, AST* node);
+static void _ast_to_str_asm                             (String_Context* ctx, AST* node);
 
 static char* _ast_to_str(String_Context* ctx, AST* node) {
     xassert(ctx);
@@ -249,19 +249,19 @@ static char* _ast_to_str(String_Context* ctx, AST* node) {
 
 
 
-inline static void _ast_to_str_comment(String_Context* ctx, AST* node) {
+static void _ast_to_str_comment(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append_f(s, "#%s", node->Comment.text);
 }
 
-inline static void _ast_to_str_nop(String_Context* ctx, AST* node) {
+static void _ast_to_str_nop(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append(s, "nop");
 }
 
-inline static void _ast_to_str_space_separated_identifier_list(String_Context* ctx, AST* node) {
+static void _ast_to_str_space_separated_identifier_list(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     LIST_FOREACH(node->Space_Separated_Identifier_List.identifiers) {
@@ -270,7 +270,7 @@ inline static void _ast_to_str_space_separated_identifier_list(String_Context* c
     }
 }
 
-inline static void _ast_to_str_comma_separated_list(String_Context* ctx, AST* node) {
+static void _ast_to_str_comma_separated_list(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     LIST_FOREACH(node->Comma_Separated_List.nodes) {
@@ -279,7 +279,7 @@ inline static void _ast_to_str_comma_separated_list(String_Context* ctx, AST* no
     }
 }
 
-inline static void _ast_to_str_module(String_Context* ctx, AST* node) {
+static void _ast_to_str_module(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     LIST_FOREACH(node->Module.top_level) {
@@ -289,7 +289,7 @@ inline static void _ast_to_str_module(String_Context* ctx, AST* node) {
     }
 }
 
-inline static void _ast_to_str_is(String_Context* ctx, AST* node) {
+static void _ast_to_str_is(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append(s, "is ");
@@ -298,26 +298,26 @@ inline static void _ast_to_str_is(String_Context* ctx, AST* node) {
     _ast_to_str(ctx, node->Is.body);
 }
 
-inline static void _ast_to_str_fallthrough(String_Context* ctx, AST* node) {
+static void _ast_to_str_fallthrough(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append(s, "fallthrough");
 }
 
-inline static void _ast_to_str_var_args(String_Context* ctx, AST* node) {
+static void _ast_to_str_var_args(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append(s, "...");
 }
 
-inline static void _ast_to_str_extern(String_Context* ctx, AST* node) {
+static void _ast_to_str_extern(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append_f(s, "extern %s", get_ast_name(node));
     type_to_str(node->Extern.type);
 }
 
-inline static void _ast_to_str_load(String_Context* ctx, AST* node) {
+static void _ast_to_str_load(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     if (!ctx->as_source)
@@ -326,26 +326,26 @@ inline static void _ast_to_str_load(String_Context* ctx, AST* node) {
         _ast_to_str(ctx, node->Load.module);
 }
 
-inline static void _ast_to_str_link(String_Context* ctx, AST* node) {
+static void _ast_to_str_link(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append_f(s, "link \"%s\"", node->Link.str);
 }
 
-inline static void _ast_to_str_note(String_Context* ctx, AST* node) {
+static void _ast_to_str_note(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append(s, "$");
     _ast_to_str(ctx, node->Note.node);
 }
 
-inline static void _ast_to_str_int(String_Context* ctx, AST* node) {
+static void _ast_to_str_int(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append_f(s, "%lld", node->Int.val);
 }
 
-inline static void _ast_to_str_float(String_Context* ctx, AST* node) {
+static void _ast_to_str_float(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     // @Checkout(marcus): not to sure about the fmt.
@@ -356,25 +356,25 @@ inline static void _ast_to_str_float(String_Context* ctx, AST* node) {
     // string_append_f(s, "%f", node->Float.val);
 }
 
-inline static void _ast_to_str_string(String_Context* ctx, AST* node) {
+static void _ast_to_str_string(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append_f(s, "\"%s\"", node->String.val);
 }
 
-inline static void _ast_to_str_char(String_Context* ctx, AST* node) {
+static void _ast_to_str_char(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append_f(s, "'%c'", node->Char.val);
 }
 
-inline static void _ast_to_str_ident(String_Context* ctx, AST* node) {
+static void _ast_to_str_ident(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append(s, get_ast_name(node));
 }
 
-inline static void _ast_to_str_call(String_Context* ctx, AST* node) {
+static void _ast_to_str_call(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append_f(s, "%s(", node->Call.callee);
@@ -385,14 +385,14 @@ inline static void _ast_to_str_call(String_Context* ctx, AST* node) {
     string_append(s, ")");
 }
 
-inline static void _ast_to_str_unary(String_Context* ctx, AST* node) {
+static void _ast_to_str_unary(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append_f(s, "%s", token_kind_to_str(node->Unary.op));
     _ast_to_str(ctx, node->Unary.operand);
 }
 
-inline static void _ast_to_str_binary(String_Context* ctx, AST* node) {
+static void _ast_to_str_binary(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     _ast_to_str(ctx, node->Binary.lhs);
@@ -402,7 +402,7 @@ inline static void _ast_to_str_binary(String_Context* ctx, AST* node) {
     _ast_to_str(ctx, node->Binary.rhs);
 }
 
-inline static void _ast_to_str_grouping(String_Context* ctx, AST* node) {
+static void _ast_to_str_grouping(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append(s, "(");
@@ -410,7 +410,7 @@ inline static void _ast_to_str_grouping(String_Context* ctx, AST* node) {
     string_append(s, ")");
 }
 
-inline static void _ast_to_str_subscript(String_Context* ctx, AST* node) {
+static void _ast_to_str_subscript(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     _ast_to_str(ctx, node->Subscript.load);
@@ -419,14 +419,14 @@ inline static void _ast_to_str_subscript(String_Context* ctx, AST* node) {
     string_append(s, "]");
 }
 
-inline static void _ast_to_str_field_access(String_Context* ctx, AST* node) {
+static void _ast_to_str_field_access(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     _ast_to_str(ctx, node->Field_Access.load);
     string_append_f(s, ".%s", node->Field_Access.field);
 }
 
-inline static void _ast_to_str_as(String_Context* ctx, AST* node) {
+static void _ast_to_str_as(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     _ast_to_str(ctx, node->As.node);
@@ -434,7 +434,7 @@ inline static void _ast_to_str_as(String_Context* ctx, AST* node) {
     _ast_to_str(ctx, node->As.type_node);
 }
 
-inline static void _ast_to_str_block(String_Context* ctx, AST* node) {
+static void _ast_to_str_block(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append(s, "\n");
@@ -448,7 +448,7 @@ inline static void _ast_to_str_block(String_Context* ctx, AST* node) {
     ctx->indentation_level -= DEFAULT_INDENT_LEVEL;
 }
 
-inline static void _ast_to_str_struct(String_Context* ctx, AST* node) {
+static void _ast_to_str_struct(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append_f(s, "def %s\n", get_ast_name(node));
@@ -461,7 +461,7 @@ inline static void _ast_to_str_struct(String_Context* ctx, AST* node) {
     ctx->indentation_level -= DEFAULT_INDENT_LEVEL;
 }
 
-inline static void _ast_to_str_enum(String_Context* ctx, AST* node) {
+static void _ast_to_str_enum(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append_f(s, "def %s\n", get_ast_name(node));
@@ -474,7 +474,7 @@ inline static void _ast_to_str_enum(String_Context* ctx, AST* node) {
     ctx->indentation_level -= DEFAULT_INDENT_LEVEL;
 }
 
-inline static void _ast_to_str_function(String_Context* ctx, AST* node) {
+static void _ast_to_str_function(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append_f(s, "def %s(", get_ast_name(node));
@@ -486,7 +486,7 @@ inline static void _ast_to_str_function(String_Context* ctx, AST* node) {
     _ast_to_str(ctx, node->Function.body);
 }
 
-inline static void _ast_to_str_variable_decl(String_Context* ctx, AST* node) {
+static void _ast_to_str_variable_decl(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     if (node->Variable_Decl.value) {
@@ -497,7 +497,7 @@ inline static void _ast_to_str_variable_decl(String_Context* ctx, AST* node) {
     }
 }
 
-inline static void _ast_to_str_if(String_Context* ctx, AST* node) {
+static void _ast_to_str_if(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append(s, "if ");
@@ -510,7 +510,7 @@ inline static void _ast_to_str_if(String_Context* ctx, AST* node) {
     }
 }
 
-inline static void _ast_to_str_for(String_Context* ctx, AST* node) {
+static void _ast_to_str_for(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append(s, "for ");
@@ -522,7 +522,7 @@ inline static void _ast_to_str_for(String_Context* ctx, AST* node) {
     _ast_to_str(ctx, node->For.then_block);
 }
 
-inline static void _ast_to_str_while(String_Context* ctx, AST* node) {
+static void _ast_to_str_while(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append(s, "while ");
@@ -531,47 +531,47 @@ inline static void _ast_to_str_while(String_Context* ctx, AST* node) {
     _ast_to_str(ctx, node->While.then_block);
 }
 
-inline static void _ast_to_str_return(String_Context* ctx, AST* node) {
+static void _ast_to_str_return(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append(s, "return ");
     _ast_to_str(ctx, node->Return.node);
 }
 
-inline static void _ast_to_str_defer(String_Context* ctx, AST* node) {
+static void _ast_to_str_defer(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append(s, "defer ");
     _ast_to_str(ctx, node->Defer.node);
 }
 
-inline static void _ast_to_str_break(String_Context* ctx, AST* node) {
+static void _ast_to_str_break(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append(s, "break");
 }
 
-inline static void _ast_to_str_continue(String_Context* ctx, AST* node) {
+static void _ast_to_str_continue(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append(s, "continue");
 }
 
-inline static void _ast_to_str_typeof(String_Context* ctx, AST* node) {
+static void _ast_to_str_typeof(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append(s, "typeof ");
     _ast_to_str(ctx, node->Typeof.node);
 }
 
-inline static void _ast_to_str_sizeof(String_Context* ctx, AST* node) {
+static void _ast_to_str_sizeof(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append(s, "sizeof ");
     _ast_to_str(ctx, node->Sizeof.node);
 }
 
-inline static void _ast_to_str_switch(String_Context* ctx, AST* node) {
+static void _ast_to_str_switch(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append(s, "switch ");
@@ -581,14 +581,14 @@ inline static void _ast_to_str_switch(String_Context* ctx, AST* node) {
     _ast_to_str(ctx, node->Switch.default_case);
 }
 
-inline static void _ast_to_str_post_inc_or_dec(String_Context* ctx, AST* node) {
+static void _ast_to_str_post_inc_or_dec(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     _ast_to_str(ctx, node->Post_Inc_or_Dec.node);
     string_append(s, token_kind_to_str(node->Post_Inc_or_Dec.op));
 }
 
-inline static void _ast_to_str_literal(String_Context* ctx, AST* node) {
+static void _ast_to_str_literal(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     switch (node->Literal.kind) {
@@ -601,7 +601,7 @@ inline static void _ast_to_str_literal(String_Context* ctx, AST* node) {
     }
 }
 
-inline static void _ast_to_str_asm(String_Context* ctx, AST* node) {
+static void _ast_to_str_asm(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append(s, "asm");
