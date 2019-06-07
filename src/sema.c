@@ -51,7 +51,7 @@ static AST* get_symbol_in_scope(Sema_Context* ctx, char* name);
 static void add_node_to_scope(Sema_Context* ctx, AST* node);
 static void add_all_decls_in_module(Sema_Context* ctx, AST* node);
 
-static Type*  _sema                                 (Sema_Context* ctx, AST* node);
+static Type*  _sema                                        (Sema_Context* ctx, AST* node);
 inline static Type*  sema_comment                          (Sema_Context* ctx, AST* node);
 inline static Type*  sema_nop                              (Sema_Context* ctx, AST* node);
 inline static Type*  sema_space_separated_identifier_list  (Sema_Context* ctx, AST* node);
@@ -346,16 +346,22 @@ inline static Type* sema_block(Sema_Context* ctx, AST* node) {
     SCOPE_START;
     List* stmts = node->Block.stmts;
 
-    LIST_FOREACH(stmts) {
-        _sema(ctx, it->data);
-    }
-
     List* returned_nodes = make_list();
+
     LIST_FOREACH(stmts) {
-        AST* stmt = it->data;
+        AST* stmt = it->data; 
+        _sema(ctx, stmt);
+
         if (stmt->kind == AST_RETURN) {
             list_append(returned_nodes, stmt);
         }
+
+        if (stmt->kind == AST_FUNCTION) {
+            xassert(ctx->module);
+            list_prepend(ctx->module->Module.top_level, stmt);
+            list_remove(stmts, it);
+        }
+
     }
 
     // In case of the block has a return
@@ -503,13 +509,20 @@ static void add_node_to_scope(Sema_Context* ctx, AST* node) {
 
 static void add_all_decls_in_module(Sema_Context* ctx, AST* node) {
     tassert(ctx && node, "%zu, %zu", ctx, node);
-    LIST_FOREACH(node->Module.top_level) {
+    xassert(node->kind == AST_MODULE);
+    List* decls = node->Module.top_level;
+    LIST_FOREACH(decls) {
         AST* decl = it->data;
         switch (decl->kind) {
         default: error("[%s:%s] illegal top level construct %s", get_ast_name(ctx->module), get_ast_loc_str(decl), ucolor(ast_to_str(decl)));
-        case AST_ASM: break;
         case AST_COMMENT: break;
-        case AST_LINK: break;
+        case AST_NOP:     break;
+        case AST_ASM:     break;
+        case AST_LINK:    break;
+        case AST_MODULE:
+            ctx->module = decl;
+            add_all_decls_in_module(ctx, decl);
+            break;
         case AST_LOAD:
             add_all_decls_in_module(ctx, decl->Load.module);
             break;
@@ -519,13 +532,13 @@ static void add_all_decls_in_module(Sema_Context* ctx, AST* node) {
                 error("[%s:%s] redeclaration of global variable %s", get_ast_name(ctx->module), get_ast_loc_str(decl), ucolor(ast_to_str(decl)));
             }
             decl->flags |= AST_FLAG_GLOBAL_VARIABLE;
-            // fallthrough
+            add_node_to_scope(ctx, decl);
+            break;
         }
         case AST_EXTERN:        // fallthrough
-        case AST_FUNCTION:      // fallthrough
-        case AST_VARIABLE_DECL: // fallthrough
         case AST_ENUM:          // fallthrough
-        case AST_STRUCT:
+        case AST_STRUCT:        // fallthrough
+        case AST_FUNCTION:
             add_node_to_scope(ctx, decl);
             break;
         }

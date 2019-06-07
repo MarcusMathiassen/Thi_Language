@@ -1,24 +1,15 @@
 link "-lSystem"
 
-def add(a s64, b s64) s64
-    asm
-        "mov rax, %b"
-        "add %a, rax"
-    return a
+extern printf(u8*, ...) s32
 
-asm
-    "extern _printf"
+def sayHi()
+    printf("Hi\n")
 
-asm
-    "my_string: db 'Marcus Mathiassen', 0"
+sayHi()
 
-def print(a char*)
-    asm
-        "mov rdi, %a"
-        "mov qword rsi, my_string"
-        "mov byte al, 3"
-        "call _printf"
 
-def main(argc s32, argv u8**) s64
-    print("Hello, %s\n")
-    return add(5, 3)
+printf("argc = %d\n", argc)
+printf("*argv = %s\n", *argv)
+
+
+return 1

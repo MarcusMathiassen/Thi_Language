@@ -504,7 +504,36 @@ int main(int argc, char** argv) {
     pctx.symbols = thi.symbol_map;
     AST* ast = parse_file(&pctx, name);
 
-    // ast = make_ast_module(ast->loc_info, source_file, ast);
+    List* main_params = make_list();
+    List* main_type_params = make_list();
+
+    Type* s32_t = get_symbol(&thi, "s32");
+    Type* u8pp_t = make_type_pointer(make_type_pointer(get_symbol(&thi, "u8")));
+    AST* argc_p = make_ast_variable_decl(ast->loc_info, "argc", s32_t, NULL);
+    AST* argv_p = make_ast_variable_decl(ast->loc_info, "argv", u8pp_t, NULL);
+
+    Type_Name_Pair* argc_tp = xmalloc(sizeof(*argc_tp));
+    argc_tp->name = get_ast_name(argc_p);
+    argc_tp->type = argc_p->type;
+
+    Type_Name_Pair* argv_tp = xmalloc(sizeof(*argv_tp));
+    argv_tp->name = get_ast_name(argv_p);
+    argv_tp->type = argv_p->type;
+
+    list_append(main_type_params, argv_tp);
+    list_append(main_type_params, argv_tp);
+    list_append(main_params, argc_p);
+    list_append(main_params, argv_p);
+
+    u32 flags = 0;
+    Type* return_type = get_symbol(&thi, "s32");
+    Type* main_type = make_type_function("main", main_type_params, return_type, flags);
+    AST* main_body = make_ast_block(ast->loc_info, ast->Module.top_level);
+
+    ast = make_ast_function(ast->loc_info, "main", main_params, main_type, main_body);
+    List* module_stmts = make_list();
+    list_append(module_stmts, ast);
+    ast = make_ast_module(ast->loc_info, "main", module_stmts);
 
     thi.links = ast_find_all_of_kind(AST_LINK, ast);
     info("all loaded files");
@@ -581,19 +610,19 @@ int main(int argc, char** argv) {
     thi_run_pass(&thi, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);
 
     // Remove unused externs
-    List* externs = ast_find_all_of_kind(AST_EXTERN, ast);
-    List* calls = ast_find_all_of_kind(AST_CALL, ast);
-    LIST_FOREACH(externs) {
-        AST* node_e = it->data;
-        bool used = false;
-        LIST_FOREACH(calls) {
-            AST* node_c = it->data;
-            if (strcmp(node_e->Extern.type->Function.name, node_c->Call.callee) == 0) {
-                used = true;
-            }
-        }
-        if (!used) ast_replace(node_e, make_ast_nop(node_e->loc_info));
-    }
+    // List* externs = ast_find_all_of_kind(AST_EXTERN, ast);
+    // List* calls = ast_find_all_of_kind(AST_CALL, ast);
+    // LIST_FOREACH(externs) {
+    //     AST* node_e = it->data;
+    //     bool used = false;
+    //     LIST_FOREACH(calls) {
+    //         AST* node_c = it->data;
+    //         if (strcmp(node_e->Extern.type->Function.name, node_c->Call.callee) == 0) {
+    //             used = true;
+    //         }
+    //     }
+    //     if (!used) ast_replace(node_e, make_ast_nop(node_e->loc_info));
+    // }
 
     // char* json = ast_to_json(ast);
     // write_to_file("ast.json", json);

@@ -119,7 +119,7 @@ static inline void _type_to_str_string     (string* s, Type* type) {
 }
 
 static inline void _type_to_str_pointer    (string* s, Type* type) {
-    type_to_str(type->Pointer.pointee);
+    string_append(s, type_to_str(type->Pointer.pointee));
     string_append(s, "*");
 }
 
