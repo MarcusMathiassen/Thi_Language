@@ -963,8 +963,8 @@ Value* codegen_asm(Codegen_Context* ctx, AST* node) {
             char* str = stmt->String.val;
             char c;
             info("%s", str);
-            char* substart;
-            char* subend;
+            char* substart =  NULL;
+            char* subend =  NULL;
             bool has_sub  = false;
             while ((c = *str)) {
                 if (c == '%') {

@@ -20,7 +20,6 @@
 
 #include "utility.h"
 #include "constants.h"
- // assert
 #include <stdarg.h> // va_list, va_start, va_end
 #include <stdio.h>  // printf, vprintf
 #include <stdlib.h> // malloc, realloc, calloc
@@ -297,7 +296,7 @@ u64 _strlen(char* str, char* file, char* func, s64 line) {
 }
 
 char* strn(char* start, char* end) {
-    xassert(start && end);
+    xassert(start && end && (start < end));
     s64 len = end - start;
     char* str = xmalloc(len + 1);
     memcpy(str, start, len);
