@@ -248,9 +248,6 @@ static char* _ast_to_str(String_Context* ctx, AST* node) {
 }
 
 
-
-
-
 static void _ast_to_str_comment(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;

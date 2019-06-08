@@ -33,6 +33,7 @@
       consolidate them into a single AST_Decl. 
 
 ## Bugs
+- [ ] Timers are wacky. Sometimes negative? Buggy buggy.
 - [ ] Typechecker shouldnt change the types of things. Only check.
 - [ ] there seems to be a bug in the ast_to_source printer. Comments get the
       wrong indentation after a block

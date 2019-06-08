@@ -404,7 +404,7 @@ void* sema_asm(void* ctx, AST* node) {
 }
 
 //------------------------------------------------------------------------------
-//                              sema Helpers
+//                              Sema Helpers
 //------------------------------------------------------------------------------
 
 AST* get_symbol_in_scope(Sema_Context* ctx, char* name) {
