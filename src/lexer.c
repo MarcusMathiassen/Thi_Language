@@ -172,8 +172,8 @@ void lexer_test(void) {
 }
 
 #define LEXER_ERROR(x) error("[%s:%d:%d] %s", ctx.file, token.line_pos, token.col_pos, x)
-Lexed_File generate_tokens_from_file(char* file) {
 
+Lexed_File generate_tokens_from_file(char* file) {
     char* source = get_file_content(file);
 
     Lexer_Context ctx;
@@ -212,11 +212,15 @@ Lexed_File generate_tokens_from_file(char* file) {
 
         // To handle extranous block starts from
         // explicit and implicit blocks started from indentation
-        // and braces. We keep a counter for every time we've 
-        // removed/not-added a block_start, and use this counter
-        // to figure out when we hit an undent if we should remove any
-        // duplicate following it. ex. undent undent
-        if ()
+        // and braces. We record how a block is started, by indentation
+        // or explicitly by braces. This is needed to figure out 
+        // how to handle 'undent undent' situations.
+
+        // ex. This would create duplicate 'indent-indent' and 'undent undent'
+        //     pairs. 
+        // if x {
+        // 
+        // }
         if (ctx.current_indentation_level > ctx.previous_indentation_level) {
             Token t;
             t.kind = TOKEN_BLOCK_START;
