@@ -34,55 +34,127 @@
 
 #define DEBUG_START                                                              \
     xassert(ctx && node);                                                        \
-    info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(node))); 
+    info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(node))); \
     // emit(ctx, "; %s", ast_to_str(node));
 
-static Value* codegen                                 (Codegen_Context* ctx, AST* node);
-static Value* codegen_comment                         (Codegen_Context* ctx, AST* node);
-static Value* codegen_nop                             (Codegen_Context* ctx, AST* node);
-static Value* codegen_space_separated_identifier_list (Codegen_Context* ctx, AST* node);
-static Value* codegen_comma_separated_list            (Codegen_Context* ctx, AST* node);
-static Value* codegen_module                          (Codegen_Context* ctx, AST* node);
-static Value* codegen_is                              (Codegen_Context* ctx, AST* node);
-static Value* codegen_fallthrough                     (Codegen_Context* ctx, AST* node);
-static Value* codegen_var_args                        (Codegen_Context* ctx, AST* node);
-static Value* codegen_extern                          (Codegen_Context* ctx, AST* node);
-static Value* codegen_load                            (Codegen_Context* ctx, AST* node);
-static Value* codegen_link                            (Codegen_Context* ctx, AST* node);
-static Value* codegen_note                            (Codegen_Context* ctx, AST* node);
-static Value* codegen_int                             (Codegen_Context* ctx, AST* node);
-static Value* codegen_float                           (Codegen_Context* ctx, AST* node);
-static Value* codegen_string                          (Codegen_Context* ctx, AST* node);
-static Value* codegen_char                            (Codegen_Context* ctx, AST* node);
-static Value* codegen_ident                           (Codegen_Context* ctx, AST* node);
-static Value* codegen_call                            (Codegen_Context* ctx, AST* node);
-static Value* codegen_unary                           (Codegen_Context* ctx, AST* node);
-static Value* codegen_binary                          (Codegen_Context* ctx, AST* node);
-static Value* codegen_grouping                        (Codegen_Context* ctx, AST* node);
-static Value* codegen_subscript                       (Codegen_Context* ctx, AST* node);
-static Value* codegen_field_access                    (Codegen_Context* ctx, AST* node);
-static Value* codegen_as                              (Codegen_Context* ctx, AST* node);
-static Value* codegen_block                           (Codegen_Context* ctx, AST* node);
-static Value* codegen_struct                          (Codegen_Context* ctx, AST* node);
-static Value* codegen_enum                            (Codegen_Context* ctx, AST* node);
-static Value* codegen_function                        (Codegen_Context* ctx, AST* node);
-static Value* codegen_variable_decl                   (Codegen_Context* ctx, AST* node);
-static Value* codegen_if                              (Codegen_Context* ctx, AST* node);
-static Value* codegen_for                             (Codegen_Context* ctx, AST* node);
-static Value* codegen_while                           (Codegen_Context* ctx, AST* node);
-static Value* codegen_return                          (Codegen_Context* ctx, AST* node);
-static Value* codegen_defer                           (Codegen_Context* ctx, AST* node);
-static Value* codegen_break                           (Codegen_Context* ctx, AST* node);
-static Value* codegen_continue                        (Codegen_Context* ctx, AST* node);
-static Value* codegen_typeof                          (Codegen_Context* ctx, AST* node);
-static Value* codegen_sizeof                          (Codegen_Context* ctx, AST* node);
-static Value* codegen_switch                          (Codegen_Context* ctx, AST* node);
-static Value* codegen_post_inc_or_dec                 (Codegen_Context* ctx, AST* node);
-static Value* codegen_literal                         (Codegen_Context* ctx, AST* node);
-static Value* codegen_asm                             (Codegen_Context* ctx, AST* node);
+static void* codegen                                 (void* ctx, AST* node);
+static void* codegen_comment                         (void* ctx, AST* node);
+static void* codegen_nop                             (void* ctx, AST* node);
+static void* codegen_space_separated_identifier_list (void* ctx, AST* node);
+static void* codegen_comma_separated_list            (void* ctx, AST* node);
+static void* codegen_module                          (void* ctx, AST* node);
+static void* codegen_is                              (void* ctx, AST* node);
+static void* codegen_fallthrough                     (void* ctx, AST* node);
+static void* codegen_var_args                        (void* ctx, AST* node);
+static void* codegen_extern                          (void* ctx, AST* node);
+static void* codegen_load                            (void* ctx, AST* node);
+static void* codegen_link                            (void* ctx, AST* node);
+static void* codegen_note                            (void* ctx, AST* node);
+static void* codegen_int                             (void* ctx, AST* node);
+static void* codegen_float                           (void* ctx, AST* node);
+static void* codegen_string                          (void* ctx, AST* node);
+static void* codegen_char                            (void* ctx, AST* node);
+static void* codegen_ident                           (void* ctx, AST* node);
+static void* codegen_call                            (void* ctx, AST* node);
+static void* codegen_unary                           (void* ctx, AST* node);
+static void* codegen_binary                          (void* ctx, AST* node);
+static void* codegen_grouping                        (void* ctx, AST* node);
+static void* codegen_subscript                       (void* ctx, AST* node);
+static void* codegen_field_access                    (void* ctx, AST* node);
+static void* codegen_as                              (void* ctx, AST* node);
+static void* codegen_block                           (void* ctx, AST* node);
+static void* codegen_struct                          (void* ctx, AST* node);
+static void* codegen_enum                            (void* ctx, AST* node);
+static void* codegen_function                        (void* ctx, AST* node);
+static void* codegen_variable_decl                   (void* ctx, AST* node);
+static void* codegen_if                              (void* ctx, AST* node);
+static void* codegen_for                             (void* ctx, AST* node);
+static void* codegen_while                           (void* ctx, AST* node);
+static void* codegen_return                          (void* ctx, AST* node);
+static void* codegen_defer                           (void* ctx, AST* node);
+static void* codegen_break                           (void* ctx, AST* node);
+static void* codegen_continue                        (void* ctx, AST* node);
+static void* codegen_typeof                          (void* ctx, AST* node);
+static void* codegen_sizeof                          (void* ctx, AST* node);
+static void* codegen_switch                          (void* ctx, AST* node);
+static void* codegen_post_inc_or_dec                 (void* ctx, AST* node);
+static void* codegen_literal                         (void* ctx, AST* node);
+static void* codegen_asm                             (void* ctx, AST* node);
+
+
+typedef enum {
+    STATE_SEMANTIC,
+    STATE_CODEGEN,
+    _STATE_COUNT_,
+} State_Kind;
+
+
+// For this to work every implementation needs an opaque pointer.
+void* (*ast_transitions[_AST_COUNT_][_STATE_COUNT_]) (void*, AST*);
+
+void set_callback_for(AST_Kind kind, State_Kind state, void* (*func)(void*, AST*)) {
+    ast_transitions[kind][state] = func;
+}
+
+void setup_ast_transitions() {    
+    ast_transitions         [AST_COMMENT]                         [STATE_CODEGEN]    =    codegen_comment;
+    ast_transitions         [AST_NOP]                             [STATE_CODEGEN]    =    codegen_nop;
+    ast_transitions         [AST_SPACE_SEPARATED_IDENTIFIER_LIST] [STATE_CODEGEN]    =    codegen_space_separated_identifier_list;
+    ast_transitions         [AST_COMMA_SEPARATED_LIST]            [STATE_CODEGEN]    =    codegen_comma_separated_list;
+    ast_transitions         [AST_MODULE]                          [STATE_CODEGEN]    =    codegen_module;
+    ast_transitions         [AST_IS]                              [STATE_CODEGEN]    =    codegen_is;
+    ast_transitions         [AST_FALLTHROUGH]                     [STATE_CODEGEN]    =    codegen_fallthrough;
+    ast_transitions         [AST_VAR_ARGS]                        [STATE_CODEGEN]    =    codegen_var_args;
+    ast_transitions         [AST_EXTERN]                          [STATE_CODEGEN]    =    codegen_extern;
+    ast_transitions         [AST_LOAD]                            [STATE_CODEGEN]    =    codegen_load;
+    ast_transitions         [AST_LINK]                            [STATE_CODEGEN]    =    codegen_link;
+    ast_transitions         [AST_NOTE]                            [STATE_CODEGEN]    =    codegen_note;
+    ast_transitions         [AST_INT]                             [STATE_CODEGEN]    =    codegen_int;
+    ast_transitions         [AST_FLOAT]                           [STATE_CODEGEN]    =    codegen_float;
+    ast_transitions         [AST_STRING]                          [STATE_CODEGEN]    =    codegen_string;
+    ast_transitions         [AST_CHAR]                            [STATE_CODEGEN]    =    codegen_char;
+    ast_transitions         [AST_IDENT]                           [STATE_CODEGEN]    =    codegen_ident;
+    ast_transitions         [AST_CALL]                            [STATE_CODEGEN]    =    codegen_call;
+    ast_transitions         [AST_UNARY]                           [STATE_CODEGEN]    =    codegen_unary;
+    ast_transitions         [AST_BINARY]                          [STATE_CODEGEN]    =    codegen_binary;
+    ast_transitions         [AST_GROUPING]                        [STATE_CODEGEN]    =    codegen_grouping;
+    ast_transitions         [AST_SUBSCRIPT]                       [STATE_CODEGEN]    =    codegen_subscript;
+    ast_transitions         [AST_FIELD_ACCESS]                    [STATE_CODEGEN]    =    codegen_field_access;
+    ast_transitions         [AST_AS]                              [STATE_CODEGEN]    =    codegen_as;
+    ast_transitions         [AST_BLOCK]                           [STATE_CODEGEN]    =    codegen_block;
+    ast_transitions         [AST_STRUCT]                          [STATE_CODEGEN]    =    codegen_struct;
+    ast_transitions         [AST_ENUM]                            [STATE_CODEGEN]    =    codegen_enum;
+    ast_transitions         [AST_FUNCTION]                        [STATE_CODEGEN]    =    codegen_function;
+    ast_transitions         [AST_VARIABLE_DECL]                   [STATE_CODEGEN]    =    codegen_variable_decl;
+    ast_transitions         [AST_IF]                              [STATE_CODEGEN]    =    codegen_if;
+    ast_transitions         [AST_FOR]                             [STATE_CODEGEN]    =    codegen_for;
+    ast_transitions         [AST_WHILE]                           [STATE_CODEGEN]    =    codegen_while;
+    ast_transitions         [AST_RETURN]                          [STATE_CODEGEN]    =    codegen_return;
+    ast_transitions         [AST_DEFER]                           [STATE_CODEGEN]    =    codegen_defer;
+    ast_transitions         [AST_BREAK]                           [STATE_CODEGEN]    =    codegen_break;
+    ast_transitions         [AST_CONTINUE]                        [STATE_CODEGEN]    =    codegen_continue;
+    ast_transitions         [AST_TYPEOF]                          [STATE_CODEGEN]    =    codegen_typeof;
+    ast_transitions         [AST_SIZEOF]                          [STATE_CODEGEN]    =    codegen_sizeof;
+    ast_transitions         [AST_SWITCH]                          [STATE_CODEGEN]    =    codegen_switch;
+    ast_transitions         [AST_POST_INC_OR_DEC]                 [STATE_CODEGEN]    =    codegen_post_inc_or_dec;
+    ast_transitions         [AST_LITERAL]                         [STATE_CODEGEN]    =    codegen_literal;
+    ast_transitions         [AST_ASM]                             [STATE_CODEGEN]    =    codegen_asm;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 // @Hotpath @Recursive
-static Value* codegen(Codegen_Context* ctx, AST* node) {
+static void* codegen(void* ctx, AST* node) {
     xassert(ctx);
     if (!node) return NULL;
     switch (node->kind) {
@@ -146,29 +218,29 @@ char* generate_code_from_ast(AST* ast) {
     return output;
 }
 
-static Value* codegen_comment(Codegen_Context* ctx, AST* node) {
+static void* codegen_comment(void* ctx, AST* node) {
     DEBUG_START;
     return NULL;
 }
 
-static Value* codegen_nop(Codegen_Context* ctx, AST* node) {
+static void* codegen_nop(void* ctx, AST* node) {
     DEBUG_START;
     return NULL;
 }
 
-static Value* codegen_space_separated_identifier_list(Codegen_Context* ctx, AST* node) {
-    DEBUG_START;
-    UNFINISHED;
-    return NULL;
-}
-
-static Value* codegen_comma_separated_list(Codegen_Context* ctx, AST* node) {
+static void* codegen_space_separated_identifier_list(void* ctx, AST* node) {
     DEBUG_START;
     UNFINISHED;
     return NULL;
 }
 
-static Value* codegen_module(Codegen_Context* ctx, AST* node) {
+static void* codegen_comma_separated_list(void* ctx, AST* node) {
+    DEBUG_START;
+    UNFINISHED;
+    return NULL;
+}
+
+static void* codegen_module(void* ctx, AST* node) {
     DEBUG_START;
     LIST_FOREACH(node->Module.top_level) {
         codegen(ctx, it->data);
@@ -176,52 +248,52 @@ static Value* codegen_module(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
-static Value* codegen_is(Codegen_Context* ctx, AST* node) {
+static void* codegen_is(void* ctx, AST* node) {
     DEBUG_START;
     UNFINISHED;
     return NULL;
 }
 
-static Value* codegen_fallthrough(Codegen_Context* ctx, AST* node) {
+static void* codegen_fallthrough(void* ctx, AST* node) {
     DEBUG_START;
     UNFINISHED;
     return NULL;
 }
 
-static Value* codegen_var_args(Codegen_Context* ctx, AST* node) {
+static void* codegen_var_args(void* ctx, AST* node) {
     DEBUG_START;
     UNFINISHED;
     return NULL;
 }
 
-static Value* codegen_extern(Codegen_Context* ctx, AST* node) {
+static void* codegen_extern(void* ctx, AST* node) {
     DEBUG_START;
     char* func_name = node->Extern.type->Function.name;
     emit_extern(ctx, func_name);
     return NULL;
 }
 
-static Value* codegen_load(Codegen_Context* ctx, AST* node) {
+static void* codegen_load(void* ctx, AST* node) {
     DEBUG_START;
     return codegen(ctx, node->Load.module);
 }
 
-static Value* codegen_link(Codegen_Context* ctx, AST* node) {
+static void* codegen_link(void* ctx, AST* node) {
     DEBUG_START;
     return NULL;
 }
 
-static Value* codegen_note(Codegen_Context* ctx, AST* node) {
+static void* codegen_note(void* ctx, AST* node) {
     DEBUG_START;
     s64 integer_value = node->Note.node->Int.val;
     if (integer_value < 1) error("note parameters start at 1.");
-    AST* arg = get_arg_from_func(ctx->current_function, integer_value - 1);
+    AST* arg = get_arg_from_func(get_current_function(ctx), integer_value - 1);
     Value* var = get_variable(ctx, make_ast_ident(arg->loc_info, arg->Variable_Decl.name));
     emit_load(ctx, var);
     return var;
 }
 
-static Value* codegen_int(Codegen_Context* ctx, AST* node) {
+static void* codegen_int(void* ctx, AST* node) {
     DEBUG_START;
     Value* val = make_value_int(DEFAULT_INT_BYTE_SIZE, node->type, node->Int.val);
     char* reg = get_result_reg(val->type);
@@ -230,7 +302,7 @@ static Value* codegen_int(Codegen_Context* ctx, AST* node) {
     return val;
 }
 
-static Value* codegen_float(Codegen_Context* ctx, AST* node) {
+static void* codegen_float(void* ctx, AST* node) {
     DEBUG_START;
     Value* val = make_value_float(node->type, node->Float.val);
     char* db_op = get_db_op(val->type);
@@ -241,7 +313,7 @@ static Value* codegen_float(Codegen_Context* ctx, AST* node) {
     return val;
 }
 
-static Value* codegen_string(Codegen_Context* ctx, AST* node) {
+static void* codegen_string(void* ctx, AST* node) {
     DEBUG_START;
     char* val = node->String.val;
     Type* t = make_type_pointer(make_type_int(8, 1));
@@ -252,19 +324,19 @@ static Value* codegen_string(Codegen_Context* ctx, AST* node) {
     return make_value_string(val, t);
 }
 
-static Value* codegen_char(Codegen_Context* ctx, AST* node) {
+static void* codegen_char(void* ctx, AST* node) {
     DEBUG_START;
     return codegen(ctx, make_ast_int(node->loc_info, node->Char.val, node->type));
 }
 
-static Value* codegen_ident(Codegen_Context* ctx, AST* node) {
+static void* codegen_ident(void* ctx, AST* node) {
     DEBUG_START;
     Value* var = get_variable(ctx, node);
     emit_load(ctx, var);
     return var;
 }
 
-static Value* codegen_call(Codegen_Context* ctx, AST* node) {
+static void* codegen_call(void* ctx, AST* node) {
 // From the System V Application Binary Interface Manual
 // -- Passing
 //  Once arguments are classified, the registers get assigned(in left-to-right order) for passing as follows:
@@ -333,7 +405,7 @@ static Value* codegen_call(Codegen_Context* ctx, AST* node) {
     return make_value_call(callee, return_type);
 }
 
-static Value* codegen_unary(Codegen_Context* ctx, AST* node) {
+static void* codegen_unary(void* ctx, AST* node) {
     DEBUG_START;
 
     Token_Kind op = node->Unary.op;
@@ -408,7 +480,7 @@ static Value* codegen_unary(Codegen_Context* ctx, AST* node) {
     return result;
 }
 
-static Value* codegen_binary(Codegen_Context* ctx, AST* node) {
+static void* codegen_binary(void* ctx, AST* node) {
     DEBUG_START;
 
     Token_Kind op = node->Binary.op;
@@ -425,7 +497,6 @@ static Value* codegen_binary(Codegen_Context* ctx, AST* node) {
             lhs = lhs->Unary.operand;
             is_deref = true;
         }
-
         Value* rhs_v = codegen(ctx, rhs);
         push_type(ctx, rhs_v->type);
         Value* lhs_v = codegen(ctx, lhs);
@@ -624,9 +695,9 @@ static Value* codegen_binary(Codegen_Context* ctx, AST* node) {
     }
     case TOKEN_COLON: {
         codegen(ctx, lhs); // '?' part
-        emit(ctx, "%s:", ctx->l0);
+        emit(ctx, "%s:", get_l0(ctx));
         Value* rhs_v = codegen(ctx, rhs);
-        emit(ctx, "%s:", ctx->l1);
+        emit(ctx, "%s:", get_l1(ctx));
         restore_temp_labels(ctx);
         return rhs_v;
     }
@@ -636,24 +707,24 @@ static Value* codegen_binary(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
-static Value* codegen_grouping(Codegen_Context* ctx, AST* node) {
+static void* codegen_grouping(void* ctx, AST* node) {
     DEBUG_START;
     return codegen(ctx, node->Grouping.node);
 }
 
-static Value* codegen_subscript(Codegen_Context* ctx, AST* node) {
+static void* codegen_subscript(void* ctx, AST* node) {
     DEBUG_START;
     UNFINISHED;
     return NULL;
 }
 
-static Value* codegen_field_access(Codegen_Context* ctx, AST* node) {
+static void* codegen_field_access(void* ctx, AST* node) {
     DEBUG_START;
     UNFINISHED;
     return NULL;
 }
 
-static Value* codegen_as(Codegen_Context* ctx, AST* node) {
+static void* codegen_as(void* ctx, AST* node) {
     DEBUG_START;
     AST* e = node->As.node;
     Type* t = node->As.type_node->type;
@@ -662,7 +733,7 @@ static Value* codegen_as(Codegen_Context* ctx, AST* node) {
     return v;
 }
 
-static Value* codegen_block(Codegen_Context* ctx, AST* node) {
+static void* codegen_block(void* ctx, AST* node) {
     DEBUG_START;
     push_scope(ctx);
     List* stmts = node->Block.stmts;
@@ -678,19 +749,19 @@ static Value* codegen_block(Codegen_Context* ctx, AST* node) {
     return last;
 }
 
-static Value* codegen_struct(Codegen_Context* ctx, AST* node) {
+static void* codegen_struct(void* ctx, AST* node) {
     DEBUG_START;
     return make_value_struct(node->type);
 }
 
-static Value* codegen_enum(Codegen_Context* ctx, AST* node) {
+static void* codegen_enum(void* ctx, AST* node) {
     DEBUG_START;
     xassert(node->kind == AST_ENUM);
     warning("enum incomplete?");
     return NULL;
 }
 
-static Value* codegen_function(Codegen_Context* ctx, AST* node) {
+static void* codegen_function(void* ctx, AST* node) {
     DEBUG_START;
 
     set_current_function_expr(ctx, node);
@@ -704,24 +775,24 @@ static Value* codegen_function(Codegen_Context* ctx, AST* node) {
     push(ctx, RBP);
     emit(ctx, "mov rbp, rsp");
 
-    // Sum the params
+    // Figure out how much stack to allocate + padding
     s64 sum = get_size_of_type(node->type);
-
     sum += get_all_alloca_in_block(func_body);
-
     s64 stack_allocated = sum;
     s32 padding = X64_ASM_MACOS_STACK_PADDING - (stack_allocated % X64_ASM_MACOS_STACK_PADDING);
     if (stack_allocated + padding)
         emit(ctx, "sub rsp, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);
 
+    // Emit our function label
     emit(ctx, "%s:", DEFAULT_FUNCTION_ENTRY_LABEL_NAME);
 
+    // Make sure the stack starts at zero. @Note(marcus) this should not be needed. I believe it is handled automatically.
     reset_stack(ctx);
 
     List* args = node->Function.parameters;
 
-    s8 class_integer_counter = 0; // used for getting the next available register
-    s8 class_sse_counter = 0;     // used for getting the next available register
+    s8 class_integer_counter = 0;   // used for getting the next available register
+    s8 class_sse_counter     = 0;   // used for getting the next available register
 
     List* classified_arguments = classify_arguments(args);
     LIST_FOREACH(classified_arguments) {
@@ -756,7 +827,7 @@ static Value* codegen_function(Codegen_Context* ctx, AST* node) {
 
     emit(ctx, "%s:", DEFAULT_FUNCTION_END_LABEL_NAME);
 
-    List* defers = ctx->current_function->Function.defers;
+    List* defers = get_current_function(ctx)->Function.defers;
     LIST_FOREACH_REVERSE(defers) {
         codegen(ctx, it->data);
     }
@@ -775,7 +846,7 @@ static Value* codegen_function(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
-static Value* codegen_variable_decl(Codegen_Context* ctx, AST* node) {
+static void* codegen_variable_decl(void* ctx, AST* node) {
     DEBUG_START;
     char* name = node->Variable_Decl.name;
     Type* type = node->type;
@@ -794,7 +865,7 @@ static Value* codegen_variable_decl(Codegen_Context* ctx, AST* node) {
         variable = make_value_global_variable(name, type, label);
     } else {
         s64 type_size = get_size_of_type(type);
-        s64 stack_pos = type_size + ctx->stack_pos;
+        s64 stack_pos = type_size + get_stack_pos(ctx);
         info("name: %s stack_pos: %d type_size: %d", name, stack_pos, type_size);
         variable = make_value_variable(name, type, stack_pos);
     }
@@ -805,7 +876,7 @@ static Value* codegen_variable_decl(Codegen_Context* ctx, AST* node) {
     return variable;
 }
 
-static Value* codegen_if(Codegen_Context* ctx, AST* node) {
+static void* codegen_if(void* ctx, AST* node) {
     DEBUG_START;
     char* else_l = make_text_label(ctx);
     char* end_l = make_text_label(ctx);
@@ -828,7 +899,7 @@ static Value* codegen_if(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
-static Value* codegen_for(Codegen_Context* ctx, AST* node) {
+static void* codegen_for(void* ctx, AST* node) {
     DEBUG_START;
 
     push_scope(ctx);
@@ -862,7 +933,7 @@ static Value* codegen_for(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
-static Value* codegen_while(Codegen_Context* ctx, AST* node) {
+static void* codegen_while(void* ctx, AST* node) {
     DEBUG_START;
     xassert(node->kind == AST_WHILE);
 
@@ -887,7 +958,7 @@ static Value* codegen_while(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
-static Value* codegen_return(Codegen_Context* ctx, AST* node) {
+static void* codegen_return(void* ctx, AST* node) {
 // From the System V Application Binary Interface Manual
 // -- Returning of Values
 //  The returning of values is done according to the following algorithm:
@@ -925,38 +996,38 @@ static Value* codegen_return(Codegen_Context* ctx, AST* node) {
     return ret_v;
 }
 
-static Value* codegen_defer(Codegen_Context* ctx, AST* node) {
+static void* codegen_defer(void* ctx, AST* node) {
     DEBUG_START;
     AST* defer_expr = node->Defer.node;
-    list_append(ctx->current_function->Function.defers, defer_expr);
+    list_append(get_current_function(ctx)->Function.defers, defer_expr);
     return NULL;
 }
 
-static Value* codegen_break(Codegen_Context* ctx, AST* node) {
+static void* codegen_break(void* ctx, AST* node) {
     DEBUG_START;
-    emit(ctx, "jmp %s", ctx->lbreak);
+    emit(ctx, "jmp %s", get_lbreak(ctx));
     return NULL;
 }
 
-static Value* codegen_continue(Codegen_Context* ctx, AST* node) {
+static void* codegen_continue(void* ctx, AST* node) {
     DEBUG_START;
-    emit(ctx, "jmp %s", ctx->lcontinue);
+    emit(ctx, "jmp %s", get_lcontinue(ctx));
     return NULL;
 }
 
-static Value* codegen_typeof(Codegen_Context* ctx, AST* node) {
-    DEBUG_START;
-    UNFINISHED;
-    return NULL;
-}
-
-static Value* codegen_sizeof(Codegen_Context* ctx, AST* node) {
+static void* codegen_typeof(void* ctx, AST* node) {
     DEBUG_START;
     UNFINISHED;
     return NULL;
 }
 
-static Value* codegen_switch(Codegen_Context* ctx, AST* node) {
+static void* codegen_sizeof(void* ctx, AST* node) {
+    DEBUG_START;
+    UNFINISHED;
+    return NULL;
+}
+
+static void* codegen_switch(void* ctx, AST* node) {
     DEBUG_START;
 
     char* default_l = make_text_label(ctx);
@@ -1011,7 +1082,7 @@ static Value* codegen_switch(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
-static Value* codegen_post_inc_or_dec(Codegen_Context* ctx, AST* node) {
+static void* codegen_post_inc_or_dec(void* ctx, AST* node) {
     DEBUG_START;
     Value* v = codegen(ctx, node->Post_Inc_or_Dec.node);
     push_type(ctx, v->type);
@@ -1020,15 +1091,14 @@ static Value* codegen_post_inc_or_dec(Codegen_Context* ctx, AST* node) {
     return v;
 }
 
-static Value* codegen_literal(Codegen_Context* ctx, AST* node) {
+static void* codegen_literal(void* ctx, AST* node) {
     DEBUG_START;
     UNFINISHED;
     return NULL;
 }
 
-static Value* codegen_asm(Codegen_Context* ctx, AST* node) {
+static void* codegen_asm(void* ctx, AST* node) {
     DEBUG_START;
-    ctx->inside_asm = true;
     AST* block = node->Asm.block;
 
     LIST_FOREACH(block->Block.stmts) {

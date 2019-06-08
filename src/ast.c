@@ -593,11 +593,11 @@ static void _ast_to_str_literal(String_Context* ctx, AST* node) {
     string* s = ctx->str;
     switch (node->Literal.kind) {
     ERROR_UNHANDLED_LITERAL_KIND(node->Literal.kind);
-    case LITERAL_CHAR:     string_append_f(s, "%c", node->Literal.Char.value);       break;
+    case LITERAL_CHAR:     string_append_f(s, "%c",   node->Literal.Char.value);     break;
     case LITERAL_INTEGER:  string_append_f(s, "%lld", node->Literal.Integer.value);  break;
     case LITERAL_HEX:      string_append_f(s, "%llu", node->Literal.Hex.value);      break;
-    case LITERAL_FLOAT:    string_append_f(s, "%f", node->Literal.Float.value);      break;
-    case LITERAL_STRING:   string_append_f(s, "%s", node->Literal.String.value);     break;
+    case LITERAL_FLOAT:    string_append_f(s, "%f",   node->Literal.Float.value);    break;
+    case LITERAL_STRING:   string_append_f(s, "%s",   node->Literal.String.value);   break;
     }
 }
 
@@ -609,7 +609,6 @@ static void _ast_to_str_asm(String_Context* ctx, AST* node) {
 }
 
 void ast_visit(ast_callback* func, void* ctx, AST* node) {
-    // ctx can be null
     xassert(func);
     if (!node) return;
     switch (node->kind) {

@@ -21,6 +21,7 @@
 //------------------------------------------------------------------------------
 //                               main.c
 //------------------------------------------------------------------------------
+
 #include "ast.h"          // AST, AST_Kind
 #include "codegen.h"      // generate_code_from_ast
 #include "codegen_llvm.h" // generate_llvm_from_ast
@@ -567,6 +568,8 @@ int main(int argc, char** argv) {
     push_timer(&thi, "Run all passes");
     ast_visit(run_all_passes, &thi, ast);
     pop_timer(&thi);
+
+    sema(ast);
 
     // Sanity check.. Make sure the typer did what it was supposed to do.
     thi_run_pass(&thi, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);

@@ -100,6 +100,19 @@ Class_Kind classify(Type* type);
 List* classify_arguments(List* arguments);
 Codegen_Context make_codegen_context(void);
 
+AST* get_current_function(Codegen_Context* ctx);
+s64 get_stack_pos(Codegen_Context* ctx);
+char* get_o0(Codegen_Context* ctx);
+char* get_o1(Codegen_Context* ctx);
+char* get_l0(Codegen_Context* ctx);
+char* get_l1(Codegen_Context* ctx);
+
+char* get_ocontinue(Codegen_Context* ctx);
+char* get_lcontinue(Codegen_Context* ctx);
+char* get_obreak(Codegen_Context* ctx);
+char* get_lbreak(Codegen_Context* ctx);
+char* get_l_end(Codegen_Context* ctx);
+
 void set_temp_labels                  (Codegen_Context* ctx, char* l0, char* l1);
 void restore_temp_labels              (Codegen_Context* ctx);
 void set_break_label                  (Codegen_Context* ctx, char* break_l);

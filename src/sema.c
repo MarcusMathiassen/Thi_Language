@@ -92,6 +92,7 @@ static Type*  sema_typeof                           (Sema_Context* ctx, AST* nod
 static Type*  sema_sizeof                           (Sema_Context* ctx, AST* node);
 static Type*  sema_switch                           (Sema_Context* ctx, AST* node);
 static Type*  sema_post_inc_or_dec                  (Sema_Context* ctx, AST* node);
+static Type*  sema_literal                          (Sema_Context* ctx, AST* node);
 static Type*  sema_asm                              (Sema_Context* ctx, AST* node);
 
 Type* sema(AST* node) {
@@ -153,6 +154,7 @@ static Type* _sema(Sema_Context* ctx, AST* node) {
     case AST_SIZEOF:                            result_t = sema_sizeof                          (ctx, node); break;
     case AST_SWITCH:                            result_t = sema_switch                          (ctx, node); break;
     case AST_POST_INC_OR_DEC:                   result_t = sema_post_inc_or_dec                 (ctx, node); break;
+    case AST_LITERAL:                           result_t = sema_literal                     (ctx, node); break;
     case AST_ASM:                               result_t = sema_asm                             (ctx, node); break;
     }
     result_t = result_t ? result_t : make_type_void();
@@ -484,6 +486,10 @@ static Type* sema_switch(Sema_Context* ctx, AST* node) {
 
 static Type* sema_post_inc_or_dec(Sema_Context* ctx, AST* node) {
     return _sema(ctx, node->Post_Inc_or_Dec.node);;
+}
+
+static Type* sema_literal(Sema_Context* ctx, AST* node) {
+    return node->type;
 }
 
 static Type* sema_asm(Sema_Context* ctx, AST* node) {

@@ -41,6 +41,40 @@ typedef struct {
     char* str;
 } Data;
 
+AST* get_current_function(Codegen_Context* ctx) {
+    return ctx->current_function;
+}
+s64 get_stack_pos(Codegen_Context* ctx) {
+    return ctx->stack_pos;
+}
+char* get_o0(Codegen_Context* ctx) {
+    return ctx->o0;
+}
+char* get_o1(Codegen_Context* ctx) {
+    return ctx->o1;
+}
+char* get_l0(Codegen_Context* ctx) {
+    return ctx->l0;
+}
+char* get_l1(Codegen_Context* ctx) {
+    return ctx->l1;
+}
+char* get_ocontinue(Codegen_Context* ctx) {
+    return ctx->ocontinue;
+}
+char* get_lcontinue(Codegen_Context* ctx) {
+    return ctx->lcontinue;
+}
+char* get_obreak(Codegen_Context* ctx) {
+    return ctx->obreak;
+}
+char* get_lbreak(Codegen_Context* ctx) {
+    return ctx->lbreak;
+}
+char* get_l_end(Codegen_Context* ctx) {
+    return ctx->l_end;
+}
+
 void push_scope(Codegen_Context* ctx) {
     Scope* top = stack_peek(ctx->scopes);
     Scope* s = xmalloc(sizeof(Scope));
@@ -140,6 +174,9 @@ char* emit_data(Codegen_Context* ctx, char* fmt, ...) {
     vsnprintf(str, str_len, fmt, args);
     va_end(args);
 
+
+    // Remove duplicate entries
+    // @Todo: this is an optimization. It does not belong here.
     char* label = NULL;
     LIST_FOREACH(ctx->data_list) {
         Data* s = it->data;
