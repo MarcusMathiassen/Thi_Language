@@ -26,8 +26,60 @@
 #define SEMA_H
 
 #include "ast.h"
-#include "type.h"
+#include "map.h"
+#include "stack.h"
 
-Type* sema(AST* node);
+typedef struct {
+    State_Kind state;
+    AST* module;
+    Map* symbols;
+    Stack* scopes;
+    AST* current_function;
+} Sema_Context;
+
+Sema_Context make_sema_context();
+
+void*  sema_comment                          (void* ctx, AST* node);
+void*  sema_nop                              (void* ctx, AST* node);
+void*  sema_space_separated_identifier_list  (void* ctx, AST* node);
+void*  sema_comma_separated_list             (void* ctx, AST* node);
+void*  sema_module                           (void* ctx, AST* node);
+void*  sema_is                               (void* ctx, AST* node);
+void*  sema_fallthrough                      (void* ctx, AST* node);
+void*  sema_var_args                         (void* ctx, AST* node);
+void*  sema_extern                           (void* ctx, AST* node);
+void*  sema_load                             (void* ctx, AST* node);
+void*  sema_link                             (void* ctx, AST* node);
+void*  sema_note                             (void* ctx, AST* node);
+void*  sema_int                              (void* ctx, AST* node);
+void*  sema_float                            (void* ctx, AST* node);
+void*  sema_string                           (void* ctx, AST* node);
+void*  sema_char                             (void* ctx, AST* node);
+void*  sema_ident                            (void* ctx, AST* node);
+void*  sema_call                             (void* ctx, AST* node);
+void*  sema_unary                            (void* ctx, AST* node);
+void*  sema_binary                           (void* ctx, AST* node);
+void*  sema_grouping                         (void* ctx, AST* node);
+void*  sema_subscript                        (void* ctx, AST* node);
+void*  sema_field_access                     (void* ctx, AST* node);
+void*  sema_as                               (void* ctx, AST* node);
+void*  sema_block                            (void* ctx, AST* node);
+void*  sema_struct                           (void* ctx, AST* node);
+void*  sema_enum                             (void* ctx, AST* node);
+void*  sema_function                         (void* ctx, AST* node);
+void*  sema_variable_decl                    (void* ctx, AST* node);
+void*  sema_if                               (void* ctx, AST* node);
+void*  sema_for                              (void* ctx, AST* node);
+void*  sema_while                            (void* ctx, AST* node);
+void*  sema_return                           (void* ctx, AST* node);
+void*  sema_defer                            (void* ctx, AST* node);
+void*  sema_break                            (void* ctx, AST* node);
+void*  sema_continue                         (void* ctx, AST* node);
+void*  sema_typeof                           (void* ctx, AST* node);
+void*  sema_sizeof                           (void* ctx, AST* node);
+void*  sema_switch                           (void* ctx, AST* node);
+void*  sema_post_inc_or_dec                  (void* ctx, AST* node);
+void*  sema_literal                          (void* ctx, AST* node);
+void*  sema_asm                              (void* ctx, AST* node);
 
 #endif

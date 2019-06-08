@@ -795,6 +795,15 @@ void ast_replace(AST* a, AST* b) {
     // @Cleanup(marcus) we dont free memory here.
 }
 
+void* ast_run_pass(void* ctx, AST* node, State_Kind state) {
+    if (!node) return NULL; // unsure about this one...
+    AST_Kind kind = node->kind;
+    ast_callback func = (*ast_transitions[kind][state]);
+    tassert(func, "missing callback for %s on %s", kind, state);
+    return (*func)(ctx, node);
+}
+
+
 //------------------------------------------------------------------------------
 //                               AST Tests
 //------------------------------------------------------------------------------
