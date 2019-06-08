@@ -22,7 +22,7 @@
 #define CODEGEN_UTILITY_H
 #include "typedefs.h"
 
-#include "ast.h"    // AST
+#include "ast.h"    // AST, State_Kind
 #include "lexer.h"  // Token_Kind
 #include "stack.h"  // Stack
 #include "map.h"  // Map
@@ -65,6 +65,8 @@ typedef struct
     Stack* scopes;
 
     s64 stack_pos;
+
+    State_Kind state;
 
     AST* current_function;
     Type* expected_type;
@@ -112,6 +114,8 @@ char* get_lcontinue(Codegen_Context* ctx);
 char* get_obreak(Codegen_Context* ctx);
 char* get_lbreak(Codegen_Context* ctx);
 char* get_l_end(Codegen_Context* ctx);
+
+State_Kind get_state(Codegen_Context* ctx);
 
 void set_temp_labels                  (Codegen_Context* ctx, char* l0, char* l1);
 void restore_temp_labels              (Codegen_Context* ctx);

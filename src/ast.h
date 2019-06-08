@@ -40,6 +40,13 @@ typedef enum {
 //------------------------------------------------------------------------------
 
 typedef enum {
+    STATE_SEMANTIC,
+    STATE_CODEGEN,
+    _STATE_COUNT_,
+} State_Kind;
+
+
+typedef enum {
     AST_FLAG_GLOBAL_VARIABLE = 1 << 0,
     _AST_FLAG_COUNT_,
 } AST_Flag;
@@ -89,6 +96,7 @@ typedef enum {
     AST_ASM,
     _AST_COUNT_
 } AST_Kind;
+
 
 typedef enum {
     LITERAL_CHAR,
@@ -306,6 +314,8 @@ struct AST {
     };
 };
 
+extern void* (*ast_transitions[_AST_COUNT_][_STATE_COUNT_]) (void*, AST*);
+
 AST* make_ast_comment                         (Loc_Info loc_info, char* text);
 AST* make_ast_nop                             (Loc_Info loc_info);
 AST* make_ast_module                          (Loc_Info loc_info, char* name, List* top_level);
@@ -349,11 +359,11 @@ AST* make_ast_post_inc_or_dec                 (Loc_Info loc_info, Token_Kind op,
 AST* make_ast_literal                         (Loc_Info loc_info, Literal_Kind kind, char* value);
 AST* make_ast_asm                             (Loc_Info loc_info, AST* block);
 
-typedef void ast_callback(void*, AST*);
+typedef void* (*ast_callback)(void*, AST*);
 
 AST* get_arg_from_func             (AST* func, s64 arg_index);
 void ast_tests                     (void);
-void ast_visit                     (ast_callback* func, void* ctx, AST* node);
+void* ast_visit                     (ast_callback func, void* ctx, AST* node);
 void ast_replace                   (AST* a, AST* b);
 char* get_ast_name                 (AST* node);
 char* ast_get_literal_value_as_str (AST* node);

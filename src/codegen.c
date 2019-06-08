@@ -37,7 +37,6 @@
     info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(node))); \
     // emit(ctx, "; %s", ast_to_str(node));
 
-static void* codegen                                 (void* ctx, AST* node);
 static void* codegen_comment                         (void* ctx, AST* node);
 static void* codegen_nop                             (void* ctx, AST* node);
 static void* codegen_space_separated_identifier_list (void* ctx, AST* node);
@@ -81,22 +80,7 @@ static void* codegen_post_inc_or_dec                 (void* ctx, AST* node);
 static void* codegen_literal                         (void* ctx, AST* node);
 static void* codegen_asm                             (void* ctx, AST* node);
 
-
-typedef enum {
-    STATE_SEMANTIC,
-    STATE_CODEGEN,
-    _STATE_COUNT_,
-} State_Kind;
-
-
-// For this to work every implementation needs an opaque pointer.
-void* (*ast_transitions[_AST_COUNT_][_STATE_COUNT_]) (void*, AST*);
-
-void set_callback_for(AST_Kind kind, State_Kind state, void* (*func)(void*, AST*)) {
-    ast_transitions[kind][state] = func;
-}
-
-void setup_ast_transitions() {    
+void setup_ast_transitions() {
     ast_transitions         [AST_COMMENT]                         [STATE_CODEGEN]    =    codegen_comment;
     ast_transitions         [AST_NOP]                             [STATE_CODEGEN]    =    codegen_nop;
     ast_transitions         [AST_SPACE_SEPARATED_IDENTIFIER_LIST] [STATE_CODEGEN]    =    codegen_space_separated_identifier_list;
@@ -142,79 +126,29 @@ void setup_ast_transitions() {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
 // @Hotpath @Recursive
-static void* codegen(void* ctx, AST* node) {
+static Value* codegen(Codegen_Context* ctx, AST* node) {
     xassert(ctx);
     if (!node) return NULL;
-    switch (node->kind) {
-    ERROR_UNHANDLED_AST_KIND(node->kind);
-    case AST_COMMENT:                          return codegen_comment                         (ctx, node);
-    case AST_NOP:                              return codegen_nop                             (ctx, node);
-    case AST_SPACE_SEPARATED_IDENTIFIER_LIST:  return codegen_space_separated_identifier_list (ctx, node);
-    case AST_COMMA_SEPARATED_LIST:             return codegen_comma_separated_list            (ctx, node);
-    case AST_MODULE:                           return codegen_module                          (ctx, node);
-    case AST_IS:                               return codegen_is                              (ctx, node);
-    case AST_FALLTHROUGH:                      return codegen_fallthrough                     (ctx, node);
-    case AST_VAR_ARGS:                         return codegen_var_args                        (ctx, node);
-    case AST_EXTERN:                           return codegen_extern                          (ctx, node);
-    case AST_LOAD:                             return codegen_load                            (ctx, node);
-    case AST_LINK:                             return codegen_link                            (ctx, node);
-    case AST_NOTE:                             return codegen_note                            (ctx, node);
-    case AST_INT:                              return codegen_int                             (ctx, node);
-    case AST_FLOAT:                            return codegen_float                           (ctx, node);
-    case AST_STRING:                           return codegen_string                          (ctx, node);
-    case AST_CHAR:                             return codegen_char                            (ctx, node);
-    case AST_IDENT:                            return codegen_ident                           (ctx, node);
-    case AST_CALL:                             return codegen_call                            (ctx, node);
-    case AST_UNARY:                            return codegen_unary                           (ctx, node);
-    case AST_BINARY:                           return codegen_binary                          (ctx, node);
-    case AST_GROUPING:                         return codegen_grouping                        (ctx, node);
-    case AST_SUBSCRIPT:                        return codegen_subscript                       (ctx, node);
-    case AST_FIELD_ACCESS:                     return codegen_field_access                    (ctx, node);
-    case AST_AS:                               return codegen_as                              (ctx, node);
-    case AST_BLOCK:                            return codegen_block                           (ctx, node);
-    case AST_STRUCT:                           return codegen_struct                          (ctx, node);
-    case AST_ENUM:                             return codegen_enum                            (ctx, node);
-    case AST_FUNCTION:                         return codegen_function                        (ctx, node);
-    case AST_VARIABLE_DECL:                    return codegen_variable_decl                   (ctx, node);
-    case AST_IF:                               return codegen_if                              (ctx, node);
-    case AST_FOR:                              return codegen_for                             (ctx, node);
-    case AST_WHILE:                            return codegen_while                           (ctx, node);
-    case AST_RETURN:                           return codegen_return                          (ctx, node);
-    case AST_DEFER:                            return codegen_defer                           (ctx, node);
-    case AST_BREAK:                            return codegen_break                           (ctx, node);
-    case AST_CONTINUE:                         return codegen_continue                        (ctx, node);
-    case AST_TYPEOF:                           return codegen_typeof                          (ctx, node);
-    case AST_SIZEOF:                           return codegen_sizeof                          (ctx, node);
-    case AST_SWITCH:                           return codegen_switch                          (ctx, node);
-    case AST_POST_INC_OR_DEC:                  return codegen_post_inc_or_dec                 (ctx, node);
-    case AST_LITERAL:                          return codegen_literal                         (ctx, node);
-    case AST_ASM:                              return codegen_asm                             (ctx, node);
-    }
-    UNREACHABLE;
-    return NULL;
+    AST_Kind kind = node->kind;
+    ast_callback func = (*ast_transitions[kind][get_state(ctx)]);
+    tassert(func, "missing callback for %s on %s", kind, STATE_CODEGEN);
+    return (*func)(ctx, node);
 }
 
 char* generate_code_from_ast(AST* ast) {
     xassert(ast);
     info("Generating code from ast");
+    
+    setup_ast_transitions();
+
     Codegen_Context ctx = make_codegen_context();
     string_append(ctx.section_data, "section .data\n");
     emit_no_tab(&ctx, "section .text");
     codegen(&ctx, ast);
     char* output = strf("%s%sglobal _main\n%s", string_data(ctx.section_extern), string_data(ctx.section_data), string_data(ctx.section_text));
     info("%s", output);
+
     return output;
 }
 

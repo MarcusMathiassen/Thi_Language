@@ -35,6 +35,8 @@
 //                               AST Utility
 //------------------------------------------------------------------------------
 
+void* (*ast_transitions[_AST_COUNT_][_STATE_COUNT_]) (void*, AST*);
+
 static char* _ast_to_str(String_Context* ctx, AST* node);
 
 
@@ -608,9 +610,9 @@ static void _ast_to_str_asm(String_Context* ctx, AST* node) {
     _ast_to_str(ctx, node->Asm.block);
 }
 
-void ast_visit(ast_callback* func, void* ctx, AST* node) {
+void* ast_visit(ast_callback func, void* ctx, AST* node) {
     xassert(func);
-    if (!node) return;
+    if (!node) return NULL;
     switch (node->kind) {
         ERROR_UNHANDLED_AST_KIND(node->kind);
 
@@ -740,7 +742,7 @@ void ast_visit(ast_callback* func, void* ctx, AST* node) {
         ast_visit(func, ctx, node->Asm.block);
         break;
     }
-    (*func)(ctx, node);
+    return (*func)(ctx, node);
 }
 
 AST* get_arg_from_func(AST* func, s64 arg_index) {

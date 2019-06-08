@@ -160,7 +160,7 @@ void pass_initilize_enums(void* thi, AST* node) {
     // }
 }
 
-void pass_add_all_symbols(void* thi, AST* node) {
+void* pass_add_all_symbols(void* thi, AST* node) {
     switch (node->kind) {
     default: break;
     case AST_ENUM:   // fallthrough
@@ -168,31 +168,35 @@ void pass_add_all_symbols(void* thi, AST* node) {
     case AST_FUNCTION: add_symbol(thi, get_type_name(node->type), node->type); break;
     case AST_EXTERN: add_symbol(thi, get_type_name(node->type), node->type); break;
     }
+    return NULL;
 }
-void pass_resolve_all_symbols(void* thi, AST* node) {
+void* pass_resolve_all_symbols(void* thi, AST* node) {
     switch (node->kind) {
     default: break;
     case AST_ENUM:   // fallthrough
     case AST_STRUCT: // fallthrough
     case AST_FUNCTION: node->type = get_symbol(thi, get_type_name(node->type)); break;
     }
+    return NULL;
 }
 
-void check_for_unresolved_types(void* ctx, AST* node) {
+void* check_for_unresolved_types(void* ctx, AST* node) {
     if (node->type && node->type->kind == TYPE_UNRESOLVED) {
         error("[check_for_unresolved_types]: unresolved type found for node: %s", ast_to_str(node));
     }
+    return NULL;
 }
 
-void run_all_passes(void* thi, AST* node) {
+void* run_all_passes(void* thi, AST* node) {
     List* visitors = thi_get_visitors_for_kind(thi, node->kind);
     LIST_FOREACH(visitors) {
         PassDescriptor* passDesc = it->data;
         (*passDesc->visitor_func)(passDesc->visitor_arg, node);
     }
+    return NULL;
 }
 
-void make_sure_all_nodes_have_a_valid_type(void* dont_care, AST* node) {
+void* make_sure_all_nodes_have_a_valid_type(void* dont_care, AST* node) {
     xassert(node);
     switch (node->kind) {
     case AST_COMMENT:  // fallthrough
@@ -209,7 +213,7 @@ void make_sure_all_nodes_have_a_valid_type(void* dont_care, AST* node) {
     case AST_DEFER:    // fallthrough
     case AST_BREAK:    // fallthrough
     case AST_CONTINUE: // fallthrough
-    case AST_FALLTHROUGH: return;
+    case AST_FALLTHROUGH: return NULL;
     default: break;
     }
     info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(node)), give_unique_color(type_to_str(node->type)));
@@ -220,10 +224,11 @@ void make_sure_all_nodes_have_a_valid_type(void* dont_care, AST* node) {
             "node: %s",
             ast_to_str(node));
     }
+    return NULL;
 }
 
-void visitor_resolve_unresolved_types(void* thi, AST* node) {
-    if (!node->type) return;
+void* visitor_resolve_unresolved_types(void* thi, AST* node) {
+    if (!node->type) return NULL;
     Type* placeholder_t = node->type;
     while (placeholder_t->kind == TYPE_POINTER) {
         placeholder_t = placeholder_t->Pointer.pointee;
@@ -231,6 +236,7 @@ void visitor_resolve_unresolved_types(void* thi, AST* node) {
     if (placeholder_t->kind == TYPE_UNRESOLVED) {
         *placeholder_t = *get_symbol(thi, get_type_name(placeholder_t));
     }
+    return NULL;
 }
 
 void constant_fold_unary(AST* node) {
@@ -368,12 +374,13 @@ void constant_fold_binary(AST* node) {
         ast_replace(node, lhs);
     }
 }
-void constant_fold(void* dont_care, AST* node) {
+void* constant_fold(void* dont_care, AST* node) {
     switch (node->kind) {
     default: break;
     case AST_BINARY: constant_fold_binary(node); break;
     case AST_UNARY: constant_fold_unary(node); break;
     }
+    return NULL;
 }
 
 typedef struct {
@@ -381,11 +388,12 @@ typedef struct {
     void* list;
 } AST_FindAll_Query;
 
-void ast_query(void* query, AST* node) {
+void* ast_query(void* query, AST* node) {
     AST_FindAll_Query* q = query;
     if (node->kind == q->kind) {
         list_append(q->list, node);
     }
+    return NULL;
 }
 
 List* ast_find_all_of_kind(AST_Kind kind, AST* ast) {
@@ -395,7 +403,7 @@ List* ast_find_all_of_kind(AST_Kind kind, AST* ast) {
     return list;
 }
 
-void thi_run_pass(Thi* thi, char* pass_description, ast_callback* visitor_func, void* visitor_func_arg) {
+void thi_run_pass(Thi* thi, char* pass_description, ast_callback visitor_func, void* visitor_func_arg) {
     info("running pass: %s", pass_description);
     push_timer(thi, pass_description);
     ast_visit(visitor_func, visitor_func_arg, thi->ast);

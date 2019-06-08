@@ -75,6 +75,10 @@ char* get_l_end(Codegen_Context* ctx) {
     return ctx->l_end;
 }
 
+State_Kind get_state(Codegen_Context* ctx) {
+    return ctx->state;
+}
+
 void push_scope(Codegen_Context* ctx) {
     Scope* top = stack_peek(ctx->scopes);
     Scope* s = xmalloc(sizeof(Scope));
@@ -102,6 +106,8 @@ Codegen_Context make_codegen_context() {
     s->stack_pos = 0;
     s->local_variables = make_list();
     stack_push(ctx.scopes,  s);
+
+    ctx.state = STATE_CODEGEN;
 
     ctx.data_list = make_list();
     ctx.current_function = NULL;
@@ -874,12 +880,13 @@ void emit_lea_reg64_mem(Codegen_Context* ctx, s8 reg64, char* mem) {
     emit(ctx, "lea %s, %s", r, mem);
 }
 
-void visitor_get_all_alloca_in_block(void* sum, AST* node) {
+void* visitor_get_all_alloca_in_block(void* sum, AST* node) {
     xassert(sum);
     xassert(node);
     if (node->kind == AST_VARIABLE_DECL) {
         *((s64*)sum) += get_size_of_type(node->type);
     }
+    return NULL;
 }
 
 s64 get_all_alloca_in_block(AST* block) {
