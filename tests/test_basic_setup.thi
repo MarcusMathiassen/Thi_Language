@@ -1,6 +1,6 @@
 extern printf(u8*, ...) s32
 
-def main() s64
+def main(argc s32, argv char**) s32
 
 
     i = 3

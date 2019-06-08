@@ -485,6 +485,11 @@ int main(int argc, char** argv) {
         error("thats not a thi file...");
     }
 
+    // Zero out all the states so that we can check for NULL later on
+    for (u64 kind = 0; kind < _AST_COUNT_; ++kind)
+        for (u64 state = 0; state < _STATE_COUNT_; ++state)
+            ast_transitions[kind][state] = NULL;
+
     add_load(&thi, name);
 
     add_symbol(&thi, "void", make_type_void());

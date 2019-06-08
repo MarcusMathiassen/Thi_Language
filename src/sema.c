@@ -51,6 +51,7 @@ Sema_Context make_sema_context() {
     ctx.state = STATE_SEMA;
     ctx.current_function = NULL;
     ctx.symbols = make_map();
+    stack_push(ctx.scopes, make_list());
     return ctx;
 }
 
