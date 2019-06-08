@@ -523,7 +523,7 @@ int main(int argc, char** argv) {
         char* line_start = s;
         char* line_end = NULL;
         while (s[i] != '\0') {
-            if (!isspace(s[i])) s[i] = '_';
+            if (!isspace(s[i])) s[i] = '-';
             if (s[i] == '\n') { 
                 line_end = &s[i];
                 list_append(lines, strn(line_start, line_end));
