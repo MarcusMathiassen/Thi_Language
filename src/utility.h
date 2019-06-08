@@ -91,6 +91,8 @@ typedef struct {
 #endif
 void _tassert(char* expr_str, char* file, char* func, int line, char* fmt, ...);
 
+char* get_colored_minimap_of_file(char* file, char c);
+
 //------------------------------------------------------------------------------
 //                               Colors
 //------------------------------------------------------------------------------

@@ -154,12 +154,13 @@ AST* parse_file(Parser_Context* ctx, char* file) {
     list_append(ctx->loads, file_path);
 
     Lexed_File lf = generate_tokens_from_file(file_path);
-    print_tokens(lf.tokens);
-    exit(1);
+    // print_tokens(lf.tokens);
+    // exit(1);
     ctx->tokens = lf.tokens.data;
     ctx->lines += lf.lines;
     ctx->comments += lf.comments;
 
+    info("%s",  get_colored_minimap_of_file(file_path, '_'));
     List* top_level_ast = generate_ast_from_tokens(ctx);
     AST* ast = make_ast_module(lc, file_path, top_level_ast);
 

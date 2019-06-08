@@ -19,6 +19,8 @@
 // DEALINGS IN THE SOFTWARE.
 
 #include "utility.h"
+#include "list.h" // List
+#include "string.h" // string
 #include "constants.h"
 #include <stdarg.h> // va_list, va_start, va_end
 #include <stdio.h>  // printf, vprintf
@@ -26,6 +28,7 @@
 #include <string.h> // memcpy, strlen
 #include <time.h>   // timeval
 #include <unistd.h>
+#include <ctype.h>       // NOTE(marcus): what do i use this
 
 //------------------------------------------------------------------------------
 //                               Printing Functions
@@ -293,6 +296,29 @@ u64 _strlen(char* str, char* file, char* func, s64 line) {
     // if (!len) error("[%s:%s:%lld] strlen(%s) failed", file, func, line, str);
     // info("[%s:%s:%lld] strlen(%s) called", file, func, line, str);
     return len;   
+}
+
+char* get_colored_minimap_of_file(char* file, char c) {
+    char* s = get_file_content(file);
+    u64 i = 0;
+    List* lines = make_list();
+    char* line_start = s;
+    char* line_end = NULL;
+    while (s[i] != '\0') {
+        if (!isspace(s[i])) s[i] = c;
+        if (s[i] == '\n') { 
+            line_end = &s[i];
+            list_append(lines, strn(line_start, line_end));
+            line_start = line_end;
+        }
+        ++i;
+    }
+    string* k = string_create("");
+    LIST_FOREACH(lines) {
+        char* line = it->data;
+        string_append(k, ucolor(line));
+    }
+    return string_data(k);
 }
 
 char* strn(char* start, char* end) {

@@ -358,6 +358,7 @@ AST* make_ast_asm                             (Loc_Info loc_info, AST* block);
 
 typedef void* (*ast_callback)(void*, AST*);
 
+// FSM
 extern void* (*ast_transitions[_AST_COUNT_][_STATE_COUNT_]) (void*, AST*);
 void* ast_run_pass(void* ctx, AST* node, State_Kind state);
 

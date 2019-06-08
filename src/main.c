@@ -42,9 +42,6 @@
 #include <string.h>       // strcmp
 #include <sys/ioctl.h>    // NOTE(marcus): what do i use this for?
 #include <unistd.h>       // NOTE(marcus): what do i use this
-#include <ctype.h>       // NOTE(marcus): what do i use this
-#include <unistd.h>
-
 //  
 //  --  06/05/19 Marcus Mathiassen
 //  
@@ -512,38 +509,6 @@ int main(int argc, char** argv) {
 
     add_symbol(&thi, "f32", make_type_float(4));
     add_symbol(&thi, "f64", make_type_float(8));
-
-
-
-    // Prints the source file in a pretty minimap colored way.
-    {
-        char* s = get_file_content(source_file);
-        u64 i = 0;
-        List* lines = make_list();
-        char* line_start = s;
-        char* line_end = NULL;
-        while (s[i] != '\0') {
-            if (!isspace(s[i])) s[i] = '_';
-            if (s[i] == '\n') { 
-                line_end = &s[i];
-                list_append(lines, strn(line_start, line_end));
-                line_start = line_end;
-            }
-            ++i;
-        }
-        // string* k = string_create("");
-        LIST_FOREACH(lines) {
-            char* line = it->data;
-            // string_append(k, ucolor(line));
-            printf("%s", ucolor(line));
-        }
-        // info("%s", string_data(k));
-        exit(1);
-    }
-
-
-
-
 
     // Parse
     Parser_Context pctx = make_parser_context();
