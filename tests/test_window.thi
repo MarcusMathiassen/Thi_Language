@@ -1,4 +1,3 @@
-
 load "includes/cstdio"
 load "includes/cstdlib"
 load "includes/opengl"

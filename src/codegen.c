@@ -1269,9 +1269,10 @@ char* emit_data(Codegen_Context* ctx, char* fmt, ...) {
     va_end(args);
 
 
-    // Remove duplicate entries
-    // @Todo: this is an optimization. It does not belong here.
     char* label = NULL;
+
+    // @Todo: this is an optimization. It does not belong here.
+    // Removes duplicate data entries
     LIST_FOREACH(ctx->data_list) {
         Data* s = it->data;
         if (strcmp(s->str, str) == 0) {
@@ -1279,6 +1280,7 @@ char* emit_data(Codegen_Context* ctx, char* fmt, ...) {
             break;
         }
     }
+    //
     if (!label) {
         label = make_data_label(ctx);
         Data* d = xmalloc(sizeof(Data));

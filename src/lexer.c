@@ -210,6 +210,13 @@ Lexed_File generate_tokens_from_file(char* file) {
             // info("token.col_pos: %d", token.col_pos);
         }
 
+        // To handle extranous block starts from
+        // explicit and implicit blocks started from indentation
+        // and braces. We keep a counter for every time we've 
+        // removed/not-added a block_start, and use this counter
+        // to figure out when we hit an undent if we should remove any
+        // duplicate following it. ex. undent undent
+        if ()
         if (ctx.current_indentation_level > ctx.previous_indentation_level) {
             Token t;
             t.kind = TOKEN_BLOCK_START;

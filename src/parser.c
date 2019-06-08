@@ -154,8 +154,8 @@ AST* parse_file(Parser_Context* ctx, char* file) {
     list_append(ctx->loads, file_path);
 
     Lexed_File lf = generate_tokens_from_file(file_path);
-    // print_tokens(lf.tokens);
-    // exit(1);
+    print_tokens(lf.tokens);
+    exit(1);
     ctx->tokens = lf.tokens.data;
     ctx->lines += lf.lines;
     ctx->comments += lf.comments;
@@ -272,7 +272,7 @@ AST* parse_statement(Parser_Context* ctx) {
 
     return result;
 }
-
+    
 AST* parse_primary(Parser_Context* ctx) {
     DEBUG_START;
     AST* result = NULL;

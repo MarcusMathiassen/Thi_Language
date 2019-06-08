@@ -312,8 +312,7 @@ static void _ast_to_str_var_args(String_Context* ctx, AST* node) {
 static void _ast_to_str_extern(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
-    string_append_f(s, "extern %s", get_ast_name(node));
-    type_to_str(node->Extern.type);
+    string_append_f(s, "extern %s %s", get_ast_name(node), type_to_str(node->Extern.type));
 }
 
 static void _ast_to_str_load(String_Context* ctx, AST* node) {
@@ -342,17 +341,20 @@ static void _ast_to_str_int(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append_f(s, "%lld", node->Int.val);
+    if (node->type->Int.is_unsigned) string_append(s, "U");
+    if (node->type->Int.bytes == 4) string_append(s, "L");
+    if (node->type->Int.bytes == 8) string_append(s, "LL");
 }
 
 static void _ast_to_str_float(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     // @Checkout(marcus): not to sure about the fmt.
-    char* str = strf("%.14g", node->Float.val);
-    u64 n = xstrlen(str);
+    // char* str = strf("%.14g", node->Float.val);
+    // u64 n = xstrlen(str);
     // This makes sure there is at least a single decimal point.
-    string_append_f(s, "%s", n == 1 ? strf("%s.00", str) : str);
-    // string_append_f(s, "%f", node->Float.val);
+    // string_append_f(s, "%s", n == 1 ? strf("%s.00", str) : str);
+    string_append_f(s, node->type->Float.bytes < 8 ? "%fF" : "%f", node->Float.val);
 }
 
 static void _ast_to_str_string(String_Context* ctx, AST* node) {
@@ -771,8 +773,8 @@ char* ast_get_literal_value_as_str(AST* node) {
     TASSERT_KIND_IN_RANGE(AST, kind);
     switch (kind) {
     ERROR_UNHANDLED_AST_KIND(kind);
-    case AST_INT:    return ast_to_str(node);
-    case AST_FLOAT:  return ast_to_str(node);
+    case AST_INT:    return strf("%lld", node->Int.val);
+    case AST_FLOAT:  return strf("%f", node->Float.val);
     case AST_STRING: return strf("`%s`, 0", node->String.val);
     case AST_CHAR:   return ast_to_str(node);
     }
