@@ -419,7 +419,7 @@ AST* get_symbol_in_scope(Sema_Context* ctx, char* name) {
 
     s32 scopes_looked_at = 0;
     s32 symbols_looked_at = 0;
-    STACK_FOREACH(((Sema_Context*)ctx)->scopes) {
+    STACK_FOREACH(ctx->scopes) {
         Map* symbols = it->data;
 
         AST* v = map_get(symbols, name);

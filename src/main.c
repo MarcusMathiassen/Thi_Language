@@ -517,10 +517,12 @@ int main(int argc, char** argv) {
     add_symbol(&thi, "f64", make_type_float(8));
 
     // Parse
+    push_timer("Parsing");
     Parser_Context pctx = make_parser_context();
     pctx.file = source_file;
     pctx.symbols = thi.symbol_map;
     AST* ast = parse_file(&pctx, source_file);
+    pop_timer();
 
     thi.links = ast_find_all_of_kind(AST_LINK, ast);
     list_append(thi.links, make_ast_link(ast->loc_info, "-lSystem"));
@@ -746,11 +748,13 @@ int main(int argc, char** argv) {
 
     success("--- Compiler timings ---");
     success("lines %s%s comments %s", give_unique_color(strf("%lld", pctx.lines)), RGB_GRAY, give_unique_color(strf("%lld", pctx.comments)));
+    #if TIMERS_SORT
     list_sort(timer_list, timer_sort_func);
+    #endif
     // Figure out percentage of total time for each timer
     Timer* total_time_timer = timer_list->tail->data;
     f64 total = total_time_timer->ms;
-    LIST_FOREACH(timer_list) {
+    LIST_FOREACH_REVERSE(timer_list) {
         Timer* tm = it->data;
         char* ms = strf("(%.2f%%) %f seconds", (tm->ms / total)*100.0, tm->ms * 0.001);
         success("%s", give_unique_color(table_entry(tm->desc, ms)));

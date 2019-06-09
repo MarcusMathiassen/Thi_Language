@@ -451,12 +451,18 @@ f64 get_time(void) {
 
 List* timer_list;
 static Stack* timer_stack;
-
+static u64 timer_indent;
+#define timer_indent_amount 4
 void push_timer(char* desc) {
     xassert(desc);
     Timer* tm = xmalloc(sizeof(Timer));
     tm->ms = get_time();
+    #if TIMERS_INDENT
+    tm->desc = strf("%*s%s", timer_indent, "", desc);
+    timer_indent += timer_indent_amount;
+    #else 
     tm->desc = desc;
+    #endif
     stack_push(timer_stack, tm);
 }
 
@@ -464,9 +470,13 @@ void pop_timer(void) {
     Timer* tm = stack_pop(timer_stack);
     tm->ms = get_time() - tm->ms;
     list_append(timer_list, tm);
+    #if TIMERS_INDENT
+    timer_indent -= timer_indent_amount;
+    #endif
 }
 
 void initilize_timers(void) {
+    timer_indent = 0;
     timer_list = make_list();
     timer_stack = make_stack();
 }
