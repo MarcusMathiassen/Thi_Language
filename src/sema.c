@@ -37,7 +37,7 @@
     info("%s: %s", give_unique_color(ast_kind_to_str(node->kind)), wrap_with_colored_parens(ast_to_str(node)));
 
 #define SCOPE_START stack_push(((Sema_Context*)ctx)->scopes, make_map())
-#define SCOPE_END stack_pop(((Sema_Context*)ctx)->scopes)
+#define SCOPE_END map_destroy(stack_pop(((Sema_Context*)ctx)->scopes))
 #define SCOPE_ADD(x) map_set(stack_peek(((Sema_Context*)ctx)->scopes), get_ast_name(x), x)
     // list_append(stack_peek(((Sema_Context*)ctx)->scopes), x)
 

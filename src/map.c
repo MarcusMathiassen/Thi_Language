@@ -63,6 +63,12 @@ void map_tests(void) {
 
     xassert(((Test_Type*)map_get(map, "t1"))->val == 3.43f);
     xassert(((Test_Type*)map_get(map, "t2"))->val == 6.41f);
+
+    map_foreach(map) {
+        char* key = it->key;
+        Test_Type* t =  it->value;
+        info("key: %s, value: %f", key, t->val);
+    }   
 }
 
 static u32 hash(char* str) {
@@ -104,6 +110,11 @@ Map* make_map_with_initial_size(s64 initial_size) {
 
 Map* make_map() {
     return make_map_with_initial_size(DEFAULT_MAP_STARTING_TABLE_SIZE);
+}
+
+void map_destroy(Map* map) {
+    free(map->elements);
+    free(map);
 }
 
 s64 map_count(Map* map) {

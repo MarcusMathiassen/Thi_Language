@@ -28,7 +28,7 @@
 #include "typedefs.h"
 
 typedef struct {
-     char* key;
+    char* key;
     void* value;
 } Map_Element;
 
@@ -38,7 +38,10 @@ typedef struct {
     Map_Element* elements;
 } Map;
 
+#define map_foreach(map) for (Map_Element* it = map->elements; it != &(map->elements[map->table_size]); ++it) if (it->key)
+
 Map* make_map(void);
+void map_destroy(Map* map);
 Map* make_map_with_initial_size(s64 initial_size);
 s64 map_count(Map* map);
 void map_tests(void);
