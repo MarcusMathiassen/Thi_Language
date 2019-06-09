@@ -85,14 +85,14 @@ void* sema_nop(void* ctx, AST* node) {
 }
 
 void* sema_space_separated_identifier_list(void* ctx, AST* node) {
-    LIST_FOREACH(node->Space_Separated_Identifier_List.identifiers) {
+    list_foreach(node->Space_Separated_Identifier_List.identifiers) {
         sema(ctx, it->data);
     }
     return NULL;
 }
 
 void* sema_comma_separated_list(void* ctx, AST* node) {
-    LIST_FOREACH(node->Comma_Separated_List.nodes) {
+    list_foreach(node->Comma_Separated_List.nodes) {
         sema(ctx, it->data);
     }
     return NULL;
@@ -103,7 +103,7 @@ void* sema_module(void* ctx, AST* node) {
     // To support unordered decls we need to find all before we jump into scopes.
     // So we do a preliminary pass to find all decls and add them to the scope.
     add_all_decls_in_module(ctx, node);
-    LIST_FOREACH(node->Module.top_level) {
+    list_foreach(node->Module.top_level) {
         sema(ctx, it->data);
     }
     return NULL;
@@ -174,7 +174,7 @@ void* sema_call(void* ctx, AST* node) {
     char* callee = node->Call.callee;
     AST* callee_f = get_symbol_in_scope(ctx, callee);
     if (!callee_f) error("no function in scope with name %s", ucolor(callee));
-    LIST_FOREACH(node->Call.args) {
+    list_foreach(node->Call.args) {
         AST* arg = it->data;
         sema(ctx, arg);
     }
@@ -234,7 +234,7 @@ void* sema_field_access(void* ctx, AST* node) {
     switch (load->type->kind) {
         ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
     case TYPE_STRUCT: {
-        LIST_FOREACH(load->type->Struct.members) {
+        list_foreach(load->type->Struct.members) {
             Type_Name_Pair* mem = it->data;
             info_no_newline("on %s ", mem->name);
             if (strcmp(mem->name, field_name) == 0) {
@@ -263,7 +263,7 @@ void* sema_block(void* ctx, AST* node) {
 
     List* returned_nodes = make_list();
 
-    LIST_FOREACH(stmts) {
+    list_foreach(stmts) {
         AST* stmt = it->data; 
         sema(ctx, stmt);
 
@@ -293,7 +293,7 @@ void* sema_block(void* ctx, AST* node) {
         // ..make sure they are all the same type
         AST* a = list_first(returned_nodes);
         Type* a_t = a->type;
-        LIST_FOREACH(returned_nodes) {
+        list_foreach(returned_nodes) {
             AST* b = it->data;
             Type* b_t = b->type;
             // ..raise an error if not
@@ -320,11 +320,11 @@ void* sema_function(void* ctx, AST* node) {
     add_node_to_scope(ctx, node);
     ((Sema_Context*)ctx)->current_function = node;
     SCOPE_START;
-    LIST_FOREACH(node->Function.parameters) {
+    list_foreach(node->Function.parameters) {
         sema(ctx, it->data);
     }
     sema(ctx, node->Function.body);
-    LIST_FOREACH(node->Function.defers) {
+    list_foreach(node->Function.defers) {
         sema(ctx, it->data);
     }
     SCOPE_END;
@@ -419,7 +419,7 @@ AST* get_symbol_in_scope(Sema_Context* ctx, char* name) {
 
     s32 scopes_looked_at = 0;
     s32 symbols_looked_at = 0;
-    STACK_FOREACH(ctx->scopes) {
+    stack_foreach(ctx->scopes) {
         Map* symbols = it->data;
 
         AST* v = map_get(symbols, name);
@@ -446,10 +446,9 @@ AST* get_symbol_in_scope(Sema_Context* ctx, char* name) {
 void add_all_decls_in_module(Sema_Context* ctx, AST* node) {
     tassert(ctx && node, "%zu, %zu", ctx, node);
     xassert(node->kind == AST_MODULE);
-    push_timer((char*)__func__);
     info("add_all_decls_in_module: %s", get_ast_name(node));
     List* decls = node->Module.top_level;
-    LIST_FOREACH(decls) {
+    list_foreach(decls) {
         AST* decl = it->data;
         switch (decl->kind) {
         default: error("[%s:%s] illegal top level construct %s", get_ast_name(((Sema_Context*)ctx)->module), get_ast_loc_str(decl), ucolor(ast_to_str(decl)));
@@ -480,5 +479,4 @@ void add_all_decls_in_module(Sema_Context* ctx, AST* node) {
             break;
         }
     }
-    pop_timer();
 }

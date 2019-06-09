@@ -262,7 +262,7 @@ static void _ast_to_str_nop(String_Context* ctx, AST* node) {
 static void _ast_to_str_space_separated_identifier_list(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
-    LIST_FOREACH(node->Space_Separated_Identifier_List.identifiers) {
+    list_foreach(node->Space_Separated_Identifier_List.identifiers) {
         _ast_to_str(ctx, it->data);
         if (it->next) string_append(s, " ");
     }
@@ -271,7 +271,7 @@ static void _ast_to_str_space_separated_identifier_list(String_Context* ctx, AST
 static void _ast_to_str_comma_separated_list(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
-    LIST_FOREACH(node->Comma_Separated_List.nodes) {
+    list_foreach(node->Comma_Separated_List.nodes) {
         _ast_to_str(ctx, it->data);
         if (it->next) string_append(s, ", ");
     }
@@ -280,7 +280,7 @@ static void _ast_to_str_comma_separated_list(String_Context* ctx, AST* node) {
 static void _ast_to_str_module(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
-    LIST_FOREACH(node->Module.top_level) {
+    list_foreach(node->Module.top_level) {
         AST* stmt = it->data;
         _ast_to_str(ctx, stmt);
         string_append(s, "\n");
@@ -378,7 +378,7 @@ static void _ast_to_str_call(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append_f(s, "%s(", node->Call.callee);
-    LIST_FOREACH(node->Call.args) {
+    list_foreach(node->Call.args) {
         _ast_to_str(ctx, it->data);
         if (it->next) string_append(s, ", ");
     }
@@ -439,7 +439,7 @@ static void _ast_to_str_block(String_Context* ctx, AST* node) {
     string* s = ctx->str;
     string_append(s, "\n");
     ctx->indentation_level += DEFAULT_INDENT_LEVEL;
-    LIST_FOREACH(node->Block.stmts) {
+    list_foreach(node->Block.stmts) {
         string_append(s, get_indentation_as_str(ctx->indentation_level));
         AST* stmt = it->data;
         _ast_to_str(ctx, stmt);
@@ -453,7 +453,7 @@ static void _ast_to_str_struct(String_Context* ctx, AST* node) {
     string* s = ctx->str;
     string_append_f(s, "def %s\n", get_ast_name(node));
     ctx->indentation_level += DEFAULT_INDENT_LEVEL;
-    LIST_FOREACH(node->Struct.members) {
+    list_foreach(node->Struct.members) {
         string_append(s, get_indentation_as_str(ctx->indentation_level));
         _ast_to_str(ctx, it->data);
         if (it->next) string_append(s, "\n");
@@ -466,7 +466,7 @@ static void _ast_to_str_enum(String_Context* ctx, AST* node) {
     string* s = ctx->str;
     string_append_f(s, "def %s\n", get_ast_name(node));
     ctx->indentation_level += DEFAULT_INDENT_LEVEL;
-    LIST_FOREACH(node->Enum.members) {
+    list_foreach(node->Enum.members) {
         string_append(s, get_indentation_as_str(ctx->indentation_level));
         _ast_to_str(ctx, it->data);
         if (it->next) string_append(s, "\n");
@@ -478,7 +478,7 @@ static void _ast_to_str_function(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append_f(s, "def %s(", get_ast_name(node));
-    LIST_FOREACH(node->Function.parameters) {
+    list_foreach(node->Function.parameters) {
         _ast_to_str(ctx, it->data);
         if (it->next) string_append(s, ", ");
     }
@@ -619,17 +619,17 @@ void* ast_visit(ast_callback func, void* ctx, AST* node) {
 
     // @Todo(marcus) figure out what to do with these.
     case AST_SPACE_SEPARATED_IDENTIFIER_LIST:
-        LIST_FOREACH(node->Space_Separated_Identifier_List.identifiers) {
+        list_foreach(node->Space_Separated_Identifier_List.identifiers) {
             ast_visit(func, ctx, it->data);
         }
         break;
     case AST_COMMA_SEPARATED_LIST:
-        LIST_FOREACH(node->Comma_Separated_List.nodes) {
+        list_foreach(node->Comma_Separated_List.nodes) {
             ast_visit(func, ctx, it->data);
         }
         break;
     case AST_MODULE:
-        LIST_FOREACH(node->Module.top_level) {
+        list_foreach(node->Module.top_level) {
             ast_visit(func, ctx, it->data);
         }
         break;
@@ -713,26 +713,26 @@ void* ast_visit(ast_callback func, void* ctx, AST* node) {
         ast_visit(func, ctx, node->Switch.default_case);
         break;
     case AST_EXTERN:
-        LIST_FOREACH(node->Extern.type->Function.parameters) {
+        list_foreach(node->Extern.type->Function.parameters) {
             ast_visit(func, ctx, it->data);
         }
         break;
     case AST_FUNCTION:
         ast_visit(func, ctx, node->Function.body);
-        LIST_FOREACH(node->Function.parameters) {
+        list_foreach(node->Function.parameters) {
             ast_visit(func, ctx, it->data);
         }
-        LIST_FOREACH(node->Function.defers) {
+        list_foreach(node->Function.defers) {
             ast_visit(func, ctx, it->data);
         }
         break;
     case AST_CALL:
-        LIST_FOREACH(node->Call.args) {
+        list_foreach(node->Call.args) {
             ast_visit(func, ctx, it->data);
         }
         break;
     case AST_BLOCK:
-        LIST_FOREACH(node->Block.stmts) {
+        list_foreach(node->Block.stmts) {
             ast_visit(func, ctx, it->data);
         }
         break;
@@ -761,7 +761,7 @@ AST_Ref_List make_ast_ref_list() {
 
 void ast_ref_list_append(AST_Ref_List* l, AST* a) {
     if (l->count == l->allocated) {
-        l->allocated *= PHI;
+        l->allocated *= 2;
         l->data = xrealloc(l->data, l->allocated * sizeof(*l->data));
     }
     l->data[l->count++] = a;
@@ -935,7 +935,7 @@ AST* make_ast_struct(Loc_Info loc_info, char* name, List* members) {
     e->Struct.members = members;
 
     List* tps = make_list();
-    LIST_FOREACH(members) {
+    list_foreach(members) {
         AST* member = it->data;
         Type_Name_Pair* tp = xmalloc(sizeof(*tp));
         tp->name = get_ast_name(member);
@@ -954,7 +954,7 @@ AST* make_ast_enum(Loc_Info loc_info, char* name, List* members) {
     ;
 
     List* tps = make_list();
-    LIST_FOREACH(members) {
+    list_foreach(members) {
         AST* member = it->data;
         Type_Name_Pair* tp = xmalloc(sizeof(*tp));
         tp->name = get_ast_name(member);

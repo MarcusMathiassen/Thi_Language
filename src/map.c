@@ -94,8 +94,8 @@ static inline Map_Element* find_empty_slot(Map* map, char* key) {
     xassert(map && key);
     u32 index = hash(key);
     Map_Element* probe = NULL;
-    while ((probe = &map->elements[index++ % map->table_size])->key)
-        tassert(strcmp(key, probe->key) != 0, "key %s already exists in map %zu", key, map);
+    while ((probe = &map->elements[index++ % map->table_size])->key);
+        // tassert(strcmp(key, probe->key) != 0, "key %s already exists in map %zu", key, map);
     return probe;
 }
 
@@ -121,11 +121,11 @@ s64 map_count(Map* map) {
     return map->count;
 }
 
-void* p_map_set(Map* map, char* key, void* value) {
+void* map_set(Map* map, char* key, void* value) {
     xassert(map && key && value);
     if ((float)map->count / map->table_size > 0.75f) {
         s64 last_table_size = map->table_size;
-        map->table_size <<= 1;
+        map->table_size *= 2;
         Map* nmap = make_map_with_initial_size(map->table_size);
         foreach(k, last_table_size) {
             Map_Element* probe = &map->elements[k];
@@ -142,44 +142,10 @@ void* p_map_set(Map* map, char* key, void* value) {
     ++map->count;
     return value;
 }
-void* p_map_get(Map* map, char* key) {
+
+void* map_get(Map* map, char* key) {
     xassert(map && key);
     Map_Element* slot = find_slot_with_key(map, key);
-    tassert(slot->value, "key %s value was NULL.", key);
-    return slot->value;
-}
-void* d_map_set(Map* map, char* key, void* value, char* file, char* func, int line) {
-    xassert(map && key && value);
-    if ((float)map->count / map->table_size > 0.75f) {
-        s64 last_table_size = map->table_size;
-        map->table_size <<= 1;
-        Map* nmap = make_map_with_initial_size(map->table_size);
-        foreach(k, last_table_size) {
-            Map_Element* probe = &map->elements[k];
-            if (probe->key) 
-                map_set(nmap, probe->key, probe->value);
-        }
-        free(map->elements);
-        xassert(map_count(map) == map_count(nmap));
-        *map = *nmap;
-    }
-
-    u32 index = hash(key);
-    Map_Element* slot = NULL;
-    // @Audit
-    while ((slot = &map->elements[index++ % map->table_size])->key)
-        if (strcmp(key, slot->key) == 0) return value;
-        // tassert(strcmp(key, slot->key) != 0, "[%s:%s:%d] key %s already exists in map %zu", file, func, line, key, key, map);
-
-    slot->key = key;
-    slot->value = value;
-    ++map->count;
-    return value;
-}
-
-void* d_map_get(Map* map, char* key, char* file, char* func, int line) {
-    xassert(map && key);
-    Map_Element* slot = find_slot_with_key(map, key);
-    // tassert(slot->value, "[%s:%s:%d] key %s value was NULL.", file, func, line, key);
+    // tassert(slot->value, "key %s value was NULL.", key);
     return slot->value;
 }

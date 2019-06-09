@@ -804,7 +804,7 @@ Token_Array make_token_array() {
 
 void token_array_append(Token_Array* l, Token t) {
     if (l->count == l->allocated) {
-        l->allocated *= PHI;
+        l->allocated *= 2;
         l->data = xrealloc(l->data, l->allocated * sizeof(*l->data));
     }
     l->data[l->count++] = t;
@@ -820,7 +820,7 @@ Intern_Array make_intern_array() {
 
 void intern_array_append(Intern_Array* l, Intern intern) {
     if (l->count == l->allocated) {
-        l->allocated *= PHI;
+        l->allocated *= 2;
         l->data = xrealloc(l->data, l->allocated * sizeof(*l->data));
     }
     l->data[l->count++] = intern;

@@ -138,7 +138,7 @@ void pass_initilize_enums(void* thi, AST* node) {
 
     //     s64 counter = 0;
     //     AST* e = node;
-    //     LIST_FOREACH(e->Enum.members) {
+    //     list_foreach(e->Enum.members) {
     //         AST* m = it->data;
     //         // Turn idents into constant decls
     //         switch (m->kind) {
@@ -187,7 +187,7 @@ void* check_for_unresolved_types(void* ctx, AST* node) {
 
 void* run_all_passes(void* thi, AST* node) {
     List* visitors = thi_get_visitors_for_kind(thi, node->kind);
-    LIST_FOREACH(visitors) {
+    list_foreach(visitors) {
         PassDescriptor* passDesc = it->data;
         (*passDesc->visitor_func)(passDesc->visitor_arg, node);
     }
@@ -527,7 +527,7 @@ int main(int argc, char** argv) {
     thi.links = ast_find_all_of_kind(AST_LINK, ast);
     list_append(thi.links, make_ast_link(ast->loc_info, "-lSystem"));
     info("all loaded files");
-    LIST_FOREACH(pctx.loads) {
+    list_foreach(pctx.loads) {
         info("file: %s", it->data);
     }
 
@@ -649,10 +649,10 @@ int main(int argc, char** argv) {
     // Remove unused externs
     // List* externs = ast_find_all_of_kind(AST_EXTERN, ast);
     // List* calls = ast_find_all_of_kind(AST_CALL, ast);
-    // LIST_FOREACH(externs) {
+    // list_foreach(externs) {
     //     AST* node_e = it->data;
     //     bool used = false;
-    //     LIST_FOREACH(calls) {
+    //     list_foreach(calls) {
     //         AST* node_c = it->data;
     //         if (strcmp(node_e->Extern.type->Function.name, node_c->Call.callee) == 0) {
     //             used = true;
@@ -754,9 +754,9 @@ int main(int argc, char** argv) {
     // Figure out percentage of total time for each timer
     Timer* total_time_timer = timer_list->tail->data;
     f64 total = total_time_timer->ms;
-    LIST_FOREACH_REVERSE(timer_list) {
+    list_foreach_reverse(timer_list) {
         Timer* tm = it->data;
-        char* ms = strf("(%.2f%%) %f seconds", (tm->ms / total)*100.0, tm->ms * 0.001);
+        char* ms = strf("(%.2f%%) %f ms", (tm->ms / total)*100.0, tm->ms);
         success("%s", give_unique_color(table_entry(tm->desc, ms)));
     }
     success("---------------------------");
@@ -790,7 +790,7 @@ void assemble(Thi* thi, char* asm_file, char* exec_name) {
 void linking_stage(Thi* thi, char* exec_name) {
     string* link_call = string_create_f("ld -macosx_version_min 10.14 -o %s %s.o -e _main", exec_name, exec_name);
     List* links = get_link_list(thi);
-    LIST_FOREACH(links) {
+    list_foreach(links) {
         AST* link = it->data;
         string_append_f(link_call, " %s", link->Link.str);
     }
@@ -825,10 +825,10 @@ List* string_split(string* this, char delimiter) {
 
 List* string_list_remove_duplicates(List* list) {
     List* res = make_list();
-    LIST_FOREACH(list) {
+    list_foreach(list) {
         char* a = it->data;
         bool dup = false;
-        LIST_FOREACH(res) {
+        list_foreach(res) {
             char* b = it->data;
             if (strcmp(a, b) == 0) {
                 dup = true;
@@ -862,11 +862,11 @@ void write_syntax_file(Thi* thi) {
 
     // string* t = string_create("");
     // string* f = string_create("");
-    // LIST_FOREACH(unique_type_string_list) {
+    // list_foreach(unique_type_string_list) {
     //     string_append_f(t, "%s", it->data);
     //     if (it->next) string_append(t, "|");
     // }
-    // LIST_FOREACH(unique_func_string_list) {
+    // list_foreach(unique_func_string_list) {
     //     string_append_f(f, "%s", it->data);
     //     if (it->next) string_append(f, "|");
     // }

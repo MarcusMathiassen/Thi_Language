@@ -40,7 +40,7 @@ void list_init(List* l) {
 }
 
 void list_free(List* l) {
-    LIST_FOREACH(l) {
+    list_foreach(l) {
         free(it->prev);
     }
 }
@@ -100,14 +100,14 @@ bool list_empty(List* list) {
 void list_prepend_content_of_in_reverse(List* list, List* other_list) {
     xassert(list);
     xassert(other_list);
-    LIST_FOREACH_REVERSE(other_list) {
+    list_foreach_reverse(other_list) {
         list_prepend(list, it->data);
     }
 }
 void list_prepend_content_of(List* list, List* other_list) {
     xassert(list);
     xassert(other_list);
-    LIST_FOREACH(other_list) {
+    list_foreach(other_list) {
         list_prepend(list, it->data);
     }
 }
@@ -115,14 +115,14 @@ void list_prepend_content_of(List* list, List* other_list) {
 void list_append_content_of_in_reverse(List* list, List* other_list) {
     xassert(list);
     xassert(other_list);
-    LIST_FOREACH_REVERSE(other_list) {
+    list_foreach_reverse(other_list) {
         list_append(list, it->data);
     }
 }
 void list_append_content_of(List* list, List* other_list) {
     xassert(list);
     xassert(other_list);
-    LIST_FOREACH(other_list) {
+    list_foreach(other_list) {
         list_append(list, it->data);
     }
 }
@@ -138,7 +138,7 @@ void* list_remove_at(List* list, s64 index) {
 
     if (start_from_tail) {
         iterator = list->count;
-        LIST_FOREACH_REVERSE(list) {
+        list_foreach_reverse(list) {
             if (iterator == index) {
                 removed_node = list_remove(list, it);
                 break;
@@ -146,7 +146,7 @@ void* list_remove_at(List* list, s64 index) {
             iterator -= 1;
         }
     } else {
-        LIST_FOREACH(list) {
+        list_foreach(list) {
             if (iterator == index) {
                 removed_node = list_remove(list, it);
                 break;
@@ -227,7 +227,7 @@ void* list_at(List* list, s64 index) {
 
     if (start_from_tail) {
         s64 iterator = list->count;
-        LIST_FOREACH_REVERSE(list) {
+        list_foreach_reverse(list) {
             if (iterator == index) {
                 data = it->data;
                 break;
@@ -236,7 +236,7 @@ void* list_at(List* list, s64 index) {
         }
     } else {
         s64 iterator = 0;
-        LIST_FOREACH(list) {
+        list_foreach(list) {
             if (iterator == index) {
                 data = it->data;
                 break;

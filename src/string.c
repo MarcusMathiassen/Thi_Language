@@ -36,9 +36,9 @@
 string* string_create(char* str) {
     xassert(str);
     string* s = xmalloc(sizeof(string));
-    s->c_str = xmalloc(STRING_STARTING_ALLOC);
     s->len = 0;
     s->cap = STRING_STARTING_ALLOC;
+    s->c_str = xmalloc(s->cap);
     string_append(s, str);
     return s;
 }
@@ -69,7 +69,7 @@ void string_append(string* this, char* str) {
     if (str_len == 0) return;
     xassert(this->len <= this->cap);
     while (this->len + str_len >= this->cap) {
-        this->cap *= PHI;
+        this->cap *= 2;
         this->c_str = xrealloc(this->c_str, this->cap * sizeof(*this->c_str));
     }
     memcpy(this->c_str + this->len, str, str_len);

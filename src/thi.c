@@ -115,7 +115,7 @@ List* get_load_list(Thi* thi) {
 
 void add_load(Thi* thi, char* loaded_file) {
     xassert(loaded_file);
-    LIST_FOREACH(thi->loads) {
+    list_foreach(thi->loads) {
         char* l = (char*)it->data;
         if (strcmp(l, loaded_file) == 0) {
             return;
@@ -127,7 +127,7 @@ void add_load(Thi* thi, char* loaded_file) {
 
 void add_link(Thi* thi, char* library_name) {
     xassert(library_name);
-    LIST_FOREACH(thi->links) {
+    list_foreach(thi->links) {
         char* l = (char*)it->data;
         if (strcmp(l, library_name) == 0) {
             return;

@@ -128,7 +128,7 @@ static void type_to_str_array      (string* s, Type* type) {
 
 static void type_to_str_enum       (string* s, Type* type) {
     string_append_f(s, "%s = { ", get_type_name(type));
-    LIST_FOREACH(type_get_members(type)) {
+    list_foreach(type_get_members(type)) {
         Type_Name_Pair* mem = it->data;
         if (mem->name)
             string_append_f(s, "%s %s", mem->name, get_type_name(mem->type));
@@ -141,7 +141,7 @@ static void type_to_str_enum       (string* s, Type* type) {
 
 static void type_to_str_struct     (string* s, Type* type) {
     string_append_f(s, "%s = { ", get_type_name(type));
-    LIST_FOREACH(type_get_members(type)) {
+    list_foreach(type_get_members(type)) {
         Type_Name_Pair* mem = it->data;
         if (mem->name)
             string_append_f(s, "%s %s", mem->name, get_type_name(mem->type));
@@ -158,7 +158,7 @@ static void type_to_str_union      (string* s, Type* type) {
 
 static void type_to_str_function   (string* s, Type* type) {
     string_append(s, "(");
-    LIST_FOREACH(type->Function.parameters) {
+    list_foreach(type->Function.parameters) {
         Type_Name_Pair* param = it->data;
         if (param->name)
             string_append_f(s, "%s %s", param->name, get_type_name(param->type));
@@ -189,7 +189,7 @@ Type_Ref_List make_type_ref_list() {
 
 void type_ref_list_append(Type_Ref_List* l, Type* t) {
     if (l->count == l->allocated) {
-        l->allocated *= PHI;
+        l->allocated *= 2;
         l->data = xrealloc(l->data, l->allocated * sizeof(*l->data));
     }
     l->data[l->count++] = t;
@@ -285,7 +285,7 @@ s64 get_size_of_type(Type* type) {
     case TYPE_ARRAY: return get_size_of_type(type->Array.type) * type->Array.size;
     case TYPE_STRUCT: {
         s64 accum_size = 0;
-        LIST_FOREACH(type_get_members(type)) {
+        list_foreach(type_get_members(type)) {
             Type_Name_Pair* mem = it->data;
             if (mem->type->kind == TYPE_FUNCTION) continue;
             accum_size += get_size_of_type(mem->type);
@@ -294,7 +294,7 @@ s64 get_size_of_type(Type* type) {
     }
     case TYPE_FUNCTION: {
         s64 accum_size = 0;
-        LIST_FOREACH(type->Function.parameters) {
+        list_foreach(type->Function.parameters) {
             Type_Name_Pair* arg = it->data;
             accum_size += get_size_of_type(arg->type);
         }
@@ -310,7 +310,7 @@ s64 get_offset_in_struct_to_field(Type* type, char* name) {
     xassert(type);
     xassert(type->kind == TYPE_STRUCT);
     s64 accum_size = 0;
-    LIST_FOREACH(type_get_members(type)) {
+    list_foreach(type_get_members(type)) {
         Type_Name_Pair* mem = it->data;
         if (strcmp(name, mem->name) == 0) return accum_size;
         accum_size += get_size_of_type(mem->type);

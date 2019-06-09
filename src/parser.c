@@ -468,7 +468,7 @@ AST* parse_is(Parser_Context* ctx) {
     AST* body = parse_block(ctx);
 
     bool has_fallthrough = false;
-    LIST_FOREACH(body->Block.stmts) {
+    list_foreach(body->Block.stmts) {
         AST* stmt = it->data;
         if (stmt->kind == AST_FALLTHROUGH) {
             has_fallthrough = true;
@@ -495,7 +495,7 @@ void maybe_convert_if_to_switch(AST* node) {
     List* stmts = then_block->Block.stmts;
     bool if_statement_is_actually_a_switch = false;
 
-    LIST_FOREACH(stmts) {
+    list_foreach(stmts) {
         AST* stmt = it->data;
         if (stmt->kind == AST_IS) {
             if_statement_is_actually_a_switch = true;
@@ -507,7 +507,7 @@ void maybe_convert_if_to_switch(AST* node) {
     // is a case
     if (if_statement_is_actually_a_switch) {
         // Find all NON switchy things and post and error
-        LIST_FOREACH(stmts) {
+        list_foreach(stmts) {
             AST* stmt = it->data;
             if (stmt->kind != AST_IS) {
                 error(
@@ -663,7 +663,7 @@ AST* parse_def(Parser_Context* ctx) {
     bool is_enum = true;
 
     List* members = body->Block.stmts;
-    LIST_FOREACH(members) {
+    list_foreach(members) {
         AST* stmt = it->data;
         switch (stmt->kind) {
         case AST_IDENT: break;

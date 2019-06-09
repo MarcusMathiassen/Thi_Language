@@ -175,7 +175,7 @@ void* codegen_comma_separated_list(void* ctx, AST* node) {
 
 void* codegen_module(void* ctx, AST* node) {
     DEBUG_START;
-    LIST_FOREACH(node->Module.top_level) {
+    list_foreach(node->Module.top_level) {
         codegen(ctx, it->data);
     }
     return NULL;
@@ -299,13 +299,13 @@ void* codegen_call(void* ctx, AST* node) {
     s8 class_sse_counter = 0;     // used for getting the next available register
 
     List* values = make_list();
-    LIST_FOREACH_REVERSE(args) {
+    list_foreach_reverse(args) {
         Value* v = codegen(ctx, it->data);
         push_type(ctx, v->type);
         list_append(values, v);
     }
 
-    LIST_FOREACH_REVERSE(values) {
+    list_foreach_reverse(values) {
         Value* arg_v = it->data;
         Class_Kind class = classify(arg_v->type);
 
@@ -675,7 +675,7 @@ void* codegen_block(void* ctx, AST* node) {
     // AST* last_stmt = list_last(stmts);
     // ast_replace(last_stmt, make_ast_return(last_stmt->loc_info, last_stmt));
     // }
-    LIST_FOREACH(stmts) {
+    list_foreach(stmts) {
         last = codegen(ctx, it->data);
     }
     pop_scope(ctx);
@@ -728,7 +728,7 @@ void* codegen_function(void* ctx, AST* node) {
     s8 class_sse_counter     = 0;   // used for getting the next available register
 
     List* classified_arguments = classify_arguments(args);
-    LIST_FOREACH(classified_arguments) {
+    list_foreach(classified_arguments) {
 
         ClassifiedArgument* ca = it->data;
         AST* arg = ca->argument;
@@ -754,14 +754,14 @@ void* codegen_function(void* ctx, AST* node) {
 
     push_scope(ctx);
     List* stmts = func_body->Block.stmts;
-    LIST_FOREACH(stmts) {
+    list_foreach(stmts) {
         codegen(ctx, it->data);
     }
 
     emit(ctx, "%s:", DEFAULT_FUNCTION_END_LABEL_NAME);
 
     List* defers = get_current_function(ctx)->Function.defers;
-    LIST_FOREACH_REVERSE(defers) {
+    list_foreach_reverse(defers) {
         codegen(ctx, it->data);
     }
     pop_scope(ctx);
@@ -973,7 +973,7 @@ void* codegen_switch(void* ctx, AST* node) {
     AST* default_case = node->Switch.default_case;
 
     List* labels = make_list();
-    LIST_FOREACH(cases->Block.stmts) {
+    list_foreach(cases->Block.stmts) {
         AST* c = (AST*)it->data;
 
         char* l = make_text_label(ctx);
@@ -994,7 +994,7 @@ void* codegen_switch(void* ctx, AST* node) {
         emit(ctx, "jmp %s", end_l);
 
     List_Node* label_it = labels->head;
-    LIST_FOREACH(cases->Block.stmts) {
+    list_foreach(cases->Block.stmts) {
         AST* c = (AST*)it->data;
 
         char* l = (char*)label_it->data;
@@ -1034,7 +1034,7 @@ void* codegen_asm(void* ctx, AST* node) {
     DEBUG_START;
     AST* block = node->Asm.block;
 
-    LIST_FOREACH(block->Block.stmts) {
+    list_foreach(block->Block.stmts) {
         AST* stmt = it->data;
         switch (stmt->kind) {
         ERROR_UNHANDLED_AST_KIND(stmt->kind);
@@ -1273,7 +1273,7 @@ char* emit_data(Codegen_Context* ctx, char* fmt, ...) {
 
     // @Todo: this is an optimization. It does not belong here.
     // Removes duplicate data entries
-    LIST_FOREACH(ctx->data_list) {
+    list_foreach(ctx->data_list) {
         Data* s = it->data;
         if (strcmp(s->str, str) == 0) {
             label = s->label;
@@ -1355,7 +1355,7 @@ void push_type(Codegen_Context* ctx, Type* type) {
     case TYPE_ENUM: // fallthrough
     case TYPE_STRUCT: {
         // Push each member recursivly onto the stack
-        LIST_FOREACH(type_get_members(type)) {
+        list_foreach(type_get_members(type)) {
             Type_Name_Pair* member = it->data;
             push_type(ctx, member->type);
         }
@@ -1396,7 +1396,7 @@ void pop_type(Codegen_Context* ctx, Type* type) {
     case TYPE_ENUM: // fallthrough
     case TYPE_STRUCT: {
         // Push each member recursivly onto the stack
-        LIST_FOREACH(type_get_members(type)) {
+        list_foreach(type_get_members(type)) {
             Type_Name_Pair* member = it->data;
             pop_type(ctx, member->type);
         }
@@ -1562,7 +1562,7 @@ void dealloc_variable(Codegen_Context* ctx, Value* variable) {
 Value* get_variable_in_scope(Scope* scope, char* name) {
     xassert(scope);
     xassert(name);
-    LIST_FOREACH(scope->local_variables) {
+    list_foreach(scope->local_variables) {
         Value* v = it->data;
         if (v->Variable.name == name) return v;
     }
@@ -1574,9 +1574,9 @@ Value* get_variable(Codegen_Context* ctx, AST* ident) {
     xassert(ident);
     char* name = ident->Ident.name;
     info("looking for %s", ucolor(name));
-    STACK_FOREACH(ctx->scopes) {
+    stack_foreach(ctx->scopes) {
         Scope* scope = it->data;
-        LIST_FOREACH_REVERSE(scope->local_variables) {
+        list_foreach_reverse(scope->local_variables) {
             Value* v = it->data;
             if (strcmp(get_value_name(v), name) == 0) {
                 return v;
@@ -2047,7 +2047,7 @@ Class_Kind classify(Type* type) {
 List* classify_arguments(List* arguments) {
     xassert(arguments);
     List* classified_argument_list = make_list();
-    LIST_FOREACH(arguments) {
+    list_foreach(arguments) {
         AST* arg = it->data;
         xassert(arg);
         ClassifiedArgument* ca = xmalloc(sizeof(ClassifiedArgument));

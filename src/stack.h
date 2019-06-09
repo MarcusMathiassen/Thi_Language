@@ -28,14 +28,12 @@ typedef struct Stack_Node {
     struct Stack_Node* next;
 } Stack_Node;
 
-typedef struct
-{
+typedef struct {
     struct Stack_Node* head;
     s64 count;
 } Stack;
 
-#define STACK_FOREACH(stack) \
-    for (Stack_Node* it = (stack->head); (it); (it) = (it)->next)
+#define stack_foreach(s) for (Stack_Node* it = s->head; it; it = it->next)
 
 Stack* make_stack(void);
 void stack_free(Stack* stack);
