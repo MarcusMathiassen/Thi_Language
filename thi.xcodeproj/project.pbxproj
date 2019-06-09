@@ -8,10 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		9039BBBF2297383600518F14 /* sema.c in Sources */ = {isa = PBXBuildFile; fileRef = 9039BBBD2297383600518F14 /* sema.c */; };
-		90A50C6922A45A45008C2632 /* codegen_llvm.c in Sources */ = {isa = PBXBuildFile; fileRef = 90A50C6722A45A45008C2632 /* codegen_llvm.c */; };
 		90E9F30722907A5E00F80AF9 /* ast.c in Sources */ = {isa = PBXBuildFile; fileRef = 90E9F2E422907A5E00F80AF9 /* ast.c */; };
 		90E9F30822907A5E00F80AF9 /* thi.c in Sources */ = {isa = PBXBuildFile; fileRef = 90E9F2E522907A5E00F80AF9 /* thi.c */; };
-		90E9F30922907A5E00F80AF9 /* codegen_utility.c in Sources */ = {isa = PBXBuildFile; fileRef = 90E9F2E622907A5E00F80AF9 /* codegen_utility.c */; };
 		90E9F30A22907A5E00F80AF9 /* list.c in Sources */ = {isa = PBXBuildFile; fileRef = 90E9F2E722907A5E00F80AF9 /* list.c */; };
 		90E9F30B22907A5E00F80AF9 /* codegen.c in Sources */ = {isa = PBXBuildFile; fileRef = 90E9F2E822907A5E00F80AF9 /* codegen.c */; };
 		90E9F30C22907A5E00F80AF9 /* stack.c in Sources */ = {isa = PBXBuildFile; fileRef = 90E9F2EC22907A5E00F80AF9 /* stack.c */; };
@@ -43,13 +41,10 @@
 		9039BBBB2297383600518F14 /* sema.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sema.h; sourceTree = "<group>"; };
 		9039BBBD2297383600518F14 /* sema.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sema.c; sourceTree = "<group>"; };
 		90A50C6622A45A45008C2632 /* ir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ir.h; sourceTree = "<group>"; };
-		90A50C6722A45A45008C2632 /* codegen_llvm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = codegen_llvm.c; sourceTree = "<group>"; };
-		90A50C6822A45A45008C2632 /* codegen_llvm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = codegen_llvm.h; sourceTree = "<group>"; };
 		90E9F2D62290799100F80AF9 /* thi */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = thi; sourceTree = BUILT_PRODUCTS_DIR; };
 		90E9F2E322907A5E00F80AF9 /* type.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = type.h; sourceTree = "<group>"; };
 		90E9F2E422907A5E00F80AF9 /* ast.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ast.c; sourceTree = "<group>"; };
 		90E9F2E522907A5E00F80AF9 /* thi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = thi.c; sourceTree = "<group>"; };
-		90E9F2E622907A5E00F80AF9 /* codegen_utility.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = codegen_utility.c; sourceTree = "<group>"; };
 		90E9F2E722907A5E00F80AF9 /* list.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = list.c; sourceTree = "<group>"; };
 		90E9F2E822907A5E00F80AF9 /* codegen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = codegen.c; sourceTree = "<group>"; };
 		90E9F2E922907A5E00F80AF9 /* typedefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = typedefs.h; sourceTree = "<group>"; };
@@ -63,7 +58,6 @@
 		90E9F2F222907A5E00F80AF9 /* string.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = string.c; sourceTree = "<group>"; };
 		90E9F2F322907A5E00F80AF9 /* value.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = value.h; sourceTree = "<group>"; };
 		90E9F2F422907A5E00F80AF9 /* codegen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = codegen.h; sourceTree = "<group>"; };
-		90E9F2F522907A5E00F80AF9 /* codegen_utility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = codegen_utility.h; sourceTree = "<group>"; };
 		90E9F2F622907A5E00F80AF9 /* constants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = constants.h; sourceTree = "<group>"; };
 		90E9F2F722907A5E00F80AF9 /* list.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = list.h; sourceTree = "<group>"; };
 		90E9F2F822907A5E00F80AF9 /* ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ast.h; sourceTree = "<group>"; };
@@ -120,16 +114,12 @@
 		90E9F2E222907A5E00F80AF9 /* src */ = {
 			isa = PBXGroup;
 			children = (
-				90A50C6722A45A45008C2632 /* codegen_llvm.c */,
-				90A50C6822A45A45008C2632 /* codegen_llvm.h */,
 				90A50C6622A45A45008C2632 /* ir.h */,
 				9039BBBD2297383600518F14 /* sema.c */,
 				9039BBBB2297383600518F14 /* sema.h */,
 				90E9F2FF22907A5E00F80AF9 /* .clang-format */,
 				90E9F2E422907A5E00F80AF9 /* ast.c */,
 				90E9F2F822907A5E00F80AF9 /* ast.h */,
-				90E9F2E622907A5E00F80AF9 /* codegen_utility.c */,
-				90E9F2F522907A5E00F80AF9 /* codegen_utility.h */,
 				90E9F2E822907A5E00F80AF9 /* codegen.c */,
 				90E9F2F422907A5E00F80AF9 /* codegen.h */,
 				90E9F2F622907A5E00F80AF9 /* constants.h */,
@@ -225,12 +215,10 @@
 				90E9F31022907A5E00F80AF9 /* parser_utility.c in Sources */,
 				90E9F30C22907A5E00F80AF9 /* stack.c in Sources */,
 				90E9F30722907A5E00F80AF9 /* ast.c in Sources */,
-				90A50C6922A45A45008C2632 /* codegen_llvm.c in Sources */,
 				90E9F31622907A5E00F80AF9 /* parser.c in Sources */,
 				90E9F31722907A5E00F80AF9 /* value.c in Sources */,
 				90E9F30F22907A5E00F80AF9 /* lexer.c in Sources */,
 				90E9F30D22907A5E00F80AF9 /* utility.c in Sources */,
-				90E9F30922907A5E00F80AF9 /* codegen_utility.c in Sources */,
 				90E9F30822907A5E00F80AF9 /* thi.c in Sources */,
 				90E9F31222907A5E00F80AF9 /* main.c in Sources */,
 				9039BBBF2297383600518F14 /* sema.c in Sources */,

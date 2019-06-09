@@ -32,6 +32,13 @@ List* make_list(void) {
     return l;
 }
 
+void list_init(List* l) {
+    l = xmalloc(sizeof(List));
+    l->head = NULL;
+    l->tail = NULL;
+    l->count = 0;
+}
+
 void list_free(List* l) {
     LIST_FOREACH(l) {
         free(it->prev);
@@ -313,5 +320,21 @@ void list_insert_before(List* list, List_Node* next_node, void* data) {
         new_node->prev->next = new_node;
     } else {
         list->head = new_node;
+    }
+}
+
+void list_sort(List* l, bool (*func)(List_Node*, List_Node*)) {
+    xassert(l && func);
+    List_Node* a = NULL;
+    LIST_FOREACH(l) {
+        a = it->data;
+        LIST_FOREACH(l) {
+            List_Node* b = it->data;
+            if (!(*func)(a, b)) {
+                List_Node* tmp = a;
+                a = b;
+                b = tmp;
+            }
+        }
     }
 }

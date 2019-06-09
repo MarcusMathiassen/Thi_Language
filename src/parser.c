@@ -153,6 +153,8 @@ AST* parse_file(Parser_Context* ctx, char* file) {
     // Add it to the list of loaded files.
     list_append(ctx->loads, file_path);
 
+    push_timer(strf("%s", file_path));
+
     Lexed_File lf = generate_tokens_from_file(file_path);
     // print_tokens(lf.tokens);
     // exit(1);
@@ -163,6 +165,8 @@ AST* parse_file(Parser_Context* ctx, char* file) {
     info("%s",  get_colored_minimap_of_file(file_path, '_'));
     List* top_level_ast = generate_ast_from_tokens(ctx);
     AST* ast = make_ast_module(lc, file_path, top_level_ast);
+
+    pop_timer();
 
     // Restore state
     ctx->tokens = saved_tokens;

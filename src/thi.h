@@ -29,12 +29,6 @@
 #include "type.h"
 #include "typedefs.h"
 
-typedef struct
-{
-    f64 ms;
-    char* desc;
-} Timer;
-
 typedef enum {
     PASS_SAFE,
     PASS_UNSAFE
@@ -83,8 +77,6 @@ typedef struct
     AST* ast;
     Map* symbol_map;
     Map* macro_map;
-    Stack* timer_stack;
-    List* timer_list;
 
     string* output_name;
     string* source_file;
@@ -111,7 +103,4 @@ void set_source_file(Thi* thi, char* file_name);
 char* get_source_file(Thi* thi);
 char* get_previous_source_file(Thi* thi);
 void print_symbol_map(Thi* thi);
-void push_timer(Thi* thi, char* desc);
-void pop_timer(Thi* thi);
-List* get_timers(Thi* thi);
 #endif

@@ -403,9 +403,9 @@ List* ast_find_all_of_kind(AST_Kind kind, AST* ast) {
 
 void thi_run_pass(Thi* thi, char* pass_description, ast_callback visitor_func, void* visitor_func_arg) {
     info("running pass: %s", pass_description);
-    push_timer(thi, pass_description);
+    push_timer(pass_description);
     ast_visit(visitor_func, visitor_func_arg, thi->ast);
-    pop_timer(thi);
+    pop_timer();
     info("... COMPLETED.");
 }
 
@@ -426,6 +426,8 @@ int main(int argc, char** argv) {
     stack_tests();
     lexer_test();
 #endif
+
+    initilize_timers();
 
     Thi thi = make_thi();
 
@@ -456,7 +458,7 @@ int main(int argc, char** argv) {
         thi.enable_constant_folding = false;
     }
 
-    push_timer(&thi, "Total time");
+    push_timer("Total time");
 
     // Grab the source file
     char* source_file = get_source_file(&thi);
@@ -548,7 +550,7 @@ int main(int argc, char** argv) {
     //
     // Semantic analysis
     //
-    push_timer(&thi, "Semantic Analysis");
+    push_timer("Semantic Analysis");
     {
         info("Semantic Analysis");
 
@@ -598,8 +600,7 @@ int main(int argc, char** argv) {
         Sema_Context ctx = make_sema_context();
         ast_run_pass(&ctx, ast, STATE_SEMA);
     }
-    // sema(ast);
-    pop_timer(&thi);
+    pop_timer();
 
     PassDescriptor passDesc; // We reuse this one
 
@@ -626,9 +627,9 @@ int main(int argc, char** argv) {
     thi_install_pass(&thi, passDesc);  
 
     // Run all passes
-    push_timer(&thi, "Run all passes");
+    push_timer("Run all passes");
     ast_visit(run_all_passes, &thi, ast);
-    pop_timer(&thi);
+    pop_timer();
 
 
     // Sanity check.. Make sure the typer did what it was supposed to do.
@@ -662,7 +663,7 @@ int main(int argc, char** argv) {
     info("%s", ast_to_str(ast));
 
     // Codegen
-    push_timer(&thi, "Codegen");
+    push_timer("Codegen");
     char* code = NULL;
     {
         info("Generating code from ast");
@@ -714,7 +715,7 @@ int main(int argc, char** argv) {
         code = strf("%s%sglobal _main\n%s", string_data(ctx.section_extern), string_data(ctx.section_data), string_data(ctx.section_text));
         info("%s", code);
     }
-    pop_timer(&thi);
+    pop_timer();
 
     // Write to file
     if (code) {
@@ -739,11 +740,11 @@ int main(int argc, char** argv) {
     info(ucolor(table_entry("size of code", size_with_suffix(strlen(code) / sizeof(code)))));
     info(ucolor(table_entry("size of symbols", size_with_suffix(thi.symbol_map->count * sizeof(*thi.symbol_map->elements)))));
 
-    pop_timer(&thi);
+    pop_timer();
 
     success("--- Compiler timings ---");
     success("lines %s%s comments %s", give_unique_color(strf("%lld", pctx.lines)), RGB_GRAY, give_unique_color(strf("%lld", pctx.comments)));
-    LIST_FOREACH(get_timers(&thi)) {
+    LIST_FOREACH(timer_list) {
         Timer* tm = it->data;
         char* ms = strf("%f seconds", tm->ms * 0.001);
         success("%s", give_unique_color(table_entry(tm->desc, ms)));
@@ -761,9 +762,9 @@ int main(int argc, char** argv) {
 
 void assemble(Thi* thi, char* asm_file, char* exec_name) {
     if (thi->backend == BACKEND_LLVM) {
-        push_timer(thi, "LLVM");
+        push_timer("LLVM");
         system(PATH_TO_LLC " ./output.ll --x86-asm-syntax=intel");
-        pop_timer(thi);
+        pop_timer();
     }
 #ifndef NDEBUG
     string* comp_call = string_create_f("nasm -f macho64 -w+all -g %s.s -o %s.o", asm_file, exec_name);
@@ -771,9 +772,9 @@ void assemble(Thi* thi, char* asm_file, char* exec_name) {
     string* comp_call = string_create_f("nasm -f macho64 %s.s -o %s.o", asm_file, exec_name);
 #endif
     info("Assembling with options '%s'", ucolor(string_data(comp_call)));
-    push_timer(thi, "Assembler");
+    push_timer("Assembler");
     system(string_data(comp_call));
-    pop_timer(thi);
+    pop_timer();
 }
 
 void linking_stage(Thi* thi, char* exec_name) {
@@ -784,9 +785,9 @@ void linking_stage(Thi* thi, char* exec_name) {
         string_append_f(link_call, " %s", link->Link.str);
     }
     info("Linking with options '%s'", ucolor(string_data(link_call)));
-    push_timer(thi, "Linker");
+    push_timer("Linker");
     system(string_data(link_call));
-    pop_timer(thi);
+    pop_timer();
 
     // Cleanup object files
     system(strf("rm %s.o", exec_name));

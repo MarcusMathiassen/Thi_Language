@@ -24,16 +24,11 @@
 
 #include <stdlib.h> // free
 
-Stack*
-make_stack() {
+Stack* make_stack() {
     Stack* s = xmalloc(sizeof(Stack));
-    stack_init(s);
+    s->head = NULL;
+    s->count = 0;
     return s;
-}
-
-void stack_init(Stack* stack) {
-    stack->head = NULL;
-    stack->count = 0;
 }
 void stack_free(Stack* stack) {
     while (stack_pop(stack) != NULL) {
@@ -46,8 +41,7 @@ typedef struct
 } Test_Type;
 
 void stack_tests(void) {
-    Stack test_stack;
-    stack_init(&test_stack);
+    Stack* test_stack = make_stack();
     Test_Type t1;
     t1.id = 0;
     t1.val = 3.43f;
@@ -56,19 +50,18 @@ void stack_tests(void) {
     t2.id = 1;
     t2.val = 6.41f;
 
-    stack_push(&test_stack, &t1);
-    xassert(((Test_Type*)stack_peek(&test_stack))->id == 0);
-    stack_push(&test_stack, &t2);
-    xassert(((Test_Type*)stack_peek(&test_stack))->id == 1);
+    stack_push(test_stack, &t1);
+    xassert(((Test_Type*)stack_peek(test_stack))->id == 0);
+    stack_push(test_stack, &t2);
+    xassert(((Test_Type*)stack_peek(test_stack))->id == 1);
 
-    xassert(((Test_Type*)stack_pop(&test_stack))->val == 6.41f);
-    xassert(((Test_Type*)stack_pop(&test_stack))->val == 3.43f);
-    xassert((Test_Type*)stack_pop(&test_stack) == NULL);
+    xassert(((Test_Type*)stack_pop(test_stack))->val == 6.41f);
+    xassert(((Test_Type*)stack_pop(test_stack))->val == 3.43f);
+    xassert((Test_Type*)stack_pop(test_stack) == NULL);
 }
 
 void* stack_push(Stack* stack, void* data) {
-    xassert(stack);
-    xassert(data);
+    xassert(stack && data);
     Stack_Node* tmp = xmalloc(sizeof(Stack_Node));
     tmp->data = data;
     tmp->next = stack->head;
@@ -89,5 +82,6 @@ void* stack_pop(Stack* stack) {
 }
 
 void* stack_peek(Stack* stack) {
+    xassert(stack);
     return stack->head->data;
 }

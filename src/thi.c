@@ -34,10 +34,8 @@ Thi make_thi() {
     thi.debug_mode = false;
     thi.enable_constant_folding = true;
     thi.optimize = true;
-    thi.timer_list = make_list();
     thi.symbol_map = make_map();
     thi.macro_map = make_map();
-    thi.timer_stack = make_stack();
     thi.output_name = string_create("");
     thi.previous_file = NULL;
     thi.input_file = NULL;
@@ -169,23 +167,4 @@ Type* get_symbol(Thi* thi, char* name) {
         warning("no symbol with name %s", give_unique_color(name));
     }
     return t;
-}
-
-List* get_timers(Thi* thi) {
-    return thi->timer_list;
-}
-
-void push_timer(Thi* thi, char* desc) {
-    xassert(thi && desc);
-    Timer* tm = xmalloc(sizeof(Timer));
-    tm->ms = get_time();
-    tm->desc = desc;
-    stack_push(thi->timer_stack, tm);
-}
-
-void pop_timer(Thi* thi) {
-    xassert(thi);
-    Timer* tm = stack_pop(thi->timer_stack);
-    tm->ms = get_time() - tm->ms;
-    list_append(thi->timer_list, tm);
 }
