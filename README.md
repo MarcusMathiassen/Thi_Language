@@ -4,10 +4,13 @@
 
 ## How to compile
 Run a build script in the root folder:
-    build_dev or build_prod
+
+dev or prod
 
 ## Dependencies (these are not 'min' versions, just the versions i use)
+
 Assembler: nasm (version 2.14.02)
+
 Linker: ld (BUILD 18:45:16 Apr  4 2019)
 
 Tested on macOS. Unsure about Windows.

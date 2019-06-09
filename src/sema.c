@@ -431,6 +431,7 @@ void add_node_to_scope(Sema_Context* ctx, AST* node) {
 void add_all_decls_in_module(Sema_Context* ctx, AST* node) {
     tassert(ctx && node, "%zu, %zu", ctx, node);
     xassert(node->kind == AST_MODULE);
+    push_timer((char*)__func__);
     info("add_all_decls_in_module: %s", get_ast_name(node));
     List* decls = node->Module.top_level;
     LIST_FOREACH(decls) {
@@ -468,4 +469,5 @@ void add_all_decls_in_module(Sema_Context* ctx, AST* node) {
             break;
         }
     }
+    pop_timer();
 }

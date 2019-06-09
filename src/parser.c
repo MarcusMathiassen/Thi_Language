@@ -119,7 +119,7 @@ Type* get_type                         (Parser_Context* ctx);
 //------------------------------------------------------------------------------
 
 AST* parse_file(Parser_Context* ctx, char* file) {
-    push_timer(strf("%s:%zu, %s", (char*)__func__, ctx, file));
+    push_timer(strf("%s: %s", (char*)__func__, file));
 
     info("Parsing file %s", file);
 
