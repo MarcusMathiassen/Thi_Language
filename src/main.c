@@ -756,7 +756,7 @@ int main(int argc, char** argv) {
     f64 total = total_time_timer->ms;
     list_foreach_reverse(timer_list) {
         Timer* tm = it->data;
-        char* ms = strf("(%.2f%%) %f ms", (tm->ms / total)*100.0, tm->ms);
+        char* ms = strf("(%.2f%%) %fs", (tm->ms / total)*1e2, tm->ms / 1e3);
         success("%s", give_unique_color(table_entry(tm->desc, ms)));
     }
     success("---------------------------");
