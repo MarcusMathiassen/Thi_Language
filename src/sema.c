@@ -32,9 +32,9 @@
 #include "utility.h" // tassert
 #include <string.h> // strcmp
 
-#define DEBUG_START                                                                                             \
-    tassert(ctx && node, "%zu, %zu", ctx, node);                                                                \
-    info("%s: %s", give_unique_color(ast_kind_to_str(node->kind)), wrap_with_colored_parens(ast_to_str(node))); \
+#define DEBUG_START \
+    tassert(ctx && node, "%zu, %zu", ctx, node); \
+    info("%s: %s", give_unique_color(ast_kind_to_str(node->kind)), wrap_with_colored_parens(ast_to_str(node)));
 
 #define SCOPE_START stack_push(((Sema_Context*)ctx)->scopes, make_list())
 #define SCOPE_END stack_pop(((Sema_Context*)ctx)->scopes)

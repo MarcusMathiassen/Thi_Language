@@ -214,7 +214,7 @@ void* make_sure_all_nodes_have_a_valid_type(void* dont_care, AST* node) {
     case AST_FALLTHROUGH: return NULL;
     default: break;
     }
-    info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(node)), give_unique_color(type_to_str(node->type)));
+    // info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(node)), give_unique_color(type_to_str(node->type)));
 
     if (!node->type) {
         error(
@@ -741,14 +741,11 @@ int main(int argc, char** argv) {
 
     pop_timer(&thi);
 
-    struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-
     success("--- Compiler timings ---");
     success("lines %s%s comments %s", give_unique_color(strf("%lld", pctx.lines)), RGB_GRAY, give_unique_color(strf("%lld", pctx.comments)));
     LIST_FOREACH(get_timers(&thi)) {
         Timer* tm = it->data;
-        char* ms = strf("%f seconds", tm->ms / 1e3);
+        char* ms = strf("%f seconds", tm->ms * 0.001);
         success("%s", give_unique_color(table_entry(tm->desc, ms)));
     }
     success("---------------------------");

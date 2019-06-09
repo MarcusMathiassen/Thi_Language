@@ -176,7 +176,7 @@ List* get_timers(Thi* thi) {
 }
 
 void push_timer(Thi* thi, char* desc) {
-    xassert(desc);
+    xassert(thi && desc);
     Timer* tm = xmalloc(sizeof(Timer));
     tm->ms = get_time();
     tm->desc = desc;
@@ -184,7 +184,8 @@ void push_timer(Thi* thi, char* desc) {
 }
 
 void pop_timer(Thi* thi) {
-    Timer* tm = (Timer*)stack_pop(thi->timer_stack);
+    xassert(thi);
+    Timer* tm = stack_pop(thi->timer_stack);
     tm->ms = get_time() - tm->ms;
     list_append(thi->timer_list, tm);
 }

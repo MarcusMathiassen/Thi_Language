@@ -339,8 +339,8 @@ char* table_entry(char* left, char* right) {
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
     s64 len = xstrlen(left);
     s64 ms_l = xstrlen(right);
-    s64 padding = w.ws_col - len - ms_l - 1; // -1 is the ':'
-    return strf("%s:%*s%s", left, padding, "", right);
+    s64 padding = w.ws_col - len - ms_l;
+    return strf("%s%*s%s", left, padding, "", right);
 }
 
 char* strn(char* start, char* end) {
@@ -380,7 +380,7 @@ char* get_indentation_as_str(u64 indent_level) {
 }
 
 // Color Whell
-char* colors[6] = {
+static char* colors[6] = {
     "\033[31m", // red
     "\033[32m", // green
     "\033[33m", // yellow
@@ -388,24 +388,19 @@ char* colors[6] = {
     "\033[35m", // magenta
     "\033[36m", // cyan,
 };
-int counter = 0;
-int colors_count = 6;
+static u64 counter = 0;
+static u64 colors_count = 6;
 char* get_previous_color(void) {
     if (counter == 0) counter = 6;
     return colors[--counter];
 }
 char* get_next_color(void) {
-    if (counter == colors_count) counter = 0;
-    return colors[counter++];
+    return colors[counter++ % colors_count];
 }
 char* wrap_with_colored_parens(char* str) {
     xassert(str);
     char* current_color = get_next_color();
     return strf("%s(\033[00m%s%s)\033[00m", current_color, str, current_color);
-}
-
-char* ucolor(char* str) {
-    return give_unique_color(str);
 }
 
 char* give_unique_color(char* str) {
