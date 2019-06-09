@@ -174,6 +174,7 @@ void lexer_test(void) {
 #define LEXER_ERROR(x) error("[%s:%d:%d] %s", ctx.file, token.line_pos, token.col_pos, x)
 
 Lexed_File generate_tokens_from_file(char* file) {
+    push_timer(strf("%s: %s", (char*)__func__, file));
     char* source = get_file_content(file);
 
     Lexer_Context ctx;
@@ -251,6 +252,7 @@ Lexed_File generate_tokens_from_file(char* file) {
     lf.comments = ctx.comment_count;
     lf.lines = ctx.line_count;
 
+    pop_timer();
     return lf;
 }
 

@@ -323,6 +323,7 @@ void list_insert_before(List* list, List_Node* next_node, void* data) {
     }
 }
 
+// Bubble sorted atm. @Speed
 void list_sort(List* l, bool (*func)(void*, void*)) {
     xassert(l && func);
     bool swapped = false;

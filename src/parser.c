@@ -119,6 +119,7 @@ Type* get_type                         (Parser_Context* ctx);
 //------------------------------------------------------------------------------
 
 AST* parse_file(Parser_Context* ctx, char* file) {
+    push_timer(strf("%s:%zu, %s", (char*)__func__, ctx, file));
 
     info("Parsing file %s", file);
 
@@ -135,38 +136,22 @@ AST* parse_file(Parser_Context* ctx, char* file) {
     AST* saved_olast_if_statement = ctx->olast_if_statement;
     //
 
-    char* last_dir = get_file_directory(ctx->file);
-
-    ctx->file = strf("%s%s", last_dir ? last_dir : "", file);
-
-    // Check if we've already loaded the file before.
-    bool already_loaded = false;
-    LIST_FOREACH(ctx->loads) {
-        // info(it->data);
-        char* already_loaded_file = it->data;
-        if (strcmp(ctx->file, already_loaded_file) == 0) already_loaded = true;
-    }
-    if (already_loaded) return NULL;
-
-    char* file_path = ctx->file;
+    ctx->file = file;
 
     // Add it to the list of loaded files.
-    list_append(ctx->loads, file_path);
+    list_append(ctx->loads, ctx->file);
 
-    push_timer(strf("%s", file_path));
-
-    Lexed_File lf = generate_tokens_from_file(file_path);
+    Lexed_File lf = generate_tokens_from_file(ctx->file);
     // print_tokens(lf.tokens);
     // exit(1);
     ctx->tokens = lf.tokens.data;
     ctx->lines += lf.lines;
     ctx->comments += lf.comments;
 
-    info("%s",  get_colored_minimap_of_file(file_path, '_'));
+    info("%s",  get_colored_minimap_of_file(ctx->file, '_'));
     List* top_level_ast = generate_ast_from_tokens(ctx);
-    AST* ast = make_ast_module(lc, file_path, top_level_ast);
+    AST* ast = make_ast_module(lc, ctx->file, top_level_ast);
 
-    pop_timer();
 
     // Restore state
     ctx->tokens = saved_tokens;
@@ -179,6 +164,7 @@ AST* parse_file(Parser_Context* ctx, char* file) {
     ctx->olast_if_statement = saved_olast_if_statement;
     //
 
+    pop_timer();
     return ast;
 }
 
@@ -369,7 +355,10 @@ AST* parse_load(Parser_Context* ctx) {
         error("[%s:%s:%s] '%s' is not a .thi file.", ctx->file, la.line_pos, la.col_pos, file);
     }
     eat_kind(ctx, TOKEN_STRING);
-    AST* module = parse_file(ctx, file);
+    
+    char* last_dir = get_file_directory(ctx->file);
+    char* filepath = strf("%s%s", last_dir ? last_dir : "", file);
+    AST* module = parse_file(ctx, filepath);
     return make_ast_load(lc, file, module);
 }
 
