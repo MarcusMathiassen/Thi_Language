@@ -73,10 +73,11 @@ void* _malloc(s64 bytes, char* file, char* func, s64 line);
 void* _calloc(s64 size, s64 bytes, char* file, char* func, s64 line);
 void* _realloc(void* ptr, s64 bytes, char* file, char* func, s64 line);
 u64 _strlen(char* str, char* file, char* func, s64 line);
-
+char* size_with_suffix(u64 n);
 char* strn(char* start, char* end);
 char* strf(char* fmt, ...);
 char* get_indentation_as_str(u64 indent_level);
+char* table_entry(char* left, char* right);
 typedef struct {
     s64 line_pos;
     s64 col_pos;

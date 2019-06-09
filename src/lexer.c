@@ -187,7 +187,7 @@ Lexed_File generate_tokens_from_file(char* file) {
     ctx.current_indentation_level = 0;
     ctx.interns = make_intern_array();
 
-    for (s64 i = 0; i < __KEY_COUNT__; ++i)
+    foreach(i, __KEY_COUNT__)
         ctx.keywords[i] = intern(&ctx.interns, STATIC_KEYWORDS_ARRAY[i]);
 
     Token_Array tokens = make_token_array();
@@ -265,7 +265,7 @@ Lexed_File generate_tokens_from_source(char* source) {
     ctx.current_indentation_level = 0;
     ctx.interns = make_intern_array();
 
-    for (s64 i = 0; i < __KEY_COUNT__; ++i)
+    foreach(i, __KEY_COUNT__)
         ctx.keywords[i] = intern(&ctx.interns, STATIC_KEYWORDS_ARRAY[i]);
 
     Token_Array tokens = make_token_array();
@@ -781,7 +781,7 @@ void print_token(Token token) {
 }
 void print_tokens(Token_Array tokens) {
     info("Printing tokens..");
-    for (int i = 0; i < tokens.count; ++i)
+    foreach(i, tokens.count)
         print_token(tokens.data[i]);
 }
 
@@ -831,7 +831,7 @@ char* intern(Intern_Array* interns, char* str) {
 char* intern_range(Intern_Array* interns, char* start, char* end) {
     s64 len = end - start;
 
-    for (s64 i = 0; i < interns->count; ++i) {
+    foreach(i, interns->count) {
         Intern intern = interns->data[i];
         if (intern.len == len && strncmp(intern.str, start, len) == 0) {
             return intern.str;

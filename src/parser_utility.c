@@ -137,7 +137,7 @@ f64 get_float(Parser_Context* ctx) {
 
 int get_tok_precedence(Parser_Context* ctx) {
     DEBUG_START;
-    for (int i = 0; i < BIN_OP_COUNT; ++i)
+    foreach(i, BIN_OP_COUNT) 
         if (binop_precedence[i].kind == ctx->curr_tok.kind)
             return binop_precedence[i].p;
     return -1;

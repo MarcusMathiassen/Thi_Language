@@ -24,23 +24,28 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef int8_t s8;
-typedef int16_t s16;
-typedef int32_t s32;
-typedef int64_t s64;
 
-typedef uint8_t u8;
+#define foreach(i, c) for (s64 (i) = 0; (i) < (c); ++(i))
+
+typedef int8_t   s8;
+typedef int16_t  s16;
+typedef int32_t  s32;
+typedef int64_t  s64;
+typedef uint8_t  u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
+typedef float    f32;
+typedef double   f64;
+typedef s8       bool;
 
-typedef float f32;
-typedef double f64;
-
-typedef s8 bool;
+#define bytes(n) (n)
+#define kilobytes(n) ((u64)bytes((u64)n) * 1024ULL)
+#define megabytes(n) ((u64)kilobytes((u64)n) * 1024ULL)
+#define gigabytes(n) ((u64)megabytes((u64)n) * 1024ULL)
+#define terabytes(n) ((u64)gigabytes((u64)n) * 1024ULL)
 
 #define TASSERT_KIND_IN_RANGE(ENUM, kind) tassert(0 <= kind && kind < _##ENUM##_COUNT_, "kind = %d", kind)
-
 #define ERROR_UNHANDLED_KIND(str) \
     default:                      \
         error("[%s:%s:%d] Unhandled case '%s'", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color(str));

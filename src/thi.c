@@ -60,7 +60,7 @@ Thi make_thi() {
     thi.enums = make_ast_ref_list();
     thi.field_access = make_ast_ref_list();
 
-    for (s32 kind = 0; kind < _AST_COUNT_; ++kind) {
+    foreach(kind, _AST_COUNT_) {
         map_set(thi.all_passes_for_all_kinds, ast_kind_to_str(kind), make_list());
     }
 
@@ -76,7 +76,7 @@ List* thi_get_visitors_for_kind(Thi* thi, AST_Kind kind) {
 }
 
 void thi_remove_all_passes(Thi* thi) {
-    for (s32 kind = 0; kind < _AST_COUNT_; ++kind) {
+    foreach(kind, _AST_COUNT_) {
         map_set(thi->all_passes_for_all_kinds, ast_kind_to_str(kind), make_list());
     }
 }

@@ -37,7 +37,7 @@
 
 #define DEBUG_START                                                              \
     xassert(ctx && node);                                                        \
-    info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(node))); \
+    // info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(node))); \
     // emit(ctx, "; %s", ast_to_str(node));
 
 
@@ -1323,7 +1323,7 @@ void emit(Codegen_Context* ctx, char* fmt, ...) {
     va_end(args);
 
     bool is_label = false;
-    for (int i = 0; i < str_len; ++i) {
+    foreach(i, str_len) {
         if (str[i] == ':') {
             is_label = true;
             break;
@@ -1347,7 +1347,7 @@ void push_type(Codegen_Context* ctx, Type* type) {
         // Push each element in the array
         s64 size = type->Array.size;
         Type* contained_type = type->Array.type;
-        for (int i = 0; i < size; ++i) {
+        foreach(i, size) {
             push_type(ctx, contained_type);
         }
         break;
@@ -1370,7 +1370,7 @@ void push_type(Codegen_Context* ctx, Type* type) {
 void pop_type_2(Codegen_Context* ctx, Type* type) {
     xassert(type);
     switch (type->kind) {
-        ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_ARRAY:   // fallthrough
     case TYPE_POINTER: // fallthrough
     case TYPE_STRUCT:  // fallthrough
@@ -1383,12 +1383,12 @@ void pop_type(Codegen_Context* ctx, Type* type) {
     xassert(ctx);
     xassert(type);
     switch (type->kind) {
-        ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_ARRAY: {
         // Push each element in the array
         s64 size = type->Array.size;
         Type* contained_type = type->Array.type;
-        for (int i = 0; i < size; ++i) {
+        foreach(i, size) {
             pop_type(ctx, contained_type);
         }
         break;

@@ -29,7 +29,7 @@
 #include <time.h>   // timeval
 #include <unistd.h>
 #include <ctype.h>       // NOTE(marcus): what do i use this
-
+#include <sys/ioctl.h>    // NOTE(marcus): what do i use this for?
 //------------------------------------------------------------------------------
 //                               Printing Functions
 //------------------------------------------------------------------------------
@@ -319,6 +319,28 @@ char* get_colored_minimap_of_file(char* file, char c) {
         string_append(k, ucolor(line));
     }
     return string_data(k);
+}
+
+char* size_with_suffix(u64 n) {
+    u64 m = (n >= gigabytes(1ULL) ? n / gigabytes(1ULL) : n >= megabytes(1ULL) ? n / megabytes(1ULL) :  n >= kilobytes(1ULL) ? n / kilobytes(1ULL) :  n >= bytes(1ULL) ? n / bytes(1ULL) : n);
+    char* suffix = (n >= gigabytes(1ULL) ? "GB" : n >= megabytes(1ULL) ? "MB" :  n >= kilobytes(1ULL) ? "KB" :  n >= bytes(1ULL) ? "B" : "");
+    return strf("%llu%s", m, suffix);
+}
+
+typedef struct {
+    s8 col;
+    s8 row;
+    List* col_desc;
+    List* row_desc;
+} Table;
+
+char* table_entry(char* left, char* right) {
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    s64 len = xstrlen(left);
+    s64 ms_l = xstrlen(right);
+    s64 padding = w.ws_col - len - ms_l - 1; // -1 is the ':'
+    return strf("%s:%*s%s", left, padding, "", right);
 }
 
 char* strn(char* start, char* end) {

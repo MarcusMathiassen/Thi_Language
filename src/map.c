@@ -119,7 +119,7 @@ void* map_set(Map* map, char* key, void* value) {
         s64 last_table_size = map->table_size;
         map->table_size <<= 1;
         Map* nmap = make_map_with_initial_size(map->table_size);
-        for (u32 k = 0; k < last_table_size; ++k) {
+        foreach(k, last_table_size) {
             Map_Element* probe = &map->elements[k];
             if (probe->key) 
                 map_set(nmap, probe->key, probe->value);

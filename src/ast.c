@@ -39,7 +39,6 @@ void* (*ast_transitions[_AST_COUNT_][_STATE_COUNT_]) (void*, AST*);
 
 static char* _ast_to_str(String_Context* ctx, AST* node);
 
-
 char* ast_kind_to_str(AST_Kind kind) {
     TASSERT_KIND_IN_RANGE(AST, kind);
     switch (kind) {

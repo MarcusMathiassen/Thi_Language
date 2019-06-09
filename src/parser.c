@@ -701,7 +701,7 @@ AST* parse_binary(Parser_Context* ctx, s8 expr_prec, AST* lhs) {
     AST* expr = NULL;
 
     // If this is a binop, find its precedence.
-    for (;;) {
+    while(true) {
         s32 tok_prec = get_tok_precedence(ctx);
 
         // If this is a binop that binds at least as tightly as the current
@@ -774,7 +774,7 @@ AST* read_field_access(Parser_Context* ctx, AST* expr) {
 AST* parse_postfix_tail(Parser_Context* ctx, AST* primary_expr) {
     DEBUG_START;
     // xassert(primary_expr);
-    for (;;) {
+    while(true) {
         switch(tokKind(ctx)) {
         default: return primary_expr;
         // @Bug: this is causing endless loop in basic_setup.thi
@@ -816,7 +816,7 @@ AST* parse_unary(Parser_Context* ctx) {
     Loc_Info lc = loc(ctx);
     AST* unary = NULL;
 
-    for (s8 i = 0; i < UNARY_OP_COUNT; ++i) {
+    foreach(i, UNARY_OP_COUNT) {
         if (tok_is(ctx, unary_ops[i])) {
             Token_Kind op = tokKind(ctx);
             eat(ctx);

@@ -484,8 +484,8 @@ int main(int argc, char** argv) {
     }
 
     // Zero out all the states so that we can check for NULL later on
-    for (u64 kind = 0; kind < _AST_COUNT_; ++kind)
-        for (u64 state = 0; state < _STATE_COUNT_; ++state)
+    foreach(kind, _AST_COUNT_)
+        foreach(state, _STATE_COUNT_)
             ast_transitions[kind][state] = NULL;
 
     add_load(&thi, name);
@@ -727,15 +727,17 @@ int main(int argc, char** argv) {
         error("generating code from ast failed.");
 
     // Debug info. Writing out sizes of our types.
-    info("size of Token:   %lu bytes", sizeof(Token));
-    info("size of AST:     %lu bytes", sizeof(AST));
-    info("size of Type:    %lu bytes", sizeof(Type));
-    info("size of Value:   %lu bytes", sizeof(Value));
-    info("size of Map:     %lu bytes", sizeof(Map));
-    info("size of List:    %lu bytes", sizeof(List));
-    info("size of Stack:   %lu bytes", sizeof(Stack));
-    info("size of string:  %lu bytes", sizeof(string));
-    info("size of ast_transitions:  %lu bytes", sizeof(ast_transitions));
+    info(ucolor(table_entry("size of Token", size_with_suffix(sizeof(Token)))));
+    info(ucolor(table_entry("size of AST", size_with_suffix(sizeof(AST)))));
+    info(ucolor(table_entry("size of Type", size_with_suffix(sizeof(Type)))));
+    info(ucolor(table_entry("size of Value", size_with_suffix(sizeof(Value)))));
+    info(ucolor(table_entry("size of Map", size_with_suffix(sizeof(Map)))));
+    info(ucolor(table_entry("size of List", size_with_suffix(sizeof(List)))));
+    info(ucolor(table_entry("size of Stack", size_with_suffix(sizeof(Stack)))));
+    info(ucolor(table_entry("size of string", size_with_suffix(sizeof(string)))));
+    info(ucolor(table_entry("size of ast_transitions", size_with_suffix(sizeof(ast_transitions)))));
+    info(ucolor(table_entry("size of code", size_with_suffix(strlen(code) / sizeof(code)))));
+    info(ucolor(table_entry("size of symbols", size_with_suffix(thi.symbol_map->count * sizeof(*thi.symbol_map->elements)))));
 
     pop_timer(&thi);
 
@@ -746,11 +748,8 @@ int main(int argc, char** argv) {
     success("lines %s%s comments %s", give_unique_color(strf("%lld", pctx.lines)), RGB_GRAY, give_unique_color(strf("%lld", pctx.comments)));
     LIST_FOREACH(get_timers(&thi)) {
         Timer* tm = it->data;
-        s64 len = xstrlen(tm->desc);
         char* ms = strf("%f seconds", tm->ms / 1e3);
-        s64 ms_l = xstrlen(ms);
-        s64 padding = w.ws_col - len - ms_l - 1; // -1 is the ':'
-        success("%s", give_unique_color(strf("%s:%*s%s", tm->desc, padding, "", ms)));
+        success("%s", give_unique_color(table_entry(tm->desc, ms)));
     }
     success("---------------------------");
 

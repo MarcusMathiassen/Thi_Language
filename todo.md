@@ -31,6 +31,7 @@
 - [-] Redo literals! AST_Literal should hold all type of literals. #edit1: Literal stub is implemented but not yet changed over.
 - [ ] Redo decls! Instead of AST_Variabel_Decl and AST_Function,
       consolidate them into a single AST_Decl. 
+- [ ] Bootstrap!
 
 ## Bugs
 - [ ] Timers are wacky. Sometimes negative? Buggy buggy.
