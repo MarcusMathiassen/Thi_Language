@@ -20,7 +20,7 @@
 
 #include "value.h"
 #include "register.h" // error, xmallox
-#include "typedefs.h"
+#include "common.h"
 #include "utility.h" // error, xmallox
 #include <stdarg.h>  // va_list, va_start, va_end
 #include <stdio.h>   //

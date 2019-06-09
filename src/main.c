@@ -24,7 +24,6 @@
 
 #include "ast.h"          // AST, AST_Kind
 #include "codegen.h"      // generate_code_from_ast
-#include "constants.h"    // all constnats
 #include "lexer.h"        // generate_tokens_from_source, print_tokens
 #include "list.h"         // list_tests
 #include "map.h"          // map
@@ -32,9 +31,8 @@
 #include "sema.h"         // semantic_analysis
 #include "stack.h"        // stack_tests
 #include "string.h"       // strcmp
-#include "thi.h"          // Thi
 #include "type.h"         // Type
-#include "typedefs.h"     // u8, u16, s32, etc.
+#include "common.h"     // u8, u16, s32, etc.
 #include "utility.h"      // get_file_content, success, info, get_time
 #include "value.h"        // Value
 #include <stdio.h>        // sprintf
@@ -70,9 +68,8 @@
 // 
 // 
 
-void assemble(Thi* thi, char* asm_file, char* exec_name);
-void linking_stage(Thi* thi, char* exec_name);
-void write_syntax_file(Thi* thi);
+void assemble(char* asm_file, char* exec_name);
+void linking_stage(List* links, char* exec_name);
 
 //------------------------------------------------------------------------------
 //                               Passes
@@ -158,22 +155,22 @@ void pass_initilize_enums(void* thi, AST* node) {
     // }
 }
 
-void* pass_add_all_symbols(void* thi, AST* node) {
+void* pass_add_all_symbols(void* symbols, AST* node) {
     switch (node->kind) {
     default: break;
     case AST_ENUM:   // fallthrough
     case AST_STRUCT: // fallthrough
-    case AST_FUNCTION: add_symbol(thi, get_type_name(node->type), node->type); break;
-    case AST_EXTERN: add_symbol(thi, get_type_name(node->type), node->type); break;
+    case AST_FUNCTION: // fallthrough
+    case AST_EXTERN: map_set(symbols, get_type_name(node->type), node->type); break;
     }
     return NULL;
 }
-void* pass_resolve_all_symbols(void* thi, AST* node) {
+void* pass_resolve_all_symbols(void* symbols, AST* node) {
     switch (node->kind) {
     default: break;
     case AST_ENUM:   // fallthrough
     case AST_STRUCT: // fallthrough
-    case AST_FUNCTION: node->type = get_symbol(thi, get_type_name(node->type)); break;
+    case AST_FUNCTION: node->type = map_get(symbols, get_type_name(node->type)); break;
     }
     return NULL;
 }
@@ -181,15 +178,6 @@ void* pass_resolve_all_symbols(void* thi, AST* node) {
 void* check_for_unresolved_types(void* ctx, AST* node) {
     if (node->type && node->type->kind == TYPE_UNRESOLVED) {
         error("[check_for_unresolved_types]: unresolved type found for node: %s", ast_to_str(node));
-    }
-    return NULL;
-}
-
-void* run_all_passes(void* thi, AST* node) {
-    List* visitors = thi_get_visitors_for_kind(thi, node->kind);
-    list_foreach(visitors) {
-        PassDescriptor* passDesc = it->data;
-        (*passDesc->visitor_func)(passDesc->visitor_arg, node);
     }
     return NULL;
 }
@@ -225,14 +213,14 @@ void* make_sure_all_nodes_have_a_valid_type(void* dont_care, AST* node) {
     return NULL;
 }
 
-void* visitor_resolve_unresolved_types(void* thi, AST* node) {
+void* visitor_resolve_unresolved_types(void* symbols, AST* node) {
     if (!node->type) return NULL;
     Type* placeholder_t = node->type;
     while (placeholder_t->kind == TYPE_POINTER) {
         placeholder_t = placeholder_t->Pointer.pointee;
     }
     if (placeholder_t->kind == TYPE_UNRESOLVED) {
-        *placeholder_t = *get_symbol(thi, get_type_name(placeholder_t));
+        *placeholder_t = *((Type*)map_get(symbols, get_type_name(placeholder_t)));
     }
     return NULL;
 }
@@ -401,12 +389,10 @@ List* ast_find_all_of_kind(AST_Kind kind, AST* ast) {
     return list;
 }
 
-void thi_run_pass(Thi* thi, char* pass_description, ast_callback visitor_func, void* visitor_func_arg) {
-    info("running pass: %s", pass_description);
+void run_pass(AST* ast, char* pass_description, ast_callback visitor_func, void* visitor_func_arg) {
     push_timer(pass_description);
-    ast_visit(visitor_func, visitor_func_arg, thi->ast);
+    ast_visit(visitor_func, visitor_func_arg, ast);
     pop_timer();
-    info("... COMPLETED.");
 }
 
 bool timer_sort_func(void* a, void* b) {
@@ -433,13 +419,8 @@ int main(int argc, char** argv) {
     lexer_test();
 #endif
 
-
-    Thi thi = make_thi();
-
-    bool listen_mode = false;
-
     s32 opt;
-    while ((opt = getopt(argc, argv, "lhv")) != -1) {
+    while ((opt = getopt(argc, argv, "hv")) != -1) {
         switch (opt) {
         case 'h': {
             puts("Usage:");
@@ -448,35 +429,19 @@ int main(int argc, char** argv) {
             return 0;
         } break;
         case 'v': puts(COMPILER_VERSION); return 0;
-        case 'l': listen_mode = true; break;
         case ':': info("option needs a value\n"); return 0;
         case '?': info("unknown option: %c\n", optopt); return 0;
         }
     }
 
-    set_source_file(&thi, argv[optind]);
-    info("filename: %s\n", argv[optind]);
-
-    if (thi.debug_mode) {
-        thi.detailed_print = true;
-        thi.optimize = false;
-        thi.enable_constant_folding = false;
-    }
-
-
     // Grab the source file
-    char* source_file = get_source_file(&thi);
+    char* source_file = argv[optind];
     info("Compiling %s", source_file);
 
     char* ext = get_file_extension(source_file);
     char* dir = get_file_directory(source_file);
     char* name = get_file_name(source_file);
     char* exec_name = remove_file_extension(name);
-
-    thi.input_file = source_file;
-
-    set_source_file(&thi, name);
-    set_current_directory(&thi, dir);
 
     info(source_file);
     info("ext: %s", ext);
@@ -494,68 +459,43 @@ int main(int argc, char** argv) {
         foreach(state, _STATE_COUNT_)
             ast_transitions[kind][state] = NULL;
 
-    add_load(&thi, name);
+    // Holds all symbols defined in the compilation unit.
+    Map* symbols = make_map();
+    
+    map_set(symbols, "void", make_type_void());
+    map_set(symbols, "bool", make_type_int(1, true));
+    map_set(symbols, "char", make_type_int(1, true));
+    map_set(symbols, "int", make_type_int(DEFAULT_INT_BYTE_SIZE, false));
+    map_set(symbols, "float", make_type_float(DEFAULT_FLOAT_BYTE_SIZE));
+    map_set(symbols, "double", make_type_float(8));
 
-    add_symbol(&thi, "void", make_type_void());
-    add_symbol(&thi, "bool", make_type_int(1, true));
-    add_symbol(&thi, "char", make_type_int(1, true));
-    add_symbol(&thi, "int", make_type_int(DEFAULT_INT_BYTE_SIZE, false));
-    add_symbol(&thi, "float", make_type_float(DEFAULT_FLOAT_BYTE_SIZE));
-    add_symbol(&thi, "double", make_type_float(8));
+    map_set(symbols, "s8", make_type_int(1, false));
+    map_set(symbols, "s16", make_type_int(2, false));
+    map_set(symbols, "s32", make_type_int(4, false));
+    map_set(symbols, "s64", make_type_int(8, false));
 
-    add_symbol(&thi, "s8", make_type_int(1, false));
-    add_symbol(&thi, "s16", make_type_int(2, false));
-    add_symbol(&thi, "s32", make_type_int(4, false));
-    add_symbol(&thi, "s64", make_type_int(8, false));
+    map_set(symbols, "u8", make_type_int(1, true));
+    map_set(symbols, "u16", make_type_int(2, true));
+    map_set(symbols, "u32", make_type_int(4, true));
+    map_set(symbols, "u64", make_type_int(8, true));
 
-    add_symbol(&thi, "u8", make_type_int(1, true));
-    add_symbol(&thi, "u16", make_type_int(2, true));
-    add_symbol(&thi, "u32", make_type_int(4, true));
-    add_symbol(&thi, "u64", make_type_int(8, true));
-
-    add_symbol(&thi, "f32", make_type_float(4));
-    add_symbol(&thi, "f64", make_type_float(8));
+    map_set(symbols, "f32", make_type_float(4));
+    map_set(symbols, "f64", make_type_float(8));
 
     // Parse
     push_timer("Parsing");
     Parser_Context pctx = make_parser_context();
     pctx.file = source_file;
-    pctx.symbols = thi.symbol_map;
+    pctx.symbols = symbols;
     AST* ast = parse_file(&pctx, source_file);
     pop_timer();
 
-    thi.links = ast_find_all_of_kind(AST_LINK, ast);
-    list_append(thi.links, make_ast_link(ast->loc_info, "-lSystem"));
-    info("all loaded files");
-    list_foreach(pctx.loads) {
-        info("file: %s", it->data);
-    }
+    List* links = ast_find_all_of_kind(AST_LINK, ast);
+    list_append(links, make_ast_link(ast->loc_info, "-lSystem"));
 
-    info("%s", ast_to_str(ast));
-    thi.ast = ast;
+    run_pass(ast, "pass_add_all_symbols", pass_add_all_symbols, symbols);
+    run_pass(ast, "resolve_unresolved_types", visitor_resolve_unresolved_types, symbols);
 
-    info("Running passes");
-
-    // thi_run_pass(&thi, "pass_initilize_enums", pass_initilize_enums, &thi);
-    thi_run_pass(&thi, "pass_add_all_symbols", pass_add_all_symbols, &thi);
-
-    if (listen_mode) {
-        success("writing syntax file...");
-        write_syntax_file(&thi);
-        return 0;
-    }
-
-    // Run all passes
-    print_symbol_map(&thi);
-
-    //
-    // PASS: resolve all unresolved types
-    //
-    thi_run_pass(&thi, "resolve_unresolved_types", visitor_resolve_unresolved_types, &thi);
-
-    //
-    // Semantic analysis
-    //
     push_timer("Semantic Analysis");
     {
         info("Semantic Analysis");
@@ -608,63 +548,38 @@ int main(int argc, char** argv) {
     }
     pop_timer();
 
-    PassDescriptor passDesc; // We reuse this one
 
-    passDesc.description = "Resolve sizeofs";
-    passDesc.kind = AST_SIZEOF;
-    passDesc.passKind = PASS_UNSAFE;
-    passDesc.visitor_func = resolve_sizeofs;
-    passDesc.visitor_arg = NULL;
-    thi_install_pass(&thi, passDesc);
+    // @Todo: move these into the semantic pass
+    // passDesc.description = "Resolve sizeofs";
+    // passDesc.kind = AST_SIZEOF;
+    // passDesc.passKind = PASS_UNSAFE;
+    // passDesc.visitor_func = resolve_sizeofs;
+    // passDesc.visitor_arg = NULL;
+    // thi_install_pass(passDesc);
 
-    passDesc.description = "Resolve typeofs";
-    passDesc.kind = AST_TYPEOF;
-    passDesc.visitor_func = resolve_typeofs;
-    thi_install_pass(&thi, passDesc);
+    // passDesc.description = "Resolve typeofs";
+    // passDesc.kind = AST_TYPEOF;
+    // passDesc.visitor_func = resolve_typeofs;
+    // thi_install_pass(passDesc);
 
-    passDesc.description = "Resolve subscripts";
-    passDesc.kind = AST_SUBSCRIPT;
-    passDesc.visitor_func = resolve_subscript;
-    thi_install_pass(&thi, passDesc);
+    // passDesc.description = "Resolve subscripts";
+    // passDesc.kind = AST_SUBSCRIPT;
+    // passDesc.visitor_func = resolve_subscript;
+    // thi_install_pass(passDesc);
 
-    passDesc.description = "Resolve field access";
-    passDesc.kind = AST_FIELD_ACCESS;
-    passDesc.visitor_func = resolve_field_access;
-    thi_install_pass(&thi, passDesc);  
-
-    // Run all passes
-    push_timer("Run all passes");
-    ast_visit(run_all_passes, &thi, ast);
-    pop_timer();
+    // passDesc.description = "Resolve field access";
+    // passDesc.kind = AST_FIELD_ACCESS;
+    // passDesc.visitor_func = resolve_field_access;
+    // thi_install_pass(passDesc);  
 
     // Sanity check.. Make sure the typer did what it was supposed to do.
-    thi_run_pass(&thi, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);
+    run_pass(ast, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);
 
     //  Optimization passes
-    thi_run_pass(&thi, "constant_fold", constant_fold, NULL);
+    run_pass(ast, "constant_fold", constant_fold, NULL);
 
     // Sanity checks
-    thi_run_pass(&thi, "check_for_unresolved_types", check_for_unresolved_types, NULL);
-
-    // Remove unused externs
-    // List* externs = ast_find_all_of_kind(AST_EXTERN, ast);
-    // List* calls = ast_find_all_of_kind(AST_CALL, ast);
-    // list_foreach(externs) {
-    //     AST* node_e = it->data;
-    //     bool used = false;
-    //     list_foreach(calls) {
-    //         AST* node_c = it->data;
-    //         if (strcmp(node_e->Extern.type->Function.name, node_c->Call.callee) == 0) {
-    //             used = true;
-    //         }
-    //     }
-    //     if (!used) ast_replace(node_e, make_ast_nop(node_e->loc_info));
-    // }
-
-    // char* json = ast_to_json(ast);
-    // write_to_file("ast.json", json);
-
-    info("%s", ast_to_str(ast));
+    run_pass(ast, "check_for_unresolved_types", check_for_unresolved_types, NULL);
 
     // Codegen
     push_timer("Codegen");
@@ -726,8 +641,8 @@ int main(int argc, char** argv) {
 
         char* output_filename = strf("%s.s", name);
         write_to_file(output_filename, code);
-        assemble(&thi, name, exec_name);
-        linking_stage(&thi, exec_name);
+        assemble(name, exec_name);
+        linking_stage(links, exec_name);
     } else
         error("generating code from ast failed.");
 
@@ -742,7 +657,7 @@ int main(int argc, char** argv) {
     info(ucolor(table_entry("size of string", size_with_suffix(sizeof(string)))));
     info(ucolor(table_entry("size of ast_transitions", size_with_suffix(sizeof(ast_transitions)))));
     info(ucolor(table_entry("size of code", size_with_suffix(strlen(code) / sizeof(code)))));
-    info(ucolor(table_entry("size of symbols", size_with_suffix(thi.symbol_map->count * sizeof(*thi.symbol_map->elements)))));
+    info(ucolor(table_entry("size of symbols", size_with_suffix(symbols->count * sizeof(*symbols->elements)))));
 
     pop_timer();
 
@@ -765,21 +680,14 @@ int main(int argc, char** argv) {
     write_to_file("output.thi", ast_to_source(ast));
 #endif
 
-    write_syntax_file(&thi);
-
     return 0;
 }
 
-void assemble(Thi* thi, char* asm_file, char* exec_name) {
-    if (thi->backend == BACKEND_LLVM) {
-        push_timer("LLVM");
-        system(PATH_TO_LLC " ./output.ll --x86-asm-syntax=intel");
-        pop_timer();
-    }
-#ifndef NDEBUG
-    string* comp_call = string_create_f("nasm -f macho64 -w+all -g %s.s -o %s.o", asm_file, exec_name);
-#else 
+void assemble(char* asm_file, char* exec_name) {
+#ifdef NDEBUG
     string* comp_call = string_create_f("nasm -f macho64 %s.s -o %s.o", asm_file, exec_name);
+#else 
+    string* comp_call = string_create_f("nasm -f macho64 -w+all -g %s.s -o %s.o", asm_file, exec_name);
 #endif
     info("Assembling with options '%s'", ucolor(string_data(comp_call)));
     push_timer("Assembler");
@@ -787,9 +695,8 @@ void assemble(Thi* thi, char* asm_file, char* exec_name) {
     pop_timer();
 }
 
-void linking_stage(Thi* thi, char* exec_name) {
+void linking_stage(List* links, char* exec_name) {
     string* link_call = string_create_f("ld -macosx_version_min 10.14 -o %s %s.o -e _main", exec_name, exec_name);
-    List* links = get_link_list(thi);
     list_foreach(links) {
         AST* link = it->data;
         string_append_f(link_call, " %s", link->Link.str);
@@ -801,177 +708,4 @@ void linking_stage(Thi* thi, char* exec_name) {
 
     // Cleanup object files
     system(strf("rm %s.o", exec_name));
-}
-
-List* string_split(string* this, char delimiter) {
-    List* list_of_delimited_strings = make_list();
-
-    char* cursor = this->c_str;
-    char* start_of_word = this->c_str;
-
-    while (*cursor) {
-        if (*cursor == delimiter) {
-            u64 len = cursor - start_of_word;
-            char* str = xmalloc(len); // cursor is at the delimiter so we dont need a +1
-            memcpy(str, start_of_word, len);
-            str[len] = 0;
-            list_append(list_of_delimited_strings, str);
-            start_of_word = cursor + 1; // +1 skips the delimiter
-        }
-        ++cursor;
-    }
-    return list_of_delimited_strings;
-}
-
-List* string_list_remove_duplicates(List* list) {
-    List* res = make_list();
-    list_foreach(list) {
-        char* a = it->data;
-        bool dup = false;
-        list_foreach(res) {
-            char* b = it->data;
-            if (strcmp(a, b) == 0) {
-                dup = true;
-            }
-        }
-        if (!dup) list_append(res, a);
-    }
-
-
-    return res;
-}
-
-void write_syntax_file(Thi* thi) {
-    // s64 count = map_count(thi->symbol_map);
-    // string* known_types = string_create("");
-    // string* known_funcs = string_create("");
-    // for (s64 i = 0; i < count; ++i) {
-    //     Type* type = thi->symbol_map->data[i].data;
-    //     switch (type->kind) {
-    //     case TYPE_POINTER: break;
-    //     case TYPE_FUNCTION:
-    //         string_append_f(known_funcs, "%s ", get_type_name(type));
-    //         break;
-    //     default:
-    //         string_append_f(known_types, "%s ", get_type_name(type));
-    //         break;
-    //     }
-    // }
-    // List* unique_type_string_list = string_list_remove_duplicates(string_split(known_types, ' '));
-    // List* unique_func_string_list = string_list_remove_duplicates(string_split(known_funcs, ' '));
-
-    // string* t = string_create("");
-    // string* f = string_create("");
-    // list_foreach(unique_type_string_list) {
-    //     string_append_f(t, "%s", it->data);
-    //     if (it->next) string_append(t, "|");
-    // }
-    // list_foreach(unique_func_string_list) {
-    //     string_append_f(f, "%s", it->data);
-    //     if (it->next) string_append(f, "|");
-    // }
-
-    // string* s = string_create("");
-    // string_append(s, "%YAML 1.2\n");
-    // string_append(s, "---\n");
-    // string_append(s, "# See http://www.sublimetext.com/docs/3/syntax.html\n");
-    // string_append(s, "file_extensions:\n");
-    // string_append(s, "  - thi\n");
-    // string_append(s, "scope: source.thi\n");
-    // string_append(s, "\n");
-    // string_append(s, "contexts:\n");
-    // string_append(s, "  # The prototype context is prepended to all contexts but those setting\n");
-    // string_append(s, "  # meta_include_prototype: false.\n");
-    // string_append(s, "  prototype:\n");
-    // string_append(s, "    - include: singleline_comments\n");
-    // string_append(s, "\n");
-    // string_append(s, "  main:\n");
-    // string_append(s, "    # The main context is the initial starting point of our syntax.\n");
-    // string_append(s, "    # Include other contexts from here (or specify them directly).\n");
-    // string_append(s, "    - include: keywords\n");
-    // string_append(s, "    - include: function_def\n");
-    // string_append(s, "    - include: numbers\n");
-    // string_append(s, "    - include: hex\n");
-    // string_append(s, "    - include: globals\n");
-    // string_append(s, "    - include: strings\n");
-    // string_append(s, "    - include: character_literal\n");
-    // string_append(s, "    - include: basic_types\n");
-    // string_append(s, "    - include: operators\n");
-    // string_append(s, "\n");
-    // string_append(s, "  keywords:\n");
-    // string_append(s, "    # Keywords are if, else for and while.\n");
-    // string_append(s, "    # Note that blackslashes don't need to be escaped within single quoted\n");
-    // string_append(s, "    # strings in YAML. When using single quoted strings, only single quotes\n");
-    // string_append(s, "    # need to be escaped: this is done by using two single quotes next to each\n");
-    // string_append(s, "    # other.\n");
-    // string_append(s, "    - match: '\\b(interface|enum|struct|class|def|astof|sizeof|typeof|fallthrough|in|true|false|extern|link|union|is|load|if|else|for|while|return|break|continue|defer)\\b'\n");
-    // string_append(s, "      scope: keyword.control\n");
-    // string_append(s, "\n");
-    // string_append(s, "  function_def:\n");
-    // string_append_f(s, "    - match: '\\b(%s)\\b'\n", string_data(f));
-    // string_append(s, "      scope: entity.name.function\n");
-    // string_append(s, "\n");
-    // string_append(s, "  numbers:\n");
-    // string_append(s, "    - match: '[+-]?[0-9_]+(e[0-9]+)?([lL|LL|uU])*'\n");
-    // string_append(s, "      scope: constant.numeric\n");
-    // string_append(s, "    - match: '[+-]?[0-9_]+.+(e[0-9.]+)?([fF])*'\n");
-    // string_append(s, "      scope: constant.numeric\n");
-    // string_append(s, "\n");
-    // string_append(s, "  hex:\n");
-    // string_append(s, "    - match: '\\b0x(-)?[0-9A-Za-z]+\\b'\n");
-    // string_append(s, "      scope: constant.numeric\n");
-    // string_append(s, "\n");
-    // string_append(s, "  operators:\n");
-    // string_append(s, "    - match: '[\\.!:=+-?;{},-><&*$\\[\\]]+'\n");
-    // string_append(s, "      scope: keyword.operator\n");
-    // string_append(s, "\n");
-    // string_append(s, "  basic_types:\n");
-    // string_append_f(s, "    - match: '\\b(%s)\\b'\n", string_data(t));
-    // string_append(s, "      scope: storage.type\n");
-    // string_append(s, "\n");
-    // string_append(s, "  strings:\n");
-    // string_append(s, "    # Strings begin and end with quotes, and use backslashes as an escape\n");
-    // string_append(s, "    # character.\n");
-    // string_append(s, "    - match: \"\\\"\"\n");
-    // string_append(s, "      scope: punctuation.definition.string.begin.example-c\n");
-    // string_append(s, "      push: inside_string\n");
-    // string_append(s, "\n");
-    // string_append(s, "  inside_string:\n");
-    // string_append(s, "    - meta_include_prototype: false\n");
-    // string_append(s, "    - meta_scope: string.quoted.double.example-c\n");
-    // string_append(s, "    - match: '\\.'\n");
-    // string_append(s, "      scope: constant.character.escape.example-c\n");
-    // string_append(s, "    - match: '\"'\n");
-    // string_append(s, "      scope: punctuation.definition.string.end.example-c\n");
-    // string_append(s, "      pop: true\n");
-    // string_append(s, "\n");
-    // string_append(s, "  character_literal:\n");
-    // string_append(s, "    # Strings begin and end with quotes, and use backslashes as an escape\n");
-    // string_append(s, "    # character.\n");
-    // string_append(s, "    - match: '\'''\n");
-    // string_append(s, "      scope: punctuation.definition.™©string.begin.example-c\n");
-    // string_append(s, "      push: inside_character_literal\n");
-    // string_append(s, "\n");
-    // string_append(s, "  inside_character_literal:\n");
-    // string_append(s, "    - meta_include_prototype: false\n");
-    // string_append(s, "    - meta_scope: string.quoted.double.example\n");
-    // string_append(s, "    - match: '\\.'\n");
-    // string_append(s, "      scope: constant.character.escape.example\n");
-    // string_append(s, "    - match: '\'''\n");
-    // string_append(s, "      scope: punctuation.definition.string.end.example\n");
-    // string_append(s, "      pop: true\n");
-    // string_append(s, "\n");
-    // string_append(s, "  singleline_comments:\n");
-    // string_append(s, "    # Comments begin with a '#' and finish at the end of the line.\n");
-    // string_append(s, "    - match: '#'\n");
-    // string_append(s, "      scope: comment.line.double-slash\n");
-    // string_append(s, "      push:\n");
-    // string_append(s, "        # This is an anonymous context push for brevity.\n");
-    // string_append(s, "        - meta_scope: comment.line.double-slash\n");
-    // string_append(s, "        - match: $\\w?\n");
-    // string_append(s, "          pop: true\n");
-
-    // write_to_file("thi.sublime-syntax", string_data(s));
-    // system("perl -pi -e 's/[^[:ascii:]]//g' ./thi.sublime-syntax");
-    // system("cp ./thi.sublime-syntax /Users/marcusmathiassen/Library/Mobile\\ Documents/com~apple~CloudDocs/Sublime/User/thi.sublime-syntax");
 }

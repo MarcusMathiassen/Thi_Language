@@ -20,8 +20,8 @@
 
 #include "lexer.h"
 
-#include "constants.h"
-#include "typedefs.h"
+
+#include "common.h"
 #include "utility.h" // info, warning, xmalloc, xrealloc, xstrlen
 #include <ctype.h>   // isalnum, isdigit
 #include <string.h>  // strncmp

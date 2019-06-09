@@ -23,7 +23,7 @@
 
 #include "list.h"   // List
 #include "string.h" // String_Context
-#include "typedefs.h"
+#include "common.h"
 
 //------------------------------------------------------------------------------
 //                               type.h

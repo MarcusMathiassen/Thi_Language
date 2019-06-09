@@ -21,7 +21,7 @@
 #ifndef LIST_H
 #define LIST_H
 
-#include "typedefs.h"
+#include "common.h"
 
 //------------------------------------------------------------------------------
 //                               list.h

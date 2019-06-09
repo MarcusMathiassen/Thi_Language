@@ -22,7 +22,7 @@
 #include "list.h" // List
 #include "stack.h" // Stack
 #include "string.h" // string
-#include "constants.h"
+
 #include <stdarg.h> // va_list, va_start, va_end
 #include <stdio.h>  // printf, vprintf
 #include <stdlib.h> // malloc, realloc, calloc

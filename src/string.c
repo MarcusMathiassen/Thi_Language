@@ -23,9 +23,9 @@
 //------------------------------------------------------------------------------
 
 #include "string.h"
-#include "constants.h"
 
-#include "typedefs.h"
+
+#include "common.h"
 #include "utility.h" // xmalloc, xrealloc
   // assert
 #include <stdarg.h>  // va_list, va_start, va_end

@@ -21,7 +21,7 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#include "typedefs.h"
+#include "common.h"
 
 //------------------------------------------------------------------------------
 //                              lexer.h

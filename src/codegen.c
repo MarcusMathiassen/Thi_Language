@@ -22,12 +22,12 @@
 
 #include "codegen.h"
 #include "ast.h" // AST*, ast_to_str
-#include "constants.h"
+
 #include "parser.h"
 #include "lexer.h" // token_kind_to_str
 #include "list.h"
 #include "register.h"
-#include "typedefs.h"
+#include "common.h"
 #include "utility.h" // error warning info, wrap_with_colored_parens
 #include "value.h"   // Value, Scope
 #include <stdarg.h>  // va_list, va_start, va_end

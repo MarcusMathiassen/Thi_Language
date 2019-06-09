@@ -24,7 +24,7 @@
 
 #ifndef STRING_H
 #define STRING_H
-#include "typedefs.h"
+#include "common.h"
 #include "utility.h"
 
 typedef struct {

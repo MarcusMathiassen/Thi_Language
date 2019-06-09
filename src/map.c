@@ -23,7 +23,7 @@
 //------------------------------------------------------------------------------
 
 #include "map.h"
-#include "constants.h"
+
 #include "utility.h"
 
 #include <string.h>

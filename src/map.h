@@ -25,7 +25,7 @@
 #ifndef MAP_H
 #define MAP_H
 
-#include "typedefs.h"
+#include "common.h"
 
 typedef struct {
     char* key;

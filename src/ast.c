@@ -23,10 +23,10 @@
 //------------------------------------------------------------------------------
 
 #include "ast.h"
-#include "constants.h"
+
 #include "lexer.h"  // token_kind_to_str,
 #include "string.h" // strf, string_append, string
-#include "typedefs.h"
+#include "common.h"
 #include "utility.h" // info, success, error, warning, xmalloc, xrealloc, xstrlen
 #include <stdlib.h> 
 #include <string.h> // strlen

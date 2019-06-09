@@ -19,9 +19,9 @@
 // DEALINGS IN THE SOFTWARE.
 
 #include "type.h"
-#include "constants.h" // TYPE_LIST_STARTING_ALLOC
+ // TYPE_LIST_STARTING_ALLOC
 #include "string.h"    // strf, string_append, string
-#include "typedefs.h"
+#include "common.h"
 #include "utility.h" // error
 #include <string.h>  // strcmp
 #include <stdlib.h> // malloc, realloc, calloc

@@ -24,7 +24,7 @@
 #include "list.h"   // list
 #include "string.h" // string
 #include "type.h"   // Type
-#include "typedefs.h"
+#include "common.h"
 
 typedef struct Value Value;
 

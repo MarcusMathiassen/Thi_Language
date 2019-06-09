@@ -20,7 +20,7 @@
 
 #ifndef CODEGEN_H
 #define CODEGEN_H
-#include "typedefs.h"
+#include "common.h"
 #include "ast.h" // AST
 #include "stack.h" // Stack
 #include "map.h" // Map

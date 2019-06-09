@@ -21,7 +21,7 @@
 #ifndef STACK_H
 #define STACK_H
 
-#include "typedefs.h"
+#include "common.h"
 
 typedef struct Stack_Node {
     void* data;

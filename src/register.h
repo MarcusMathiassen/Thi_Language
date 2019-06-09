@@ -21,7 +21,7 @@
 #ifndef REGISTER_H
 #define REGISTER_H
 
-#include "typedefs.h"
+#include "common.h"
 #include "value.h"
 
 s8 get_num_registers(void);

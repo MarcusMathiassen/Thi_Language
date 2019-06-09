@@ -19,7 +19,7 @@
 // DEALINGS IN THE SOFTWARE.
 #ifndef UTILITY_H
 #define UTILITY_H
-#include "typedefs.h"
+#include "common.h"
 #include "list.h"
 //------------------------------------------------------------------------------
 //                               Printing Functions
