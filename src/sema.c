@@ -36,12 +36,18 @@
     tassert(ctx && node, "%zu, %zu", ctx, node); \
     info("%s: %s", give_unique_color(ast_kind_to_str(node->kind)), wrap_with_colored_parens(ast_to_str(node)));
 
-#define SCOPE_START stack_push(((Sema_Context*)ctx)->scopes, make_list())
+#define SCOPE_START stack_push(((Sema_Context*)ctx)->scopes, make_map())
 #define SCOPE_END stack_pop(((Sema_Context*)ctx)->scopes)
-#define SCOPE_ADD(x) list_append(stack_peek(((Sema_Context*)ctx)->scopes), x)
+#define SCOPE_ADD(x) map_set(stack_peek(((Sema_Context*)ctx)->scopes), get_ast_name(x), x)
+    // list_append(stack_peek(((Sema_Context*)ctx)->scopes), x)
+
+#define add_node_to_scope(ctx, node) \
+    tassert(ctx && node, "%zu, %zu", ctx, node); \
+    map_set(stack_peek(((Sema_Context*)ctx)->scopes), get_ast_name(node), node); \
+    info("scope added %s", ucolor(get_ast_name(node)));
 
 AST* get_symbol_in_scope(Sema_Context* ctx, char* name);
-void add_node_to_scope(Sema_Context* ctx, AST* node);
+// void add_node_to_scope(Sema_Context* ctx, AST* node);
 void add_all_decls_in_module(Sema_Context* ctx, AST* node);
 
 Sema_Context make_sema_context() {
@@ -51,7 +57,7 @@ Sema_Context make_sema_context() {
     ctx.state = STATE_SEMA;
     ctx.current_function = NULL;
     ctx.symbols = make_map();
-    stack_push(ctx.scopes, make_list());
+    stack_push(ctx.scopes, make_map());
     return ctx;
 }
 
@@ -411,22 +417,19 @@ AST* get_symbol_in_scope(Sema_Context* ctx, char* name) {
     tassert(ctx && name, "%zu, %zu", ctx, name);
     info("looking for %s", ucolor(name));
     STACK_FOREACH(((Sema_Context*)ctx)->scopes) {
-        List* symbols = it->data;
-        LIST_FOREACH_REVERSE(symbols) {
-            AST* v = it->data;
-            if (strcmp(get_ast_name(v), name) == 0) 
-                return v;
-        }
+        Map* symbols = it->data;
+        AST* v = map_get(symbols, name);
+        if (v) return v;
     }
     return NULL;
 }
 
 
-void add_node_to_scope(Sema_Context* ctx, AST* node) {
-    tassert(ctx && node, "%zu, %zu", ctx, node);
-    SCOPE_ADD(node);
-    info("added %s to scope.", ucolor(get_ast_name(node)));
-}
+// void add_node_to_scope(Sema_Context* ctx, AST* node) {
+//     tassert(ctx && node, "%zu, %zu", ctx, node);
+//     SCOPE_ADD(node);
+//     info("scope added %s", ucolor(get_ast_name(node)));
+// }
 
 void add_all_decls_in_module(Sema_Context* ctx, AST* node) {
     tassert(ctx && node, "%zu, %zu", ctx, node);
@@ -440,7 +443,7 @@ void add_all_decls_in_module(Sema_Context* ctx, AST* node) {
         default: error("[%s:%s] illegal top level construct %s", get_ast_name(((Sema_Context*)ctx)->module), get_ast_loc_str(decl), ucolor(ast_to_str(decl)));
         case AST_COMMENT: break;
         case AST_NOP:     break;
-        case AST_ASM:     break;
+        case AST_ASM:     break; 
         case AST_LINK:    break;
         case AST_VARIABLE_DECL:
             add_node_to_scope(ctx, decl);
