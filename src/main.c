@@ -409,6 +409,9 @@ void thi_run_pass(Thi* thi, char* pass_description, ast_callback visitor_func, v
     info("... COMPLETED.");
 }
 
+bool timer_sort_func(void* a, void* b) {
+    return ((Timer*)a)->ms > ((Timer*)b)->ms;
+}
 
 int main(int argc, char** argv) {
     // @Todo(marcus) do more robust argument handling
@@ -744,6 +747,7 @@ int main(int argc, char** argv) {
 
     success("--- Compiler timings ---");
     success("lines %s%s comments %s", give_unique_color(strf("%lld", pctx.lines)), RGB_GRAY, give_unique_color(strf("%lld", pctx.comments)));
+    list_sort(timer_list, timer_sort_func);
     LIST_FOREACH(timer_list) {
         Timer* tm = it->data;
         char* ms = strf("%f seconds", tm->ms * 0.001);

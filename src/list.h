@@ -45,7 +45,7 @@ typedef struct {
 List* make_list(void);
 void list_free(List* l);
 void list_tests(void);
-void list_sort(List* l, bool (*func)(List_Node*, List_Node*));
+void list_sort(List* l, bool (*func)(void*, void*));
 void* list_append(List* list, void* data);
 void* list_prepend(List* list, void* data);
 void* list_last(List* list);

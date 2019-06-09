@@ -323,18 +323,26 @@ void list_insert_before(List* list, List_Node* next_node, void* data) {
     }
 }
 
-void list_sort(List* l, bool (*func)(List_Node*, List_Node*)) {
+void list_sort(List* l, bool (*func)(void*, void*)) {
     xassert(l && func);
-    List_Node* a = NULL;
-    LIST_FOREACH(l) {
-        a = it->data;
-        LIST_FOREACH(l) {
-            List_Node* b = it->data;
-            if (!(*func)(a, b)) {
-                List_Node* tmp = a;
-                a = b;
-                b = tmp;
-            }
-        }
-    }
+    bool swapped = false;
+    List_Node *a = NULL;
+    do
+    { 
+        swapped = false; 
+        a = l->head;
+        while (a->next) 
+        { 
+            if ((*func)(a->data, a->next->data))
+            {  
+                void* tmp = a->data;
+                a->data = a->next->data;
+                a->next->data = tmp;
+
+                swapped = true; 
+            } 
+            a = a->next; 
+        } 
+    } 
+    while (swapped); 
 }
