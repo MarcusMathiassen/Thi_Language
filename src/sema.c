@@ -416,10 +416,22 @@ void* sema_asm(void* ctx, AST* node) {
 AST* get_symbol_in_scope(Sema_Context* ctx, char* name) {
     tassert(ctx && name, "%zu, %zu", ctx, name);
     info("looking for %s", ucolor(name));
+
+    s32 scopes_looked_at = 0;
+    s32 symbols_looked_at = 0;
     STACK_FOREACH(((Sema_Context*)ctx)->scopes) {
         Map* symbols = it->data;
+
         AST* v = map_get(symbols, name);
-        if (v) return v;
+        
+        symbols_looked_at += symbols->count;
+        ++scopes_looked_at;
+        
+        if (v) {
+            info("(%d:%d) key: %s value: %s", scopes_looked_at, symbols_looked_at, ucolor(name), ucolor(ast_to_str(v)));   
+            return v;
+        }
+
     }
     return NULL;
 }
@@ -447,10 +459,6 @@ void add_all_decls_in_module(Sema_Context* ctx, AST* node) {
         case AST_LINK:    break;
         case AST_VARIABLE_DECL:
             add_node_to_scope(ctx, decl);
-            break;
-        case AST_MODULE:
-            ((Sema_Context*)ctx)->module = decl;
-            add_all_decls_in_module(ctx, decl);
             break;
         case AST_LOAD:
             add_all_decls_in_module(ctx, decl->Load.module);

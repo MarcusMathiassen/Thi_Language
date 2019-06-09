@@ -68,7 +68,7 @@ void map_tests(void) {
         char* key = it->key;
         Test_Type* t =  it->value;
         info("key: %s, value: %f", key, t->val);
-    }   
+    }
 }
 
 static u32 hash(char* str) {
@@ -166,7 +166,9 @@ void* d_map_set(Map* map, char* key, void* value, char* file, char* func, int li
 
     u32 index = hash(key);
     Map_Element* slot = NULL;
-    while ((slot = &map->elements[index++ % map->table_size])->key);
+    // @Audit
+    while ((slot = &map->elements[index++ % map->table_size])->key)
+        if (strcmp(key, slot->key) == 0) return value;
         // tassert(strcmp(key, slot->key) != 0, "[%s:%s:%d] key %s already exists in map %zu", file, func, line, key, key, map);
 
     slot->key = key;
@@ -178,6 +180,6 @@ void* d_map_set(Map* map, char* key, void* value, char* file, char* func, int li
 void* d_map_get(Map* map, char* key, char* file, char* func, int line) {
     xassert(map && key);
     Map_Element* slot = find_slot_with_key(map, key);
-    // tassert(slot->value, "[%s:%s:%d]key %s value was NULL.", file, func, line, key);
+    // tassert(slot->value, "[%s:%s:%d] key %s value was NULL.", file, func, line, key);
     return slot->value;
 }
