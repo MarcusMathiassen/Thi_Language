@@ -433,44 +433,12 @@ void _tassert(char* expr_str, char* file, char* func, int line, char* fmt, ...) 
 //                               Timing Utility Functions
 //------------------------------------------------------------------------------
 
-/*
-author: jbenet
-os x, compile with: gcc -o testo test.c
-linux, compile with: gcc -o testo test.c -lrt
-*/
-
-#include <stdio.h>
-#include <sys/time.h>
-#include <time.h>
-
-#ifdef __MACH__
-#include <mach/clock.h>
-#include <mach/mach.h>
-#endif
-
+#include <mach/mach_time.h>
 f64 get_time(void) {
-    f64 ms;
-    time_t s;
-    struct timespec ts;
-
-#ifdef __MACH__ // OS X does not have clock_gettime, use clock_get_time
-    clock_serv_t cclock;
-    mach_timespec_t mts;
-    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
-    clock_get_time(cclock, &mts);
-    mach_port_deallocate(mach_task_self(), cclock);
-    ts.tv_sec = mts.tv_sec;
-    ts.tv_nsec = mts.tv_nsec;
-#else
-    clock_gettime(CLOCK_REALTIME, &ts);
-#endif
-    s = ts.tv_sec;
-    ms = ts.tv_nsec / 1.0e6;
-    if (ms > 999.0) {
-        ++s;
-        ms = 0.0;
-    }
-    return ms;
+    mach_timebase_info_data_t info;
+    if (mach_timebase_info(&info) != KERN_SUCCESS)
+        abort();
+    return (mach_absolute_time() * info.numer / info.denom) / 1e6;
 }
 
 List* timer_list;
@@ -494,7 +462,6 @@ void initilize_timers(void) {
     timer_list = make_list();
     timer_stack = make_stack();
 }
-
 
 //------------------------------------------------------------------------------
 //                               Tests
