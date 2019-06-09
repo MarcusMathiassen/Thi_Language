@@ -638,10 +638,9 @@ int main(int argc, char** argv) {
 
     // Write to file
     if (code) {
-
-        char* output_filename = strf("%s.s", name);
+        char* output_filename = strf("%s", remove_file_extension(name));
         write_to_file(output_filename, code);
-        assemble(name, exec_name);
+        assemble(output_filename, exec_name);
         linking_stage(links, exec_name);
     } else
         error("generating code from ast failed.");

@@ -1272,14 +1272,7 @@ bool tok_is(Parser_Context* ctx, Token_Kind kind) {
 }
 
 void eat(Parser_Context* ctx) {
-    // Set the previous token
-    ctx->prev_tok = ctx->curr_tok;
-
-    // Get the current token
-    ctx->curr_tok = *ctx->tokens;
-
-    // Ready the next token
-    if (ctx->tokens) ++ctx->tokens;
+    ctx->prev_tok = ctx->curr_tok = *ctx->tokens++;
 }
 
 void eat_kind(Parser_Context* ctx, Token_Kind kind) {

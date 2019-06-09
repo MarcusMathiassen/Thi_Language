@@ -1,11 +1,10 @@
 # Specify filepatterns you want git to ignore.
-thi
+*.s
+*.thi
 ast.json
 .vscode
 output
 thi.dSYM
 output.s
-output.asm
 output.thi
-output.ll
 .DS_Store
