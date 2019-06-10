@@ -63,7 +63,7 @@ void map_tests(void) {
 
     xassert(((Test_Type*)map_get(map, "t1"))->val == 3.43f);
     xassert(((Test_Type*)map_get(map, "t2"))->val == 6.41f);
-
+    
     map_foreach(map) {
         char* key = it->key;
         Test_Type* t =  it->value;

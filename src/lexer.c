@@ -326,7 +326,7 @@ Lexed_File generate_tokens_from_file(char* file) {
     Token token;
     token.kind = TOKEN_UNKNOWN;
 
-    char* c = ctx.cursor;
+    char* c = source;
     info(source);
     do {
         Token last_token = token;
