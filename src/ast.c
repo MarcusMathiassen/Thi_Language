@@ -35,8 +35,6 @@
 //                               AST Utility
 //------------------------------------------------------------------------------
 
-void* (*ast_transitions[_AST_COUNT_][_STATE_COUNT_]) (void*, AST*);
-
 static char* _ast_to_str(String_Context* ctx, AST* node);
 
 char* ast_kind_to_str(AST_Kind kind) {
@@ -173,18 +171,59 @@ static void _ast_to_str_post_inc_or_dec                 (String_Context* ctx, AS
 static void _ast_to_str_literal                         (String_Context* ctx, AST* node);
 static void _ast_to_str_asm                             (String_Context* ctx, AST* node);
 
+
+static void (*ast_to_str_transitions[])(String_Context*, AST*) = {
+    [AST_COMMENT]                         =  _ast_to_str_comment,
+    [AST_NOP]                             =  _ast_to_str_nop,
+    [AST_SPACE_SEPARATED_IDENTIFIER_LIST] =  _ast_to_str_space_separated_identifier_list,
+    [AST_COMMA_SEPARATED_LIST]            =  _ast_to_str_comma_separated_list,
+    [AST_MODULE]                          =  _ast_to_str_module,
+    [AST_IS]                              =  _ast_to_str_is,
+    [AST_FALLTHROUGH]                     =  _ast_to_str_fallthrough,
+    [AST_VAR_ARGS]                        =  _ast_to_str_var_args,
+    [AST_EXTERN]                          =  _ast_to_str_extern,
+    [AST_LOAD]                            =  _ast_to_str_load,
+    [AST_LINK]                            =  _ast_to_str_link,
+    [AST_NOTE]                            =  _ast_to_str_note,
+    [AST_INT]                             =  _ast_to_str_int,
+    [AST_FLOAT]                           =  _ast_to_str_float,
+    [AST_STRING]                          =  _ast_to_str_string,
+    [AST_CHAR]                            =  _ast_to_str_char,
+    [AST_IDENT]                           =  _ast_to_str_ident,
+    [AST_CALL]                            =  _ast_to_str_call,
+    [AST_UNARY]                           =  _ast_to_str_unary,
+    [AST_BINARY]                          =  _ast_to_str_binary,
+    [AST_GROUPING]                        =  _ast_to_str_grouping,
+    [AST_SUBSCRIPT]                       =  _ast_to_str_subscript,
+    [AST_FIELD_ACCESS]                    =  _ast_to_str_field_access,
+    [AST_AS]                              =  _ast_to_str_as,
+    [AST_BLOCK]                           =  _ast_to_str_block,
+    [AST_STRUCT]                          =  _ast_to_str_struct,
+    [AST_ENUM]                            =  _ast_to_str_enum,
+    [AST_FUNCTION]                        =  _ast_to_str_function,
+    [AST_VARIABLE_DECL]                   =  _ast_to_str_variable_decl,
+    [AST_IF]                              =  _ast_to_str_if,
+    [AST_FOR]                             =  _ast_to_str_for,
+    [AST_WHILE]                           =  _ast_to_str_while,
+    [AST_RETURN]                          =  _ast_to_str_return,
+    [AST_DEFER]                           =  _ast_to_str_defer,
+    [AST_BREAK]                           =  _ast_to_str_break,
+    [AST_CONTINUE]                        =  _ast_to_str_continue,
+    [AST_TYPEOF]                          =  _ast_to_str_typeof,
+    [AST_SIZEOF]                          =  _ast_to_str_sizeof,
+    [AST_SWITCH]                          =  _ast_to_str_switch,
+    [AST_POST_INC_OR_DEC]                 =  _ast_to_str_post_inc_or_dec,
+    [AST_LITERAL]                         =  _ast_to_str_literal,
+    [AST_ASM]                             =  _ast_to_str_asm,
+};
+
 static char* _ast_to_str(String_Context* ctx, AST* node) {
     xassert(ctx);
-
-    // Local alias
     string* s = ctx->str;
-
     if (!node) {
         string_append(s, "---");
         return string_data(s);
     }
-
-
     if (ctx->as_source) {
         // Add some newlines if we have too :)
         // If there is a difference in line position. Add
@@ -195,54 +234,11 @@ static char* _ast_to_str(String_Context* ctx, AST* node) {
         }
         ctx->last = node->loc_info;
     }
-
     AST_Kind kind = node->kind;
     TASSERT_KIND_IN_RANGE(AST, kind);
-    switch (kind) {
-    ERROR_UNHANDLED_AST_KIND(kind);
-    case AST_COMMENT:                         _ast_to_str_comment                         (ctx, node); break;
-    case AST_NOP:                             _ast_to_str_nop                             (ctx, node); break;
-    case AST_SPACE_SEPARATED_IDENTIFIER_LIST: _ast_to_str_space_separated_identifier_list (ctx, node); break;
-    case AST_COMMA_SEPARATED_LIST:            _ast_to_str_comma_separated_list            (ctx, node); break;
-    case AST_MODULE:                          _ast_to_str_module                          (ctx, node); break;
-    case AST_IS:                              _ast_to_str_is                              (ctx, node); break;
-    case AST_FALLTHROUGH:                     _ast_to_str_fallthrough                     (ctx, node); break;
-    case AST_VAR_ARGS:                        _ast_to_str_var_args                        (ctx, node); break;
-    case AST_EXTERN:                          _ast_to_str_extern                          (ctx, node); break;
-    case AST_LOAD:                            _ast_to_str_load                            (ctx, node); break;
-    case AST_LINK:                            _ast_to_str_link                            (ctx, node); break;
-    case AST_NOTE:                            _ast_to_str_note                            (ctx, node); break;
-    case AST_INT:                             _ast_to_str_int                             (ctx, node); break;
-    case AST_FLOAT:                           _ast_to_str_float                           (ctx, node); break;
-    case AST_STRING:                          _ast_to_str_string                          (ctx, node); break;
-    case AST_CHAR:                            _ast_to_str_char                            (ctx, node); break;
-    case AST_IDENT:                           _ast_to_str_ident                           (ctx, node); break;
-    case AST_CALL:                            _ast_to_str_call                            (ctx, node); break;
-    case AST_UNARY:                           _ast_to_str_unary                           (ctx, node); break;
-    case AST_BINARY:                          _ast_to_str_binary                          (ctx, node); break;
-    case AST_GROUPING:                        _ast_to_str_grouping                        (ctx, node); break;
-    case AST_SUBSCRIPT:                       _ast_to_str_subscript                       (ctx, node); break;
-    case AST_FIELD_ACCESS:                    _ast_to_str_field_access                    (ctx, node); break;
-    case AST_AS:                              _ast_to_str_as                              (ctx, node); break;
-    case AST_BLOCK:                           _ast_to_str_block                           (ctx, node); break;
-    case AST_STRUCT:                          _ast_to_str_struct                          (ctx, node); break;
-    case AST_ENUM:                            _ast_to_str_enum                            (ctx, node); break;
-    case AST_FUNCTION:                        _ast_to_str_function                        (ctx, node); break;
-    case AST_VARIABLE_DECL:                   _ast_to_str_variable_decl                   (ctx, node); break;
-    case AST_IF:                              _ast_to_str_if                              (ctx, node); break;
-    case AST_FOR:                             _ast_to_str_for                             (ctx, node); break;
-    case AST_WHILE:                           _ast_to_str_while                           (ctx, node); break;
-    case AST_RETURN:                          _ast_to_str_return                          (ctx, node); break;
-    case AST_DEFER:                           _ast_to_str_defer                           (ctx, node); break;
-    case AST_BREAK:                           _ast_to_str_break                           (ctx, node); break;
-    case AST_CONTINUE:                        _ast_to_str_continue                        (ctx, node); break;
-    case AST_TYPEOF:                          _ast_to_str_typeof                          (ctx, node); break;
-    case AST_SIZEOF:                          _ast_to_str_sizeof                          (ctx, node); break;
-    case AST_SWITCH:                          _ast_to_str_switch                          (ctx, node); break;
-    case AST_POST_INC_OR_DEC:                 _ast_to_str_post_inc_or_dec                 (ctx, node); break;
-    case AST_LITERAL:                         _ast_to_str_literal                         (ctx, node); break;
-    case AST_ASM:                             _ast_to_str_asm                             (ctx, node); break;
-    }
+    void (*func)(String_Context*, AST*) = (*ast_to_str_transitions[kind]);
+    tassert(func, "ast_to_str missing callback for %s", kind);
+    (*func)(ctx, node);
     return string_data(s);
 }
 
@@ -792,15 +788,6 @@ void ast_replace(AST* a, AST* b) {
     *a = *b;
     // @Cleanup(marcus) we dont free memory here.
 }
-
-void* ast_run_pass(void* ctx, AST* node, State_Kind state) {
-    if (!node) return NULL; // unsure about this one...
-    AST_Kind kind = node->kind;
-    ast_callback func = (*ast_transitions[kind][state]);
-    tassert(func, "missing callback for %s on %s", kind, state);
-    return (*func)(ctx, node);
-}
-
 
 //------------------------------------------------------------------------------
 //                               AST Tests

@@ -40,12 +40,6 @@ typedef enum {
 //------------------------------------------------------------------------------
 
 typedef enum {
-    STATE_SEMA,
-    STATE_CODEGEN,
-    _STATE_COUNT_,
-} State_Kind;
-
-typedef enum {
     AST_FLAG_GLOBAL_VARIABLE = 1 << 0,
     _AST_FLAG_COUNT_,
 } AST_Flag;
@@ -357,10 +351,6 @@ AST* make_ast_literal                         (Loc_Info loc_info, Literal_Kind k
 AST* make_ast_asm                             (Loc_Info loc_info, AST* block);
 
 typedef void* (*ast_callback)(void*, AST*);
-
-// FSM
-extern void* (*ast_transitions[_AST_COUNT_][_STATE_COUNT_]) (void*, AST*);
-void* ast_run_pass(void* ctx, AST* node, State_Kind state);
 
 AST* get_arg_from_func             (AST* func, s64 arg_index);
 void ast_tests                     (void);

@@ -257,8 +257,7 @@ void constant_fold_unary(AST* node) {
 }
 
 bool expr_is_literal_value(AST* expr, float val) {
-    if ((expr->kind == AST_INT && expr->Int.val == (s64)val) ||
-        (expr->kind == AST_FLOAT && expr->Float.val == val)) {
+    if ((expr->kind == AST_INT && expr->Int.val == (s64)val) || (expr->kind == AST_FLOAT && expr->Float.val == val)) {
         return true;
     }
     return false;
@@ -454,11 +453,6 @@ int main(int argc, char** argv) {
         error("thats not a thi file...");
     }
 
-    // Zero out all the states so that we can check for NULL later on
-    foreach(kind, _AST_COUNT_)
-        foreach(state, _STATE_COUNT_)
-            ast_transitions[kind][state] = NULL;
-
     // Holds all symbols defined in the compilation unit.
     Map* symbols = make_map();
     
@@ -483,12 +477,10 @@ int main(int argc, char** argv) {
     map_set(symbols, "f64", make_type_float(8));
 
     // Parse
-    push_timer("Parsing");
     Parser_Context pctx = make_parser_context();
     pctx.file = source_file;
     pctx.symbols = symbols;
     AST* ast = parse_file(&pctx, source_file);
-    pop_timer();
 
     List* links = ast_find_all_of_kind(AST_LINK, ast);
     list_append(links, make_ast_link(ast->loc_info, "-lSystem"));
@@ -496,57 +488,8 @@ int main(int argc, char** argv) {
     run_pass(ast, "pass_add_all_symbols", pass_add_all_symbols, symbols);
     run_pass(ast, "resolve_unresolved_types", visitor_resolve_unresolved_types, symbols);
 
-    push_timer("Semantic Analysis");
-    {
-        info("Semantic Analysis");
-
-        ast_transitions  [AST_COMMENT]                         [STATE_SEMA]  =  sema_comment;
-        ast_transitions  [AST_NOP]                             [STATE_SEMA]  =  sema_nop;
-        ast_transitions  [AST_SPACE_SEPARATED_IDENTIFIER_LIST] [STATE_SEMA]  =  sema_space_separated_identifier_list;
-        ast_transitions  [AST_COMMA_SEPARATED_LIST]            [STATE_SEMA]  =  sema_comma_separated_list;
-        ast_transitions  [AST_MODULE]                          [STATE_SEMA]  =  sema_module;
-        ast_transitions  [AST_IS]                              [STATE_SEMA]  =  sema_is;
-        ast_transitions  [AST_FALLTHROUGH]                     [STATE_SEMA]  =  sema_fallthrough;
-        ast_transitions  [AST_VAR_ARGS]                        [STATE_SEMA]  =  sema_var_args;
-        ast_transitions  [AST_EXTERN]                          [STATE_SEMA]  =  sema_extern;
-        ast_transitions  [AST_LOAD]                            [STATE_SEMA]  =  sema_load;
-        ast_transitions  [AST_LINK]                            [STATE_SEMA]  =  sema_link;
-        ast_transitions  [AST_NOTE]                            [STATE_SEMA]  =  sema_note;
-        ast_transitions  [AST_INT]                             [STATE_SEMA]  =  sema_int;
-        ast_transitions  [AST_FLOAT]                           [STATE_SEMA]  =  sema_float;
-        ast_transitions  [AST_STRING]                          [STATE_SEMA]  =  sema_string;
-        ast_transitions  [AST_CHAR]                            [STATE_SEMA]  =  sema_char;
-        ast_transitions  [AST_IDENT]                           [STATE_SEMA]  =  sema_ident;
-        ast_transitions  [AST_CALL]                            [STATE_SEMA]  =  sema_call;
-        ast_transitions  [AST_UNARY]                           [STATE_SEMA]  =  sema_unary;
-        ast_transitions  [AST_BINARY]                          [STATE_SEMA]  =  sema_binary;
-        ast_transitions  [AST_GROUPING]                        [STATE_SEMA]  =  sema_grouping;
-        ast_transitions  [AST_SUBSCRIPT]                       [STATE_SEMA]  =  sema_subscript;
-        ast_transitions  [AST_FIELD_ACCESS]                    [STATE_SEMA]  =  sema_field_access;
-        ast_transitions  [AST_AS]                              [STATE_SEMA]  =  sema_as;
-        ast_transitions  [AST_BLOCK]                           [STATE_SEMA]  =  sema_block;
-        ast_transitions  [AST_STRUCT]                          [STATE_SEMA]  =  sema_struct;
-        ast_transitions  [AST_ENUM]                            [STATE_SEMA]  =  sema_enum;
-        ast_transitions  [AST_FUNCTION]                        [STATE_SEMA]  =  sema_function;
-        ast_transitions  [AST_VARIABLE_DECL]                   [STATE_SEMA]  =  sema_variable_decl;
-        ast_transitions  [AST_IF]                              [STATE_SEMA]  =  sema_if;
-        ast_transitions  [AST_FOR]                             [STATE_SEMA]  =  sema_for;
-        ast_transitions  [AST_WHILE]                           [STATE_SEMA]  =  sema_while;
-        ast_transitions  [AST_RETURN]                          [STATE_SEMA]  =  sema_return;
-        ast_transitions  [AST_DEFER]                           [STATE_SEMA]  =  sema_defer;
-        ast_transitions  [AST_BREAK]                           [STATE_SEMA]  =  sema_break;
-        ast_transitions  [AST_CONTINUE]                        [STATE_SEMA]  =  sema_continue;
-        ast_transitions  [AST_TYPEOF]                          [STATE_SEMA]  =  sema_typeof;
-        ast_transitions  [AST_SIZEOF]                          [STATE_SEMA]  =  sema_sizeof;
-        ast_transitions  [AST_SWITCH]                          [STATE_SEMA]  =  sema_switch;
-        ast_transitions  [AST_POST_INC_OR_DEC]                 [STATE_SEMA]  =  sema_post_inc_or_dec;
-        ast_transitions  [AST_LITERAL]                         [STATE_SEMA]  =  sema_literal;
-        ast_transitions  [AST_ASM]                             [STATE_SEMA]  =  sema_asm;
-
-        Sema_Context ctx = make_sema_context();
-        ast_run_pass(&ctx, ast, STATE_SEMA);
-    }
-    pop_timer();
+    // Semantic Analysis
+    sema(ast);
 
 
     // @Todo: move these into the semantic pass
@@ -582,59 +525,8 @@ int main(int argc, char** argv) {
     run_pass(ast, "check_for_unresolved_types", check_for_unresolved_types, NULL);
 
     // Codegen
-    push_timer("Codegen");
-    char* code = NULL;
-    {
-        info("Generating code from ast");
-        ast_transitions  [AST_COMMENT]                          [STATE_CODEGEN]  =  codegen_comment;
-        ast_transitions  [AST_NOP]                              [STATE_CODEGEN]  =  codegen_nop;
-        ast_transitions  [AST_SPACE_SEPARATED_IDENTIFIER_LIST]  [STATE_CODEGEN]  =  codegen_space_separated_identifier_list;
-        ast_transitions  [AST_COMMA_SEPARATED_LIST]             [STATE_CODEGEN]  =  codegen_comma_separated_list;
-        ast_transitions  [AST_MODULE]                           [STATE_CODEGEN]  =  codegen_module;
-        ast_transitions  [AST_IS]                               [STATE_CODEGEN]  =  codegen_is;
-        ast_transitions  [AST_FALLTHROUGH]                      [STATE_CODEGEN]  =  codegen_fallthrough;
-        ast_transitions  [AST_VAR_ARGS]                         [STATE_CODEGEN]  =  codegen_var_args;
-        ast_transitions  [AST_EXTERN]                           [STATE_CODEGEN]  =  codegen_extern;
-        ast_transitions  [AST_LOAD]                             [STATE_CODEGEN]  =  codegen_load;
-        ast_transitions  [AST_LINK]                             [STATE_CODEGEN]  =  codegen_link;
-        ast_transitions  [AST_NOTE]                             [STATE_CODEGEN]  =  codegen_note;
-        ast_transitions  [AST_INT]                              [STATE_CODEGEN]  =  codegen_int;
-        ast_transitions  [AST_FLOAT]                            [STATE_CODEGEN]  =  codegen_float;
-        ast_transitions  [AST_STRING]                           [STATE_CODEGEN]  =  codegen_string;
-        ast_transitions  [AST_CHAR]                             [STATE_CODEGEN]  =  codegen_char;
-        ast_transitions  [AST_IDENT]                            [STATE_CODEGEN]  =  codegen_ident;
-        ast_transitions  [AST_CALL]                             [STATE_CODEGEN]  =  codegen_call;
-        ast_transitions  [AST_UNARY]                            [STATE_CODEGEN]  =  codegen_unary;
-        ast_transitions  [AST_BINARY]                           [STATE_CODEGEN]  =  codegen_binary;
-        ast_transitions  [AST_GROUPING]                         [STATE_CODEGEN]  =  codegen_grouping;
-        ast_transitions  [AST_SUBSCRIPT]                        [STATE_CODEGEN]  =  codegen_subscript;
-        ast_transitions  [AST_FIELD_ACCESS]                     [STATE_CODEGEN]  =  codegen_field_access;
-        ast_transitions  [AST_AS]                               [STATE_CODEGEN]  =  codegen_as;
-        ast_transitions  [AST_BLOCK]                            [STATE_CODEGEN]  =  codegen_block;
-        ast_transitions  [AST_STRUCT]                           [STATE_CODEGEN]  =  codegen_struct;
-        ast_transitions  [AST_ENUM]                             [STATE_CODEGEN]  =  codegen_enum;
-        ast_transitions  [AST_FUNCTION]                         [STATE_CODEGEN]  =  codegen_function;
-        ast_transitions  [AST_VARIABLE_DECL]                    [STATE_CODEGEN]  =  codegen_variable_decl;
-        ast_transitions  [AST_IF]                               [STATE_CODEGEN]  =  codegen_if;
-        ast_transitions  [AST_FOR]                              [STATE_CODEGEN]  =  codegen_for;
-        ast_transitions  [AST_WHILE]                            [STATE_CODEGEN]  =  codegen_while;
-        ast_transitions  [AST_RETURN]                           [STATE_CODEGEN]  =  codegen_return;
-        ast_transitions  [AST_DEFER]                            [STATE_CODEGEN]  =  codegen_defer;
-        ast_transitions  [AST_BREAK]                            [STATE_CODEGEN]  =  codegen_break;
-        ast_transitions  [AST_CONTINUE]                         [STATE_CODEGEN]  =  codegen_continue;
-        ast_transitions  [AST_TYPEOF]                           [STATE_CODEGEN]  =  codegen_typeof;
-        ast_transitions  [AST_SIZEOF]                           [STATE_CODEGEN]  =  codegen_sizeof;
-        ast_transitions  [AST_SWITCH]                           [STATE_CODEGEN]  =  codegen_switch;
-        ast_transitions  [AST_POST_INC_OR_DEC]                  [STATE_CODEGEN]  =  codegen_post_inc_or_dec;
-        ast_transitions  [AST_LITERAL]                          [STATE_CODEGEN]  =  codegen_literal;
-        ast_transitions  [AST_ASM]                              [STATE_CODEGEN]  =  codegen_asm;
-
-        Codegen_Context ctx = make_codegen_context();
-        ast_run_pass(&ctx, ast, STATE_CODEGEN);
-        code = strf("%s%sglobal _main\n%s", string_data(ctx.section_extern), string_data(ctx.section_data), string_data(ctx.section_text));
-        info("%s", code);
-    }
-    pop_timer();
+    char* code = to_x64(ast);
+    info("%s", code);
 
     // Write to file
     if (code) {
@@ -642,8 +534,7 @@ int main(int argc, char** argv) {
         write_to_file(output_filename, code);
         assemble(output_filename, exec_name);
         linking_stage(links, exec_name);
-    } else
-        error("generating code from ast failed.");
+    } else error("generating code from ast failed.");
 
     // Debug info. Writing out sizes of our types.
     info(ucolor(table_entry("size of Token", size_with_suffix(sizeof(Token)))));
@@ -654,7 +545,6 @@ int main(int argc, char** argv) {
     info(ucolor(table_entry("size of List", size_with_suffix(sizeof(List)))));
     info(ucolor(table_entry("size of Stack", size_with_suffix(sizeof(Stack)))));
     info(ucolor(table_entry("size of string", size_with_suffix(sizeof(string)))));
-    info(ucolor(table_entry("size of ast_transitions", size_with_suffix(sizeof(ast_transitions)))));
     info(ucolor(table_entry("size of code", size_with_suffix(strlen(code) / sizeof(code)))));
     info(ucolor(table_entry("size of symbols", size_with_suffix(symbols->count * sizeof(*symbols->elements)))));
 
