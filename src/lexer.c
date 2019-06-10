@@ -136,6 +136,121 @@ char* STATIC_KEYWORDS_ARRAY[__KEY_COUNT__] = {
     "typeof",
 };
 
+//------------------------------------------------------------------------------
+//                               Private
+//------------------------------------------------------------------------------
+
+typedef enum {
+    STATE_END,
+    STATE_IDENTIFIER,
+    STATE_OPERATOR,
+    STATE_NUMBER,
+    STATE_STRING,
+    STATE_CHAR,
+    STATE_COMMENT,
+    STATE_NEWLINE,
+    _STATE_COUNT_
+} State_Kind;
+
+static State_Kind lex_transitions[] = {
+    ['\0']    = STATE_END,
+    ['\n']    = STATE_NEWLINE,
+    ['!']     = STATE_OPERATOR,
+    ['"']     = STATE_STRING,
+    ['#']     = STATE_COMMENT,
+    ['$']     = STATE_OPERATOR,
+    ['%']     = STATE_OPERATOR,
+    ['&']     = STATE_OPERATOR,
+    ['\'']    = STATE_CHAR,
+    ['(']     = STATE_OPERATOR,
+    [')']     = STATE_OPERATOR,
+    ['*']     = STATE_OPERATOR,
+    ['+']     = STATE_OPERATOR,
+    [',']     = STATE_OPERATOR,
+    ['-']     = STATE_OPERATOR,
+    ['.']     = STATE_OPERATOR,
+    ['/']     = STATE_OPERATOR,
+    ['0']     = STATE_NUMBER,
+    ['1']     = STATE_NUMBER,
+    ['2']     = STATE_NUMBER,
+    ['3']     = STATE_NUMBER,
+    ['4']     = STATE_NUMBER,
+    ['5']     = STATE_NUMBER,
+    ['6']     = STATE_NUMBER,
+    ['7']     = STATE_NUMBER,
+    ['8']     = STATE_NUMBER,
+    ['9']     = STATE_NUMBER,
+    [':']     = STATE_OPERATOR,
+    [';']     = STATE_OPERATOR,
+    ['<']     = STATE_OPERATOR,
+    ['=']     = STATE_OPERATOR,
+    ['>']     = STATE_OPERATOR,
+    ['?']     = STATE_OPERATOR,
+    ['@']     = STATE_OPERATOR,
+    ['A']     = STATE_IDENTIFIER,
+    ['B']     = STATE_IDENTIFIER,
+    ['C']     = STATE_IDENTIFIER,
+    ['D']     = STATE_IDENTIFIER,
+    ['E']     = STATE_IDENTIFIER,
+    ['F']     = STATE_IDENTIFIER,
+    ['G']     = STATE_IDENTIFIER,
+    ['H']     = STATE_IDENTIFIER,
+    ['I']     = STATE_IDENTIFIER,
+    ['J']     = STATE_IDENTIFIER,
+    ['K']     = STATE_IDENTIFIER,
+    ['L']     = STATE_IDENTIFIER,
+    ['M']     = STATE_IDENTIFIER,
+    ['N']     = STATE_IDENTIFIER,
+    ['O']     = STATE_IDENTIFIER,
+    ['P']     = STATE_IDENTIFIER,
+    ['Q']     = STATE_IDENTIFIER,
+    ['R']     = STATE_IDENTIFIER,
+    ['S']     = STATE_IDENTIFIER,
+    ['T']     = STATE_IDENTIFIER,
+    ['U']     = STATE_IDENTIFIER,
+    ['V']     = STATE_IDENTIFIER,
+    ['W']     = STATE_IDENTIFIER,
+    ['X']     = STATE_IDENTIFIER,
+    ['Y']     = STATE_IDENTIFIER,
+    ['Z']     = STATE_IDENTIFIER,
+    ['[']     = STATE_OPERATOR,
+    ['\\']    = STATE_OPERATOR,
+    [']']     = STATE_OPERATOR,
+    ['^']     = STATE_OPERATOR,
+    ['_']     = STATE_IDENTIFIER,
+    ['`']     = STATE_STRING,
+    ['a']     = STATE_IDENTIFIER,
+    ['b']     = STATE_IDENTIFIER,
+    ['c']     = STATE_IDENTIFIER,
+    ['d']     = STATE_IDENTIFIER,
+    ['e']     = STATE_IDENTIFIER,
+    ['f']     = STATE_IDENTIFIER,
+    ['g']     = STATE_IDENTIFIER,
+    ['h']     = STATE_IDENTIFIER,
+    ['i']     = STATE_IDENTIFIER,
+    ['j']     = STATE_IDENTIFIER,
+    ['k']     = STATE_IDENTIFIER,
+    ['l']     = STATE_IDENTIFIER,
+    ['m']     = STATE_IDENTIFIER,
+    ['n']     = STATE_IDENTIFIER,
+    ['o']     = STATE_IDENTIFIER,
+    ['p']     = STATE_IDENTIFIER,
+    ['q']     = STATE_IDENTIFIER,
+    ['r']     = STATE_IDENTIFIER,
+    ['s']     = STATE_IDENTIFIER,
+    ['t']     = STATE_IDENTIFIER,
+    ['u']     = STATE_IDENTIFIER,
+    ['v']     = STATE_IDENTIFIER,
+    ['w']     = STATE_IDENTIFIER,
+    ['x']     = STATE_IDENTIFIER,
+    ['y']     = STATE_IDENTIFIER,
+    ['z']     = STATE_IDENTIFIER,
+    ['{']     = STATE_OPERATOR,
+    ['|']     = STATE_OPERATOR,
+    ['}']     = STATE_OPERATOR,
+    ['~']     = STATE_OPERATOR,
+};
+
 void lexer_test(void) {
     // char* source =
     // "type v2\n    x: f32\n    y: f32\n    core()\n        return 1\n";
@@ -174,6 +289,19 @@ void lexer_test(void) {
 
 #define LEXER_ERROR(x) error("[%s:%d:%d] %s", ctx.file, token.line_pos, token.col_pos, x)
 
+#define CASE_SINGLE_TOKEN(c1, t_kind) \
+    case c1:                          \
+        token.kind = t_kind;          \
+        ++c;
+
+#define skip_whitespace(c)          \
+    while (*c == ' ' || *c == '\t') \
+        ++c;
+
+#define skip_comment(c) \
+    while (*c != '\n')  \
+        ++c;
+
 Lexed_File generate_tokens_from_file(char* file) {
     push_timer(strf("lexing: %s", file));
     char* source = get_file_content(file);
@@ -199,10 +327,277 @@ Lexed_File generate_tokens_from_file(char* file) {
 
     Token token;
     token.kind = TOKEN_UNKNOWN;
-    while (token.kind != TOKEN_EOF) {
 
+    char* c = ctx.cursor;
+    info(source);
+    do {
         Token last_token = token;
-        token = get_token(&ctx);
+
+        skip_whitespace(c);
+
+        token.kind = TOKEN_UNKNOWN;
+        token.value = c;
+        ctx.start_of_line = c;
+        token.col_pos = ctx.start_of_line - ctx.position_of_newline;
+        token.line_pos = ctx.line_count;
+
+        // char* start = c;
+        State_Kind state = lex_transitions[(u32)(*c)];
+
+        switch(state) {
+        default: error("unhandled state %d", state);
+        case STATE_END: break;
+        case STATE_NEWLINE:
+        {
+           token.kind = TOKEN_NEWLINE;
+            ++c; // skip the newline
+            ctx.position_of_newline = c;
+            ++ctx.line_count;
+        } break;
+        case STATE_COMMENT:
+        {
+            ++c; // skip the hash
+            token.value = c;
+            token.kind = TOKEN_COMMENT;
+            skip_comment(c);
+            ++ctx.comment_count;
+        } break;
+        case STATE_STRING: {
+            token.kind = TOKEN_STRING;
+            c++;
+            token.value = c;
+            while (*c != '"') {
+                ++c;
+            }
+        } break;
+        case STATE_CHAR: {
+            token.kind = TOKEN_CHAR;
+            ++c;
+            token.value = c;
+            if (*token.value == '\\') ++c;
+            ++c;
+        } break;
+
+        case STATE_NUMBER:
+        {
+            bool is_hex = false;
+            bool is_float = false;
+
+            // Number: [0-9._]+e[0-9]+
+            if (isdigit(*c) || *c == '.') {
+                while (is_valid_digit(*c) || (is_hex && is_valid_identifier(*c))) {
+                    if (*c == 'x') is_hex = true;
+                    if (*c == '.') is_float = true;
+                    ++c;
+                }
+            }
+
+            token.kind = TOKEN_INTEGER;
+            if (is_hex) token.kind = TOKEN_HEX;
+            if (is_float) token.kind = TOKEN_FLOAT;
+        } break;
+
+        case STATE_OPERATOR:
+        {
+            switch (*c) {
+                default: error("[%s:%d:%d] %s", ctx.file, token.line_pos, token.col_pos, strf("unknown character '%c'", *c));
+                CASE_SINGLE_TOKEN('\0', TOKEN_EOF);
+                break;
+                CASE_SINGLE_TOKEN('(', TOKEN_OPEN_PAREN);
+                break;
+                CASE_SINGLE_TOKEN(')', TOKEN_CLOSE_PAREN);
+                break;
+                CASE_SINGLE_TOKEN('[', TOKEN_OPEN_BRACKET);
+                break;
+                CASE_SINGLE_TOKEN(']', TOKEN_CLOSE_BRACKET);
+                break;
+                CASE_SINGLE_TOKEN('{', TOKEN_BLOCK_START);
+                break;
+                CASE_SINGLE_TOKEN('}', TOKEN_BLOCK_END);
+                break;
+                CASE_SINGLE_TOKEN(',', TOKEN_COMMA);
+                break;
+                CASE_SINGLE_TOKEN('~', TOKEN_TILDE);
+                break;
+                CASE_SINGLE_TOKEN('$', TOKEN_DOLLAR_SIGN);
+                break;
+                CASE_SINGLE_TOKEN('@', TOKEN_AT);
+                break;
+                CASE_SINGLE_TOKEN('^', TOKEN_HAT);
+                break;
+                CASE_SINGLE_TOKEN(';', TOKEN_TERMINAL);
+                break;
+                CASE_SINGLE_TOKEN('?', TOKEN_QUESTION_MARK);
+                break;
+                CASE_SINGLE_TOKEN('\\', TOKEN_BWSLASH);
+                break;
+
+                CASE_SINGLE_TOKEN('/', TOKEN_FWSLASH);
+                switch (*c) {
+                    CASE_SINGLE_TOKEN('=', TOKEN_FWSLASH_EQ);
+                    break;
+                }
+                break;
+                CASE_SINGLE_TOKEN('!', TOKEN_BANG);
+                switch (*c) {
+                    CASE_SINGLE_TOKEN('=', TOKEN_BANG_EQ);
+                    break;
+                }
+                break;
+                CASE_SINGLE_TOKEN('*', TOKEN_ASTERISK);
+                switch (*c) {
+                    CASE_SINGLE_TOKEN('/', TOKEN_ASTERISK_FWSLASH);
+                    break;
+                    CASE_SINGLE_TOKEN('=', TOKEN_ASTERISK_EQ);
+                    break;
+                }
+                break;
+
+                CASE_SINGLE_TOKEN('|', TOKEN_PIPE);
+                switch (*c) {
+                    CASE_SINGLE_TOKEN('>', TOKEN_PIPE_GT);
+                    break;
+                    CASE_SINGLE_TOKEN('|', TOKEN_PIPE_PIPE);
+                    break;
+                    CASE_SINGLE_TOKEN('=', TOKEN_PIPE_EQ);
+                    break;
+                }
+                break;
+
+                CASE_SINGLE_TOKEN('<', TOKEN_LT);
+                switch (*c) {
+                    CASE_SINGLE_TOKEN('<', TOKEN_LT_LT);
+                    break;
+                    CASE_SINGLE_TOKEN('=', TOKEN_LT_EQ);
+                    break;
+                }
+                break;
+                CASE_SINGLE_TOKEN('>', TOKEN_GT);
+                switch (*c) {
+                    CASE_SINGLE_TOKEN('>', TOKEN_GT_GT);
+                    break;
+                    CASE_SINGLE_TOKEN('=', TOKEN_GT_EQ);
+                    break;
+                }
+                break;
+
+                CASE_SINGLE_TOKEN('.', TOKEN_DOT);
+                switch (*c) {
+                    CASE_SINGLE_TOKEN('.', TOKEN_DOT_DOT);
+                    switch (*c) {
+                        CASE_SINGLE_TOKEN('.', TOKEN_DOT_DOT_DOT);
+                        break;
+                    }
+                    break;
+                }
+                break;
+
+                CASE_SINGLE_TOKEN(':', TOKEN_COLON);
+                switch (*c) {
+                    CASE_SINGLE_TOKEN(':', TOKEN_COLON_COLON);
+                    break;
+                    CASE_SINGLE_TOKEN('=', TOKEN_COLON_EQ);
+                    break;
+                }
+                break;
+
+                CASE_SINGLE_TOKEN('-', TOKEN_MINUS);
+                switch (*c) {
+                    CASE_SINGLE_TOKEN('-', TOKEN_MINUS_MINUS);
+                    switch (*c) {
+                        CASE_SINGLE_TOKEN('-', TOKEN_MINUS_MINUS_MINUS);
+                        break;
+                    }
+                    break;
+                    CASE_SINGLE_TOKEN('>', TOKEN_RIGHT_ARROW);
+                    break;
+                    CASE_SINGLE_TOKEN('=', TOKEN_MINUS_EQ);
+                    break;
+                }
+                break;
+
+                CASE_SINGLE_TOKEN('+', TOKEN_PLUS);
+                switch (*c) {
+                    CASE_SINGLE_TOKEN('+', TOKEN_PLUS_PLUS);
+                    break;
+                    CASE_SINGLE_TOKEN('=', TOKEN_PLUS_EQ);
+                    break;
+                }
+                break;
+
+                CASE_SINGLE_TOKEN('%', TOKEN_PERCENT);
+                switch (*c) {
+                    CASE_SINGLE_TOKEN('=', TOKEN_PERCENT_EQ);
+                    break;
+                }
+                break;
+
+                CASE_SINGLE_TOKEN('&', TOKEN_AND);
+                switch (*c) {
+                    CASE_SINGLE_TOKEN('&', TOKEN_AND_AND);
+                    break;
+                    CASE_SINGLE_TOKEN('=', TOKEN_AND_EQ);
+                    break;
+                }
+                break;
+
+                CASE_SINGLE_TOKEN('=', TOKEN_EQ);
+                switch (*c) {
+                    CASE_SINGLE_TOKEN('=', TOKEN_EQ_EQ);
+                    break;
+                    CASE_SINGLE_TOKEN('>', TOKEN_EQ_GT);
+                    break;
+                }
+            }
+        } break;
+        case STATE_IDENTIFIER:
+        {
+            while (is_valid_identifier(*c))
+                ++c;
+            token.kind = TOKEN_IDENTIFIER;
+        } break;
+        }
+
+        token.value = intern_range(&ctx.interns, token.value, c);
+        if (token.kind == TOKEN_IDENTIFIER) {
+            s64 i = 0;
+            while (i < __KEY_COUNT__) {
+                if (token.value == ctx.keywords[i]) {
+                    break;
+                }
+                i += 1;
+            }
+            switch (i) {
+            case KEY_ASM:         token.kind = TOKEN_ASM;         break;
+            case KEY_IN:          token.kind = TOKEN_IN;          break;
+            case KEY_DEF:         token.kind = TOKEN_DEF;         break;
+            case KEY_LINK:        token.kind = TOKEN_LINK;        break;
+            case KEY_TYPE:        token.kind = TOKEN_TYPE;        break;
+            case KEY_TRUE:        token.kind = TOKEN_TRUE;        break;
+            case KEY_FALSE:       token.kind = TOKEN_FALSE;       break;
+            case KEY_DEFER:       token.kind = TOKEN_DEFER;       break;
+            case KEY_EXTERN:      token.kind = TOKEN_EXTERN;      break;
+            case KEY_LOAD:        token.kind = TOKEN_LOAD;        break;
+            case KEY_CAST:        token.kind = TOKEN_CAST;        break;
+            case KEY_SIZEOF:      token.kind = TOKEN_SIZEOF;      break;
+            case KEY_IF:          token.kind = TOKEN_IF;          break;
+            case KEY_ELSE:        token.kind = TOKEN_ELSE;        break;
+            case KEY_FOR:         token.kind = TOKEN_FOR;         break;
+            case KEY_WHILE:       token.kind = TOKEN_WHILE;       break;
+            case KEY_RETURN:      token.kind = TOKEN_RETURN;      break;
+            case KEY_ENUM:        token.kind = TOKEN_ENUM;        break;
+            case KEY_BREAK:       token.kind = TOKEN_BREAK;       break;
+            case KEY_CONTINUE:    token.kind = TOKEN_CONTINUE;    break;
+            case KEY_AS:          token.kind = TOKEN_AS;          break;
+            case KEY_IS:          token.kind = TOKEN_IS;          break;
+            case KEY_FALLTHROUGH: token.kind = TOKEN_FALLTHROUGH; break;
+            case KEY_TYPEOF:      token.kind = TOKEN_TYPEOF;      break;
+            }
+        } else if (token.kind == TOKEN_CHAR || token.kind == TOKEN_STRING) {
+            ++c; // we skip the last '
+        }
+
+        print_token(token);
 
         if (
             last_token.kind == TOKEN_NEWLINE &&
@@ -212,18 +607,6 @@ Lexed_File generate_tokens_from_file(char* file) {
             ctx.current_indentation_level = token.col_pos;
             // info("token.col_pos: %d", token.col_pos);
         }
-
-        // To handle extranous block starts from
-        // explicit and implicit blocks started from indentation
-        // and braces. We record how a block is started, by indentation
-        // or explicitly by braces. This is needed to figure out 
-        // how to handle 'undent undent' situations.
-
-        // ex. This would create duplicate 'indent-indent' and 'undent undent'
-        //     pairs. 
-        // if x {
-        // 
-        // }
         if (ctx.current_indentation_level > ctx.previous_indentation_level) {
             Token t;
             t.kind = TOKEN_BLOCK_START;
@@ -246,7 +629,8 @@ Lexed_File generate_tokens_from_file(char* file) {
 
         if (token.kind != TOKEN_UNKNOWN)
             token_array_append(&tokens, token);
-    }
+
+    } while(*c);
 
     Lexed_File lf;
     lf.tokens = tokens;
@@ -323,150 +707,6 @@ Lexed_File generate_tokens_from_source(char* source) {
 
     return lf;
 }
-
-//------------------------------------------------------------------------------
-//                               Private
-//------------------------------------------------------------------------------
-
-static Token lex_whitespace (Lexer_Context* ctx);
-static Token lex_comment    (Lexer_Context* ctx);
-static Token lex_operator   (Lexer_Context* ctx);
-static Token lex_string     (Lexer_Context* ctx);
-static Token lex_number     (Lexer_Context* ctx);
-static Token lex_identifier (Lexer_Context* ctx);
-
-typedef enum {
-    STATE_UNKNOWN,
-    STATE_ANY,
-    STATE_IDENTIFIER,
-    STATE_OPERATOR,
-    STATE_NUMBER,
-    STATE_STRING,
-    STATE_CHAR,
-    STATE_COMMENT,
-    STATE_NEWLINE,
-    _STATE_COUNT_
-} State;
-
-static Token (*lex_transitions[][])(Lexer_Context*) = {
-    [STATE_UNKNOWN][' ']     = lex_whitespace,
-    [STATE_UNKNOWN]['!']     = lex_operator,
-    [STATE_UNKNOWN]['"']     = lex_string,
-    [STATE_UNKNOWN]['#']     = lex_comment,
-    [STATE_UNKNOWN]['$']     = lex_operator,
-    [STATE_UNKNOWN]['%']     = lex_operator,
-    [STATE_UNKNOWN]['&']     = lex_operator,
-    [STATE_UNKNOWN]['\'']    = lex_operator,
-    [STATE_UNKNOWN]['(']     = lex_operator,
-    [STATE_UNKNOWN][')']     = lex_operator,
-    [STATE_UNKNOWN]['*']     = lex_operator,
-    [STATE_UNKNOWN]['+']     = lex_operator,
-    [STATE_UNKNOWN][',']     = lex_operator,
-    [STATE_UNKNOWN]['-']     = lex_operator,
-    [STATE_UNKNOWN]['.']     = lex_operator,
-    [STATE_UNKNOWN]['/']     = lex_operator,
-    [STATE_UNKNOWN]['0']     = lex_number,
-    [STATE_UNKNOWN]['1']     = lex_number,
-    [STATE_UNKNOWN]['2']     = lex_number,
-    [STATE_UNKNOWN]['3']     = lex_number,
-    [STATE_UNKNOWN]['4']     = lex_number,
-    [STATE_UNKNOWN]['5']     = lex_number,
-    [STATE_UNKNOWN]['6']     = lex_number,
-    [STATE_UNKNOWN]['7']     = lex_number,
-    [STATE_UNKNOWN]['8']     = lex_number,
-    [STATE_UNKNOWN]['9']     = lex_number,
-    [STATE_UNKNOWN][':']     = lex_operator,
-    [STATE_UNKNOWN][';']     = lex_operator,
-    [STATE_UNKNOWN]['<']     = lex_operator,
-    [STATE_UNKNOWN]['=']     = lex_operator,
-    [STATE_UNKNOWN]['>']     = lex_operator,
-    [STATE_UNKNOWN]['?']     = lex_operator,
-    [STATE_UNKNOWN]['@']     = lex_operator,
-    [STATE_UNKNOWN]['A']     = lex_identifier,
-    [STATE_UNKNOWN]['B']     = lex_identifier,
-    [STATE_UNKNOWN]['C']     = lex_identifier,
-    [STATE_UNKNOWN]['D']     = lex_identifier,
-    [STATE_UNKNOWN]['E']     = lex_identifier,
-    [STATE_UNKNOWN]['F']     = lex_identifier,
-    [STATE_UNKNOWN]['G']     = lex_identifier,
-    [STATE_UNKNOWN]['H']     = lex_identifier,
-    [STATE_UNKNOWN]['I']     = lex_identifier,
-    [STATE_UNKNOWN]['J']     = lex_identifier,
-    [STATE_UNKNOWN]['K']     = lex_identifier,
-    [STATE_UNKNOWN]['L']     = lex_identifier,
-    [STATE_UNKNOWN]['M']     = lex_identifier,
-    [STATE_UNKNOWN]['N']     = lex_identifier,
-    [STATE_UNKNOWN]['O']     = lex_identifier,
-    [STATE_UNKNOWN]['P']     = lex_identifier,
-    [STATE_UNKNOWN]['Q']     = lex_identifier,
-    [STATE_UNKNOWN]['R']     = lex_identifier,
-    [STATE_UNKNOWN]['S']     = lex_identifier,
-    [STATE_UNKNOWN]['T']     = lex_identifier,
-    [STATE_UNKNOWN]['U']     = lex_identifier,
-    [STATE_UNKNOWN]['V']     = lex_identifier,
-    [STATE_UNKNOWN]['W']     = lex_identifier,
-    [STATE_UNKNOWN]['X']     = lex_identifier,
-    [STATE_UNKNOWN]['Y']     = lex_identifier,
-    [STATE_UNKNOWN]['Z']     = lex_identifier,
-    [STATE_UNKNOWN]['[']     = lex_operator,
-    [STATE_UNKNOWN]['\\']    = lex_operator,
-    [STATE_UNKNOWN][']']     = lex_operator,
-    [STATE_UNKNOWN]['^']     = lex_operator,
-    [STATE_UNKNOWN]['_']     = lex_identifier,
-
-    [STATE_UNKNOWN]['`']     = lex_string,
-    [STATE_UNKNOWN]['a']     = lex_identifier,
-    [STATE_UNKNOWN]['b']     = lex_identifier,
-    [STATE_UNKNOWN]['c']     = lex_identifier,
-    [STATE_UNKNOWN]['d']     = lex_identifier,
-    [STATE_UNKNOWN]['e']     = lex_identifier,
-    [STATE_UNKNOWN]['f']     = lex_identifier,
-    [STATE_UNKNOWN]['g']     = lex_identifier,
-    [STATE_UNKNOWN]['h']     = lex_identifier,
-    [STATE_UNKNOWN]['i']     = lex_identifier,
-    [STATE_UNKNOWN]['j']     = lex_identifier,
-    [STATE_UNKNOWN]['k']     = lex_identifier,
-    [STATE_UNKNOWN]['l']     = lex_identifier,
-    [STATE_UNKNOWN]['m']     = lex_identifier,
-    [STATE_UNKNOWN]['n']     = lex_identifier,
-    [STATE_UNKNOWN]['o']     = lex_identifier,
-    [STATE_UNKNOWN]['p']     = lex_identifier,
-    [STATE_UNKNOWN]['q']     = lex_identifier,
-    [STATE_UNKNOWN]['r']     = lex_identifier,
-    [STATE_UNKNOWN]['s']     = lex_identifier,
-    [STATE_UNKNOWN]['t']     = lex_identifier,
-    [STATE_UNKNOWN]['u']     = lex_identifier,
-    [STATE_UNKNOWN]['v']     = lex_identifier,
-    [STATE_UNKNOWN]['w']     = lex_identifier,
-    [STATE_UNKNOWN]['x']     = lex_identifier,
-    [STATE_UNKNOWN]['y']     = lex_identifier,
-    [STATE_UNKNOWN]['z']     = lex_identifier,
-    [STATE_UNKNOWN]['{']     = lex_operator,
-    [STATE_UNKNOWN]['|']     = lex_operator,
-    [STATE_UNKNOWN]['}']     = lex_operator,
-    [STATE_UNKNOWN]['~']     = lex_operator,
-
-};
-
-Token lex(Lexer_Context* ctx) {
-    char kind = *ctx->cursor;
-    Token (*func)(Lexer_Context*) = (*lex_transitions[(u32)kind]);
-    tassert(func, "lex missing callback for %s", kind);
-    return (*func)(ctx);
-}
-
-#define CASE_SINGLE_TOKEN(c1, t_kind) \
-    case c1:                          \
-        token.kind = t_kind;          \
-        ++c;
-
-#define skip_whitespace(c)          \
-    while (*c == ' ' || *c == '\t') \
-        ++c;
-
-#define skip_comment(c) \
-    while (*c != '\n')  \
-        ++c;
 
 Token get_token(Lexer_Context* ctx) {
     char* c = ctx->stream;
