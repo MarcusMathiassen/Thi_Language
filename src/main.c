@@ -537,6 +537,7 @@ int main(int argc, char** argv) {
     } else error("generating code from ast failed.");
 
     // Debug info. Writing out sizes of our types.
+    // table_entry align the 1st argument to the left and the 2nd to the right.
     info(ucolor(table_entry("size of Token", size_with_suffix(sizeof(Token)))));
     info(ucolor(table_entry("size of AST", size_with_suffix(sizeof(AST)))));
     info(ucolor(table_entry("size of Type", size_with_suffix(sizeof(Type)))));
