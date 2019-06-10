@@ -239,6 +239,7 @@ static char* _ast_to_str(String_Context* ctx, AST* node) {
     void (*func)(String_Context*, AST*) = (*ast_to_str_transitions[kind]);
     tassert(func, "ast_to_str missing callback for %s", kind);
     (*func)(ctx, node);
+
     return string_data(s);
 }
 

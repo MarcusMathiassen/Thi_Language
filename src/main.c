@@ -485,7 +485,7 @@ int main(int argc, char** argv) {
     List* links = ast_find_all_of_kind(AST_LINK, ast);
     list_append(links, make_ast_link(ast->loc_info, "-lSystem"));
 
-    run_pass(ast, "pass_add_all_symbols", pass_add_all_symbols, symbols);
+    // run_pass(ast, "pass_add_all_symbols", pass_add_all_symbols, symbols);
     run_pass(ast, "resolve_unresolved_types", visitor_resolve_unresolved_types, symbols);
 
     // Semantic Analysis

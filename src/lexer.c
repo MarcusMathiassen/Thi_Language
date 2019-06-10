@@ -74,6 +74,7 @@ typedef struct
 
 typedef struct
 {
+    char* cursor;
     char* file;
     char* stream;
     char* position_of_newline;
@@ -180,6 +181,7 @@ Lexed_File generate_tokens_from_file(char* file) {
     Lexer_Context ctx;
     ctx.file = file;
     ctx.stream = source;
+    ctx.cursor = source;
     ctx.position_of_newline = source;
     ctx.start_of_line = source;
     ctx.line_count = 1;
@@ -325,6 +327,132 @@ Lexed_File generate_tokens_from_source(char* source) {
 //------------------------------------------------------------------------------
 //                               Private
 //------------------------------------------------------------------------------
+
+static Token lex_asm                   (Lexer_Context* ctx);
+static Token lex_unknown               (Lexer_Context* ctx);
+static Token lex_eof                   (Lexer_Context* ctx);
+static Token lex_block_start           (Lexer_Context* ctx);
+static Token lex_block_end             (Lexer_Context* ctx);
+static Token lex_terminal              (Lexer_Context* ctx);
+static Token lex_comment               (Lexer_Context* ctx);
+static Token lex_whitespace            (Lexer_Context* ctx);
+static Token lex_newline               (Lexer_Context* ctx);
+static Token lex_identifier            (Lexer_Context* ctx);
+static Token lex_def                   (Lexer_Context* ctx);
+static Token lex_is                    (Lexer_Context* ctx);
+static Token lex_in                    (Lexer_Context* ctx);
+static Token lex_cast                  (Lexer_Context* ctx);
+static Token lex_typeof                (Lexer_Context* ctx);
+static Token lex_sizeof                (Lexer_Context* ctx);
+static Token lex_link                  (Lexer_Context* ctx);
+static Token lex_fallthrough           (Lexer_Context* ctx);
+static Token lex_extern                (Lexer_Context* ctx);
+static Token lex_load                  (Lexer_Context* ctx);
+static Token lex_true                  (Lexer_Context* ctx);
+static Token lex_false                 (Lexer_Context* ctx);
+static Token lex_type                  (Lexer_Context* ctx);
+static Token lex_defer                 (Lexer_Context* ctx);
+static Token lex_if                    (Lexer_Context* ctx);
+static Token lex_else                  (Lexer_Context* ctx);
+static Token lex_for                   (Lexer_Context* ctx);
+static Token lex_while                 (Lexer_Context* ctx);
+static Token lex_return                (Lexer_Context* ctx);
+static Token lex_enum                  (Lexer_Context* ctx);
+static Token lex_break                 (Lexer_Context* ctx);
+static Token lex_continue              (Lexer_Context* ctx);
+static Token lex_as                    (Lexer_Context* ctx);
+static Token lex_number                (Lexer_Context* ctx);
+static Token lex_char                  (Lexer_Context* ctx);
+static Token lex_integer               (Lexer_Context* ctx);
+static Token lex_float                 (Lexer_Context* ctx);
+static Token lex_hex                   (Lexer_Context* ctx);
+static Token lex_string                (Lexer_Context* ctx);
+static Token lex_pipe_pipe             (Lexer_Context* ctx);
+static Token lex_and_and               (Lexer_Context* ctx);
+static Token lex_plus_eq               (Lexer_Context* ctx);
+static Token lex_minus_eq              (Lexer_Context* ctx);
+static Token lex_hat_eq                (Lexer_Context* ctx);
+static Token lex_asterisk_eq           (Lexer_Context* ctx);
+static Token lex_pipe_eq               (Lexer_Context* ctx);
+static Token lex_percent_eq            (Lexer_Context* ctx);
+static Token lex_and_eq                (Lexer_Context* ctx);
+static Token lex_bitwise_leftshift     (Lexer_Context* ctx);
+static Token lex_bitwise_leftshift_eq  (Lexer_Context* ctx);
+static Token lex_bitwise_rightshift    (Lexer_Context* ctx);
+static Token lex_bitwise_rightshift_eq (Lexer_Context* ctx);
+static Token lex_eq_eq                 (Lexer_Context* ctx);
+static Token lex_eq_gt                 (Lexer_Context* ctx);
+static Token lex_bang_eq               (Lexer_Context* ctx);
+static Token lex_colon_colon           (Lexer_Context* ctx);
+static Token lex_colon_eq              (Lexer_Context* ctx);
+static Token lex_right_arrow           (Lexer_Context* ctx);
+static Token lex_pipe                  (Lexer_Context* ctx);
+static Token lex_tilde                 (Lexer_Context* ctx);
+static Token lex_at                    (Lexer_Context* ctx);
+static Token lex_dollar_sign           (Lexer_Context* ctx);
+static Token lex_hat                   (Lexer_Context* ctx);
+static Token lex_bang                  (Lexer_Context* ctx);
+static Token lex_and                   (Lexer_Context* ctx);
+static Token lex_lt                    (Lexer_Context* ctx);
+static Token lex_lt_eq                 (Lexer_Context* ctx);
+static Token lex_lt_lt                 (Lexer_Context* ctx);
+static Token lex_lt_lt_eq              (Lexer_Context* ctx);
+static Token lex_gt                    (Lexer_Context* ctx);
+static Token lex_gt_eq                 (Lexer_Context* ctx);
+static Token lex_gt_gt                 (Lexer_Context* ctx);
+static Token lex_gt_gt_eq              (Lexer_Context* ctx);
+static Token lex_open_paren            (Lexer_Context* ctx);
+static Token lex_close_paren           (Lexer_Context* ctx);
+static Token lex_open_bracket          (Lexer_Context* ctx);
+static Token lex_close_bracket         (Lexer_Context* ctx);
+static Token lex_open_brace            (Lexer_Context* ctx);
+static Token lex_close_brace           (Lexer_Context* ctx);
+static Token lex_comma                 (Lexer_Context* ctx);
+static Token lex_dot                   (Lexer_Context* ctx);
+static Token lex_dot_dot               (Lexer_Context* ctx);
+static Token lex_dot_dot_dot           (Lexer_Context* ctx);
+static Token lex_colon                 (Lexer_Context* ctx);
+static Token lex_semicolon             (Lexer_Context* ctx);
+static Token lex_asterisk              (Lexer_Context* ctx);
+static Token lex_asterisk_fwslash      (Lexer_Context* ctx);
+static Token lex_minus                 (Lexer_Context* ctx);
+static Token lex_minus_minus           (Lexer_Context* ctx);
+static Token lex_minus_minus_minus     (Lexer_Context* ctx);
+static Token lex_question_mark         (Lexer_Context* ctx);
+static Token lex_plus                  (Lexer_Context* ctx);
+static Token lex_plus_plus             (Lexer_Context* ctx);
+static Token lex_percent               (Lexer_Context* ctx);
+static Token lex_fwslash               (Lexer_Context* ctx);
+static Token lex_fwslash_asterisk      (Lexer_Context* ctx);
+static Token lex_fwslash_fwslash       (Lexer_Context* ctx);
+static Token lex_fwslash_eq            (Lexer_Context* ctx);
+static Token lex_bwslash               (Lexer_Context* ctx);
+static Token lex_hash                  (Lexer_Context* ctx);
+static Token lex_eq                    (Lexer_Context* ctx);
+static Token lex_pipe_gt               (Lexer_Context* ctx);
+
+typedef enum {
+    STATE_UNKNOWN,
+    STATE_IDENTIFIER,
+    STATE_OPERATOR,
+    STATE_NUMBER,
+    STATE_STRING,
+    STATE_CHAR,
+    STATE_COMMENT,
+    STATE_NEWLINE,
+    _STATE_COUNT_
+} State;
+
+static Token (*lex_transitions[][])(Lexer_Context*) = {
+    [STATE_UNKNOWN][' '] = _lex_whitespace,
+};
+
+Token lex(Lexer_Context* ctx) {
+    char kind = *ctx->cursor;
+    Token (*func)(Lexer_Context*) = (*lex_transitions[(u32)kind]);
+    tassert(func, "lex missing callback for %s", kind);
+    return (*func)(ctx);
+}
 
 #define CASE_SINGLE_TOKEN(c1, t_kind) \
     case c1:                          \
