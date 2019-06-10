@@ -177,8 +177,7 @@ void emit_jmp                         (Codegen_Context* ctx, char* label);
 
 Codegen_Context make_codegen_context(void);
 
-inline static Value* codegen(Codegen_Context* ctx, AST* node);
-
+static Value* codegen                                 (Codegen_Context* ctx, AST* node);
 static Value* codegen_comment                         (Codegen_Context* ctx, AST* node);
 static Value* codegen_nop                             (Codegen_Context* ctx, AST* node);
 static Value* codegen_space_separated_identifier_list (Codegen_Context* ctx, AST* node);
@@ -277,7 +276,7 @@ char* to_x64(AST* node) {
 }
 
 // @Hotpath @Recursive
-inline static Value* codegen(Codegen_Context* ctx, AST* node) {
+static Value* codegen(Codegen_Context* ctx, AST* node) {
     xassert(ctx);
     if (!node) return NULL;
     AST_Kind kind = node->kind;

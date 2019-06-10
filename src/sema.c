@@ -53,8 +53,7 @@ static void add_node_to_scope(Sema_Context* ctx, AST* node);
 static void add_all_decls_in_module(Sema_Context* ctx, AST* node);
 
 
-inline static Type* _sema(Sema_Context* ctx, AST* node);
-
+static Type* _sema                                 (Sema_Context* ctx,  AST* node);
 static Type* sema_comment                          (Sema_Context* ctx,  AST* node);
 static Type* sema_nop                              (Sema_Context* ctx,  AST* node);
 static Type* sema_space_separated_identifier_list  (Sema_Context* ctx,  AST* node);
@@ -164,7 +163,7 @@ Type* sema(AST* node) {
 }
 
 // @Hotpath @Recursive
-inline static Type* _sema(Sema_Context* ctx, AST* node) {
+static Type* _sema(Sema_Context* ctx, AST* node) {
     if (!node) return NULL;
     DEBUG_START;
     AST_Kind kind = node->kind;
@@ -323,9 +322,22 @@ Type* sema_grouping(Sema_Context* ctx, AST* node) {
 Type* sema_subscript(Sema_Context* ctx, AST* node) {
     AST* load = node->Subscript.load;
     AST* sub = node->Subscript.sub;
-    Type* result_t = _sema(ctx, load);
+    Type* t = _sema(ctx, load);
     _sema(ctx, sub);
-    return result_t;
+
+    Type* type_of_field = load->type;
+
+    s64 size = get_size_of_underlying_type_if_any(load->type);
+
+    sub = make_ast_binary(node->loc_info, TOKEN_ASTERISK, make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, false)), sub);
+    load = make_ast_binary(node->loc_info, TOKEN_PLUS, load, sub);
+    load = make_ast_grouping(node->loc_info, load);
+    load = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, load);
+    load->type = type_of_field;
+
+    ast_replace(node, load);
+
+    return t;
 }
 
 Type* sema_field_access(Sema_Context* ctx, AST* node) {
@@ -333,7 +345,7 @@ Type* sema_field_access(Sema_Context* ctx, AST* node) {
     char* field_name = node->Field_Access.field;
     Type* result_t = _sema(ctx, load);
     switch (load->type->kind) {
-        ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
+    ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
     case TYPE_STRUCT: {
         list_foreach(load->type->Struct.members) {
             Type_Name_Pair* mem = it->data;
@@ -347,6 +359,18 @@ Type* sema_field_access(Sema_Context* ctx, AST* node) {
         break;
     }
     }
+
+
+    s64 offset_size = get_offset_in_struct_to_field(load->type, field_name);
+    AST* offset = make_ast_int(node->loc_info, offset_size, make_type_int(DEFAULT_INT_BYTE_SIZE, 0));
+
+    load = make_ast_unary(node->loc_info, THI_SYNTAX_ADDRESS, load);
+    load = make_ast_binary(node->loc_info, TOKEN_PLUS, load, offset);
+    load = make_ast_grouping(node->loc_info, load);
+    load = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, load);
+
+    ast_replace(node, load);
+
     return result_t;
 }
 
@@ -414,6 +438,33 @@ Type* sema_struct(Sema_Context* ctx, AST* node) {
 }
 
 Type* sema_enum(Sema_Context* ctx, AST* node) {
+    switch (node->kind) {
+    default: break;
+    case AST_ENUM: {
+        s64 counter = 0;
+        AST* e = node;
+        list_foreach(e->Enum.members) {
+            AST* m = it->data;
+            switch (m->kind) {
+                ERROR_UNHANDLED_AST_KIND(m->kind);
+            case AST_IDENT:
+             {
+                Type* int_t = make_type_int(DEFAULT_INT_BYTE_SIZE, false);
+                it->data = make_ast_variable_decl(m->loc_info, m->Ident.name, int_t, make_ast_int(m->loc_info, counter, int_t));
+                break;
+             }
+            case AST_VARIABLE_DECL:
+                xassert(m->Variable_Decl.value);
+                xassert(m->Variable_Decl.value->kind == AST_INT);
+                counter = m->Variable_Decl.value->Int.val;
+                break;
+            }
+            ++counter;
+        }
+
+    } break;
+    }
+
     return node->type;
 }
 
@@ -482,13 +533,22 @@ Type* sema_continue(Sema_Context* ctx, AST* node) {
 }
 
 Type* sema_typeof(Sema_Context* ctx, AST* node) {
-    _sema(ctx, node->Typeof.node);
+    Type *t = _sema(ctx, node->Typeof.node);
+
+    AST* string_value = make_ast_string(node->loc_info, get_type_name(t));
+    ast_replace(node, string_value);
+
     return make_type_pointer(make_type_int(1, true));
 }
 
 Type* sema_sizeof(Sema_Context* ctx, AST* node) {
-    _sema(ctx, node->Sizeof.node);
-    return make_type_int(DEFAULT_INT_BYTE_SIZE, false);;
+    Type *t = _sema(ctx, node->Sizeof.node);
+
+    s64 size = get_size_of_type(t);
+    AST* constant_value = make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, false));
+    ast_replace(node, constant_value);
+
+    return t;
 }
 
 Type* sema_switch(Sema_Context* ctx, AST* node) {

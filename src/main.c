@@ -75,86 +75,6 @@ void linking_stage(List* links, char* exec_name);
 //                               Passes
 //------------------------------------------------------------------------------
 
-// Replaces 'sizeof <expr>' calls with the size of the resulting expr.
-void resolve_sizeofs(void* dont_care, AST* node) {
-    s64 size = get_size_of_type(node->type);
-    AST* constant_value = make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, false));
-    ast_replace(node, constant_value);
-}
-// Replaces 'typeof <expr>' calls with the type of the resulting expr.
-void resolve_typeofs(void* dont_care, AST* node) {
-    AST* string_value = make_ast_string(node->loc_info, get_type_name(node->type));
-    ast_replace(node, string_value);
-}
-
-// Resolving subscripts means changing
-// <load>[<expr>]
-// into
-// *(&<load> + sizeof(*load) * <expr>)
-void resolve_subscript(void* dont_care, AST* node) {
-
-    AST* load = node->Subscript.load;
-    AST* sub = node->Subscript.sub;
-    Type* type_of_field = node->type;
-
-    s64 size = get_size_of_underlying_type_if_any(load->type);
-
-    sub = make_ast_binary(node->loc_info, TOKEN_ASTERISK, make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, false)), sub);
-    load = make_ast_binary(node->loc_info, TOKEN_PLUS, load, sub);
-    load = make_ast_grouping(node->loc_info, load);
-    load = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, load);
-    load->type = type_of_field;
-
-    ast_replace(node, load);
-}
-
-void resolve_field_access(void* dont_care, AST* node) {
-
-    AST* load = node->Field_Access.load;
-    char* field_name = node->Field_Access.field;
-    Type* type_of_field = node->type;
-
-    s64 offset_size = get_offset_in_struct_to_field(load->type, field_name);
-    AST* offset = make_ast_int(node->loc_info, offset_size, make_type_int(DEFAULT_INT_BYTE_SIZE, 0));
-
-    load = make_ast_unary(node->loc_info, THI_SYNTAX_ADDRESS, load);
-    load = make_ast_binary(node->loc_info, TOKEN_PLUS, load, offset);
-    load = make_ast_grouping(node->loc_info, load);
-    load = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, load);
-    load->type = type_of_field;
-
-    ast_replace(node, load);
-}
-
-void pass_initilize_enums(void* thi, AST* node) {
-
-    error("iogjeroigjeriogj");
-    // switch (node->kind) {
-    // default: break;
-    // case AST_ENUM: {
-
-    //     s64 counter = 0;
-    //     AST* e = node;
-    //     list_foreach(e->Enum.members) {
-    //         AST* m = it->data;
-    //         // Turn idents into constant decls
-    //         switch (m->kind) {
-    //             ERROR_UNHANDLED_AST_KIND(m->kind);
-    //         case AST_IDENT:
-    //             it->data = make_ast_constant_decl(m->loc_info, m->Ident.name, make_ast_int(m->loc_info, counter, make_type_int(DEFAULT_INT_BYTE_SIZE, 0)));
-    //             break;
-    //         case AST_CONSTANT_DECL:
-    //             xassert(m->Constant_Decl.value->kind == AST_INT);
-    //             counter = m->Constant_Decl.value->Int.val;
-    //             break;
-    //         }
-    //         ++counter;
-    //     }
-
-    // } break;
-    // }
-}
-
 void* pass_add_all_symbols(void* symbols, AST* node) {
     switch (node->kind) {
     default: break;
@@ -399,8 +319,11 @@ bool timer_sort_func(void* a, void* b) {
 }
 
 int main(int argc, char** argv) {
-    // @Todo(marcus) do more robust argument handling
+    // @Todo(marcus) do more robust argumemnt handling
     // Argument validation
+
+    // @Todo: cleanup main. Needs better overview of 
+    // every step.
 
     if (argc < 2) error("too few arguments.");
 
@@ -455,7 +378,7 @@ int main(int argc, char** argv) {
 
     // Holds all symbols defined in the compilation unit.
     Map* symbols = make_map();
-    
+
     map_set(symbols, "void", make_type_void());
     map_set(symbols, "bool", make_type_int(1, true));
     map_set(symbols, "char", make_type_int(1, true));
@@ -490,30 +413,6 @@ int main(int argc, char** argv) {
 
     // Semantic Analysis
     sema(ast);
-
-
-    // @Todo: move these into the semantic pass
-    // passDesc.description = "Resolve sizeofs";
-    // passDesc.kind = AST_SIZEOF;
-    // passDesc.passKind = PASS_UNSAFE;
-    // passDesc.visitor_func = resolve_sizeofs;
-    // passDesc.visitor_arg = NULL;
-    // thi_install_pass(passDesc);
-
-    // passDesc.description = "Resolve typeofs";
-    // passDesc.kind = AST_TYPEOF;
-    // passDesc.visitor_func = resolve_typeofs;
-    // thi_install_pass(passDesc);
-
-    // passDesc.description = "Resolve subscripts";
-    // passDesc.kind = AST_SUBSCRIPT;
-    // passDesc.visitor_func = resolve_subscript;
-    // thi_install_pass(passDesc);
-
-    // passDesc.description = "Resolve field access";
-    // passDesc.kind = AST_FIELD_ACCESS;
-    // passDesc.visitor_func = resolve_field_access;
-    // thi_install_pass(passDesc);  
 
     // Sanity check.. Make sure the typer did what it was supposed to do.
     run_pass(ast, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);

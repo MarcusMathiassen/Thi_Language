@@ -141,7 +141,6 @@ char* STATIC_KEYWORDS_ARRAY[__KEY_COUNT__] = {
 //------------------------------------------------------------------------------
 
 typedef enum {
-    STATE_END,
     STATE_IDENTIFIER,
     STATE_OPERATOR,
     STATE_NUMBER,
@@ -153,7 +152,6 @@ typedef enum {
 } State_Kind;
 
 static State_Kind lex_transitions[] = {
-    ['\0']    = STATE_END,
     ['\n']    = STATE_NEWLINE,
     ['!']     = STATE_OPERATOR,
     ['"']     = STATE_STRING,
@@ -341,62 +339,16 @@ Lexed_File generate_tokens_from_file(char* file) {
         token.col_pos = ctx.start_of_line - ctx.position_of_newline;
         token.line_pos = ctx.line_count;
 
-        // char* start = c;
         State_Kind state = lex_transitions[(u32)(*c)];
 
         switch(state) {
-        default: error("unhandled state %d", state);
-        case STATE_END: break;
-        case STATE_NEWLINE:
+        ERROR_UNHANDLED_KIND(strf("unhandled state %d", state));
+        case STATE_IDENTIFIER:
         {
-           token.kind = TOKEN_NEWLINE;
-            ++c; // skip the newline
-            ctx.position_of_newline = c;
-            ++ctx.line_count;
-        } break;
-        case STATE_COMMENT:
-        {
-            ++c; // skip the hash
-            token.value = c;
-            token.kind = TOKEN_COMMENT;
-            skip_comment(c);
-            ++ctx.comment_count;
-        } break;
-        case STATE_STRING: {
-            token.kind = TOKEN_STRING;
-            c++;
-            token.value = c;
-            while (*c != '"') {
+            while (is_valid_identifier(*c))
                 ++c;
-            }
+            token.kind = TOKEN_IDENTIFIER;
         } break;
-        case STATE_CHAR: {
-            token.kind = TOKEN_CHAR;
-            ++c;
-            token.value = c;
-            if (*token.value == '\\') ++c;
-            ++c;
-        } break;
-
-        case STATE_NUMBER:
-        {
-            bool is_hex = false;
-            bool is_float = false;
-
-            // Number: [0-9._]+e[0-9]+
-            if (isdigit(*c) || *c == '.') {
-                while (is_valid_digit(*c) || (is_hex && is_valid_identifier(*c))) {
-                    if (*c == 'x') is_hex = true;
-                    if (*c == '.') is_float = true;
-                    ++c;
-                }
-            }
-
-            token.kind = TOKEN_INTEGER;
-            if (is_hex) token.kind = TOKEN_HEX;
-            if (is_float) token.kind = TOKEN_FLOAT;
-        } break;
-
         case STATE_OPERATOR:
         {
             switch (*c) {
@@ -550,12 +502,55 @@ Lexed_File generate_tokens_from_file(char* file) {
                 }
             }
         } break;
-        case STATE_IDENTIFIER:
+        case STATE_NUMBER:
         {
-            while (is_valid_identifier(*c))
-                ++c;
-            token.kind = TOKEN_IDENTIFIER;
+            bool is_hex = false;
+            bool is_float = false;
+
+            // Number: [0-9._]+e[0-9]+
+            if (isdigit(*c) || *c == '.') {
+                while (is_valid_digit(*c) || (is_hex && is_valid_identifier(*c))) {
+                    if (*c == 'x') is_hex = true;
+                    if (*c == '.') is_float = true;
+                    ++c;
+                }
+            }
+
+            token.kind = TOKEN_INTEGER;
+            if (is_hex) token.kind = TOKEN_HEX;
+            if (is_float) token.kind = TOKEN_FLOAT;
         } break;
+        case STATE_STRING: {
+            token.kind = TOKEN_STRING;
+            c++;
+            token.value = c;
+            while (*c != '"') {
+                ++c;
+            }
+        } break;
+        case STATE_CHAR: {
+            token.kind = TOKEN_CHAR;
+            ++c;
+            token.value = c;
+            if (*token.value == '\\') ++c;
+            ++c;
+        } break;
+        case STATE_COMMENT:
+        {
+            ++c; // skip the hash
+            token.value = c;
+            token.kind = TOKEN_COMMENT;
+            skip_comment(c);
+            ++ctx.comment_count;
+        } break;
+        case STATE_NEWLINE:
+        {
+           token.kind = TOKEN_NEWLINE;
+            ++c; // skip the newline
+            ctx.position_of_newline = c;
+            ++ctx.line_count;
+        } break;
+
         }
 
         token.value = intern_range(&ctx.interns, token.value, c);
