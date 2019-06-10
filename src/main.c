@@ -300,22 +300,22 @@ void constant_fold_binary(AST* node) {
 
         switch (op) {
         ERROR_UNHANDLED_TOKEN_KIND(op);
-        case TOKEN_EQ_EQ:               value = (lhs_v == rhs_v);  break;
-        case TOKEN_BANG_EQ:             value = (lhs_v != rhs_v);  break;
-        case TOKEN_PLUS:                value = (lhs_v +  rhs_v);  break;
-        case TOKEN_MINUS:               value = (lhs_v -  rhs_v);  break;
-        case TOKEN_ASTERISK:            value = (lhs_v *  rhs_v);  break;
-        case TOKEN_FWSLASH:             value = (lhs_v /  rhs_v);  break;
-        case TOKEN_AND:                 value = (lhs_v &  rhs_v);  break;
-        case TOKEN_PIPE:                value = (lhs_v |  rhs_v);  break;
-        case TOKEN_LT:                  value = (lhs_v <  rhs_v);  break;
-        case TOKEN_GT:                  value = (lhs_v >  rhs_v);  break;
-        case TOKEN_GT_GT:               value = (lhs_v >> rhs_v);  break;
-        case TOKEN_LT_LT:               value = (lhs_v << rhs_v);  break;
-        case TOKEN_PERCENT:             value = (lhs_v %  rhs_v);  break;
-        case TOKEN_HAT:                 value = (lhs_v ^  rhs_v);  break;
-        case TOKEN_AND_AND:             value = (lhs_v && rhs_v);  break;
-        case TOKEN_PIPE_PIPE:           value = (lhs_v || rhs_v);  break;
+        case TOKEN_EQ_EQ:               value = (lhs_v == rhs_v);break;
+        case TOKEN_BANG_EQ:             value = (lhs_v != rhs_v);break;
+        case TOKEN_PLUS:                value = (lhs_v +  rhs_v);break;
+        case TOKEN_MINUS:               value = (lhs_v -  rhs_v);break;
+        case TOKEN_ASTERISK:            value = (lhs_v *  rhs_v);break;
+        case TOKEN_FWSLASH:             value = (lhs_v /  rhs_v);break;
+        case TOKEN_AND:                 value = (lhs_v &  rhs_v);break;
+        case TOKEN_PIPE:                value = (lhs_v |  rhs_v);break;
+        case TOKEN_LT:                  value = (lhs_v <  rhs_v);break;
+        case TOKEN_GT:                  value = (lhs_v >  rhs_v);break;
+        case TOKEN_GT_GT:               value = (lhs_v >> rhs_v);break;
+        case TOKEN_LT_LT:               value = (lhs_v << rhs_v);break;
+        case TOKEN_PERCENT:             value = (lhs_v %  rhs_v);break;
+        case TOKEN_HAT:                 value = (lhs_v ^  rhs_v);break;
+        case TOKEN_AND_AND:             value = (lhs_v && rhs_v);break;
+        case TOKEN_PIPE_PIPE:           value = (lhs_v || rhs_v);break;
         case TOKEN_QUESTION_MARK:       return;
         case TOKEN_COLON:               return;
         }
