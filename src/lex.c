@@ -89,7 +89,6 @@ typedef enum {
 
     _STATE_LAST_FINAL_,
 
-    STATE_START,
     STATE_IN_WHITESPACE,
     STATE_IN_IDENTIFIER,
     STATE_IN_OPERATOR,
@@ -98,6 +97,7 @@ typedef enum {
     STATE_IN_CHAR,
     STATE_IN_COMMENT,
     STATE_IN_NEWLINE,
+    
     _STATE_COUNT_
 } State_Kind;
 
@@ -113,7 +113,6 @@ char* state_kind_to_str(State_Kind kind) {
     case STATE_COMMENT:       return "STATE_COMMENT";
     case STATE_NEWLINE:       return "STATE_NEWLINE";
     case _STATE_LAST_FINAL_:  return "_STATE_LAST_FINAL_";
-    case STATE_START:         return "STATE_START";
     case STATE_IN_WHITESPACE: return "STATE_IN_WHITESPACE";
     case STATE_IN_IDENTIFIER: return "STATE_IN_IDENTIFIER";
     case STATE_IN_OPERATOR:   return "STATE_IN_OPERATOR";
@@ -129,7 +128,7 @@ char* state_kind_to_str(State_Kind kind) {
 }
 
 typedef enum {
-    EQUIV_END = 0,
+    EQUIV_EOF = 0,
     
     EQUIV_WHITESPACE,
 
@@ -146,7 +145,7 @@ typedef enum {
 char* equivalence_kind_to_str(Equivalence_Kind kind) {
     switch (kind) {
     ERROR_UNHANDLED_KIND(strf("%d", kind));
-    case EQUIV_END:        return "EQUIV_END";
+    case EQUIV_EOF:        return "EQUIV_EOF";
     case EQUIV_WHITESPACE: return "EQUIV_WHITESPACE";
     case EQUIV_IDENTIFIER: return "EQUIV_IDENTIFIER";
     case EQUIV_OPERATOR:   return "EQUIV_OPERATOR";
@@ -164,42 +163,42 @@ char* equivalence_kind_to_str(Equivalence_Kind kind) {
 static State_Kind transition[_STATE_COUNT_][_EQUIV_COUNT_] = {
 
     // Parsing identifers
-    [STATE_START] [EQUIV_IDENTIFIER] = STATE_IN_IDENTIFIER, // start
-
-    [STATE_IN_IDENTIFIER] [EQUIV_IDENTIFIER] = STATE_IN_IDENTIFIER,
-    [STATE_IN_IDENTIFIER] [EQUIV_NUMBER] = STATE_IN_IDENTIFIER,
-
-    [STATE_IN_IDENTIFIER] [EQUIV_END] = STATE_IDENTIFIER, // end
+    [STATE_IN_IDENTIFIER] [EQUIV_IDENTIFIER] = STATE_IN_IDENTIFIER, // cont..
+    [STATE_IN_IDENTIFIER] [EQUIV_NUMBER]     = STATE_IN_IDENTIFIER, // cont..
+    [STATE_IN_IDENTIFIER] [EQUIV_EOF]        = STATE_IDENTIFIER, // end
     [STATE_IN_IDENTIFIER] [EQUIV_WHITESPACE] = STATE_IDENTIFIER, // end
-    [STATE_IN_IDENTIFIER] [EQUIV_NEWLINE] = STATE_IDENTIFIER, // end
-    [STATE_IN_IDENTIFIER] [EQUIV_OPERATOR] = STATE_IDENTIFIER, // end
-    [STATE_IN_IDENTIFIER] [EQUIV_COMMENT] = STATE_IDENTIFIER, // end
-    [STATE_IN_IDENTIFIER] [EQUIV_STRING] = STATE_IDENTIFIER, // end
-    [STATE_IN_IDENTIFIER] [EQUIV_CHAR] = STATE_IDENTIFIER, // end
+    [STATE_IN_IDENTIFIER] [EQUIV_NEWLINE]    = STATE_IDENTIFIER, // end
+    [STATE_IN_IDENTIFIER] [EQUIV_OPERATOR]   = STATE_IDENTIFIER, // end
+    [STATE_IN_IDENTIFIER] [EQUIV_COMMENT]    = STATE_IDENTIFIER, // end
+    [STATE_IN_IDENTIFIER] [EQUIV_STRING]     = STATE_IDENTIFIER, // end
+    [STATE_IN_IDENTIFIER] [EQUIV_CHAR]       = STATE_IDENTIFIER, // end
+    //
 
     // Parsing whitespace 
-    [STATE_START] [EQUIV_WHITESPACE]  = STATE_IN_WHITESPACE, // start
     [STATE_IN_WHITESPACE] [EQUIV_WHITESPACE]  = STATE_IN_WHITESPACE, // cont..
+    [STATE_IN_WHITESPACE] [EQUIV_IDENTIFIER]  = STATE_IN_IDENTIFIER, // end
+    [STATE_IN_WHITESPACE] [EQUIV_COMMENT]     = STATE_IN_COMMENT, // end    
+    [STATE_IN_WHITESPACE] [EQUIV_NEWLINE]     = STATE_NEWLINE, // end
+    [STATE_IN_WHITESPACE] [EQUIV_OPERATOR]    = STATE_OPERATOR, // end
+    [STATE_IN_WHITESPACE] [EQUIV_STRING]      = STATE_STRING, // end
+    [STATE_IN_WHITESPACE] [EQUIV_CHAR]        = STATE_CHAR, // end
+    [STATE_IN_WHITESPACE] [EQUIV_NUMBER]      = STATE_NUMBER, // end
+    // 
 
-    [STATE_IN_WHITESPACE] [EQUIV_IDENTIFIER] = STATE_IN_IDENTIFIER, // end
-    [STATE_IN_WHITESPACE] [EQUIV_NEWLINE] = STATE_NEWLINE, // end
-    [STATE_IN_WHITESPACE] [EQUIV_OPERATOR] = STATE_OPERATOR, // end
-    [STATE_IN_WHITESPACE] [EQUIV_COMMENT] = STATE_COMMENT, // end
-    [STATE_IN_WHITESPACE] [EQUIV_STRING] = STATE_STRING, // end
-    [STATE_IN_WHITESPACE] [EQUIV_CHAR] = STATE_CHAR, // end
-    [STATE_IN_WHITESPACE] [EQUIV_NUMBER] = STATE_NUMBER, // end
-
-    // Still parsed by hand in the switch
-     // [STATE_START] [EQUIV_IDENTIFIER]  = STATE_IDENTIFIER,
-     [STATE_START] [EQUIV_OPERATOR]    = STATE_OPERATOR,
-     [STATE_START] [EQUIV_NUMBER]      = STATE_NUMBER,
-     [STATE_START] [EQUIV_STRING]      = STATE_STRING,
-     [STATE_START] [EQUIV_CHAR]        = STATE_CHAR,
-     [STATE_START] [EQUIV_COMMENT]     = STATE_COMMENT,
-     [STATE_START] [EQUIV_NEWLINE]     = STATE_NEWLINE,
+    // Parsing comments
+    [STATE_IN_COMMENT] [EQUIV_IDENTIFIER] = STATE_IN_COMMENT, // cont..
+    [STATE_IN_COMMENT] [EQUIV_OPERATOR]   = STATE_IN_COMMENT, // cont..
+    [STATE_IN_COMMENT] [EQUIV_STRING]     = STATE_IN_COMMENT, // cont..
+    [STATE_IN_COMMENT] [EQUIV_CHAR]       = STATE_IN_COMMENT, // cont..
+    [STATE_IN_COMMENT] [EQUIV_NUMBER]     = STATE_IN_COMMENT, // cont..
+    [STATE_IN_COMMENT] [EQUIV_COMMENT]    = STATE_IN_COMMENT, // cont..
+    [STATE_IN_COMMENT] [EQUIV_WHITESPACE] = STATE_IN_COMMENT, // cont..
+    [STATE_IN_COMMENT] [EQUIV_NEWLINE]    = STATE_COMMENT, // end
+    //
 };
 
 static bool in_token[] = {
+    [STATE_IN_WHITESPACE] = false,
     [STATE_IN_IDENTIFIER] = true,
     [STATE_IN_OPERATOR]   = true,
     [STATE_IN_NUMBER]     = true,
@@ -210,7 +209,7 @@ static bool in_token[] = {
 };
 
 static Equivalence_Kind equivalence[] = {
-    ['\0']    = EQUIV_END,
+    ['\0']    = EQUIV_EOF,
     ['\n']    = EQUIV_NEWLINE,
     [' ']     = EQUIV_WHITESPACE,
     ['!']     = EQUIV_OPERATOR,
@@ -384,15 +383,16 @@ Lexed_File lex(char* file) {
         // skip_whitespace(c);
 
         u64 len = 0;
-        State_Kind state = STATE_START;
+        State_Kind state = STATE_IN_WHITESPACE;
         do {
             s32 ch = *c++;
             Equivalence_Kind eq = equivalence[ch];
             state = transition[state][eq];
             len += in_token[state];
+            // info ("ch %c, state %s, eq %s len %d", ch, state_kind_to_str(state), equivalence_kind_to_str(eq), len);
         } while (state > _STATE_LAST_FINAL_); // jumps out on 0
 
-        info ("state %s", state_kind_to_str(state));
+        // info ("state %s", state_kind_to_str(state));
 
         // need to backtrack a bit
         char* start = --c - len;
@@ -582,16 +582,14 @@ Lexed_File lex(char* file) {
         case STATE_COMMENT:
         {
             kind = TOKEN_COMMENT;
-            start = ++c; // skip the hash
-            skip_comment(c);
-            end = c;
+            ++start; // skip the first '
             ++comments;
         } break;
         case STATE_NEWLINE:
         {
-           kind = TOKEN_NEWLINE;
-            end = ++c; // skip the newline
-            position_of_newline = c;
+            kind = TOKEN_NEWLINE;
+            position_of_newline = ++start;
+            end = ++c;// skip the newline
             ++line;
         } break;
         }
@@ -613,7 +611,6 @@ Lexed_File lex(char* file) {
 
 
         xassert(kind != TOKEN_UNKNOWN);
-
         token_array_append(&tokens, (Token){kind, start, end, line, col});
 
     } while(kind != TOKEN_EOF);
