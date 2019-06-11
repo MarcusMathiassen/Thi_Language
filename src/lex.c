@@ -100,8 +100,37 @@ typedef enum {
     _STATE_COUNT_
 } State_Kind;
 
+char* state_kind_to_str(State_Kind kind) {
+    switch (kind) {
+    ERROR_UNHANDLED_KIND(strf("%d", kind));
+    case STATE_END:           return "STATE_END";
+    case STATE_IDENTIFIER:    return "STATE_IDENTIFIER";
+    case STATE_OPERATOR:      return "STATE_OPERATOR";
+    case STATE_NUMBER:        return "STATE_NUMBER";
+    case STATE_STRING:        return "STATE_STRING";
+    case STATE_CHAR:          return "STATE_CHAR";
+    case STATE_COMMENT:       return "STATE_COMMENT";
+    case STATE_NEWLINE:       return "STATE_NEWLINE";
+    case _STATE_LAST_FINAL_:  return "_STATE_LAST_FINAL_";
+    case STATE_START:         return "STATE_START";
+    case STATE_IN_IDENTIFIER: return "STATE_IN_IDENTIFIER";
+    case STATE_IN_OPERATOR:   return "STATE_IN_OPERATOR";
+    case STATE_IN_NUMBER:     return "STATE_IN_NUMBER";
+    case STATE_IN_STRING:     return "STATE_IN_STRING";
+    case STATE_IN_CHAR:       return "STATE_IN_CHAR";
+    case STATE_IN_COMMENT:    return "STATE_IN_COMMENT";
+    case STATE_IN_NEWLINE:    return "STATE_IN_NEWLINE";
+    case _STATE_COUNT_:       return "_STATE_COUNT_";
+    }
+    UNREACHABLE;
+    return NULL;
+}
+
 typedef enum {
     EQUIV_END = 0,
+    
+    EQUIV_WHITESPACE,
+
     EQUIV_IDENTIFIER,
     EQUIV_OPERATOR,
     EQUIV_NUMBER,
@@ -112,14 +141,43 @@ typedef enum {
     _EQUIV_COUNT_
 } Equivalence_Kind;
 
+char* equivalence_kind_to_str(Equivalence_Kind kind) {
+    switch (kind) {
+    ERROR_UNHANDLED_KIND(strf("%d", kind));
+    case EQUIV_END:        return "EQUIV_END";
+    case EQUIV_WHITESPACE: return "EQUIV_WHITESPACE";
+    case EQUIV_IDENTIFIER: return "EQUIV_IDENTIFIER";
+    case EQUIV_OPERATOR:   return "EQUIV_OPERATOR";
+    case EQUIV_NUMBER:     return "EQUIV_NUMBER";
+    case EQUIV_STRING:     return "EQUIV_STRING";
+    case EQUIV_CHAR:       return "EQUIV_CHAR";
+    case EQUIV_COMMENT:    return "EQUIV_COMMENT";
+    case EQUIV_NEWLINE:    return "EQUIV_NEWLINE";
+    case _EQUIV_COUNT_:    return "_EQUIV_COUNT_";
+    }
+    UNREACHABLE;
+    return NULL;
+}
+
 static State_Kind transition[_STATE_COUNT_][_EQUIV_COUNT_] = {
 
-    // // Parsing identifers
-    // [STATE_IDENTIFIER] [EQUIV_IDENTIFIER] = STATE_IDENTIFIER,
-    // [STATE_IDENTIFIER] [EQUIV_NUMBER] = STATE_IDENTIFIER,
+    // Parsing identifers
+    [STATE_START] [EQUIV_IDENTIFIER] = STATE_IN_IDENTIFIER, // start
+
+    [STATE_IN_IDENTIFIER] [EQUIV_IDENTIFIER] = STATE_IN_IDENTIFIER,
+    [STATE_IN_IDENTIFIER] [EQUIV_NUMBER] = STATE_IN_IDENTIFIER,
+
+    [STATE_IN_IDENTIFIER] [EQUIV_END] = STATE_IDENTIFIER, // end
+    [STATE_IN_IDENTIFIER] [EQUIV_WHITESPACE] = STATE_IDENTIFIER, // end
+    [STATE_IN_IDENTIFIER] [EQUIV_NEWLINE] = STATE_IDENTIFIER, // end
+    [STATE_IN_IDENTIFIER] [EQUIV_OPERATOR] = STATE_IDENTIFIER, // end
+    [STATE_IN_IDENTIFIER] [EQUIV_COMMENT] = STATE_IDENTIFIER, // end
+    [STATE_IN_IDENTIFIER] [EQUIV_STRING] = STATE_IDENTIFIER, // end
+    [STATE_IN_IDENTIFIER] [EQUIV_CHAR] = STATE_IDENTIFIER, // end
+
 
     // Still parsed by hand in the switch
-     [STATE_START] [EQUIV_IDENTIFIER]  = STATE_IDENTIFIER,
+     // [STATE_START] [EQUIV_IDENTIFIER]  = STATE_IDENTIFIER,
      [STATE_START] [EQUIV_OPERATOR]    = STATE_OPERATOR,
      [STATE_START] [EQUIV_NUMBER]      = STATE_NUMBER,
      [STATE_START] [EQUIV_STRING]      = STATE_STRING,
@@ -283,7 +341,7 @@ Lexed_File lex(char* file) {
         interned_keywords[i] = intern(&interns, keywords_as_strings[i]);
 
     // Start parsing tokens
-    Token_Kind kind = _TOKEN_COUNT_;
+    Token_Kind kind = TOKEN_UNKNOWN;
     Token_Kind last_token_kind;
     Token_Array tokens = make_token_array();
     char* c = get_file_content(file);
@@ -301,34 +359,32 @@ Lexed_File lex(char* file) {
 
         skip_whitespace(c);
 
+        char* start = c;
         State_Kind state = STATE_START;
         do {
             s32 ch = *c++;
+            info("%c", ch);
             Equivalence_Kind eq = equivalence[ch];
+            info("eq: %s", equivalence_kind_to_str(eq));
             state = transition[state][eq];
         } while (state > _STATE_LAST_FINAL_); // jumps out on 0
 
-        --c; // need to backtrack a bit
+        info ("state %s", state_kind_to_str(state));
 
-        char* start = c;
-        char* end = start;
+        char* end = --c; // need to backtrack a bit
 
         // Set the indenation level
         col = start - position_of_newline;
 
         switch(state) {
-        ERROR_UNHANDLED_KIND(strf("%d", state));
+        ERROR_UNHANDLED_KIND(state_kind_to_str(state));
         
         case STATE_END: kind = TOKEN_EOF; break;
         case STATE_IDENTIFIER: {
             kind = TOKEN_IDENTIFIER;
 
-            ++c; // we can skip the first one, we already know it is one
-            while (is_valid_identifier(*c))
-                ++c;
-
             // after parsing an identifier, check if its a keywords
-            char* value = intern_range(&interns, start, c);
+            char* value = intern_range(&interns, start, end);
             foreach(i, _KEY_COUNT_) {
                 if (interned_keywords[i] == value) {
                     kind = i + _TOKEN_KEYWORDS_START_+1; // keywords start at _TOKEN_KEYWORDS_START_+1 @Volatile
@@ -336,6 +392,7 @@ Lexed_File lex(char* file) {
                 }
             }
             start = value; // @Hack: we're using something in a way it was ot ment to be used
+
         } break;
 
         case STATE_OPERATOR: {
