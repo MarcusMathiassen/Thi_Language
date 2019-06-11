@@ -61,6 +61,7 @@
 */
 
 
+// @Volatile
 typedef enum {
     TOKEN_UNKNOWN,
     TOKEN_EOF,
@@ -110,6 +111,10 @@ typedef enum {
     TOKEN_STRING,
     TOKEN_CHAR,
 
+
+    // @Volatile: do not move me please.
+    _BEGINNING_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_,
+
     // Keywords
     // @Volatile:
     //      if you change this block you must update these places:
@@ -141,6 +146,8 @@ typedef enum {
     TOKEN_IS,
     //
     TOKEN_IDENTIFIER,
+
+    _END_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_, // @Volatile: do not move me please.
 
     // Double and tripple tokens
     TOKEN_PIPE_PIPE = 400, // ||

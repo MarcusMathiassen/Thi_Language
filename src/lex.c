@@ -498,7 +498,7 @@ Lexed_File lex(char* file) {
     // }
     // error("fe");
 
-    Timer* tm = pop_timer();
+    pop_timer();
     // error("%f seconds", tm->ms * 0.001);
 
     return (Lexed_File){tokens, line, comments};
@@ -509,7 +509,9 @@ void lexer_test(void) {
 }
 
 char* token_value(Token token) {
-    return (token.kind < 400 && token.kind > 300) ? token.start : strn(token.start, token.end);
+    return (
+        token.kind > _BEGINNING_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_ && 
+        token.kind < _END_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_) ? token.start : strn(token.start, token.end);
 }
 
 char* token_kind_to_str(Token_Kind kind) {
@@ -552,7 +554,6 @@ char* token_kind_to_str(Token_Kind kind) {
     case TOKEN_NEWLINE:           return "TOKEN_NEWLINE";
     case TOKEN_COMMENT:           return "TOKEN_COMMENT";
     case TOKEN_LITERAL:           return "TOKEN_LITERAL";
-    case TOKEN_IDENTIFIER:        return "TOKEN_IDENTIFIER";
     case TOKEN_BLOCK_START:       return "TOKEN_BLOCK_START";
     case TOKEN_BLOCK_END:         return "TOKEN_BLOCK_END";
     case TOKEN_INTEGER:           return "TOKEN_INTEGER";
@@ -561,6 +562,7 @@ char* token_kind_to_str(Token_Kind kind) {
     case TOKEN_STRING:            return "TOKEN_STRING";
     case TOKEN_CHAR:              return "TOKEN_CHAR";
 
+    case _BEGINNING_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_:  return "_BEGINNING_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_";
     case _TOKEN_KEYWORDS_START_:  return "_TOKEN_KEYWORDS_START_";
     case TOKEN_ASM:               return "TOKEN_ASM";
     case TOKEN_DEF:               return "TOKEN_DEF";
@@ -585,6 +587,11 @@ char* token_kind_to_str(Token_Kind kind) {
     case TOKEN_FALLTHROUGH:       return "TOKEN_FALLTHROUGH";
     case TOKEN_AS:                return "TOKEN_AS";
     case TOKEN_IS:                return "TOKEN_IS";
+
+    case TOKEN_IDENTIFIER:        return "TOKEN_IDENTIFIER";
+    
+    case _END_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_: return "_END_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_";
+
     case TOKEN_PIPE_PIPE:         return "TOKEN_PIPE_PIPE";
     case TOKEN_AND_AND:           return "TOKEN_AND_AND";
     case TOKEN_PLUS_EQ:           return "TOKEN_PLUS_EQ";
