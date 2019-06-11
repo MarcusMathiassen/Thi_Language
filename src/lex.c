@@ -453,7 +453,7 @@ Lexed_File lex(char* file) {
         case STATE_COMMENT:
         {
             kind = TOKEN_COMMENT;
-            start = ++c; start = ++c; // skip the hash
+            start = ++c; // skip the hash
             skip_comment(c);
             end = c;
             ++comments;
@@ -487,7 +487,6 @@ Lexed_File lex(char* file) {
 
         token_array_append(&tokens, (Token){kind, start, end, line, col});
 
-    // } while(c && kind != TOKEN_EOF);
     } while(kind != TOKEN_EOF);
 
     // info("Printing tokens..");
@@ -520,38 +519,41 @@ char* token_kind_to_str(Token_Kind kind) {
     switch (kind) {
     case TOKEN_UNKNOWN:           return "TOKEN_UNKNOWN";
     case TOKEN_EOF:               return "TOKEN_EOF";
+
     case TOKEN_WHITESPACE:        return "TOKEN_WHITESPACE";
-    case TOKEN_BANG:              return "TOKEN_BANG";
-    case TOKEN_DOUBLE_QUOTATION:  return "TOKEN_DOUBLE_QUOTATION";
-    case TOKEN_HASH:              return "TOKEN_HASH";
-    case TOKEN_DOLLAR_SIGN:       return "TOKEN_DOLLAR_SIGN";
-    case TOKEN_PERCENT:           return "TOKEN_PERCENT";
-    case TOKEN_AND:               return "TOKEN_AND";
-    case TOKEN_SINGLE_QUOTATION:  return "TOKEN_SINGLE_QUOTATION";
-    case TOKEN_OPEN_PAREN:        return "TOKEN_OPEN_PAREN";
-    case TOKEN_CLOSE_PAREN:       return "TOKEN_CLOSE_PAREN";
-    case TOKEN_ASTERISK:          return "TOKEN_ASTERISK";
-    case TOKEN_PLUS:              return "TOKEN_PLUS";
-    case TOKEN_COMMA:             return "TOKEN_COMMA";
-    case TOKEN_MINUS:             return "TOKEN_MINUS";
-    case TOKEN_DOT:               return "TOKEN_DOT";
-    case TOKEN_FWSLASH:           return "TOKEN_FWSLASH";
-    case TOKEN_COLON:             return "TOKEN_COLON";
-    case TOKEN_SEMICOLON:         return "TOKEN_SEMICOLON";
-    case TOKEN_LT:                return "TOKEN_LT";
-    case TOKEN_EQ:                return "TOKEN_EQ";
-    case TOKEN_GT:                return "TOKEN_GT";
-    case TOKEN_QUESTION_MARK:     return "TOKEN_QUESTION_MARK";
-    case TOKEN_AT:                return "TOKEN_AT";
-    case TOKEN_OPEN_BRACKET:      return "TOKEN_OPEN_BRACKET";
-    case TOKEN_BWSLASH:           return "TOKEN_BWSLASH";
-    case TOKEN_CLOSE_BRACKET:     return "TOKEN_CLOSE_BRACKET";
-    case TOKEN_HAT:               return "TOKEN_HAT";
-    case TOKEN_BACK_TICK:         return "TOKEN_BACK_TICK";
-    case TOKEN_OPEN_BRACE:        return "TOKEN_OPEN_BRACE";
-    case TOKEN_PIPE:              return "TOKEN_PIPE";
-    case TOKEN_CLOSE_BRACE:       return "TOKEN_CLOSE_BRACE";
-    case TOKEN_TILDE:             return "TOKEN_TILDE";
+
+    case TOKEN_BANG:              return "!";
+    case TOKEN_DOUBLE_QUOTATION:  return "\"";
+    case TOKEN_HASH:              return "#";
+    case TOKEN_DOLLAR_SIGN:       return "$";
+    case TOKEN_PERCENT:           return "%";
+    case TOKEN_AND:               return "&";
+    case TOKEN_SINGLE_QUOTATION:  return "'";
+    case TOKEN_OPEN_PAREN:        return "(";
+    case TOKEN_CLOSE_PAREN:       return ")";
+    case TOKEN_ASTERISK:          return "*";
+    case TOKEN_PLUS:              return "+";
+    case TOKEN_COMMA:             return ",";
+    case TOKEN_MINUS:             return "-";
+    case TOKEN_DOT:               return ".";
+    case TOKEN_FWSLASH:           return "/";
+    case TOKEN_COLON:             return ":";
+    case TOKEN_SEMICOLON:         return ";";
+    case TOKEN_LT:                return "<";
+    case TOKEN_EQ:                return "=";
+    case TOKEN_GT:                return ">";
+    case TOKEN_QUESTION_MARK:     return "?";
+    case TOKEN_AT:                return "@";
+    case TOKEN_OPEN_BRACKET:      return "[";
+    case TOKEN_BWSLASH:           return "\\";
+    case TOKEN_CLOSE_BRACKET:     return "]";
+    case TOKEN_HAT:               return "^";
+    case TOKEN_BACK_TICK:         return "`";
+    case TOKEN_OPEN_BRACE:        return "{";
+    case TOKEN_PIPE:              return "|";
+    case TOKEN_CLOSE_BRACE:       return "}";
+    case TOKEN_TILDE:             return "~";
+
     case TOKEN_NEWLINE:           return "TOKEN_NEWLINE";
     case TOKEN_COMMENT:           return "TOKEN_COMMENT";
     case TOKEN_LITERAL:           return "TOKEN_LITERAL";
@@ -593,34 +595,34 @@ char* token_kind_to_str(Token_Kind kind) {
 
     case _END_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_: return "_END_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_";
 
-    case TOKEN_PIPE_PIPE:         return "TOKEN_PIPE_PIPE";
-    case TOKEN_AND_AND:           return "TOKEN_AND_AND";
-    case TOKEN_PLUS_EQ:           return "TOKEN_PLUS_EQ";
-    case TOKEN_MINUS_EQ:          return "TOKEN_MINUS_EQ";
-    case TOKEN_HAT_EQ:            return "TOKEN_HAT_EQ";
-    case TOKEN_ASTERISK_EQ:       return "TOKEN_ASTERISK_EQ";
-    case TOKEN_PIPE_EQ:           return "TOKEN_PIPE_EQ";
-    case TOKEN_PERCENT_EQ:        return "TOKEN_PERCENT_EQ";
-    case TOKEN_AND_EQ:            return "TOKEN_AND_EQ";
-    case TOKEN_EQ_EQ:             return "TOKEN_EQ_EQ";
-    case TOKEN_EQ_GT:             return "TOKEN_EQ_GT";
-    case TOKEN_BANG_EQ:           return "TOKEN_BANG_EQ";
-    case TOKEN_COLON_COLON:       return "TOKEN_COLON_COLON";
-    case TOKEN_COLON_EQ:          return "TOKEN_COLON_EQ";
-    case TOKEN_MINUS_GT:          return "TOKEN_MINUS_GT";
-    case TOKEN_LT_EQ:             return "TOKEN_LT_EQ";
-    case TOKEN_LT_LT:             return "TOKEN_LT_LT";
-    case TOKEN_LT_LT_EQ:          return "TOKEN_LT_LT_EQ";
-    case TOKEN_GT_EQ:             return "TOKEN_GT_EQ";
-    case TOKEN_GT_GT:             return "TOKEN_GT_GT";
-    case TOKEN_GT_GT_EQ:          return "TOKEN_GT_GT_EQ";
-    case TOKEN_DOT_DOT:           return "TOKEN_DOT_DOT";
-    case TOKEN_DOT_DOT_DOT:       return "TOKEN_DOT_DOT_DOT";
-    case TOKEN_MINUS_MINUS:       return "TOKEN_MINUS_MINUS";
-    case TOKEN_MINUS_MINUS_MINUS: return "TOKEN_MINUS_MINUS_MINUS";
-    case TOKEN_PLUS_PLUS:         return "TOKEN_PLUS_PLUS";
-    case TOKEN_FWSLASH_EQ:        return "TOKEN_FWSLASH_EQ";
-    case TOKEN_PIPE_GT:           return "TOKEN_PIPE_GT";
+    case TOKEN_PIPE_PIPE:         return "||";
+    case TOKEN_AND_AND:           return "&&";
+    case TOKEN_PLUS_EQ:           return "+=";
+    case TOKEN_MINUS_EQ:          return "-=";
+    case TOKEN_HAT_EQ:            return "^=";
+    case TOKEN_ASTERISK_EQ:       return "*=";
+    case TOKEN_PIPE_EQ:           return "|=";
+    case TOKEN_PERCENT_EQ:        return "%=";
+    case TOKEN_AND_EQ:            return "&=";
+    case TOKEN_EQ_EQ:             return "==";
+    case TOKEN_EQ_GT:             return "=>";
+    case TOKEN_BANG_EQ:           return "!=";
+    case TOKEN_COLON_COLON:       return "::";
+    case TOKEN_COLON_EQ:          return ":=";
+    case TOKEN_MINUS_GT:          return "->";
+    case TOKEN_LT_EQ:             return "<=";
+    case TOKEN_LT_LT:             return "<<";
+    case TOKEN_LT_LT_EQ:          return "<<=";
+    case TOKEN_GT_EQ:             return ">=";
+    case TOKEN_GT_GT:             return ">>";
+    case TOKEN_GT_GT_EQ:          return ">>=";
+    case TOKEN_DOT_DOT:           return "..";
+    case TOKEN_DOT_DOT_DOT:       return "...";
+    case TOKEN_MINUS_MINUS:       return "--";
+    case TOKEN_MINUS_MINUS_MINUS: return "---";
+    case TOKEN_PLUS_PLUS:         return "++";
+    case TOKEN_FWSLASH_EQ:        return "/=";
+    case TOKEN_PIPE_GT:           return "|>";
     case _TOKEN_COUNT_:           return "_TOKEN_COUNT_";
     }
     UNREACHABLE;

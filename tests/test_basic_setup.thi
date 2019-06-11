@@ -1,3 +1,8 @@
+# Hello i am a comment
 def main() s32
+    s = "I am a string"
+    i = 43
+
+    f = 134.034
     return 1
 
