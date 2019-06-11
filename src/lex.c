@@ -90,6 +90,7 @@ typedef enum {
     _STATE_LAST_FINAL_,
 
     STATE_START,
+    STATE_IN_WHITESPACE,
     STATE_IN_IDENTIFIER,
     STATE_IN_OPERATOR,
     STATE_IN_NUMBER,
@@ -113,6 +114,7 @@ char* state_kind_to_str(State_Kind kind) {
     case STATE_NEWLINE:       return "STATE_NEWLINE";
     case _STATE_LAST_FINAL_:  return "_STATE_LAST_FINAL_";
     case STATE_START:         return "STATE_START";
+    case STATE_IN_WHITESPACE: return "STATE_IN_WHITESPACE";
     case STATE_IN_IDENTIFIER: return "STATE_IN_IDENTIFIER";
     case STATE_IN_OPERATOR:   return "STATE_IN_OPERATOR";
     case STATE_IN_NUMBER:     return "STATE_IN_NUMBER";
@@ -175,6 +177,17 @@ static State_Kind transition[_STATE_COUNT_][_EQUIV_COUNT_] = {
     [STATE_IN_IDENTIFIER] [EQUIV_STRING] = STATE_IDENTIFIER, // end
     [STATE_IN_IDENTIFIER] [EQUIV_CHAR] = STATE_IDENTIFIER, // end
 
+    // Parsing whitespace 
+    [STATE_START] [EQUIV_WHITESPACE]  = STATE_IN_WHITESPACE, // start
+    [STATE_IN_WHITESPACE] [EQUIV_WHITESPACE]  = STATE_IN_WHITESPACE, // cont..
+
+    [STATE_IN_WHITESPACE] [EQUIV_IDENTIFIER] = STATE_IN_IDENTIFIER, // end
+    [STATE_IN_WHITESPACE] [EQUIV_NEWLINE] = STATE_NEWLINE, // end
+    [STATE_IN_WHITESPACE] [EQUIV_OPERATOR] = STATE_OPERATOR, // end
+    [STATE_IN_WHITESPACE] [EQUIV_COMMENT] = STATE_COMMENT, // end
+    [STATE_IN_WHITESPACE] [EQUIV_STRING] = STATE_STRING, // end
+    [STATE_IN_WHITESPACE] [EQUIV_CHAR] = STATE_CHAR, // end
+    [STATE_IN_WHITESPACE] [EQUIV_NUMBER] = STATE_NUMBER, // end
 
     // Still parsed by hand in the switch
      // [STATE_START] [EQUIV_IDENTIFIER]  = STATE_IDENTIFIER,
@@ -193,12 +206,13 @@ static bool in_token[] = {
     [STATE_IN_STRING]     = true,
     [STATE_IN_CHAR]       = true,
     [STATE_IN_COMMENT]    = true,
-    [STATE_IN_NEWLINE]    = true,
+    [STATE_IN_NEWLINE]    = false,
 };
 
 static Equivalence_Kind equivalence[] = {
     ['\0']    = EQUIV_END,
     ['\n']    = EQUIV_NEWLINE,
+    [' ']     = EQUIV_WHITESPACE,
     ['!']     = EQUIV_OPERATOR,
     ['"']     = EQUIV_STRING,
     ['#']     = EQUIV_COMMENT,
@@ -367,9 +381,8 @@ Lexed_File lex(char* file) {
 
         last_token_kind = kind;
 
-        skip_whitespace(c);
+        // skip_whitespace(c);
 
-        // char* start = c;
         u64 len = 0;
         State_Kind state = STATE_START;
         do {
@@ -379,10 +392,11 @@ Lexed_File lex(char* file) {
             len += in_token[state];
         } while (state > _STATE_LAST_FINAL_); // jumps out on 0
 
-
         info ("state %s", state_kind_to_str(state));
+
+        // need to backtrack a bit
         char* start = --c - len;
-        char* end = c; // need to backtrack a bit
+        char* end = c;
 
         // Set the indenation level
         col = start - position_of_newline;
@@ -588,10 +602,10 @@ Lexed_File lex(char* file) {
             
             if (current_indentation_level > previous_indentation_level) {
                 previous_indentation_level = current_indentation_level;
-                token_array_append(&tokens, (Token){TOKEN_BLOCK_START, start, end, line, col});
+                token_array_append(&tokens, (Token){TOKEN_BLOCK_START, start, start+1, line, col});
             } else while (current_indentation_level < previous_indentation_level) {
                 previous_indentation_level -= DEFAULT_INDENT_LEVEL;
-                token_array_append(&tokens, (Token){TOKEN_BLOCK_END, start, end, line, col});
+                token_array_append(&tokens, (Token){TOKEN_BLOCK_END, start, start+1, line, col});
             }
 
             // else error("[%s:%d:%d] indentation error.", file, line, col);
@@ -604,13 +618,13 @@ Lexed_File lex(char* file) {
 
     } while(kind != TOKEN_EOF);
 
-    // info("Printing tokens..");
-    // foreach(i, tokens.count) {
-    //     info("kind: %s value: '%s' start: %llu end: %llu", 
-    //         ucolor(token_kind_to_str(tokens.data[i].kind)), 
-    //         ucolor(token_value(tokens.data[i])),
-    //         tokens.data[i].start, tokens.data[i].end);
-    // }
+    info("Printing tokens..");
+    foreach(i, tokens.count) {
+        info("kind: %s value: '%s' start: %llu end: %llu", 
+            ucolor(token_kind_to_str(tokens.data[i].kind)), 
+            ucolor(token_value(tokens.data[i])),
+            tokens.data[i].start, tokens.data[i].end);
+    }
     // error("fe");
 
     pop_timer();

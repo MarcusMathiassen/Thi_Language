@@ -2,6 +2,4 @@
 def main() s32
     s = "I am a string"
     i = 43
-
-    f = 134.034
-    return 1
+    return i
