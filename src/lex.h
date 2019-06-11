@@ -18,11 +18,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-#ifndef LEXER_H
-#define LEXER_H
+#ifndef LEX_H
+#define LEX_H
 
 #include "common.h"
-
 
 /*
       32   @ 64  ` 96
@@ -59,11 +58,10 @@
     ? 63   _ 95  
 */
 
-//------------------------------------------------------------------------------
-//                              lexer.h
-//------------------------------------------------------------------------------
 
 typedef enum {
+    TOKEN_UNKNOWN,
+    TOKEN_EOF,
 
     TOKEN_WHITESPACE = 32,
     TOKEN_BANG,
@@ -96,90 +94,103 @@ typedef enum {
     TOKEN_OPEN_BRACE = 123,
     TOKEN_PIPE,
     TOKEN_CLOSE_BRACE,
-    TOKEN_TILDE,
+    TOKEN_TILDE = 126,
 
-    TOKEN_ASM = 127,
-    TOKEN_UNKNOWN,
-    TOKEN_EOF,
+    // Constructs
+    TOKEN_NEWLINE = 200, // Everything before this is reserved for ASCII
+    TOKEN_COMMENT,
+    TOKEN_LITERAL,
     TOKEN_BLOCK_START,
     TOKEN_BLOCK_END,
-    TOKEN_TERMINAL,
-    TOKEN_COMMENT,
-    TOKEN_NEWLINE,
-    TOKEN_IDENTIFIER,
-    TOKEN_DEF,
-    TOKEN_IS,
-    TOKEN_IN,
-    TOKEN_CAST,
-    TOKEN_TYPEOF,
-    TOKEN_SIZEOF,
-    TOKEN_LINK,
-    TOKEN_FALLTHROUGH,
-    TOKEN_EXTERN,
-    TOKEN_LOAD,
-    TOKEN_TRUE,
-    TOKEN_FALSE,
-    TOKEN_TYPE,
-    TOKEN_DEFER,
-    TOKEN_IF,
-    TOKEN_ELSE,
-    TOKEN_FOR,
-    TOKEN_WHILE,
-    TOKEN_RETURN,
-    TOKEN_ENUM,
-    TOKEN_BREAK,
-    TOKEN_CONTINUE,
-    TOKEN_AS,
-    TOKEN_NUMBER,
-    TOKEN_CHAR,
     TOKEN_INTEGER,
     TOKEN_FLOAT,
     TOKEN_HEX,
     TOKEN_STRING,
+    TOKEN_CHAR,
 
-    TOKEN_PIPE_PIPE,
-    TOKEN_AND_AND,
-    TOKEN_PLUS_EQ,
-    TOKEN_MINUS_EQ,
-    TOKEN_HAT_EQ,
-    TOKEN_ASTERISK_EQ,
-    TOKEN_PIPE_EQ,
-    TOKEN_PERCENT_EQ,
-    TOKEN_AND_EQ,
-    TOKEN_BITWISE_LEFTSHIFT,
-    TOKEN_BITWISE_LEFTSHIFT_EQ,
-    TOKEN_BITWISE_RIGHTSHIFT,
-    TOKEN_BITWISE_RIGHTSHIFT_EQ,
-    TOKEN_EQ_EQ,
-    TOKEN_EQ_GT,
-    TOKEN_BANG_EQ,
-    TOKEN_COLON_COLON,
-    TOKEN_COLON_EQ,
-    TOKEN_RIGHT_ARROW,
-    TOKEN_LT_EQ,
-    TOKEN_LT_LT,
-    TOKEN_LT_LT_EQ,
-    TOKEN_GT_EQ,
-    TOKEN_GT_GT,
-    TOKEN_GT_GT_EQ,
-    TOKEN_DOT_DOT,
-    TOKEN_DOT_DOT_DOT,
-    TOKEN_ASTERISK_FWSLASH,
-    TOKEN_MINUS_MINUS,
-    TOKEN_MINUS_MINUS_MINUS,
-    TOKEN_PLUS_PLUS,
-    TOKEN_FWSLASH_ASTERISK,
-    TOKEN_FWSLASH_FWSLASH,
-    TOKEN_FWSLASH_EQ,
-    TOKEN_PIPE_GT,
-    _TOKEN_COUNT_
+    // Keywords
+    // @Volatile:
+    //      if you change this block you must update these places:
+    //          1. keyword_lookup_table
+    //          2. After parsing identifiers, the keywords check.
+    _TOKEN_KEYWORDS_START_ = 300,
+    TOKEN_ASM,
+    TOKEN_DEF,
+    TOKEN_LINK,
+    TOKEN_LOAD,
+    TOKEN_TRUE,
+    TOKEN_FALSE,
+    TOKEN_DEFER,
+    TOKEN_EXTERN,
+    TOKEN_SIZEOF,
+    TOKEN_TYPEOF,
+    TOKEN_IF,
+    TOKEN_ELSE,
+    TOKEN_FOR,
+    TOKEN_WHILE,
+    TOKEN_IN,
+    TOKEN_RETURN,
+    TOKEN_ENUM,
+    TOKEN_STRUCT,
+    TOKEN_BREAK,
+    TOKEN_CONTINUE,
+    TOKEN_FALLTHROUGH,
+    TOKEN_AS,
+    TOKEN_IS,
+    //
+    TOKEN_IDENTIFIER,
+
+    // Double and tripple tokens
+    TOKEN_PIPE_PIPE = 400, // ||
+    TOKEN_AND_AND, // &&
+    TOKEN_PLUS_EQ, // +=
+    TOKEN_MINUS_EQ, // -=
+    TOKEN_HAT_EQ, // ^=
+    TOKEN_ASTERISK_EQ, // *=
+    TOKEN_PIPE_EQ, // |=
+    TOKEN_PERCENT_EQ, // %=
+    TOKEN_AND_EQ, // &= 
+    TOKEN_EQ_EQ, // == 
+    TOKEN_EQ_GT, // =>
+    TOKEN_BANG_EQ, // !=
+    TOKEN_COLON_COLON, // ::
+    TOKEN_COLON_EQ, // :=
+    TOKEN_MINUS_GT, // ->
+    TOKEN_LT_EQ, // <=
+    TOKEN_LT_LT, // <<
+    TOKEN_LT_LT_EQ, // <<=
+    TOKEN_GT_EQ, // >=
+    TOKEN_GT_GT, // >>
+    TOKEN_GT_GT_EQ, // >>=
+    TOKEN_DOT_DOT, // ..
+    TOKEN_DOT_DOT_DOT, // ...
+    TOKEN_MINUS_MINUS, // --
+    TOKEN_MINUS_MINUS_MINUS, // ---
+    TOKEN_PLUS_PLUS, // ++
+    TOKEN_FWSLASH_EQ, // /=
+    TOKEN_PIPE_GT, // |>
+
+    _TOKEN_COUNT_,
 } Token_Kind;
 
-typedef struct
-{
+// We need the stringified value of these when LEXING:
+//      1. Identifiers
+//
+// Of these, these get interened:
+//      1. Identifiers
+//      2. ???
+// Everything else can be stringified at a later point
+
+typedef struct {
     Token_Kind kind;
-    char* value;
-    s64 line_pos, col_pos;
+
+    // These are used to create the stringified value
+    char* start; 
+    char* end; 
+
+    s64 line;
+    s64 col;
+
 } Token;
 
 typedef struct
@@ -189,21 +200,20 @@ typedef struct
     s64 allocated;
 } Token_Array;
 
-typedef struct
-{
+typedef struct {
     Token_Array tokens;
     s64 lines;
     s64 comments;
-    f64 seconds;
 } Lexed_File;
 
-void print_tokens(Token_Array tokens);
-void print_token(Token token);
+Lexed_File lex(char* file);
+
 char* token_to_str(Token token);
+
+char* token_value(Token token);
+
 char* token_to_json(Token token);
 char* token_kind_to_str(Token_Kind kind);
-Lexed_File generate_tokens_from_file(char* file);
-Lexed_File generate_tokens_from_source(char* source);
 void lexer_test(void);
 
 #define THI_SYNTAX_POINTER TOKEN_ASTERISK

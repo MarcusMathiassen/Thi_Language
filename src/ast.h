@@ -25,7 +25,7 @@
 #ifndef AST_H
 #define AST_H
 
-#include "lexer.h"   // Token_Kind
+#include "lex.h"   // Token_Kind
 #include "list.h"    // List
 #include "string.h"  // string
 #include "type.h"    // Type

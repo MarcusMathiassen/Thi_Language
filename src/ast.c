@@ -24,7 +24,7 @@
 
 #include "ast.h"
 
-#include "lexer.h"  // token_kind_to_str,
+#include "lex.h"  // token_kind_to_str,
 #include "string.h" // strf, string_append, string
 #include "common.h"
 #include "utility.h" // info, success, error, warning, xmalloc, xrealloc, xstrlen
@@ -89,7 +89,7 @@ char* ast_kind_to_str(AST_Kind kind) {
 }
 
 char* get_ast_loc_str(AST* node) {
-    return strf("%d:%d", node->loc_info.line_pos, node->loc_info.col_pos);
+    return strf("%d:%d", node->loc_info.line, node->loc_info.col);
 }
 
 char* get_ast_name(AST* node) {
@@ -111,8 +111,8 @@ char* get_ast_name(AST* node) {
 char* ast_to_source(AST* node) {
     String_Context ctx;
     ctx.as_source = true;
-    ctx.last.line_pos = 0;
-    ctx.last.col_pos = 0;
+    ctx.last.line = 0;
+    ctx.last.col = 0;
     ctx.str = string_create("");
     ctx.indentation_level = DEFAULT_INDENT_LEVEL;
     return _ast_to_str(&ctx, node);
@@ -121,8 +121,8 @@ char* ast_to_source(AST* node) {
 char* ast_to_str(AST* node) {
     String_Context ctx;
     ctx.as_source = false;
-    ctx.last.line_pos = 0;
-    ctx.last.col_pos = 0;
+    ctx.last.line = 0;
+    ctx.last.col = 0;
     ctx.str = string_create("");
     ctx.indentation_level = DEFAULT_INDENT_LEVEL;
     return _ast_to_str(&ctx, node);
@@ -228,7 +228,7 @@ static char* _ast_to_str(String_Context* ctx, AST* node) {
         // Add some newlines if we have too :)
         // If there is a difference in line position. Add
         // that many newlines.
-        s64 diff = node->loc_info.line_pos - ctx->last.line_pos;
+        s64 diff = node->loc_info.line - ctx->last.line;
         while (--diff > 0) {
             string_append_f(s, "\n%s", get_indentation_as_str(ctx->indentation_level));
         }

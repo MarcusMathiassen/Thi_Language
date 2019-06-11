@@ -67,7 +67,7 @@
 		90E9F2FC22907A5E00F80AF9 /* stack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stack.h; sourceTree = "<group>"; };
 		90E9F2FE22907A5E00F80AF9 /* map.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = map.c; sourceTree = "<group>"; };
 		90E9F2FF22907A5E00F80AF9 /* .clang-format */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ".clang-format"; sourceTree = "<group>"; };
-		90E9F30022907A5E00F80AF9 /* lexer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lexer.h; sourceTree = "<group>"; };
+		90E9F30022907A5E00F80AF9 /* lex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lex.h; sourceTree = "<group>"; };
 		90E9F30122907A5E00F80AF9 /* utility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = utility.h; sourceTree = "<group>"; };
 		90E9F30222907A5E00F80AF9 /* register.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = register.h; sourceTree = "<group>"; };
 		90E9F30322907A5E00F80AF9 /* parser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = parser.c; sourceTree = "<group>"; };
@@ -124,7 +124,7 @@
 				90E9F2F422907A5E00F80AF9 /* codegen.h */,
 				90E9F2F622907A5E00F80AF9 /* constants.h */,
 				90E9F2F022907A5E00F80AF9 /* lexer.c */,
-				90E9F30022907A5E00F80AF9 /* lexer.h */,
+				90E9F30022907A5E00F80AF9 /* lex.h */,
 				90E9F2E722907A5E00F80AF9 /* list.c */,
 				90E9F2F722907A5E00F80AF9 /* list.h */,
 				90E9F2FA22907A5E00F80AF9 /* main.c */,

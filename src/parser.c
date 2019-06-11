@@ -25,7 +25,7 @@
 #include "parser.h"
 
 #include "ast.h"            // AST, ast_make_*
-#include "lexer.h"          // Token, Token_Kind, generate_tokens_from_source, token_array_get_info_of
+#include "lex.h"          // Token, Token_Kind, generate_tokens_from_source, token_array_get_info_of
 #include "map.h"            // Map
 #include "type.h"           // Type, make_typspec_*,
 #include "common.h"       // s32 , s64, etc.
@@ -158,8 +158,8 @@ AST* parse_file(Parser_Context* ctx, char* file) {
     // Add it to the list of loaded files.
     list_append(ctx->loads, ctx->file);
 
-    Lexed_File lf = generate_tokens_from_file(ctx->file);
     // print_tokens(lf.tokens);
+    Lexed_File lf = lex(ctx->file);
     // exit(1);
     ctx->tokens = lf.tokens.data;
     ctx->lines += lf.lines;
@@ -189,7 +189,7 @@ List* generate_ast_from_tokens(Parser_Context* ctx) {
     info("Generating AST from tokens..");
     eat(ctx); // prep the first token
     List* ast = make_list();
-    while (!tok_is(ctx, TOKEN_EOF)) {
+    while(!tok_is(ctx, TOKEN_EOF)) {
         AST* stmt = parse_statement(ctx);
         if (stmt) list_append(ast, stmt);
     }
@@ -253,9 +253,16 @@ AST* parse_statement(Parser_Context* ctx) {
     switch (tokKind(ctx)) {
     default:                        result =  parse_expression(ctx);    break;
     case TOKEN_EOF:                 eat(ctx); break;
-    case TOKEN_TERMINAL: break;// fallthrough
-    case TOKEN_NEWLINE:             eat(ctx); result = NULL; break;
-    case TOKEN_COMMENT:             result = make_ast_comment(loc(ctx), tokValue(ctx)); eat(ctx); break;
+    case TOKEN_SEMICOLON: break;// fallthrough
+    case TOKEN_NEWLINE: {
+        eat(ctx); 
+        result = NULL; 
+    } break;
+    case TOKEN_COMMENT:
+    {
+        result = make_ast_comment(loc(ctx), tokValue(ctx)); 
+        eat(ctx); 
+    } break;          
     case TOKEN_DEF:                 result =  parse_def(ctx);           break;
     case TOKEN_ASM:                 result =  parse_asm(ctx);           break;
 
@@ -276,7 +283,7 @@ AST* parse_statement(Parser_Context* ctx) {
     }
 
     // If we've parsed a statement, the next terminal is extranous.
-    if (result && tok_is(ctx, TOKEN_TERMINAL)) eat(ctx);
+    if (result && tok_is(ctx, TOKEN_SEMICOLON)) eat(ctx);
 
     return result;
 }
@@ -287,10 +294,13 @@ AST* parse_primary(Parser_Context* ctx) {
     // start:
     switch (tokKind(ctx)) {
     ERROR_UNHANDLED_TOKEN_KIND(tokKind(ctx));
-    case TOKEN_COMMENT:             result = make_ast_comment(loc(ctx), tokValue(ctx)); eat(ctx); break;
+    case TOKEN_COMMENT: {
+        result = make_ast_comment(loc(ctx), tokValue(ctx)); 
+        eat(ctx); 
+    } break;
 
     // @Audit: Should a primary expression really eat terminal tokens? I belive only the parse_statement should handle that.
-    case TOKEN_TERMINAL: break; // fallthrough
+    case TOKEN_SEMICOLON: break; // fallthrough
     // case TOKEN_NEWLINE:
     //     eat(ctx); 
     //     if (!ctx->inside_parens) { result = NULL; break;}
@@ -312,7 +322,7 @@ AST* parse_primary(Parser_Context* ctx) {
     }
 
     // Eat extranous terminals
-    // if (tok_is(ctx, TOKEN_TERMINAL)) eat(ctx);
+    // if (tok_is(ctx, TOKEN_SEMICOLON)) eat(ctx);
 
     return result;
 }
@@ -369,7 +379,7 @@ AST* parse_load(Parser_Context* ctx) {
         file = strf("%s.thi", file);
     else if (strcmp(ext, ".thi") != 0) {
         Loc_Info la = loc(ctx);
-        error("[%s:%s:%s] '%s' is not a .thi file.", ctx->file, la.line_pos, la.col_pos, file);
+        error("[%s:%s:%s] '%s' is not a .thi file.", ctx->file, la.line, la.col, file);
     }
     eat_kind(ctx, TOKEN_STRING);
     
@@ -909,7 +919,7 @@ AST* parse_float(Parser_Context* ctx) {
         // Eat it.c
         if (i != 0) eat(ctx);
         if (xstrlen(tok_val) != i) {
-            error("[%s:%d:%d] unknown character '%c' in float suffix ", ctx->file, lc.line_pos, lc.col_pos, tok_val[i]);
+            error("[%s:%d:%d] unknown character '%c' in float suffix ", ctx->file, lc.line, lc.col, tok_val[i]);
         }
     }
     AST* res = make_ast_float(lc, value, type);
@@ -972,7 +982,7 @@ AST* parse_integer(Parser_Context* ctx) {
         // Eat it.c
         if (i != 0) eat(ctx);
         if (xstrlen(tok_val) != i) {
-            error("[%s:%d:%d] unknown character '%c' in integer suffix ", ctx->file, lc.line_pos, lc.col_pos, tok_val[i]);
+            error("[%s:%d:%d] unknown character '%c' in integer suffix ", ctx->file, lc.line, lc.col, tok_val[i]);
         }
     }
     AST* res = make_ast_int(lc, value, type);
@@ -1064,7 +1074,7 @@ Type* get_type(Parser_Context* ctx) {
         return make_type_var_args();
     }
     if (tok_is(ctx, TOKEN_IDENTIFIER)) {
-        char* type_name = ctx->curr_tok.value;
+        char* type_name = token_value(ctx->curr_tok);
         eat_kind(ctx, TOKEN_IDENTIFIER);
         // info_no_newline("..looking for %s", type_name);
         type = map_get(ctx->symbols, type_name);
@@ -1185,7 +1195,7 @@ Token_Kind tokKind(Parser_Context* ctx) {
     return ctx->curr_tok.kind;
 }
 char* tokValue(Parser_Context* ctx) {
-    return ctx->curr_tok.value;
+    return token_value(ctx->curr_tok);
 }
 Token currTok(Parser_Context* ctx) {
     return ctx->curr_tok;
@@ -1201,9 +1211,9 @@ s64 get_integer(Parser_Context* ctx) {
     switch (ctx->curr_tok.kind) {
         ERROR_UNHANDLED_TOKEN_KIND(ctx->curr_tok.kind);
     case TOKEN_CHAR: {
-        u8 c = ctx->curr_tok.value[0];
+        u8 c = token_value(ctx->curr_tok)[0];
         if (c == '\\') {
-            u8 c = ctx->curr_tok.value[1];
+            u8 c = token_value(ctx->curr_tok)[1];
             switch (c) {
             case 'a': value = 7; break;
             case 'n': value = 10; break;
@@ -1216,8 +1226,8 @@ s64 get_integer(Parser_Context* ctx) {
             value = c;
         break;
     }
-    case TOKEN_INTEGER: value = atoll(ctx->curr_tok.value); break;
-    case TOKEN_HEX: value = strtoll(ctx->curr_tok.value, NULL, 0); break;
+    case TOKEN_INTEGER: value = atoll(token_value(ctx->curr_tok)); break;
+    case TOKEN_HEX: value = strtoll(token_value(ctx->curr_tok), NULL, 0); break;
     }
     eat(ctx);
 
@@ -1226,7 +1236,7 @@ s64 get_integer(Parser_Context* ctx) {
 
 f64 get_float(Parser_Context* ctx) {
     DEBUG_START;
-    f64 value = atof(ctx->curr_tok.value);
+    f64 value = atof(token_value(ctx->curr_tok));
     eat_kind(ctx, TOKEN_FLOAT);
     return value;
 }
@@ -1256,15 +1266,15 @@ next_tok_kind(Parser_Context* ctx) {
 }
 
 bool tok_is_on_same_line(Parser_Context* ctx) {
-    s64 l1 = ctx->curr_tok.line_pos;
-    s64 l2 = ctx->prev_tok.line_pos;
+    s64 l1 = ctx->curr_tok.line;
+    s64 l2 = ctx->prev_tok.line;
     return l1 == l2;
 }
 
 bool next_tok_is_on_same_line(Parser_Context* ctx) {
     Token t2 = next_tok(ctx);
-    s64 l1 = ctx->curr_tok.line_pos;
-    s64 l2 = t2.line_pos;
+    s64 l1 = ctx->curr_tok.line;
+    s64 l2 = t2.line;
     return l1 == l2;
 }
 bool tok_is(Parser_Context* ctx, Token_Kind kind) {
@@ -1278,7 +1288,7 @@ void eat(Parser_Context* ctx) {
 void eat_kind(Parser_Context* ctx, Token_Kind kind) {
     Token_Kind tk = ctx->curr_tok.kind;
     if (tk != kind) {
-        error("[%s:%s:%s] expected '%s' got '%s'", give_unique_color(ctx->file), give_unique_color(strf("%d", ctx->curr_tok.line_pos)), give_unique_color(strf("%d", ctx->curr_tok.col_pos)), give_unique_color(token_kind_to_str(kind)), give_unique_color(tokValue(ctx)));
+        error("[%s:%s:%s] expected '%s' got '%s'", give_unique_color(ctx->file), give_unique_color(strf("%d", ctx->curr_tok.line)), give_unique_color(strf("%d", ctx->curr_tok.col)), give_unique_color(token_kind_to_str(kind)), give_unique_color(tokValue(ctx)));
     }
     eat(ctx);
 }
@@ -1296,7 +1306,7 @@ void set_dangling_else(Parser_Context* ctx, AST* else_block) {
 
 Loc_Info loc(Parser_Context* ctx) {
     Loc_Info loc_info;
-    loc_info.line_pos = ctx->curr_tok.line_pos;
-    loc_info.col_pos = ctx->curr_tok.col_pos;
+    loc_info.line = ctx->curr_tok.line;
+    loc_info.col = ctx->curr_tok.col;
     return loc_info;
 }

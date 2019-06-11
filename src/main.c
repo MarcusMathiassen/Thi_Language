@@ -24,7 +24,7 @@
 
 #include "ast.h"          // AST, AST_Kind
 #include "codegen.h"      // generate_code_from_ast
-#include "lexer.h"        // generate_tokens_from_source, print_tokens
+#include "lex.h"        // generate_tokens_from_source, print_tokens
 #include "list.h"         // list_tests
 #include "map.h"          // map
 #include "parser.h"       // generate_ast_from_tokens
@@ -208,7 +208,7 @@ void constant_fold_binary(AST* node) {
             ast_replace(node, lhs_is_0 ? lhs : rhs);
             return;
         } else if (op == TOKEN_FWSLASH) {
-            error("[%d:%d] divide by 0", node->loc_info.line_pos, node->loc_info.col_pos);
+            error("[%d:%d] divide by 0", node->loc_info.line, node->loc_info.col);
         }
     }
 

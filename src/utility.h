@@ -76,8 +76,8 @@ char* strf(char* fmt, ...);
 char* get_indentation_as_str(u64 indent_level);
 char* table_entry(char* left, char* right);
 typedef struct {
-    s64 line_pos;
-    s64 col_pos;
+    s64 line;
+    s64 col;
 } Loc_Info;
 #ifdef NDEBUG
 #define tassert(EX, FMT, ...)

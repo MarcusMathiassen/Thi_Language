@@ -24,7 +24,7 @@
 #include "ast.h"   // AST
 #include "map.h"   // Map
 #include "list.h"  // List
-#include "lexer.h" // Token
+#include "lex.h" // Token
 typedef struct {
     Token* tokens;
     char* file;

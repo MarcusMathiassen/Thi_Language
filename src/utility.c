@@ -353,7 +353,7 @@ char* table_entry(char* left, char* right) {
 }
 
 char* strn(char* start, char* end) {
-    xassert(start && end && (start < end));
+    xassert(start && end && (start <= end));
     s64 len = end - start;
     char* str = xmalloc(len + 1);
     memcpy(str, start, len);
