@@ -204,7 +204,7 @@ static State_Kind states[] = {
         ++c;
 
 Lexed_File lex(char* file) {
-    push_timer(strf("lexing: %s", file));
+    push_timer(strf("%s: %s", (char*)__func__, file));
 
     // @Volatile
     static char* keywords_as_strings[_KEY_COUNT_] = {
@@ -262,6 +262,7 @@ Lexed_File lex(char* file) {
         skip_whitespace(c);
 
         char* start = c;
+        char* end = start;
 
         // Set the indenation level
         col = start - position_of_newline;
@@ -417,6 +418,7 @@ Lexed_File lex(char* file) {
                     break;
                 }
             }
+            end = c;
         } break;
         case STATE_NUMBER:
         {
@@ -432,62 +434,61 @@ Lexed_File lex(char* file) {
                     ++c;
                 }
             }
-
+            end = c;
             kind = is_hex ? TOKEN_HEX : is_float ? TOKEN_FLOAT : TOKEN_INTEGER;
         } break;
         case STATE_STRING: {
             kind = TOKEN_STRING;
-            start = ++c;
+            start = ++c; // skip the first "
             while (*c != '"')
                 ++c;
+            end = c++; // skip the last "
         } break;
         case STATE_CHAR: {
             kind = TOKEN_CHAR;
-            ++c;
-            start = c;
-            if (*c == '\\') ++c;
-            ++c; // skip the last '
+            start = ++c; // skip the first '
+            if (*c == '\\') c += 2;
+            end = c++; // skip the last '
         } break;
         case STATE_COMMENT:
         {
             kind = TOKEN_COMMENT;
-            ++c; // skip the hash
-            start = c;
+            start = ++c; start = ++c; // skip the hash
             skip_comment(c);
+            end = c;
             ++comments;
         } break;
         case STATE_NEWLINE:
         {
            kind = TOKEN_NEWLINE;
-            ++c; // skip the newline
+            end = ++c; // skip the newline
             position_of_newline = c;
             ++line;
         } break;
         }
 
-        if (last_token_kind == TOKEN_NEWLINE && kind != TOKEN_NEWLINE && kind != TOKEN_COMMENT) {
-            if (col % DEFAULT_INDENT_LEVEL == 0) {
-                current_indentation_level = col;
-            } 
+        if (last_token_kind == TOKEN_NEWLINE && kind != TOKEN_NEWLINE && kind != TOKEN_COMMENT && (col % DEFAULT_INDENT_LEVEL == 0)) {
+                
+            current_indentation_level = col;
+            
+            if (current_indentation_level > previous_indentation_level) {
+                previous_indentation_level = current_indentation_level;
+                token_array_append(&tokens, (Token){TOKEN_BLOCK_START, start, end, line, col});
+            } else while (current_indentation_level < previous_indentation_level) {
+                previous_indentation_level -= DEFAULT_INDENT_LEVEL;
+                token_array_append(&tokens, (Token){TOKEN_BLOCK_END, start, end, line, col});
+            }
+
             // else error("[%s:%d:%d] indentation error.", file, line, col);
         }
 
-        if (current_indentation_level > previous_indentation_level) {
-            previous_indentation_level = current_indentation_level;
-            token_array_append(&tokens, (Token){TOKEN_BLOCK_START, start, c, line, col});
-        } else while (current_indentation_level < previous_indentation_level) {
-            previous_indentation_level -= DEFAULT_INDENT_LEVEL;
-            token_array_append(&tokens, (Token){TOKEN_BLOCK_END, start, c, line, col});
-        }
 
         xassert(kind != TOKEN_UNKNOWN);
 
-        token_array_append(&tokens, (Token){kind, start, c, line, col}); // 'c' being the 'end'
-        
-        if (kind == TOKEN_STRING || kind == TOKEN_CHAR) 
-            ++c; // skip the last ' or "
+        token_array_append(&tokens, (Token){kind, start, end, line, col});
 
-    } while(c && kind != TOKEN_EOF);
+    // } while(c && kind != TOKEN_EOF);
+    } while(kind != TOKEN_EOF);
 
     // info("Printing tokens..");
     // foreach(i, tokens.count) {
@@ -589,7 +590,7 @@ char* token_kind_to_str(Token_Kind kind) {
     case TOKEN_IS:                return "TOKEN_IS";
 
     case TOKEN_IDENTIFIER:        return "TOKEN_IDENTIFIER";
-    
+
     case _END_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_: return "_END_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_";
 
     case TOKEN_PIPE_PIPE:         return "TOKEN_PIPE_PIPE";

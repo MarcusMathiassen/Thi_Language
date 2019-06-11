@@ -24,6 +24,7 @@
 #include "ast.h" // AST*, ast_to_str
 
 #include "parser.h"
+#include "map.h" // Map
 #include "lex.h" // token_kind_to_str
 #include "list.h"
 #include "register.h"

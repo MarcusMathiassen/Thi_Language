@@ -24,16 +24,16 @@
 
 #include "parser.h"
 
-#include "ast.h"            // AST, ast_make_*
-#include "lex.h"          // Token, Token_Kind, generate_tokens_from_source, token_array_get_info_of
-#include "map.h"            // Map
-#include "type.h"           // Type, make_typspec_*,
-#include "common.h"       // s32 , s64, etc.
-#include "utility.h"        // info, error, warning, success, strf, get_file_content
-#include <stdarg.h>         // va_list, va_start, va_end
-#include <stdio.h>          // printf, vprintf
-#include <stdlib.h>         // xmalloc
-#include <string.h>         // strcmp
+#include "ast.h"       // AST, ast_make_*
+#include "lex.h"       // Token, Token_Kind, generate_tokens_from_source, token_array_get_info_of
+#include "map.h"       // Map
+#include "type.h"      // Type, make_typspec_*,
+#include "common.h"    // s32 , s64, etc.
+#include "utility.h"   // info, error, warning, success, strf, get_file_content
+#include <stdarg.h>    // va_list, va_start, va_end
+#include <stdio.h>     // printf, vprintf
+#include <stdlib.h>    // xmalloc
+#include <string.h>    // strcmp
 
 #define DEBUG_START \
     xassert(ctx);    \
@@ -60,6 +60,24 @@ Token_Kind unary_ops[UNARY_OP_COUNT] = {
 //------------------------------------------------------------------------------
 //              Each construct of the language gets its own function
 //------------------------------------------------------------------------------
+
+typedef struct {
+    Token* tokens;
+    char* file;
+    char* dir;
+    s64 lines;
+    s64 comments;
+    bool inside_parens;
+    bool inside_asm;
+    Map* symbols;
+    List* loads;
+    Token top_tok;
+    Token curr_tok;
+    Token prev_tok;
+    AST* llast_if_statement; // used for dangling else
+    AST* olast_if_statement; // used for dangling else
+} Parser_Context;
+Parser_Context make_parser_context(void);
 
 AST* parse_top_level                (Parser_Context* ctx);
 AST* parse_statement                (Parser_Context* ctx);
@@ -135,8 +153,46 @@ Token prevTok(Parser_Context* ctx);
 //                               Public
 //------------------------------------------------------------------------------
 
-AST* parse_file(Parser_Context* ctx, char* file) {
-    push_timer(strf("parsing: %s", file));
+AST* _parse(Parser_Context* ctx, char* file);
+
+Parsed_File parse(char* file) {
+    push_timer(strf("%s: %s", (char*)__func__, file));
+    Map* symbols = make_map();
+
+    map_set(symbols, "void", make_type_void());
+    map_set(symbols, "bool", make_type_int(1, true));
+    map_set(symbols, "char", make_type_int(1, true));
+    map_set(symbols, "int", make_type_int(DEFAULT_INT_BYTE_SIZE, false));
+    map_set(symbols, "float", make_type_float(DEFAULT_FLOAT_BYTE_SIZE));
+    map_set(symbols, "double", make_type_float(8));
+
+    map_set(symbols, "s8", make_type_int(1, false));
+    map_set(symbols, "s16", make_type_int(2, false));
+    map_set(symbols, "s32", make_type_int(4, false));
+    map_set(symbols, "s64", make_type_int(8, false));
+
+    map_set(symbols, "u8", make_type_int(1, true));
+    map_set(symbols, "u16", make_type_int(2, true));
+    map_set(symbols, "u32", make_type_int(4, true));
+    map_set(symbols, "u64", make_type_int(8, true));
+
+    map_set(symbols, "f32", make_type_float(4));
+    map_set(symbols, "f64", make_type_float(8));
+
+     // Parse
+    Parser_Context pctx = make_parser_context();
+    pctx.file = file;
+    pctx.symbols = symbols;
+    AST* ast = _parse(&pctx, file);
+
+    pop_timer();
+
+    return (Parsed_File){ast, pctx.symbols, pctx.lines, pctx.comments};
+}
+
+
+AST* _parse(Parser_Context* ctx, char* file) {
+    push_timer(strf("%s: %s", (char*)__func__, file));
 
     info("Parsing file %s", file);
 
@@ -385,7 +441,7 @@ AST* parse_load(Parser_Context* ctx) {
     
     char* last_dir = get_file_directory(ctx->file);
     char* filepath = strf("%s%s", last_dir ? last_dir : "", file);
-    AST* module = parse_file(ctx, filepath);
+    AST* module = _parse(ctx, filepath);
     return make_ast_load(lc, file, module);
 }
 
@@ -1188,6 +1244,8 @@ make_parser_context(void) {
     ctx.olast_if_statement = NULL;
     ctx.loads = make_list();
     ctx.symbols = NULL; // we borrow anothers map
+    ctx.lines = 0; // we borrow anothers map
+    ctx.comments = 0; // we borrow anothers map
     return ctx;
 }
 

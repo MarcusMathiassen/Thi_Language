@@ -356,7 +356,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    push_timer("Front-End");
+    push_timer("Frontend");
 
     // Grab the source file
     char* source_file = argv[optind];
@@ -377,39 +377,15 @@ int main(int argc, char** argv) {
         error("thats not a thi file...");
     }
 
-    // Holds all symbols defined in the compilation unit.
-    Map* symbols = make_map();
-
-    map_set(symbols, "void", make_type_void());
-    map_set(symbols, "bool", make_type_int(1, true));
-    map_set(symbols, "char", make_type_int(1, true));
-    map_set(symbols, "int", make_type_int(DEFAULT_INT_BYTE_SIZE, false));
-    map_set(symbols, "float", make_type_float(DEFAULT_FLOAT_BYTE_SIZE));
-    map_set(symbols, "double", make_type_float(8));
-
-    map_set(symbols, "s8", make_type_int(1, false));
-    map_set(symbols, "s16", make_type_int(2, false));
-    map_set(symbols, "s32", make_type_int(4, false));
-    map_set(symbols, "s64", make_type_int(8, false));
-
-    map_set(symbols, "u8", make_type_int(1, true));
-    map_set(symbols, "u16", make_type_int(2, true));
-    map_set(symbols, "u32", make_type_int(4, true));
-    map_set(symbols, "u64", make_type_int(8, true));
-
-    map_set(symbols, "f32", make_type_float(4));
-    map_set(symbols, "f64", make_type_float(8));
-
-    // Parse
-    Parser_Context pctx = make_parser_context();
-    pctx.file = source_file;
-    pctx.symbols = symbols;
-    AST* ast = parse_file(&pctx, source_file);
+    Parsed_File pf = parse(source_file);
+    AST* ast = pf.ast;
+    Map* symbols = pf.symbols;
+    s64 line_count = pf.lines;
+    s64 comment_count = pf.comments;
 
     List* links = ast_find_all_of_kind(AST_LINK, ast);
     list_append(links, make_ast_link(ast->loc_info, "-lSystem"));
 
-    // run_pass(ast, "pass_add_all_symbols", pass_add_all_symbols, symbols);
     run_pass(ast, "resolve_unresolved_types", visitor_resolve_unresolved_types, symbols);
 
     // Semantic Analysis
@@ -425,7 +401,7 @@ int main(int argc, char** argv) {
     run_pass(ast, "check_for_unresolved_types", check_for_unresolved_types, NULL);
 
     pop_timer();
-    push_timer("Back-End");
+    push_timer("Backend");
 
     // Codegen
     char* code = to_x64(ast);
@@ -460,7 +436,7 @@ int main(int argc, char** argv) {
     pop_timer();
 
     success("--- Compiler timings ---");
-    success("lines %s%s comments %s", give_unique_color(strf("%lld", pctx.lines)), RGB_GRAY, give_unique_color(strf("%lld", pctx.comments)));
+    success("lines %s%s comments %s", give_unique_color(strf("%lld", line_count)), RGB_GRAY, give_unique_color(strf("%lld", comment_count)));
     // Figure out percentage of total time for each timer
     Timer* total_time_timer = timer_list->tail->data;
 #if TIMERS_SORT

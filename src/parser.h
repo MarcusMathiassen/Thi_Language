@@ -20,27 +20,17 @@
 
 #ifndef PARSER_H
 #define PARSER_H
-#include "common.h"   // AST
-#include "ast.h"   // AST
-#include "map.h"   // Map
-#include "list.h"  // List
-#include "lex.h" // Token
+#include "common.h"
+#include "ast.h"
+#include "map.h"
+
 typedef struct {
-    Token* tokens;
-    char* file;
-    char* dir;
-    u64 lines;
-    u64 comments;
-    bool inside_parens;
-    bool inside_asm;
+    AST* ast;
     Map* symbols;
-    List* loads;
-    Token top_tok;
-    Token curr_tok;
-    Token prev_tok;
-    AST* llast_if_statement; // used for dangling else
-    AST* olast_if_statement; // used for dangling else
-} Parser_Context;
-Parser_Context make_parser_context(void);
-AST* parse_file(Parser_Context* ctx, char* file);
+    s64 lines;
+    s64 comments;
+} Parsed_File;
+
+Parsed_File parse(char* file);
+
 #endif
