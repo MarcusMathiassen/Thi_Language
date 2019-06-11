@@ -158,8 +158,9 @@ Type* sema(AST* node) {
     push_timer((char*)__func__);
     if (!node) return NULL;
     Sema_Context ctx = make_sema_context();
+    Type* t = _sema(&ctx, node);
     pop_timer();
-    return _sema(&ctx, node);
+    return t;
 }
 
 // @Hotpath @Recursive

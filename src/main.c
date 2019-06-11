@@ -356,9 +356,10 @@ int main(int argc, char** argv) {
         }
     }
 
+    push_timer("Front-End");
+
     // Grab the source file
     char* source_file = argv[optind];
-    info("Compiling %s", source_file);
 
     char* ext = get_file_extension(source_file);
     char* dir = get_file_directory(source_file);
@@ -423,6 +424,9 @@ int main(int argc, char** argv) {
     // Sanity checks
     run_pass(ast, "check_for_unresolved_types", check_for_unresolved_types, NULL);
 
+    pop_timer();
+    push_timer("Back-End");
+
     // Codegen
     char* code = to_x64(ast);
     info("%s", code);
@@ -434,6 +438,8 @@ int main(int argc, char** argv) {
         assemble(name_with_ext_removed, exec_name);
         linking_stage(links, exec_name);
     } else error("generating code from ast failed.");
+
+    pop_timer();
 
     // Debug info. Writing out sizes of our types.
     // table_entry align the 1st argument to the left and the 2nd to the right.
@@ -454,9 +460,9 @@ int main(int argc, char** argv) {
     success("lines %s%s comments %s", give_unique_color(strf("%lld", pctx.lines)), RGB_GRAY, give_unique_color(strf("%lld", pctx.comments)));
     // Figure out percentage of total time for each timer
     Timer* total_time_timer = timer_list->tail->data;
-    #if TIMERS_SORT
+#if TIMERS_SORT
     list_sort(timer_list, timer_sort_func);
-    #endif
+#endif
     f64 total = total_time_timer->ms;
     list_foreach_reverse(timer_list) {
         Timer* tm = it->data;
