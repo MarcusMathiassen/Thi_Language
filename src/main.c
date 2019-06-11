@@ -437,6 +437,9 @@ int main(int argc, char** argv) {
         write_to_file(strf("%s.s", name_with_ext_removed), code);
         assemble(name_with_ext_removed, exec_name);
         linking_stage(links, exec_name);
+        
+        // Cleanup assembly files
+        system(strf("rm %s.s", name_with_ext_removed));
     } else error("generating code from ast failed.");
 
     pop_timer();
