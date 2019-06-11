@@ -218,10 +218,7 @@ typedef struct {
 Lexed_File lex(char* file);
 
 char* token_to_str(Token token);
-
 char* token_value(Token token);
-
-char* token_to_json(Token token);
 char* token_kind_to_str(Token_Kind kind);
 void lexer_test(void);
 

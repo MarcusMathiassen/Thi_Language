@@ -373,15 +373,14 @@ Lexed_File lex(char* file) {
     s64 previous_indentation_level = 0 ;
 
     s64 comments = 0;
-    s64 line = 0;
-    s64 col = 0;
+    s64 line = 1;
+    s64 col = 1;
 
     do {
 
-        last_token_kind = kind;
+        last_token_kind = kind; // used for indent based scoping
 
-        // skip_whitespace(c);
-
+        // This is based on 'http://nothings.org/computer/lexing.html'
         u64 len = 0;
         State_Kind state = STATE_IN_WHITESPACE;
         do {
@@ -556,7 +555,7 @@ Lexed_File lex(char* file) {
 
             // Number: [0-9._]+e[0-9]+
             if (isdigit(*c) || *c == '.') {
-                while (is_valid_digit(*c) || (is_hex && is_valid_identifier(*c))) {
+                while (is_valid_digit(*c) ||  (is_hex && is_valid_identifier(*c))) {
                     // @Audit
                     if (*c == 'x') is_hex = true;
                     if (*c == '.') is_float = true;
