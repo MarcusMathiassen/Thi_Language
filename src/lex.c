@@ -186,6 +186,16 @@ static State_Kind transition[_STATE_COUNT_][_EQUIV_COUNT_] = {
      [STATE_START] [EQUIV_NEWLINE]     = STATE_NEWLINE,
 };
 
+static bool in_token[] = {
+    [STATE_IN_IDENTIFIER] = true,
+    [STATE_IN_OPERATOR]   = true,
+    [STATE_IN_NUMBER]     = true,
+    [STATE_IN_STRING]     = true,
+    [STATE_IN_CHAR]       = true,
+    [STATE_IN_COMMENT]    = true,
+    [STATE_IN_NEWLINE]    = true,
+};
+
 static Equivalence_Kind equivalence[] = {
     ['\0']    = EQUIV_END,
     ['\n']    = EQUIV_NEWLINE,
@@ -359,19 +369,20 @@ Lexed_File lex(char* file) {
 
         skip_whitespace(c);
 
-        char* start = c;
+        // char* start = c;
+        u64 len = 0;
         State_Kind state = STATE_START;
         do {
             s32 ch = *c++;
-            info("%c", ch);
             Equivalence_Kind eq = equivalence[ch];
-            info("eq: %s", equivalence_kind_to_str(eq));
             state = transition[state][eq];
+            len += in_token[state];
         } while (state > _STATE_LAST_FINAL_); // jumps out on 0
 
-        info ("state %s", state_kind_to_str(state));
 
-        char* end = --c; // need to backtrack a bit
+        info ("state %s", state_kind_to_str(state));
+        char* start = --c - len;
+        char* end = c; // need to backtrack a bit
 
         // Set the indenation level
         col = start - position_of_newline;
