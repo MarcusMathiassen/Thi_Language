@@ -600,10 +600,10 @@ Lexed_File lex(char* file) {
             
             if (current_indentation_level > previous_indentation_level) {
                 previous_indentation_level = current_indentation_level;
-                token_array_append(&tokens, (Token){TOKEN_BLOCK_START, start, start+1, line, col});
+                token_array_append(&tokens, (Token){TOKEN_BLOCK_START, start-1, start, line, col});
             } else while (current_indentation_level < previous_indentation_level) {
                 previous_indentation_level -= DEFAULT_INDENT_LEVEL;
-                token_array_append(&tokens, (Token){TOKEN_BLOCK_END, start, start+1, line, col});
+                token_array_append(&tokens, (Token){TOKEN_BLOCK_END, start-1, start, line, col});
             }
 
             // else error("[%s:%d:%d] indentation error.", file, line, col);
