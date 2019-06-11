@@ -22,7 +22,6 @@
 //                               main.c
 //------------------------------------------------------------------------------
 
-
 #include "ast.h"          // AST, AST_Kind
 #include "codegen.h"      // generate_code_from_ast
 #include "lex.h"        // generate_tokens_from_source, print_tokens
@@ -440,7 +439,7 @@ int main(int argc, char** argv) {
         linking_stage(links, exec_name);
         
         // Cleanup assembly files
-        system(strf("rm %s.s", name_with_ext_removed));
+        // system(strf("rm %s.s", name_with_ext_removed));
     } else error("generating code from ast failed.");
 
     pop_timer();

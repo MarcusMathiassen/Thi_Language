@@ -24,6 +24,8 @@
 #include "common.h"
 
 /*
+     -- ASCII TABLE -- 
+
       32   @ 64  ` 96
     ! 33   A 65  a 97
     " 34   B 66  b 98

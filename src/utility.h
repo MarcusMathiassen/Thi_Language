@@ -107,7 +107,7 @@ typedef struct
 } Timer;
 f64 get_time(void);
 extern List* timer_list;
-void pop_timer(void);
+Timer* pop_timer(void);
 void push_timer(char* desc);
 void initilize_timers(void);
 //------------------------------------------------------------------------------

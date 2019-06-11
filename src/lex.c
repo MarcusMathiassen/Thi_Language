@@ -498,7 +498,8 @@ Lexed_File lex(char* file) {
     // }
     // error("fe");
 
-    pop_timer();
+    Timer* tm = pop_timer();
+    // error("%f seconds", tm->ms * 0.001);
 
     return (Lexed_File){tokens, line, comments};
 }

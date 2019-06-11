@@ -1,10 +1,10 @@
 #!/bin/bash
-nasm -f macho64 -g output.asm -o output.o
+nasm -f macho64 -g $1 -o test.o
 
-flags=-lSystem #\ -lglew\ -lglfw3\ -framework\ OpenGL\ -framework\ CoreVideo\ -framework\ IOKit\ -framework\ Cocoa\ -framework\ Carbon\ -framework\ CoreFoundation
+flags=-lSystem
 
-ld -macosx_version_min 10.14 -o output output.o -e _main $flags
-./output
+ld -macosx_version_min 10.14 -o test test.o -e _main $flags
+./test
 echo $?
-# rm ./output
-rm ./output.o
+# rm ./test
+rm ./test.o

@@ -467,13 +467,14 @@ void push_timer(char* desc) {
     stack_push(timer_stack, tm);
 }
 
-void pop_timer(void) {
+Timer* pop_timer(void) {
     Timer* tm = stack_pop(timer_stack);
     tm->ms = get_time() - tm->ms;
     list_append(timer_list, tm);
     #if TIMERS_INDENT
     timer_indent -= timer_indent_amount;
     #endif
+    return tm;
 }
 
 void initilize_timers(void) {
