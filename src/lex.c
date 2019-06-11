@@ -615,13 +615,13 @@ Lexed_File lex(char* file) {
 
     } while(kind != TOKEN_EOF);
 
-    info("Printing tokens..");
-    foreach(i, tokens.count) {
-        info("kind: %s value: '%s' start: %llu end: %llu", 
-            ucolor(token_kind_to_str(tokens.data[i].kind)), 
-            ucolor(token_value(tokens.data[i])),
-            tokens.data[i].start, tokens.data[i].end);
-    }
+    // info("Printing tokens..");
+    // foreach(i, tokens.count) {
+    //     info("kind: %s value: '%s' start: %llu end: %llu", 
+    //         ucolor(token_kind_to_str(tokens.data[i].kind)), 
+    //         ucolor(token_value(tokens.data[i])),
+    //         tokens.data[i].start, tokens.data[i].end);
+    // }
     // error("fe");
 
     pop_timer();
