@@ -218,6 +218,7 @@ void write_to_file(char* filename, char* buffer) {
         printf("Error opening file!\n");
         exit(1);
     }
+    info("%s: %s", (char*)__func__, filename);
     fputs(buffer, f);
     fclose(f);
 }

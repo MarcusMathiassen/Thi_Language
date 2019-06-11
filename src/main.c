@@ -429,9 +429,9 @@ int main(int argc, char** argv) {
 
     // Write to file
     if (code) {
-        char* output_filename = strf("%s", remove_file_extension(name));
-        write_to_file(output_filename, code);
-        assemble(output_filename, exec_name);
+        char* name_with_ext_removed = remove_file_extension(name);
+        write_to_file(strf("%s.s", name_with_ext_removed), code);
+        assemble(name_with_ext_removed, exec_name);
         linking_stage(links, exec_name);
     } else error("generating code from ast failed.");
 
@@ -452,11 +452,11 @@ int main(int argc, char** argv) {
 
     success("--- Compiler timings ---");
     success("lines %s%s comments %s", give_unique_color(strf("%lld", pctx.lines)), RGB_GRAY, give_unique_color(strf("%lld", pctx.comments)));
+    // Figure out percentage of total time for each timer
+    Timer* total_time_timer = timer_list->tail->data;
     #if TIMERS_SORT
     list_sort(timer_list, timer_sort_func);
     #endif
-    // Figure out percentage of total time for each timer
-    Timer* total_time_timer = timer_list->tail->data;
     f64 total = total_time_timer->ms;
     list_foreach_reverse(timer_list) {
         Timer* tm = it->data;
@@ -465,9 +465,9 @@ int main(int argc, char** argv) {
     }
     success("---------------------------");
 
-#ifndef NDEBUG
-    write_to_file("output.thi", ast_to_source(ast));
-#endif
+// #ifndef NDEBUG
+//     write_to_file("output.thi", ast_to_source(ast));
+// #endif
 
     return 0;
 }
