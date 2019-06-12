@@ -28,7 +28,7 @@
 
 #define PATH_TO_LLC "/usr/local/Cellar/llvm/8.0.0_1/bin/llc"
 
-#define TIMERS_SORT false
+#define TIMERS_SORT 0
 #define TIMERS_INDENT !TIMERS_SORT
 
 #define RESET "\033[0m"

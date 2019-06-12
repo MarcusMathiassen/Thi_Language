@@ -386,26 +386,27 @@ int main(int argc, char** argv) {
     List* links = ast_find_all_of_kind(AST_LINK, ast);
     list_append(links, make_ast_link(ast->loc_info, "-lSystem"));
 
-    run_pass(ast, "resolve_unresolved_types", visitor_resolve_unresolved_types, symbols);
+    // run_pass(ast, "resolve_unresolved_types", visitor_resolve_unresolved_types, symbols);
 
     // Semantic Analysis
     sema(ast);
 
     // Sanity check.. Make sure the typer did what it was supposed to do.
-    run_pass(ast, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);
+    // run_pass(ast, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);
 
     //  Optimization passes
     run_pass(ast, "constant_fold", constant_fold, NULL);
 
     // Sanity checks
-    run_pass(ast, "check_for_unresolved_types", check_for_unresolved_types, NULL);
+    // run_pass(ast, "check_for_unresolved_types", check_for_unresolved_types, NULL);
 
-    pop_timer();
-    push_timer("Backend");
 
     // Codegen
     char* code = to_x64(ast);
     info("%s", code);
+
+    pop_timer();
+    push_timer("Backend");
 
     // Write to file
     if (code) {
