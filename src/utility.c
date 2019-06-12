@@ -510,12 +510,23 @@ void _tassert(char* expr_str, char* file, char* func, int line, char* fmt, ...) 
 //                               Timing Utility Functions
 //------------------------------------------------------------------------------
 
+#ifdef __APPLE__
 #include <mach/mach_time.h>
+#endif
+#ifdef __unix__
+#include <time.h>
+#endif
 u64 get_time(void) {
-    mach_timebase_info_data_t info;
-    if (mach_timebase_info(&info) != KERN_SUCCESS)
-        abort();
-    return (mach_absolute_time() * info.numer / info.denom);
+    #ifdef __APPLE__
+        mach_timebase_info_data_t info;
+        if (mach_timebase_info(&info) != KERN_SUCCESS)
+            abort();
+        return (mach_absolute_time() * info.numer / info.denom);
+    #elif __unix__
+        struct timespec t;
+        clock_gettime(CLOCK_MONOTONIC, &t);
+        return ((t->tv_sec * 1000000000) + (t->tv_nsec));
+    #endif
 }
 
 List* timer_list;

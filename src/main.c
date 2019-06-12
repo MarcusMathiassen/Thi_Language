@@ -40,6 +40,10 @@
 #include <string.h>       // strcmp
 #include <sys/ioctl.h>    // NOTE(marcus): what do i use this for?
 #include <unistd.h>       // NOTE(marcus): what do i use this
+
+#ifdef __unix__
+#include <getopt.h>
+#endif
 //  
 //  --  06/05/19 Marcus Mathiassen
 //  
