@@ -331,6 +331,23 @@ char* get_colored_minimap_of_file(char* file, char c) {
     return string_data(k);
 }
 
+char* time_with_suffix(u64 n) {
+    u64 m = (n >= hours(1ULL) ? 
+            n / hours(1ULL) : n >= minutes(1ULL) 
+            ? n / minutes(1ULL) :  n >= seconds(1ULL) 
+            ? n / seconds(1ULL) :  n >= milliseconds(1ULL) 
+            ? n / milliseconds(1ULL) : n >= microseconds(1ULL) 
+            ? n / microseconds(1ULL) :  n >= nanoseconds(1ULL) 
+            ? n / nanoseconds(1ULL) : n);
+    char* suffix = (n >= hours(1ULL) ? "h" 
+        : n >= minutes(1ULL) ? "m" 
+        : n >= seconds(1ULL) ? "s" 
+        : n >= milliseconds(1ULL) ? "ms" 
+        : n >= microseconds(1ULL) ? "us" 
+        : n >= nanoseconds(1ULL) ? "ns" : "");
+    return strf("%llu%s", m, suffix);
+}
+
 char* size_with_suffix(u64 n) {
     u64 m = (n >= gigabytes(1ULL) ? n / gigabytes(1ULL) : n >= megabytes(1ULL) ? n / megabytes(1ULL) :  n >= kilobytes(1ULL) ? n / kilobytes(1ULL) :  n >= bytes(1ULL) ? n / bytes(1ULL) : n);
     char* suffix = (n >= gigabytes(1ULL) ? "GB" : n >= megabytes(1ULL) ? "MB" :  n >= kilobytes(1ULL) ? "KB" :  n >= bytes(1ULL) ? "B" : "");
@@ -360,7 +377,7 @@ char* insert_center(char* str, char* into) {
 
     int imid = ilen/2;
     int i_starting_point = imid - slen/2;
-    
+
     for (int i = i_starting_point; i < slen+i_starting_point; ++i) {
         into[i] = str[i-i_starting_point];
     }
@@ -477,11 +494,11 @@ void _tassert(char* expr_str, char* file, char* func, int line, char* fmt, ...) 
 //------------------------------------------------------------------------------
 
 #include <mach/mach_time.h>
-f64 get_time(void) {
+u64 get_time(void) {
     mach_timebase_info_data_t info;
     if (mach_timebase_info(&info) != KERN_SUCCESS)
         abort();
-    return (mach_absolute_time() * info.numer / info.denom) / 1e6;
+    return (mach_absolute_time() * info.numer / info.denom);
 }
 
 List* timer_list;
@@ -491,7 +508,7 @@ static u64 timer_indent;
 void push_timer(char* desc) {
     xassert(desc);
     Timer* tm = xmalloc(sizeof(Timer));
-    tm->ms = get_time();
+    tm->ns = get_time();
     #if TIMERS_INDENT
     tm->desc = strf("%*s%s", timer_indent, "", desc);
     timer_indent += timer_indent_amount;
@@ -503,7 +520,7 @@ void push_timer(char* desc) {
 
 Timer* pop_timer(void) {
     Timer* tm = stack_pop(timer_stack);
-    tm->ms = get_time() - tm->ms;
+    tm->ns = get_time() - tm->ns;
     list_append(timer_list, tm);
     #if TIMERS_INDENT
     timer_indent -= timer_indent_amount;

@@ -315,7 +315,7 @@ void run_pass(AST* ast, char* pass_description, ast_callback visitor_func, void*
 }
 
 bool timer_sort_func(void* a, void* b) {
-    return ((Timer*)a)->ms > ((Timer*)b)->ms;
+    return ((Timer*)a)->ns > ((Timer*)b)->ns;
 }
 
 int main(int argc, char** argv) {
@@ -444,11 +444,11 @@ int main(int argc, char** argv) {
 #if TIMERS_SORT
     list_sort(timer_list, timer_sort_func);
 #endif
-    f64 total = total_time_timer->ms;
+    u64 total = total_time_timer->ns;
     list_foreach_reverse(timer_list) {
         Timer* tm = it->data;
-        char* ms = strf("(%.2f%%) %fs", (tm->ms / total)*1e2, tm->ms / 1e3);
-        success("%s", give_unique_color(table_entry(tm->desc, ms)));
+        char* sec = strf("%s (%.2f%%)", time_with_suffix(tm->ns), (((f64)tm->ns / total)*1e2));
+        success("%s", give_unique_color(table_entry( tm->desc, sec)));
     }
     success(align_center(pad_out_full_width('_')));
 

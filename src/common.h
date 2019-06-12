@@ -88,6 +88,20 @@ typedef s8       bool;
 #define gigabytes(n) ((u64)megabytes((u64)n) * 1024ULL)
 #define terabytes(n) ((u64)gigabytes((u64)n) * 1024ULL)
 
+#define to_nanoseconds(n) (n)
+#define to_microseconds(n) ((u64)to_nanoseconds(n) / 1000ULL)
+#define to_milliseconds(n) ((u64)to_microseconds(n) / 1000ULL)
+#define to_seconds(n) ((u64)to_milliseconds(n) / 1000ULL)
+#define to_minutes(n) ((u64)to_seconds(n) / 60ULL)
+#define to_hours(n) ((u64)to_minutes(n) / 60ULL)
+
+#define nanoseconds(n) (n)
+#define microseconds(n) ((u64)nanoseconds(n) * 1000ULL)
+#define milliseconds(n) ((u64)microseconds(n) * 1000ULL)
+#define seconds(n) ((u64)milliseconds(n) * 1000ULL)
+#define minutes(n) ((u64)seconds(n) * 60ULL)
+#define hours(n) ((u64)minutes(n) * 60ULL)
+
 #define TASSERT_KIND_IN_RANGE(ENUM, kind) tassert(0 <= kind && kind < _##ENUM##_COUNT_, "kind = %d", kind)
 #define ERROR_UNHANDLED_KIND(str) \
     default:                      \

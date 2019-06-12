@@ -71,6 +71,7 @@ void* _malloc(s64 bytes, char* file, char* func, s64 line);
 void* _calloc(s64 size, s64 bytes, char* file, char* func, s64 line);
 void* _realloc(void* ptr, s64 bytes, char* file, char* func, s64 line);
 u64 _strlen(char* str, char* file, char* func, s64 line);
+char* time_with_suffix(u64 n);
 char* size_with_suffix(u64 n);
 char* strn(char* start, char* end);
 char* strf(char* fmt, ...);
@@ -106,10 +107,10 @@ char* get_unique_color(void);
 //------------------------------------------------------------------------------
 typedef struct
 {
-    f64 ms;
+    u64 ns;
     char* desc;
 } Timer;
-f64 get_time(void);
+u64 get_time(void);
 extern List* timer_list;
 Timer* pop_timer(void);
 void push_timer(char* desc);
