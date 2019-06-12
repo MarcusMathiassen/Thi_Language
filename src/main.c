@@ -394,11 +394,6 @@ int main(int argc, char** argv) {
     list_append(links, make_ast_link(ast->loc_info, "-lSystem"));
 #endif
 
-
-
-
-
-
     // run_pass(ast, "resolve_unresolved_types", visitor_resolve_unresolved_types, symbols);
 
     // Semantic Analysis

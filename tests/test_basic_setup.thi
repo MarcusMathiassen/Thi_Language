@@ -1,10 +1,19 @@
 
+extern printf(u8*, ...) s32
+
 # Hello i am a comment
 def main() s32
     
     i = 3
+
+
+    asm 
+        mov qword %i, 43
     
-    asm
-        mov qword %i, 51
+
+    for k = 32; k < 127; ++k
+        printf("%c", k)
+
+    printf("\n")
 
     return i
