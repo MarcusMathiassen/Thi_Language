@@ -31,13 +31,14 @@
 #include "type.h"    // Type
 #include "utility.h" // Loc_Info
 
-typedef enum {
-    BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED,
-} BlockFlags;
 
 //------------------------------------------------------------------------------
 //                                  AST Structures
 //------------------------------------------------------------------------------
+
+typedef enum {
+    BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED,
+} BlockFlags;
 
 typedef enum {
     AST_FLAG_GLOBAL_VARIABLE = 1 << 0,

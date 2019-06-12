@@ -39,7 +39,7 @@
 
 #define DEBUG_START                                                              \
     xassert(ctx && node);                                                        \
-    // info("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(node))); \
+    // debug("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(node))); \
     // emit(ctx, "; %s", ast_to_str(node));
 
 
@@ -934,7 +934,7 @@ inline static Value* codegen_variable_decl(Codegen_Context* ctx, AST* node) {
     } else {
         s64 type_size = get_size_of_type(type);
         s64 stack_pos = type_size + get_stack_pos(ctx);
-        info("name: %s stack_pos: %d type_size: %d", name, stack_pos, type_size);
+        debug("name: %s stack_pos: %d type_size: %d", name, stack_pos, type_size);
         variable = make_value_variable(name, type, stack_pos);
     }
     add_variable(ctx, variable);
@@ -1177,7 +1177,7 @@ inline static Value* codegen_asm(Codegen_Context* ctx, AST* node) {
             char* ss = stmt->String.val;
             char* str = stmt->String.val;
             char c;
-            info("%s", str);
+            debug("%s", str);
             char* substart =  NULL;
             char* subend =  NULL;
             bool has_sub  = false;
@@ -1306,7 +1306,7 @@ void pop_scope(Codegen_Context* ctx) {
     ctx->stack_pos = s->stack_pos;
 }
 static void add_variable_to_current_scope(Codegen_Context* ctx, Value* variable) {
-    info("Adding variable %s of %s to scope", get_value_name(variable), value_kind_to_str(variable->kind));
+    debug("Adding variable %s of %s to scope", get_value_name(variable), value_kind_to_str(variable->kind));
     Scope* top = stack_peek(ctx->scopes);
     if (variable->kind != VALUE_GLOBAL_VARIABLE)
         top->stack_pos += get_size_of_value(variable);
@@ -1522,7 +1522,7 @@ void pop_type(Codegen_Context* ctx, Type* type) {
 
 void push(Codegen_Context* ctx, int reg) {
     xassert(ctx);
-    tassert(reg >= 0 && reg <= TOTAL_REG_COUNT, "reg = %d", reg);
+    tassert(reg >= 0 && reg <= _REGISTER_COUNT_, "reg = %d", reg);
     char* r = get_reg(reg);
     if (reg >= XMM0 && reg <= XMM7) {
         emit(ctx, "sub rsp, 8");
@@ -1535,7 +1535,7 @@ void push(Codegen_Context* ctx, int reg) {
 
 void pop(Codegen_Context* ctx, int reg) {
     xassert(ctx);
-    tassert(reg >= 0 && reg <= TOTAL_REG_COUNT, "reg = %d", reg);
+    tassert(reg >= 0 && reg <= _REGISTER_COUNT_, "reg = %d", reg);
     char* r = get_reg(reg);
     if (reg >= XMM0 && reg <= XMM7) {
         emit(ctx, "movsd %s, [rsp]", r);
@@ -1652,7 +1652,7 @@ void alloc_variable(Codegen_Context* ctx, Value* variable) {
     xassert(variable);
     xassert(variable->kind == VALUE_VARIABLE);
     s64 size = get_size_of_value(variable);
-    info("Allocating variable '%s', type '%s', size '%lld' ",
+    debug("Allocating variable '%s', type '%s', size '%lld' ",
          variable->Variable.name,
          get_type_name(variable->type),
          size);
@@ -1663,7 +1663,7 @@ void dealloc_variable(Codegen_Context* ctx, Value* variable) {
     xassert(variable);
     xassert(variable->kind == VALUE_VARIABLE);
     s64 size = get_size_of_value(variable);
-    info("Deallocating variable '%s', type '%s', size '%lld' ",
+    debug("Deallocating variable '%s', type '%s', size '%lld' ",
          variable->Variable.name,
          get_type_name(variable->type),
          size);
@@ -1685,7 +1685,7 @@ Value* get_variable(Codegen_Context* ctx, AST* ident) {
     xassert(ctx);
     xassert(ident);
     char* name = ident->Ident.name;
-    info("looking for %s", ucolor(name));
+    debug("looking for %s", ucolor(name));
     stack_foreach(ctx->scopes) {
         Scope* scope = it->data;
         list_foreach_reverse(scope->local_variables) {
@@ -1777,7 +1777,7 @@ void emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg) {
     xassert(ctx);
     xassert(variable);
     xassert(variable->kind == VALUE_VARIABLE);
-    tassert(reg >= 0 && reg <= TOTAL_REG_COUNT, "reg = %d", reg);
+    tassert(reg >= 0 && reg <= _REGISTER_COUNT_, "reg = %d", reg);
     char* mem = get_mem_loc(variable);
     char* reg_c = get_reg(reg);
     char* mov_op = get_move_op(variable->type);
@@ -2036,7 +2036,7 @@ void emit_je(Codegen_Context* ctx, char* label) {
 
 void emit_push(Codegen_Context* ctx, s8 reg) {
     xassert(ctx);
-    xassert(reg >= 0 && reg <= TOTAL_REG_COUNT);
+    xassert(reg >= 0 && reg <= _REGISTER_COUNT_);
     char* r = get_reg(reg);
     if (reg >= XMM0 && reg <= XMM7) {
         emit(ctx, "sub rsp, 8");
@@ -2049,7 +2049,7 @@ void emit_push(Codegen_Context* ctx, s8 reg) {
 
 void emit_pop(Codegen_Context* ctx, s8 reg) {
     xassert(ctx);
-    xassert(reg >= 0 && reg <= TOTAL_REG_COUNT);
+    xassert(reg >= 0 && reg <= _REGISTER_COUNT_);
     char* r = get_reg(reg);
     if (reg >= XMM0 && reg <= XMM7) {
         emit(ctx, "movss %s, [rsp]", r);
@@ -2062,16 +2062,16 @@ void emit_pop(Codegen_Context* ctx, s8 reg) {
 }
 
 bool is_reg8(s8 reg) {
-    return (get_size_of_reg(reg) == 1) && (reg < XMM_REG_START);
+    return (get_size_of_reg(reg) == 1) && (reg < XMM0);
 }
 bool is_reg16(s8 reg) {
-    return (get_size_of_reg(reg) == 2) && (reg < XMM_REG_START);
+    return (get_size_of_reg(reg) == 2) && (reg < XMM0);
 }
 bool is_reg32(s8 reg) {
-    return (get_size_of_reg(reg) == 4) && (reg < XMM_REG_START);
+    return (get_size_of_reg(reg) == 4) && (reg < XMM0);
 }
 bool is_reg64(s8 reg) {
-    return (get_size_of_reg(reg) == 8) && (reg < XMM_REG_START);
+    return (get_size_of_reg(reg) == 8) && (reg < XMM0);
 }
 
 void emit_lea_reg64_mem(Codegen_Context* ctx, s8 reg64, char* mem) {

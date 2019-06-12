@@ -1,3 +1,7 @@
 # Hello i am a comment
 def main() s32
-    return 1
+    
+    i = 3
+    asm { "mov qword %i, 51" }
+
+    return i

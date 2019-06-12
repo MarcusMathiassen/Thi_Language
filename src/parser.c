@@ -37,7 +37,7 @@
 
 #define DEBUG_START \
     xassert(ctx);    \
-    // info("%s: %s", __func__, token_to_str(currTok(ctx)));
+    // debug("%s: %s", __func__, token_to_str(currTok(ctx)));
 
 #define UNARY_OP_COUNT 11
 Token_Kind unary_ops[UNARY_OP_COUNT] = {
@@ -194,7 +194,7 @@ Parsed_File parse(char* file) {
 AST* _parse(Parser_Context* ctx, char* file) {
     push_timer(strf("%s: %s", (char*)__func__, file));
 
-    info("Parsing file %s", file);
+    debug("Parsing file %s", file);
 
     Loc_Info lc = loc(ctx);
 
@@ -221,7 +221,7 @@ AST* _parse(Parser_Context* ctx, char* file) {
     ctx->lines += lf.lines;
     ctx->comments += lf.comments;
 
-    info("%s",  get_colored_minimap_of_file(ctx->file, '_'));
+    debug("%s",  get_colored_minimap_of_file(ctx->file, '_'));
     List* top_level_ast = generate_ast_from_tokens(ctx);
     AST* ast = make_ast_module(lc, ctx->file, top_level_ast);
 
@@ -242,7 +242,7 @@ AST* _parse(Parser_Context* ctx, char* file) {
 }
 
 List* generate_ast_from_tokens(Parser_Context* ctx) {
-    info("Generating AST from tokens..");
+    debug("Generating AST from tokens..");
     eat(ctx); // prep the first token
     List* ast = make_list();
     while(!tok_is(ctx, TOKEN_EOF)) {
@@ -772,7 +772,7 @@ AST* parse_variable_decl(Parser_Context* ctx, Loc_Info lc, char* ident) {
 
 AST* parse_binary(Parser_Context* ctx, s8 expr_prec, AST* lhs) {
     DEBUG_START;
-    // info("missing loc_info for binary nodes");
+    // debug("missing loc_info for binary nodes");
 
     AST* expr = NULL;
 
@@ -1132,15 +1132,15 @@ Type* get_type(Parser_Context* ctx) {
     if (tok_is(ctx, TOKEN_IDENTIFIER)) {
         char* type_name = token_value(ctx->curr_tok);
         eat_kind(ctx, TOKEN_IDENTIFIER);
-        // info_no_newline("..looking for %s", type_name);
+        // debug_no_newline("..looking for %s", type_name);
         type = map_get(ctx->symbols, type_name);
         if (!type) {
-            // info("..didn't find it. Saved to unresolved types");
+            // debug("..didn't find it. Saved to unresolved types");
             type = make_type_unresolved(type_name);
             type->name = type_name;
-            // info("found unknown type %s. will resolve later", type_name);
+            // debug("found unknown type %s. will resolve later", type_name);
         } 
-        // else info("..Found it.");
+        // else debug("..Found it.");
         type->name = type_name;
     } else if (tok_is(ctx, TOKEN_OPEN_PAREN)) {
         eat_kind(ctx, TOKEN_OPEN_PAREN);

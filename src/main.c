@@ -122,7 +122,7 @@ void* make_sure_all_nodes_have_a_valid_type(void* dont_care, AST* node) {
     case AST_FALLTHROUGH: return NULL;
     default: break;
     }
-    // info("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(node)), give_unique_color(type_to_str(node->type)));
+    debug("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(node)), give_unique_color(type_to_str(node->type)));
 
     if (!node->type) {
         error(
@@ -330,7 +330,7 @@ int main(int argc, char** argv) {
     initilize_timers();
     push_timer("Total time");
 
-    info("Compiler was last compiled: "__TIME__);
+    debug("Compiler was last compiled: "__TIME__);
 
 #ifndef NDEBUG
     utility_tests();
@@ -351,8 +351,8 @@ int main(int argc, char** argv) {
             return 0;
         } break;
         case 'v': puts(COMPILER_VERSION); return 0;
-        case ':': info("option needs a value\n"); return 0;
-        case '?': info("unknown option: %c\n", optopt); return 0;
+        case ':': debug("option needs a value\n"); return 0;
+        case '?': debug("unknown option: %c\n", optopt); return 0;
         }
     }
 
@@ -366,11 +366,11 @@ int main(int argc, char** argv) {
     char* name = get_file_name(source_file);
     char* exec_name = remove_file_extension(name);
 
-    info(source_file);
-    info("ext: %s", ext);
-    info("dir: %s", dir);
-    info("name: %s", name);
-    info("exec_name: %s", exec_name);
+    debug(source_file);
+    debug("ext: %s", ext);
+    debug("dir: %s", dir);
+    debug("name: %s", name);
+    debug("exec_name: %s", exec_name);
 
     // Make sure it's actually a .thi file
     if (strcmp(ext, ".thi") != 0) {
@@ -384,7 +384,11 @@ int main(int argc, char** argv) {
     s64 comment_count = pf.comments;
 
     List* links = ast_find_all_of_kind(AST_LINK, ast);
+
+#ifdef __APPLE__
+    // macOS needs a specific link to get libc
     list_append(links, make_ast_link(ast->loc_info, "-lSystem"));
+#endif
 
     // run_pass(ast, "resolve_unresolved_types", visitor_resolve_unresolved_types, symbols);
 
@@ -403,7 +407,7 @@ int main(int argc, char** argv) {
 
     // Codegen
     char* code = to_x64(ast);
-    info("%s", code);
+    debug("%s", code);
 
     pop_timer();
     push_timer("Backend");
@@ -423,22 +427,21 @@ int main(int argc, char** argv) {
 
     // Debug info. Writing out sizes of our types.
     // table_entry align the 1st argument to the left and the 2nd to the right.
-    info(ucolor(table_entry("size of Token", size_with_suffix(sizeof(Token)))));
-    info(ucolor(table_entry("size of AST", size_with_suffix(sizeof(AST)))));
-    info(ucolor(table_entry("size of Type", size_with_suffix(sizeof(Type)))));
-    info(ucolor(table_entry("size of Value", size_with_suffix(sizeof(Value)))));
-    info(ucolor(table_entry("size of Map", size_with_suffix(sizeof(Map)))));
-    info(ucolor(table_entry("size of List", size_with_suffix(sizeof(List)))));
-    info(ucolor(table_entry("size of Stack", size_with_suffix(sizeof(Stack)))));
-    info(ucolor(table_entry("size of string", size_with_suffix(sizeof(string)))));
-    info(ucolor(table_entry("size of code", size_with_suffix(strlen(code) / sizeof(code)))));
-    info(ucolor(table_entry("size of symbols", size_with_suffix(symbols->count * sizeof(*symbols->elements)))));
+    debug(ucolor(table_entry("size of Token", size_with_suffix(sizeof(Token)))));
+    debug(ucolor(table_entry("size of AST", size_with_suffix(sizeof(AST)))));
+    debug(ucolor(table_entry("size of Type", size_with_suffix(sizeof(Type)))));
+    debug(ucolor(table_entry("size of Value", size_with_suffix(sizeof(Value)))));
+    debug(ucolor(table_entry("size of Map", size_with_suffix(sizeof(Map)))));
+    debug(ucolor(table_entry("size of List", size_with_suffix(sizeof(List)))));
+    debug(ucolor(table_entry("size of Stack", size_with_suffix(sizeof(Stack)))));
+    debug(ucolor(table_entry("size of string", size_with_suffix(sizeof(string)))));
+    debug(ucolor(table_entry("size of code", size_with_suffix(strlen(code) / sizeof(code)))));
+    debug(ucolor(table_entry("size of symbols", size_with_suffix(symbols->count * sizeof(*symbols->elements)))));
 
     pop_timer();
 
 
-
-    success(insert_center(" Compiler timings ", pad_out_full_width('_')));
+    success(str_replace_center(" Thi ", pad_out_full_width('_')));
     success(align_center(strf("lines %lld comments %lld", line_count, comment_count)));
     // Figure out percentage of total time for each timer
     Timer* total_time_timer = timer_list->tail->data;
@@ -451,7 +454,7 @@ int main(int argc, char** argv) {
         char* sec = strf("%s (%.2f%%)", time_with_suffix(tm->ns), (((f64)tm->ns / total)*1e2));
         success("%s", give_unique_color(table_entry( tm->desc, sec)));
     }
-    success(align_center(pad_out_full_width('_')));
+    success(pad_out_full_width('_'));
 
 // #ifndef NDEBUG
 //     write_to_file("output.thi", ast_to_source(ast));
@@ -466,7 +469,7 @@ void assemble(char* asm_file, char* exec_name) {
 #else 
     string* comp_call = string_create_f("nasm -f macho64 -w+all -g %s.s -o %s.o", asm_file, exec_name);
 #endif
-    info("Assembling with options '%s'", ucolor(string_data(comp_call)));
+    debug("Assembling with options '%s'", ucolor(string_data(comp_call)));
     push_timer("Assembler");
     system(string_data(comp_call));
     pop_timer();
@@ -478,7 +481,7 @@ void linking_stage(List* links, char* exec_name) {
         AST* link = it->data;
         string_append_f(link_call, " %s", link->Link.str);
     }
-    info("Linking with options '%s'", ucolor(string_data(link_call)));
+    debug("Linking with options '%s'", ucolor(string_data(link_call)));
     push_timer("Linker");
     system(string_data(link_call));
     pop_timer();

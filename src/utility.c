@@ -35,7 +35,7 @@
 //                               Printing Functions
 //------------------------------------------------------------------------------
 
-void _info(char* fmt, ...) {
+void _debug(char* fmt, ...) {
     xassert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -43,6 +43,16 @@ void _info(char* fmt, ...) {
     vprintf(fmt, args);
     puts(RESET);
     va_end(args);
+}
+
+void info(char* fmt, ...) {
+    xassert(fmt);
+    va_list args;
+    va_start(args, fmt);
+    printf("%s", RGB_GRAY);
+    vprintf(fmt, args);
+    puts(RESET);
+    va_end(args);   
 }
 
 void warning(char* fmt, ...) {
@@ -76,7 +86,7 @@ void error(char* fmt, ...) {
     exit(1);
 }
 
-void _info_no_newline(char* fmt, ...) {
+void _debug_no_newline(char* fmt, ...) {
     xassert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -120,9 +130,9 @@ void error_no_newline(char* fmt, ...) {
 //                               File Utility Functions
 //------------------------------------------------------------------------------
 
-#define DEBUG_PRINT_ENTRY info_no_newline("%s: %s", __func__, filename);
-#define DEBUG_PRINT_NONE_FOUND info(" -> NONE FOUND.");
-#define DEBUG_PRINT_EXIT info(" -> %s", str);
+#define DEBUG_PRINT_ENTRY debug_no_newline("%s: %s", __func__, filename);
+#define DEBUG_PRINT_NONE_FOUND debug(" -> NONE FOUND.");
+#define DEBUG_PRINT_EXIT debug(" -> %s", str);
 
 char* get_file_extension(char* filename) {
     xassert(filename);
@@ -218,7 +228,7 @@ void write_to_file(char* filename, char* buffer) {
         printf("Error opening file!\n");
         exit(1);
     }
-    info("%s: %s", (char*)__func__, filename);
+    debug("%s: %s", (char*)__func__, filename);
     fputs(buffer, f);
     fclose(f);
 }
@@ -271,7 +281,7 @@ void* _malloc(s64 bytes, char* file, char* func, s64 line) {
     void* alloc = malloc(bytes);
     if (!alloc) error("[%s:%s:%lld] malloc(%lld) failed", file, func, line, bytes);
     #if DEBUG_MEMORY_ALLOCATIONS
-    info("[%s:%s:%lld] malloc(%lld) called", file, func, line, bytes);
+    debug("[%s:%s:%lld] malloc(%lld) called", file, func, line, bytes);
     #endif
     return alloc;
 }
@@ -282,7 +292,7 @@ void* _calloc(s64 size, s64 bytes, char* file, char* func, s64 line) {
     void* alloc = calloc(size, bytes);
     if (!alloc) error("[%s:%s:%lld] calloc(%lld, %lld) failed", file, func, line, size, bytes);
     #if DEBUG_MEMORY_ALLOCATIONS
-    // info("[%s:%s:%lld] calloc(%lld, %lld) called", file, func, line, size, bytes);
+    // debug("[%s:%s:%lld] calloc(%lld, %lld) called", file, func, line, size, bytes);
     #endif
     return alloc;
 }
@@ -293,7 +303,7 @@ void* _realloc(void* ptr, s64 bytes, char* file, char* func, s64 line) {
     void* alloc = realloc(ptr, bytes);
     if (!alloc) error("[%s:%s:%lld] realloc(%lld, %llu) failed", file, func, line, (u64)ptr, bytes);
     #if DEBUG_MEMORY_ALLOCATIONS
-    // info("[%s:%s:%lld] realloc(%lld, %llu) called", file, func, line, (u64)ptr, bytes);
+    // debug("[%s:%s:%lld] realloc(%lld, %llu) called", file, func, line, (u64)ptr, bytes);
     #endif
     return alloc;
 }
@@ -303,7 +313,7 @@ u64 _strlen(char* str, char* file, char* func, s64 line) {
     u64 len = strlen(str);
     // if (!len) error("[%s:%s:%lld] strlen(%s) failed", file, func, line, str);
     #if DEBUG_MEMORY_ALLOCATIONS
-    // info("[%s:%s:%lld] strlen(%s) called", file, func, line, str);
+    // debug("[%s:%s:%lld] strlen(%s) called", file, func, line, str);
     #endif
     return len;   
 }
@@ -339,18 +349,25 @@ char* time_with_suffix(u64 n) {
             ? n / milliseconds(1ULL) : n >= microseconds(1ULL) 
             ? n / microseconds(1ULL) :  n >= nanoseconds(1ULL) 
             ? n / nanoseconds(1ULL) : n);
-    char* suffix = (n >= hours(1ULL) ? "h" 
-        : n >= minutes(1ULL) ? "m" 
-        : n >= seconds(1ULL) ? "s" 
-        : n >= milliseconds(1ULL) ? "ms" 
-        : n >= microseconds(1ULL) ? "us" 
-        : n >= nanoseconds(1ULL) ? "ns" : "");
+
+    char* suffix = (n >= hours(1ULL) ? DEFAULT_HOURS_SUFFIX
+        : n >= minutes(1ULL) ? DEFAULT_MINUTES_SUFFIX
+        : n >= seconds(1ULL) ? DEFAULT_SECONDS_SUFFIX
+        : n >= milliseconds(1ULL) ? DEFAULT_MILLISECONDS_SUFFIX
+        : n >= microseconds(1ULL) ? DEFAULT_MICROSECONDS_SUFFIX
+        : n >= nanoseconds(1ULL) ? DEFAULT_NANOSECONDS_SUFFIX
+        : "");
+    
     return strf("%llu%s", m, suffix);
 }
 
 char* size_with_suffix(u64 n) {
     u64 m = (n >= gigabytes(1ULL) ? n / gigabytes(1ULL) : n >= megabytes(1ULL) ? n / megabytes(1ULL) :  n >= kilobytes(1ULL) ? n / kilobytes(1ULL) :  n >= bytes(1ULL) ? n / bytes(1ULL) : n);
-    char* suffix = (n >= gigabytes(1ULL) ? "GB" : n >= megabytes(1ULL) ? "MB" :  n >= kilobytes(1ULL) ? "KB" :  n >= bytes(1ULL) ? "B" : "");
+    char* suffix = (n >= gigabytes(1ULL) ? DEFAULT_GIGABYTE_SUFFIX
+        : n >= megabytes(1ULL) ? DEFAULT_MEGABYTE_SUFFIX
+        :  n >= kilobytes(1ULL) ? DEFAULT_KILOBYTE_SUFFIX
+        :  n >= bytes(1ULL) ? DEFAULT_BYTE_SUFFIX
+        : "");
     return strf("%llu%s", m, suffix);
 }
 
@@ -370,7 +387,7 @@ char* table_entry(char* left, char* right) {
     return strf("%s%*s%s", left, padding, "", right);
 }
 
-char* insert_center(char* str, char* into) {
+char* str_replace_center(char* str, char* into) {
     s64 slen = xstrlen(str);
     s64 ilen = xstrlen(into);
     xassert(slen <= ilen);

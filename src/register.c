@@ -21,7 +21,7 @@
 #include "register.h"
 #include "utility.h" // error
 
-static char* reg[TOTAL_REG_COUNT] = {
+static char* reg[_REGISTER_COUNT_] = {
     "rax",
     "eax",
     "ax",
@@ -110,10 +110,7 @@ static char* reg[TOTAL_REG_COUNT] = {
     "xmm15",
 };
 
-s8 get_num_registers() {
-    return TOTAL_REG_COUNT;
-}
-char* get_reg(s8 reg_n) {
+char* get_reg(Register_Kind reg_n) {
     return reg[reg_n];
 }
 char* get_reg_fitting_value(Value* value) {
@@ -122,7 +119,7 @@ char* get_reg_fitting_value(Value* value) {
     return reg[reg_n];
 }
 
-s8 get_rax_reg_of_byte_size(u8 bytes, char c) {
+Register_Kind get_rax_reg_of_byte_size(u8 bytes, char c) {
     switch (bytes) {
     case 1: return c == 'a' ? AL : CL;
     case 2: return c == 'a' ? AX : CX;
@@ -133,9 +130,9 @@ s8 get_rax_reg_of_byte_size(u8 bytes, char c) {
     return -1;
 }
 
-s8 get_return_reg_int(s8 i, s8 size) {
+Register_Kind get_return_reg_int(s8 i, s8 size) {
     switch (i) {
-        ERROR_UNHANDLED_KIND(strf("i = %d, s = %d", i, size));
+    ERROR_UNHANDLED_KIND(strf("i = %d, s = %d", i, size));
     case 0:
         switch (size) {
         case 8: return RAX;
@@ -155,9 +152,9 @@ s8 get_return_reg_int(s8 i, s8 size) {
     return 0;
 }
 
-s8 get_return_reg_float(s8 i) {
+Register_Kind get_return_reg_float(s8 i) {
     switch (i) {
-        ERROR_UNHANDLED_KIND(strf("i = %d", i));
+    ERROR_UNHANDLED_KIND(strf("i = %d", i));
     case 0: return XMM0;
     case 1: return XMM1;
     }
@@ -165,7 +162,7 @@ s8 get_return_reg_float(s8 i) {
     return 0;
 }
 
-s8 get_parameter_reg_int(s8 i, s8 size) {
+Register_Kind get_parameter_reg_int(s8 i, s8 size) {
     switch (i) {
     case 0:
         switch (size) {
@@ -214,7 +211,7 @@ s8 get_parameter_reg_int(s8 i, s8 size) {
     return -1; // to silence warning
 };
 
-s8 get_parameter_reg_float(s8 i) {
+Register_Kind get_parameter_reg_float(s8 i) {
     switch (i) {
     case 0: return XMM0;
     case 1: return XMM1;
@@ -230,9 +227,10 @@ s8 get_parameter_reg_float(s8 i) {
     return 0;
 };
 
-s8 get_size_of_reg(s8 reg) {
-    if (reg >= XMM_REG_START) return 8;
+Register_Kind get_size_of_reg(Register_Kind reg) {
+    if (reg >= XMM0) return 8;
     switch (reg) {
+    ERROR_UNHANDLED_KIND(strf("%d", reg));
     case RAX: return 8;
     case EAX: return 4;
     case AX: return 2;
@@ -298,10 +296,12 @@ s8 get_size_of_reg(s8 reg) {
     case R15W: return 2;
     case R15B: return 1;
     }
+    UNREACHABLE;
     return 0;
 }
-s8 get_reg_as_another_size(s8 reg, s8 size) {
+Register_Kind get_reg_as_another_size(Register_Kind reg, s8 size) {
     switch (reg) {
+    ERROR_UNHANDLED_KIND(strf("%d", reg));
     case RAX:
     case EAX:
     case AX:
@@ -474,7 +474,7 @@ s8 get_reg_as_another_size(s8 reg, s8 size) {
     return -1; // to silence warning
 }
 
-s8 get_push_or_popable_reg(s8 reg) {
+Register_Kind get_push_or_popable_reg(Register_Kind reg) {
     switch (reg) {
     case R10:
     case R10B:

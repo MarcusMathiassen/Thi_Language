@@ -113,4 +113,36 @@ typedef s8       bool;
 #define true 1
 #define false 0
 
+
+
+
+
+
+// ------------------------ OPTIONS ---------------------------
+#define DEFAULT_GIGABYTE_SUFFIX "gb"
+#define DEFAULT_MEGABYTE_SUFFIX "mb"
+#define DEFAULT_KILOBYTE_SUFFIX "kb"
+#define DEFAULT_BYTE_SUFFIX "b"
+
+#define DEFAULT_HOURS_SUFFIX "h"
+#define DEFAULT_MINUTES_SUFFIX "m"
+#define DEFAULT_SECONDS_SUFFIX "s"
+#define DEFAULT_MILLISECONDS_SUFFIX "ms"
+#define DEFAULT_MICROSECONDS_SUFFIX "us"
+#define DEFAULT_NANOSECONDS_SUFFIX "ns"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #endif

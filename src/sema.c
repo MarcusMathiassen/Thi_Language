@@ -41,7 +41,7 @@ typedef struct {
 
 #define DEBUG_START \
     tassert(ctx && node, "%zu, %zu", ctx, node); \
-    info("%s: %s", give_unique_color(ast_kind_to_str(node->kind)), wrap_with_colored_parens(ast_to_str(node)));
+    debug("%s: %s", give_unique_color(ast_kind_to_str(node->kind)), wrap_with_colored_parens(ast_to_str(node)));
 
 #define SCOPE_START stack_push(((Sema_Context*)ctx)->scopes, make_map())
 #define SCOPE_END map_destroy(stack_pop(((Sema_Context*)ctx)->scopes))
@@ -172,7 +172,7 @@ static Type* _sema(Sema_Context* ctx, AST* node) {
     tassert(func, "sema missing callback for %s", kind);
     Type* result_t =  (*func)(ctx, node);
     result_t = result_t ? result_t : make_type_void();
-    info("%s: %s -> SEMA REPLACED TYPE %s WITH %s", give_unique_color(ast_kind_to_str(node->kind)), ast_to_str(node), ucolor(type_to_str(node->type)), ucolor(type_to_str(result_t)));
+    debug("%s: %s -> SEMA REPLACED TYPE %s WITH %s", give_unique_color(ast_kind_to_str(node->kind)), ast_to_str(node), ucolor(type_to_str(node->type)), ucolor(type_to_str(result_t)));
     node->type = result_t;
     return result_t;
 }
@@ -350,9 +350,9 @@ inline static Type* sema_field_access(Sema_Context* ctx, AST* node) {
     case TYPE_STRUCT: {
         list_foreach(load->type->Struct.members) {
             Type_Name_Pair* mem = it->data;
-            info_no_newline("on %s ", mem->name);
+            debug_no_newline("on %s ", mem->name);
             if (strcmp(mem->name, field_name) == 0) {
-                info_no_newline("FOUND -> %s of %s\n", mem->name, type_to_str(mem->type));
+                debug_no_newline("FOUND -> %s of %s\n", mem->name, type_to_str(mem->type));
                 result_t = mem->type;
                 break;
             }
@@ -577,7 +577,7 @@ inline static Type* sema_asm(Sema_Context* ctx, AST* node) {
 
 AST* get_symbol_in_scope(Sema_Context* ctx, char* name) {
     tassert(ctx && name, "%zu, %zu", ctx, name);
-    info("looking for %s", ucolor(name));
+    debug("looking for %s", ucolor(name));
 
     s32 scopes_looked_at = 0;
     s32 symbols_looked_at = 0;
@@ -590,7 +590,7 @@ AST* get_symbol_in_scope(Sema_Context* ctx, char* name) {
         ++scopes_looked_at;
         
         if (v) {
-            info("(%d:%d) key: %s value: %s", scopes_looked_at, symbols_looked_at, ucolor(name), ucolor(ast_to_str(v)));   
+            debug("(%d:%d) key: %s value: %s", scopes_looked_at, symbols_looked_at, ucolor(name), ucolor(ast_to_str(v)));   
             return v;
         }
 
@@ -602,13 +602,13 @@ AST* get_symbol_in_scope(Sema_Context* ctx, char* name) {
 inline static void add_node_to_scope(Sema_Context* ctx, AST* node) {
     tassert(ctx && node, "%zu, %zu", ctx, node);
     SCOPE_ADD(node);
-    info("scope added %s", ucolor(get_ast_name(node)));
+    debug("scope added %s", ucolor(get_ast_name(node)));
 }
 
 void add_all_decls_in_module(Sema_Context* ctx, AST* node) {
     tassert(ctx && node, "%zu, %zu", ctx, node);
     xassert(node->kind == AST_MODULE);
-    info("add_all_decls_in_module: %s", get_ast_name(node));
+    debug("add_all_decls_in_module: %s", get_ast_name(node));
     List* decls = node->Module.top_level;
     list_foreach(decls) {
         AST* decl = it->data;

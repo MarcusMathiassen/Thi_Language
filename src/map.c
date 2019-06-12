@@ -67,7 +67,7 @@ void map_tests(void) {
     map_foreach(map) {
         char* key = it->key;
         Test_Type* t =  it->value;
-        info("key: %s, value: %f", key, t->val);
+        debug("key: %s, value: %f", key, t->val);
     }
 }
 

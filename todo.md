@@ -43,6 +43,7 @@
 - [x] GLFW_KEY_LAST :: GLFW_KEY_MENU is not handled correctly. We need to do
       constant propogation. Or change all constants into variables with a stack
       position. #fixed: all constants are now varibles. ??
+- [ ] Reaching AST_Unary ast_get_literal_value_as_str error when disabling constant fold pass.
 
 ## Optimizations
 - [x] Turn 'i / 2.0' into ' i * 0.5'

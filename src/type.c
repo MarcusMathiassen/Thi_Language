@@ -215,7 +215,7 @@ List* type_get_members(Type* type) {
 void type_replace(Type* a, Type* b) {
     xassert(a);
     xassert(b);
-    info("REPLACED %s WITH %s", give_unique_color(type_to_str(a)), give_unique_color(type_to_str(b)));
+    debug("REPLACED %s WITH %s", give_unique_color(type_to_str(a)), give_unique_color(type_to_str(b)));
     *a = *b;
 }
 

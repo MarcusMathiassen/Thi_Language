@@ -125,9 +125,7 @@ char* ast_to_str(AST* node) {
     ctx.last.col = 0;
     ctx.str = string_create("");
     ctx.indentation_level = DEFAULT_INDENT_LEVEL;
-    return _ast_to_str(&ctx, node);
-}
-
+    return _ast_to_str(&ctx,
 static void _ast_to_str_comment                         (String_Context* ctx, AST* node);
 static void _ast_to_str_nop                             (String_Context* ctx, AST* node);
 static void _ast_to_str_space_separated_identifier_list (String_Context* ctx, AST* node);

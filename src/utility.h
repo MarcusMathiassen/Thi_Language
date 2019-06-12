@@ -26,21 +26,22 @@
 //                               Printing Functions
 //------------------------------------------------------------------------------
 // These must always be called with a fmt.
-// ex. 'info(my_str)' will crash if 'my_str' contains format specifiers.
-//      so always do this 'info("%s", my_str)' instead. any place where you see just info(thingy); 
+// ex. 'debug(my_str)' will crash if 'my_str' contains format specifiers.
+//      so always do this 'debug("%s", my_str)' instead. any place where you see just debug(thingy); 
 //      can be seen as an error.
 #ifdef NDEBUG
-#define info(fmt, ...)
-#define info_no_newline(fmt, ...)
+#define debug(fmt, ...)
+#define debug_no_newline(fmt, ...)
 #else
-#define info(fmt, ...) (_info(fmt, ##__VA_ARGS__))
-#define info_no_newline(fmt, ...) (_info_no_newline(fmt, ##__VA_ARGS__))
+#define debug(fmt, ...) (_debug(fmt, ##__VA_ARGS__))
+#define debug_no_newline(fmt, ...) (_debug_no_newline(fmt, ##__VA_ARGS__))
 #endif
-void _info(char* fmt, ...);
+void _debug(char* fmt, ...);
+void info(char* fmt, ...);
 void warning(char* fmt, ...);
 void success(char* fmt, ...);
 void error(char* fmt, ...);
-void _info_no_newline(char* fmt, ...);
+void _debug_no_newline(char* fmt, ...);
 void warning_no_newline(char* fmt, ...);
 void success_no_newline(char* fmt, ...);
 void error_no_newline(char* fmt, ...);
@@ -79,7 +80,7 @@ char* get_indentation_as_str(u64 indent_level);
 char* table_entry(char* left, char* right);
 char* align_center(char* str);
 char* pad_out_full_width(char ch);
-char* insert_center(char* str, char* into);
+char* str_replace_center(char* str, char* into);
 typedef struct {
     s64 line;
     s64 col;
