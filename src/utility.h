@@ -77,6 +77,8 @@ char* strf(char* fmt, ...);
 char* get_indentation_as_str(u64 indent_level);
 char* table_entry(char* left, char* right);
 char* align_center(char* str);
+char* pad_out_full_width(char ch);
+char* insert_center(char* str, char* into);
 typedef struct {
     s64 line;
     s64 col;

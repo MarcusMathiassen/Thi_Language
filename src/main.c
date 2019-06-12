@@ -435,7 +435,9 @@ int main(int argc, char** argv) {
 
     pop_timer();
 
-    success(align_center("--- Compiler timings ---"));
+
+
+    success(insert_center(" Compiler timings ", pad_out_full_width('_')));
     success(align_center(strf("lines %lld comments %lld", line_count, comment_count)));
     // Figure out percentage of total time for each timer
     Timer* total_time_timer = timer_list->tail->data;
@@ -448,7 +450,7 @@ int main(int argc, char** argv) {
         char* ms = strf("(%.2f%%) %fs", (tm->ms / total)*1e2, tm->ms / 1e3);
         success("%s", give_unique_color(table_entry(tm->desc, ms)));
     }
-    success("---------------------------");
+    success(align_center(pad_out_full_width('_')));
 
 // #ifndef NDEBUG
 //     write_to_file("output.thi", ast_to_source(ast));

@@ -353,6 +353,29 @@ char* table_entry(char* left, char* right) {
     return strf("%s%*s%s", left, padding, "", right);
 }
 
+char* insert_center(char* str, char* into) {
+    s64 slen = xstrlen(str);
+    s64 ilen = xstrlen(into);
+    xassert(slen <= ilen);
+
+    int imid = ilen/2;
+    int i_starting_point = imid - slen/2;
+    
+    for (int i = i_starting_point; i < slen+i_starting_point; ++i) {
+        into[i] = str[i-i_starting_point];
+    }
+
+    return into;
+}
+
+char* pad_out_full_width(char ch) {
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    char* str = xmalloc(w.ws_col);
+    foreach(i, w.ws_col)
+        str[i] = ch;
+    return str;
+}
 char* align_center(char* str) {
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
