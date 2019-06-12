@@ -435,8 +435,8 @@ int main(int argc, char** argv) {
 
     pop_timer();
 
-    success("--- Compiler timings ---");
-    success("lines %s%s comments %s", give_unique_color(strf("%lld", line_count)), RGB_GRAY, give_unique_color(strf("%lld", comment_count)));
+    success(align_center("--- Compiler timings ---"));
+    success(align_center(strf("lines %lld comments %lld", line_count, comment_count)));
     // Figure out percentage of total time for each timer
     Timer* total_time_timer = timer_list->tail->data;
 #if TIMERS_SORT

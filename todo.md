@@ -34,7 +34,7 @@
 - [ ] Bootstrap!
 
 ## Bugs
-- [ ] Timers are wacky. Sometimes negative? Buggy buggy.
+- [x] Timers are wacky. Sometimes negative? Buggy buggy. #fixed: changed the get_time function.
 - [ ] Typechecker shouldnt change the types of things. Only check.
 - [ ] there seems to be a bug in the ast_to_source printer. Comments get the
       wrong indentation after a block
@@ -45,6 +45,6 @@
       position. #fixed: all constants are now varibles. ??
 
 ## Optimizations
-- [ ] Turn 'i / 2.0' into ' i * 0.5'
+- [x] Turn 'i / 2.0' into ' i * 0.5'
 - [ ] Constant propagation
 

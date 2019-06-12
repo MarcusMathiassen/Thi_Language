@@ -353,6 +353,17 @@ char* table_entry(char* left, char* right) {
     return strf("%s%*s%s", left, padding, "", right);
 }
 
+char* align_center(char* str) {
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+
+    s64 len = xstrlen(str);
+    int middle = w.ws_col / 2;
+    s64 padding = middle - len/2;
+
+    return strf("%*s%s", padding, "", str);    
+}
+
 char* strn(char* start, char* end) {
     tassert(start && end && (start <= end), "%llu -> %llu", start, end);
     s64 len = end - start;

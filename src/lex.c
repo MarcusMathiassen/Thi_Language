@@ -23,7 +23,6 @@
 #include "utility.h" // info, warning, xmalloc, xrealloc, xstrlen
 #include <ctype.h> // isalnum, isdigit
 #include <string.h>  // strncmp
-#include <stdlib.h>  // malloc
 
 typedef struct
 {
@@ -197,15 +196,15 @@ static State_Kind transition[_STATE_COUNT_][_EQUIV_COUNT_] = {
     //
 };
 
-static bool in_token[] = {
-    [STATE_IN_WHITESPACE] = false,
-    [STATE_IN_IDENTIFIER] = true,
-    [STATE_IN_OPERATOR]   = true,
-    [STATE_IN_NUMBER]     = true,
-    [STATE_IN_STRING]     = true,
-    [STATE_IN_CHAR]       = true,
-    [STATE_IN_COMMENT]    = true,
-    [STATE_IN_NEWLINE]    = false,
+static s8 in_token[] = {
+    [STATE_IN_WHITESPACE] = 0,
+    [STATE_IN_IDENTIFIER] = 1,
+    [STATE_IN_OPERATOR]   = 1,
+    [STATE_IN_NUMBER]     = 1,
+    [STATE_IN_STRING]     = 1,
+    [STATE_IN_CHAR]       = 1,
+    [STATE_IN_COMMENT]    = 1,
+    [STATE_IN_NEWLINE]    = 0,
 };
 
 static Equivalence_Kind equivalence[] = {
