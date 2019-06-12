@@ -352,7 +352,7 @@ int main(int argc, char** argv) {
         } break;
         case 'v': puts(COMPILER_VERSION); return 0;
         case ':': debug("option needs a value\n"); return 0;
-        case '?': debug("unknown option: %c\n", optopt); return 0;
+        case '?': debug("unknown option: %c\n", opt); return 0;
         }
     }
 
