@@ -512,8 +512,7 @@ void _tassert(char* expr_str, char* file, char* func, int line, char* fmt, ...) 
 
 #ifdef __APPLE__
 #include <mach/mach_time.h>
-#endif
-#ifdef __unix__
+#else
 #include <time.h>
 #endif
 u64 get_time(void) {
