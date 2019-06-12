@@ -1165,6 +1165,7 @@ inline static Value* codegen_literal(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
+// @Cleanup @Audit @Volatile @Ugly
 inline static Value* codegen_asm(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     AST* block = node->Asm.block;
@@ -1186,6 +1187,7 @@ inline static Value* codegen_asm(Codegen_Context* ctx, AST* node) {
                     has_sub = true;
                     substart = str;
                     ++str;
+                    while (*str == ' ') ++str; // skip whitespace
 
                     char* start = str;
                     while (*str != '\0' && *str != ',' && *str != ' ' && *str != '"') ++str;

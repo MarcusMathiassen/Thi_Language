@@ -1056,13 +1056,38 @@ AST* parse_parens(Parser_Context* ctx) {
     return make_ast_grouping(lc, expr);
 }
 
+void eat_block_start(Parser_Context* ctx) {
+    skip_comments_or_newlines(ctx);
+    eat_kind(ctx, TOKEN_BLOCK_START);
+}
+
+
+// @Cleanup @Audit @Volatile @Ugly
 AST* parse_asm(Parser_Context* ctx) {
     DEBUG_START;
     Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_ASM);
-    ctx->inside_asm = true;
-    AST* block = parse_block(ctx);
-    ctx->inside_asm = false;
+    eat_block_start(ctx);
+    
+    List* stmts = make_list();
+    string* line = string_create("");
+    Loc_Info loc_of_line = loc(ctx);
+        
+    while (!tok_is(ctx, TOKEN_BLOCK_END)) {
+        if (tok_is(ctx, TOKEN_NEWLINE) && next_tok_kind(ctx) != TOKEN_BLOCK_END) {
+            list_append(stmts, make_ast_string(loc_of_line, string_data(line)));
+            loc_of_line = loc(ctx);
+            line = string_create("");
+        } else {
+            info("%s %s", token_kind_to_str(tokKind(ctx)), tokValue(ctx));
+            string_append_f(line, "%s ", tokValue(ctx));
+        }
+
+        eat(ctx);
+    }
+
+    eat(ctx); // eat the block end
+    AST* block = make_ast_block(lc, stmts);
     return make_ast_asm(lc, block);
 }
 

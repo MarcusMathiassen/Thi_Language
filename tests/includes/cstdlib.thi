@@ -1,33 +1,33 @@
 link "-lc"
-link "-lSystem"
-extern atoi (u8*)  s32
-extern atol (u8*)  s32
-extern atoll (u8*)  s64
-extern atof (u8*)  f64
-extern strtof (u8*, u8**)  f32
-extern strtod (u8*, u8**)  f64
-extern strtold (u8*, u8**)  f64
-extern strtol (u8*, u8**, s32)  s32
-extern strtoul (u8*, u8**, s32)  u32
-extern strtoll (u8*, u8**, s32)  s32
-extern strtoull (u8*, u8**, s32)  u64
-extern rand ()  s32
-extern srand (u32)
-extern malloc (u32)  void*
-extern calloc (u32, u32)  void*
-extern realloc (void *, u32)  void*
-extern free (void*) void
-extern aligned_alloc(u32, u32)  void*
-extern abort ()
-extern exit (s32) 
-extern _Exit (s32) 
-extern quick_exit (s32) 
-extern getenv (u8*)  u8*
-extern system (u8*)  s32
-extern abs (s32)  s32
-extern labs (s32)  s32
-extern llabs (s64)  s64
+link "-lsystem"
 NULL = 0
 EXIT_FAILURE = 1
 EXIT_SUCCESS = 0
 RAND_MAX = 0x7fffffff
+extern atoi(u8*) s32
+extern atol(u8*) s32
+extern atoll(u8*) s64
+extern atof(u8*) f64
+extern strtof(u8*, u8**) f32
+extern strtod(u8*, u8**) f64
+extern strtold(u8*, u8**) f64
+extern strtol(u8*, u8**, s32) s32
+extern strtoul(u8*, u8**, s32) u32
+extern strtoll(u8*, u8**, s32) s32
+extern strtoull(u8*, u8**, s32) u64
+extern rand () s32
+extern srand(u32)
+extern malloc(u32) void*
+extern calloc(u32, u32) void*
+extern realloc(void *, u32) void*
+extern free(void*) void
+extern aligned_alloc(u32, u32) void*
+extern abort()
+extern exit(s32) 
+extern _exit(s32) 
+extern quick_exit(s32) 
+extern getenv(u8*) u8*
+extern system(u8*) s32
+extern abs(s32) s32
+extern labs(s32) s32
+extern llabs(s64) s64
