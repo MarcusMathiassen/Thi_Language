@@ -387,8 +387,7 @@ int main(int argc, char** argv) {
     list_foreach_reverse(timer_list) {
         Timer* tm = it->data;
         char* sec = strf("(%.2f%%) %s", (((f64)tm->ns / total)*1e2), SHOW_TIMERS_WITH_SUFFIX ? time_with_suffix(tm->ns) : strf("%f"DEFAULT_SECONDS_SUFFIX, tm->ns/1e9));
-        // char* sec = strf("%s (%.2f%%)", time_with_suffix(tm->ns), (((f64)tm->ns / total)*1e2));
-        success("%s", give_unique_color(table_entry( tm->desc, sec)));
+        success("%s", ucolor(table_entry(strf("\u25CF %s", tm->desc), sec)));
     }
     success(pad_out_full_width('_'));
     success("", code);
