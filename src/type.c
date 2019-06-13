@@ -68,7 +68,7 @@ static void type_to_str_var_args   (string* s, Type* type);
 
 char* type_to_str(Type* type) {
 
-    string* s = string_create("");
+    string* s = make_string("");
 
     if (!type) {
         string_append(s, "---");

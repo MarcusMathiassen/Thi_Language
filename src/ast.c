@@ -35,6 +35,13 @@
 //                               AST Utility
 //------------------------------------------------------------------------------
 
+typedef struct {
+    string* str;
+    bool as_source;
+    Loc_Info last;
+    u64 indentation_level;
+} String_Context;
+
 static char* _ast_to_str(String_Context* ctx, AST* node);
 
 char* ast_kind_to_str(AST_Kind kind) {
@@ -113,17 +120,18 @@ char* ast_to_source(AST* node) {
     ctx.as_source = true;
     ctx.last.line = 0;
     ctx.last.col = 0;
-    ctx.str = string_create("");
+    ctx.str = make_string("");
     ctx.indentation_level = DEFAULT_INDENT_LEVEL;
     return _ast_to_str(&ctx, node);
 }
+
 
 char* ast_to_str(AST* node) {
     String_Context ctx;
     ctx.as_source = false;
     ctx.last.line = 0;
     ctx.last.col = 0;
-    ctx.str = string_create("");
+    ctx.str = make_string("");
     ctx.indentation_level = DEFAULT_INDENT_LEVEL;
     return _ast_to_str(&ctx, node);
 }

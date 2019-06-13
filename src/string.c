@@ -33,7 +33,7 @@
 #include <stdlib.h>  // free
 #include <string.h>  // memcpy
 
-string* string_create(char* str) {
+string* make_string(char* str) {
     xassert(str);
     string* s = xmalloc(sizeof(string));
     s->len = 0;
@@ -42,7 +42,7 @@ string* string_create(char* str) {
     string_append(s, str);
     return s;
 }
-string* string_create_f(char* fmt, ...) {
+string* make_string_f(char* fmt, ...) {
     xassert(fmt);
     va_list args;
     va_start(args, fmt);
@@ -52,7 +52,7 @@ string* string_create_f(char* fmt, ...) {
     va_start(args, fmt);
     vsnprintf(str, n, fmt, args);
     va_end(args);
-    string* s = string_create(str);
+    string* s = make_string(str);
     free(str);
     return s;
 }
@@ -103,7 +103,7 @@ void string_destroy(string* this) {
 
 void string_tests(void) {
     // string test
-    string* s = string_create("Hello");
+    string* s = make_string("Hello");
     xassert(s->len == 5);
     xassert(strcmp(string_data(s), "Hello") == 0);
     string_append(s, ", Marcus Mathiasssen.");

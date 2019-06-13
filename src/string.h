@@ -33,15 +33,8 @@ typedef struct {
     s64 cap;
 } string;
 
-typedef struct {
-    string* str;
-    bool as_source;
-    Loc_Info last;
-    u64 indentation_level;
-} String_Context;
-
-string* string_create(char* str);
-string* string_create_f(char* fmt, ...);
+string* make_string(char* str);
+string* make_string_f(char* fmt, ...);
 void string_destroy(string* this);
 char* string_data(string* this);
 void string_append(string* this, char* str);

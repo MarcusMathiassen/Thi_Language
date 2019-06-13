@@ -81,10 +81,6 @@ char* table_entry(char* left, char* right);
 char* align_center(char* str);
 char* pad_out_full_width(char ch);
 char* str_replace_center(char* str, char* into);
-typedef struct {
-    s64 line;
-    s64 col;
-} Loc_Info;
 #ifdef NDEBUG
 #define tassert(EX, FMT, ...)
 #define xassert(EX)

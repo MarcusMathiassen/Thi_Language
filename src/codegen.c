@@ -1328,9 +1328,9 @@ Codegen_Context make_codegen_context() {
     ctx.current_function = NULL;
     ctx.expected_type = NULL;
     ctx.inside_asm = false;
-    ctx.section_extern = string_create("");
-    ctx.section_text = string_create("");
-    ctx.section_data = string_create("");
+    ctx.section_extern = make_string("");
+    ctx.section_text = make_string("");
+    ctx.section_data = make_string("");
     ctx.stack_pos = 0;
     ctx.text_label_counter = 0;
     ctx.data_label_counter = 0;

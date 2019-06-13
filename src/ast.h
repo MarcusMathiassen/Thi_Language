@@ -103,6 +103,11 @@ typedef enum {
 
 typedef struct AST AST;
 
+typedef struct {
+    s64 line;
+    s64 col;
+} Loc_Info;
+
 struct AST {
     AST_Kind kind;
     Type* type;

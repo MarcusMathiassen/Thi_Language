@@ -39,8 +39,8 @@ typedef struct {
     s64 count;
 } List;
 
-#define list_foreach_reverse(list) for (List_Node* it = (list->tail); (it); (it) = (it)->prev)
-#define list_foreach(list) for (List_Node* it = (list->head); (it); (it) = (it)->next)
+#define list_foreach_reverse(list) for (List_Node* it = list->tail; it; it = it->prev)
+#define list_foreach(list) for (List_Node* it = list->head; it; it = it->next)
 
 List* make_list(void);
 void list_free(List* l);

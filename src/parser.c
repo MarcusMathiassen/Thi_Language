@@ -1071,14 +1071,14 @@ AST* parse_asm(Parser_Context* ctx) {
     eat_block_start(ctx);
     
     List* stmts = make_list();
-    string* line = string_create("");
+    string* line = make_string("");
     Loc_Info loc_of_line = loc(ctx);
         
     while (!tok_is(ctx, TOKEN_BLOCK_END)) {
         if (tok_is(ctx, TOKEN_NEWLINE) && next_tok_kind(ctx) != TOKEN_BLOCK_END) {
             list_append(stmts, make_ast_string(loc_of_line, string_data(line)));
             loc_of_line = loc(ctx);
-            line = string_create("");
+            line = make_string("");
         } else {
             info("%s %s", token_kind_to_str(tokKind(ctx)), tokValue(ctx));
             string_append_f(line, "%s ", tokValue(ctx));

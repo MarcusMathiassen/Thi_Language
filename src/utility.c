@@ -335,7 +335,7 @@ char* get_colored_minimap_of_file(char* file, char c) {
         }
         ++i;
     }
-    string* k = string_create("");
+    string* k = make_string("");
     list_foreach(lines) {
         char* line = it->data;
         string_append(k, ucolor(line));
