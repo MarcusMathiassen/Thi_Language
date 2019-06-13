@@ -1,4 +1,4 @@
-// Copyright (c) 2019 Marc2us Mathiassen
+// Copyright (c) 2019 Marcus Mathiassen
 
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),

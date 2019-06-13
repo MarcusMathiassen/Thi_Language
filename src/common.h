@@ -28,8 +28,9 @@
 
 #define PATH_TO_LLC "/usr/local/Cellar/llvm/8.0.0_1/bin/llc"
 
-#define TIMERS_SORT 0
+#define TIMERS_SORT true
 #define TIMERS_INDENT !TIMERS_SORT
+#define SHOW_TIMERS_WITH_SUFFIX true
 
 #define RESET "\033[0m"
 #define GRAY "\033[30m"
@@ -103,20 +104,13 @@ typedef s8       bool;
 #define hours(n) ((u64)minutes(n) * 60ULL)
 
 #define TASSERT_KIND_IN_RANGE(ENUM, kind) tassert(0 <= kind && kind < _##ENUM##_COUNT_, "kind = %d", kind)
-#define ERROR_UNHANDLED_KIND(str) \
-    default:                      \
-        error("[%s:%s:%d] Unhandled case '%s'", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color(str));
+#define ERROR_UNHANDLED_KIND(str) default: error("[%s:%s:%d] Unhandled case '%s'", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color(str));
 #define UNREACHABLE error("[%s:%s:%d] %s", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color("UNREACHABLE"));
 #define UNFINISHED error("[%s:%s:%d] %s", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color("UNFINISHED"));
 #define LOCATION_OF(module, node) strf("%s:%d:%d", module->Module.name, node->loc_info.line, node->loc_info.col)
 
 #define true 1
 #define false 0
-
-
-
-
-
 
 // ------------------------ OPTIONS ---------------------------
 #define DEFAULT_GIGABYTE_SUFFIX "gb"
