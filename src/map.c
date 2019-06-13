@@ -83,7 +83,7 @@ static u32 hash(char* str) {
 static inline Map_Element* find_slot_with_key(Map* map, char* key) {
     xassert(map && key);
     u32 index = hash(key);
-    Map_Element* probe = NULL;
+    Map_Element* probe;
     while ((probe = &map->elements[index++ % map->table_size])->key)
         if (strcmp(key, probe->key) == 0)
             break;
@@ -93,7 +93,7 @@ static inline Map_Element* find_slot_with_key(Map* map, char* key) {
 static inline Map_Element* find_empty_slot(Map* map, char* key) {
     xassert(map && key);
     u32 index = hash(key);
-    Map_Element* probe = NULL;
+    Map_Element* probe;
     while ((probe = &map->elements[index++ % map->table_size])->key);
         // tassert(strcmp(key, probe->key) != 0, "key %s already exists in map %zu", key, map);
     return probe;
@@ -124,17 +124,18 @@ s64 map_count(Map* map) {
 void* map_set(Map* map, char* key, void* value) {
     xassert(map && key && value);
     if ((float)map->count / map->table_size > 0.75f) {
-        s64 last_table_size = map->table_size;
-        map->table_size *= 2;
-        Map* nmap = make_map_with_initial_size(map->table_size);
-        foreach(k, last_table_size) {
-            Map_Element* probe = &map->elements[k];
-            if (probe->key) 
-                map_set(nmap, probe->key, probe->value);
+        u64 new_table_size = map->table_size * 2;
+        Map_Element* nelements = xcalloc(new_table_size, new_table_size * sizeof(Map_Element));
+        map_foreach(map) {
+            u32 index = hash(it->key);        
+            Map_Element* probe;
+            while ((probe = &nelements[index++ % new_table_size])->key);
+            probe->key = it->key;
+            probe->value = it->value;
         }
         free(map->elements);
-        xassert(map_count(map) == map_count(nmap));
-        *map = *nmap;
+        map->elements = nelements;
+        map->table_size = new_table_size;
     }
     Map_Element* slot = find_empty_slot(map, key);
     slot->key = key;
