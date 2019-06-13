@@ -23,11 +23,9 @@
 //------------------------------------------------------------------------------
 
 #include "map.h"
-
 #include "utility.h"
-
 #include <string.h>
-#include <stdlib.h> // free
+#include <stdlib.h>
 
 typedef struct
 {
@@ -95,7 +93,6 @@ static inline Map_Element* find_empty_slot(Map* map, char* key) {
     u32 index = hash(key);
     Map_Element* probe;
     while ((probe = &map->elements[index++ % map->table_size])->key);
-        // tassert(strcmp(key, probe->key) != 0, "key %s already exists in map %zu", key, map);
     return probe;
 }
 
@@ -147,6 +144,5 @@ void* map_set(Map* map, char* key, void* value) {
 void* map_get(Map* map, char* key) {
     xassert(map && key);
     Map_Element* slot = find_slot_with_key(map, key);
-    // tassert(slot->value, "key %s value was NULL.", key);
     return slot->value;
 }
