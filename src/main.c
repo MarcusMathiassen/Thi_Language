@@ -38,8 +38,8 @@
 #include <stdio.h>        // sprintf
 #include <stdlib.h>       // free
 #include <string.h>       // strcmp
-#include <sys/ioctl.h>    // NOTE(marcus): what do i use this for?
-#include <unistd.h>       // NOTE(marcus): what do i use this
+#include <sys/ioctl.h>    // @Note: what do i use this for?
+#include <unistd.h>       // @Note: what do i use this
 
 #ifdef __unix__
 #include <getopt.h>
@@ -444,6 +444,9 @@ int main(int argc, char** argv) {
 
     pop_timer();
 
+
+    // @FeltCuteMightDeleteLater
+    system("clear");
 
     success(str_replace_center(" Thi ", pad_out_full_width('_')));
     success(align_center(strf("lines %lld comments %lld", line_count, comment_count)));

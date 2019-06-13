@@ -26,10 +26,7 @@
 
 #define COMPILER_VERSION "0.1"
 
-#define PATH_TO_LLC "/usr/local/Cellar/llvm/8.0.0_1/bin/llc"
-
-#define TIMERS_SORT true
-#define TIMERS_INDENT !TIMERS_SORT
+#define TIMERS_SORT false
 #define SHOW_TIMERS_WITH_SUFFIX true
 
 #define RESET "\033[0m"

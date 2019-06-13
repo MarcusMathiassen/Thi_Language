@@ -18,6 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
+//@Audit: includes
+
 #include "utility.h"
 #include "list.h" // List
 #include "stack.h" // Stack
@@ -534,7 +536,7 @@ void push_timer(char* desc) {
     xassert(desc);
     Timer* tm = xmalloc(sizeof(Timer));
     tm->ns = get_time();
-    #if TIMERS_INDENT
+    #if !TIMERS_SORT
     tm->desc = strf("%*s%s", timer_indent, "", desc);
     timer_indent += timer_indent_amount;
     #else 
@@ -547,7 +549,7 @@ Timer* pop_timer(void) {
     Timer* tm = stack_pop(timer_stack);
     tm->ns = get_time() - tm->ns;
     list_append(timer_list, tm);
-    #if TIMERS_INDENT
+    #if !TIMERS_SORT
     timer_indent -= timer_indent_amount;
     #endif
     return tm;
