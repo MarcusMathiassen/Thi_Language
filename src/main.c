@@ -311,7 +311,9 @@ int main(int argc, char** argv) {
         error("thats not a thi file...");
     }
 
+    debug(ucolor(str_replace_center(" parsing ", pad_out_full_width('_'))));
     Parsed_File pf = parse(source_file);
+    
     AST* ast = pf.ast;
     Map* symbols = pf.symbols;
     s64 line_count = pf.lines;
@@ -325,17 +327,18 @@ int main(int argc, char** argv) {
 #endif
 
     // Semantic Analysis
+    debug(ucolor(str_replace_center(" sema ", pad_out_full_width('_'))));
+    debug("");
     sema(ast);
 
     //  Optimization passes
     run_pass(ast, "constant_fold", constant_fold, NULL);
 
     // Codegen
+    debug(ucolor(str_replace_center(" codegen ", pad_out_full_width('_'))));
     char* code = to_x64(ast);
-    debug(str_replace_center(" x64 ", pad_out_full_width('_')));
-    debug("", code);
+    debug("");
     debug("%s", code);
-    debug(pad_out_full_width('_'));
 
     pop_timer();
     push_timer("Backend");
