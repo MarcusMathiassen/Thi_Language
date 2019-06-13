@@ -1903,7 +1903,7 @@ char* get_instr(Token_Kind op, Type* type) {
     xassert(type);
     char* inst = NULL;
     switch (type->kind) {
-        ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_INT: {
         bool usig = type->Int.is_unsigned;
         switch (op) {

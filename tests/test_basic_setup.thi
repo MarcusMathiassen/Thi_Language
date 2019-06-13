@@ -6,12 +6,17 @@ def main() s32
     i = 3
 
     asm 
-        mov qword %i, 43
+        mov qword %i, 12
 
+    fmt = "%c"
     for k = 32; k < 127; ++k
-        printf("%c", k)
+    
+        asm 
+            mov rdi, %fmt
+            mov rsi, %k
+            mov al, 2
+            call _printf
 
     printf("\n")
 
     return i
-
