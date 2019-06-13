@@ -453,7 +453,7 @@ int main(int argc, char** argv) {
     list_sort(timer_list, timer_sort_func);
 #endif
     u64 total = total_time_timer->ns;
-    success(align_center(strf("%llu lines/sec", (u64)(1.0 / (f64)total*1e9) * (line_count+comment_count))));
+    success(align_center(strf("%llu lines/sec", (u64)(((1.0 / (f64)total*1e9)) * (line_count+comment_count)))));
     list_foreach_reverse(timer_list) {
         Timer* tm = it->data;
         char* sec = strf("%s (%.2f%%)", time_with_suffix(tm->ns), (((f64)tm->ns / total)*1e2));
