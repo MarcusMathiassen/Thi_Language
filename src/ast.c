@@ -815,6 +815,7 @@ AST* make_ast_comment(Loc_Info loc_info, char* text) {
     e->Comment.text = text;
     return e;
 }
+
 AST* make_ast_nop(Loc_Info loc_info) {
     AST* e = make_ast(AST_NOP, loc_info);
     return e;

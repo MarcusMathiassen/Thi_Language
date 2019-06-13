@@ -79,76 +79,6 @@ void linking_stage(List* links, char* exec_name);
 //                               Passes
 //------------------------------------------------------------------------------
 
-void* pass_add_all_symbols(void* symbols, AST* node) {
-    switch (node->kind) {
-    default: break;
-    case AST_ENUM:   // fallthrough
-    case AST_STRUCT: // fallthrough
-    case AST_FUNCTION: // fallthrough
-    case AST_EXTERN: map_set(symbols, get_type_name(node->type), node->type); break;
-    }
-    return NULL;
-}
-void* pass_resolve_all_symbols(void* symbols, AST* node) {
-    switch (node->kind) {
-    default: break;
-    case AST_ENUM:   // fallthrough
-    case AST_STRUCT: // fallthrough
-    case AST_FUNCTION: node->type = map_get(symbols, get_type_name(node->type)); break;
-    }
-    return NULL;
-}
-
-void* check_for_unresolved_types(void* ctx, AST* node) {
-    if (node->type && node->type->kind == TYPE_UNRESOLVED) {
-        error("[check_for_unresolved_types]: unresolved type found for node: %s", ast_to_str(node));
-    }
-    return NULL;
-}
-
-void* make_sure_all_nodes_have_a_valid_type(void* dont_care, AST* node) {
-    xassert(node);
-    switch (node->kind) {
-    case AST_COMMENT:  // fallthrough
-    case AST_NOP:      // fallthrough
-    case AST_MODULE:   // fallthrough
-    case AST_LOAD:     // fallthrough
-    case AST_LINK:     // fallthrough
-    case AST_BLOCK:    // fallthrough
-    case AST_WHILE:    // fallthrough
-    case AST_IF:       // fallthrough
-    case AST_FOR:      // fallthrough
-    case AST_SWITCH:   // fallthrough
-    case AST_IS:       // fallthrough
-    case AST_DEFER:    // fallthrough
-    case AST_BREAK:    // fallthrough
-    case AST_CONTINUE: // fallthrough
-    case AST_FALLTHROUGH: return NULL;
-    default: break;
-    }
-    debug("%s: %s -> %s", ast_kind_to_str(node->kind), wrap_with_colored_parens(ast_to_str(node)), give_unique_color(type_to_str(node->type)));
-
-    if (!node->type) {
-        error(
-            "[make_sure_all_nodes_have_a_valid_type]: missing type for "
-            "node: %s",
-            ast_to_str(node));
-    }
-    return NULL;
-}
-
-void* visitor_resolve_unresolved_types(void* symbols, AST* node) {
-    if (!node->type) return NULL;
-    Type* placeholder_t = node->type;
-    while (placeholder_t->kind == TYPE_POINTER) {
-        placeholder_t = placeholder_t->Pointer.pointee;
-    }
-    if (placeholder_t->kind == TYPE_UNRESOLVED) {
-        *placeholder_t = *((Type*)map_get(symbols, get_type_name(placeholder_t)));
-    }
-    return NULL;
-}
-
 void constant_fold_unary(AST* node) {
     AST* operand = node->Unary.operand;
     if (operand->kind == AST_GROUPING) operand = operand->Grouping.node;
@@ -394,24 +324,18 @@ int main(int argc, char** argv) {
     list_append(links, make_ast_link(ast->loc_info, "-lSystem"));
 #endif
 
-    // run_pass(ast, "resolve_unresolved_types", visitor_resolve_unresolved_types, symbols);
-
     // Semantic Analysis
     sema(ast);
-
-    // Sanity check.. Make sure the typer did what it was supposed to do.
-    // run_pass(ast, "make_sure_all_nodes_have_a_valid_type", make_sure_all_nodes_have_a_valid_type, NULL);
 
     //  Optimization passes
     run_pass(ast, "constant_fold", constant_fold, NULL);
 
-    // Sanity checks
-    // run_pass(ast, "check_for_unresolved_types", check_for_unresolved_types, NULL);
-
-
     // Codegen
     char* code = to_x64(ast);
+    debug(str_replace_center(" x64 ", pad_out_full_width('_')));
+    debug("", code);
     debug("%s", code);
+    debug(pad_out_full_width('_'));
 
     pop_timer();
     push_timer("Backend");
@@ -464,6 +388,7 @@ int main(int argc, char** argv) {
         success("%s", give_unique_color(table_entry( tm->desc, sec)));
     }
     success(pad_out_full_width('_'));
+    success("", code);
 
 // #ifndef NDEBUG
 //     write_to_file("output.thi", ast_to_source(ast));

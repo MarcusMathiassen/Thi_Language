@@ -375,6 +375,7 @@ Lexed_File lex(char* file) {
     s64 line = 1;
     s64 col = 1;
 
+    // Get token..
     do {
 
         last_token_kind = kind; // used for indent based scoping
@@ -415,7 +416,6 @@ Lexed_File lex(char* file) {
                 }
             }
             start = value; // @Hack: we're using something in a way it was ot ment to be used
-
         } break;
 
         case STATE_OPERATOR: {
