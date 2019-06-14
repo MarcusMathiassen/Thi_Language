@@ -196,7 +196,6 @@ AST* _parse(Parser_Context* ctx, char* file) {
 
     debug("Parsing file %s", file);
 
-    Loc_Info lc = loc(ctx);
 
     // Save state
     Token* saved_tokens = ctx->tokens;
@@ -222,6 +221,8 @@ AST* _parse(Parser_Context* ctx, char* file) {
     ctx->comments += lf.comments;
 
     debug("%s",  get_colored_minimap_of_file(ctx->file, '_'));
+    eat(ctx); // prime the first token so loc() gets the right line and col
+    Loc_Info lc = loc(ctx);
     List* top_level_ast = generate_ast_from_tokens(ctx);
     AST* ast = make_ast_module(lc, ctx->file, top_level_ast);
 
@@ -243,7 +244,6 @@ AST* _parse(Parser_Context* ctx, char* file) {
 
 List* generate_ast_from_tokens(Parser_Context* ctx) {
     debug("Generating AST from tokens..");
-    eat(ctx); // prep the first token
     List* ast = make_list();
     while(!tok_is(ctx, TOKEN_EOF)) {
         AST* stmt = parse_statement(ctx);
@@ -1073,8 +1073,10 @@ AST* parse_asm(Parser_Context* ctx) {
     List* stmts = make_list();
     string* line = make_string("");
     Loc_Info loc_of_line = loc(ctx);
-        
-    while (!tok_is(ctx, TOKEN_BLOCK_END)) {
+    
+
+    for (; ctx->curr_tok.kind != TOKEN_BLOCK_END; eat(ctx)) {
+        if(tok_is(ctx, TOKEN_COMMENT)) continue;
         if (tok_is(ctx, TOKEN_NEWLINE) && next_tok_kind(ctx) != TOKEN_BLOCK_END) {
             list_append(stmts, make_ast_string(loc_of_line, string_data(line)));
             loc_of_line = loc(ctx);
@@ -1083,8 +1085,6 @@ AST* parse_asm(Parser_Context* ctx) {
             info("%s %s", token_kind_to_str(tokKind(ctx)), tokValue(ctx));
             string_append_f(line, "%s ", tokValue(ctx));
         }
-
-        eat(ctx);
     }
 
     eat(ctx); // eat the block end
@@ -1268,6 +1268,7 @@ make_parser_context(void) {
     ctx.curr_tok.kind = TOKEN_UNKNOWN;
     ctx.llast_if_statement = NULL;
     ctx.olast_if_statement = NULL;
+    ctx.loads = make_list();
     ctx.loads = make_list();
     ctx.symbols = NULL; // we borrow anothers map
     ctx.lines = 0; // we borrow anothers map

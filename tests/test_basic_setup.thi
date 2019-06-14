@@ -9,6 +9,10 @@ def main() s32
         mov qword %i, 1
 
 
+    if i < 3
+        return 53
+
+
     return i
     #fmt = "%c"
     #for k = 32; k < 127; ++k

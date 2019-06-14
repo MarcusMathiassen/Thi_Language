@@ -103,7 +103,7 @@ char* get_ast_name(AST* node) {
     if (!node) return "---";
     switch (node->kind) {
     ERROR_UNHANDLED_AST_KIND(node->kind);
-    case AST_MODULE:        return node->Module.name;    
+    case AST_MODULE:        return node->Module.name;
     case AST_VARIABLE_DECL: return node->Variable_Decl.name;
     case AST_EXTERN:        return get_type_name(node->Extern.type); // @Todo: AST_Extern should follow AST_Functions patterns
     case AST_FUNCTION:      return node->Function.name;
@@ -115,7 +115,7 @@ char* get_ast_name(AST* node) {
     return NULL;
 }
 
-char* ast_to_source(AST* node) {
+char* ast_to_src(AST* node) {
     String_Context ctx;
     ctx.as_source = true;
     ctx.last.line = 0;
@@ -124,7 +124,6 @@ char* ast_to_source(AST* node) {
     ctx.indentation_level = DEFAULT_INDENT_LEVEL;
     return _ast_to_str(&ctx, node);
 }
-
 
 char* ast_to_str(AST* node) {
     String_Context ctx;
@@ -236,6 +235,7 @@ static char* _ast_to_str(String_Context* ctx, AST* node) {
         // Add some newlines if we have too :)
         // If there is a difference in line position. Add
         // that many newlines.
+        // xassert(node->loc_info.line >= ctx->last.line);
         s64 diff = node->loc_info.line - ctx->last.line;
         while (--diff > 0) {
             string_append_f(s, "\n%s", get_indentation_as_str(ctx->indentation_level));
@@ -354,11 +354,11 @@ static void _ast_to_str_float(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     // @Checkout(marcus): not to sure about the fmt.
-    // char* str = strf("%.14g", node->Float.val);
-    // u64 n = xstrlen(str);
+    char* str = strf("%.14g", node->Float.val);
+    u64 n = xstrlen(str);
     // This makes sure there is at least a single decimal point.
-    // string_append_f(s, "%s", n == 1 ? strf("%s.00", str) : str);
-    string_append_f(s, node->type->Float.bytes < 8 ? "%fF" : "%f", node->Float.val);
+    string_append_f(s, "%s", n == 1 ? strf("%s.0", str) : str);
+    if (node->type->Float.bytes < 8) string_append(s, "F");
 }
 
 static void _ast_to_str_string(String_Context* ctx, AST* node) {
@@ -487,7 +487,7 @@ static void _ast_to_str_function(String_Context* ctx, AST* node) {
         _ast_to_str(ctx, it->data);
         if (it->next) string_append(s, ", ");
     }
-    string_append_f(s, ") %s", get_type_name(node->type->Function.return_type));
+    string_append_f(s, ") %s ", get_type_name(node->type->Function.return_type));
     _ast_to_str(ctx, node->Function.body);
 }
 
@@ -868,11 +868,11 @@ AST* make_ast_extern(Loc_Info loc_info, Type* type) {
     return e;
 }
 
-AST* make_ast_load(Loc_Info loc_info, char* str, AST* module) {
-    xassert(str);
-    xassert(module);
-    AST* e = make_ast(AST_LOAD, loc_info);
-    e->Load.str = str;
+AST* make_ast_load(Loc_Info loc_info, char* str, AST* module) { 
+    xassert(str); 
+    xassert(module); 
+    AST* e = make_ast(AST_LOAD, loc_info); 
+    e->Load.str = str; 
     e->Load.module = module;
     return e;
 }

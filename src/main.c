@@ -387,13 +387,14 @@ int main(int argc, char** argv) {
     list_foreach_reverse(timer_list) {
         Timer* tm = it->data;
         char* sec = strf("(%.2f%%) %s", (((f64)tm->ns / total)*1e2), SHOW_TIMERS_WITH_SUFFIX ? time_with_suffix(tm->ns) : strf("%f"DEFAULT_SECONDS_SUFFIX, tm->ns/1e9));
-        success("%s", ucolor(table_entry(strf("\u25CF %s", tm->desc), sec)));
+        success("%s", ucolor(table_entry(strf("%s", tm->desc), sec)));
     }
     success(pad_out_full_width('_'));
     success("", code);
 
 // #ifndef NDEBUG
-//     write_to_file("output.thi", ast_to_source(ast));
+    // write_to_file("output.thi", ast_to_str(ast));
+    write_to_file("output.thi", ast_to_src(ast));
 // #endif
 
     return 0;
