@@ -1048,7 +1048,7 @@ inline static Value* codegen_return(Codegen_Context* ctx, AST* node) {
         s8 class_integer_counter = 0;
         s8 class_sse_counter = 0;
         switch (class) {
-            ERROR_UNHANDLED_CLASS_KIND(class);
+        ERROR_UNHANDLED_CLASS_KIND(class);
         // case CLASS_MEMORY: break;
         case CLASS_INTEGER: return_reg = get_return_reg_int(class_integer_counter++, size); break;
         case CLASS_SSE:

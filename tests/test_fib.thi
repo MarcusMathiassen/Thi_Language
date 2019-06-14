@@ -1,8 +1,7 @@
-fib(n: s32)
-    if n == 0 || n == 1
-        return n
-    else
-        return fib(n - 1) + fib(n - 2)
 
-main()
-    return fib(10) - 54
+def main() s64
+    return fib(10)
+
+def fib(x s64) s64 
+    return (x == 0 || x == 1) ? x : fib(x - 1) + fib(x - 2)
+

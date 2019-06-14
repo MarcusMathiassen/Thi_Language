@@ -83,6 +83,24 @@ def Lexer class
             is '_' => while isAlpha(*c) eat(); .Identifier
             is [0-9] => eatUntil(' '); .Number
 
+
+def Parser class
+    
+    file u8*
+
+    prev = Token{}
+    curr = Token{}
+    next = Token{}
+
+    def getToken() Token
+
+    def eat()
+        prev = curr
+        curr = next
+        next = lexer.getToken()
+
+
+
 def Parser class
 
     lexer = Lexer()
@@ -100,14 +118,24 @@ def Parser class
         if curr.kind != kind error("expected % got %", kind.str(), curr.kind.str())
         eat()
 
-    def sameLine() => prev.line == curr.line
+    def sameLine()     => prev.line == curr.line
     def nextSameLine() => curr.line == next.line
-    def isCurr(kind) => curr.kind == kind
-    def isNext(kind) => next.kind == kind
+    def isCurr(kind)   => curr.kind == kind
+    def isNext(kind)   => next.kind == kind
 
     def generateAST()
         eat() # prime the first token
         ast = []
+
+        while stmt = parseStatement()
+            ast += stmt
+
+        return ast
+
+
+        while stmt = parseStatement()
+            ast += stmt
+
         while !isCurr(.EOF)
             stmt = parseStatement()
             if stmt ast += stmt

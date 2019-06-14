@@ -24,6 +24,7 @@
 #include "list.h" // List
 #include "stack.h" // Stack
 #include "string.h" // string
+#include "map.h" // Map
 
 #include <stdarg.h> // va_list, va_start, va_end
 #include <stdio.h>  // printf, vprintf
@@ -407,9 +408,10 @@ char* str_replace_center(char* str, char* into) {
 char* pad_out_full_width(char ch) {
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    char* str = xmalloc(w.ws_col);
+    char* str = xmalloc(w.ws_col + 1);
     foreach(i, w.ws_col)
         str[i] = ch;
+    str[w.ws_col] = '\0';
     return str;
 }
 char* align_center(char* str) {
@@ -428,7 +430,7 @@ char* strn(char* start, char* end) {
     s64 len = end - start;
     char* str = xmalloc(len + 1);
     memcpy(str, start, len);
-    str[len] = 0;
+    str[len] = '\0';
     return str;
 }
 
@@ -439,13 +441,10 @@ char* strf(char* fmt, ...) {
     va_start(args, fmt);
     s64 n = 1 + vsnprintf(0, 0, fmt, args);
     va_end(args);
-
     char* str = xmalloc(n);
-
     va_start(args, fmt);
     vsnprintf(str, n, fmt, args);
     va_end(args);
-
     return str;
 }
 
@@ -528,7 +527,7 @@ u64 get_time(void) {
     #endif
 }
 
-List* timer_list;
+Map* timers;
 static Stack* timer_stack;
 static u64 timer_indent;
 #define timer_indent_amount 4
@@ -548,7 +547,7 @@ void push_timer(char* desc) {
 Timer* pop_timer(void) {
     Timer* tm = stack_pop(timer_stack);
     tm->ns = get_time() - tm->ns;
-    list_append(timer_list, tm);
+    map_set(timers, tm->desc, tm);
     #if !TIMERS_SORT
     timer_indent -= timer_indent_amount;
     #endif
@@ -557,7 +556,7 @@ Timer* pop_timer(void) {
 
 void initilize_timers(void) {
     timer_indent = 0;
-    timer_list = make_list();
+    timers = make_map();
     timer_stack = make_stack();
 }
 

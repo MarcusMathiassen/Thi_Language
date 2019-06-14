@@ -68,13 +68,13 @@ void string_append(string* this, char* str) {
     s64 str_len = xstrlen(str);
     if (str_len == 0) return;
     xassert(this->len <= this->cap);
-    while (this->len + str_len >= this->cap) {
+    while (this->len + str_len + 1 >= this->cap) {
         this->cap *= 2;
         this->c_str = xrealloc(this->c_str, this->cap * sizeof(*this->c_str));
     }
     memcpy(this->c_str + this->len, str, str_len);
     this->len += str_len;
-    this->c_str[this->len] = 0;
+    this->c_str[this->len] = '\0';
 }
 
 void string_append_f(string* this, char* fmt, ...) {

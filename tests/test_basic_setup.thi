@@ -5,15 +5,12 @@ def main() s32
     
     i = 3
 
+
     asm
         mov qword %i, 1
 
 
-    if i < 3
-        return 53
-
-
-    return i
+    return getInt()
     #fmt = "%c"
     #for k = 32; k < 127; ++k
     #    asm 
@@ -23,3 +20,7 @@ def main() s32
     #        call _printf
 
     #printf("\n")
+
+
+def getInt() s64
+    return 31

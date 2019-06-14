@@ -153,22 +153,22 @@ void constant_fold_binary(AST* node) {
 
         switch (op) {
         ERROR_UNHANDLED_TOKEN_KIND(op);
-        case TOKEN_EQ_EQ:               value = (lhs_v == rhs_v);break;
-        case TOKEN_BANG_EQ:             value = (lhs_v != rhs_v);break;
-        case TOKEN_PLUS:                value = (lhs_v +  rhs_v);break;
-        case TOKEN_MINUS:               value = (lhs_v -  rhs_v);break;
-        case TOKEN_ASTERISK:            value = (lhs_v *  rhs_v);break;
-        case TOKEN_FWSLASH:             value = (lhs_v /  rhs_v);break;
-        case TOKEN_AND:                 value = (lhs_v &  rhs_v);break;
-        case TOKEN_PIPE:                value = (lhs_v |  rhs_v);break;
-        case TOKEN_LT:                  value = (lhs_v <  rhs_v);break;
-        case TOKEN_GT:                  value = (lhs_v >  rhs_v);break;
-        case TOKEN_GT_GT:               value = (lhs_v >> rhs_v);break;
-        case TOKEN_LT_LT:               value = (lhs_v << rhs_v);break;
-        case TOKEN_PERCENT:             value = (lhs_v %  rhs_v);break;
-        case TOKEN_HAT:                 value = (lhs_v ^  rhs_v);break;
-        case TOKEN_AND_AND:             value = (lhs_v && rhs_v);break;
-        case TOKEN_PIPE_PIPE:           value = (lhs_v || rhs_v);break;
+        case TOKEN_EQ_EQ:               value = (lhs_v == rhs_v);  break;
+        case TOKEN_BANG_EQ:             value = (lhs_v != rhs_v);  break;
+        case TOKEN_PLUS:                value = (lhs_v +  rhs_v);  break;
+        case TOKEN_MINUS:               value = (lhs_v -  rhs_v);  break;
+        case TOKEN_ASTERISK:            value = (lhs_v *  rhs_v);  break;
+        case TOKEN_FWSLASH:             value = (lhs_v /  rhs_v);  break;
+        case TOKEN_AND:                 value = (lhs_v &  rhs_v);  break;
+        case TOKEN_PIPE:                value = (lhs_v |  rhs_v);  break;
+        case TOKEN_LT:                  value = (lhs_v <  rhs_v);  break;
+        case TOKEN_GT:                  value = (lhs_v >  rhs_v);  break;
+        case TOKEN_GT_GT:               value = (lhs_v >> rhs_v);  break;
+        case TOKEN_LT_LT:               value = (lhs_v << rhs_v);  break;
+        case TOKEN_PERCENT:             value = (lhs_v %  rhs_v);  break;
+        case TOKEN_HAT:                 value = (lhs_v ^  rhs_v);  break;
+        case TOKEN_AND_AND:             value = (lhs_v && rhs_v);  break;
+        case TOKEN_PIPE_PIPE:           value = (lhs_v || rhs_v);  break;
         case TOKEN_QUESTION_MARK:       return;
         case TOKEN_COLON:               return;
         }
@@ -182,16 +182,16 @@ void constant_fold_binary(AST* node) {
 
         switch (op) {
         ERROR_UNHANDLED_TOKEN_KIND(op);
-        case TOKEN_EQ_EQ:              value = (lhs_v == rhs_v); break; 
-        case TOKEN_BANG_EQ:            value = (lhs_v != rhs_v); break; 
-        case TOKEN_PLUS:               value = (lhs_v +  rhs_v); break; 
-        case TOKEN_MINUS:              value = (lhs_v -  rhs_v); break; 
-        case TOKEN_ASTERISK:           value = (lhs_v *  rhs_v); break; 
-        case TOKEN_FWSLASH:            value = (lhs_v /  rhs_v); break; 
-        case TOKEN_LT:                 value = (lhs_v <  rhs_v); break; 
-        case TOKEN_GT:                 value = (lhs_v >  rhs_v); break; 
-        case TOKEN_AND_AND:            value = (lhs_v && rhs_v); break; 
-        case TOKEN_PIPE_PIPE:          value = (lhs_v || rhs_v); break; 
+        case TOKEN_EQ_EQ:              value = (lhs_v == rhs_v);  break; 
+        case TOKEN_BANG_EQ:            value = (lhs_v != rhs_v);  break; 
+        case TOKEN_PLUS:               value = (lhs_v +  rhs_v);  break; 
+        case TOKEN_MINUS:              value = (lhs_v -  rhs_v);  break; 
+        case TOKEN_ASTERISK:           value = (lhs_v *  rhs_v);  break; 
+        case TOKEN_FWSLASH:            value = (lhs_v /  rhs_v);  break; 
+        case TOKEN_LT:                 value = (lhs_v <  rhs_v);  break; 
+        case TOKEN_GT:                 value = (lhs_v >  rhs_v);  break; 
+        case TOKEN_AND_AND:            value = (lhs_v && rhs_v);  break; 
+        case TOKEN_PIPE_PIPE:          value = (lhs_v || rhs_v);  break; 
         }
 
         lhs->Float.val = value;
@@ -378,15 +378,22 @@ int main(int argc, char** argv) {
     success(str_replace_center(" Thi ", pad_out_full_width('_')));
     success(align_center(strf("lines %lld comments %lld", line_count, comment_count)));
     // Figure out percentage of total time for each timer
-    Timer* total_time_timer = timer_list->tail->data;
+    List* timer_list = make_list();
+    map_foreach(timers) {
+        list_append(timer_list, it->value);
+    }
 #if TIMERS_SORT
     list_sort(timer_list, timer_sort_func);
 #endif
-    u64 total = total_time_timer->ns;
-    success(align_center(strf("%llu lines/sec", (u64)(((1.0 / (f64)total*1e9)) * (line_count+comment_count)))));
+    Timer* tm_total = map_get(timers, "Total time");
+    Timer* tm_frontend = map_get(timers, "Frontend");
+    Timer* tm_backend = map_get(timers, "Backend");
+    success(align_center(strf("Total    %llu lines/sec", (u64)(((1.0 / (f64)tm_total->ns*1e9)) * (line_count+comment_count)))));
+    success(align_center(strf("Backend  %llu lines/sec", (u64)(((1.0 / (f64)tm_backend->ns*1e9)) * (line_count+comment_count)))));
+    success(align_center(strf("Frontend %llu lines/sec", (u64)(((1.0 / (f64)tm_frontend->ns*1e9)) * (line_count+comment_count)))));
     list_foreach_reverse(timer_list) {
         Timer* tm = it->data;
-        char* sec = strf("(%.2f%%) %s", (((f64)tm->ns / total)*1e2), SHOW_TIMERS_WITH_SUFFIX ? time_with_suffix(tm->ns) : strf("%f"DEFAULT_SECONDS_SUFFIX, tm->ns/1e9));
+        char* sec = strf("(%.2f%%) %s", (((f64)tm->ns / tm_total->ns)*1e2), SHOW_TIMERS_WITH_SUFFIX ? time_with_suffix(tm->ns) : strf("%f"DEFAULT_SECONDS_SUFFIX, tm->ns/1e9));
         success("%s", ucolor(table_entry(strf("%s", tm->desc), sec)));
     }
     success(pad_out_full_width('_'));
