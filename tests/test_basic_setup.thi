@@ -5,10 +5,8 @@ def main() s32
     
     i = 3
 
-
     asm
         mov qword %i, 1
-
 
     return getInt()
     #fmt = "%c"

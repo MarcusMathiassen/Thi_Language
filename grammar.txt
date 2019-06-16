@@ -5,8 +5,8 @@
     else
     for
     while
-    type
     enum
+    struct
     return
     defer
     continue
@@ -17,6 +17,7 @@
     typeof
     as
     is
+    in
     true
     false
 #

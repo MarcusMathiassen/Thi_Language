@@ -32,6 +32,7 @@
 - [ ] Redo decls! Instead of AST_Variabel_Decl and AST_Function,
       consolidate them into a single AST_Decl. 
 - [ ] Bootstrap!
+- [ ] Find a better way to handle AST location information.
 
 ## Bugs
 - [x] Timers are wacky. Sometimes negative? Buggy buggy. #fixed: changed the get_time function.

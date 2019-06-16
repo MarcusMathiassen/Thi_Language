@@ -79,7 +79,7 @@ typedef enum {
     TOKEN_ASTERISK,
     TOKEN_PLUS,
     TOKEN_COMMA,
-    TOKEN_MINUS,
+    TOKEN_MINUS, 
     TOKEN_DOT,
     TOKEN_FWSLASH = 47,
     TOKEN_COLON = 58,
