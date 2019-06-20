@@ -1,0 +1,79 @@
+
+*** These modified files were found in JOE when it aborted on Wed Jun 19 07:53:01 2019
+*** JOE was aborted by UNIX signal 1
+
+*** File '(Unnamed)'
+autoindent
+autoindent
+hiline
+linums
+
+*** File '(Unnamed)'
+root
+root
+root
+root
+
+*** File '(Unnamed)'
+src
+src/ast.c
+src/ast.h
+src/codegen.c
+src/codegen.h
+src/common.h
+src/lex.c
+src/lex.h
+src/list.c
+src/list.h
+src/main.c
+src/map.c
+src/map.h
+src/parser.c
+src/parser.h
+src/register.c
+src/register.h
+src/sema.c
+src/sema.h
+src/stack.c
+src/stack.h
+src/string.c
+src/string.h
+src/type.c
+src/type.h
+src/utility.c
+src/utility.h
+src/value.c
+src/value.h
+
+*** File '* Startup Log *'
+Processing '/usr/local/Cellar/joe/4.6/etc/joe/joerc'...
+Processing '/usr/local/Cellar/joe/4.6/etc/joe/ftyperc'...
+Finished processing /usr/local/Cellar/joe/4.6/etc/joe/ftyperc
+Finished processing /usr/local/Cellar/joe/4.6/etc/joe/joerc
+
+*** These modified files were found in JOE when it aborted on Wed Jun 19 19:16:22 2019
+*** JOE was aborted by UNIX signal 1
+
+*** File '(Unnamed)'
+y
+clear
+
+*** File '(Unnamed)'
+make_ast_while
+AST
+AST
+make_ast_switch
+Struct
+Typeof
+
+*** File '(Unnamed)'
+src
+src/ast..c
+src/ast.c
+src/ast.h
+
+*** File '* Startup Log *'
+Processing '/usr/local/Cellar/joe/4.6/etc/joe/joerc'...
+Processing '/usr/local/Cellar/joe/4.6/etc/joe/ftyperc'...
+Finished processing /usr/local/Cellar/joe/4.6/etc/joe/ftyperc
+Finished processing /usr/local/Cellar/joe/4.6/etc/joe/joerc

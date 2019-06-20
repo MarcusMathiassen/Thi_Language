@@ -22,6 +22,7 @@
 //                               main.c
 //------------------------------------------------------------------------------
 
+#include "set.h"          // Set, set_tests
 #include "ast.h"          // AST, AST_Kind
 #include "codegen.h"      // generate_code_from_ast
 #include "lex.h"        // generate_tokens_from_source, print_tokens
@@ -267,6 +268,7 @@ int main(int argc, char** argv) {
     debug("Compiler was last compiled: "__TIME__);
 
 #ifndef NDEBUG
+    set_tests();
     utility_tests();
     string_tests();
     map_tests();
