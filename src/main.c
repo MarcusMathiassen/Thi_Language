@@ -25,7 +25,7 @@
 #include "set.h"          // Set, set_tests
 #include "ast.h"          // AST, AST_Kind
 #include "codegen.h"      // generate_code_from_ast
-#include "lex.h"        // generate_tokens_from_source, print_tokens
+#include "lex.h"          // generate_tokens_from_source, print_tokens
 #include "list.h"         // list_tests
 #include "map.h"          // map
 #include "parser.h"       // generate_ast_from_tokens
@@ -33,7 +33,7 @@
 #include "stack.h"        // stack_tests
 #include "string.h"       // strcmp
 #include "type.h"         // Type
-#include "common.h"     // u8, u16, s32, etc.
+#include "common.h"       // u8, u16, s32, etc.
 #include "utility.h"      // get_file_content, success, info, get_time
 #include "value.h"        // Value
 #include <stdio.h>        // sprintf

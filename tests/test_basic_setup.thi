@@ -1,37 +1,16 @@
-extern printf(u8*, ...) s32
-extern strlen(u8*) s64
-
-# Hello i am a comment
-def main() s32
-    
-    i = 3
-
-    asm
-        mov qword %i, 1
-
-    print("Marcus Mathiassen\n")
-
-    return getInt()
-    #fmt = "%c"
-    #for k = 32; k < 127; ++k
-    #    asm 
-    #        mov rdi, %fmt
-    #        mov rsi, %k
-    #        mov al, 2
-    #        call _printf
-
-    #printf("\n")
-
-
-def getInt() s64
-    return 31
-
 def print(msg u8*)
+    extern strlen(u8*) s64
     msg_len = strlen(msg)
-    asm 
+    asm
         mov     rax, 0x2000004  ; write
         mov     rdi, 1          ; stdout
         mov     rsi, %msg       ; msg
         mov     rdx, %msg_len   ; msg length
         syscall
     
+# Hello i am a comment
+def main() s32
+    
+    print("Marcus Mathiassen\n")
+    
+    return 1
