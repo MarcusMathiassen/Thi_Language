@@ -54,7 +54,7 @@ def __Type struct
     flags u32
     kind __TypeKind
 
-def TokenKind enum
+def TokenKind Enum
     Identifier
     Int
     Float
@@ -69,9 +69,9 @@ def TokenKind enum
 
 def Token struct
     kind TokenKind = .__Unknown
-    value u8* = 0
-    line s64 = 1
-    col s64 = 0
+    value = ""
+    line = 1
+    col = 0
 
 def Lexer class
     cursor u8* = 0
@@ -80,7 +80,7 @@ def Lexer class
     def getToken()
         c = cursor
         if *c
-            is '_' => while isAlpha(*c) eat(); .Identifier
+            is '_' => while isAlpha(*c) { eat() } .Identifier
             is [0-9] => eatUntil(' '); .Number
 
 
@@ -98,8 +98,6 @@ def Parser class
         prev = curr
         curr = next
         next = lexer.getToken()
-
-
 
 def Parser class
 
@@ -126,16 +124,6 @@ def Parser class
     def generateAST()
         eat() # prime the first token
         ast = []
-
-        while stmt = parseStatement()
-            ast += stmt
-
-        return ast
-
-
-        while stmt = parseStatement()
-            ast += stmt
-
         while !isCurr(.EOF)
             stmt = parseStatement()
             if stmt ast += stmt
