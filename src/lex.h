@@ -194,8 +194,8 @@ typedef struct {
     Token_Kind kind;
 
     // These are used to create the stringified value
-    char* start; 
-    char* end; 
+    char* start;
+    char* end;
 
     s64 line;
     s64 col;

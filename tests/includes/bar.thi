@@ -1,4 +1,0 @@
-load "foo"
-bar (a s64) s64
-    return foo(a)
-

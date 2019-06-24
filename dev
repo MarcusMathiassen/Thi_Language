@@ -5,18 +5,18 @@ compiler=clang
 src=./src/*.c
 flags=-Wall\ -Wextra\ -Wno-unused-function\ -Wno-unused-parameter\ -Werror
 std=c99
-$compiler $src -std=$std $olvl $flags -o $output -g -fsanitize=address -fno-omit-frame-pointer
+$compiler $src -std=$std $olvl $flags -o $output # -g -fsanitize=address -fno-omit-frame-pointer
 if [ $? == 0 ]; then
     test_files=$@
     if [ ${#test_files} == 0 ]; then
-        test_files="./tests/*.thi"
+        test_files="./test/*.thi"
     fi
     if [ $? == 0 ]; then
         # ./runtest
-        # ./runtest ./tests/test_window.thi
-        # ./runtest ./tests/test_defer.thi
-        ./runtest ./tests/test_basic_setup.thi
-        # ./runtest ./tests/test_fib.thi
-        # ./runtest ./tests/test_file.thi
+        # ./runtest ./test/test_window.thi
+        # ./runtest ./test/test_defer.thi
+        ./runtest ./test/test_basic_setup.thi
+        # ./runtest ./test/test_fib.thi
+        # ./runtest ./test/test_file.thi
     fi
 fi

@@ -1,8 +1,0 @@
-enum DeviceType
-    GPU :: 0
-    CPU :: 1
-
-
-main()
-    return 1
-

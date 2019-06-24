@@ -1,8 +1,0 @@
-main() 
-    x : s64 = N
-    return comp(x)
-
-N :: 3
-
-comp(i: s64) 
-    return i

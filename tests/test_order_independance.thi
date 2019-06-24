@@ -1,5 +1,0 @@
-main()
-    return get_integer(1)
-
-get_integer(i: s32)
-    return i

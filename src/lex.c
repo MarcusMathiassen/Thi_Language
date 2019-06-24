@@ -395,10 +395,11 @@ Lexed_File lex(char* file) {
 
         // info ("state %s", state_kind_to_str(state));
 
+
         // need to backtrack a bit
         char* start = --c - len;
         char* end = c;
-
+        
         // Set the indenation level
         col = start - position_of_newline;
 
@@ -588,7 +589,7 @@ Lexed_File lex(char* file) {
         case STATE_NEWLINE:
         {
             kind = TOKEN_NEWLINE;
-            position_of_newline = start;
+            position_of_newline = start + 1;
             end = ++c;// skip the newline
             ++line;
         } break;
@@ -609,19 +610,17 @@ Lexed_File lex(char* file) {
             // else error("[%s:%d:%d] indentation error.", file, line, col);
         }
 
-
         xassert(kind != TOKEN_UNKNOWN);
         token_array_append(&tokens, (Token){kind, start, end, line, col});
 
     } while(kind != TOKEN_EOF);
 
-    // debug("Printing tokens..");
-    // foreach(i, tokens.count - 1) {
-    //     debug("kind: '%s' value: '%s' start: %llu end: %llu", 
-    //         ucolor(token_kind_to_str(tokens.data[i].kind)), 
-    //         ucolor(token_value(tokens.data[i])),
-    //         tokens.data[i].start, tokens.data[i].end);
-    // }
+    debug("Printing tokens..");
+    foreach(i, tokens.count - 1) {
+        debug("kind: '%s' start: %llu end: %llu", 
+            ucolor(token_kind_to_str(tokens.data[i].kind)),
+            tokens.data[i].start, tokens.data[i].end);
+    }
 
     pop_timer();
     // error("%f seconds", tm->ms * 0.001);
@@ -637,6 +636,10 @@ char* token_value(Token token) {
     return (
         token.kind > _BEGINNING_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_ && 
         token.kind < _END_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_) ? token.start : strn(token.start, token.end);
+}
+
+char* token_to_str(Token token) {
+    return strf("%s -> %s", token_kind_to_str(token.kind), token_value(token));
 }
 
 char* token_kind_to_str(Token_Kind kind) {

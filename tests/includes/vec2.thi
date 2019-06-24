@@ -1,4 +1,0 @@
-load "foo"
-bar (a: s32)
-    return foo(1)
-

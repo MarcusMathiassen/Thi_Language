@@ -1,7 +1,0 @@
-struct Foo 
-    i: s64
-
-main()
-    array: Foo[5]
-    array[4].i = 1
-    return array[4].i

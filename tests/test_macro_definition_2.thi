@@ -1,4 +1,0 @@
-NUMBER1 :: 3
-NUMBER2 :: -2
-main()
-    return NUMBER1 + NUMBER2
