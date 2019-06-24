@@ -20,7 +20,7 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 #include "common.h"
-#include "map.h"
+#include "list.h" // List
 #include <stdlib.h>  // malloc, realloc, calloc
 #include <stdarg.h> // va_list, va_start, va_end
 //------------------------------------------------------------------------------
@@ -110,9 +110,9 @@ typedef struct
     char* desc;
 } Timer;
 u64 get_time(void);
-extern Map* timers;
+extern List* timer_list;
 Timer* pop_timer(void);
-void push_timer(char* desc);
+Timer* push_timer(char* desc);
 void initilize_timers(void);
 //------------------------------------------------------------------------------
 //                               Tests

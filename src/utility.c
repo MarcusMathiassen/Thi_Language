@@ -24,7 +24,6 @@
 #include "list.h" // List
 #include "stack.h" // Stack
 #include "string.h" // string
-#include "map.h" // Map
 
 #include <stdio.h>  // printf, vprintf
 #include <stdlib.h> // malloc, realloc, calloc
@@ -537,11 +536,11 @@ u64 get_time(void) {
     #endif
 }
 
-Map* timers;
+List* timer_list;
 static Stack* timer_stack;
 static u64 timer_indent;
 #define timer_indent_amount 4
-void push_timer(char* desc) {
+Timer* push_timer(char* desc) {
     xassert(desc);
     Timer* tm = xmalloc(sizeof(Timer));
     tm->ns = get_time();
@@ -552,12 +551,13 @@ void push_timer(char* desc) {
     tm->desc = desc;
     #endif
     stack_push(timer_stack, tm);
+    return tm;
 }
 
 Timer* pop_timer(void) {
     Timer* tm = stack_pop(timer_stack);
     tm->ns = get_time() - tm->ns;
-    map_set(timers, tm->desc, tm);
+    list_append(timer_list, tm);
     #if !TIMERS_SORT
     timer_indent -= timer_indent_amount;
     #endif
@@ -566,7 +566,7 @@ Timer* pop_timer(void) {
 
 void initilize_timers(void) {
     timer_indent = 0;
-    timers = make_map();
+    timer_list = make_list();
     timer_stack = make_stack();
 }
 

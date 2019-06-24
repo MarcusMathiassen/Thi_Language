@@ -379,10 +379,6 @@ int main(int argc, char** argv) {
     success(str_replace_center(" Thi ", pad_out_full_width('_')));
     success(align_center(strf("lines %lld comments %lld", line_count, comment_count)));
     // Figure out percentage of total time for each timer
-    List* timer_list = make_list();
-    map_foreach(timers) {
-        list_append(timer_list, it->value);
-    }
 #if TIMERS_SORT
     list_sort(timer_list, timer_sort_func);
 #endif
