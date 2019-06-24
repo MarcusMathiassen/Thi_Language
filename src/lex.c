@@ -366,7 +366,9 @@ Lexed_File lex(char* file) {
     Token_Kind kind = TOKEN_UNKNOWN;
     Token_Kind last_token_kind;
     Token_Array tokens = make_token_array();
-    char* c = get_file_content(file);
+    char* source =  get_file_content(file);
+
+    char* c = source; // this will be our 'iterator'
     char* position_of_newline = c;
     s64 current_indentation_level = 0 ;
     s64 previous_indentation_level = 0 ;
@@ -411,7 +413,7 @@ Lexed_File lex(char* file) {
             char* value = intern_range(&interns, start, end);
             foreach(i, _KEY_COUNT_) {
                 if (interned_keywords[i] == value) {
-                    kind = i + _TOKEN_KEYWORDS_START_+1; // keywords start at _TOKEN_KEYWORDS_START_+1 @Volatile
+                    kind = (Token_Kind)(i + _TOKEN_KEYWORDS_START_+1); // keywords start at _TOKEN_KEYWORDS_START_+1 @Volatile
                     break;
                 }
             }
@@ -586,7 +588,7 @@ Lexed_File lex(char* file) {
         case STATE_NEWLINE:
         {
             kind = TOKEN_NEWLINE;
-            position_of_newline = ++start;
+            position_of_newline = start;
             end = ++c;// skip the newline
             ++line;
         } break;
@@ -598,10 +600,10 @@ Lexed_File lex(char* file) {
             
             if (current_indentation_level > previous_indentation_level) {
                 previous_indentation_level = current_indentation_level;
-                token_array_append(&tokens, (Token){TOKEN_BLOCK_START, start-1, start, line, col});
+                token_array_append(&tokens, (Token){TOKEN_BLOCK_START, start, end, line, col});
             } else while (current_indentation_level < previous_indentation_level) {
                 previous_indentation_level -= DEFAULT_INDENT_LEVEL;
-                token_array_append(&tokens, (Token){TOKEN_BLOCK_END, start-1, start, line, col});
+                token_array_append(&tokens, (Token){TOKEN_BLOCK_END, start, end, line, col});
             }
 
             // else error("[%s:%d:%d] indentation error.", file, line, col);
@@ -614,13 +616,12 @@ Lexed_File lex(char* file) {
     } while(kind != TOKEN_EOF);
 
     // debug("Printing tokens..");
-    // foreach(i, tokens.count) {
-    //     debug("kind: %s value: '%s' start: %llu end: %llu", 
+    // foreach(i, tokens.count - 1) {
+    //     debug("kind: '%s' value: '%s' start: %llu end: %llu", 
     //         ucolor(token_kind_to_str(tokens.data[i].kind)), 
     //         ucolor(token_value(tokens.data[i])),
     //         tokens.data[i].start, tokens.data[i].end);
     // }
-    // error("fe");
 
     pop_timer();
     // error("%f seconds", tm->ms * 0.001);

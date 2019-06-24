@@ -171,7 +171,7 @@ void emit_cast                        (Codegen_Context* ctx, Value* variable, Ty
 void emit_cast_int_to_int             (Codegen_Context* ctx, char* reg, Type* type);
 void emit_cast_float_to_int           (Codegen_Context* ctx, char* reg, Type* type);
 void emit_store_deref                 (Codegen_Context* ctx, Value* variable);
-void emit_store_r                     (Codegen_Context* ctx, Value* variable, s64 reg);
+void emit_store_r                     (Codegen_Context* ctx, Value* variable, Register_Kind reg);
 void emit_store                       (Codegen_Context* ctx, Value* variable);
 void emit_load                        (Codegen_Context* ctx, Value* variable);
 void emit_jmp                         (Codegen_Context* ctx, char* label);
@@ -871,7 +871,7 @@ inline static Value* codegen_function(Codegen_Context* ctx, AST* node) {
 
         Value* arg_v = codegen(ctx, arg);
         s64 size = get_size_of_value(arg_v);
-        s8 param_reg = -1;
+        Register_Kind param_reg = -1;
 
         switch (class) {
         ERROR_UNHANDLED_CLASS_KIND(class);
@@ -1389,6 +1389,7 @@ void emit_extern(Codegen_Context* ctx, char* fmt, ...) {
 
 char* emit_data(Codegen_Context* ctx, char* fmt, ...) {
     xassert(ctx);
+    
     va_list args;
     va_start(args, fmt);
     s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // xstrlen + 1 for '\n'
@@ -1775,7 +1776,7 @@ void emit_cast(Codegen_Context* ctx, Value* variable, Type* desired_type) {
     }
 }
 
-void emit_store_r(Codegen_Context* ctx, Value* variable, s64 reg) {
+void emit_store_r(Codegen_Context* ctx, Value* variable, Register_Kind reg) {
     xassert(ctx);
     xassert(variable);
     xassert(variable->kind == VALUE_VARIABLE);

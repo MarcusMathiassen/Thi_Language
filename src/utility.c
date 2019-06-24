@@ -26,7 +26,6 @@
 #include "string.h" // string
 #include "map.h" // Map
 
-#include <stdarg.h> // va_list, va_start, va_end
 #include <stdio.h>  // printf, vprintf
 #include <stdlib.h> // malloc, realloc, calloc
 #include <string.h> // memcpy, strlen
@@ -395,10 +394,10 @@ char* str_replace_center(char* str, char* into) {
     s64 ilen = xstrlen(into);
     xassert(slen <= ilen);
 
-    int imid = ilen/2;
-    int i_starting_point = imid - slen/2;
+    s64 imid = ilen/2;
+    s64 i_starting_point = imid - slen/2;
 
-    for (int i = i_starting_point; i < slen+i_starting_point; ++i) {
+    for (s64 i = i_starting_point; i < slen+i_starting_point; ++i) {
         into[i] = str[i-i_starting_point];
     }
 
@@ -426,7 +425,7 @@ char* align_center(char* str) {
 }
 
 char* strn(char* start, char* end) {
-    tassert(start && end && (start <= end), "%llu -> %llu", start, end);
+    tassert(start && end && (start < end), "%llu -> %llu", start, end);
     s64 len = end - start;
     char* str = xmalloc(len + 1);
     memcpy(str, start, len);
@@ -434,17 +433,29 @@ char* strn(char* start, char* end) {
     return str;
 }
 
-
 char* strf(char* fmt, ...) {
     xassert(fmt);
     va_list args;
     va_start(args, fmt);
     s64 n = 1 + vsnprintf(0, 0, fmt, args);
     va_end(args);
-    char* str = xmalloc(n);
+    char* str = xmalloc(n + 1);
     va_start(args, fmt);
     vsnprintf(str, n, fmt, args);
     va_end(args);
+    str[n] = '\0';
+    return str;
+}
+
+char* vstrf(char* fmt, va_list args) {
+    xassert(fmt);
+    va_list args_count;
+    va_copy(args_count, args);
+    s64 n = 1 + vsnprintf(0, 0, fmt, args_count);
+    va_end(args_count);
+    char* str = xmalloc(n + 1);
+    vsnprintf(str, n, fmt, args);
+    str[n] = '\0';
     return str;
 }
 

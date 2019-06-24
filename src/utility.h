@@ -22,6 +22,7 @@
 #include "common.h"
 #include "map.h"
 #include <stdlib.h>  // malloc, realloc, calloc
+#include <stdarg.h> // va_list, va_start, va_end
 //------------------------------------------------------------------------------
 //                               Printing Functions
 //------------------------------------------------------------------------------
@@ -76,6 +77,7 @@ char* time_with_suffix(u64 n);
 char* size_with_suffix(u64 n);
 char* strn(char* start, char* end);
 char* strf(char* fmt, ...);
+char* vstrf(char* fmt, va_list args);
 char* get_indentation_as_str(u64 indent_level);
 char* table_entry(char* left, char* right);
 char* align_center(char* str);

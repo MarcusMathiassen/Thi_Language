@@ -46,14 +46,10 @@ string* make_string_f(char* fmt, ...) {
     xassert(fmt);
     va_list args;
     va_start(args, fmt);
-    s64 n = 1 + vsnprintf(0, 0, fmt, args);
+    char* tmp = vstrf(fmt, args);
     va_end(args);
-    char* str = xmalloc(n);
-    va_start(args, fmt);
-    vsnprintf(str, n, fmt, args);
-    va_end(args);
-    string* s = make_string(str);
-    free(str);
+    string* s = make_string(tmp);
+    free(tmp);
     return s;
 }
 char* string_data(string* this) {
@@ -64,9 +60,7 @@ char* string_data(string* this) {
 
 void string_append(string* this, char* str) {
     xassert(this);
-    if (!str) return;
     s64 str_len = xstrlen(str);
-    if (str_len == 0) return;
     xassert(this->len <= this->cap);
     while (this->len + str_len + 1 >= this->cap) {
         this->cap *= 2;
@@ -82,14 +76,10 @@ void string_append_f(string* this, char* fmt, ...) {
     xassert(fmt);
     va_list args;
     va_start(args, fmt);
-    s64 n = 1 + vsnprintf(0, 0, fmt, args);
+    char* tmp = vstrf(fmt, args);
     va_end(args);
-    char* str = xmalloc(n);
-    va_start(args, fmt);
-    vsnprintf(str, n, fmt, args);
-    va_end(args);
-    string_append(this, str);
-    free(str);
+    string_append(this, tmp);
+    free(tmp);
 }
 void string_destroy(string* this) {
     xassert(this);
@@ -105,7 +95,7 @@ void string_tests(void) {
     // string test
     string* s = make_string("Hello");
     xassert(s->len == 5);
-    xassert(strcmp(string_data(s), "Hello") == 0);
+    tassert(strcmp(string_data(s), "Hello") == 0, "%s", string_data(s));
     string_append(s, ", Marcus Mathiasssen.");
     xassert(s->len == 26);
     xassert(strcmp(string_data(s), "Hello, Marcus Mathiasssen.") == 0);

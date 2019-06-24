@@ -311,7 +311,7 @@ AST* parse_statement(Parser_Context* ctx) {
     case TOKEN_EOF:                 eat(ctx); break;
     case TOKEN_SEMICOLON: break;// fallthrough
     case TOKEN_NEWLINE: {
-        eat(ctx); 
+        eat(ctx);
         result = NULL; 
     } break;
     case TOKEN_COMMENT:

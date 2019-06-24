@@ -1,16 +1,17 @@
-def print(msg u8*)
+def print(msg u8*) {
     extern strlen(u8*) s64
     msg_len = strlen(msg)
-    asm
+    asm {
         mov     rax, 0x2000004  ; write
         mov     rdi, 1          ; stdout
         mov     rsi, %msg       ; msg
         mov     rdx, %msg_len   ; msg length
         syscall
+    }
+}
     
 # Hello i am a comment
-def main() s32
-    
+def main() s32 {
     print("Marcus Mathiassen\n")
-    
     return 1
+}
