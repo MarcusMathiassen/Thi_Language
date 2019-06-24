@@ -341,7 +341,7 @@ int main(int argc, char** argv) {
     debug("");
     debug("%s", code);
 
-    pop_timer();
+    Timer* tm_frontend = pop_timer();
     push_timer("Backend");
 
     // Write to file
@@ -355,7 +355,7 @@ int main(int argc, char** argv) {
         // system(strf("rm %s.s", name_with_ext_removed));
     } else error("generating code from ast failed.");
 
-    pop_timer();
+    Timer* tm_backend = pop_timer();
 
     // Debug info. Writing out sizes of our types.
     // table_entry align the 1st argument to the left and the 2nd to the right.
@@ -370,7 +370,7 @@ int main(int argc, char** argv) {
     debug(ucolor(table_entry("size of code", size_with_suffix(strlen(code) / sizeof(code)))));
     debug(ucolor(table_entry("size of symbols", size_with_suffix(symbols->count * sizeof(*symbols->elements)))));
 
-    pop_timer();
+    Timer* tm_total = pop_timer();
 
 
     // @FeltCuteMightDeleteLater
@@ -386,17 +386,14 @@ int main(int argc, char** argv) {
 #if TIMERS_SORT
     list_sort(timer_list, timer_sort_func);
 #endif
-    Timer* tm_total = map_get(timers, "Total time");
-    Timer* tm_frontend = map_get(timers, "Frontend");
-    Timer* tm_backend = map_get(timers, "Backend");
     success(align_center(strf("Total    %llu lines/sec", (u64)(((1.0 / (f64)tm_total->ns*1e9)) * (line_count+comment_count)))));
     success(align_center(strf("Backend  %llu lines/sec", (u64)(((1.0 / (f64)tm_backend->ns*1e9)) * (line_count+comment_count)))));
     success(align_center(strf("Frontend %llu lines/sec", (u64)(((1.0 / (f64)tm_frontend->ns*1e9)) * (line_count+comment_count)))));
-    // list_foreach_reverse(timer_list) {
-    //     Timer* tm = it->data;
-    //     char* sec = strf("(%.2f%%) %s", (((f64)tm->ns / tm_total->ns)*1e2), SHOW_TIMERS_WITH_SUFFIX ? time_with_suffix(tm->ns) : strf("%f"DEFAULT_SECONDS_SUFFIX, tm->ns/1e9));
-    //     success("%s", ucolor(table_entry(strf("%s", tm->desc), sec)));
-    // }
+    list_foreach_reverse(timer_list) {
+        Timer* tm = it->data;
+        char* sec = strf("(%.2f%%) %s", (((f64)tm->ns / tm_total->ns)*1e2), SHOW_TIMERS_WITH_SUFFIX ? time_with_suffix(tm->ns) : strf("%f"DEFAULT_SECONDS_SUFFIX, tm->ns/1e9));
+        success("%s", ucolor(table_entry(strf("%s", tm->desc), sec)));
+    }
     success(pad_out_full_width('_'));
 
 // #ifndef NDEBUG

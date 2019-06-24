@@ -392,7 +392,6 @@ char* table_entry(char* left, char* right) {
 char* str_replace_center(char* str, char* into) {
     s64 slen = xstrlen(str);
     s64 ilen = xstrlen(into);
-    xassert(slen <= ilen);
 
     s64 imid = ilen/2;
     s64 i_starting_point = imid - slen/2;
