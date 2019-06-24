@@ -416,10 +416,10 @@ char* pad_out_full_width(char ch) {
 char* align_center(char* str) {
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-
+    
     s64 len = xstrlen(str);
-    int middle = w.ws_col / 2;
-    s64 padding = middle - len/2;
+    s64 middle = w.ws_col / 2;
+    s64 padding = middle - len / 2;
 
     return strf("%*s%s", padding, "", str);    
 }
