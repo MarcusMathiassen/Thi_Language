@@ -424,7 +424,7 @@ char* align_center(char* str) {
 }
 
 char* strn(char* start, char* end) {
-    tassert(start && end && (start < end), "%llu -> %llu", start, end);
+    tassert(start && end && (start <= end), "%llu -> %llu", start, end);
     s64 len = end - start;
     char* str = xmalloc(len + 1);
     memcpy(str, start, len);
