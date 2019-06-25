@@ -1,4 +1,5 @@
 # Specify filepatterns you want git to ignore.
+*.o
 *.s
 *.thi
 ast.json
