@@ -74,7 +74,6 @@ typedef enum {
     _KEY_COUNT_,
 } Keyword_Kind;
 
-
 typedef enum {
     STATE_END = 0,
 

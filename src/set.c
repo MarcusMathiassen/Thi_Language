@@ -46,7 +46,6 @@ void* set_is_element_of(Set* this, void* data) {
     return map_get(this->elements, strf("%d", index));
 }
 
-
 typedef struct
 {
     float val;

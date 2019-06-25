@@ -27,7 +27,7 @@
 #define COMPILER_VERSION "0.1"
 
 #define TIMERS_SORT 0
-#define SHOW_TIMERS_WITH_SUFFIX 1
+#define SHOW_TIMERS_WITH_SUFFIX 0
 
 #define RESET "\033[0m"
 #define GRAY "\033[30m"
