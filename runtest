@@ -10,7 +10,7 @@ NC='\033[0m' # No Color
 
 test_files=$@
 if [ ${#test_files} == 0 ]; then
-    test_files="./test/*.thi"
+    test_files="./tests/*.thi"
 fi
 
 failed_test_files=()
@@ -40,7 +40,7 @@ do
 
     if [ -f $name ]; then
         # Run it
-        ./${name} ./test/test_basic_setup.thi fefoekp
+        ./${name} ./tests/test_basic_setup.thi fefoekp
         res=$?
         ((num_tests_compiled_successfully++))
         passing_test_files+=" $tf"

@@ -9,14 +9,14 @@ $compiler $src -std=$std $olvl $flags -o $output -g -fsanitize=address -fno-omit
 if [ $? == 0 ]; then
     test_files=$@
     if [ ${#test_files} == 0 ]; then
-        test_files="./test/*.thi"
+        test_files="./tests/*.thi"
     fi
     if [ $? == 0 ]; then
         # ./runtest
-        # ./runtest ./test/test_window.thi
-        # ./runtest ./test/test_defer.thi
-        # ./runtest ./test/test_basic_setup.thi
-        # ./runtest ./test/test_fib.thi
-        ./runtest ./test/test_file.thi
+        # ./runtest ./tests/test_window.thi
+        # ./runtest ./tests/test_defer.thi
+        ./runtest ./tests/test_basic_setup.thi
+        # ./runtest ./tests/test_fib.thi
+        # ./runtest ./tests/test_file.thi
     fi
 fi
