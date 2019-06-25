@@ -4,8 +4,8 @@
 *.thi
 ast.json
 .vscode
+thi
+test_window
 output
 thi.dSYM
-output.s
-output.thi
 .DS_Store
