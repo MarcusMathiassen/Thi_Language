@@ -1,0 +1,6 @@
+def main() s64
+    return fib(10) - 54
+
+def fib(x s64) s64 
+    return (x == 0 || x == 1) ? x : fib(x - 1) + fib(x - 2)
+

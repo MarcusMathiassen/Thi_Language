@@ -1,0 +1,18 @@
+struct bar
+    a: s32
+    b: s64
+    c: f32
+
+
+struct foo
+    a: bar
+    b: bar
+
+main()
+    a: bar
+    b: foo
+
+    b.b.a = 3
+
+    return b.b.a - b.b.a + 1
+

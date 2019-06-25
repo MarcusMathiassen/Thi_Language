@@ -1,0 +1,6 @@
+main()
+    a: s32
+    b: s64
+    c: s32
+    return 1
+

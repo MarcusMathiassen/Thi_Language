@@ -1,0 +1,4 @@
+load "includes/bar"
+load "includes/foo"
+main()
+    return bar(1)

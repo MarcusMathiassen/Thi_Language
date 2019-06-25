@@ -1,0 +1,6 @@
+extern printf(char*, ...) s32
+
+main()
+    mySecretNumber := 3
+    printf("Is %d your secret number?\n", mySecretNumber)
+    return 1

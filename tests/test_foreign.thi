@@ -1,0 +1,5 @@
+extern putchar (s32)  s32
+main() 
+    putchar(65)
+    return 1
+

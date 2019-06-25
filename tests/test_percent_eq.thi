@@ -1,0 +1,4 @@
+main()
+    i := 5
+    return i %= 4
+

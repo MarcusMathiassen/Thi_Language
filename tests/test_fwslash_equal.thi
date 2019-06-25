@@ -1,0 +1,5 @@
+main()
+    a := 4
+    a /= 2
+    return a - 1
+

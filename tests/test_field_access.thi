@@ -1,0 +1,9 @@
+struct Person
+    age: s64
+
+
+main()
+    p: Person
+    p.age = 65
+    i := 0
+    return p.age - 64

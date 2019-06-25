@@ -1,7 +1,7 @@
 # Specify filepatterns you want git to ignore.
 *.o
 *.s
-*.thi
+output.thi
 ast.json
 .vscode
 thi

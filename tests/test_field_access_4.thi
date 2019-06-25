@@ -1,0 +1,17 @@
+struct Child
+    b: s32
+    a: s32[5]
+
+
+struct Parent
+    a: s32
+    b: Child
+    c: f32
+
+
+main() 
+    a: Parent
+    a.b.a[4] = 1
+    a.a = 1
+    return a.b.a[4]
+

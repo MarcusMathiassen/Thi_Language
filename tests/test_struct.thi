@@ -1,0 +1,9 @@
+struct int2
+    x: int
+    y: int
+
+main()
+    v: int2
+    v.x = 3
+    v.y = 5
+    return v.x + v.y - 7

@@ -1,0 +1,66 @@
+
+load "includes/cstdio"
+load "includes/cstdlib"
+
+def lex(source u8*) char*
+    c = source
+    while *c != 0 
+        printf("%c", *c)
+        ++c
+
+def main(argc s32, argv char**) s32
+    if argc < 2 { puts("too few arguments.") exit(0) }
+    source_file = argv[1]
+    content = get_file_content(source_file)
+    if !content { printf("Failed to get content of file '%s'\n", source_file) }
+    lex(content)
+    return 1
+
+
+# Reads an entire file into a zero terminated C style string
+def get_file_content(filename char*) char*
+
+    buffer char*
+    buffer = 0
+
+    if handler = fopen(filename, "r")
+
+        # Seek the last byte of the file
+        fseek(handler, 0, 2)
+
+        # Offset from the first to the last byte, or in other words, filesize
+        string_size = ftell(handler)
+
+        # go back to the start of the file
+        rewind(handler)
+
+        # Allocate a string that can hold it all
+        buffer = malloc(string_size + 1)
+
+        # Read it all in one operation
+        read_size = fread(buffer, 1, string_size, handler)
+
+        # fread doesn't set it so put a \0 in the last position
+        # and buffer is now officially a string
+        buffer[string_size] = 0
+
+        if string_size != read_size
+            # Something went wrong, throw away the memory and set
+            # the buffer to NULL
+            free(buffer)
+            buffer = 0
+
+        # Always remember to close the file.
+        fclose(handler)
+
+    return buffer
+
+
+def write_to_file(filename char*, buffer char*)
+    if f = fopen(filename, "w")
+        fputs(buffer, f)
+        fclose(f)
+    else 
+        puts("Error opening file!")
+        exit(1)
+

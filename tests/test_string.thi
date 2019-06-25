@@ -1,0 +1,4 @@
+main()
+    name := "Marcus"
+    return 1
+

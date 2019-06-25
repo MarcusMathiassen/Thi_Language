@@ -1,0 +1,15 @@
+
+
+
+struct v2
+    x: s32
+    y: s32
+
+
+get(v: v2)
+    return v.x
+
+main()
+    v: v2
+    v.x = 3
+    return get(v)
