@@ -15,8 +15,8 @@ if [ $? == 0 ]; then
         # ./runtest
         # ./runtest ./test/test_window.thi
         # ./runtest ./test/test_defer.thi
-        ./runtest ./test/test_basic_setup.thi
+        # ./runtest ./test/test_basic_setup.thi
         # ./runtest ./test/test_fib.thi
-        # ./runtest ./test/test_file.thi
+        ./runtest ./test/test_file.thi
     fi
 fi

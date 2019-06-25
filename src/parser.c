@@ -37,7 +37,7 @@
 
 #define DEBUG_START \
     xassert(ctx); \
-    debug("%s: %s", __func__, token_to_str(currTok(ctx)));
+    // debug("%s: %s", __func__, token_to_str(currTok(ctx)));
 
 #define UNARY_OP_COUNT 11
 Token_Kind unary_ops[UNARY_OP_COUNT] = {
