@@ -1017,6 +1017,7 @@ AST* make_ast_is(Loc_Info loc_info, AST* node, AST* body, bool has_fallthrough) 
 AST* make_ast_block(Loc_Info loc_info, List* stmts) {
     AST* e = make_ast(AST_BLOCK, loc_info);
     e->Block.stmts = stmts;
+    e->Block.flags = 0;
     return e;
 }
 

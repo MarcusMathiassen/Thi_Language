@@ -1,0 +1,93 @@
+Searching 168 files for "Block.flags"
+
+/Users/marcusmathiassen/thi/src/parser.c:
+  657      AST* block = make_ast_block(lc, stmts);
+  658  
+  659:     block->Block.flags = flags;
+  660      xassert(block);
+  661      restore_if_statement(ctx);
+
+/Users/marcusmathiassen/thi/src/sema.c:
+  387      SCOPE_START;
+  388      List* stmts = node->Block.stmts;
+  389:     u32 flags = node->Block.flags;
+  390      List* returned_nodes = make_list();
+  391  
+
+2 matches across 2 files
+
+
+Searching 168 files for "list_last"
+
+/Users/marcusmathiassen/thi/thi:
+    <binary>
+
+/Users/marcusmathiassen/thi/src/list.c:
+   69      // At
+   70      xassert(((Test_Type*)list_first(list))->val == 3.43f);
+   71:     xassert(((Test_Type*)list_last(list))->val == 6.41f);
+   72  
+   73      // Prepend
+   ..
+  291  }
+  292  
+  293: void* list_last(List* list) {
+  294      xassert(list);
+  295      return list->tail->data;
+
+/Users/marcusmathiassen/thi/src/list.h:
+   49  void* list_append(List* list, void* data);
+   50  void* list_prepend(List* list, void* data);
+   51: void* list_last(List* list);
+   52  void* list_first(List* list);
+   53  void* list_at(List* list, s64 index);
+
+/Users/marcusmathiassen/thi/src/parser.c:
+  658      
+  659      if (flags & BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED) {
+  660:         AST* last_stmt = list_last(stmts);
+  661          ast_replace(last_stmt, make_ast_return(last_stmt->loc_info, last_stmt));
+  662          error("%s", ast_to_str(last_stmt));
+
+/Users/marcusmathiassen/thi/thi.dSYM/Contents/Resources/DWARF/thi:
+    <binary>
+
+20 matches across 5 files
+
+
+Searching 168 files for "make_ast_return"
+
+/Users/marcusmathiassen/thi/thi:
+    <binary>
+
+/Users/marcusmathiassen/thi/src/ast.c:
+ 1098  }
+ 1099  
+ 1100: AST* make_ast_return(Loc_Info loc_info, AST* node) {
+ 1101      // xassert(node); // returns can be called with out an nodeession
+ 1102      AST* e = make_ast(AST_RETURN, loc_info);
+
+/Users/marcusmathiassen/thi/src/ast.h:
+  355  AST* make_ast_for                             (Loc_Info loc_info, AST* init, AST* cond, AST* step, AST* then_block);
+  356  AST* make_ast_while                           (Loc_Info loc_info, AST* cond, AST* then_block);
+  357: AST* make_ast_return                          (Loc_Info loc_info, AST* node);
+  358  AST* make_ast_defer                           (Loc_Info loc_info, AST* node);
+  359  AST* make_ast_as                              (Loc_Info loc_info, AST* node, AST* type_node);
+
+/Users/marcusmathiassen/thi/src/parser.c:
+  659      if (flags & BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED) {
+  660          AST* last_stmt = list_last(stmts);
+  661:         ast_replace(last_stmt, make_ast_return(last_stmt->loc_info, last_stmt));
+  662          error("%s %s", ast_kind_to_str(last_stmt->kind), ast_kind_to_str(last_stmt->Return.node->kind));
+  663      }
+  ...
+  674      eat_kind(ctx, TOKEN_RETURN);
+  675      AST* expr = tok_is_on_same_line(ctx) ? parse_expression(ctx) : NULL;
+  676:     return make_ast_return(lc, expr);
+  677  }
+  678  
+
+/Users/marcusmathiassen/thi/thi.dSYM/Contents/Resources/DWARF/thi:
+    <binary>
+
+9 matches across 5 files

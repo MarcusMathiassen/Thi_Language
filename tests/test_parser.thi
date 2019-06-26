@@ -9,6 +9,10 @@ def main(argc int, argc char**)
     writeToFile(name, asm)
     return 1
 
+
+def getType(x) => x.type ? x.type : inferType(x.type)
+
+
 def compile(source)
     tokens = makeTokens(source)
     ast    = makeAST(tokens)

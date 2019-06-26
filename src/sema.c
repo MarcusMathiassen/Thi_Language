@@ -386,7 +386,6 @@ static Type* sema_block(Sema_Context* ctx, AST* node) {
     
     SCOPE_START;
     List* stmts = node->Block.stmts;
-
     List* returned_nodes = make_list();
 
     list_foreach(stmts) {

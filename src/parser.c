@@ -635,29 +635,36 @@ AST* parse_block(Parser_Context* ctx) {
     DEBUG_START;
     Loc_Info lc = loc(ctx);
 
-    AST* block = NULL;
     u32 flags = 0;
     Token_Kind delimitor = TOKEN_BLOCK_END;
 
-    // eat_block_start(ctx);
-
-    // Skip junk
     skip_comments_or_newlines(ctx);
 
     // Check for single line implicit returned 
     // ex. def my_func() => 1 
     if (tok_is(ctx, TOKEN_EQ_GT) && tok_is_on_same_line(ctx)) {
-        eat(ctx);
-        flags = BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED;
+        flags |= BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED;
         delimitor = TOKEN_NEWLINE;
+        eat(ctx);
     } else {
         eat_kind(ctx, TOKEN_BLOCK_START);
     }
     List* stmts = parse_delimited_list(ctx, parse_statement, delimitor);
     eat(ctx);
-    block = make_ast_block(lc, stmts);
+    AST* block = make_ast_block(lc, stmts);
+    
 
-    block->Block.flags |= flags;
+    // @Audit @Cleanup @Ugly
+    if (flags & BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED) {
+        list_foreach_reverse(stmts) {
+            AST* last_stmt = it->data;
+            list_remove(stmts, it);
+            list_append(stmts, make_ast_return(last_stmt->loc_info, last_stmt));
+            break;
+        }
+    }
+
+    block->Block.flags = flags;
     xassert(block);
     restore_if_statement(ctx);
     return block;

@@ -37,7 +37,7 @@
 //------------------------------------------------------------------------------
 
 typedef enum {
-    BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED,
+    BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED = 1 << 0,
 } BlockFlags;
 
 typedef enum {
@@ -182,7 +182,7 @@ struct AST {
         struct
         {
             List* stmts;
-            u8 flags;
+            u32 flags;
         } Block;
         struct
         {
