@@ -657,8 +657,7 @@ AST* parse_block(Parser_Context* ctx) {
     // @Audit @Cleanup @Ugly
     if (flags & BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED) {
         AST* last_stmt = stmts->tail->data;
-        list_remove(stmts, stmts->tail);
-        list_append(stmts, make_ast_return(last_stmt->loc_info, last_stmt));
+        stmts->tail->data = make_ast_return(last_stmt->loc_info, last_stmt);
     }
 
     block->Block.flags = flags;

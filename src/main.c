@@ -375,6 +375,8 @@ int main(int argc, char** argv) {
 
     {
         // @FeltCuteMightDeleteLater
+        system("clear");
+        
         success(str_replace_center(" Thi ", pad_out_full_width('_')));
         success(align_center(strf("lines %lld comments %lld", line_count, comment_count)));
 
