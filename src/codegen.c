@@ -806,10 +806,10 @@ static Value* codegen_block(Codegen_Context* ctx, AST* node) {
     push_scope(ctx);
     List* stmts = node->Block.stmts;
     Value* last = NULL;
-    // if (node->Block.flags & BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED) {
-    // AST* last_stmt = list_last(stmts);
-    // ast_replace(last_stmt, make_ast_return(last_stmt->loc_info, last_stmt));
-    // }
+    if (node->Block.flags & BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED) {
+        AST* last_stmt = list_last(stmts);
+        ast_replace(last_stmt, make_ast_return(last_stmt->loc_info, last_stmt));
+    }
     list_foreach(stmts) {
         last = codegen(ctx, it->data);
     }

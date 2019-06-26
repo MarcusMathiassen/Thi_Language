@@ -393,10 +393,9 @@ int main(int argc, char** argv) {
         success(pad_out_full_width('_'));
     }
 
-// #ifndef NDEBUG
-    // write_to_file("output.thi", ast_to_str(ast));
+#ifndef NDEBUG
     write_to_file("output.thi", ast_to_src(ast));
-// #endif
+#endif
 
     return 0;
 }

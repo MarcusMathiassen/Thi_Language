@@ -637,36 +637,29 @@ AST* parse_block(Parser_Context* ctx) {
 
     AST* block = NULL;
     u32 flags = 0;
+    Token_Kind delimitor = TOKEN_BLOCK_END;
 
     // eat_block_start(ctx);
 
     // Skip junk
     skip_comments_or_newlines(ctx);
 
-    // are we parsing a single line expression list thingy?
-    // if (tok_is_on_same_line(ctx) && !tok_is(ctx, TOKEN_NEWLINE)) {
-    //     if (tok_is(ctx, TOKEN_EQ_GT)) { // =>
-    //         eat(ctx);
-    //         flags = BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED;
-    //     }
-    //     List* stmts = make_list();
-    //     AST*  stmt  = parse_statement(ctx);
-    //     stmt        = make_ast_return(stmt->loc_info, stmt);
-    //     list_append(stmts, stmt);
-    //     block = make_ast_block(loc(ctx), stmts);
-    // } else  {
+    // Check for single line implicit returned 
+    // ex. def my_func() => 1 
+    if (tok_is(ctx, TOKEN_EQ_GT) && tok_is_on_same_line(ctx)) {
+        eat(ctx);
+        flags = BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED;
+        delimitor = TOKEN_NEWLINE;
+    } else {
         eat_kind(ctx, TOKEN_BLOCK_START);
-        List* stmts = parse_delimited_list(ctx, parse_statement, TOKEN_BLOCK_END);
-        eat_kind(ctx, TOKEN_BLOCK_END);
-        block = make_ast_block(lc, stmts);
-    // }
+    }
+    List* stmts = parse_delimited_list(ctx, parse_statement, delimitor);
+    eat(ctx);
+    block = make_ast_block(lc, stmts);
 
     block->Block.flags |= flags;
-
     xassert(block);
-
     restore_if_statement(ctx);
-
     return block;
 }
 
