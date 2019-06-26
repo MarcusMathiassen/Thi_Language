@@ -1,14 +1,15 @@
+def strlen(x u8*) s64 => i = 0 while x[i++] {} i
 def print(msg u8*)
-    extern strlen(u8*) s64
     msg_len = strlen(msg)
     asm
-        mov     rax, 0x2000004  ; write
-        mov     rdi, 1          ; stdout
-        mov     rsi, %msg       ; msg
-        mov     rdx, %msg_len   ; msg length
+        mov     rax, 0x2000004
+        mov     rdi, 1        
+        mov     rsi, %msg     
+        mov     rdx, %msg_len 
         syscall
     
 # Hello i am a comment
 def main() s32
+    if 1 => 3
     print("Marcus Mathiassen\n")
     return 1

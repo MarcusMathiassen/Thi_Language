@@ -851,13 +851,13 @@ AST* parse_postfix_tail(Parser_Context* ctx, AST* primary_expr) {
         switch(tokKind(ctx)) {
         default: return primary_expr;
         // @Bug: this is causing endless loop in basic_setup.thi
-        // case TOKEN_MINUS_MINUS: // fallthrough
-        // case TOKEN_PLUS_PLUS: {
-        //     Token_Kind op = tokKind(ctx);
-        //     eat(ctx);
-        //     primary_expr = make_ast_post_inc_or_dec(primary_expr->loc_info, op, primary_expr);
-        //     break;
-        // }
+        case TOKEN_MINUS_MINUS: // fallthrough
+        case TOKEN_PLUS_PLUS: {
+            Token_Kind op = tokKind(ctx);
+            eat(ctx);
+            primary_expr = make_ast_post_inc_or_dec(primary_expr->loc_info, op, primary_expr);
+            break;
+        }
         case TOKEN_AS:
             primary_expr = read_as(ctx, primary_expr);
             break;
@@ -1290,7 +1290,7 @@ s64 get_integer(Parser_Context* ctx) {
 
     s64 value = 0;
     switch (ctx->curr_tok.kind) {
-        ERROR_UNHANDLED_TOKEN_KIND(ctx->curr_tok.kind);
+    ERROR_UNHANDLED_TOKEN_KIND(ctx->curr_tok.kind);
     case TOKEN_CHAR: {
         u8 c = token_value(ctx->curr_tok)[0];
         if (c == '\\') {

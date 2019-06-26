@@ -1,8 +1,8 @@
-extern malloc (u64)  u8*
+extern malloc(u64) u8*
 
-main()
-    alloc_sizw: int = sizeof(int*) * 3
-    a: int** = malloc(alloc_size)
+def main() s64
+    alloc_size int = sizeof(int*) * 3
+    a int** = malloc(alloc_size)
     a[0] = malloc(alloc_size)
     a[0][0] = 1
     return a[0][0]
