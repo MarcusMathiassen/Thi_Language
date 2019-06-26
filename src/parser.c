@@ -656,12 +656,9 @@ AST* parse_block(Parser_Context* ctx) {
 
     // @Audit @Cleanup @Ugly
     if (flags & BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED) {
-        list_foreach_reverse(stmts) {
-            AST* last_stmt = it->data;
-            list_remove(stmts, it);
-            list_append(stmts, make_ast_return(last_stmt->loc_info, last_stmt));
-            break;
-        }
+        AST* last_stmt = stmts->tail->data;
+        list_remove(stmts, stmts->tail);
+        list_append(stmts, make_ast_return(last_stmt->loc_info, last_stmt));
     }
 
     block->Block.flags = flags;
