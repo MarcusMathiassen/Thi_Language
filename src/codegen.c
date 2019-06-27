@@ -484,50 +484,40 @@ static Value* codegen_unary(Codegen_Context* ctx, AST* node) {
     Value* result = operand_val;
 
     switch (op) {
-        ERROR_UNHANDLED_TOKEN_KIND(op);
-    
+    ERROR_UNHANDLED_TOKEN_KIND(op);
     case TOKEN_MINUS_MINUS: {
         s64 size = 1;
         if (operand->type->kind == TYPE_POINTER)
             size = get_size_of_underlying_type_if_any(operand->type);
         result = codegen(ctx, make_ast_binary(node->loc_info, TOKEN_MINUS_EQ, operand, make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, 0))));
     } break;
-    
     case TOKEN_PLUS_PLUS: {
         s64 size = 1;
         if (operand->type->kind == TYPE_POINTER)
             size = get_size_of_underlying_type_if_any(operand->type);
         result = codegen(ctx, make_ast_binary(node->loc_info, TOKEN_PLUS_EQ, operand, make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, 0))));
     } break;
-    
     case THI_SYNTAX_ADDRESS: {
         s64 stack_pos = get_stack_pos_of_variable(operand_val);
         emit(ctx, "lea rax, [rbp-%lld]; addrsof", stack_pos);
     } break;
-    
     case THI_SYNTAX_POINTER: {
         Type* t = operand->type;
         char* reg = get_result_reg(t);
         emit(ctx, "mov %s, [rax]; deref ", reg);
         // A deref expects an lvalue and returns an lvalue
     } break;
-    
     case TOKEN_BANG: {
         emit(ctx, "cmp %s, 0", reg);
         emit(ctx, "sete al");
     } break;
-    
-
     case TOKEN_PLUS: { // do nothing
     } break;
-
     case TOKEN_TILDE: {
         emit(ctx, "not al");
     } break;
-    
     case TOKEN_DOT: {
     } break;
-    
     case TOKEN_MINUS: {
         Type_Kind tk = operand->type->kind;
         switch (tk) {
@@ -559,15 +549,16 @@ static Value* codegen_binary(Codegen_Context* ctx, AST* node) {
     ERROR_UNHANDLED_TOKEN_KIND(op);
     case THI_SYNTAX_ASSIGNMENT: {
 
+        Value* rhs_v = codegen(ctx, rhs);
+        push_type(ctx, rhs_v->type);
+        
         bool is_deref = false;
-
         if (lhs->kind == AST_UNARY) {
             lhs = lhs->Unary.operand;
             is_deref = true;
         }
-        Value* rhs_v = codegen(ctx, rhs);
-        push_type(ctx, rhs_v->type);
         Value* lhs_v = codegen(ctx, lhs);
+        
         pop_type_2(ctx, rhs_v->type);
         if (is_deref) {
             emit_store_deref(ctx, lhs_v);
