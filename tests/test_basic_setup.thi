@@ -1,3 +1,5 @@
+extern printf(u8*, ...) s32
+
 def print(msg u8*)
     msg_len = strlen(msg)
     asm
@@ -9,8 +11,31 @@ def print(msg u8*)
 
 # Hello i am a comment
 def main() s32
-    print("Marcus Mathiassen\n")
+        
+    name1 = "Marcus Mathiassen"
+    name2 = "Hello"
+
+    #printf("strlen(%s) = %d\n", name1, strlen(name1))
+    #printf("strlen(%s) = %d\n", name1, strlen(name1))
+    #printf("strlen(%s) = %d\n", name1, strlen(name1))
+    
+    #printf("strlen(%s) = %d\n", name2, strlen(name2))
+    #printf("strlen(%s) = %d\n", name2, strlen(name2))
+    #printf("strlen(%s) = %d\n", name2, strlen(name2))
+    #printf("strlen(%s) = %d\n", name2, strlen(name2))
+
+    print("Welcome!\n")
+    
+    print("\n")
+
+    for i = 0; i < 10; ++i
+        print("Marcus Mathiassen\n")
+
+    i = 0
+    while i++ < 10
+        print("Hei\n")
+
     return 1
 
-def strlen(x u8*) s64 => i = 0 while *(&x + i++) != 0 {} i
+def strlen(x u8*) s64 => i = 0 while *x++ { ++i } i
 

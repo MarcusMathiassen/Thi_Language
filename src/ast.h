@@ -374,7 +374,8 @@ typedef void* (*ast_callback)(void*, AST*);
 
 AST* get_arg_from_func             (AST* func, s64 arg_index);
 void ast_tests                     (void);
-void* ast_visit                     (ast_callback func, void* ctx, AST* node);
+void* ast_visit                    (ast_callback func, void* ctx, AST* node);
+AST* ast_clone                     (AST* a);
 void ast_replace                   (AST* a, AST* b);
 char* get_ast_name                 (AST* node);
 char* ast_get_literal_value_as_str (AST* node);

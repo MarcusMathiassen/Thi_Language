@@ -37,7 +37,7 @@
 
 #define DEBUG_START \
     xassert(ctx); \
-    // debug("%s: %s", __func__, token_to_str(currTok(ctx)));
+    debug("%s: %s", __func__, token_to_str(currTok(ctx)));
 
 #define UNARY_OP_COUNT 11
 Token_Kind unary_ops[UNARY_OP_COUNT] = {
@@ -309,10 +309,13 @@ AST* parse_statement(Parser_Context* ctx) {
     switch (tokKind(ctx)) {
     default:                        result =  parse_expression(ctx);    break;
     case TOKEN_EOF:                 eat(ctx); break;
-    case TOKEN_SEMICOLON: break;// fallthrough
+    case TOKEN_SEMICOLON: {
+        eat(ctx);
+        result = make_ast_nop(loc(ctx));
+        break;
+    } break;
     case TOKEN_NEWLINE: {
         eat(ctx);
-        result = NULL; 
     } break;
     case TOKEN_COMMENT:
     {
@@ -321,14 +324,13 @@ AST* parse_statement(Parser_Context* ctx) {
     } break;          
     case TOKEN_DEF:                 result =  parse_def(ctx);           break;
     case TOKEN_ASM:                 result =  parse_asm(ctx);           break;
-
     case TOKEN_IF:                  result =  parse_if(ctx);            break;
     case TOKEN_IS:                  result =  parse_is(ctx);            break;
     case TOKEN_ELSE:                result =  parse_dangling_else(ctx); break;
     case TOKEN_DEFER:               result =  parse_defer(ctx);         break;
     case TOKEN_FOR:                 result =  parse_for(ctx);           break;
     case TOKEN_WHILE:               result =  parse_while(ctx);         break;
-
+    case TOKEN_BLOCK_START:         result =  parse_block(ctx);         break;
     case TOKEN_RETURN:              result =  parse_return(ctx);        break;
     case TOKEN_BREAK:               result =  parse_break(ctx);         break;
     case TOKEN_CONTINUE:            result =  parse_continue(ctx);      break;
@@ -532,7 +534,7 @@ AST* parse_defer(Parser_Context* ctx) {
     DEBUG_START;
     Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_DEFER);
-    AST* block = parse_block(ctx);
+    AST* block = parse_statement(ctx);
     return make_ast_defer(lc, block);
 }
 
@@ -564,7 +566,7 @@ AST* parse_is(Parser_Context* ctx) {
 AST* parse_dangling_else(Parser_Context* ctx) {
     DEBUG_START;
     eat_kind(ctx, TOKEN_ELSE);
-    AST* else_block = parse_block(ctx);
+    AST* else_block = parse_statement(ctx);
     set_dangling_else(ctx, else_block);
     return NULL;
 }

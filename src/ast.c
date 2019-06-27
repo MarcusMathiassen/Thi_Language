@@ -42,6 +42,7 @@ typedef struct {
     u64 indentation_level;
 } String_Context;
 
+static AST* make_ast(AST_Kind kind, Loc_Info loc_info);
 static char* _ast_to_str(String_Context* ctx, AST* node);
 
 char* ast_kind_to_str(AST_Kind kind) {
@@ -790,12 +791,16 @@ void ast_add_edge(AST* a, AST* dep) {
     list_append(a->edges, dep);
 }
 
+AST* ast_clone(AST* a) {
+    AST* b = make_ast(a->kind, a->loc_info);
+    *b = *a;
+    return b;
+}
+
 void ast_replace(AST* a, AST* b) {
-    xassert(a);
-    xassert(b);
+    xassert(a && b);
     debug("REPLACED %s -> %s WITH %s -> %s", give_unique_color(ast_to_str(a)), give_unique_color(type_to_str(a->type)), give_unique_color(ast_to_str(b)), give_unique_color(type_to_str(b->type)));
     *a = *b;
-    // @Cleanup(marcus) we dont free memory here.
 }
 
 //------------------------------------------------------------------------------
@@ -808,7 +813,7 @@ void ast_tests(void) {
 //                               AST Maker Functions
 //------------------------------------------------------------------------------
 
-AST* make_ast(AST_Kind kind, Loc_Info loc_info) {
+static AST* make_ast(AST_Kind kind, Loc_Info loc_info) {
     AST* e = xmalloc(sizeof(AST));
     e->kind = kind;
     e->loc_info = loc_info;
