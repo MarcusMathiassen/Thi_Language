@@ -1,4 +1,4 @@
-def strlen(x u8*) s64 => i = 0 while x[i++] {} i
+def strlen(x u8*) s64 => i = 0 while x[i] { ++i } i
 def print(msg u8*)
     msg_len = strlen(msg)
     asm
@@ -7,7 +7,7 @@ def print(msg u8*)
         mov     rsi, %msg     
         mov     rdx, %msg_len 
         syscall
-    
+
 # Hello i am a comment
 def main() s32
     if 1 => 3
