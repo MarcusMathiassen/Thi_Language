@@ -322,44 +322,43 @@ static Equivalence_Kind equivalence[] = {
     while (*c != '\n')  \
         ++c;
 
-Lexed_File lex(char* file) {
-    push_timer(strf("%s: %s", (char*)__func__, file));
+static Intern_Array interns; 
+static char* interned_keywords[_KEY_COUNT_];
+// @Volatile
+static char* keywords_as_strings[_KEY_COUNT_] = {
+    "asm",
+    "def",
+    "link",
+    "load",
+    "true",
+    "false",
+    "defer",
+    "extern",
+    "sizeof",
+    "typeof",
+    "if",
+    "else",
+    "for",
+    "while",
+    "in",
+    "return",
+    "enum",
+    "struct",
+    "break",
+    "continue",
+    "fallthrough",
+    "as",
+    "is",
+};
 
-    // @Volatile
-    static char* keywords_as_strings[_KEY_COUNT_] = {
-        "asm",
-        "def",
-        "link",
-        "load",
-        "true",
-        "false",
-        "defer",
-        "extern",
-        "sizeof",
-        "typeof",
-        "if",
-        "else",
-        "for",
-        "while",
-        "in",
-        "return",
-        "enum",
-        "struct",
-        "break",
-        "continue",
-        "fallthrough",
-        "as",
-        "is",
-    };
-    
-    static char* interned_keywords[_KEY_COUNT_];
-
-    Intern_Array interns = make_intern_array();
-    
-    // @Performance:
-    //      This only needs to run once, but is run every time.
+void initilize_lex() {
+    interns = make_intern_array();
     foreach(i, _KEY_COUNT_)
         interned_keywords[i] = intern(&interns, keywords_as_strings[i]);
+}
+
+Lexed_File lex(char* file) {
+    push_timer(strf("%s: %s", (char*)__func__, file));
 
     // Start parsing tokens
     Token_Kind kind = TOKEN_UNKNOWN;
@@ -614,7 +613,7 @@ Lexed_File lex(char* file) {
 
     } while(kind != TOKEN_EOF);
 
-    debug("Printing tokens..");
+    // debug("Printing tokens..");
     // foreach(i, tokens.count - 1) {
     //     debug("kind: '%s' start: %llu end: %llu", 
     //         ucolor(token_kind_to_str(tokens.data[i].kind)),

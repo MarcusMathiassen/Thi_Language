@@ -43,9 +43,12 @@ typedef struct {
     tassert(ctx && node, "%zu, %zu", ctx, node); \
     debug("%s: %s", give_unique_color(ast_kind_to_str(node->kind)), wrap_with_colored_parens(ast_to_str(node)));
 
-#define SCOPE_START stack_push(((Sema_Context*)ctx)->scopes, make_map())
-#define SCOPE_END map_destroy(stack_pop(((Sema_Context*)ctx)->scopes))
-#define SCOPE_ADD(x) map_set(stack_peek(((Sema_Context*)ctx)->scopes), get_ast_name(x), x)
+// #define SCOPE_START stack_push(((Sema_Context*)ctx)->scopes, make_map())
+#define SCOPE_START stack_push(((Sema_Context*)ctx)->scopes, make_ast_ref_list())
+// #define SCOPE_END map_destroy(stack_pop(((Sema_Context*)ctx)->scopes))
+#define SCOPE_END ast_ref_list_destroy(stack_pop(((Sema_Context*)ctx)->scopes))
+// #define SCOPE_ADD(x) map_set(stack_peek(((Sema_Context*)ctx)->scopes), get_ast_name(x), x)
+#define SCOPE_ADD(x) ast_ref_list_append(stack_peek(((Sema_Context*)ctx)->scopes), x)
 
 static Sema_Context make_sema_context(void);
 static AST* get_symbol_in_scope(Sema_Context* ctx, char* name);
@@ -148,7 +151,7 @@ static Sema_Context make_sema_context() {
     ctx.module = NULL;
     ctx.current_function = NULL;
     ctx.symbols = make_map();
-    stack_push(ctx.scopes, make_map());
+    stack_push(ctx.scopes, make_ast_ref_list());
     return ctx;
 }
 
@@ -576,10 +579,20 @@ static Type* sema_asm(Sema_Context* ctx, AST* node) {
 AST* get_symbol_in_scope(Sema_Context* ctx, char* name) {
     xassert(ctx && name);
     stack_foreach(ctx->scopes) {
-        Map* symbols = it->data;
-        AST* v;
-        if ((v = map_get(symbols, name))) 
-            return v;
+        // Map* symbols = it->data;
+
+        // @Performance: this was slower than just using a map.
+        AST_Ref_List* l = it->data;
+        foreach_reverse(i, l->count) {
+            AST* it = l->data[i];
+            if (get_ast_name(it) == name) {
+                return it;
+            }
+        }
+
+        // AST* v;
+        // if ((v = map_get(symbols, name))) 
+        //     return v;
     }
     return NULL;
 }

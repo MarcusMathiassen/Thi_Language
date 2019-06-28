@@ -758,11 +758,16 @@ AST* get_arg_from_func(AST* func, s64 arg_index) {
     return param;
 }
 
-AST_Ref_List make_ast_ref_list() {
-    AST_Ref_List l;
-    l.count = 0;
-    l.allocated = AST_REF_LIST_STARTING_ALLOC;
-    l.data = xmalloc(l.allocated * sizeof(*l.data));
+void ast_ref_list_destroy(AST_Ref_List* l) {
+    free(l->data);
+    free(l);
+}
+
+AST_Ref_List* make_ast_ref_list() {
+    AST_Ref_List* l = xmalloc(sizeof(AST_Ref_List));
+    l->count = 0;
+    l->allocated = AST_REF_LIST_STARTING_ALLOC;
+    l->data = xmalloc(l->allocated * sizeof(l->data));
     return l;
 }
 

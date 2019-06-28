@@ -262,6 +262,7 @@ int main(int argc, char** argv) {
 
     if (argc < 2) error("too few arguments.");
 
+    initilize_lex();
     initilize_timers();
     push_timer("Total time");
 

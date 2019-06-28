@@ -391,7 +391,8 @@ typedef struct {
     s64 allocated;
 } AST_Ref_List;
 
-AST_Ref_List make_ast_ref_list(void);
+void ast_ref_list_destroy(AST_Ref_List* l);
+AST_Ref_List* make_ast_ref_list(void);
 void ast_ref_list_append(AST_Ref_List* l, AST* a);
 
 #ifdef NDEBUG

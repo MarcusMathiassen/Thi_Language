@@ -222,6 +222,8 @@ char* token_value(Token token);
 char* token_kind_to_str(Token_Kind kind);
 void lexer_test(void);
 
+void initilize_lex(void);
+
 #define THI_SYNTAX_POINTER TOKEN_ASTERISK
 #define THI_SYNTAX_ADDRESS TOKEN_AND
 #define THI_SYNTAX_SCOPE_BEGIN TOKEN_OPEN_BRACE

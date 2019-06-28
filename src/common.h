@@ -66,7 +66,9 @@
 #define DEFAULT_MAP_STARTING_TABLE_SIZE 24
 
 #define STRING_STARTING_ALLOC 16
+
 #define foreach(i, c) for (s64 (i) = 0; (i) < (c); ++(i))
+#define foreach_reverse(i, c) for (s64 (i) = c-1; (i) >= 0; --(i))
 
 typedef int8_t   s8;
 typedef int16_t  s16;
