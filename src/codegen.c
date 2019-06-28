@@ -105,7 +105,7 @@ typedef struct {
 
 typedef struct {
     u64 stack_pos;
-    List* local_variables;
+    Map* symbols;
 } Scope;
 
 char* class_kind_to_str(Class_Kind kind);
@@ -1287,7 +1287,7 @@ void push_scope(Codegen_Context* ctx) {
     Scope* top = stack_peek(ctx->scopes);
     Scope* s = xmalloc(sizeof(Scope));
     s->stack_pos = top->stack_pos;
-    s->local_variables = make_list();
+    s->symbols = make_map();
     stack_push(ctx->scopes, s);
 }
 void pop_scope(Codegen_Context* ctx) {
@@ -1299,7 +1299,7 @@ static void add_variable_to_current_scope(Codegen_Context* ctx, Value* variable)
     Scope* top = stack_peek(ctx->scopes);
     if (variable->kind != VALUE_GLOBAL_VARIABLE)
         top->stack_pos += get_size_of_value(variable);
-    list_append(top->local_variables, variable);
+    map_set(top->symbols, get_value_name(variable), variable);
 }
 
 Codegen_Context make_codegen_context() {
@@ -1308,7 +1308,7 @@ Codegen_Context make_codegen_context() {
     ctx.scopes = make_stack();
     Scope* s = xmalloc(sizeof(Scope));
     s->stack_pos = 0;
-    s->local_variables = make_list();
+    s->symbols = make_map();
     stack_push(ctx.scopes,  s);
 
     ctx.data_list = make_list();
@@ -1661,33 +1661,19 @@ void dealloc_variable(Codegen_Context* ctx, Value* variable) {
     xassert(ctx->stack_pos >= 0);
 }
 
-Value* get_variable_in_scope(Scope* scope, char* name) {
-    xassert(scope);
-    xassert(name);
-    list_foreach(scope->local_variables) {
-        Value* v = it->data;
-        if (v->Variable.name == name) return v;
-    }
-    return NULL;
-}
-
 Value* get_variable(Codegen_Context* ctx, AST* ident) {
-    xassert(ctx);
-    xassert(ident);
+    xassert(ctx && ident);
     char* name = ident->Ident.name;
-    debug("looking for %s", ucolor(name));
     stack_foreach(ctx->scopes) {
         Scope* scope = it->data;
-        list_foreach_reverse(scope->local_variables) {
-            Value* v = it->data;
-            if (strcmp(get_value_name(v), name) == 0) {
-                return v;
-            }
-        }
+        Value* v;
+        if ((v = map_get(scope->symbols, name))) 
+            return v;
     }
     error("no variable with name '%s'", name);
     UNREACHABLE;
     return NULL;
+
 }
 
 void add_variable(Codegen_Context* ctx, Value* variable) {
@@ -1725,7 +1711,7 @@ void emit_cast_int_to_int(Codegen_Context* ctx, char* reg, Type* type) {
     xassert(type);
     xassert(type->kind == TYPE_INT);
     bool usig = type->Int.is_unsigned;
-    s8 type_size = get_size_of_type(type);
+    s64 type_size = get_size_of_type(type);
     switch (type_size) {
     case 1:
         usig ? emit(ctx, "movzbq %s, al", reg)
@@ -1736,7 +1722,8 @@ void emit_cast_int_to_int(Codegen_Context* ctx, char* reg, Type* type) {
              : emit(ctx, "movswq %s, ax", reg);
         break;
     case 4:
-        usig ? emit(ctx, "mov %s, %s", reg, reg) : emit(ctx, "cltq");
+        usig ? emit(ctx, "mov %s, %s", reg, reg) : 
+               emit(ctx, "cltq");
         break;
         // case 8: // fallthrough
     }
@@ -1892,15 +1879,15 @@ char* get_instr(Token_Kind op, Type* type) {
     char* inst = NULL;
     switch (type->kind) {
     ERROR_UNHANDLED_TYPE_KIND(type->kind);
-    case TYPE_POINTER: // FALLTHROUGH
+    case TYPE_POINTER: // fallthrough
     case TYPE_INT: {
         bool usig = type->Int.is_unsigned;
         switch (op) {
         ERROR_UNHANDLED_TOKEN_KIND(op);
-        case TOKEN_PLUS: inst = "add"; break;
-        case TOKEN_MINUS: inst = "sub"; break;
-        case TOKEN_ASTERISK: inst = "imul"; break;
-        case TOKEN_FWSLASH: inst = (usig ? "div" : "idiv"); break;
+        case TOKEN_PLUS:     inst = "add";                   break;
+        case TOKEN_MINUS:    inst = "sub";                   break;
+        case TOKEN_ASTERISK: inst = "imul";                  break;
+        case TOKEN_FWSLASH:  inst = (usig ? "div" : "idiv"); break;
         }
     } break;
     case TYPE_FLOAT: {
@@ -1908,10 +1895,10 @@ char* get_instr(Token_Kind op, Type* type) {
         tassert(size == 4 || size == 8, "size = %d", size);
         switch (op) {
         ERROR_UNHANDLED_TOKEN_KIND(op);
-        case TOKEN_PLUS: inst = (size == 8 ? "addsd" : "addss"); break;
-        case TOKEN_MINUS: inst = (size == 8 ? "subsd" : "subss"); break;
+        case TOKEN_PLUS:     inst = (size == 8 ? "addsd" : "addss"); break;
+        case TOKEN_MINUS:    inst = (size == 8 ? "subsd" : "subss"); break;
         case TOKEN_ASTERISK: inst = (size == 8 ? "mulsd" : "mulss"); break;
-        case TOKEN_FWSLASH: inst = (size == 8 ? "divsd" : "divss"); break;
+        case TOKEN_FWSLASH:  inst = (size == 8 ? "divsd" : "divss"); break;
         }
     } break;
     }

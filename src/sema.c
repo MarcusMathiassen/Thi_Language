@@ -52,7 +52,6 @@ static AST* get_symbol_in_scope(Sema_Context* ctx, char* name);
 static void add_node_to_scope(Sema_Context* ctx, AST* node);
 static void add_all_decls_in_module(Sema_Context* ctx, AST* node);
 
-
 static Type* _sema                                 (Sema_Context* ctx,  AST* node);
 static Type* sema_comment                          (Sema_Context* ctx,  AST* node);
 static Type* sema_nop                              (Sema_Context* ctx,  AST* node);

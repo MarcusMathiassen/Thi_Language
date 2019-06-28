@@ -118,21 +118,29 @@ s64 map_count(Map* map) {
     return map->count;
 }
 
+static void map_increase_table_size(Map* map, s64 new_table_size) {
+    // @Audit: calloc was super slow here. Why? Needs testing.
+    // Map_Element* nelements = xcalloc(new_table_size, new_table_size * sizeof(Map_Element)); 
+    Map_Element* nelements = xmalloc(new_table_size * sizeof(Map_Element)); 
+    memset(nelements, 0, new_table_size * sizeof(Map_Element));
+
+    map_foreach(map) {
+        u32 index = hash(it->key);        
+        Map_Element* probe;
+        while ((probe = &nelements[index++ % new_table_size])->key);
+        probe->key = it->key;
+        probe->value = it->value;
+    }
+    free(map->elements);
+    map->elements = nelements;
+    map->table_size = new_table_size;
+}
+
 void* map_set(Map* map, char* key, void* value) {
     xassert(map && key && value);
+    debug("map_set: %s, %zu", key, value);
     if ((float)map->count / map->table_size > 0.75f) {
-        u64 new_table_size = map->table_size * 2;
-        Map_Element* nelements = xcalloc(new_table_size, new_table_size * sizeof(Map_Element));
-        map_foreach(map) {
-            u32 index = hash(it->key);        
-            Map_Element* probe;
-            while ((probe = &nelements[index++ % new_table_size])->key);
-            probe->key = it->key;
-            probe->value = it->value;
-        }
-        free(map->elements);
-        map->elements = nelements;
-        map->table_size = new_table_size;
+        map_increase_table_size(map, map->table_size * 2);
     }
     Map_Element* slot = find_empty_slot(map, key);
     slot->key = key;

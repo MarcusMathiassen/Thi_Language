@@ -749,6 +749,7 @@ void* ast_visit(ast_callback func, void* ctx, AST* node) {
     return (*func)(ctx, node);
 }
 
+
 AST* get_arg_from_func(AST* func, s64 arg_index) {
     xassert(func);
     xassert(arg_index >= 0 && arg_index <= func->Function.parameters->count);
