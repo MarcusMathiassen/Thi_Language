@@ -24,7 +24,7 @@
 
 #include "map.h"
 #include "utility.h"
-#include <string.h>
+#include <string.h> // memset
 #include <stdlib.h>
 
 typedef struct
@@ -101,7 +101,7 @@ Map* make_map_with_initial_size(s64 initial_size) {
     Map* map = xmalloc(sizeof(Map));
     map->count = 0;
     map->table_size = initial_size;
-    map->elements = xcalloc(map->table_size, map->table_size * sizeof(Map_Element));
+    map->elements = xcalloc(map->table_size, sizeof(Map_Element));
     return map;
 }
 
@@ -112,18 +112,15 @@ Map* make_map() {
 void map_destroy(Map* map) {
     free(map->elements);
     free(map);
+    map = NULL;
 }
 
 s64 map_count(Map* map) {
     return map->count;
 }
 
-static void map_increase_table_size(Map* map, s64 new_table_size) {
-    // @Audit: calloc was super slow here. Why? Needs testing.
-    // Map_Element* nelements = xcalloc(new_table_size, new_table_size * sizeof(Map_Element)); 
-    Map_Element* nelements = xmalloc(new_table_size * sizeof(Map_Element)); 
-    memset(nelements, 0, new_table_size * sizeof(Map_Element));
-
+inline static void map_increase_table_size_and_rehash(Map* map, s64 new_table_size) {
+    Map_Element* nelements = xcalloc(new_table_size, sizeof(Map_Element));
     map_foreach(map) {
         u32 index = hash(it->key);        
         Map_Element* probe;
@@ -140,7 +137,7 @@ void* map_set(Map* map, char* key, void* value) {
     xassert(map && key && value);
     debug("map_set: %s, %zu", key, value);
     if ((float)map->count / map->table_size > 0.75f) {
-        map_increase_table_size(map, map->table_size * 2);
+        map_increase_table_size_and_rehash(map, map->table_size * 2);
     }
     Map_Element* slot = find_empty_slot(map, key);
     slot->key = key;
