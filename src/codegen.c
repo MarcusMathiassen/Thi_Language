@@ -469,7 +469,11 @@ static Value* codegen_call(Codegen_Context* ctx, AST* node) {
         emit(ctx, "mov al, %lld; var_arg_count", args->count);
     }
 
+#ifdef __APPLE__
     emit(ctx, "call _%s", callee);
+#elif __unix__
+    emit(ctx, "call %s", callee);
+#endif
     return make_value_call(callee, return_type);
 }
 
@@ -826,7 +830,11 @@ static Value* codegen_function(Codegen_Context* ctx, AST* node) {
 
     push_scope(ctx);
 
+#ifdef __APPLE__
     emit(ctx, "_%s:", func_name);
+#elif __unix__
+    emit(ctx, "%s:", func_name);
+#endif
     push(ctx, RBP);
     emit(ctx, "mov rbp, rsp");
 
