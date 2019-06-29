@@ -405,10 +405,11 @@ int main(int argc, char** argv) {
 }
 
 void assemble(char* asm_file, char* exec_name) {
-#ifdef NDEBUG
+
+#ifdef __APPLE__
     string* comp_call = make_string_f("nasm -f macho64 %s.s -o %s.o", asm_file, exec_name);
-#else 
-    string* comp_call = make_string_f("nasm -f macho64 -w+all -g %s.s -o %s.o", asm_file, exec_name);
+#elif __unix__
+    string* comp_call = make_string_f("nasm -f elf_x86_64 %s.s -o %s.o", asm_file, exec_name);
 #endif
     debug("Assembling with options '%s'", ucolor(string_data(comp_call)));
     push_timer("Assembler");
