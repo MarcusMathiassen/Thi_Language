@@ -535,7 +535,7 @@ u64 get_time(void) {
     #elif __unix__
         struct timeval tv;
         gettimeofday(&tv, NULL);
-        return (uint64_t) tv.tv_sec * (uint64_t) 1000000 + (uint64_t) tv.tv_usec;
+        return ((uint64_t) tv.tv_sec * (uint64_t) 1000000 + (uint64_t) tv.tv_usec) * 1000;
     #endif
 }
 
