@@ -9,6 +9,8 @@ def print(msg u8*)
         mov     rdx, %msg_len 
         syscall
 
+def strlen(x u8*) s64 => i = x while *x++ {} x-i
+
 # Hello i am a comment
 def main() s32
 
@@ -16,7 +18,6 @@ def main() s32
     name2 = "Hello"
 
     print("Welcome!\n")
-
     print("\n")
 
     for i = 0; i < 10; ++i { print("Marcus Mathiassen\n") }
@@ -26,5 +27,4 @@ def main() s32
 
     return 1
 
-def strlen(x u8*) s64 => i = x while *x++ {} x-i
 

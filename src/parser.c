@@ -37,7 +37,7 @@
 
 #define DEBUG_START \
     xassert(ctx); \
-    debug("%s: %s", __func__, token_to_str(currTok(ctx)));
+    // debug("%s: %s", __func__, token_to_str(currTok(ctx)));
 
 #define UNARY_OP_COUNT 11
 Token_Kind unary_ops[UNARY_OP_COUNT] = {
@@ -261,10 +261,10 @@ AST* parse_top_level(Parser_Context* ctx) {
     ctx->top_tok = ctx->curr_tok;
     switch (tokKind(ctx)) {
     ERROR_UNHANDLED_TOKEN_KIND(tokKind(ctx));
-    case TOKEN_IDENTIFIER:          return parse_top_level_identifier(ctx);
-    case TOKEN_EXTERN:              return parse_extern(ctx);
-    case TOKEN_LOAD:                return parse_load(ctx);
-    case TOKEN_LINK:                return parse_link(ctx);
+    case TOKEN_IDENTIFIER: return parse_top_level_identifier(ctx);
+    case TOKEN_EXTERN:     return parse_extern(ctx);
+    case TOKEN_LOAD:       return parse_load(ctx);
+    case TOKEN_LINK:       return parse_link(ctx);
     }
     UNREACHABLE;
     return NULL;
@@ -307,8 +307,8 @@ AST* parse_statement(Parser_Context* ctx) {
 
     AST* result = NULL;
     switch (tokKind(ctx)) {
-    default:                        result =  parse_expression(ctx);    break;
-    case TOKEN_EOF:                 eat(ctx); break;
+    default:               result =  parse_expression(ctx);    break;
+    case TOKEN_EOF:        eat(ctx);                           break;
     case TOKEN_SEMICOLON: {
         eat(ctx);
         result = make_ast_nop(loc(ctx));
@@ -322,22 +322,22 @@ AST* parse_statement(Parser_Context* ctx) {
         result = make_ast_comment(loc(ctx), tokValue(ctx)); 
         eat(ctx); 
     } break;          
-    case TOKEN_DEF:                 result =  parse_def(ctx);           break;
-    case TOKEN_ASM:                 result =  parse_asm(ctx);           break;
-    case TOKEN_IF:                  result =  parse_if(ctx);            break;
-    case TOKEN_IS:                  result =  parse_is(ctx);            break;
-    case TOKEN_ELSE:                result =  parse_dangling_else(ctx); break;
-    case TOKEN_DEFER:               result =  parse_defer(ctx);         break;
-    case TOKEN_FOR:                 result =  parse_for(ctx);           break;
-    case TOKEN_WHILE:               result =  parse_while(ctx);         break;
-    case TOKEN_BLOCK_START:         result =  parse_block(ctx);         break;
-    case TOKEN_RETURN:              result =  parse_return(ctx);        break;
-    case TOKEN_BREAK:               result =  parse_break(ctx);         break;
-    case TOKEN_CONTINUE:            result =  parse_continue(ctx);      break;
-    case TOKEN_FALLTHROUGH:         result =  parse_fallthrough(ctx);   break;
-    case TOKEN_LOAD:                result =  parse_load(ctx);          break;
-    case TOKEN_LINK:                result =  parse_link(ctx);          break;
-    case TOKEN_EXTERN:              result =  parse_extern(ctx);        break;
+    case TOKEN_DEF:         result =  parse_def(ctx);           break;
+    case TOKEN_ASM:         result =  parse_asm(ctx);           break;
+    case TOKEN_IF:          result =  parse_if(ctx);            break;
+    case TOKEN_IS:          result =  parse_is(ctx);            break;
+    case TOKEN_ELSE:        result =  parse_dangling_else(ctx); break;
+    case TOKEN_DEFER:       result =  parse_defer(ctx);         break;
+    case TOKEN_FOR:         result =  parse_for(ctx);           break;
+    case TOKEN_WHILE:       result =  parse_while(ctx);         break;
+    case TOKEN_BLOCK_START: result =  parse_block(ctx);         break;
+    case TOKEN_RETURN:      result =  parse_return(ctx);        break;
+    case TOKEN_BREAK:       result =  parse_break(ctx);         break;
+    case TOKEN_CONTINUE:    result =  parse_continue(ctx);      break;
+    case TOKEN_FALLTHROUGH: result =  parse_fallthrough(ctx);   break;
+    case TOKEN_LOAD:        result =  parse_load(ctx);          break;
+    case TOKEN_LINK:        result =  parse_link(ctx);          break;
+    case TOKEN_EXTERN:      result =  parse_extern(ctx);        break;
     }
 
     // If we've parsed a statement, the next terminal is extranous.
@@ -376,7 +376,7 @@ AST* parse_primary(Parser_Context* ctx) {
     case TOKEN_STRING:      result = parse_string(ctx); break;
     case TOKEN_OPEN_PAREN:  result = parse_parens(ctx); break;
     case TOKEN_CLOSE_PAREN: eat(ctx); break;
-    case TOKEN_BLOCK_START:  result = parse_block(ctx); break;
+    case TOKEN_BLOCK_START: result = parse_block(ctx); break;
     }
 
     // Eat extranous terminals
@@ -1220,40 +1220,40 @@ struct
     Token_Kind kind;
     s32 p;
 } binop_precedence[BIN_OP_COUNT] = {
-    {TOKEN_OPEN_PAREN, 15},   // ()
-    {TOKEN_OPEN_BRACKET, 15}, // []
-    {TOKEN_DOT, 15},          // .
-    {TOKEN_ASTERISK, 13},     // *
-    {TOKEN_FWSLASH, 13},      // /
-    {TOKEN_PERCENT, 13},      // %
-    {TOKEN_PLUS, 12},         // +
-    {TOKEN_MINUS, 12},        // -
-    {TOKEN_LT_LT, 11},        // <<
-    {TOKEN_GT_GT, 11},        // >>
-    {TOKEN_LT, 10},           // <
-    {TOKEN_LT_EQ, 10},        // <=
-    {TOKEN_GT, 10},           // >
-    {TOKEN_GT_EQ, 10},        // >=
-    {TOKEN_EQ_EQ, 9},         // ==
-    {TOKEN_BANG_EQ, 9},       // !=
-    {TOKEN_AND, 8},           // &
-    {TOKEN_HAT, 7},           // ^
-    {TOKEN_PIPE, 6},          // |
-    {TOKEN_AND_AND, 5},       // &&
-    {TOKEN_PIPE_PIPE, 4},     // ||
-    {TOKEN_QUESTION_MARK, 3}, // ?
-    {TOKEN_COLON, 3},         // :
-    {TOKEN_EQ, 2},            // =
-    {TOKEN_PLUS_EQ, 2},       // +=
-    {TOKEN_MINUS_EQ, 2},      // -=
-    {TOKEN_ASTERISK_EQ, 2},   // *=
-    {TOKEN_FWSLASH_EQ, 2},    // /=
-    {TOKEN_PERCENT_EQ, 2},    // %=
-    {TOKEN_AND_EQ, 2},        // &=
-    {TOKEN_HAT_EQ, 2},        // ^=
-    {TOKEN_PIPE_EQ, 2},       // |=
-    {TOKEN_LT_LT_EQ, 2},      // <<=
-    {TOKEN_GT_GT_EQ, 2},      // >>=
+    {TOKEN_OPEN_PAREN,    15}, // ()
+    {TOKEN_OPEN_BRACKET,  15}, // []
+    {TOKEN_DOT,           15}, // .
+    {TOKEN_ASTERISK,      13}, // *
+    {TOKEN_FWSLASH,       13}, // /
+    {TOKEN_PERCENT,       13}, // %
+    {TOKEN_PLUS,          12}, // +
+    {TOKEN_MINUS,         12}, // -
+    {TOKEN_LT_LT,         11}, // <<
+    {TOKEN_GT_GT,         11}, // >>
+    {TOKEN_LT,            10}, // <
+    {TOKEN_LT_EQ,         10}, // <=
+    {TOKEN_GT,            10}, // >
+    {TOKEN_GT_EQ,         10}, // >=
+    {TOKEN_EQ_EQ,         9},  // ==
+    {TOKEN_BANG_EQ,       9},  // !=
+    {TOKEN_AND,           8},  // &
+    {TOKEN_HAT,           7},  // ^
+    {TOKEN_PIPE,          6},  // |
+    {TOKEN_AND_AND,       5},  // &&
+    {TOKEN_PIPE_PIPE,     4},  // ||
+    {TOKEN_QUESTION_MARK, 3},  // ?
+    {TOKEN_COLON,         3},  // :
+    {TOKEN_EQ,            2},  // =
+    {TOKEN_PLUS_EQ,       2},  // +=
+    {TOKEN_MINUS_EQ,      2},  // -=
+    {TOKEN_ASTERISK_EQ,   2},  // *=
+    {TOKEN_FWSLASH_EQ,    2},  // /=
+    {TOKEN_PERCENT_EQ,    2},  // %=
+    {TOKEN_AND_EQ,        2},  // &=
+    {TOKEN_HAT_EQ,        2},  // ^=
+    {TOKEN_PIPE_EQ,       2},  // |=
+    {TOKEN_LT_LT_EQ,      2},  // <<=
+    {TOKEN_GT_GT_EQ,      2},  // >>=
     // {TOKEN_COMMA, 1},          // ,
 };
 
@@ -1298,12 +1298,12 @@ s64 get_integer(Parser_Context* ctx) {
         if (c == '\\') {
             u8 c = token_value(ctx->curr_tok)[1];
             switch (c) {
-            case 'a': value = 7; break;
-            case 'n': value = 10; break;
-            case 't': value = 9; break;
+            case 'a':  value = 7;  break;
+            case 'n':  value = 10; break;
+            case 't':  value = 9;  break;
             case '\\': value = 92; break;
             case '\'': value = 27; break;
-            case '"': value = 22; break;
+            case '"':  value = 22; break;
             }
         } else
             value = c;
@@ -1359,6 +1359,7 @@ bool next_tok_is_on_same_line(Parser_Context* ctx) {
     s64 l2 = t2.line;
     return l1 == l2;
 }
+
 bool tok_is(Parser_Context* ctx, Token_Kind kind) {
     return ctx->curr_tok.kind == kind;
 }

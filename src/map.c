@@ -62,13 +62,15 @@ void map_tests(void) {
     xassert(((Test_Type*)map_get(map, "t1"))->val == 3.43f);
     xassert(((Test_Type*)map_get(map, "t2"))->val == 6.41f);
     
-    map_foreach(map) {
-        char* key = it->key;
-        Test_Type* t =  it->value;
-        debug("key: %s, value: %f", key, t->val);
-    }
+    // map_foreach(map) {
+    //     char* key = it->key;
+    //     Test_Type* t =  it->value;
+    //     debug("key: %s, value: %f", key, t->val);
+    // }
 }
 
+
+// djb2
 static u32 hash(char* str) {
     xassert(str);
     u32 hash = 5381;
