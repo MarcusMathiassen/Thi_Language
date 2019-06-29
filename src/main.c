@@ -405,11 +405,10 @@ int main(int argc, char** argv) {
 }
 
 void assemble(char* asm_file, char* exec_name) {
-
 #ifdef __APPLE__
     string* comp_call = make_string_f("nasm -f macho64 %s.s -o %s.o", asm_file, exec_name);
 #elif __unix__
-    string* comp_call = make_string_f("nasm -f elf_x86_64 %s.s -o %s.o", asm_file, exec_name);
+    string* comp_call = make_string_f("nasm -f elf64 %s.s -o %s.o", asm_file, exec_name);
 #endif
     debug("Assembling with options '%s'", ucolor(string_data(comp_call)));
     push_timer("Assembler");
@@ -418,8 +417,11 @@ void assemble(char* asm_file, char* exec_name) {
 }
 
 void linking_stage(List* links, char* exec_name) {
-    // string* link_call = make_string_f("lld -macosx_version_min 10.14 -o %s %s.o -e _main", exec_name, exec_name);
+#ifdef __APPLE__
     string* link_call = make_string_f("ld -macosx_version_min 10.14 -o %s %s.o -e _main", exec_name, exec_name);
+#elif __unix__
+    string* link_call = make_string_f("ld -o %s %s.o -e _main", exec_name, exec_name);
+#endif
     list_foreach(links) {
         AST* link = it->data;
         string_append_f(link_call, " %s", link->Link.str);
