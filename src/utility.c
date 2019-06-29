@@ -28,7 +28,9 @@
 #include <stdio.h>  // printf, vprintf
 #include <stdlib.h> // malloc, realloc, calloc
 #include <string.h> // memcpy, strlen
-#include <time.h>   // timeval
+
+#include <sys/time.h>
+// #include <time.h>   // timeval
 #include <unistd.h>
 #include <ctype.h>       // NOTE(marcus): what do i use this
 #include <sys/ioctl.h>    // NOTE(marcus): what do i use this for?
