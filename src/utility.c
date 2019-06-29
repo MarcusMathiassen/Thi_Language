@@ -29,8 +29,6 @@
 #include <stdlib.h> // malloc, realloc, calloc
 #include <string.h> // memcpy, strlen
 
-#include <sys/time.h>
-// #include <time.h>   // timeval
 #include <unistd.h>
 #include <ctype.h>       // NOTE(marcus): what do i use this
 #include <sys/ioctl.h>    // NOTE(marcus): what do i use this for?
@@ -524,6 +522,8 @@ void _tassert(char* expr_str, char* file, char* func, int line, char* fmt, ...) 
 
 #ifdef __APPLE__
 #include <mach/mach_time.h>
+#elif
+#include <sys/time.h>
 #endif
 u64 get_time(void) {
     #ifdef __APPLE__
