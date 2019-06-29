@@ -524,6 +524,7 @@ void _tassert(char* expr_str, char* file, char* func, int line, char* fmt, ...) 
 #include <mach/mach_time.h>
 #elif __unix__
 #include <sys/time.h>
+#include <time.h>
 #endif
 u64 get_time(void) {
     #ifdef __APPLE__
@@ -532,9 +533,9 @@ u64 get_time(void) {
             abort();
         return (mach_absolute_time() * info.numer / info.denom);
     #elif __unix__
-        struct timespec t;
-        clock_gettime(CLOCK_MONOTONIC, &t);
-        return ((t->tv_sec * 1000000000) + (t->tv_nsec));
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        return (uint64_t) tv.tv_sec * (uint64_t) 1000000 + (uint64_t) tv.tv_usec;
     #endif
 }
 
