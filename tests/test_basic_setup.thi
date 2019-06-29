@@ -12,19 +12,19 @@ def print(msg u8*)
 def strlen(x u8*) s64 => i = x while *x++ {} x-i
 
 # Hello i am a comment
-def main() s32
+def main(argc s32, argv u8**) s32
 
+    for i = 0; i < argc; ++i
+        print(*(argv + sizeof *argv * i))
+        print(" ")
+
+    print("\n")
     name1 = "Marcus Mathiassen"
     name2 = "Hello"
-
     print("Welcome!\n")
     print("\n")
-
     for i = 0; i < 10; ++i { print("Marcus Mathiassen\n") }
-    
     i = 0
-    while i++ < 5 { print("Hei\n") }
-
+    while i++ < 5
+        print("Hei\n")
     return 1
-
-

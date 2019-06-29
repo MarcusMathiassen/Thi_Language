@@ -280,6 +280,7 @@ int main(int argc, char** argv) {
         case '?': debug("unknown option: %c\n", opt); return 0;
         }
     }
+
     debug("Compiler was last compiled: "__TIME__);
 
 #ifndef NDEBUG
