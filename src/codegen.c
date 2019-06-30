@@ -39,7 +39,7 @@
 
 #define DEBUG_START                                                              \
     xassert(ctx && node);                                                        \
-    debug("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(node))); \
+    // debug("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(node))); \
     // emit(ctx, "; %s", ast_to_str(node));
 
 
@@ -2077,6 +2077,7 @@ void* visitor_get_all_alloca_in_block(void* sum, AST* node) {
     return NULL;
 }
 
+// @Audit
 s64 get_all_alloca_in_block(AST* block) {
     xassert(block);
     s64 sum = 0;
@@ -2159,15 +2160,15 @@ List* classify_arguments(List* arguments) {
 char* class_kind_to_str(Class_Kind kind) {
     TASSERT_KIND_IN_RANGE(CLASS, kind);
     switch (kind) {
-        ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
-        case CLASS_INTEGER:     return "CLASS_INTEGER";
-        case CLASS_SSE:         return "CLASS_SSE";
-        case CLASS_SSEUP:       return "CLASS_SSEUP";
-        case CLASS_X87:         return "CLASS_X87";
-        case CLASS_X87UP:       return "CLASS_X87UP";
-        case CLASS_COMPLEX_X87: return "CLASS_COMPLEX_X87";
-        case CLASS_NO_CLASS:    return "CLASS_NO_CLASS";
-        case CLASS_MEMORY:      return "CLASS_MEMORY";
+    ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
+    case CLASS_INTEGER:     return "CLASS_INTEGER";
+    case CLASS_SSE:         return "CLASS_SSE";
+    case CLASS_SSEUP:       return "CLASS_SSEUP";
+    case CLASS_X87:         return "CLASS_X87";
+    case CLASS_X87UP:       return "CLASS_X87UP";
+    case CLASS_COMPLEX_X87: return "CLASS_COMPLEX_X87";
+    case CLASS_NO_CLASS:    return "CLASS_NO_CLASS";
+    case CLASS_MEMORY:      return "CLASS_MEMORY";
     }
     UNREACHABLE;
     return NULL;

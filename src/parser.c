@@ -321,7 +321,7 @@ AST* parse_statement(Parser_Context* ctx) {
     {
         result = make_ast_comment(loc(ctx), tokValue(ctx)); 
         eat(ctx); 
-    } break;          
+    } break;
     case TOKEN_DEF:         result =  parse_def(ctx);           break;
     case TOKEN_ASM:         result =  parse_asm(ctx);           break;
     case TOKEN_IF:          result =  parse_if(ctx);            break;
@@ -345,7 +345,7 @@ AST* parse_statement(Parser_Context* ctx) {
 
     return result;
 }
-    
+
 AST* parse_primary(Parser_Context* ctx) {
     DEBUG_START;
     AST* result = NULL;

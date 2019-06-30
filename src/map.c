@@ -61,12 +61,6 @@ void map_tests(void) {
 
     xassert(((Test_Type*)map_get(map, "t1"))->val == 3.43f);
     xassert(((Test_Type*)map_get(map, "t2"))->val == 6.41f);
-    
-    // map_foreach(map) {
-    //     char* key = it->key;
-    //     Test_Type* t =  it->value;
-    //     debug("key: %s, value: %f", key, t->val);
-    // }
 }
 
 
@@ -137,7 +131,6 @@ inline static void map_increase_table_size_and_rehash(Map* map, s64 new_table_si
 
 void* map_set(Map* map, char* key, void* value) {
     xassert(map && key && value);
-    debug("map_set: %s, %zu", key, value);
     if ((float)map->count / map->table_size > 0.75f) {
         map_increase_table_size_and_rehash(map, map->table_size * 2);
     }
