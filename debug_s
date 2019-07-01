@@ -3,10 +3,10 @@
 NASM_FLAGS=""
 LD_FLAGS=""
 
-if [ $(uname) = Darwin ]; then
+if [ $(uname -s) == "Darwin" ]; then
     NASM_FLAGS="-f macho64 -F dwarf"
     LD_FLAGS="-macosx_version_min 10.14 -lSystem -e _main"
-elif [ $(uname) = GNU/Linux ]; then
+elif [ $(uname -s) == "Linux" ]; then
     NASM_FLAGS="-f elf64 -F dwarf"
     LD_FLAGS="-e main -lc -Bdynamic"
     if [ -f /lib/ld-musl-x86_64.so.1 ]; then
