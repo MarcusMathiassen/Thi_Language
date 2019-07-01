@@ -1080,7 +1080,7 @@ AST* parse_asm(Parser_Context* ctx) {
             loc_of_line = loc(ctx);
             line = make_string("");
         } else {
-            info("%s %s", token_kind_to_str(tokKind(ctx)), tokValue(ctx));
+            debug("%s %s", token_kind_to_str(tokKind(ctx)), tokValue(ctx));
             string_append_f(line, "%s ", tokValue(ctx));
         }
     }

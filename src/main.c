@@ -350,6 +350,7 @@ int main(int argc, char** argv) {
     if (code) {
         char* name_with_ext_removed = remove_file_extension(name);
         write_to_file(strf("%s.s", name_with_ext_removed), code);
+        
         assemble(name_with_ext_removed, exec_name);
         linking_stage(links, exec_name);
         
@@ -411,7 +412,7 @@ void assemble(char* asm_file, char* exec_name) {
     string* comp_call = make_string_f("nasm -f elf64 %s.s -o %s.o", asm_file, exec_name);
 #endif
     debug("Assembling with options '%s'", ucolor(string_data(comp_call)));
-    push_timer("Assembler");
+    push_timer(string_data(comp_call));
     system(string_data(comp_call));
     pop_timer();
 }
@@ -427,7 +428,7 @@ void linking_stage(List* links, char* exec_name) {
         string_append_f(link_call, " %s", link->Link.str);
     }
     debug("Linking with options '%s'", ucolor(string_data(link_call)));
-    push_timer("Linker");
+    push_timer(string_data(link_call));
     system(string_data(link_call));
     pop_timer();
 

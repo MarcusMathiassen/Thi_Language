@@ -48,49 +48,49 @@ static char* _ast_to_str(String_Context* ctx, AST* node);
 char* ast_kind_to_str(AST_Kind kind) {
     TASSERT_KIND_IN_RANGE(AST, kind);
     switch (kind) {
-    ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
-    case AST_COMMENT:                         return "AST_COMMENT";
-    case AST_NOP:                             return "AST_NOP";
-    case AST_SPACE_SEPARATED_IDENTIFIER_LIST: return "AST_SPACE_SEPARATED_IDENTIFIER_LIST";
-    case AST_COMMA_SEPARATED_LIST:            return "AST_COMMA_SEPARATED_LIST";
-    case AST_MODULE:                          return "AST_MODULE";
-    case AST_IS:                              return "AST_IS";
-    case AST_FALLTHROUGH:                     return "AST_FALLTHROUGH";
-    case AST_VAR_ARGS:                        return "AST_VAR_ARGS";
-    case AST_EXTERN:                          return "AST_EXTERN";
-    case AST_LOAD:                            return "AST_LOAD";
-    case AST_LINK:                            return "AST_LINK";
-    case AST_NOTE:                            return "AST_NOTE";
-    case AST_INT:                             return "AST_INT";
-    case AST_FLOAT:                           return "AST_FLOAT";
-    case AST_STRING:                          return "AST_STRING";
-    case AST_CHAR:                            return "AST_CHAR";
-    case AST_IDENT:                           return "AST_IDENT";
-    case AST_CALL:                            return "AST_CALL";
-    case AST_UNARY:                           return "AST_UNARY";
-    case AST_BINARY:                          return "AST_BINARY";
-    case AST_GROUPING:                        return "AST_GROUPING";
-    case AST_SUBSCRIPT:                       return "AST_SUBSCRIPT";
-    case AST_FIELD_ACCESS:                    return "AST_FIELD_ACCESS";
-    case AST_AS:                              return "AST_AS";
-    case AST_BLOCK:                           return "AST_BLOCK";
-    case AST_STRUCT:                          return "AST_STRUCT";
-    case AST_ENUM:                            return "AST_ENUM";
-    case AST_FUNCTION:                        return "AST_FUNCTION";
-    case AST_VARIABLE_DECL:                   return "AST_VARIABLE_DECL";
-    case AST_IF:                              return "AST_IF";
-    case AST_FOR:                             return "AST_FOR";
-    case AST_WHILE:                           return "AST_WHILE";
-    case AST_RETURN:                          return "AST_RETURN";
-    case AST_DEFER:                           return "AST_DEFER";
-    case AST_BREAK:                           return "AST_BREAK";
-    case AST_CONTINUE:                        return "AST_CONTINUE";
-    case AST_TYPEOF:                          return "AST_TYPEOF";
-    case AST_SIZEOF:                          return "AST_SIZEOF";
-    case AST_SWITCH:                          return "AST_SWITCH";
-    case AST_POST_INC_OR_DEC:                 return "AST_POST_INC_OR_DEC";
-    case AST_LITERAL:                         return "AST_LITERAL";
-    case AST_ASM:                             return "AST_ASM";
+        ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
+        case AST_COMMENT:                         return "AST_COMMENT";
+        case AST_NOP:                             return "AST_NOP";
+        case AST_SPACE_SEPARATED_IDENTIFIER_LIST: return "AST_SPACE_SEPARATED_IDENTIFIER_LIST";
+        case AST_COMMA_SEPARATED_LIST:            return "AST_COMMA_SEPARATED_LIST";
+        case AST_MODULE:                          return "AST_MODULE";
+        case AST_IS:                              return "AST_IS";
+        case AST_FALLTHROUGH:                     return "AST_FALLTHROUGH";
+        case AST_VAR_ARGS:                        return "AST_VAR_ARGS";
+        case AST_EXTERN:                          return "AST_EXTERN";
+        case AST_LOAD:                            return "AST_LOAD";
+        case AST_LINK:                            return "AST_LINK";
+        case AST_NOTE:                            return "AST_NOTE";
+        case AST_INT:                             return "AST_INT";
+        case AST_FLOAT:                           return "AST_FLOAT";
+        case AST_STRING:                          return "AST_STRING";
+        case AST_CHAR:                            return "AST_CHAR";
+        case AST_IDENT:                           return "AST_IDENT";
+        case AST_CALL:                            return "AST_CALL";
+        case AST_UNARY:                           return "AST_UNARY";
+        case AST_BINARY:                          return "AST_BINARY";
+        case AST_GROUPING:                        return "AST_GROUPING";
+        case AST_SUBSCRIPT:                       return "AST_SUBSCRIPT";
+        case AST_FIELD_ACCESS:                    return "AST_FIELD_ACCESS";
+        case AST_AS:                              return "AST_AS";
+        case AST_BLOCK:                           return "AST_BLOCK";
+        case AST_STRUCT:                          return "AST_STRUCT";
+        case AST_ENUM:                            return "AST_ENUM";
+        case AST_FUNCTION:                        return "AST_FUNCTION";
+        case AST_VARIABLE_DECL:                   return "AST_VARIABLE_DECL";
+        case AST_IF:                              return "AST_IF";
+        case AST_FOR:                             return "AST_FOR";
+        case AST_WHILE:                           return "AST_WHILE";
+        case AST_RETURN:                          return "AST_RETURN";
+        case AST_DEFER:                           return "AST_DEFER";
+        case AST_BREAK:                           return "AST_BREAK";
+        case AST_CONTINUE:                        return "AST_CONTINUE";
+        case AST_TYPEOF:                          return "AST_TYPEOF";
+        case AST_SIZEOF:                          return "AST_SIZEOF";
+        case AST_SWITCH:                          return "AST_SWITCH";
+        case AST_POST_INC_OR_DEC:                 return "AST_POST_INC_OR_DEC";
+        case AST_LITERAL:                         return "AST_LITERAL";
+        case AST_ASM:                             return "AST_ASM";
     }
     UNREACHABLE;
     return NULL;
@@ -103,14 +103,14 @@ char* get_ast_loc_str(AST* node) {
 char* get_ast_name(AST* node) {
     if (!node) return "---";
     switch (node->kind) {
-    ERROR_UNHANDLED_AST_KIND(node->kind);
-    case AST_MODULE:        return node->Module.name;
-    case AST_VARIABLE_DECL: return node->Variable_Decl.name;
-    case AST_EXTERN:        return get_type_name(node->Extern.type); // @Todo: AST_Extern should follow AST_Functions patterns
-    case AST_FUNCTION:      return node->Function.name;
-    case AST_STRUCT:        return node->Struct.name;
-    case AST_ENUM:          return node->Enum.name;
-    case AST_IDENT:         return node->Ident.name;
+        ERROR_UNHANDLED_AST_KIND(node->kind);
+        case AST_MODULE:        return node->Module.name;
+        case AST_VARIABLE_DECL: return node->Variable_Decl.name;
+        case AST_EXTERN:        return get_type_name(node->Extern.type); // @Todo: AST_Extern should follow AST_Functions patterns
+        case AST_FUNCTION:      return node->Function.name;
+        case AST_STRUCT:        return node->Struct.name;
+        case AST_ENUM:          return node->Enum.name;
+        case AST_IDENT:         return node->Ident.name;
     }
     UNREACHABLE;
     return NULL;
@@ -248,7 +248,7 @@ static char* _ast_to_str(String_Context* ctx, AST* node) {
     void (*func)(String_Context*, AST*) = (*ast_to_str_transitions[kind]);
     tassert(func, "ast_to_str missing callback for %s", kind);
     (*func)(ctx, node);
-
+    
     return string_data(s);
 }
 
@@ -598,12 +598,12 @@ static void _ast_to_str_literal(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     switch (node->Literal.kind) {
-    ERROR_UNHANDLED_LITERAL_KIND(node->Literal.kind);
-    case LITERAL_CHAR:     string_append_f(s, "%c",   node->Literal.Char.value);     break;
-    case LITERAL_INTEGER:  string_append_f(s, "%lld", node->Literal.Integer.value);  break;
-    case LITERAL_HEX:      string_append_f(s, "%llu", node->Literal.Hex.value);      break;
-    case LITERAL_FLOAT:    string_append_f(s, "%f",   node->Literal.Float.value);    break;
-    case LITERAL_STRING:   string_append_f(s, "%s",   node->Literal.String.value);   break;
+        ERROR_UNHANDLED_LITERAL_KIND(node->Literal.kind);
+        case LITERAL_CHAR:     string_append_f(s, "%c",   node->Literal.Char.value);     break;
+        case LITERAL_INTEGER:  string_append_f(s, "%lld", node->Literal.Integer.value);  break;
+        case LITERAL_HEX:      string_append_f(s, "%llu", node->Literal.Hex.value);      break;
+        case LITERAL_FLOAT:    string_append_f(s, "%f",   node->Literal.Float.value);    break;
+        case LITERAL_STRING:   string_append_f(s, "%s",   node->Literal.String.value);   break;
     }
 }
 
@@ -619,111 +619,111 @@ void* ast_visit(ast_callback func, void* ctx, AST* node) {
     if (!node) return NULL;
     switch (node->kind) {
         ERROR_UNHANDLED_AST_KIND(node->kind);
-
-    case AST_COMMENT: break;
-    case AST_NOP: break;
-
-    // @Todo(marcus) figure out what to do with these.
-    case AST_SPACE_SEPARATED_IDENTIFIER_LIST:
+        
+        case AST_COMMENT: break;
+        case AST_NOP: break;
+        
+        // @Todo(marcus) figure out what to do with these.
+        case AST_SPACE_SEPARATED_IDENTIFIER_LIST:
         list_foreach(node->Space_Separated_Identifier_List.identifiers) {
             ast_visit(func, ctx, it->data);
         }
         break;
-    case AST_COMMA_SEPARATED_LIST:
+        case AST_COMMA_SEPARATED_LIST:
         list_foreach(node->Comma_Separated_List.nodes) {
             ast_visit(func, ctx, it->data);
         }
         break;
-    case AST_MODULE:
+        case AST_MODULE:
         list_foreach(node->Module.top_level) {
             ast_visit(func, ctx, it->data);
         }
         break;
-    case AST_TYPEOF: ast_visit(func, ctx, node->Typeof.node); break;
-    case AST_SIZEOF: ast_visit(func, ctx, node->Sizeof.node); break;
-    case AST_NOTE: ast_visit(func, ctx, node->Note.node); break;
-    case AST_FALLTHROUGH: break;
-    case AST_LOAD:
+        case AST_TYPEOF: ast_visit(func, ctx, node->Typeof.node); break;
+        case AST_SIZEOF: ast_visit(func, ctx, node->Sizeof.node); break;
+        case AST_NOTE: ast_visit(func, ctx, node->Note.node); break;
+        case AST_FALLTHROUGH: break;
+        case AST_LOAD:
         ast_visit(func, ctx, node->Load.module);
         break;
-    case AST_LINK: break;
-    case AST_INT: break;
-    case AST_FLOAT: break;
-    case AST_STRING: break;
-    case AST_CHAR: break;
-    case AST_IDENT: break;
-    case AST_STRUCT: break;
-    case AST_POST_INC_OR_DEC: 
+        case AST_LINK: break;
+        case AST_INT: break;
+        case AST_FLOAT: break;
+        case AST_STRING: break;
+        case AST_CHAR: break;
+        case AST_IDENT: break;
+        case AST_STRUCT: break;
+        case AST_POST_INC_OR_DEC: 
         ast_visit(func, ctx, node->Post_Inc_or_Dec.node);
         break;
-
-    case AST_UNARY:
+        
+        case AST_UNARY:
         ast_visit(func, ctx, node->Unary.operand);
         break;
-    case AST_BINARY:
+        case AST_BINARY:
         ast_visit(func, ctx, node->Binary.lhs);
         ast_visit(func, ctx, node->Binary.rhs);
         break;
-    case AST_VARIABLE_DECL:
+        case AST_VARIABLE_DECL:
         ast_visit(func, ctx, node->Variable_Decl.value);
         break;
-    case AST_ENUM: break;
-    case AST_GROUPING:
+        case AST_ENUM: break;
+        case AST_GROUPING:
         ast_visit(func, ctx, node->Grouping.node);
         break;
-    case AST_SUBSCRIPT:
+        case AST_SUBSCRIPT:
         ast_visit(func, ctx, node->Subscript.load);
         ast_visit(func, ctx, node->Subscript.sub);
         break;
-    case AST_FIELD_ACCESS:
+        case AST_FIELD_ACCESS:
         ast_visit(func, ctx, node->Field_Access.load);
         break;
-    case AST_IF:
+        case AST_IF:
         ast_visit(func, ctx, node->If.cond);
         ast_visit(func, ctx, node->If.then_block);
         ast_visit(func, ctx, node->If.else_block);
         break;
-    case AST_FOR:
+        case AST_FOR:
         ast_visit(func, ctx, node->For.init);
         ast_visit(func, ctx, node->For.cond);
         ast_visit(func, ctx, node->For.step);
         ast_visit(func, ctx, node->For.then_block);
         break;
-    case AST_WHILE:
+        case AST_WHILE:
         ast_visit(func, ctx, node->While.cond);
         ast_visit(func, ctx, node->While.then_block);
         break;
-    case AST_RETURN:
+        case AST_RETURN:
         ast_visit(func, ctx, node->Return.node);
         break;
-    case AST_DEFER:
+        case AST_DEFER:
         ast_visit(func, ctx, node->Defer.node);
         break;
-    case AST_BREAK:
+        case AST_BREAK:
         ast_visit(func, ctx, node->Break.node);
         break;
-    case AST_CONTINUE:
+        case AST_CONTINUE:
         ast_visit(func, ctx, node->Continue.node);
         break;
-    case AST_AS:
+        case AST_AS:
         ast_visit(func, ctx, node->As.node);
         ast_visit(func, ctx, node->As.type_node);
         break;
-    case AST_IS:
+        case AST_IS:
         ast_visit(func, ctx, node->Is.node);
         ast_visit(func, ctx, node->Is.body);
         break;
-    case AST_SWITCH:
+        case AST_SWITCH:
         ast_visit(func, ctx, node->Switch.cond);
         ast_visit(func, ctx, node->Switch.cases);
         ast_visit(func, ctx, node->Switch.default_case);
         break;
-    case AST_EXTERN:
+        case AST_EXTERN:
         list_foreach(node->Extern.type->Function.parameters) {
             ast_visit(func, ctx, it->data);
         }
         break;
-    case AST_FUNCTION:
+        case AST_FUNCTION:
         ast_visit(func, ctx, node->Function.body);
         list_foreach(node->Function.parameters) {
             ast_visit(func, ctx, it->data);
@@ -732,17 +732,17 @@ void* ast_visit(ast_callback func, void* ctx, AST* node) {
             ast_visit(func, ctx, it->data);
         }
         break;
-    case AST_CALL:
+        case AST_CALL:
         list_foreach(node->Call.args) {
             ast_visit(func, ctx, it->data);
         }
         break;
-    case AST_BLOCK:
+        case AST_BLOCK:
         list_foreach(node->Block.stmts) {
             ast_visit(func, ctx, it->data);
         }
         break;
-    case AST_ASM:
+        case AST_ASM:
         ast_visit(func, ctx, node->Asm.block);
         break;
     }
@@ -783,11 +783,11 @@ char* ast_get_literal_value_as_str(AST* node) {
     AST_Kind kind = node->kind;
     TASSERT_KIND_IN_RANGE(AST, kind);
     switch (kind) {
-    ERROR_UNHANDLED_AST_KIND(kind);
-    case AST_INT:    return strf("%lld", node->Int.val);
-    case AST_FLOAT:  return strf("%f", node->Float.val);
-    case AST_STRING: return strf("`%s`, 0", node->String.val);
-    case AST_CHAR:   return ast_to_str(node);
+        ERROR_UNHANDLED_AST_KIND(kind);
+        case AST_INT:    return strf("%lld", node->Int.val);
+        case AST_FLOAT:  return strf("%f", node->Float.val);
+        case AST_STRING: return strf("`%s`, 0", node->String.val);
+        case AST_CHAR:   return ast_to_str(node);
     }
     UNREACHABLE;
     return NULL;
@@ -941,7 +941,7 @@ AST* make_ast_struct(Loc_Info loc_info, char* name, List* members) {
     AST* e = make_ast(AST_STRUCT, loc_info);
     e->Struct.name = name;
     e->Struct.members = members;
-
+    
     List* tps = make_list();
     list_foreach(members) {
         AST* member = it->data;
@@ -950,7 +950,7 @@ AST* make_ast_struct(Loc_Info loc_info, char* name, List* members) {
         tp->type = member->type;
         list_append(tps, tp);
     }
-
+    
     e->type = make_type_struct(name, tps);
     return e;
 }
@@ -960,7 +960,7 @@ AST* make_ast_enum(Loc_Info loc_info, char* name, List* members) {
     e->Enum.name = name;
     e->Enum.members = members;
     ;
-
+    
     List* tps = make_list();
     list_foreach(members) {
         AST* member = it->data;
@@ -969,7 +969,7 @@ AST* make_ast_enum(Loc_Info loc_info, char* name, List* members) {
         tp->type = member->type;
         list_append(tps, tp);
     }
-
+    
     e->type = make_type_enum(name, tps);
     return e;
 }
@@ -1169,12 +1169,12 @@ AST* make_ast_literal(Loc_Info loc_info, Literal_Kind kind, char* value) {
     AST* e = make_ast(AST_LITERAL, loc_info);
     e->Literal.kind = kind;
     switch (kind) {
-    ERROR_UNHANDLED_LITERAL_KIND(kind);
-    case LITERAL_CHAR:    e->Literal.Char.value    = value[0];     break;
-    case LITERAL_INTEGER: e->Literal.Integer.value = atoll(value); break;
-    // case LITERAL_HEX:     
-    case LITERAL_FLOAT:   e->Literal.Float.value   = atof(value);  break;
-    case LITERAL_STRING:  e->Literal.String.value  = value;        break;
+        ERROR_UNHANDLED_LITERAL_KIND(kind);
+        case LITERAL_CHAR:    e->Literal.Char.value    = value[0];     break;
+        case LITERAL_INTEGER: e->Literal.Integer.value = atoll(value); break;
+        // case LITERAL_HEX:     
+        case LITERAL_FLOAT:   e->Literal.Float.value   = atof(value);  break;
+        case LITERAL_STRING:  e->Literal.String.value  = value;        break;
     }
     return e;      
 }
@@ -1189,12 +1189,12 @@ AST* make_ast_asm(Loc_Info loc_info, AST* block) {
 char* literal_kind_to_str(Literal_Kind kind) {
     TASSERT_KIND_IN_RANGE(LITERAL, kind);
     switch (kind) {
-    ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
-    case LITERAL_CHAR:    return "LITERAL_CHAR";
-    case LITERAL_INTEGER: return "LITERAL_INTEGER";
-    case LITERAL_HEX:     return "LITERAL_HEX";
-    case LITERAL_FLOAT:   return "LITERAL_FLOAT";
-    case LITERAL_STRING:  return "LITERAL_STRING";
+        ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
+        case LITERAL_CHAR:    return "LITERAL_CHAR";
+        case LITERAL_INTEGER: return "LITERAL_INTEGER";
+        case LITERAL_HEX:     return "LITERAL_HEX";
+        case LITERAL_FLOAT:   return "LITERAL_FLOAT";
+        case LITERAL_STRING:  return "LITERAL_STRING";
     }
     UNREACHABLE;
     return NULL;   

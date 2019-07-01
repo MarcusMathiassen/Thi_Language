@@ -2,27 +2,12 @@ def print(msg u8*)
     msg_len = strlen(msg)
     asm
         mov     rax, 0x2000004
-        mov     rdi, 1        
-        mov     rsi, %msg     
-        mov     rdx, %msg_len 
+        mov     rdi, 1
+        mov     rsi, %msg
+        mov     rdx, %msg_len
         syscall
 
 def strlen(x u8*) s64 => i = x while *x++ {} x-i
 
-# Hello i am a comment
 def main(argc s32, argv u8**) s32
-
-    for i = 0; i < argc; ++i
-        print(*(argv + sizeof *argv * i))
-        print(" ")
-
-    print("\n")
-    name1 = "Marcus Mathiassen"
-    name2 = "Hello"
-    print("Welcome!\n")
-    print("\n")
-    for i = 0; i < 10; ++i { print("Marcus Mathiassen\n") }
-    i = 0
-    while i++ < 5
-        print("Hei\n")
-    return 1
+    print("hello world\n")
