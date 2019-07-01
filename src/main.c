@@ -421,7 +421,7 @@ void linking_stage(List* links, char* exec_name) {
 #ifdef __APPLE__
     string* link_call = make_string_f("ld -macosx_version_min 10.14 -o %s %s.o -e _main", exec_name, exec_name);
 #elif __unix__
-    string* link_call = make_string_f("ld -o %s %s.o -e _main", exec_name, exec_name);
+    string* link_call = make_string_f("ld -o %s %s.o -e main", exec_name, exec_name);
 #endif
     list_foreach(links) {
         AST* link = it->data;
