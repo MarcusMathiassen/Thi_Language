@@ -12,7 +12,6 @@ elif [ $(uname -s) == "Linux" ]; then
     if [ -f /lib/ld-musl-x86_64.so.1 ]; then
         flags="-lc -Bdynamic -dynamic-linker /lib/ld-musl-x86_64.so.1"
     fi
-
 fi
 
 nasm $NASM_FLAGS $1 -o test.o
