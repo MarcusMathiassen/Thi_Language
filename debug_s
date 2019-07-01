@@ -1,9 +1,26 @@
 #!/bin/bash
-nasm -f macho64 -g $1 -o test.o
+
+NASM_FLAGS="-f macho64"
+LD_FLAGS="-macosx_version_min 10.14 -o test test.o -e _main"
+
+if [ $(uname -o) = GNU/Linux ]; then
+    NASM_FLAGS="-f elf64 -F dwarf"
+    LD_FLAGS="-o test test.o -e main"
+fi
+
+nasm $NASM_FLAGS -g $1 -o test.o
 
 flags=-lSystem
 
-ld -macosx_version_min 10.14 -o test test.o -e _main $flags
+if [ $(uname -o) = GNU/Linux ]; then
+    flags="-lc -Bdynamic"
+
+    if [ -f /lib/ld-musl-x86_64.so.1 ]; then
+        flags="-lc -Bdynamic -dynamic-linker /lib/ld-musl-x86_64.so.1"
+    fi
+fi
+
+ld $LD_FLAGS $flags
 ./test
 echo $?
 # rm ./test
