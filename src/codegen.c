@@ -271,7 +271,12 @@ char* to_x64(AST* node) {
     push_timer((char*)__func__);
     Codegen_Context ctx = make_codegen_context();
     codegen(&ctx, node);
+
+#ifdef __APPLE__
     char* x64 = strf("%s%sglobal _main\n%s", string_data(ctx.section_extern), string_data(ctx.section_data), string_data(ctx.section_text));
+#elif __unix__
+    char* x64 = strf("%s%sglobal main\n%s", string_data(ctx.section_extern), string_data(ctx.section_data), string_data(ctx.section_text));
+#endif
     pop_timer();
     return x64;
 }
