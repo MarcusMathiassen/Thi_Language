@@ -1381,7 +1381,12 @@ void emit_extern(Codegen_Context* ctx, char* fmt, ...) {
     vsnprintf(str, str_len, fmt, args);
     va_end(args);
 
+
+#ifdef __APPLE__
     string_append_f(ctx->section_extern, "extern _%s\n", str);
+#elif __unix__
+    string_append_f(ctx->section_extern, "extern %s\n", str);
+#endif
 
     free(str);
 }
