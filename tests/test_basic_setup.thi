@@ -1,7 +1,7 @@
 def print(msg u8*)
     msg_len = strlen(msg)
     asm
-        mov     rax, 0x2000004
+        mov     rax, 0x2000004; change this to '1' on Linux.
         mov     rdi, 1
         mov     rsi, %msg
         mov     rdx, %msg_len
@@ -11,3 +11,4 @@ def strlen(x u8*) s64 => i = x while *x++ {} x-i
 
 def main(argc s32, argv u8**) s32
     print("hello world\n")
+    return 1
