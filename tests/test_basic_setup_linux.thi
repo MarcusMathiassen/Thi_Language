@@ -1,0 +1,14 @@
+def print(msg u8*)
+    msg_len = strlen(msg)
+    asm
+        mov eax, 4 ; write
+        mov ebx, 1 ; stdout
+        mov ecx, %msg
+        mov edx, %msg_len
+        int 0x80
+
+def strlen(x u8*) s64 => i = x while *x++ {} x-i
+
+def main(argc s32, argv u8**) s32
+    print("hello world\n")
+    return 1
