@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# exit when any command fails
+set -e
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 GRAY='\033[1;30m'
@@ -22,7 +25,7 @@ num_tests_passed=0
 num_tests_compiled_successfully=0
 test_counter=0
 
-thi_executable=./thi
+thi_executable=./bin/thi
 
 for tf in $test_files
 do
