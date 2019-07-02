@@ -534,7 +534,7 @@ AST* parse_defer(Parser_Context* ctx) {
     DEBUG_START;
     Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_DEFER);
-    AST* block = parse_statement(ctx);
+    AST* block = parse_block(ctx);
     return make_ast_defer(lc, block);
 }
 
@@ -544,6 +544,7 @@ AST* parse_fallthrough(Parser_Context* ctx) {
     eat_kind(ctx, TOKEN_FALLTHROUGH);
     return make_ast_fallthrough(lc);
 }
+
 AST* parse_is(Parser_Context* ctx) {
     DEBUG_START;
     Loc_Info lc = loc(ctx);

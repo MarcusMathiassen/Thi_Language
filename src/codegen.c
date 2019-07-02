@@ -830,8 +830,10 @@ static Value* codegen_function(Codegen_Context* ctx, AST* node) {
 
     set_current_function_expr(ctx, node);
 
+    // Local variables for easy access
     char* func_name = node->Function.name;
     AST* func_body = node->Function.body;
+    List* defers = node->Function.defers;
 
     push_scope(ctx);
 
@@ -840,6 +842,7 @@ static Value* codegen_function(Codegen_Context* ctx, AST* node) {
 #elif __unix__
     emit(ctx, "%s:", func_name);
 #endif
+
     push(ctx, RBP);
     emit(ctx, "mov rbp, rsp");
 
@@ -894,8 +897,6 @@ static Value* codegen_function(Codegen_Context* ctx, AST* node) {
     }
 
     emit(ctx, "%s:", DEFAULT_FUNCTION_END_LABEL_NAME);
-
-    List* defers = get_current_function(ctx)->Function.defers;
     list_foreach_reverse(defers) {
         codegen(ctx, it->data);
     }
@@ -1558,11 +1559,11 @@ void pop(Codegen_Context* ctx, int reg) {
 char* get_op_size(s8 bytes) {
     tassert(bytes >= 1 && bytes <= 8, "bytes = %d", bytes);
     switch (bytes) {
+    ERROR_UNHANDLED_KIND(strf("bytes: %d", bytes));
     case 1: return "byte";
     case 2: return "word";
     case 4: return "dword";
     case 8: return "qword";
-    default: return "qword";
     }
     UNREACHABLE;
     return NULL;

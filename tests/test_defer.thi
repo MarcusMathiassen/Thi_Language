@@ -1,18 +1,19 @@
 extern puts (u8*)  s32
 extern printf (u8*, ...) s32
 
+link "-lc"
+link "-lSystem" #macOS specific
+
 def func() s64
     defer { puts("you") }
     defer { puts("Hello") }
     return 53
-
 
 def main() s64
     i = 0
     defer
         puts("4th")
         i = 1
-
     k = func()
     defer
         puts("3rd")
@@ -22,4 +23,5 @@ def main() s64
         puts("2nd")
     puts("1st")
 
+    printf("Hi. How are you? %d\n", k);
     return i

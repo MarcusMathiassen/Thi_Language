@@ -266,20 +266,20 @@ int main(int argc, char** argv) {
     initilize_timers();
     push_timer("Total time");
 
-    s32 opt;
-    while ((opt = getopt(argc, argv, "hv")) != -1) {
-        switch (opt) {
-        case 'h': {
-            puts("Usage:");
-            puts("      thi <file>");
-            puts("      thi -v");
-            return 0;
-        } break;
-        case 'v': puts(COMPILER_VERSION); return 0;
-        case ':': debug("option needs a value\n"); return 0;
-        case '?': debug("unknown option: %c\n", opt); return 0;
-        }
-    }
+    // s32 opt;
+    // while ((opt = getopt(argc, argv, "hv")) != -1) {
+    //     switch (opt) {
+    //     case 'h': {
+    //         puts("Usage:");
+    //         puts("      thi <file>");
+    //         puts("      thi -v");
+    //         return 0;
+    //     } break;
+    //     case 'v': puts(COMPILER_VERSION); return 0;
+    //     case ':': debug("option needs a value\n"); return 0;
+    //     case '?': debug("unknown option: %c\n", opt); return 0;
+    //     }
+    // }
 
     debug("Compiler was last compiled: "__TIME__);
 
