@@ -12,11 +12,15 @@ if [ $? == 0 ]; then
         test_files="./tests/*.thi"
     fi
     if [ $? == 0 ]; then
-        # ./runtest
-        # ./runtest ./tests/test_window.thi
-        ./runtest ./tests/test_defer.thi
-        # ./runtest ./tests/test_basic_setup.thi
-        # ./runtest ./tests/test_fib.thi
-        # ./runtest ./tests/test_file.thi
+        if [ $(uname -s) == "Darwin" ]; then
+            # ./runtest
+            # ./runtest ./tests/test_window.thi
+            ./runtest ./tests/test_defer.thi
+            # ./runtest ./tests/test_basic_setup.thi
+            # ./runtest ./tests/test_fib.thi
+            # ./runtest ./tests/test_file.thi
+        elif [ $(uname -s) == "Linux" ]; then
+            ./runtest ./tests/test_basic_setup_linux.thi
+        fi
     fi
 fi
