@@ -1,5 +1,5 @@
 #!/bin/bash
-output=./thi
+output=./bin/thi
 olvl=-O3
 compiler=clang
 src=./src/*.c
