@@ -9,6 +9,14 @@ if [ $(uname -s) == "Darwin" ]; then
 elif [ $(uname -s) == "Linux" ]; then
     NASM_FLAGS="-f elf64 -F dwarf"
     LD_FLAGS="-e main -lc -Bdynamic"
+    # ArchLinux
+    if [ -f /usr/lib/ld-linux-x86-64.so.2 ]; then
+        LD_FLAGS+=" -dynamic-linker /usr/lib/ld-linux-x86-64.so.2"
+    fi
+    # Ubuntu
+    if [ -f /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 ]; then
+        LD_FLAGS+=" -dynamic-linker /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2"
+    fi
     if [ -f /lib/ld-musl-x86_64.so.1 ]; then
         LD_FLAGS+=" -dynamic-linker /lib/ld-musl-x86_64.so.1"
     fi
