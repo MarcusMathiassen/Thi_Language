@@ -1,34 +1,25 @@
+load "includes/sys"
+
 def main(argc s32, argv u8**) s32
     print("What's your name: ")
-    name = sys_read(1024)
+    name = malloc(1024)
+    sys_read(STDIN, name, 1024)
     print("And age: ")
-    age = sys_read(1024)
+    age = malloc(1024)
+    sys_read(STDIN, age, 1024)
     print("Hello, ")
     print(name)
     print("You are ")
-    sys_write(age, strlen(age)-2) # we remove the \0 and \n
+    printn(age, strlen(age)-2) # we remove the \n and \0
     print(" years old\n")
+    return 1
 
-def sys_write(buffer u8*, bytes s64)
-    asm
-        mov     rax, 0x2000004
-        mov     rdi, 1
-        mov     rsi, %buffer
-        mov     rdx, %bytes
-        syscall
+extern malloc(u64) u8*
 
-def sys_read(bytes s64) u8*
-    extern malloc(u64) u8*
-    buffer u8* = malloc(bytes)
-    asm
-        mov     rax, 0x2000003
-        mov     rdi, 0
-        mov     rsi, %buffer
-        mov     rdx, %bytes
-        syscall
-    return buffer
+def printn(msg u8*, n s64) void
+    sys_write(STDOUT, msg, n)
 
-def print(msg u8*)
-    sys_write(msg, strlen(msg))
+def print(msg u8*) void
+    sys_write(STDOUT, msg, strlen(msg))
 
 def strlen(x u8*) s64 => i = x while *x++ {} x-i
