@@ -37,7 +37,7 @@
 
 #define DEBUG_START \
     xassert(ctx); \
-    // debug("%s: %s", __func__, token_to_str(currTok(ctx)));
+    debug("%s: %s", __func__, token_to_str(currTok(ctx)));
 
 #define UNARY_OP_COUNT 11
 Token_Kind unary_ops[UNARY_OP_COUNT] = {
@@ -61,6 +61,10 @@ Token_Kind unary_ops[UNARY_OP_COUNT] = {
 //              Each construct of the language gets its own function
 //------------------------------------------------------------------------------
 
+typedef enum {
+    BLOCK_IMPLICITLY_RETURN_LAST_EXPR = 1 << 0
+} Parser_Flags;
+
 typedef struct {
     Token* tokens;
     char* file;
@@ -69,6 +73,7 @@ typedef struct {
     s64 comments;
     bool inside_parens;
     bool inside_asm;
+    u32 flags;
     Map* symbols;
     List* loads;
     Token top_tok;
@@ -123,8 +128,8 @@ void skip_comments_or_newlines(Parser_Context* ctx);
 //                               Helpers
 //------------------------------------------------------------------------------
 
-Type* parse_enum_signature             (Parser_Context* ctx, char* enum_name);
-Type* parse_type_signature             (Parser_Context* ctx, char* struct_name);
+AST* parse_enum_signature             (Parser_Context* ctx, Loc_Info lc, char* enum_name);
+AST* parse_struct_signature           (Parser_Context* ctx, Loc_Info lc, char* struct_name);
 Type* parse_extern_function_signature  (Parser_Context* ctx, char* func_name);
 List* generate_ast_from_tokens         (Parser_Context* ctx);
 Type* get_type                         (Parser_Context* ctx);
@@ -322,6 +327,9 @@ AST* parse_statement(Parser_Context* ctx) {
         result = make_ast_comment(loc(ctx), tokValue(ctx)); 
         eat(ctx); 
     } break;
+
+    case TOKEN_EQ_GT:       result =  parse_block(ctx);         break;
+
     case TOKEN_DEF:         result =  parse_def(ctx);           break;
     case TOKEN_ASM:         result =  parse_asm(ctx);           break;
     case TOKEN_IF:          result =  parse_if(ctx);            break;
@@ -645,6 +653,7 @@ AST* parse_block(Parser_Context* ctx) {
 
     // Check for single line implicit returned 
     // ex. def my_func() => 1 
+
     if (tok_is(ctx, TOKEN_EQ_GT) && tok_is_on_same_line(ctx)) {
         flags |= BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED;
         delimitor = TOKEN_NEWLINE;
@@ -656,7 +665,6 @@ AST* parse_block(Parser_Context* ctx) {
     eat(ctx);
     AST* block = make_ast_block(lc, stmts);
     
-
     // @Audit @Cleanup @Ugly
     if (flags & BLOCK_LAST_EXPR_IS_IMPLICITLY_RETURNED) {
         AST* last_stmt = stmts->tail->data;
@@ -673,7 +681,7 @@ AST* parse_return(Parser_Context* ctx) {
     DEBUG_START;
     Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_RETURN);
-    AST* expr = tok_is_on_same_line(ctx) ? parse_expression(ctx) : NULL;
+    AST* expr = tok_is_on_same_line(ctx) ? parse_expression(ctx) : make_ast_nop(lc);
     return make_ast_return(lc, expr);
 }
 
@@ -697,7 +705,9 @@ AST* parse_function_call(Parser_Context* ctx, Loc_Info lc, char* ident) {
 AST* parse_function_decl(Parser_Context* ctx, Loc_Info lc, char* ident) {
     DEBUG_START;
 
-    eat_kind(ctx, TOKEN_OPEN_PAREN);
+    xassert(tokKind(ctx) == TOKEN_OPEN_PAREN);
+    eat(ctx);
+
     List* params_t = make_list();
     List* params = make_list();
     bool has_multiple_arguments = false;
@@ -722,6 +732,7 @@ AST* parse_function_decl(Parser_Context* ctx, Loc_Info lc, char* ident) {
 
     Type* ret_type = (tok_is_on_same_line(ctx) && !tok_is(ctx, TOKEN_NEWLINE) && !tok_is(ctx, TOKEN_BLOCK_START)) ? get_type(ctx) : make_type_void();
     Type* func_type = make_type_function(func_name, params_t, ret_type, flags);
+
     AST* func_body = parse_block(ctx);
 
     return make_ast_function(lc, func_name, params, func_type, func_body);
@@ -732,31 +743,21 @@ AST* parse_def(Parser_Context* ctx) {
 
     Loc_Info lc = loc(ctx);
 
-    eat_kind(ctx, TOKEN_DEF);
+    xassert(tokKind(ctx) == TOKEN_DEF);
+    eat(ctx);
+
     char* ident = tokValue(ctx);
     eat_kind(ctx, TOKEN_IDENTIFIER);
 
-    if (tok_is(ctx, TOKEN_OPEN_PAREN)) {
-        return parse_function_decl(ctx, lc, ident);
+    switch(tokKind(ctx)) {
+    ERROR_UNHANDLED_TOKEN_KIND(tokKind(ctx));
+    case TOKEN_STRUCT:     return parse_struct_signature(ctx, lc, ident);
+    case TOKEN_ENUM:       return parse_enum_signature(ctx, lc, ident);
+    case TOKEN_OPEN_PAREN: return parse_function_decl(ctx, lc, ident);
     }
 
-    AST* body = parse_block(ctx);
-
-    // figure out if it's an enum or struct
-    bool is_enum = true;
-
-    List* members = body->Block.stmts;
-    list_foreach(members) {
-        AST* stmt = it->data;
-        switch (stmt->kind) {
-        case AST_IDENT: break;
-        default:
-            is_enum = false;
-            break;
-        }
-    }
-
-    return is_enum ? make_ast_enum(lc, ident, members) : make_ast_struct(lc, ident, members);
+    UNREACHABLE;
+    return NULL;
 }
 
 AST* parse_variable_decl(Parser_Context* ctx, Loc_Info lc, char* ident) {
@@ -1065,18 +1066,22 @@ void eat_block_start(Parser_Context* ctx) {
 // @Cleanup @Audit @Volatile @Ugly
 AST* parse_asm(Parser_Context* ctx) {
     DEBUG_START;
+ 
     Loc_Info lc = loc(ctx);
-    eat_kind(ctx, TOKEN_ASM);
+ 
+    xassert(tok_is(ctx, TOKEN_ASM));
+    eat(ctx);
+
     eat_block_start(ctx);
     
     List* stmts = make_list();
     string* line = make_string("");
     Loc_Info loc_of_line = loc(ctx);
     
-
-    for (; ctx->curr_tok.kind != TOKEN_BLOCK_END; eat(ctx)) {
+    while(true) {
         if(tok_is(ctx, TOKEN_COMMENT)) continue;
-        if (tok_is(ctx, TOKEN_NEWLINE) && next_tok_kind(ctx) != TOKEN_BLOCK_END) {
+
+        if (tok_is(ctx, TOKEN_NEWLINE)) {
             list_append(stmts, make_ast_string(loc_of_line, string_data(line)));
             loc_of_line = loc(ctx);
             line = make_string("");
@@ -1084,8 +1089,22 @@ AST* parse_asm(Parser_Context* ctx) {
             debug("%s %s", token_kind_to_str(tokKind(ctx)), tokValue(ctx));
             string_append_f(line, "%s ", tokValue(ctx));
         }
+
+        eat(ctx);
+        if (tok_is(ctx, TOKEN_BLOCK_END)) break;
     }
 
+    // for (; ctx->curr_tok.kind != TOKEN_BLOCK_END; eat(ctx)) {
+    //     if(tok_is(ctx, TOKEN_COMMENT)) continue;
+    //     if (tok_is(ctx, TOKEN_NEWLINE) && next_tok_kind(ctx) != TOKEN_BLOCK_END) {
+    //         list_append(stmts, make_ast_string(loc_of_line, string_data(line)));
+    //         loc_of_line = loc(ctx);
+    //         line = make_string("");
+    //     } else {
+    //         debug("%s %s", token_kind_to_str(tokKind(ctx)), tokValue(ctx));
+    //         string_append_f(line, "%s ", tokValue(ctx));
+    //     }
+    // }
     eat(ctx); // eat the block end
     AST* block = make_ast_block(lc, stmts);
     return make_ast_asm(lc, block);
@@ -1095,32 +1114,22 @@ AST* parse_asm(Parser_Context* ctx) {
 //                               Helpers
 //------------------------------------------------------------------------------
 
-Type* parse_enum_signature(Parser_Context* ctx, char* enum_name) {
+AST* parse_enum_signature(Parser_Context* ctx, Loc_Info lc, char* enum_name) {
     DEBUG_START;
-    eat_kind(ctx, TOKEN_BLOCK_START);
-    List* members = make_list();
-    while (!tok_is(ctx, TOKEN_BLOCK_END)) {
-        AST* expr = parse_identifier(ctx);
-        if (expr) {
-            list_append(members, expr);
-        }
-    }
-    eat_kind(ctx, TOKEN_BLOCK_END);
-    return make_type_enum(enum_name, members);
+    xassert(tokKind(ctx) == TOKEN_ENUM);
+    eat(ctx);
+    AST* block = parse_block(ctx);
+    List* members = block->Block.stmts;
+    return make_ast_enum(lc, enum_name, members);
 }
 
-Type* parse_type_signature(Parser_Context* ctx, char* struct_name) {
+AST* parse_struct_signature(Parser_Context* ctx, Loc_Info lc, char* struct_name) {
     DEBUG_START;
-    eat_kind(ctx, TOKEN_BLOCK_START);
-    List* members = make_list();
-    while (!tok_is(ctx, TOKEN_BLOCK_END)) {
-        AST* expr = parse_statement(ctx);
-        if (expr) {
-            list_append(members, expr);
-        }
-    }
-    eat_kind(ctx, TOKEN_BLOCK_END);
-    return make_type_struct(struct_name, members);
+    xassert(tokKind(ctx) == TOKEN_STRUCT);
+    eat(ctx);
+    AST* block = parse_block(ctx);
+    List* members = block->Block.stmts;
+    return make_ast_struct(lc, struct_name, members);
 }
 
 Type* parse_extern_function_signature(Parser_Context* ctx, char* func_name) {
@@ -1261,6 +1270,7 @@ struct
 Parser_Context
 make_parser_context(void) {
     Parser_Context ctx;
+    ctx.flags = 0;
     ctx.tokens = NULL;
     ctx.inside_parens = false;
     ctx.inside_asm = false;

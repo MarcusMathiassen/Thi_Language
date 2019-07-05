@@ -348,7 +348,7 @@ static void _ast_to_str_int(String_Context* ctx, AST* node) {
     string_append_f(s, "%lld", node->Int.val);
     if (node->type->Int.is_unsigned) string_append(s, "U");
     if (node->type->Int.bytes == 4) string_append(s, "L");
-    if (node->type->Int.bytes == 8) string_append(s, "LL");
+    else /* it must be 8 */ string_append(s, "LL");
 }
 
 static void _ast_to_str_float(String_Context* ctx, AST* node) {
@@ -445,7 +445,8 @@ static void _ast_to_str_block(String_Context* ctx, AST* node) {
     string* s = ctx->str;
     string_append(s, "\n");
     ctx->indentation_level += DEFAULT_INDENT_LEVEL;
-    list_foreach(node->Block.stmts) {
+    List* stmts = node->Block.stmts;
+    list_foreach(stmts) {
         string_append(s, get_indentation_as_str(ctx->indentation_level));
         AST* stmt = it->data;
         _ast_to_str(ctx, stmt);
@@ -488,7 +489,7 @@ static void _ast_to_str_function(String_Context* ctx, AST* node) {
         _ast_to_str(ctx, it->data);
         if (it->next) string_append(s, ", ");
     }
-    string_append_f(s, ") %s ", get_type_name(node->type->Function.return_type));
+    string_append_f(s, ") %s", get_type_name(node->type->Function.return_type));
     _ast_to_str(ctx, node->Function.body);
 }
 
@@ -611,7 +612,14 @@ static void _ast_to_str_asm(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
     string_append(s, "asm");
-    _ast_to_str(ctx, node->Asm.block);
+    ctx->indentation_level += DEFAULT_INDENT_LEVEL;
+    list_foreach(node->Asm.block->Block.stmts) {
+        AST* stmt = it->data;
+        string_append(s, get_indentation_as_str(ctx->indentation_level));
+        string_append(s, stmt->String.val);
+        if (it->next) string_append(s, "\n");
+    }
+    ctx->indentation_level -= DEFAULT_INDENT_LEVEL;
 }
 
 void* ast_visit(ast_callback func, void* ctx, AST* node) {
@@ -1109,7 +1117,7 @@ AST* make_ast_while(Loc_Info loc_info, AST* cond, AST* then_block) {
 }
 
 AST* make_ast_return(Loc_Info loc_info, AST* node) {
-    // xassert(node); // returns can be called with out an nodeession
+    xassert(node);
     AST* e = make_ast(AST_RETURN, loc_info);
     e->Return.node = node;
     return e;
@@ -1183,7 +1191,7 @@ AST* make_ast_asm(Loc_Info loc_info, AST* block) {
     xassert(block);
     AST* e = make_ast(AST_ASM, loc_info);
     e->Asm.block = block;
-    return e;   
+    return e;
 }
 
 char* literal_kind_to_str(Literal_Kind kind) {

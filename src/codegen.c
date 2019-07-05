@@ -1041,26 +1041,25 @@ static Value* codegen_return(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     AST* ret_e = node->Return.node;
     Value* ret_v = NULL;
-    if (ret_e) {
-        Class_Kind class = classify(ret_e->type);
-        ret_v = codegen(ctx, ret_e);
-        s64 size = get_size_of_value(ret_v);
-        s8 return_reg = -1;
-        s8 class_integer_counter = 0;
-        s8 class_sse_counter = 0;
-        switch (class) {
-        ERROR_UNHANDLED_CLASS_KIND(class);
-        // case CLASS_MEMORY: break;
-        case CLASS_INTEGER: return_reg = get_return_reg_int(class_integer_counter++, size); break;
-        case CLASS_SSE:
-            return_reg = get_return_reg_float(class_sse_counter++);
-            break;
-            // case CLASS_SSEUP: break;
-        }
-        char* mov_op = get_move_op(ret_v->type);
-        char* result_reg = get_result_reg(ret_v->type);
-        emit(ctx, "%s %s, %s", mov_op, get_reg(return_reg), result_reg);
+    xassert(ret_e);
+    Class_Kind class = classify(ret_e->type);
+    ret_v = codegen(ctx, ret_e);
+    s64 size = get_size_of_value(ret_v);
+    s8 return_reg = -1;
+    s8 class_integer_counter = 0;
+    s8 class_sse_counter = 0;
+    switch (class) {
+    ERROR_UNHANDLED_CLASS_KIND(class);
+    case CLASS_NO_CLASS: goto end;
+    // case CLASS_MEMORY: break;
+    case CLASS_INTEGER: return_reg = get_return_reg_int(class_integer_counter++, size); break;
+    case CLASS_SSE:     return_reg = get_return_reg_float(class_sse_counter++);         break;
+    // case CLASS_SSEUP: break;
     }
+    char* mov_op = get_move_op(ret_v->type);
+    char* result_reg = get_result_reg(ret_v->type);
+    emit(ctx, "%s %s, %s", mov_op, get_reg(return_reg), result_reg);
+end:
     emit(ctx, "jmp %s", DEFAULT_FUNCTION_END_LABEL_NAME);
     return ret_v;
 }
@@ -2138,6 +2137,7 @@ Class_Kind classify(Type* type) {
     xassert(type);
     switch (type->kind) {
         ERROR_UNHANDLED_TYPE_KIND(type->kind);
+        case TYPE_VOID:     break; // void has no class
         case TYPE_INT:      // fallthrough
         case TYPE_POINTER:  return CLASS_INTEGER;
         case TYPE_FLOAT:    return CLASS_SSE;

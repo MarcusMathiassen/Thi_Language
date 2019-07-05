@@ -2,7 +2,7 @@ extern puts (u8*)  s32
 extern printf (u8*, ...) s32
 
 link "-lc"
-link "-lSystem" #macOS specific
+link "-lSystem"
 
 def func() s64
     defer { puts("you") }

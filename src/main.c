@@ -76,6 +76,7 @@
 void assemble(char* asm_file, char* exec_name);
 void linking_stage(List* links, char* exec_name);
 
+
 //------------------------------------------------------------------------------
 //                               Passes
 //------------------------------------------------------------------------------
@@ -374,7 +375,6 @@ int main(int argc, char** argv) {
     debug(ucolor(table_entry("size of symbols", size_with_suffix(symbols->count * sizeof(*symbols->elements)))));
 
     Timer* tm_total = pop_timer();
-
 
     {
         // @FeltCuteMightDeleteLater

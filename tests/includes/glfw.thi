@@ -1,23 +1,25 @@
 link "-lglfw"
+link "-lglew"
 link "-framework OpenGL"
 link "-framework CoreVideo"
 link "-framework IOKit"
 link "-framework Cocoa"
 link "-framework Carbon"
 link "-framework CoreFoundation"
-def GLFWvidmode
+
+def GLFWvidmode struct
     width        s32
     height       s32
     red_bits     s32
     green_bits   s32
     blue_bits    s32
     refresh_rate s32
-def GLFWgammaramp
+def GLFWgammaramp struct
     red    u16*
     green  u16*
     blue   u16*
     size   u32
-def GLFWimage
+def GLFWimage struct
     width  s32
     height s32
     pixels u8*
