@@ -46,37 +46,5 @@ void* set_is_element_of(Set* this, void* data) {
     return map_get(this->elements, strf("%d", index));
 }
 
-typedef struct
-{
-    float val;
-} Test_Type;
-
-u32 crc32(void* data) {
-    Test_Type* t = data;
-    xassert(data);
-    u32 hash = 5381;
-    u32 c;
-    while ((c = t->val++))
-        hash = ((hash << 5) + hash) + c;
-    return hash;
-}
-
 void set_tests() {
-
-    // Set* s = make_set(crc32);
-    
-    // Test_Type t1;
-    // t1.val = 3.43f;
-
-    // Test_Type t2;
-    // t2.val = 53.43f;
-
-    // set_add(s, &t1);
-    // set_add(s, &t1);
-    // set_add(s, &t2);
-    // set_add(s, &t2);
-
-    // xassert(!set_is_element_of(s, &t1));
-
-    // error("gg");
 }

@@ -21,6 +21,7 @@
 #ifndef SET_H
 #define SET_H
 #include "common.h"
+
 struct Set;
 typedef struct Set Set;
 

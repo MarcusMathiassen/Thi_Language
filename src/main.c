@@ -284,6 +284,12 @@ int main(int argc, char** argv) {
 
     debug("Compiler was last compiled: "__TIME__);
 
+// #ifdef __APPLE__
+//     error("%s", getenv("OS"));
+// #elif __unix__
+//     error("%s", getenv("OS"));
+// #endif
+
 #ifndef NDEBUG
     set_tests();
     utility_tests();

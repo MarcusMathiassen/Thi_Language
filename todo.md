@@ -33,6 +33,7 @@
       consolidate them into a single AST_Decl. 
 - [ ] Bootstrap!
 - [ ] Find a better way to handle AST location information.
+- [ ] Operator precedences in binary expressions are not handled correctly.
 
 ## Bugs
 - [x] Timers are wacky. Sometimes negative? Buggy buggy. #fixed: changed the get_time function.
