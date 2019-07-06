@@ -22,13 +22,18 @@ def main(argc s32, argv u8**) s32
     printn(age, strlen(age)-2) # we remove the \n and \0
     print(" years old\n")
 
+    printf("0x0000000 = %d\n", 0x0000000)
+    printf("0x0000004 = %d\n", 0x0000004)
+    printf("0x1000000 = %d\n", 0x1000000)
+    printf("0x2000000 = %d\n", 0x2000000)
+    printf("0x2000004 = %d\n", 0x2000004)
+
     return 1
 
-
-def printn(msg u8*, n s64) void
+def printn(msg u8*, n s64)
     write(STDOUT, msg, n)
 
-def print(msg u8*) void
+def print(msg u8*)
     write(STDOUT, msg, strlen(msg))
 
 def strlen(x u8*) s64 => i = x while *x++ {} x-i

@@ -833,7 +833,6 @@ static Value* codegen_function(Codegen_Context* ctx, AST* node) {
     // Local variables for easy access
     char* func_name = node->Function.name;
     AST* func_body = node->Function.body;
-    List* defers = node->Function.defers;
 
     push_scope(ctx);
 
@@ -897,9 +896,11 @@ static Value* codegen_function(Codegen_Context* ctx, AST* node) {
     }
 
     emit(ctx, "%s:", DEFAULT_FUNCTION_END_LABEL_NAME);
-    list_foreach_reverse(defers) {
-        codegen(ctx, it->data);
-    }
+    // List* defers = node->Function.defers;
+    // list_foreach_reverse(defers) {
+    //     codegen(ctx, it->data);
+    // }
+
     pop_scope(ctx);
 
     if (stack_allocated + padding) {
@@ -1042,6 +1043,15 @@ static Value* codegen_return(Codegen_Context* ctx, AST* node) {
     AST* ret_e = node->Return.node;
     Value* ret_v = NULL;
     xassert(ret_e);
+
+    // @Audit: there may be a better way to implement defers
+    // Defers
+    //      before the function can return, we need to execute all defered calls.
+    List* defers = get_current_function(ctx)->Function.defers;
+    list_foreach_reverse(defers) {
+        codegen(ctx, it->data);
+    }
+
     Class_Kind class = classify(ret_e->type);
     ret_v = codegen(ctx, ret_e);
     s64 size = get_size_of_value(ret_v);
