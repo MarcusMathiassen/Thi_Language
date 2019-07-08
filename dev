@@ -1,7 +1,7 @@
 #!/bin/bash
-output=./bin/thi
+output=./thi
 olvl=
-compiler=clang
+compiler=cc
 src=./src/*.c
 flags=-Wall\ -Wextra\ -Wno-unused-function\ -Wno-unused-parameter\ -Werror\ -g\ -fsanitize=address\ -fno-omit-frame-pointer
 std=c99
@@ -14,9 +14,9 @@ if [ $? == 0 ]; then
     if [ $? == 0 ]; then
         if [ $(uname) = "Darwin" ]; then
             # ./runtest
-            # ./runtest ./tests/test_window.thi
+            ./runtest ./tests/test_window.thi
             # ./runtest ./tests/test_defer_2.thi
-            ./runtest ./tests/test_defer.thi
+            # ./runtest ./tests/test_defer.thi
             # ./runtest ./tests/test_basic_setup.thi
             # ./runtest ./tests/test_fib.thi
             # ./runtest ./tests/test_file.thi

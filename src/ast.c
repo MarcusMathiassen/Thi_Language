@@ -28,7 +28,7 @@
 #include "string.h" // strf, string_append, string
 #include "common.h"
 #include "utility.h" // info, success, error, warning, xmalloc, xrealloc, xstrlen
-#include <stdlib.h> 
+#include <stdlib.h>
 #include <string.h> // strlen
 
 //------------------------------------------------------------------------------
@@ -248,7 +248,7 @@ static char* _ast_to_str(String_Context* ctx, AST* node) {
     void (*func)(String_Context*, AST*) = (*ast_to_str_transitions[kind]);
     tassert(func, "ast_to_str missing callback for %s", kind);
     (*func)(ctx, node);
-    
+
     return string_data(s);
 }
 
@@ -627,10 +627,10 @@ void* ast_visit(ast_callback func, void* ctx, AST* node) {
     if (!node) return NULL;
     switch (node->kind) {
         ERROR_UNHANDLED_AST_KIND(node->kind);
-        
+
         case AST_COMMENT: break;
         case AST_NOP: break;
-        
+
         // @Todo(marcus) figure out what to do with these.
         case AST_SPACE_SEPARATED_IDENTIFIER_LIST:
         list_foreach(node->Space_Separated_Identifier_List.identifiers) {
@@ -661,10 +661,10 @@ void* ast_visit(ast_callback func, void* ctx, AST* node) {
         case AST_CHAR: break;
         case AST_IDENT: break;
         case AST_STRUCT: break;
-        case AST_POST_INC_OR_DEC: 
+        case AST_POST_INC_OR_DEC:
         ast_visit(func, ctx, node->Post_Inc_or_Dec.node);
         break;
-        
+
         case AST_UNARY:
         ast_visit(func, ctx, node->Unary.operand);
         break;
@@ -887,11 +887,11 @@ AST* make_ast_extern(Loc_Info loc_info, Type* type) {
     return e;
 }
 
-AST* make_ast_load(Loc_Info loc_info, char* str, AST* module) { 
-    xassert(str); 
-    xassert(module); 
-    AST* e = make_ast(AST_LOAD, loc_info); 
-    e->Load.str = str; 
+AST* make_ast_load(Loc_Info loc_info, char* str, AST* module) {
+    xassert(str);
+    xassert(module);
+    AST* e = make_ast(AST_LOAD, loc_info);
+    e->Load.str = str;
     e->Load.module = module;
     return e;
 }
@@ -949,7 +949,7 @@ AST* make_ast_struct(Loc_Info loc_info, char* name, List* members) {
     AST* e = make_ast(AST_STRUCT, loc_info);
     e->Struct.name = name;
     e->Struct.members = members;
-    
+
     List* tps = make_list();
     list_foreach(members) {
         AST* member = it->data;
@@ -958,7 +958,7 @@ AST* make_ast_struct(Loc_Info loc_info, char* name, List* members) {
         tp->type = member->type;
         list_append(tps, tp);
     }
-    
+
     e->type = make_type_struct(name, tps);
     return e;
 }
@@ -968,7 +968,7 @@ AST* make_ast_enum(Loc_Info loc_info, char* name, List* members) {
     e->Enum.name = name;
     e->Enum.members = members;
     ;
-    
+
     List* tps = make_list();
     list_foreach(members) {
         AST* member = it->data;
@@ -977,7 +977,7 @@ AST* make_ast_enum(Loc_Info loc_info, char* name, List* members) {
         tp->type = member->type;
         list_append(tps, tp);
     }
-    
+
     e->type = make_type_enum(name, tps);
     return e;
 }
@@ -1168,7 +1168,7 @@ AST* make_ast_post_inc_or_dec(Loc_Info loc_info, Token_Kind op, AST* node) {
     AST* e = make_ast(AST_POST_INC_OR_DEC, loc_info);
     e->Post_Inc_or_Dec.op = op;
     e->Post_Inc_or_Dec.node = node;
-    return e;   
+    return e;
 }
 
 AST* make_ast_literal(Loc_Info loc_info, Literal_Kind kind, char* value) {
@@ -1180,11 +1180,11 @@ AST* make_ast_literal(Loc_Info loc_info, Literal_Kind kind, char* value) {
         ERROR_UNHANDLED_LITERAL_KIND(kind);
         case LITERAL_CHAR:    e->Literal.Char.value    = value[0];     break;
         case LITERAL_INTEGER: e->Literal.Integer.value = atoll(value); break;
-        // case LITERAL_HEX:     
+        // case LITERAL_HEX:
         case LITERAL_FLOAT:   e->Literal.Float.value   = atof(value);  break;
         case LITERAL_STRING:  e->Literal.String.value  = value;        break;
     }
-    return e;      
+    return e;
 }
 
 AST* make_ast_asm(Loc_Info loc_info, AST* block) {
@@ -1205,5 +1205,5 @@ char* literal_kind_to_str(Literal_Kind kind) {
         case LITERAL_STRING:  return "LITERAL_STRING";
     }
     UNREACHABLE;
-    return NULL;   
+    return NULL;
 }

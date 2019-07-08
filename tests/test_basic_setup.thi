@@ -22,12 +22,6 @@ def main(argc s32, argv u8**) s32
     printn(age, strlen(age)-2) # we remove the \n and \0
     print(" years old\n")
 
-    printf("0x0000000 = %d\n", 0x0000000)
-    printf("0x0000004 = %d\n", 0x0000004)
-    printf("0x1000000 = %d\n", 0x1000000)
-    printf("0x2000000 = %d\n", 0x2000000)
-    printf("0x2000004 = %d\n", 0x2000004)
-
     return 1
 
 def printn(msg u8*, n s64)

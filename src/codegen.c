@@ -413,11 +413,11 @@ static Value* codegen_call(Codegen_Context* ctx, AST* node) {
 // From the System V Application Binary Interface Manual
 // -- Passing
 //  Once arguments are classified, the registers get assigned(in left-to-right order) for passing as follows:
-//      1. If the class is MEMORY, pass the argument on the stack.
-//      2. If the class is INTEGER, the next available register of the sequence %rdi, %rsi, %rdx, %rcx, %r8 and %r9 is used15.
-//      3. If the class is SSE, the next available vector register is used, the registers are taken in the order from %xmm0 to %xmm7.
-//      4. If the class is SSEUP, the eightbyte is passed in the next available eightbyte chunk of the last used vector register.
-//      5. If the class is X87, X87UP or COMPLEX_X87, it is passed in memory.
+//     - If the class is MEMORY, pass the argument on the stack.
+//     - If the class is INTEGER, the next available register of the sequence %rdi, %rsi, %rdx, %rcx, %r8 and %r9 is used15.
+//     - If the class is SSE, the next available vector register is used, the registers are taken in the order from %xmm0 to %xmm7.
+//     - If the class is SSEUP, the eightbyte is passed in the next available eightbyte chunk of the last used vector register.
+//     - If the class is X87, X87UP or COMPLEX_X87, it is passed in memory.
 //
 //  When a value of type _Bool is returned or passed in a register or on the stack, bit 0 contains the truth value and bits 1 to 7 shall be zero.
 //
@@ -894,14 +894,9 @@ static Value* codegen_function(Codegen_Context* ctx, AST* node) {
     list_foreach(stmts) {
         codegen(ctx, it->data);
     }
+    pop_scope(ctx);
 
     emit(ctx, "%s:", DEFAULT_FUNCTION_END_LABEL_NAME);
-    // List* defers = node->Function.defers;
-    // list_foreach_reverse(defers) {
-    //     codegen(ctx, it->data);
-    // }
-
-    pop_scope(ctx);
 
     if (stack_allocated + padding) {
         emit(ctx, "add rsp, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);
@@ -1045,8 +1040,8 @@ static Value* codegen_return(Codegen_Context* ctx, AST* node) {
     xassert(ret_e);
 
     // @Audit: there may be a better way to implement defers
-    // Defers
-    //      before the function can return, we need to execute all defered calls.
+    // - Defers
+    //      before the function can return, we need to execute all so far defered calls.
     List* defers = get_current_function(ctx)->Function.defers;
     list_foreach_reverse(defers) {
         codegen(ctx, it->data);

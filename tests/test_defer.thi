@@ -10,11 +10,11 @@ def func() s64
     return 53
 
 def main() s64
-    
+
     i = 0
     defer
         puts("4th")
-        i = 1
+        i = 52
     k = func()
     defer
         puts("3rd")
@@ -26,4 +26,4 @@ def main() s64
 
     printf("Hi. How are you? %d\n", k);
 
-    return k
+    return k - i
