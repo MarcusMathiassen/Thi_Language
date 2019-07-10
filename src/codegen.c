@@ -39,7 +39,7 @@
 
 #define DEBUG_START                                                              \
     xassert(ctx && node);                                                        \
-    // debug("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(node))); \
+    debug("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(node))); \
     // emit(ctx, "; %s", ast_to_str(node));
 
 

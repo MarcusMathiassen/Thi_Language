@@ -26,6 +26,8 @@
 
 #define COMPILER_VERSION "0.1"
 
+#define OPTIMIZATION_CONSTANT_FOLD 1
+
 #define TIMERS_SORT 0
 #define SHOW_TIMERS_WITH_SUFFIX 1
 
@@ -123,19 +125,5 @@ typedef s8       bool;
 #define DEFAULT_MILLISECONDS_SUFFIX "ms"
 #define DEFAULT_MICROSECONDS_SUFFIX "us"
 #define DEFAULT_NANOSECONDS_SUFFIX "ns"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #endif

@@ -324,12 +324,12 @@ static Type* sema_grouping(Sema_Context* ctx, AST* node) {
 }
 
 static Type* sema_subscript(Sema_Context* ctx, AST* node) {
+    
     AST* load = node->Subscript.load;
     AST* sub = node->Subscript.sub;
-    Type* t = _sema(ctx, load);
-    _sema(ctx, sub);
 
-    Type* type_of_field = load->type;
+    _sema(ctx, load);
+    _sema(ctx, sub);
 
     s64 size = get_size_of_underlying_type_if_any(load->type);
 
@@ -337,11 +337,9 @@ static Type* sema_subscript(Sema_Context* ctx, AST* node) {
     load = make_ast_binary(node->loc_info, TOKEN_PLUS, load, sub);
     load = make_ast_grouping(node->loc_info, load);
     load = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, load);
-    load->type = type_of_field;
-
     ast_replace(node, load);
 
-    return t;
+    return _sema(ctx, node);
 }
 
 static Type* sema_field_access(Sema_Context* ctx, AST* node) {

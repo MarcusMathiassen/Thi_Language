@@ -618,12 +618,14 @@ Lexed_File lex(char* file) {
 
     } while(kind != TOKEN_EOF);
 
+#ifndef NDEBUG
     debug("Printing tokens..");
     foreach(i, tokens.count - 1) {
         debug("kind: '%s' start: %llu end: %llu", 
             ucolor(token_kind_to_str(tokens.data[i].kind)),
             tokens.data[i].start, tokens.data[i].end);
     }
+#endif
 
     pop_timer();
     // error("ee");
@@ -808,12 +810,9 @@ char* intern_range(Intern_Array* interns, char* start, char* end) {
 
     char* str = xmalloc(len + 1);
     memcpy(str, start, len);
-    str[len] = 0;
+    str[len] = '\0';
 
-    Intern intern;
-    intern.len = len;
-    intern.str = str;
-    intern_array_append(interns, intern);
+    intern_array_append(interns, (Intern){len, str});
 
     return str;
 }

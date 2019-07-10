@@ -21,7 +21,6 @@
 //------------------------------------------------------------------------------
 //                               main.c
 //------------------------------------------------------------------------------
-
 #include "set.h"          // Set, set_tests
 #include "ast.h"          // AST, AST_Kind
 #include "codegen.h"      // generate_code_from_ast
@@ -112,7 +111,7 @@ void constant_fold_unary(AST* node) {
     }
 }
 
-bool expr_is_literal_value(AST* expr, float val) {
+bool expr_is_literal_value(AST* expr, f64 val) {
     if ((expr->kind == AST_INT && expr->Int.val == (s64)val) || (expr->kind == AST_FLOAT && expr->Float.val == val)) {
         return true;
     }
@@ -316,11 +315,6 @@ int main(int argc, char** argv) {
     debug("name: %s", name);
     debug("exec_name: %s", exec_name);
 
-    // Make sure it's actually a .thi file
-    if (strcmp(ext, ".thi") != 0) {
-        error("thats not a thi file...");
-    }
-
     debug(ucolor(str_replace_center(" parsing ", pad_out_full_width('_'))));
     Parsed_File pf = parse(source_file);
     
@@ -331,18 +325,15 @@ int main(int argc, char** argv) {
 
     List* links = ast_find_all_of_kind(AST_LINK, ast);
 
-#ifdef __APPLE__
-    // macOS needs a specific link to get libc
-    list_append(links, make_ast_link(ast->loc_info, "-lSystem"));
-#endif
-
     // Semantic Analysis
     debug(ucolor(str_replace_center(" sema ", pad_out_full_width('_'))));
     debug("");
     sema(ast);
-
+    
+#if OPTIMIZATION_CONSTANT_FOLD
     //  Optimization passes
     run_pass(ast, "constant_fold", constant_fold, NULL);
+#endif
 
     // Codegen
     debug(ucolor(str_replace_center(" codegen ", pad_out_full_width('_'))));
@@ -369,15 +360,15 @@ int main(int argc, char** argv) {
 
     // Debug info. Writing out sizes of our types.
     // table_entry align the 1st argument to the left and the 2nd to the right.
-    debug(ucolor(table_entry("size of Token", size_with_suffix(sizeof(Token)))));
-    debug(ucolor(table_entry("size of AST", size_with_suffix(sizeof(AST)))));
-    debug(ucolor(table_entry("size of Type", size_with_suffix(sizeof(Type)))));
-    debug(ucolor(table_entry("size of Value", size_with_suffix(sizeof(Value)))));
-    debug(ucolor(table_entry("size of Map", size_with_suffix(sizeof(Map)))));
-    debug(ucolor(table_entry("size of List", size_with_suffix(sizeof(List)))));
-    debug(ucolor(table_entry("size of Stack", size_with_suffix(sizeof(Stack)))));
-    debug(ucolor(table_entry("size of string", size_with_suffix(sizeof(string)))));
-    debug(ucolor(table_entry("size of code", size_with_suffix(strlen(code) / sizeof(code)))));
+    debug(ucolor(table_entry("size of Token",   size_with_suffix(sizeof(Token)))));
+    debug(ucolor(table_entry("size of AST",     size_with_suffix(sizeof(AST)))));
+    debug(ucolor(table_entry("size of Type",    size_with_suffix(sizeof(Type)))));
+    debug(ucolor(table_entry("size of Value",   size_with_suffix(sizeof(Value)))));
+    debug(ucolor(table_entry("size of Map",     size_with_suffix(sizeof(Map)))));
+    debug(ucolor(table_entry("size of List",    size_with_suffix(sizeof(List)))));
+    debug(ucolor(table_entry("size of Stack",   size_with_suffix(sizeof(Stack)))));
+    debug(ucolor(table_entry("size of string",  size_with_suffix(sizeof(string)))));
+    debug(ucolor(table_entry("size of code",    size_with_suffix(strlen(code) / sizeof(code)))));
     debug(ucolor(table_entry("size of symbols", size_with_suffix(symbols->count * sizeof(*symbols->elements)))));
 
     Timer* tm_total = pop_timer();
