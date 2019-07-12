@@ -1,3 +1,4 @@
+link "-lSystem"
 link "-lc"
 EOF = -1
 SEEK_SET = 0

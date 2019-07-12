@@ -1,19 +1,19 @@
 
 load "includes/sys"
 #load "includes/cstdio"
-
 #extern malloc(u64) u8*
 
 def main(argc s32, argv u8**) s32
 
-    #__return_value__ s32 = 1
+    __return_value__ s32 = 1
 
-    for i = 0; i < argc; ++i 
-        print(*(argv + i * 8))
+
+    for i = 0; i < argc; ++i
+        print(argv[i])
 
     print("\n")
     
-    for i = 0; i < argc; ++i
+    for i in 0 .. argc
         print(argv[i])
 
     print("\n")
@@ -39,10 +39,10 @@ def main(argc s32, argv u8**) s32
     #printf("0.1 + 0.2 = %f\n", 0.1 + 0.2)
     #printf("1.0/3.0 = %.17f\n", 1.0/3.0)
 
-    #exit(__return_value__)
+    exit(__return_value__)
 
-#def printn(msg u8*, n s64)
-#    write(STDOUT, msg, n)
+def printn(msg u8*, n s64)
+    write(STDOUT, msg, n)
 
 def print(msg u8*)
     write(STDOUT, msg, strlen(msg))

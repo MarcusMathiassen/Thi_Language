@@ -509,27 +509,31 @@ AST* parse_for(Parser_Context* ctx) {
 
     if (tok_is(ctx, TOKEN_IN)) {
 
-        // for param in params
-        // expands into..
-        // for it = 0, it < len(params), ++it
-        //     param := params[it]
+        eat(ctx); // eat 'in'
 
-        // // WE ARE A 'FOR IN'
-        // eat_kind(ctx, TOKEN_IN);
+        AST* start = parse_expression(ctx);
+        AST* end = NULL;
+        if (tok_is(ctx, TOKEN_DOT_DOT)) {
+            // We are in a 'for call in 0 .. calls' type of 
+            eat(ctx); // eat '..'
+            end = parse_expression(ctx);
+        } else {
+            // We are in a 'for call in calls' type of 
+            // for-in. 
+            // Which is only supported if 'start' is of 
+            // array type.
+            // which we do not yet support
+            error("we do not yet support for-in with array types.");
+        }
 
-        // // Parse the rhs
-        // AST* after_in = parse_expression(ctx);
+        AST* it = make_ast_ident(loc(ctx), init->Ident.name);
+        init = make_ast_binary(loc(ctx), TOKEN_EQ, it, start);
+        cond = make_ast_binary(loc(ctx), TOKEN_LT, it, end);
+        step = make_ast_unary(loc(ctx), TOKEN_PLUS_PLUS, it);
+        then_block = parse_block(ctx);
 
-        // AST* it = make_ast_ident(loc(ctx), DEFAULT_FOR_IN_ITERATOR_NAME);
-        // AST* it_var = make_ast_binary(loc(ctx), TOKEN_EQ, init, make_ast_subscript(loc(ctx), after_in, it));
-
-        // init = make_ast_binary(loc(ctx), TOKEN_EQ, it, make_ast_int(loc(ctx), 0));
-        // cond = make_ast_binary(loc(ctx), TOKEN_LT, it, make_ast_int(loc(ctx), 7)); //@HARDCODED
-        // step = make_ast_unary(loc(ctx), TOKEN_PLUS_PLUS, it);
-        // then_block = parse_block(ctx);
-
-        // // Place the 'param' variable at the start of the block
-        // list_prepend(then_block->Block.stmts, it_var);
+        // Place the 'param' variable at the start of the block
+        // list_prepend(then_block->Block.stmts, init);
     } else {
         cond = parse_statement(ctx);
         step = parse_statement(ctx);
@@ -1397,10 +1401,8 @@ void restore_if_statement(Parser_Context* ctx) {
 void set_dangling_else(Parser_Context* ctx, AST* else_block) {
     ctx->llast_if_statement->If.else_block = else_block;
 }
-
 Loc_Info loc(Parser_Context* ctx) {
-    Loc_Info loc_info;
-    loc_info.line = ctx->curr_tok.line;
-    loc_info.col = ctx->curr_tok.col;
-    return loc_info;
+    s64 line = ctx->curr_tok.line;
+    s64 col = ctx->curr_tok.col;
+    return (Loc_Info){line, col};
 }

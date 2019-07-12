@@ -329,7 +329,7 @@ int main(int argc, char** argv) {
     debug(ucolor(str_replace_center(" sema ", pad_out_full_width('_'))));
     debug("");
     sema(ast);
-    
+
 #if OPTIMIZATION_CONSTANT_FOLD
     //  Optimization passes
     run_pass(ast, "constant_fold", constant_fold, NULL);
@@ -380,7 +380,7 @@ int main(int argc, char** argv) {
         success(str_replace_center(" Thi ", pad_out_full_width('_')));
         success(align_center(strf("lines %lld comments %lld", line_count, comment_count)));
 
-        // Figure out percentage of total time for each timer
+        // Sorting the list also disables any tree like representation atm.
     #if TIMERS_SORT
         list_sort(timer_list, timer_sort_func);
     #endif

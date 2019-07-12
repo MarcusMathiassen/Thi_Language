@@ -91,6 +91,7 @@ char* ast_kind_to_str(AST_Kind kind) {
         case AST_POST_INC_OR_DEC:                 return "AST_POST_INC_OR_DEC";
         case AST_LITERAL:                         return "AST_LITERAL";
         case AST_ASM:                             return "AST_ASM";
+        case AST_CAST:                            return "AST_CAST";
     }
     UNREACHABLE;
     return NULL;
@@ -178,6 +179,7 @@ static void _ast_to_str_switch                          (String_Context* ctx, AS
 static void _ast_to_str_post_inc_or_dec                 (String_Context* ctx, AST* node);
 static void _ast_to_str_literal                         (String_Context* ctx, AST* node);
 static void _ast_to_str_asm                             (String_Context* ctx, AST* node);
+static void _ast_to_str_cast                            (String_Context* ctx, AST* node);
 
 
 static void (*ast_to_str_transitions[])(String_Context*, AST*) = {
@@ -223,6 +225,7 @@ static void (*ast_to_str_transitions[])(String_Context*, AST*) = {
     [AST_POST_INC_OR_DEC]                 =  _ast_to_str_post_inc_or_dec,
     [AST_LITERAL]                         =  _ast_to_str_literal,
     [AST_ASM]                             =  _ast_to_str_asm,
+    [AST_CAST]                            =  _ast_to_str_cast,
 };
 
 static char* _ast_to_str(String_Context* ctx, AST* node) {
@@ -622,6 +625,13 @@ static void _ast_to_str_asm(String_Context* ctx, AST* node) {
     ctx->indentation_level -= DEFAULT_INDENT_LEVEL;
 }
 
+static void _ast_to_str_cast(String_Context* ctx, AST* node) {
+    xassert(ctx && node);
+    string* s = ctx->str;
+    string_append_f(s, "cast(%s) ", type_to_str(node->Cast.desired_type));
+    _ast_to_str(ctx, node->Cast.node);
+}
+
 void* ast_visit(ast_callback func, void* ctx, AST* node) {
     xassert(func);
     if (!node) return NULL;
@@ -752,6 +762,9 @@ void* ast_visit(ast_callback func, void* ctx, AST* node) {
         break;
         case AST_ASM:
         ast_visit(func, ctx, node->Asm.block);
+        break;
+        case AST_CAST:
+        ast_visit(func, ctx, node->Cast.node);
         break;
     }
     return (*func)(ctx, node);
@@ -1191,6 +1204,13 @@ AST* make_ast_asm(Loc_Info loc_info, AST* block) {
     xassert(block);
     AST* e = make_ast(AST_ASM, loc_info);
     e->Asm.block = block;
+    return e;
+}
+AST* make_ast_cast(Loc_Info loc_info, Type* desired_type, AST* node) {
+    xassert(desired_type && node);
+    AST* e = make_ast(AST_CAST, loc_info);
+    e->Cast.desired_type = desired_type;
+    e->Cast.node = node;
     return e;
 }
 

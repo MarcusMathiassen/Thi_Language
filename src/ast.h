@@ -102,6 +102,7 @@ typedef enum {
     AST_POST_INC_OR_DEC,
     AST_LITERAL,
     AST_ASM,
+    AST_CAST,
     _AST_COUNT_
 } AST_Kind;
 
@@ -324,6 +325,11 @@ struct AST {
         {
             AST* block;
         } Asm;
+        struct
+        {
+            Type* desired_type;
+            AST* node;
+        } Cast;
     };
 };
 
@@ -369,6 +375,7 @@ AST* make_ast_comma_separated_list            (Loc_Info loc_info, List* nodes);
 AST* make_ast_post_inc_or_dec                 (Loc_Info loc_info, Token_Kind op, AST* node);
 AST* make_ast_literal                         (Loc_Info loc_info, Literal_Kind kind, char* value);
 AST* make_ast_asm                             (Loc_Info loc_info, AST* block);
+AST* make_ast_cast                            (Loc_Info loc_info, Type* desired_type, AST* node);
 
 typedef void* (*ast_callback)(void*, AST*);
 

@@ -1,21 +1,7 @@
-
 load "includes/cstdio"
 load "includes/cstdlib"
 
 def strlen(x u8*) s64 => i = x while *x++ {} x - i
-
-# Welcome to Melt
-# Features: 
-# - Context-based enum access like Swift
-#       ex. '.Identifier' instead of 'TokenKind.Identifier'
-# - Basic type-inference
-# - Optional semicolons
-# - Optional braces (excluding lambda)
-# - Compile-time type-information, AST modification and construction
-# - Inline assembly 
-# - Variable length arguments
-# - Short lambda syntax '=>' with implicit return of the last expression
-# - No build process. The compiler handles dependencies.
 
 def lex(c u8*) char*
     while *c
@@ -23,8 +9,11 @@ def lex(c u8*) char*
         ++c
 
 def main(argc s32, argv char**) s32
-    if argc < 2 { puts("too few arguments.") exit(0) }
-    source_file = *(argv + 8) 
+    if argc < 2
+        puts("too few arguments.")
+        return 0
+    source_file = argv[1]
+    printf("printing: %s", source_file)
     content = get_file_content(source_file)
     if !content { printf("Failed to get content of file '%s'\n", source_file) }
     lex(content)
@@ -32,9 +21,9 @@ def main(argc s32, argv char**) s32
 
 
 # Reads an entire file into a zero terminated C style string
-def get_file_content(filename char*) char*
+def get_file_content(filename u8*) u8*
 
-    buffer char* = 0
+    buffer u8* = 0
 
     if handler = fopen(filename, "r")
 
@@ -47,7 +36,7 @@ def get_file_content(filename char*) char*
         # go back to the start of the file
         rewind(handler)
 
-        # Allocate a string that can hold it all
+        # Allocate a string that can hold it all +1 to hold the '\0'
         buffer = malloc(string_size + 1)
 
         # Read it all in one operation
@@ -55,9 +44,7 @@ def get_file_content(filename char*) char*
 
         # fread doesn't set it so put a \0 in the last position
         # and buffer is now officially a string
-        #buffer[string_size] = 0
-
-        *(buffer + string_size) = 0
+        buffer[string_size] = '\0'
 
         if string_size != read_size
             # Something went wrong, throw away the memory and set
