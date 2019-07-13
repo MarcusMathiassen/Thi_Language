@@ -1,4 +1,4 @@
-extern puts (u8*)  s32
+extern puts (u8*) s32
 extern printf (u8*, ...) s32
 
 link "-lc"
@@ -10,7 +10,6 @@ def func() s64
     return 53
 
 def main() s64
-
     i = 0
     defer
         puts("4th")
@@ -19,11 +18,7 @@ def main() s64
     defer
         puts("3rd")
         i = 2
-        printf("Hi. How are you? %d\n", k);
     defer 
         puts("2nd")
     puts("1st")
-
-    printf("Hi. How are you? %d\n", k);
-
     return k - i

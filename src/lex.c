@@ -410,19 +410,13 @@ Lexed_File lex(char* file) {
 
             // after parsing an identifier, check if its a keywords
             char* value = intern_range(&interns, start, end);
-            // char* value = NULL;
             foreach(i, _KEY_COUNT_) {
-                // if (strncmp(interned_keywords[i], start, end-start) == 0) {
-                //     value = interned_keywords[i];
-                //     kind = (Token_Kind)(i + _TOKEN_KEYWORDS_START_+1); // keywords start at _TOKEN_KEYWORDS_START_+1 @Volatile
-                //     break;
-                // }
                 if (interned_keywords[i] == value) {
                     kind = (Token_Kind)(i + _TOKEN_KEYWORDS_START_+1); // keywords start at _TOKEN_KEYWORDS_START_+1 @Volatile
                     break;
                 }
             }
-            // start = value ? value : intern_range(&interns, start, end); // @Hack: we're using something in a way it was ot ment to be used
+
             start = value; // @Hack: we're using something in a way it was ot ment to be used
         } break;
 
@@ -628,7 +622,6 @@ Lexed_File lex(char* file) {
 #endif
 
     pop_timer();
-    // error("ee");
 
     return (Lexed_File){tokens, line, comments};
 }
