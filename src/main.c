@@ -75,7 +75,6 @@
 void assemble(char* asm_file, char* exec_name);
 void linking_stage(List* links, char* exec_name);
 
-
 //------------------------------------------------------------------------------
 //                               Passes
 //------------------------------------------------------------------------------
@@ -416,7 +415,7 @@ void assemble(char* asm_file, char* exec_name) {
 
 void linking_stage(List* links, char* exec_name) {
 #ifdef __APPLE__
-    string* link_call = make_string_f("ld -macosx_version_min 10.15 -o %s %s.o -e _main", exec_name, exec_name);
+    string* link_call = make_string_f("ld -macosx_version_min 10.14 -o %s %s.o -e _main", exec_name, exec_name);
 #elif __unix__
     string* link_call = make_string_f("ld -o %s %s.o -e main", exec_name, exec_name);
 #endif
@@ -425,6 +424,7 @@ void linking_stage(List* links, char* exec_name) {
         string_append_f(link_call, " %s", link->Link.str);
     }
     debug("Linking with options '%s'", ucolor(string_data(link_call)));
+
     push_timer(string_data(link_call));
     system(string_data(link_call));
     pop_timer();

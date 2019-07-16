@@ -1,8 +1,11 @@
-
 extern puts(u8*) s32;
-def main()
+
+link "-lSystem";
+link "-lc";
+
+def main() s32
     i = 0;
-    for ; i < 1000 ;
-        puts("all work and no play makes jhonny boi a dull straw");
-        ++i
+    for ; i < 10;;
+        puts("Oscar spiller Pokemon");
+        ++i;
     return i - 9;

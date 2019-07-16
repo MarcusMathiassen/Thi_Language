@@ -4,16 +4,15 @@ load "includes/cstdlib"
 def strlen(x u8*) s64 => i = x while *x++ {} x - i
 
 def lex(c u8*) char*
-    while *c
-        printf("%c", *c)
-        ++c
+    while cc = *c++
+        putchar(cc)
 
 def main(argc s32, argv char**) s32
     if argc < 2
         puts("too few arguments.")
         return 0
     source_file = argv[1]
-    printf("printing: %s", source_file)
+    printf("printing: %s\n", source_file)
     content = get_file_content(source_file)
     if !content { printf("Failed to get content of file '%s'\n", source_file) }
     lex(content)
@@ -56,7 +55,6 @@ def get_file_content(filename u8*) u8*
         fclose(handler)
 
     return buffer
-
 
 def write_to_file(filename char*, buffer char*)
     if f = fopen(filename, "w")

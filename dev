@@ -18,6 +18,7 @@ if [ $? == 0 ]; then
             # ./runtest ./tests/test_defer_2.thi
             # ./runtest ./tests/test_defer.thi
             ./runtest ./tests/test_basic_setup.thi
+            # ./runtest ./tests/test_optional_semicolon.thi
             # ./runtest ./tests/test_fib.thi
             # ./runtest ./tests/test_file.thi
         elif [ $(uname) = "Linux" ]; then

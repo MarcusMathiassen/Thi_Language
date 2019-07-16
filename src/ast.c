@@ -92,6 +92,7 @@ char* ast_kind_to_str(AST_Kind kind) {
         case AST_LITERAL:                         return "AST_LITERAL";
         case AST_ASM:                             return "AST_ASM";
         case AST_CAST:                            return "AST_CAST";
+        case AST_EXPR_LIST:                       return "AST_EXPR_LIST";
     }
     UNREACHABLE;
     return NULL;
@@ -180,6 +181,7 @@ static void _ast_to_str_post_inc_or_dec                 (String_Context* ctx, AS
 static void _ast_to_str_literal                         (String_Context* ctx, AST* node);
 static void _ast_to_str_asm                             (String_Context* ctx, AST* node);
 static void _ast_to_str_cast                            (String_Context* ctx, AST* node);
+static void _ast_to_str_expr_list                       (String_Context* ctx, AST* node);
 
 
 static void (*ast_to_str_transitions[])(String_Context*, AST*) = {
@@ -226,6 +228,7 @@ static void (*ast_to_str_transitions[])(String_Context*, AST*) = {
     [AST_LITERAL]                         =  _ast_to_str_literal,
     [AST_ASM]                             =  _ast_to_str_asm,
     [AST_CAST]                            =  _ast_to_str_cast,
+    [AST_EXPR_LIST]                       =  _ast_to_str_expr_list,
 };
 
 static char* _ast_to_str(String_Context* ctx, AST* node) {
@@ -632,6 +635,16 @@ static void _ast_to_str_cast(String_Context* ctx, AST* node) {
     _ast_to_str(ctx, node->Cast.node);
 }
 
+static void _ast_to_str_expr_list(String_Context* ctx, AST* node) {
+    xassert(ctx && node);
+    string* s = ctx->str;
+    list_foreach(node->Expr_List.exprs) {
+        AST* expr = it->data;
+        _ast_to_str(ctx, expr);
+        if (it->next) string_append(s, ", ");
+    }
+}
+
 void* ast_visit(ast_callback func, void* ctx, AST* node) {
     xassert(func);
     if (!node) return NULL;
@@ -765,6 +778,11 @@ void* ast_visit(ast_callback func, void* ctx, AST* node) {
         break;
         case AST_CAST:
         ast_visit(func, ctx, node->Cast.node);
+        break;
+        case AST_EXPR_LIST:
+        list_foreach(node->Expr_List.exprs) {
+            ast_visit(func, ctx, it->data);
+        }
         break;
     }
     return (*func)(ctx, node);
@@ -1212,6 +1230,13 @@ AST* make_ast_cast(Loc_Info loc_info, Type* desired_type, AST* node) {
     e->Cast.desired_type = desired_type;
     e->Cast.node = node;
     return e;
+}
+
+AST* make_ast_expr_list(Loc_Info loc_info, List* expr_list) {
+    xassert(expr_list);
+    AST* e = make_ast(AST_EXPR_LIST, loc_info);
+    e->Expr_List.exprs = expr_list;
+    return e;   
 }
 
 char* literal_kind_to_str(Literal_Kind kind) {

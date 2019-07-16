@@ -22,7 +22,7 @@ extern ferror(void*) s32
 extern fflush(void*) s32
 extern clearerr(void*)
 extern fseek(void*, s32, s32) s32
-extern ftell(void*) s32
+extern ftell(void*) s64
 extern rewind(void*)
 # extern fgetpos(void*, fpos_t *) s32
 # extern fsetpos(void*,  fpos_t *) s32
