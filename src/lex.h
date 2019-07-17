@@ -144,6 +144,7 @@ typedef enum {
     TOKEN_FALLTHROUGH,
     TOKEN_AS,
     TOKEN_IS,
+    TOKEN_CAST,
     //
     TOKEN_IDENTIFIER,
 

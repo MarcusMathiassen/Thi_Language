@@ -71,6 +71,7 @@ typedef enum {
     KEY_FALLTHROUGH,
     KEY_AS,
     KEY_IS,
+    KEY_CAST,
     _KEY_COUNT_,
 } Keyword_Kind;
 
@@ -349,6 +350,7 @@ static char* keywords_as_strings[_KEY_COUNT_] = {
     "fallthrough",
     "as",
     "is",
+    "cast",
 };
 
 void initilize_lex() {
@@ -717,6 +719,7 @@ char* token_kind_to_str(Token_Kind kind) {
     case TOKEN_FALLTHROUGH:       return "fallthrough";
     case TOKEN_AS:                return "as";
     case TOKEN_IS:                return "is";
+    case TOKEN_CAST:              return "cast";
 
     case TOKEN_IDENTIFIER:        return "TOKEN_IDENTIFIER";
 

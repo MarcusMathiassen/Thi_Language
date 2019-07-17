@@ -120,6 +120,7 @@ AST* parse_string                   (Parser_Context* ctx);
 AST* parse_prefix                   (Parser_Context* ctx);
 AST* parse_postfix                  (Parser_Context* ctx);
 AST* parse_asm                      (Parser_Context* ctx);
+AST* parse_cast                     (Parser_Context* ctx);
 
 void skip_comments_or_newlines(Parser_Context* ctx);
 
@@ -314,7 +315,7 @@ AST* parse_statement(Parser_Context* ctx) {
 AST* parse_primary(Parser_Context* ctx) {
     DEBUG_START;
     AST* result = NULL;
-    // start:
+// start:
     switch (tokKind(ctx)) {
     ERROR_UNHANDLED_TOKEN_KIND(tokKind(ctx));
     case TOKEN_COMMENT: {
@@ -342,6 +343,7 @@ AST* parse_primary(Parser_Context* ctx) {
     case TOKEN_OPEN_PAREN:  result = parse_parens(ctx); break;
     case TOKEN_CLOSE_PAREN: eat(ctx); break;
     case TOKEN_BLOCK_START: result = parse_block(ctx); break;
+    case TOKEN_CAST: result = parse_cast(ctx); break;
     }
 
     // Eat extranous terminals
@@ -832,11 +834,12 @@ AST* parse_postfix_tail(Parser_Context* ctx, AST* primary_expr) {
             break;
         }
 
-        // Expression List
-        case TOKEN_COMMA: {
-            primary_expr = read_expr_list(ctx, primary_expr);
-            break;
-        }
+        // @Audit
+        // // Expression List
+        // case TOKEN_COMMA: {
+        //     primary_expr = read_expr_list(ctx, primary_expr);
+        //     break;
+        // }
         case TOKEN_AS:
             primary_expr = read_as(ctx, primary_expr);
             break;
@@ -880,10 +883,14 @@ AST* parse_unary(Parser_Context* ctx) {
     }
 
     if (unary) {
-        if (unary->Unary.op == TOKEN_SIZEOF) {
+        switch(unary->Unary.op) {
+        default: break;
+        case TOKEN_SIZEOF:
             ast_replace(unary, make_ast_sizeof(unary->loc_info, unary->Unary.operand));
-        } else if (unary->Unary.op == TOKEN_TYPEOF) {
+            break;
+        case TOKEN_TYPEOF: 
             ast_replace(unary, make_ast_typeof(unary->loc_info, unary->Unary.operand));
+            break;
         }
     }
 
@@ -908,19 +915,8 @@ AST* parse_note(Parser_Context* ctx) {
 
 AST* parse_expression(Parser_Context* ctx) {
     DEBUG_START;
-    Loc_Info lc = loc(ctx); 
     AST* lhs = parse_prefix(ctx);
     AST* expr = lhs ? parse_binary(ctx, 0, lhs) : NULL;
-
-    // is it an expression list?
-    if (tok_is(ctx, TOKEN_COMMA)) {
-        warning("parsing expr_list");
-        eat(ctx);
-        List* expr_list = parse_delimited_list(ctx, parse_expression, TOKEN_COMMA);
-        list_prepend(expr_list, expr);
-        return make_ast_expr_list(lc, expr_list);
-    }
-
     return expr;
 }
 
@@ -1081,6 +1077,18 @@ AST* parse_asm(Parser_Context* ctx) {
     eat(ctx); // eat the block end
     AST* block = make_ast_block(lc, stmts);
     return make_ast_asm(lc, block);
+}
+
+AST* parse_cast(Parser_Context* ctx) {
+    DEBUG_START;
+    xassert(tok_is(ctx, TOKEN_CAST));
+    Loc_Info lc = loc(ctx);
+    eat(ctx);
+    eat_kind(ctx, TOKEN_OPEN_PAREN);
+    AST* desired_type = parse_expression(ctx);
+    eat_kind(ctx, TOKEN_CLOSE_PAREN);
+    AST* operand = parse_expression(ctx);
+    return make_ast_cast(lc, desired_type, operand);
 }
 
 //------------------------------------------------------------------------------

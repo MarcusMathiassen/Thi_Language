@@ -11,6 +11,10 @@ def func() s64
 
 def main() s64
     i = 0
+
+    # Single statement or compound statement
+    defer
+        puts("5th")
     defer
         puts("4th")
         i = 52

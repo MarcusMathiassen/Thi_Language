@@ -98,6 +98,7 @@ static Type* sema_switch                           (Sema_Context* ctx,  AST* nod
 static Type* sema_post_inc_or_dec                  (Sema_Context* ctx,  AST* node);
 static Type* sema_literal                          (Sema_Context* ctx,  AST* node);
 static Type* sema_asm                              (Sema_Context* ctx,  AST* node);
+static Type* sema_cast                             (Sema_Context* ctx,  AST* node);
 
 
 static Type* (*sema_transitions[])(Sema_Context*, AST*) = {
@@ -143,6 +144,7 @@ static Type* (*sema_transitions[])(Sema_Context*, AST*) = {
     [AST_POST_INC_OR_DEC]                 =  sema_post_inc_or_dec,
     [AST_LITERAL]                         =  sema_literal,
     [AST_ASM]                             =  sema_asm,
+    [AST_CAST]                            =  sema_cast,
 };
 
 static Sema_Context make_sema_context() {
@@ -569,6 +571,14 @@ static Type* sema_literal(Sema_Context* ctx, AST* node) {
 
 static Type* sema_asm(Sema_Context* ctx, AST* node) {
     return _sema(ctx, node->Asm.block);
+}
+
+static Type* sema_cast(Sema_Context* ctx, AST* node) {
+    AST* desired_type = node->Cast.desired_type;
+    AST* operand = node->Cast.node;
+    _sema(ctx, operand);
+    _sema(ctx, desired_type);
+    return desired_type->type;
 }
 
 //------------------------------------------------------------------------------

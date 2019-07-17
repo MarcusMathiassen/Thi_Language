@@ -221,6 +221,7 @@ static Value* codegen_switch                          (Codegen_Context* ctx, AST
 static Value* codegen_post_inc_or_dec                 (Codegen_Context* ctx, AST* node);
 static Value* codegen_literal                         (Codegen_Context* ctx, AST* node);
 static Value* codegen_asm                             (Codegen_Context* ctx, AST* node);
+static Value* codegen_cast                            (Codegen_Context* ctx, AST* node);
 
 static Value* (*codegen_transitions[])(Codegen_Context*, AST*) = {
     [AST_COMMENT]                         =  codegen_comment,
@@ -265,6 +266,7 @@ static Value* (*codegen_transitions[])(Codegen_Context*, AST*) = {
     [AST_POST_INC_OR_DEC]                 =  codegen_post_inc_or_dec,
     [AST_LITERAL]                         =  codegen_literal,
     [AST_ASM]                             =  codegen_asm,
+    [AST_CAST]                            =  codegen_cast,
 };
 
 char* to_x64(AST* node) {
@@ -1036,8 +1038,8 @@ static Value* codegen_return(Codegen_Context* ctx, AST* node) {
 //      5. If the class is SSEUP, the eightbyte is returned in the next available eightbyte chunk of the last used vector register.
     DEBUG_START;
     AST* ret_e = node->Return.node;
-    Value* ret_v = NULL;
     xassert(ret_e);
+    Value* ret_v = NULL;
 
     // @Audit: there may be a better way to implement defers
     // - Defers
@@ -1222,6 +1224,17 @@ static Value* codegen_asm(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
+// @Audit, @Robustness
+static Value* codegen_cast(Codegen_Context* ctx, AST* node) {
+    DEBUG_START;
+    AST* desired_type = node->Cast.desired_type;
+    AST* operand = node->Cast.node;
+    Value* v = codegen(ctx, operand);
+    emit_cast(ctx, v, desired_type->type);
+    v->type = desired_type->type;
+    return v;
+}
+
 //------------------------------------------------------------------------------
 //                              Codegen Helpers
 //------------------------------------------------------------------------------
@@ -1259,8 +1272,6 @@ typedef struct {
     Operand o1, o2;
     char* comment;
 } NASM_Line;
-
-
 
 typedef struct {
     char* label;
@@ -1757,9 +1768,9 @@ void emit_cast(Codegen_Context* ctx, Value* variable, Type* desired_type) {
     xassert(variable);
     xassert(desired_type);
     Type* type = variable->type;
-    char* reg = get_result_reg(type);
+    char* reg = get_result_reg(desired_type);
     switch (type->kind) {
-        ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    ERROR_UNHANDLED_TYPE_KIND(type->kind);
     case TYPE_INT: {
         if (desired_type->kind == TYPE_INT) {
             emit_cast_int_to_int(ctx, reg, desired_type);

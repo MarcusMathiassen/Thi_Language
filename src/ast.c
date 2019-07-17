@@ -631,7 +631,9 @@ static void _ast_to_str_asm(String_Context* ctx, AST* node) {
 static void _ast_to_str_cast(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
-    string_append_f(s, "cast(%s) ", type_to_str(node->Cast.desired_type));
+    string_append(s, "cast(");
+    _ast_to_str(ctx, node->Cast.desired_type);
+    string_append(s, ")");
     _ast_to_str(ctx, node->Cast.node);
 }
 
@@ -777,6 +779,7 @@ void* ast_visit(ast_callback func, void* ctx, AST* node) {
         ast_visit(func, ctx, node->Asm.block);
         break;
         case AST_CAST:
+        ast_visit(func, ctx, node->Cast.desired_type);
         ast_visit(func, ctx, node->Cast.node);
         break;
         case AST_EXPR_LIST:
@@ -1224,7 +1227,7 @@ AST* make_ast_asm(Loc_Info loc_info, AST* block) {
     e->Asm.block = block;
     return e;
 }
-AST* make_ast_cast(Loc_Info loc_info, Type* desired_type, AST* node) {
+AST* make_ast_cast(Loc_Info loc_info, AST* desired_type, AST* node) {
     xassert(desired_type && node);
     AST* e = make_ast(AST_CAST, loc_info);
     e->Cast.desired_type = desired_type;
