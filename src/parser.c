@@ -166,21 +166,21 @@ Parsed_File parse(char* file) {
     Map* symbols = make_map();
 
     map_set(symbols, "void", make_type_void());
-    map_set(symbols, "bool", make_type_int(1, true));
-    map_set(symbols, "char", make_type_int(1, true));
+    map_set(symbols, "bool", make_type_int(1, TYPE_IS_UNSIGNED));
+    map_set(symbols, "char", make_type_int(1, TYPE_IS_UNSIGNED));
     map_set(symbols, "int", make_type_int(DEFAULT_INT_BYTE_SIZE, false));
     map_set(symbols, "float", make_type_float(DEFAULT_FLOAT_BYTE_SIZE));
     map_set(symbols, "double", make_type_float(8));
 
-    map_set(symbols, "s8", make_type_int(1, false));
-    map_set(symbols, "s16", make_type_int(2, false));
-    map_set(symbols, "s32", make_type_int(4, false));
-    map_set(symbols, "s64", make_type_int(8, false));
+    map_set(symbols, "s8", make_type_int(1, TYPE_IS_SIGNED));
+    map_set(symbols, "s16", make_type_int(2, TYPE_IS_SIGNED));
+    map_set(symbols, "s32", make_type_int(4, TYPE_IS_SIGNED));
+    map_set(symbols, "s64", make_type_int(8, TYPE_IS_SIGNED));
 
-    map_set(symbols, "u8", make_type_int(1, true));
-    map_set(symbols, "u16", make_type_int(2, true));
-    map_set(symbols, "u32", make_type_int(4, true));
-    map_set(symbols, "u64", make_type_int(8, true));
+    map_set(symbols, "u8", make_type_int(1, TYPE_IS_UNSIGNED));
+    map_set(symbols, "u16", make_type_int(2, TYPE_IS_UNSIGNED));
+    map_set(symbols, "u32", make_type_int(4, TYPE_IS_UNSIGNED));
+    map_set(symbols, "u64", make_type_int(8, TYPE_IS_UNSIGNED));
 
     map_set(symbols, "f32", make_type_float(4));
     map_set(symbols, "f64", make_type_float(8));
@@ -330,8 +330,8 @@ AST* parse_primary(Parser_Context* ctx) {
     //     if (!ctx->inside_parens) { result = NULL; break;}
     //     else goto start;
     case TOKEN_DOT_DOT_DOT: result = make_ast_var_args(loc(ctx)); eat(ctx); break;
-    case TOKEN_TRUE:        result = make_ast_int(loc(ctx), 1, make_type_int(1, 1)); eat(ctx); break;
-    case TOKEN_FALSE:       result = make_ast_int(loc(ctx), 0, make_type_int(1, 1)); eat(ctx); break;
+    case TOKEN_TRUE:        result = make_ast_int(loc(ctx), 1, make_type_int(1, TYPE_IS_SIGNED)); eat(ctx); break;
+    case TOKEN_FALSE:       result = make_ast_int(loc(ctx), 0, make_type_int(1, TYPE_IS_SIGNED)); eat(ctx); break;
     case TOKEN_IDENTIFIER:  result = parse_identifier(ctx); break;
     case TOKEN_DOLLAR_SIGN: result = parse_note(ctx); break;
     case TOKEN_ASM:         result = parse_asm(ctx); break;
@@ -964,7 +964,7 @@ AST* parse_integer(Parser_Context* ctx) {
     DEBUG_START;
     Loc_Info lc = loc(ctx);
     s64 value = get_integer(ctx);
-    Type* type = type = make_type_int(DEFAULT_INT_BYTE_SIZE, false);
+    Type* type = type = make_type_int(DEFAULT_INT_BYTE_SIZE, TYPE_IS_SIGNED);
     // Check for a suffix
     // u32: u U
     // s32: l L

@@ -335,7 +335,7 @@ static Type* sema_subscript(Sema_Context* ctx, AST* node) {
 
     s64 size = get_size_of_underlying_type_if_any(load->type);
 
-    sub = make_ast_binary(node->loc_info, TOKEN_ASTERISK, make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, false)), sub);
+    sub = make_ast_binary(node->loc_info, TOKEN_ASTERISK, make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, TYPE_IS_SIGNED)), sub);
     load = make_ast_binary(node->loc_info, TOKEN_PLUS, load, sub);
     load = make_ast_grouping(node->loc_info, load);
     load = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, load);
@@ -541,14 +541,14 @@ static Type* sema_typeof(Sema_Context* ctx, AST* node) {
     AST* string_value = make_ast_string(node->loc_info, get_type_name(t));
     ast_replace(node, string_value);
 
-    return make_type_pointer(make_type_int(1, true));
+    return make_type_pointer(make_type_int(1, TYPE_IS_UNSIGNED));
 }
 
 static Type* sema_sizeof(Sema_Context* ctx, AST* node) {
     Type *t = _sema(ctx, node->Sizeof.node);
 
     s64 size = get_size_of_type(t);
-    AST* constant_value = make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, false));
+    AST* constant_value = make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, TYPE_IS_SIGNED));
     ast_replace(node, constant_value);
 
     return t;

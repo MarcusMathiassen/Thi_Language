@@ -370,12 +370,12 @@ Type* make_type_array(Type* type, s64 size) {
     return t;
 }
 
-Type* make_type_int(s8 bytes, bool is_unsigned) {
+Type* make_type_int(s8 bytes, Type_Signedness signedness) {
     xassert(bytes > 0 && bytes < 9);
-    xassert(is_unsigned == 1 || is_unsigned == 0);
+    xassert(signedness == 1 || signedness == 0);
     Type* t = make_type(TYPE_INT, 0);
     t->Int.bytes = bytes;
-    t->Int.is_unsigned = is_unsigned;
+    t->Int.is_unsigned = signedness;
     return t;
 }
 

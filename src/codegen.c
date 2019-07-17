@@ -391,7 +391,7 @@ static Value* codegen_float(Codegen_Context* ctx, AST* node) {
 static Value* codegen_string(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     char* val = node->String.val;
-    Type* t = make_type_pointer(make_type_int(8, 1));
+    Type* t = make_type_pointer(make_type_int(8, TYPE_IS_UNSIGNED));
     char* slabel = emit_data(ctx, "db `%s`, 0 ", val);
     char* mov_op = get_move_op(t);
     char* reg = get_result_reg(t);
@@ -500,13 +500,13 @@ static Value* codegen_unary(Codegen_Context* ctx, AST* node) {
         s64 size = 1;
         if (operand->type->kind == TYPE_POINTER)
             size = get_size_of_underlying_type_if_any(operand->type);
-        result = codegen(ctx, make_ast_binary(node->loc_info, TOKEN_MINUS_EQ, operand, make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, 0))));
+        result = codegen(ctx, make_ast_binary(node->loc_info, TOKEN_MINUS_EQ, operand, make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, TYPE_IS_SIGNED))));
     } break;
     case TOKEN_PLUS_PLUS: {
         s64 size = 1;
         if (operand->type->kind == TYPE_POINTER)
             size = get_size_of_underlying_type_if_any(operand->type);
-        result = codegen(ctx, make_ast_binary(node->loc_info, TOKEN_PLUS_EQ, operand, make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, 0))));
+        result = codegen(ctx, make_ast_binary(node->loc_info, TOKEN_PLUS_EQ, operand, make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, TYPE_IS_SIGNED))));
     } break;
     case THI_SYNTAX_ADDRESS: {
         s64 stack_pos = get_stack_pos_of_variable(operand_val);
@@ -1747,6 +1747,7 @@ void emit_cast_int_to_int(Codegen_Context* ctx, char* reg, Type* type) {
     bool usig = type->Int.is_unsigned;
     s64 type_size = get_size_of_type(type);
     switch (type_size) {
+    ERROR_UNHANDLED_KIND(strf("%d", type_size));
     case 1:
         usig ? emit(ctx, "movzbq %s, al", reg)
              : emit(ctx, "movsbq %s, al", reg);
@@ -1759,7 +1760,7 @@ void emit_cast_int_to_int(Codegen_Context* ctx, char* reg, Type* type) {
         usig ? emit(ctx, "mov %s, %s", reg, reg) : 
                emit(ctx, "cltq");
         break;
-        // case 8: // fallthrough
+    case 8: break; // fallthrough
     }
 }
 

@@ -960,14 +960,14 @@ AST* make_ast_float(Loc_Info loc_info, f64 value, Type* type) {
 
 AST* make_ast_string(Loc_Info loc_info, char* value) {
     AST* e = make_ast(AST_STRING, loc_info);
-    e->type = make_type_pointer(make_type_int(1, 1));
+    e->type = make_type_pointer(make_type_int(1, TYPE_IS_UNSIGNED));
     e->String.val = value;
     return e;
 }
 
 AST* make_ast_char(Loc_Info loc_info, char value) {
     AST* e = make_ast(AST_CHAR, loc_info);
-    e->type = make_type_int(1, true);
+    e->type = make_type_int(1, TYPE_IS_UNSIGNED);
     e->Char.val = value;
     return e;
 }

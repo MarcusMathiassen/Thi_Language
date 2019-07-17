@@ -560,7 +560,6 @@ Lexed_File lex(char* file) {
             if (isdigit(*c) || *c == '.') {
                 while (is_valid_digit(*c) ||  (is_hex && is_valid_identifier(*c))) {
                     // @Audit
-                    if (*c == '_') 
                     if (*c == 'x') is_hex = true;
                     if (*c == '.') is_float = true;
                     ++c;

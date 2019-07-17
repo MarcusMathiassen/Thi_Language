@@ -47,6 +47,12 @@ typedef enum {
 } Type_Kind;
 
 typedef enum {
+    TYPE_IS_SIGNED = 0,
+    TYPE_IS_UNSIGNED = 1,
+} Type_Signedness;
+
+
+typedef enum {
     TYPE_FLAG_HAS_VAR_ARG                = 1 << 0,
     TYPE_FLAG_IMPLICIT_RETURN            = 1 << 1,
     TYPE_FLAG_IN_NEED_OF_TYPE_INFERENCE  = 1 << 2,
@@ -137,7 +143,7 @@ void type_replace(Type* a, Type* b);
 
 Type* make_type_unresolved(char* name);
 Type* make_type_void(void);
-Type* make_type_int(s8 bytes, bool is_unsigned);
+Type* make_type_int(s8 bytes, Type_Signedness signedness);
 Type* make_type_float(s8 bytes);
 Type* make_type_string(s64 len);
 Type* make_type_pointer(Type* pointee);
