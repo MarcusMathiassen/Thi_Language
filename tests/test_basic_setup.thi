@@ -1,6 +1,17 @@
-
 link "-lSystem"
+
+
+
 extern printf(u8*, ...) s32
+
+
+
+v2 = (x f32, y f32)
+
+v2.add = () => {
+
+}
+
 def main() s32
     i = cast(1) 42.3
     printf("%d\n", i)
