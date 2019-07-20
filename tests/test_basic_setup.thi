@@ -1,18 +1,43 @@
 link "-lSystem"
 
+STDOUT = 1
+STDIN = 2
+STDERR = 3
 
 
-extern printf(u8*, ...) s32
+def write(fd s32, cbuf u8*, nbyte s64) u8*
+    asm
+        mov rax, 0x2000004; write
+        mov edi, %fd
+        mov rsi, %cbuf
+        mov rdx, %nbyte
+        syscall
+
+def read(fd s32, cbuf u8*, nbyte s64) u8*
+    asm
+        mov rax, 0x2000003; read
+        mov edi, %fd
+        mov rsi, %cbuf
+        mov rdx, %nbyte
+        syscall
+
+def exit(rval s32)
+    asm
+        mov rax, 0x2000001; exit
+        mov edi, %rval
+        syscall
 
 
+def strlen(x u8*) s64 => i = x while *x++ {} x - i
+def print(msg u8*) s64
+    len = strlen(msg)
+    write(STDOUT, msg, len)
+    return len
 
-v2 = (x f32, y f32)
-
-v2.add = () => {
-
-}
-
+extern malloc(u64) u8*
 def main() s32
-    i = cast(1) 42.3
-    printf("%d\n", i)
-    return i
+    buf u8* = malloc(1024)
+    read(STDIN, buf, 1024)
+    print("Hello\n")
+    print(buf)
+    exit(32)

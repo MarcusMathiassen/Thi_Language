@@ -154,7 +154,6 @@ static Sema_Context make_sema_context() {
     ctx.current_function = NULL;
     ctx.symbols = make_map();
     stack_push(ctx.scopes, make_map());
-    // stack_push(ctx.scopes, make_ast_ref_list());
     return ctx;
 }
 

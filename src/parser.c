@@ -1372,12 +1372,15 @@ void set_if_statement(Parser_Context* ctx, AST* if_statement) {
     ctx->olast_if_statement = ctx->llast_if_statement;
     ctx->llast_if_statement = if_statement;
 }
+
 void restore_if_statement(Parser_Context* ctx) {
     ctx->llast_if_statement = ctx->olast_if_statement;
 }
+
 void set_dangling_else(Parser_Context* ctx, AST* else_block) {
     ctx->llast_if_statement->If.else_block = else_block;
 }
+
 Loc_Info loc(Parser_Context* ctx) {
     s64 line = ctx->curr_tok.line;
     s64 col = ctx->curr_tok.col;
