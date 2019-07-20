@@ -10,12 +10,37 @@ extern malloc(u64) u8*
 extern printf(u8*, ...) s32
 
 def main() s32
-    buf u8* = malloc(1024)
-    read(STDIN, buf, 1024)
-    print("Hello\n")
-    print(buf)
+    #buf u8* = malloc(1024)
+    #read(STDIN, buf, 1024)
+    #print("Hello\n")
+    #print(buf)
 
-    printf("%zu\n", mmap(0, 2, 32, -1, 0))
+    printf("%zu\n", mmap(0, 2, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0))
     printf("%d\n",  0x2000000 + 197)
+
+    # 'bitwise or' is buggy look at result of 3 calls belowe
+    printf("PROT_READ | PROT_WRITE        = %d\n", PROT_READ | PROT_WRITE)
+    printf("MAP_ANON | MAP_PRIVATE        = %d\n", MAP_ANON | MAP_PRIVATE)
+    printf("MAP_PRIVATE | MAP_ANON        = %d\n", MAP_PRIVATE | MAP_ANON)
+    
+    printf("PROT_NONE        = %d\n", PROT_NONE)
+    printf("PROT_READ        = %d\n", PROT_READ)
+    printf("PROT_WRITE       = %d\n", PROT_WRITE)
+    printf("PROT_EXEC        = %d\n", PROT_EXEC)
+    printf("MAP_SHARED       = %d\n", MAP_SHARED)
+    printf("MAP_PRIVATE      = %d\n", MAP_PRIVATE)
+    printf("MAP_COPY         = %d\n", MAP_COPY)
+    printf("MAP_FIXED        = %d\n", MAP_FIXED)
+    printf("MAP_RENAME       = %d\n", MAP_RENAME)
+    printf("MAP_NORESERVE    = %d\n", MAP_NORESERVE)
+    printf("MAP_RESERVED0080 = %d\n", MAP_RESERVED0080)
+    printf("MAP_NOEXTEND     = %d\n", MAP_NOEXTEND)
+    printf("MAP_HASSEMAPHORE = %d\n", MAP_HASSEMAPHORE)
+    printf("MAP_NOCACHE      = %d\n", MAP_NOCACHE)
+    printf("MAP_JIT          = %d\n", MAP_JIT)
+    printf("MAP_FILE         = %d\n", MAP_FILE)
+    printf("MAP_ANON         = %d\n", MAP_ANON)
+    printf("MAP_ANONYMOUS    = %d\n", MAP_ANONYMOUS)
+
 
     exit(1)
