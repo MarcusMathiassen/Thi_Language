@@ -323,6 +323,10 @@ int main(int argc, char** argv) {
     s64 comment_count = pf.comments;
 
     List* links = ast_find_all_of_kind(AST_LINK, ast);
+    // @Audit
+    #ifdef __APPLE__
+    list_append(links, make_ast_link(ast->loc_info, "-lSystem"));
+    #endif
 
     // Semantic Analysis
     debug(ucolor(str_replace_center(" sema ", pad_out_full_width('_'))));

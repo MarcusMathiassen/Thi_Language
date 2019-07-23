@@ -238,17 +238,18 @@ static char* _ast_to_str(String_Context* ctx, AST* node) {
         string_append(s, "---");
         return string_data(s);
     }
-    if (ctx->as_source) {
-        // Add some newlines if we have too :)
-        // If there is a difference in line position. Add
-        // that many newlines.
-        // xassert(node->loc_info.line >= ctx->last.line);
-        s64 diff = node->loc_info.line - ctx->last.line;
-        while (--diff > 0) {
-            string_append_f(s, "\n%s", get_indentation_as_str(ctx->indentation_level));
-        }
-        ctx->last = node->loc_info;
-    }
+    // @Buggy, @Audit
+    // if (ctx->as_source) {
+    //     // Add some newlines if we have too :)
+    //     // If there is a difference in line position. Add
+    //     // that many newlines.
+    //     // xassert(node->loc_info.line >= ctx->last.line);
+    //     s64 diff = node->loc_info.line - ctx->last.line;
+    //     while (--diff > 0) {
+    //         string_append_f(s, "\n%s", get_indentation_as_str(ctx->indentation_level));
+    //     }
+    //     ctx->last = node->loc_info;
+    // }
     AST_Kind kind = node->kind;
     TASSERT_KIND_IN_RANGE(AST, kind);
     void (*func)(String_Context*, AST*) = (*ast_to_str_transitions[kind]);
@@ -617,7 +618,7 @@ static void _ast_to_str_literal(String_Context* ctx, AST* node) {
 static void _ast_to_str_asm(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
-    string_append(s, "asm");
+    string_append(s, "asm\n");
     ctx->indentation_level += DEFAULT_INDENT_LEVEL;
     list_foreach(node->Asm.block->Block.stmts) {
         AST* stmt = it->data;
@@ -1094,7 +1095,6 @@ AST* make_ast_fallthrough(Loc_Info loc_info) {
 }
 
 AST* make_ast_grouping(Loc_Info loc_info, AST* node) {
-    xassert(node);
     AST* e = make_ast(AST_GROUPING, loc_info);
     e->Grouping.node = node;
     return e;

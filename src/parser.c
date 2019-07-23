@@ -84,11 +84,9 @@ typedef struct {
 } Parser_Context;
 Parser_Context make_parser_context(void);
 
-AST* parse_top_level                (Parser_Context* ctx);
 AST* parse_statement                (Parser_Context* ctx);
 AST* parse_primary                  (Parser_Context* ctx);
 AST* parse_identifier               (Parser_Context* ctx);
-AST* parse_top_level_identifier     (Parser_Context* ctx);
 AST* parse_expression_identifier    (Parser_Context* ctx);
 AST* parse_def                      (Parser_Context* ctx);
 AST* parse_variable_decl            (Parser_Context* ctx, Loc_Info lc, char* ident);
@@ -250,20 +248,6 @@ AST* _parse(Parser_Context* ctx, char* file) {
 //                               Private
 //------------------------------------------------------------------------------
 
-AST* parse_top_level(Parser_Context* ctx) {
-    DEBUG_START;
-    ctx->top_tok = ctx->curr_tok;
-    switch (tokKind(ctx)) {
-    ERROR_UNHANDLED_TOKEN_KIND(tokKind(ctx));
-    case TOKEN_IDENTIFIER: return parse_top_level_identifier(ctx);
-    case TOKEN_EXTERN:     return parse_extern(ctx);
-    case TOKEN_LOAD:       return parse_load(ctx);
-    case TOKEN_LINK:       return parse_link(ctx);
-    }
-    UNREACHABLE;
-    return NULL;
-}
-
 AST* parse_statement(Parser_Context* ctx) {
     DEBUG_START;
     ctx->top_tok = ctx->curr_tok;
@@ -287,6 +271,8 @@ AST* parse_statement(Parser_Context* ctx) {
     } break;
 
     case TOKEN_EQ_GT:       result =  parse_block(ctx);         break;
+
+    case TOKEN_IDENTIFIER:  result = parse_identifier(ctx);     break;
 
     case TOKEN_DEF:         result =  parse_def(ctx);           break;
     case TOKEN_ASM:         result =  parse_asm(ctx);           break;
@@ -340,8 +326,10 @@ AST* parse_primary(Parser_Context* ctx) {
     case TOKEN_HEX:         // fallthrough
     case TOKEN_INTEGER:     result = parse_integer(ctx); break;
     case TOKEN_STRING:      result = parse_string(ctx); break;
+
     case TOKEN_OPEN_PAREN:  result = parse_parens(ctx); break;
-    case TOKEN_CLOSE_PAREN: eat(ctx); break;
+    case TOKEN_CLOSE_PAREN: break;
+
     case TOKEN_BLOCK_START: result = parse_block(ctx); break;
     case TOKEN_CAST: result = parse_cast(ctx); break;
     }
@@ -350,21 +338,6 @@ AST* parse_primary(Parser_Context* ctx) {
     // if (tok_is(ctx, TOKEN_SEMICOLON)) eat(ctx);
 
     return result;
-}
-
-AST* parse_top_level_identifier(Parser_Context* ctx) {
-    DEBUG_START;
-
-    Loc_Info lc = loc(ctx);
-    char* ident = tokValue(ctx);
-    eat_kind(ctx, TOKEN_IDENTIFIER);
-
-    switch (tokKind(ctx)) {
-    ERROR_UNHANDLED_TOKEN_KIND(tokKind(ctx));
-    case TOKEN_OPEN_PAREN:  return parse_function_decl(ctx, lc, ident);
-    }
-    UNREACHABLE;
-    return NULL;
 }
 
 AST* parse_identifier(Parser_Context* ctx) {
@@ -1202,8 +1175,6 @@ Type* get_type(Parser_Context* ctx) {
     xassert(type);
     return type;
 }
-
-
 
 #define BIN_OP_COUNT 35
 struct
