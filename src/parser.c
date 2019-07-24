@@ -151,6 +151,7 @@ char* tokValue(Parser_Context* ctx);
 Token currTok(Parser_Context* ctx);
 Token prevTok(Parser_Context* ctx);
 
+List* parse_terminated_list(Parser_Context* ctx, AST* (*parseFunc)(Parser_Context*), Token_Kind delimiter);
 List* parse_delimited_list(Parser_Context* ctx, AST* (*parseFunc)(Parser_Context*), Token_Kind delimiter);
 
 //------------------------------------------------------------------------------
@@ -225,7 +226,7 @@ AST* _parse(Parser_Context* ctx, char* file) {
     debug("%s",  get_colored_minimap_of_file(ctx->file, '_'));
     eat(ctx); // prime the first token so loc() gets the right line and col
     Loc_Info lc = loc(ctx);
-    List* top_level_ast = parse_delimited_list(ctx, parse_statement, TOKEN_EOF);
+    List* top_level_ast = parse_terminated_list(ctx, parse_statement, TOKEN_EOF);
     AST* ast = make_ast_module(lc, ctx->file, top_level_ast);
 
 
@@ -301,7 +302,6 @@ AST* parse_statement(Parser_Context* ctx) {
 AST* parse_primary(Parser_Context* ctx) {
     DEBUG_START;
     AST* result = NULL;
-// start:
     switch (tokKind(ctx)) {
     ERROR_UNHANDLED_TOKEN_KIND(tokKind(ctx));
     case TOKEN_COMMENT: {
@@ -310,11 +310,7 @@ AST* parse_primary(Parser_Context* ctx) {
     } break;
 
     // @Audit: Should a primary expression really eat terminal tokens? I belive only the parse_statement should handle that.
-    case TOKEN_SEMICOLON: break; // fallthrough
-    // case TOKEN_NEWLINE:
-    //     eat(ctx); 
-    //     if (!ctx->inside_parens) { result = NULL; break;}
-    //     else goto start;
+    case TOKEN_SEMICOLON:   break; // fallthrough
     case TOKEN_DOT_DOT_DOT: result = make_ast_var_args(loc(ctx)); eat(ctx); break;
     case TOKEN_TRUE:        result = make_ast_int(loc(ctx), 1, make_type_int(1, TYPE_IS_SIGNED)); eat(ctx); break;
     case TOKEN_FALSE:       result = make_ast_int(loc(ctx), 0, make_type_int(1, TYPE_IS_SIGNED)); eat(ctx); break;
@@ -597,7 +593,7 @@ AST* parse_block(Parser_Context* ctx) {
     } else {
         eat_kind(ctx, TOKEN_BLOCK_START);
     }
-    List* stmts = parse_delimited_list(ctx, parse_statement, delimitor);
+    List* stmts = parse_terminated_list(ctx, parse_expression, delimitor);
     eat(ctx);
     AST* block = make_ast_block(lc, stmts);
     
@@ -761,14 +757,16 @@ void skip_comments_or_newlines(Parser_Context* ctx) {
 
 AST* read_as(Parser_Context* ctx, AST* expr) {
     Loc_Info lc = loc(ctx);
-    eat_kind(ctx, TOKEN_AS);
+    xassert(tok_is(ctx, TOKEN_AS));
+    eat(ctx);
     AST* type_expr = parse_expression(ctx);
     return make_ast_as(lc, expr, type_expr);
 }
 
 AST* read_subscript_expr(Parser_Context* ctx, AST* expr) {
     Loc_Info lc = loc(ctx);
-    eat_kind(ctx, TOKEN_OPEN_BRACKET);
+    xassert(tok_is(ctx, TOKEN_OPEN_BRACKET));
+    eat(ctx);
     AST* sub = parse_expression(ctx);
     eat_kind(ctx, TOKEN_CLOSE_BRACKET);
     sub = make_ast_subscript(lc, expr, sub);
@@ -777,19 +775,30 @@ AST* read_subscript_expr(Parser_Context* ctx, AST* expr) {
 
 AST* read_field_access(Parser_Context* ctx, AST* expr) {
     Loc_Info lc = loc(ctx);
-    eat_kind(ctx, TOKEN_DOT);
+    xassert(tok_is(ctx, TOKEN_DOT));
+    eat(ctx);
     char* field_name = tokValue(ctx);
     eat_kind(ctx, TOKEN_IDENTIFIER);
     AST* field = make_ast_field_access(lc, expr, field_name);
     return field;
 }
 
-AST* read_expr_list(Parser_Context* ctx, AST* expr) {
+AST* read_comma_separated_list(Parser_Context* ctx, AST* expr) {
     xassert(tok_is(ctx, TOKEN_COMMA));
     eat(ctx);
-    Loc_Info lc = loc(ctx);
-    List* exprs = parse_delimited_list(ctx, parse_expression, TOKEN_COMMA);
-    return make_ast_expr_list(lc, exprs);
+    AST* sub = parse_expression(ctx);
+
+    // If we're inside a comma separated list, just append it to the ongoing
+    // list..
+    if (expr->kind == AST_COMMA_SEPARATED_LIST) {
+        list_append(expr->Comma_Separated_List.nodes, sub);
+        return expr;
+    // ..otherwise start a new list.
+    } else {
+        List* exprs = make_list();
+        list_append(exprs, sub);
+        return make_ast_comma_separated_list(expr->loc_info, exprs);
+    }
 }
 
 AST* parse_postfix_tail(Parser_Context* ctx, AST* primary_expr) {
@@ -806,13 +815,9 @@ AST* parse_postfix_tail(Parser_Context* ctx, AST* primary_expr) {
             primary_expr = make_ast_post_inc_or_dec(primary_expr->loc_info, op, primary_expr);
             break;
         }
-
-        // @Audit
-        // // Expression List
-        // case TOKEN_COMMA: {
-        //     primary_expr = read_expr_list(ctx, primary_expr);
+        // case TOKEN_COMMA:
+        //     primary_expr = read_comma_separated_list(ctx, primary_expr);
         //     break;
-        // }
         case TOKEN_AS:
             primary_expr = read_as(ctx, primary_expr);
             break;
@@ -1216,11 +1221,10 @@ struct
     {TOKEN_PIPE_EQ,       2},  // |=
     {TOKEN_LT_LT_EQ,      2},  // <<=
     {TOKEN_GT_GT_EQ,      2},  // >>=
-    // {TOKEN_COMMA, 1},          // ,
+    {TOKEN_COMMA, 1},          // ,
 };
 
-Parser_Context
-make_parser_context(void) {
+Parser_Context make_parser_context(void) {
     Parser_Context ctx;
     ctx.flags = 0;
     ctx.tokens = NULL;
@@ -1358,9 +1362,19 @@ Loc_Info loc(Parser_Context* ctx) {
     return (Loc_Info){line, col};
 }
 
+
+List* parse_terminated_list(Parser_Context* ctx, AST* (*parseFunc)(Parser_Context*), Token_Kind terminator) {
+    List* nodes = make_list();
+    while (!tok_is(ctx, terminator)) {
+        AST* node = (*parseFunc)(ctx);
+        if (node) list_append(nodes, node);
+    }
+    return nodes;
+}
 List* parse_delimited_list(Parser_Context* ctx, AST* (*parseFunc)(Parser_Context*), Token_Kind delimiter) {
     List* nodes = make_list();
-    while (!tok_is(ctx, delimiter)) {
+    while (tok_is(ctx, delimiter)) {
+        eat(ctx); // eat delimitor
         AST* node = (*parseFunc)(ctx);
         if (node) list_append(nodes, node);
     }

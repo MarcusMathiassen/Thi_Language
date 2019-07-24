@@ -307,14 +307,60 @@ static Type* sema_binary(Sema_Context* ctx, AST* node) {
     AST* lhs = node->Binary.lhs;
     _sema(ctx, rhs);
     bool replaced = false;
-    if (op == THI_SYNTAX_ASSIGNMENT && lhs->kind == AST_IDENT) {
-        // Look for it in the current scope and any parent scope.
-        AST* var = get_symbol_in_scope(ctx, lhs->Ident.name);
-        if (!var) {
-            replaced = true;
-            ast_replace(node, make_ast_variable_decl(lhs->loc_info, lhs->Ident.name, rhs->type, rhs));
-            add_node_to_scope(ctx, node);
+
+
+    switch(op) {
+    ERROR_UNHANDLED_TOKEN_KIND(op);
+
+    // @Audit, @Document, @Note: duplicate _sema calls. Look up.
+    // Comma separated list
+    case TOKEN_COMMA: {
+        List* expr_list = make_list();
+        list_append(expr_list, lhs);
+        AST* expr = rhs;
+        while(expr->Binary.op == TOKEN_COMMA) {
+            _sema(ctx, expr->Binary.rhs);
+            list_append(expr_list, expr);
+            expr = expr->Binary.rhs;
         }
+        list_append(expr_list, expr);
+        ast_replace(node, make_ast_comma_separated_list(node->loc_info, expr_list));
+        return NULL;
+    } break;
+
+    case THI_SYNTAX_ASSIGNMENT: {
+        if (lhs->kind == AST_IDENT) {
+            // Look for it in the current scope and any parent scope.
+            AST* var = get_symbol_in_scope(ctx, lhs->Ident.name);
+            if (!var) {
+                replaced = true;
+                ast_replace(node, make_ast_variable_decl(lhs->loc_info, lhs->Ident.name, rhs->type, rhs));
+                add_node_to_scope(ctx, node);
+            }
+        }
+
+
+        // a, b, c = 1, 2, 3
+        // A list equal another list is 
+        if (lhs->kind == AST_COMMA_SEPARATED_LIST && rhs->kind == AST_COMMA_SEPARATED_LIST) {
+
+
+            // First of all, they MUST be the same length. If not, the user has made a mistake.
+            if (lhs->Comma_Separated_List.nodes->count != rhs->Comma_Separated_List.nodes->count) {
+                error("[%s] %s or %s is missing some elements.", LOCATION_OF(((Sema_Context*)ctx)->module, node), ast_to_str(lhs), ast_to_str(rhs));
+            }
+
+            // So for every element in the LHS list..
+            list_foreach(lhs->Comma_Separated_List.nodes) {
+                // .. is matched with the corrosponding element in the RHS list.
+                list_foreach(lhs->Comma_Separated_List.nodes) {
+
+                }
+            }
+        }
+
+    } break;
+
     }
     return !replaced ? _sema(ctx, lhs) : rhs->type;
 }

@@ -5,22 +5,6 @@ load "includes/glew"
 load "includes/glfw"
 load "includes/cmath"
 
-def drawTriangle(x f32, y f32, s f32)
-    glBegin(GL_TRIANGLES)
-    glColor3f(1.0f, 0.0f, 0.0f)
-    glVertex2f(x + -0.5f *s, y + -0.5f*s )
-    glColor3f(0.0f, 1.0f, 0.0f)
-    glVertex2f(x + 0.0f*s, y + 0.5f*s)
-    glColor3f(0.0f, 0.0f, 1.0f)
-    glVertex2f(x + 0.5f*s, y -0.5f*s)
-    glEnd()
-
-def clamp0to1(x f32) f32
-    # @Currently doesnt work? 
-    #if x < 0.0f { return 0.0f }
-    #if x > 1.0f { return 1.0f }
-    return x
-
 def main() s64
 
     WINDOW_TITLE = "Hello Triangle"
@@ -82,10 +66,20 @@ def main() s64
         drawTriangle(x * 0.01f, y * 0.01f, scale)
 
         glfwSwapBuffers(window)
-
-    # There is a bug at the moment with defer.
-    # It's running after the 'return' statement.
-    #
-    # Overwriting 'RAX' so we just get what ever
-    #  is in 'RAX' when all defers have run.
     return 1
+
+def drawTriangle(x f32, y f32, s f32)
+    glBegin(GL_TRIANGLES)
+    glColor3f(1.0f, 0.0f, 0.0f)
+    glVertex2f(x + -0.5f *s, y + -0.5f*s )
+    glColor3f(0.0f, 1.0f, 0.0f)
+    glVertex2f(x + 0.0f*s, y + 0.5f*s)
+    glColor3f(0.0f, 0.0f, 1.0f)
+    glVertex2f(x + 0.5f*s, y -0.5f*s)
+    glEnd()
+
+def clamp0to1(x f32) f32
+    # @Currently doesnt work? 
+    #if x < 0.0f { return 0.0f }
+    #if x > 1.0f { return 1.0f }
+    return x

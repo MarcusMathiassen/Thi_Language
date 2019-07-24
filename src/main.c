@@ -338,6 +338,10 @@ int main(int argc, char** argv) {
     run_pass(ast, "constant_fold", constant_fold, NULL);
 #endif
 
+#ifndef NDEBUG
+    write_to_file("output.thi", ast_to_src(ast));
+#endif
+
     // Codegen
     debug(ucolor(str_replace_center(" codegen ", pad_out_full_width('_'))));
     char* code = to_x64(ast);
@@ -397,10 +401,6 @@ int main(int argc, char** argv) {
         }
         success(pad_out_full_width('_'));
     }
-
-#ifndef NDEBUG
-    write_to_file("output.thi", ast_to_src(ast));
-#endif
 
     return 0;
 }

@@ -284,10 +284,12 @@ static void _ast_to_str_space_separated_identifier_list(String_Context* ctx, AST
 static void _ast_to_str_comma_separated_list(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
+    string_append(s, "(");
     list_foreach(node->Comma_Separated_List.nodes) {
         _ast_to_str(ctx, it->data);
         if (it->next) string_append(s, ", ");
     }
+    string_append(s, ")");
 }
 
 static void _ast_to_str_module(String_Context* ctx, AST* node) {
