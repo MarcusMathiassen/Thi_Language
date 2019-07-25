@@ -273,7 +273,8 @@ AST* parse_statement(Parser_Context* ctx) {
 
     case TOKEN_EQ_GT:       result =  parse_block(ctx);         break;
 
-    case TOKEN_IDENTIFIER:  result = parse_identifier(ctx);     break;
+    // @Audit, @Buggy, @DoesntMakeSense
+    case TOKEN_IDENTIFIER:  result = parse_expression(ctx);     break;
 
     case TOKEN_DEF:         result =  parse_def(ctx);           break;
     case TOKEN_ASM:         result =  parse_asm(ctx);           break;
@@ -338,12 +339,9 @@ AST* parse_primary(Parser_Context* ctx) {
 
 AST* parse_identifier(Parser_Context* ctx) {
     DEBUG_START;
-
     Loc_Info lc = loc(ctx);
-
     char* ident = tokValue(ctx);
     eat_kind(ctx, TOKEN_IDENTIFIER);
-
     switch (tokKind(ctx)) {
     case TOKEN_IDENTIFIER:  return parse_variable_decl(ctx, lc, ident);
     case TOKEN_OPEN_PAREN:  return parse_function_call(ctx, lc, ident);
@@ -593,7 +591,7 @@ AST* parse_block(Parser_Context* ctx) {
     } else {
         eat_kind(ctx, TOKEN_BLOCK_START);
     }
-    List* stmts = parse_terminated_list(ctx, parse_expression, delimitor);
+    List* stmts = parse_terminated_list(ctx, parse_statement, delimitor);
     eat(ctx);
     AST* block = make_ast_block(lc, stmts);
     
@@ -783,24 +781,6 @@ AST* read_field_access(Parser_Context* ctx, AST* expr) {
     return field;
 }
 
-AST* read_comma_separated_list(Parser_Context* ctx, AST* expr) {
-    xassert(tok_is(ctx, TOKEN_COMMA));
-    eat(ctx);
-    AST* sub = parse_expression(ctx);
-
-    // If we're inside a comma separated list, just append it to the ongoing
-    // list..
-    if (expr->kind == AST_COMMA_SEPARATED_LIST) {
-        list_append(expr->Comma_Separated_List.nodes, sub);
-        return expr;
-    // ..otherwise start a new list.
-    } else {
-        List* exprs = make_list();
-        list_append(exprs, sub);
-        return make_ast_comma_separated_list(expr->loc_info, exprs);
-    }
-}
-
 AST* parse_postfix_tail(Parser_Context* ctx, AST* primary_expr) {
     DEBUG_START;
     while(true) {
@@ -815,9 +795,12 @@ AST* parse_postfix_tail(Parser_Context* ctx, AST* primary_expr) {
             primary_expr = make_ast_post_inc_or_dec(primary_expr->loc_info, op, primary_expr);
             break;
         }
-        // case TOKEN_COMMA:
-        //     primary_expr = read_comma_separated_list(ctx, primary_expr);
-        //     break;
+        // case TOKEN_COMMA: {
+        //     List* exprs = parse_delimited_list(ctx, parse_expression, TOKEN_COMMA);
+        //     parse_
+        //     primary_expr = make_ast_comma_separated_list(primary_expr->loc_info, parse_delimited_list(ctx, parse_expression, TOKEN_COMMA));
+        //     warning("%s", ast_to_str(primary_expr));
+        // } break;
         case TOKEN_AS:
             primary_expr = read_as(ctx, primary_expr);
             break;
@@ -1221,7 +1204,7 @@ struct
     {TOKEN_PIPE_EQ,       2},  // |=
     {TOKEN_LT_LT_EQ,      2},  // <<=
     {TOKEN_GT_GT_EQ,      2},  // >>=
-    {TOKEN_COMMA, 1},          // ,
+    // {TOKEN_COMMA,         1},  // ,
 };
 
 Parser_Context make_parser_context(void) {

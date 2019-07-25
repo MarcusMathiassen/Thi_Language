@@ -239,17 +239,17 @@ static char* _ast_to_str(String_Context* ctx, AST* node) {
         return string_data(s);
     }
     // @Buggy, @Audit
-    // if (ctx->as_source) {
-    //     // Add some newlines if we have too :)
-    //     // If there is a difference in line position. Add
-    //     // that many newlines.
-    //     // xassert(node->loc_info.line >= ctx->last.line);
-    //     s64 diff = node->loc_info.line - ctx->last.line;
-    //     while (--diff > 0) {
-    //         string_append_f(s, "\n%s", get_indentation_as_str(ctx->indentation_level));
-    //     }
-    //     ctx->last = node->loc_info;
-    // }
+    if (ctx->as_source) {
+        // Add some newlines if we have too :)
+        // If there is a difference in line position. Add
+        // that many newlines.
+        // xassert(node->loc_info.line >= ctx->last.line);
+        s64 diff = node->loc_info.line - ctx->last.line;
+        while (--diff > 0) {
+            string_append_f(s, "\n%s", get_indentation_as_str(ctx->indentation_level));
+        }
+        ctx->last = node->loc_info;
+    }
     AST_Kind kind = node->kind;
     TASSERT_KIND_IN_RANGE(AST, kind);
     void (*func)(String_Context*, AST*) = (*ast_to_str_transitions[kind]);
@@ -380,7 +380,7 @@ static void _ast_to_str_string(String_Context* ctx, AST* node) {
 static void _ast_to_str_char(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
-    string_append_f(s, "'%c'", node->Char.val);
+    string_append_f(s, "%d", node->Char.val);
 }
 
 static void _ast_to_str_ident(String_Context* ctx, AST* node) {
@@ -636,7 +636,7 @@ static void _ast_to_str_cast(String_Context* ctx, AST* node) {
     string* s = ctx->str;
     string_append(s, "cast(");
     _ast_to_str(ctx, node->Cast.desired_type);
-    string_append(s, ")");
+    string_append(s, ") ");
     _ast_to_str(ctx, node->Cast.node);
 }
 
@@ -829,6 +829,7 @@ char* ast_get_literal_value_as_str(AST* node) {
     TASSERT_KIND_IN_RANGE(AST, kind);
     switch (kind) {
         ERROR_UNHANDLED_AST_KIND(kind);
+        case AST_UNARY: return strf("%s%s", token_kind_to_str(node->Unary.op), ast_get_literal_value_as_str(node->Unary.operand));
         case AST_INT:    return strf("%lld", node->Int.val);
         case AST_FLOAT:  return strf("%f", node->Float.val);
         case AST_STRING: return strf("`%s`, 0", node->String.val);

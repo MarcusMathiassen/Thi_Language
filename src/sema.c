@@ -310,7 +310,7 @@ static Type* sema_binary(Sema_Context* ctx, AST* node) {
 
 
     switch(op) {
-    ERROR_UNHANDLED_TOKEN_KIND(op);
+    default: break; //@Audit
 
     // @Audit, @Document, @Note: duplicate _sema calls. Look up.
     // Comma separated list
@@ -319,7 +319,18 @@ static Type* sema_binary(Sema_Context* ctx, AST* node) {
         list_append(expr_list, lhs);
         AST* expr = rhs;
         while(expr->Binary.op == TOKEN_COMMA) {
-            _sema(ctx, expr->Binary.rhs);
+            
+            AST* lhs_e = expr->Binary.lhs;
+            AST* rhs_e = expr->Binary.rhs;
+
+            // LHS
+            _sema(ctx, lhs_e);
+            if (lhs_e->kind == AST_VARIABLE_DECL)
+                error("hrtokhrothpk");
+
+            // RHS
+            _sema(ctx, rhs_e);
+
             list_append(expr_list, expr);
             expr = expr->Binary.rhs;
         }
@@ -344,7 +355,7 @@ static Type* sema_binary(Sema_Context* ctx, AST* node) {
         // A list equal another list is 
         if (lhs->kind == AST_COMMA_SEPARATED_LIST && rhs->kind == AST_COMMA_SEPARATED_LIST) {
 
-
+            error("gergerg");
             // First of all, they MUST be the same length. If not, the user has made a mistake.
             if (lhs->Comma_Separated_List.nodes->count != rhs->Comma_Separated_List.nodes->count) {
                 error("[%s] %s or %s is missing some elements.", LOCATION_OF(((Sema_Context*)ctx)->module, node), ast_to_str(lhs), ast_to_str(rhs));
@@ -521,7 +532,8 @@ static Type* sema_function(Sema_Context* ctx, AST* node) {
     ((Sema_Context*)ctx)->current_function = node;
     SCOPE_START;
     list_foreach(node->Function.parameters) {
-        _sema(ctx, it->data);
+        AST* p = it->data;
+        _sema(ctx, p);
     }
     _sema(ctx, node->Function.body);
     list_foreach(node->Function.defers) {
