@@ -1,7 +1,13 @@
+
+
+
+
+
+
+
+
 # This is a comment.
 # There are many like it, but this one is mine.
-def main() s32
-    return add(2, 3) - 4
 
-def add(a s64, b s64) s64
-    return a + b
+def main() s32 => add(2, 3) - 4
+def add(a s64, b s64) s64 => a + b

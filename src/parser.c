@@ -37,7 +37,7 @@
 
 #define DEBUG_START \
     xassert(ctx); \
-    debug("%s: %s", __func__, token_to_str(currTok(ctx)));
+    // debug("%s: %s", __func__, token_to_str(currTok(ctx)));
 
 #define UNARY_OP_COUNT 11
 Token_Kind unary_ops[UNARY_OP_COUNT] = {
@@ -1165,11 +1165,7 @@ Type* get_type(Parser_Context* ctx) {
 }
 
 #define BIN_OP_COUNT 35
-struct
-{
-    Token_Kind kind;
-    s32 p;
-} binop_precedence[BIN_OP_COUNT] = {
+struct { Token_Kind kind; s32 p; } binop_precedence[BIN_OP_COUNT] = {
     {TOKEN_OPEN_PAREN,    15}, // ()
     {TOKEN_OPEN_BRACKET,  15}, // []
     {TOKEN_DOT,           15}, // .
