@@ -63,7 +63,7 @@ void string_append(string* this, char* str) {
     s64 str_len = xstrlen(str);
     xassert(this->len <= this->cap);
     while (this->len + str_len + 1 >= this->cap) {
-        this->cap *= 2;
+        this->cap *= STRING_GROWTH_FACTOR;
         this->c_str = xrealloc(this->c_str, this->cap * sizeof(*this->c_str));
     }
     memcpy(this->c_str + this->len, str, str_len);

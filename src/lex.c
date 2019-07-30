@@ -610,16 +610,17 @@ Lexed_File lex(char* file) {
         }
 
         xassert(kind != TOKEN_UNKNOWN);
-        token_array_append(&tokens, (Token){kind, start, end, line, col});
+        if (kind != TOKEN_NEWLINE && kind != TOKEN_COMMENT)
+            token_array_append(&tokens, (Token){kind, start, end, line, col});
 
     } while(kind != TOKEN_EOF);
 
 #ifndef NDEBUG
-    debug("Printing tokens..");
+    // Printing tokens
     foreach(i, tokens.count - 1) {
-        debug("kind: '%s' start: %llu end: %llu", 
-            ucolor(token_kind_to_str(tokens.data[i].kind)),
-            tokens.data[i].start, tokens.data[i].end);
+        debug("%llu -> %llu => '%s'", 
+            tokens.data[i].start, tokens.data[i].end, 
+            ucolor(token_kind_to_str(tokens.data[i].kind)));
     }
 #endif
 
@@ -768,7 +769,7 @@ Token_Array make_token_array(void) {
 
 void token_array_append(Token_Array* l, Token t) {
     if (l->count == l->allocated) {
-        l->allocated *= 2;
+        l->allocated *= TOKEN_ARRAY_GROWTH_FACTOR;
         l->data = xrealloc(l->data, l->allocated * sizeof(*l->data));
     }
     l->data[l->count++] = t;
@@ -784,7 +785,7 @@ Intern_Array make_intern_array(void) {
 
 void intern_array_append(Intern_Array* l, Intern intern) {
     if (l->count == l->allocated) {
-        l->allocated *= 2;
+        l->allocated *= INTERN_ARRAY_GROWTH_FACTOR;
         l->data = xrealloc(l->data, l->allocated * sizeof(*l->data));
     }
     l->data[l->count++] = intern;

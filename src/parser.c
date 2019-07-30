@@ -61,10 +61,6 @@ Token_Kind unary_ops[UNARY_OP_COUNT] = {
 //              Each construct of the language gets its own function
 //------------------------------------------------------------------------------
 
-typedef enum {
-    BLOCK_IMPLICITLY_RETURN_LAST_EXPR = 1 << 0
-} Parser_Flags;
-
 typedef struct {
     Token* tokens;
     char* file;
@@ -226,9 +222,11 @@ AST* _parse(Parser_Context* ctx, char* file) {
     debug("%s",  get_colored_minimap_of_file(ctx->file, '_'));
     eat(ctx); // prime the first token so loc() gets the right line and col
     Loc_Info lc = loc(ctx);
+
+
+    // Tmp
     List* top_level_ast = parse_terminated_list(ctx, parse_statement, TOKEN_EOF);
     AST* ast = make_ast_module(lc, ctx->file, top_level_ast);
-
 
     // Restore state
     ctx->tokens = saved_tokens;
@@ -339,9 +337,19 @@ AST* parse_primary(Parser_Context* ctx) {
 
 AST* parse_identifier(Parser_Context* ctx) {
     DEBUG_START;
+    xassert(tok_is(ctx, TOKEN_IDENTIFIER));
+    
     Loc_Info lc = loc(ctx);
     char* ident = tokValue(ctx);
-    eat_kind(ctx, TOKEN_IDENTIFIER);
+    eat(ctx);
+    
+    // lambda_decl = group type block
+    // variable_decl = ident ident
+    // function_call = ident group
+    // function_def = ident group ident
+    // function_def = ident group ident
+    // identifier_ref = ident
+
     switch (tokKind(ctx)) {
     case TOKEN_IDENTIFIER:  return parse_variable_decl(ctx, lc, ident);
     case TOKEN_OPEN_PAREN:  return parse_function_call(ctx, lc, ident);
@@ -753,69 +761,6 @@ void skip_comments_or_newlines(Parser_Context* ctx) {
     }
 }
 
-AST* read_as(Parser_Context* ctx, AST* expr) {
-    Loc_Info lc = loc(ctx);
-    xassert(tok_is(ctx, TOKEN_AS));
-    eat(ctx);
-    AST* type_expr = parse_expression(ctx);
-    return make_ast_as(lc, expr, type_expr);
-}
-
-AST* read_subscript_expr(Parser_Context* ctx, AST* expr) {
-    Loc_Info lc = loc(ctx);
-    xassert(tok_is(ctx, TOKEN_OPEN_BRACKET));
-    eat(ctx);
-    AST* sub = parse_expression(ctx);
-    eat_kind(ctx, TOKEN_CLOSE_BRACKET);
-    sub = make_ast_subscript(lc, expr, sub);
-    return sub;
-}
-
-AST* read_field_access(Parser_Context* ctx, AST* expr) {
-    Loc_Info lc = loc(ctx);
-    xassert(tok_is(ctx, TOKEN_DOT));
-    eat(ctx);
-    char* field_name = tokValue(ctx);
-    eat_kind(ctx, TOKEN_IDENTIFIER);
-    AST* field = make_ast_field_access(lc, expr, field_name);
-    return field;
-}
-
-AST* parse_postfix_tail(Parser_Context* ctx, AST* primary_expr) {
-    DEBUG_START;
-    while(true) {
-        switch(tokKind(ctx)) {
-        default: return primary_expr;
-        // @Audit
-        // @Bug: this is causing endless loop in basic_setup.thi
-        case TOKEN_MINUS_MINUS: // fallthrough
-        case TOKEN_PLUS_PLUS: {
-            Token_Kind op = tokKind(ctx);
-            eat(ctx);
-            primary_expr = make_ast_post_inc_or_dec(primary_expr->loc_info, op, primary_expr);
-            break;
-        }
-        // case TOKEN_COMMA: {
-        //     List* exprs = parse_delimited_list(ctx, parse_expression, TOKEN_COMMA);
-        //     parse_
-        //     primary_expr = make_ast_comma_separated_list(primary_expr->loc_info, parse_delimited_list(ctx, parse_expression, TOKEN_COMMA));
-        //     warning("%s", ast_to_str(primary_expr));
-        // } break;
-        case TOKEN_AS:
-            primary_expr = read_as(ctx, primary_expr);
-            break;
-        case TOKEN_OPEN_BRACKET:
-            primary_expr = read_subscript_expr(ctx, primary_expr);
-            break;
-        case TOKEN_DOT:
-            primary_expr = read_field_access(ctx, primary_expr);
-            break;
-        }
-    }
-    UNREACHABLE;
-    return NULL;
-}
-
 AST* parse_prefix(Parser_Context* ctx) {
     DEBUG_START;
     return parse_unary(ctx);
@@ -824,7 +769,45 @@ AST* parse_prefix(Parser_Context* ctx) {
 AST* parse_postfix(Parser_Context* ctx) {
     DEBUG_START;
     AST* primary_expr = parse_primary(ctx);
-    return parse_postfix_tail(ctx, primary_expr);
+    DEBUG_START;
+    while(true) {
+        Loc_Info lc = loc(ctx);
+        switch(tokKind(ctx)) {
+        default: return primary_expr;
+        case TOKEN_MINUS_MINUS: // fallthrough
+        case TOKEN_PLUS_PLUS: {
+            Token_Kind op = tokKind(ctx);
+            eat(ctx);
+            primary_expr = make_ast_post_inc_or_dec(lc, op, primary_expr);
+        } break;
+        case TOKEN_COMMA: {
+            List* exprs = parse_delimited_list(ctx, parse_expression, TOKEN_COMMA);
+            list_prepend(exprs, primary_expr);
+            primary_expr = make_ast_comma_separated_list(lc, exprs);
+        } break;
+        case TOKEN_AS: {
+            eat(ctx);
+            AST* type_expr = parse_expression(ctx);
+            primary_expr = make_ast_as(lc, primary_expr, type_expr);
+        } break;
+        case TOKEN_OPEN_BRACKET: {
+            eat(ctx);
+            AST* sub = parse_expression(ctx);
+            eat_kind(ctx, TOKEN_CLOSE_BRACKET);
+            sub = make_ast_subscript(lc, primary_expr, sub);
+            primary_expr = sub;
+        } break;
+        case TOKEN_DOT: {
+            eat(ctx);
+            char* field_name = tokValue(ctx);
+            eat_kind(ctx, TOKEN_IDENTIFIER);
+            AST* field = make_ast_field_access(lc, primary_expr, field_name);
+            primary_expr = field;
+        } break;
+        }
+    }
+    UNREACHABLE;
+    return NULL;
 }
 
 AST* parse_unary(Parser_Context* ctx) {
@@ -984,7 +967,23 @@ AST* parse_parens(Parser_Context* ctx) {
     eat(ctx);
     AST* expr = parse_expression(ctx);
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
-    return make_ast_grouping(lc, expr);
+
+    // parens ident
+    if (tok_is(ctx, TOKEN_IDENTIFIER)) {
+        // This is a lambda_type
+        Type* type = get_type(ctx);
+        List* params;
+        if (expr->kind == AST_COMMA_SEPARATED_LIST) {
+            params = expr->Comma_Separated_List.nodes;
+        } else {
+            params = make_list();
+            if (expr) list_append(params, expr);
+        }
+        error("(%s) %s", ast_to_str(expr), type_to_str(type));
+        return make_ast_function(lc, NULL, params, type, NULL);
+    }
+    error("(%s)", ast_to_str(expr));
+    return make_ast_grouping(lc, expr); 
 }
 
 void eat_block_start(Parser_Context* ctx) {
@@ -1007,10 +1006,9 @@ AST* parse_asm(Parser_Context* ctx) {
     List* stmts = make_list();
     string* line = make_string("");
     Loc_Info loc_of_line = loc(ctx);
-    
-    while(true) {
-        if(tok_is(ctx, TOKEN_COMMENT)) continue;
 
+    while(!tok_is(ctx, TOKEN_BLOCK_END)) {
+        if(tok_is(ctx, TOKEN_COMMENT)) continue;
         if (tok_is(ctx, TOKEN_NEWLINE)) {
             list_append(stmts, make_ast_string(loc_of_line, string_data(line)));
             loc_of_line = loc(ctx);
@@ -1019,22 +1017,8 @@ AST* parse_asm(Parser_Context* ctx) {
             debug("%s %s", token_kind_to_str(tokKind(ctx)), tokValue(ctx));
             string_append_f(line, "%s ", tokValue(ctx));
         }
-
         eat(ctx);
-        if (tok_is(ctx, TOKEN_BLOCK_END)) break;
     }
-
-    // for (; ctx->curr_tok.kind != TOKEN_BLOCK_END; eat(ctx)) {
-    //     if(tok_is(ctx, TOKEN_COMMENT)) continue;
-    //     if (tok_is(ctx, TOKEN_NEWLINE) && next_tok_kind(ctx) != TOKEN_BLOCK_END) {
-    //         list_append(stmts, make_ast_string(loc_of_line, string_data(line)));
-    //         loc_of_line = loc(ctx);
-    //         line = make_string("");
-    //     } else {
-    //         debug("%s %s", token_kind_to_str(tokKind(ctx)), tokValue(ctx));
-    //         string_append_f(line, "%s ", tokValue(ctx));
-    //     }
-    // }
     eat(ctx); // eat the block end
     AST* block = make_ast_block(lc, stmts);
     return make_ast_asm(lc, block);
@@ -1341,7 +1325,6 @@ Loc_Info loc(Parser_Context* ctx) {
     return (Loc_Info){line, col};
 }
 
-
 List* parse_terminated_list(Parser_Context* ctx, AST* (*parseFunc)(Parser_Context*), Token_Kind terminator) {
     List* nodes = make_list();
     while (!tok_is(ctx, terminator)) {
@@ -1350,6 +1333,7 @@ List* parse_terminated_list(Parser_Context* ctx, AST* (*parseFunc)(Parser_Contex
     }
     return nodes;
 }
+
 List* parse_delimited_list(Parser_Context* ctx, AST* (*parseFunc)(Parser_Context*), Token_Kind delimiter) {
     List* nodes = make_list();
     while (tok_is(ctx, delimiter)) {

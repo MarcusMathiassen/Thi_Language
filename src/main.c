@@ -328,6 +328,8 @@ int main(int argc, char** argv) {
     list_append(links, make_ast_link(ast->loc_info, "-lSystem"));
     #endif
 
+    debug("%s", ast_to_str(ast));
+
     // Semantic Analysis
     debug(ucolor(str_replace_center(" sema ", pad_out_full_width('_'))));
     debug("");

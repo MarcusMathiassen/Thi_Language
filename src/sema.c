@@ -404,8 +404,8 @@ static Type* sema_field_access(Sema_Context* ctx, AST* node) {
     AST* load = node->Field_Access.load;
     char* field_name = node->Field_Access.field;
     Type* result_t = _sema(ctx, load);
-    switch (load->type->kind) {
-    ERROR_UNHANDLED_KIND(ast_kind_to_str(node->kind));
+    switch (result_t->kind) {
+    ERROR_UNHANDLED_TYPE_KIND(result_t->kind);
     case TYPE_STRUCT: {
         list_foreach(load->type->Struct.members) {
             Type_Name_Pair* mem = it->data;
@@ -646,23 +646,12 @@ AST* get_symbol_in_scope(Sema_Context* ctx, char* name) {
     xassert(ctx && name);
     stack_foreach(ctx->scopes) {
         Map* symbols = it->data;
-
-        // @Performance: this was slower than just using a map.
-        // AST_Ref_List* l = it->data;
-        // foreach_reverse(i, l->count) {
-        //     AST* it = l->data[i];
-        //     if (get_ast_name(it) == name) {
-        //         return it;
-        //     }
-        // }
-
         AST* v;
         if ((v = map_get(symbols, name))) 
             return v;
     }
     return NULL;
 }
-
 
 static void add_node_to_scope(Sema_Context* ctx, AST* node) {
     tassert(ctx && node, "%zu, %zu", ctx, node);

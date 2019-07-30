@@ -60,14 +60,21 @@
 #define DEFAULT_FUNCTION_ENTRY_LABEL_NAME ".begin"
 #define DEFAULT_FUNCTION_END_LABEL_NAME ".end"
 
+//
+// Array starting allocations and growth factors
+#define DEFAULT_MAP_STARTING_TABLE_SIZE 24
+//      Starting alloc
+#define STRING_STARTING_ALLOC 16
 #define AST_REF_LIST_STARTING_ALLOC 16
 #define TYPE_REF_LIST_STARTING_ALLOC 16
 #define INTERN_ARRAY_STARTING_ALLOC 100
 #define TOKEN_ARRAY_STARTING_ALLOC 100
-
-#define DEFAULT_MAP_STARTING_TABLE_SIZE 24
-
-#define STRING_STARTING_ALLOC 16
+//      Growth factor
+#define STRING_GROWTH_FACTOR 2
+#define AST_REF_LIST_GROWTH_FACTOR 2
+#define TYPE_REF_LIST_GROWTH_FACTOR 2
+#define INTERN_ARRAY_GROWTH_FACTOR 2
+#define TOKEN_ARRAY_GROWTH_FACTOR 2
 
 #define foreach(i, c) for (s64 (i) = 0; (i) < (c); ++(i))
 #define foreach_reverse(i, c) for (s64 (i) = c-1; (i) >= 0; --(i))

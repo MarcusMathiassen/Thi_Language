@@ -189,7 +189,7 @@ Type_Ref_List make_type_ref_list() {
 
 void type_ref_list_append(Type_Ref_List* l, Type* t) {
     if (l->count == l->allocated) {
-        l->allocated *= 2;
+        l->allocated *= TYPE_REF_LIST_GROWTH_FACTOR;
         l->data = xrealloc(l->data, l->allocated * sizeof(*l->data));
     }
     l->data[l->count++] = t;

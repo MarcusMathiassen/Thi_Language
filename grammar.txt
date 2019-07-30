@@ -82,10 +82,15 @@
    type_def             ::= ident block
    enum_def             ::= ident block
 
-   func_call            ::= ident "("expr>.. ")"
-   func_def_extern      ::= ident "("ident>.. ")"ident>
-   func_def             ::= ident "("variable_decl>.. ")"ident>block>
-   func_lambda          ::= ident '=>'block>
+   func_call            ::= ident '(' expr.. ')'
+   func_def_extern      ::= ident "("ident.. ")"ident
+   func_def             ::= ident '(' variable_decl.. ')' ident block
+   func_lambda          ::= ident '=>' block
+
+   type                 ::= ident
+
+   immidiate_lambda     ::= '(' expr ')' type block?
+   named_lambda         ::= ident immidiate_lambda
 
    variable_decl_block  ::=block_start>variable_decl>..block_end>
    constant_decl_block  ::=block_start>constant_decl>..block_end>
@@ -176,3 +181,14 @@
     |= 10
    = 10
     >>= 10
+
+
+# Primitive
+#ident = name
+#unary = '*' | '&' | '+' | '-'
+#suffix = '*' | '[]'
+#type = [ident|u8|u16|u32|u64|s8|s16|s32|s64|f32|f64|bool|int|float|double|char] modifier*
+#variable_decl = ident type
+#expr = variable_decl | unary | binary | literal | if | for | while | 
+#comma_separated_list = (expr ',')+
+#tuple = '(' comma_separated_list ')'

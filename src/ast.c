@@ -284,12 +284,10 @@ static void _ast_to_str_space_separated_identifier_list(String_Context* ctx, AST
 static void _ast_to_str_comma_separated_list(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
-    string_append(s, "(");
     list_foreach(node->Comma_Separated_List.nodes) {
         _ast_to_str(ctx, it->data);
         if (it->next) string_append(s, ", ");
     }
-    string_append(s, ")");
 }
 
 static void _ast_to_str_module(String_Context* ctx, AST* node) {
@@ -818,7 +816,7 @@ AST_Ref_List* make_ast_ref_list() {
 
 void ast_ref_list_append(AST_Ref_List* l, AST* a) {
     if (l->count == l->allocated) {
-        l->allocated *= 2;
+        l->allocated *= AST_REF_LIST_GROWTH_FACTOR;
         l->data = xrealloc(l->data, l->allocated * sizeof(*l->data));
     }
     l->data[l->count++] = a;
