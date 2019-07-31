@@ -396,11 +396,12 @@ Lexed_File lex(char* file) {
         // info ("state %s", state_kind_to_str(state));
 
 
-        // need to backtrack a bit
-        char* start = --c - len;
+        // Set the START and END for this token.
+        // These *might* change underneath here. Usualy they don't, but sometimes they do.
+        char* start = --c - len; // need to backtrack a bit
         char* end = c;
         
-        // Set the indenation level
+        // Set the column for this token
         col = start - position_of_newline;
 
         switch(state) {
@@ -628,6 +629,10 @@ Lexed_File lex(char* file) {
 
     return (Lexed_File){tokens, line, comments};
 }
+
+//------------------------------------------------------------------------------
+//                              Helper functions
+//------------------------------------------------------------------------------
 
 void lexer_test(void) {
 

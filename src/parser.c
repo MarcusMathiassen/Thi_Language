@@ -61,14 +61,13 @@ Token_Kind unary_ops[UNARY_OP_COUNT] = {
 //              Each construct of the language gets its own function
 //------------------------------------------------------------------------------
 
+// @Audit: Probably a lot of unused/garbage members.
 typedef struct {
     Token* tokens;
     char* file;
     char* dir;
     s64 lines;
     s64 comments;
-    bool inside_parens;
-    bool inside_asm;
     u32 flags;
     Map* symbols;
     List* loads;
@@ -78,6 +77,7 @@ typedef struct {
     AST* llast_if_statement; // used for dangling else
     AST* olast_if_statement; // used for dangling else
 } Parser_Context;
+
 Parser_Context make_parser_context(void);
 
 AST* parse_statement                (Parser_Context* ctx);
@@ -628,14 +628,12 @@ AST* parse_function_call(Parser_Context* ctx, Loc_Info lc, char* ident) {
     eat_kind(ctx, TOKEN_OPEN_PAREN);
     List* args = make_list();
     bool has_multiple_arguments = false;
-    ctx->inside_parens = true;
     while (!tok_is(ctx, TOKEN_CLOSE_PAREN)) {
         if (has_multiple_arguments) eat_kind(ctx, TOKEN_COMMA);
         AST* arg = parse_expression(ctx);
         if (arg) list_append(args, arg);
         has_multiple_arguments = true;
     }
-    ctx->inside_parens = false;
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
     return make_ast_call(lc, ident, args);
 }
@@ -780,11 +778,11 @@ AST* parse_postfix(Parser_Context* ctx) {
             eat(ctx);
             primary_expr = make_ast_post_inc_or_dec(lc, op, primary_expr);
         } break;
-        case TOKEN_COMMA: {
-            List* exprs = parse_delimited_list(ctx, parse_expression, TOKEN_COMMA);
-            list_prepend(exprs, primary_expr);
-            primary_expr = make_ast_comma_separated_list(lc, exprs);
-        } break;
+        // case TOKEN_COMMA: {
+        //     List* exprs = parse_delimited_list(ctx, parse_expression, TOKEN_COMMA);
+        //     list_prepend(exprs, primary_expr);
+        //     primary_expr = make_ast_comma_separated_list(lc, exprs);
+        // } break;
         case TOKEN_AS: {
             eat(ctx);
             AST* type_expr = parse_expression(ctx);
@@ -967,22 +965,6 @@ AST* parse_parens(Parser_Context* ctx) {
     eat(ctx);
     AST* expr = parse_expression(ctx);
     eat_kind(ctx, TOKEN_CLOSE_PAREN);
-
-    // parens ident
-    if (tok_is(ctx, TOKEN_IDENTIFIER)) {
-        // This is a lambda_type
-        Type* type = get_type(ctx);
-        List* params;
-        if (expr->kind == AST_COMMA_SEPARATED_LIST) {
-            params = expr->Comma_Separated_List.nodes;
-        } else {
-            params = make_list();
-            if (expr) list_append(params, expr);
-        }
-        error("(%s) %s", ast_to_str(expr), type_to_str(type));
-        return make_ast_function(lc, NULL, params, type, NULL);
-    }
-    error("(%s)", ast_to_str(expr));
     return make_ast_grouping(lc, expr); 
 }
 
@@ -990,7 +972,6 @@ void eat_block_start(Parser_Context* ctx) {
     skip_comments_or_newlines(ctx);
     eat_kind(ctx, TOKEN_BLOCK_START);
 }
-
 
 // @Cleanup @Audit @Volatile @Ugly
 AST* parse_asm(Parser_Context* ctx) {
@@ -1191,8 +1172,6 @@ Parser_Context make_parser_context(void) {
     Parser_Context ctx;
     ctx.flags = 0;
     ctx.tokens = NULL;
-    ctx.inside_parens = false;
-    ctx.inside_asm = false;
     ctx.curr_tok.kind = TOKEN_UNKNOWN;
     ctx.llast_if_statement = NULL;
     ctx.olast_if_statement = NULL;
