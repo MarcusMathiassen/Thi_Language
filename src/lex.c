@@ -617,7 +617,7 @@ Lexed_File lex(char* source) {
     // Printing tokens
     foreach(i, tokens.count - 1) {
         debug("%llu -> %llu => '%s'", 
-            tokens.data[i].start, tokens.data[i].end, 
+            tokens.data[i].start, tokens.data[i].end,
             ucolor(token_kind_to_str(tokens.data[i].kind)));
     }
 #endif

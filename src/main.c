@@ -266,6 +266,8 @@ int main(int argc, char** argv) {
     initilize_timers();
     push_timer("Total time");
 
+    // error("%s", ast_to_str(parse2("main () => 1")));
+
     // s32 opt;
     // while ((opt = getopt(argc, argv, "hv")) != -1) {
     //     switch (opt) {
