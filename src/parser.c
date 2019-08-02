@@ -214,10 +214,15 @@ AST* _parse(Parser_Context* ctx, char* file) {
     // Add it to the list of loaded files.
     list_append(ctx->loads, ctx->file);
 
-    Lexed_File lf = lex(ctx->file);
-    ctx->tokens = lf.tokens.data;
-    ctx->lines += lf.lines;
-    ctx->comments += lf.comments;
+    {
+        char* source =  get_file_content(ctx->file);
+        push_timer(strf("lex: %s", ctx->file));
+        Lexed_File lf = lex(source);
+        pop_timer();
+        ctx->tokens = lf.tokens.data;
+        ctx->lines += lf.lines;
+        ctx->comments += lf.comments;
+    }
 
     debug("%s",  get_colored_minimap_of_file(ctx->file, '_'));
     eat(ctx); // prime the first token so loc() gets the right line and col

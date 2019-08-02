@@ -216,7 +216,7 @@ typedef struct {
     s64 comments;
 } Lexed_File;
 
-Lexed_File lex(char* file);
+Lexed_File lex(char* source);
 
 char* token_to_str(Token token);
 char* token_value(Token token);

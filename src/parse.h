@@ -21,7 +21,7 @@
 #ifndef PARSE_H
 #define PARSE_H
 
-#include "list.h" // List
-List* parse(char* txt);
+#include "ast.h" // AST
+AST* parse2(char* source); // @Temp: name
 
 #endif

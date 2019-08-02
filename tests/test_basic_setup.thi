@@ -1,3 +1,16 @@
-def main(argc s32, argv char**) s32
-    return 1
 
+
+
+
+
+
+
+
+
+
+
+
+
+sq = x => x * x
+
+ident '=' ident '=>' ident '*' ident

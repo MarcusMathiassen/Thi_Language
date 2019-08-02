@@ -27,6 +27,7 @@
 #include "lex.h"          // generate_tokens_from_source, print_tokens
 #include "list.h"         // list_tests
 #include "map.h"          // map
+#include "parse.h"        // parse2
 #include "parser.h"       // generate_ast_from_tokens
 #include "sema.h"         // semantic_analysis
 #include "stack.h"        // stack_tests
@@ -414,7 +415,7 @@ void assemble(char* asm_file, char* exec_name) {
     string* comp_call = make_string_f("nasm -f elf64 %s.s -o %s.o", asm_file, exec_name);
 #endif
     debug("Assembling with options '%s'", ucolor(string_data(comp_call)));
-    push_timer(string_data(comp_call));
+    push_timer("assembler");
     system(string_data(comp_call));
     pop_timer();
 }
@@ -431,7 +432,7 @@ void linking_stage(List* links, char* exec_name) {
     }
     debug("Linking with options '%s'", ucolor(string_data(link_call)));
 
-    push_timer(string_data(link_call));
+    push_timer("linker");
     system(string_data(link_call));
     pop_timer();
 

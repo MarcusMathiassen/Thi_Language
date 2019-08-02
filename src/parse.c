@@ -19,5 +19,10 @@
 // DEALINGS IN THE SOFTWARE.
 
 #include "parse.h"
+#include "lex.h"
+#include "utility.h" // push_timer, pop_timer, get_file_content
 
-List* parse(char* txt);
+AST* parse2(char* source) { // @Temp: name
+    lex(source);
+    return NULL;
+}

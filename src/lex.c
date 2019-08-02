@@ -359,14 +359,12 @@ void initilize_lex() {
         interned_keywords[i] = intern(&interns, keywords_as_strings[i]);
 }
 
-Lexed_File lex(char* file) {
-    push_timer(strf("%s: %s", (char*)__func__, file));
+Lexed_File lex(char* source) {
 
     // Start parsing tokens
     Token_Kind kind = TOKEN_UNKNOWN;
     Token_Kind last_token_kind;
     Token_Array tokens = make_token_array();
-    char* source =  get_file_content(file);
 
     char* c = source; // this will be our 'iterator'
     char* position_of_newline = c;
@@ -611,8 +609,7 @@ Lexed_File lex(char* file) {
         }
 
         xassert(kind != TOKEN_UNKNOWN);
-        if (kind != TOKEN_NEWLINE && kind != TOKEN_COMMENT)
-            token_array_append(&tokens, (Token){kind, start, end, line, col});
+        token_array_append(&tokens, (Token){kind, start, end, line, col});
 
     } while(kind != TOKEN_EOF);
 
@@ -624,8 +621,6 @@ Lexed_File lex(char* file) {
             ucolor(token_kind_to_str(tokens.data[i].kind)));
     }
 #endif
-
-    pop_timer();
 
     return (Lexed_File){tokens, line, comments};
 }
