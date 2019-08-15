@@ -405,9 +405,6 @@ static Type* sema_field_access(Sema_Context* ctx, AST* node) {
     AST* load = node->Field_Access.load;
     char* field_name = node->Field_Access.field;
     Type* result_t = _sema(ctx, load);
-
-    if ()
-
     switch (result_t->kind) {
     ERROR_UNHANDLED_TYPE_KIND(result_t->kind);
     case TYPE_STRUCT: {

@@ -214,6 +214,7 @@ AST* _parse(Parser_Context* ctx, char* file) {
     // Add it to the list of loaded files.
     list_append(ctx->loads, ctx->file);
 
+    // Lexing
     {
         char* source =  get_file_content(ctx->file);
         push_timer(strf("lex: %s", ctx->file));
@@ -279,22 +280,22 @@ AST* parse_statement(Parser_Context* ctx) {
     // @Audit, @Buggy, @DoesntMakeSense
     case TOKEN_IDENTIFIER:  result = parse_expression(ctx);     break;
 
-    case TOKEN_DEF:         result =  parse_def(ctx);           break;
-    case TOKEN_ASM:         result =  parse_asm(ctx);           break;
-    case TOKEN_IF:          result =  parse_if(ctx);            break;
-    case TOKEN_IS:          result =  parse_is(ctx);            break;
-    case TOKEN_ELSE:        result =  parse_dangling_else(ctx); break;
-    case TOKEN_DEFER:       result =  parse_defer(ctx);         break;
-    case TOKEN_FOR:         result =  parse_for(ctx);           break;
-    case TOKEN_WHILE:       result =  parse_while(ctx);         break;
-    case TOKEN_BLOCK_START: result =  parse_block(ctx);         break;
-    case TOKEN_RETURN:      result =  parse_return(ctx);        break;
-    case TOKEN_BREAK:       result =  parse_break(ctx);         break;
-    case TOKEN_CONTINUE:    result =  parse_continue(ctx);      break;
-    case TOKEN_FALLTHROUGH: result =  parse_fallthrough(ctx);   break;
-    case TOKEN_LOAD:        result =  parse_load(ctx);          break;
-    case TOKEN_LINK:        result =  parse_link(ctx);          break;
-    case TOKEN_EXTERN:      result =  parse_extern(ctx);        break;
+    case TOKEN_DEF:         result = parse_def(ctx);           break;
+    case TOKEN_ASM:         result = parse_asm(ctx);           break;
+    case TOKEN_IF:          result = parse_if(ctx);            break;
+    case TOKEN_IS:          result = parse_is(ctx);            break;
+    case TOKEN_ELSE:        result = parse_dangling_else(ctx); break;
+    case TOKEN_DEFER:       result = parse_defer(ctx);         break;
+    case TOKEN_FOR:         result = parse_for(ctx);           break;
+    case TOKEN_WHILE:       result = parse_while(ctx);         break;
+    case TOKEN_BLOCK_START: result = parse_block(ctx);         break;
+    case TOKEN_RETURN:      result = parse_return(ctx);        break;
+    case TOKEN_BREAK:       result = parse_break(ctx);         break;
+    case TOKEN_CONTINUE:    result = parse_continue(ctx);      break;
+    case TOKEN_FALLTHROUGH: result = parse_fallthrough(ctx);   break;
+    case TOKEN_LOAD:        result = parse_load(ctx);          break;
+    case TOKEN_LINK:        result = parse_link(ctx);          break;
+    case TOKEN_EXTERN:      result = parse_extern(ctx);        break;
     }
 
     // If we've parsed a statement, the next terminal is extranous.

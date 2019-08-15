@@ -18,12 +18,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
+#include "ast.h" // AST, ERROR_UNHANDLED_AST
 #include "ast_to_c.h"
-#include "common.h"
+#include "common.h" // UNREACHABLE, 
 
 char* ast_to_c(AST* node) {
-    switch(node->kind) {
-        ERROR_UNHANDLED_AST(node);
+    if (!node) return "---";
+    AST_Kind kind = node->kind;
+    TASSERT_KIND_IN_RANGE(AST, kind);
+    switch(kind) {
+        ERROR_UNHANDLED_AST_KIND(kind);
     }
     UNREACHABLE;
     return NULL;

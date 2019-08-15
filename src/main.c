@@ -23,6 +23,7 @@
 //------------------------------------------------------------------------------
 #include "set.h"          // Set, set_tests
 #include "ast.h"          // AST, AST_Kind
+#include "ast_to_c.h"     // ast_to_c
 #include "codegen.h"      // generate_code_from_ast
 #include "lex.h"          // generate_tokens_from_source, print_tokens
 #include "list.h"         // list_tests
@@ -249,7 +250,7 @@ void run_pass(AST* ast, char* pass_description, ast_callback visitor_func, void*
     pop_timer();
 }
 
-bool timer_sort_func(void* a, void* b) {
+bool timer_comparison_func(void* a, void* b) {
     return ((Timer*)a)->ns > ((Timer*)b)->ns;
 }
 
@@ -265,8 +266,6 @@ int main(int argc, char** argv) {
     initilize_lex();
     initilize_timers();
     push_timer("Total time");
-
-    // error("%s", ast_to_str(parse2("main () => 1")));
 
     // s32 opt;
     // while ((opt = getopt(argc, argv, "hv")) != -1) {
@@ -284,12 +283,6 @@ int main(int argc, char** argv) {
     // }
 
     debug("Compiler was last compiled: "__TIME__);
-
-// #ifdef __APPLE__
-//     error("%s", getenv("OS"));
-// #elif __unix__
-//     error("%s", getenv("OS"));
-// #endif
 
 #ifndef NDEBUG
     set_tests();
@@ -338,8 +331,8 @@ int main(int argc, char** argv) {
     debug("");
     sema(ast);
 
-#if OPTIMIZATION_CONSTANT_FOLD
     //  Optimization passes
+#if OPTIMIZATION_CONSTANT_FOLD
     run_pass(ast, "constant_fold", constant_fold, NULL);
 #endif
 
@@ -394,7 +387,7 @@ int main(int argc, char** argv) {
 
         // Sorting the list also disables any tree like representation atm.
     #if TIMERS_SORT
-        list_sort(timer_list, timer_sort_func);
+        list_sort(timer_list, timer_comparison_func);
     #endif
         success(align_center(strf("Total    %llu lines/sec", (u64)(((1.0 / (f64)tm_total->ns*1e9)) * (line_count+comment_count)))));
         success(align_center(strf("Backend  %llu lines/sec", (u64)(((1.0 / (f64)tm_backend->ns*1e9)) * (line_count+comment_count)))));

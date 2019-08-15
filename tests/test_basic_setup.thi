@@ -1,17 +1,2 @@
-
-
-def v2 struct
-    x f32
-    y f32
-
-extern printf(u8*, ...)
-
 def main() s32
-    v v2
-
-    v.x = 0.3f
-
-    #printf("v.x = %f\n", v.x)
-    #printf("v.y = %f\n", v.y)
-
     return 1
