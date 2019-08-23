@@ -225,7 +225,7 @@ AST* _parse(Parser_Context* ctx, char* file) {
         ctx->comments += lf.comments;
     }
 
-    debug("%s",  get_colored_minimap_of_file(ctx->file, '_'));
+    // debug("%s",  get_colored_minimap_of_file(ctx->file, '_'));
     eat(ctx); // prime the first token so loc() gets the right line and col
     Loc_Info lc = loc(ctx);
 
@@ -277,7 +277,7 @@ AST* parse_statement(Parser_Context* ctx) {
 
     case TOKEN_EQ_GT:       result =  parse_block(ctx);         break;
 
-    // @Audit, @Buggy, @DoesntMakeSense
+    // @Audit, @Buggy, @DoesntMakeSenseButKinda
     case TOKEN_IDENTIFIER:  result = parse_expression(ctx);     break;
 
     case TOKEN_DEF:         result = parse_def(ctx);           break;

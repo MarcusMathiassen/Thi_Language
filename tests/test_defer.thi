@@ -1,19 +1,3 @@
-load "includes/sys"
-
-def func() s64
-    defer { puts("you") }
-    defer { puts("Hello") }
-    return 53
-
-def strlen(x char*) u64 => i=x; while *x {++x} x-i
-
-#extern puts(u8*) s32
-def puts(x u8*) s32
-    xl = strlen(x)
-    write(STDOUT, x, xl)
-    write(STDOUT, "\n", 1)
-    return xl
-
 def main() s64
     i = 0
 
@@ -31,5 +15,11 @@ def main() s64
         puts("2nd")
     puts("1st")
 
-    #return k - i
-    return puts("Marcus")
+    return k - i
+
+extern puts(u8*) s32
+
+def func() s64
+    defer { puts("you") }
+    defer { puts("Hello") }
+    return 53

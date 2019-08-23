@@ -21,11 +21,17 @@
 #include "common.h"
 #include "parse.h"
 #include "lex.h"
+#include "stack.h" // Stack
 #include "utility.h" // push_timer, pop_timer, get_file_content
+
+#define DEBUG_START \
+    xassert(ctx); \
+    debug("%s: %s", __func__, token_kind_to_str(kind(ctx)));
 
 typedef struct {
     Token* tokens;
     Token curr;
+    Stack* stack;
 } ParserContext;
 
 static Token_Kind kind(ParserContext* ctx) {
@@ -56,48 +62,138 @@ static Loc_Info loc(ParserContext* ctx) {
     return (Loc_Info){line, col};
 }
 
+typedef enum {
+    STATE_END = 0,
+    STATE_IDENTIFIER,
+    _STATE_FINAL_,
+    STATE_UNKNOWN,
+    _STATE_COUNT_
+} State_Kind;
 
-// ident ident 
-// ident
-static AST* parseParens(ParserContext* ctx) {
-    xassert(tokIs(ctx, TOKEN_OPEN_PAREN));
-    AST* result = NULL;
-    eat(ctx);
-    match(ctx, TOKEN_CLOSE_PAREN);
-    return result;
-}
-static AST* parseIdentifier(ParserContext* ctx) {
-    AST* result = NULL;
-    switch(kind(ctx)) {
-    ERROR_UNHANDLED_TOKEN_KIND(kind(ctx));
-    case TOKEN_OPEN_PAREN: result = parseParens(ctx); break;
+typedef enum {
+    ACTION_STOP = 0,
+    ACTION_ERROR,
+    ACTION_SHIFT,
+    ACTION_REDUCE,
+    _ACTION_COUNT_
+} Action_Kind;
+
+typedef enum {
+    EQUIV_EOF = 0,
+    EQUIV_STATEMENT,
+    EQUIV_EXPRESSION,
+    EQUIV_PRIMARY,
+    EQUIV_TERMINAL,
+    _EQUIV_COUNT_
+} Equivalence_Kind;
+
+static char* equivalence_kind_to_str(Equivalence_Kind kind) {
+    switch (kind) {
+    ERROR_UNHANDLED_KIND(strf("%d", kind));
+    case EQUIV_EOF: return        "EQUIV_EOF";
+    case EQUIV_STATEMENT: return  "EQUIV_STATEMENT";
+    case EQUIV_EXPRESSION: return "EQUIV_EXPRESSION";
+    case EQUIV_PRIMARY: return    "EQUIV_PRIMARY";
+    case EQUIV_TERMINAL: return   "EQUIV_TERMINAL";
+    case _EQUIV_COUNT_: return    "_EQUIV_COUNT_";
     }
-    return result;
+    UNREACHABLE;
+    return NULL;
 }
-
-static AST* parseStatement(ParserContext* ctx) {
-    switch(kind(ctx)) {
-	ERROR_UNHANDLED_TOKEN_KIND(kind(ctx));
-    case TOKEN_IDENTIFIER: return parseIdentifier(ctx);
+static char* state_kind_to_str(State_Kind kind) {
+    switch (kind) {
+    ERROR_UNHANDLED_KIND(strf("%d", kind));
+    case STATE_END: return "STATE_END";
+    case STATE_UNKNOWN: return "STATE_UNKNOWN";
+    case STATE_IDENTIFIER: return "STATE_IDENTIFIER";
+    case _STATE_FINAL_: return "_STATE_FINAL_";
+    case _STATE_COUNT_: return "_STATE_COUNT_";
+    }
+    UNREACHABLE;
+    return NULL;
+}
+static char* action_kind_to_str(Action_Kind kind) {
+    switch (kind) {
+    ERROR_UNHANDLED_KIND(strf("%d", kind));
+    case ACTION_STOP:    return "ACTION_STOP";
+    case ACTION_ERROR:   return "ACTION_ERROR";
+    case ACTION_SHIFT:   return "ACTION_SHIFT";
+    case ACTION_REDUCE:  return "ACTION_REDUCE";
+    case _ACTION_COUNT_: return "_ACTION_COUNT_";
     }
     UNREACHABLE;
     return NULL;
 }
 
-AST* parse2(char* source) { // @Temp: name
+static Action_Kind transition[_STATE_COUNT_][_EQUIV_COUNT_] = {
     
-    ParserContext ctx;
-    ctx.tokens = lex(source).tokens.data;
+    [STATE_UNKNOWN] [EQUIV_STATEMENT] = ACTION_SHIFT,
+    [STATE_UNKNOWN] [EQUIV_EXPRESSION] = ACTION_SHIFT,
+    [STATE_UNKNOWN] [EQUIV_PRIMARY] = ACTION_SHIFT,
+    
+    [STATE_UNKNOWN] [EQUIV_TERMINAL] = ACTION_REDUCE,
+    [STATE_UNKNOWN] [EQUIV_EOF] = ACTION_STOP
 
-    eat(&ctx); // prime the first token. DO NOT REMOVE THIS.
+    [AST_IDENT] [AST_LAMBDA] = ACTION_POP_AND_BIND
+};
 
-    List* statements = make_list();
-    while (kind(&ctx) != TOKEN_EOF) {
-        AST* statement = parseStatement(&ctx);
-        xassert(statement);
-        list_append(statements, statement);
-    }
+static Equivalence_Kind equivalence[_TOKEN_COUNT_] = {
+    
+    [TOKEN_EOF]    = EQUIV_EOF,
+    
+    [TOKEN_INTEGER]  = EQUIV_PRIMARY,
+    [TOKEN_FLOAT]    = EQUIV_PRIMARY,
+    [TOKEN_STRING]   = EQUIV_PRIMARY,
+    
+    [TOKEN_IDENTIFIER]    = EQUIV_STATEMENT,
+    [TOKEN_OPEN_PAREN]    = EQUIV_EXPRESSION,
+    [TOKEN_CLOSE_PAREN]   = EQUIV_EXPRESSION,
+    [TOKEN_EQ_GT]         = EQUIV_EXPRESSION,
 
-    AST* ast = NULL;
-    return ast;
+    [TOKEN_SEMICOLON]  = EQUIV_TERMINAL,
+    [TOKEN_NEWLINE]    = EQUIV_TERMINAL,
+};
+
+AST* parse2(char* source) { // @Temp: name
+    Token* tokens = lex(source).tokens.data;
+    
+    Action_Kind action = ACTION_SHIFT;
+    State_Kind state = STATE_UNKNOWN;
+
+    Stack* stack = make_stack();
+    List* nodes = make_list();
+    Token token;
+
+    do {
+        do {
+            token = *tokens++;
+            Equivalence_Kind eq = equivalence[token.kind];
+            action = transition[state][eq];
+            info("%s %s %s <- %s", state_kind_to_str(state), equivalence_kind_to_str(eq), action_kind_to_str(action), ucolor(token_kind_to_str(token.kind)));
+        } while (state > _STATE_FINAL_);
+
+        AST* node = NULL;
+        Loc_Info lc = (Loc_Info){token.line, token.col};
+
+        switch (state) {
+            ERROR_UNHANDLED_KIND(state_kind_to_str(state));
+            case STATE_IDENTIFIER: {
+                node = make_ast_ident(lc, token_value(token));
+            } break;
+        }
+
+        warning("%s", ast_to_str(node));
+
+        stack_foreach(stack) warning("%s", ast_to_str(it->data));
+
+        switch (action) {
+            default: break;
+            case ACTION_SHIFT: xassert(node); stack_push(stack, node); break;
+            case ACTION_REDUCE: list_append(nodes, stack_pop(stack)); break;
+        }
+    
+    } while (action); // ACTION_STOP == 0 @Volatile
+
+    UNREACHABLE; // temp
+    return NULL;
 }

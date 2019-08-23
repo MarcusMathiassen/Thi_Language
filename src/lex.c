@@ -361,15 +361,14 @@ void initilize_lex() {
 
 Lexed_File lex(char* source) {
 
-    // Start parsing tokens
     Token_Kind kind = TOKEN_UNKNOWN;
     Token_Kind last_token_kind;
     Token_Array tokens = make_token_array();
 
     char* c = source; // this will be our 'iterator'
     char* position_of_newline = c;
-    s64 current_indentation_level = 0 ;
-    s64 previous_indentation_level = 0 ;
+    s64 current_indentation_level = 0;
+    s64 previous_indentation_level = 0;
 
     s64 comments = 0;
     s64 line = 1;
@@ -388,11 +387,7 @@ Lexed_File lex(char* source) {
             Equivalence_Kind eq = equivalence[ch];
             state = transition[state][eq];
             len += in_token[state];
-            // info ("ch %c, state %s, eq %s len %d", ch, state_kind_to_str(state), equivalence_kind_to_str(eq), len);
         } while (state > _STATE_LAST_FINAL_); // jumps out on 0
-
-        // info ("state %s", state_kind_to_str(state));
-
 
         // Set the START and END for this token.
         // These *might* change underneath here. Usualy they don't, but sometimes they do.
@@ -409,7 +404,7 @@ Lexed_File lex(char* source) {
         case STATE_IDENTIFIER: {
             kind = TOKEN_IDENTIFIER;
 
-            // after parsing an identifier, check if its a keywords
+            // after parsing an identifier, check if it's a keyword
             char* value = intern_range(&interns, start, end);
             foreach(i, _KEY_COUNT_) {
                 if (interned_keywords[i] == value) {
@@ -604,14 +599,12 @@ Lexed_File lex(char* source) {
                 previous_indentation_level -= DEFAULT_INDENT_LEVEL;
                 token_array_append(&tokens, (Token){TOKEN_BLOCK_END, start-1, start, line, col});
             }
-
-            // else error("[%s:%d:%d] indentation error.", file, line, col);
         }
 
         xassert(kind != TOKEN_UNKNOWN);
         token_array_append(&tokens, (Token){kind, start, end, line, col});
 
-    } while(kind != TOKEN_EOF);
+    } while(kind); // TOKEN_EOF == 0 @Volatile
 
 #ifndef NDEBUG
     // Printing tokens

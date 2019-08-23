@@ -63,8 +63,8 @@
 
 // @Volatile
 typedef enum {
+    TOKEN_EOF = 0,
     TOKEN_UNKNOWN,
-    TOKEN_EOF,
 
     TOKEN_WHITESPACE = 32,
     TOKEN_BANG,

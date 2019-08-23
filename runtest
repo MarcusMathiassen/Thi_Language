@@ -40,7 +40,7 @@ do
 
     if [ -f $name ]; then
         # Run it
-        ./${name} ./tests/test_basic_setup.thi fefoekp no-more-arguments-after-this-one
+        ./${name} ./tests/test_file.thi fefoekp no-more-arguments-after-this-one
         res=$?
         ((num_tests_compiled_successfully++))
         passing_test_files+=" $tf"

@@ -663,7 +663,7 @@ static void add_node_to_scope(Sema_Context* ctx, AST* node) {
 void add_all_decls_in_module(Sema_Context* ctx, AST* node) {
     tassert(ctx && node, "%zu, %zu", ctx, node);
     xassert(node->kind == AST_MODULE);
-    debug("add_all_decls_in_module: %s", get_ast_name(node));
+    // debug("add_all_decls_in_module: %s", get_ast_name(node));
     List* decls = node->Module.top_level;
     list_foreach(decls) {
         AST* decl = it->data;
@@ -688,9 +688,9 @@ void add_all_decls_in_module(Sema_Context* ctx, AST* node) {
             add_node_to_scope(ctx, decl);
             break;
         }
-        case AST_EXTERN:        // fallthrough
-        case AST_ENUM:          // fallthrough
-        case AST_STRUCT:        // fallthrough
+        case AST_EXTERN: // fallthrough
+        case AST_ENUM:   // fallthrough
+        case AST_STRUCT: // fallthrough
         case AST_FUNCTION:
             add_node_to_scope(ctx, decl);
             break;
