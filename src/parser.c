@@ -349,18 +349,12 @@ AST* parse_identifier(Parser_Context* ctx) {
     char* ident = tokValue(ctx);
     eat(ctx);
     
-    // lambda_decl = group type block
-    // variable_decl = ident ident
-    // function_call = ident group
-    // function_def = ident group ident
-    // function_def = ident group ident
-    // identifier_ref = ident
-
     switch (tokKind(ctx)) {
     case TOKEN_IDENTIFIER:  return parse_variable_decl(ctx, lc, ident);
     case TOKEN_OPEN_PAREN:  return parse_function_call(ctx, lc, ident);
     default:                return make_ast_ident(lc, ident);
     }
+
     UNREACHABLE;
     return NULL;
 }

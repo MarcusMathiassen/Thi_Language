@@ -1,7 +1,2 @@
-main() s32
+def main (argc s32, argv u8**) s32
     return 1
-
-id ::= id () s32        #> lambda
-id ::= id ()            #> call
-id ::= id OPERATOR      #> expr
-id ::= id               #> name_ref
