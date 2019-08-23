@@ -81,6 +81,46 @@ void linking_stage(List* links, char* exec_name);
 //                               Passes
 //------------------------------------------------------------------------------
 
+void* pass_add_all_symbols(void* symbols, AST* node) {
+    switch (node->kind) {
+    default: break;
+    case AST_ENUM:   // fallthrough
+    case AST_STRUCT: // fallthrough
+    case AST_FUNCTION: // fallthrough
+    case AST_EXTERN: map_set(symbols, get_type_name(node->type), node->type); break;
+    }
+    return NULL;
+}
+void* pass_resolve_all_symbols(void* symbols, AST* node) {
+    switch (node->kind) {
+    default: break;
+    case AST_ENUM:   // fallthrough
+    case AST_STRUCT: // fallthrough
+    case AST_FUNCTION: node->type = map_get(symbols, get_type_name(node->type)); break;
+    }
+    return NULL;
+}
+
+void* check_for_unresolved_types(void* ctx, AST* node) {
+    if (node->type && node->type->kind == TYPE_UNRESOLVED) {
+        error("[check_for_unresolved_types]: unresolved type found for node: %s", ast_to_str(node));
+    }
+    return NULL;
+}
+
+
+void* visitor_resolve_unresolved_types(void* symbols, AST* node) {
+    if (!node->type) return NULL;
+    Type* placeholder_t = node->type;
+    while (placeholder_t->kind == TYPE_POINTER) {
+        placeholder_t = placeholder_t->Pointer.pointee;
+    }
+    if (placeholder_t->kind == TYPE_UNRESOLVED) {
+        *placeholder_t = *((Type*)map_get(symbols, get_type_name(placeholder_t)));
+    }
+    return NULL;
+}
+
 void constant_fold_unary(AST* node) {
     AST* operand = node->Unary.operand;
     if (operand->kind == AST_GROUPING) operand = operand->Grouping.node;
@@ -328,6 +368,9 @@ int main(int argc, char** argv) {
 
     debug("%s", ast_to_str(ast));
 
+    run_pass(ast, "pass_add_all_symbols", pass_add_all_symbols, symbols);
+    run_pass(ast, "resolve_unresolved_types", visitor_resolve_unresolved_types, symbols);
+
     // Semantic Analysis
     debug(ucolor(str_replace_center(" sema ", pad_out_full_width('_'))));
     debug("");
@@ -337,6 +380,9 @@ int main(int argc, char** argv) {
 #if OPTIMIZATION_CONSTANT_FOLD
     run_pass(ast, "constant_fold", constant_fold, NULL);
 #endif
+
+    // Sanity check
+    run_pass(ast, "check_for_unresolved_types", check_for_unresolved_types, NULL);
 
 #ifndef NDEBUG
     write_to_file("output.thi", ast_to_src(ast));

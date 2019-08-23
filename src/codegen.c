@@ -1624,9 +1624,9 @@ char* get_result_reg(Type* type) {
     s64 size = get_size_of_type(type);
     tassert(size >= 1 && size <= 8, "size = %d", size);
     switch (type->kind) {
-        ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    ERROR_UNHANDLED_TYPE_KIND(type->kind);
     // case TYPE_ARRAY:   // return get_reg(RCX);
-    // case TYPE_STRUCT:  // fallthrough
+    case TYPE_STRUCT:  // fallthrough
     // case TYPE_ENUM:    // fallthrough
     // case TYPE_VOID:    // fallthrough
     case TYPE_POINTER: // fallthrough
@@ -1658,7 +1658,7 @@ char* get_move_op(Type* type) {
     switch (type->kind) {
         ERROR_UNHANDLED_TYPE_KIND(type->kind);
     // case TYPE_ARRAY:   // return "lea";
-    // case TYPE_STRUCT:  // fallthrough
+    case TYPE_STRUCT:  // fallthrough
     // case TYPE_ENUM:    // fallthrough
     case TYPE_POINTER: // fallthrough
     case TYPE_INT: return "mov";

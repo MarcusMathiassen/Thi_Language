@@ -229,7 +229,6 @@ AST* _parse(Parser_Context* ctx, char* file) {
     eat(ctx); // prime the first token so loc() gets the right line and col
     Loc_Info lc = loc(ctx);
 
-
     // Tmp
     List* top_level_ast = parse_terminated_list(ctx, parse_statement, TOKEN_EOF);
     AST* ast = make_ast_module(lc, ctx->file, top_level_ast);
@@ -259,7 +258,7 @@ AST* parse_statement(Parser_Context* ctx) {
 
     AST* result = NULL;
     switch (tokKind(ctx)) {
-    default:               result =  parse_expression(ctx);    break;
+    default:    result = parse_expression(ctx);    break;
     case TOKEN_EOF:        eat(ctx);                           break;
     case TOKEN_SEMICOLON: {
         eat(ctx);
@@ -1073,15 +1072,11 @@ Type* get_type(Parser_Context* ctx) {
     if (tok_is(ctx, TOKEN_IDENTIFIER)) {
         char* type_name = token_value(ctx->curr_tok);
         eat_kind(ctx, TOKEN_IDENTIFIER);
-        // debug_no_newline("..looking for %s", type_name);
         type = map_get(ctx->symbols, type_name);
         if (!type) {
-            // debug("..didn't find it. Saved to unresolved types");
             type = make_type_unresolved(type_name);
             type->name = type_name;
-            // debug("found unknown type %s. will resolve later", type_name);
         } 
-        // else debug("..Found it.");
         type->name = type_name;
     } else if (tok_is(ctx, TOKEN_OPEN_PAREN)) {
         eat_kind(ctx, TOKEN_OPEN_PAREN);

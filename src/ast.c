@@ -408,13 +408,11 @@ static void _ast_to_str_unary(String_Context* ctx, AST* node) {
 static void _ast_to_str_binary(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
-    string_append(s, "(");
     _ast_to_str(ctx, node->Binary.lhs);
     string_append(s, " ");
     string_append(s, token_kind_to_str(node->Binary.op));
     string_append(s, " ");
     _ast_to_str(ctx, node->Binary.rhs);
-    string_append(s, ")");
 }
 
 static void _ast_to_str_grouping(String_Context* ctx, AST* node) {

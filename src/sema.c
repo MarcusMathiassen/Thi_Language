@@ -472,7 +472,7 @@ static Type* sema_block(Sema_Context* ctx, AST* node) {
         }
     }
 
-    // In case of the block has a return
+    // In case the block has a return
     if (returned_nodes->count > 0) {
 
         // ..make sure they are all the same type
