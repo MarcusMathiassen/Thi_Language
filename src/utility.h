@@ -69,6 +69,7 @@ void write_to_file(char* filename, char* buffer);
 #define xrealloc(ptr, bytes) (_realloc(ptr, bytes, __FILE__, (char*)__func__, __LINE__))
 #define xstrlen(str) (_strlen(str, __FILE__, (char*)__func__, __LINE__))
 #endif
+
 void* _malloc(s64 bytes, char* file, char* func, s64 line);
 void* _calloc(s64 size, s64 bytes, char* file, char* func, s64 line);
 void* _realloc(void* ptr, s64 bytes, char* file, char* func, s64 line);

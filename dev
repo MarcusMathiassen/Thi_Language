@@ -5,7 +5,9 @@ compiler=cc
 src=./src/*.c
 flags=-Wall\ -Wextra\ -Wno-unused-function\ -Wno-unused-parameter\ -Werror\ -g\ -fsanitize=address\ -fno-omit-frame-pointer
 std=c99
+
 $compiler $src -std=$std $olvl $flags -o $output
+
 if [ $? == 0 ]; then
     test_files=$@
     if [ ${#test_files} == 0 ]; then
@@ -13,11 +15,14 @@ if [ $? == 0 ]; then
     fi
     if [ $? == 0 ]; then
         if [ $(uname) = "Darwin" ]; then
-            # ./runtest
             # ./runtest ./tests/test_window.thi
+            ./runtest ./tests/test_cast.thi
+            # ./runtest ./tests/test_float.thi
             # ./runtest ./tests/test_defer_2.thi
             # ./runtest ./tests/test_defer.thi
-            ./runtest ./tests/test_basic_setup.thi
+            # ./runtest ./tests/test_basic_setup.thi
+            # ./runtest ./tests/test_sizeof.thi
+            # ./runtest ./tests/test_typeof.thi
             # ./runtest ./tests/test_optional_semicolon.thi
             # ./runtest ./tests/test_fib.thi
             # ./runtest ./tests/test_file.thi

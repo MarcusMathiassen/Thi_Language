@@ -24,18 +24,18 @@
 #include <ctype.h> // isalnum, isdigit
 #include <string.h>  // strncmp
 
-typedef struct
-{
+typedef struct {
     s64 len;
     char* str;
 } Intern;
 
-typedef struct
-{
+typedef struct {
     Intern* data;
     s64 count;
     s64 allocated;
 } Intern_Array;
+
+Token_Array makeTokenArray(void);
 
 Token_Array make_token_array(void);
 void token_array_append(Token_Array* l, Token t);
@@ -128,9 +128,7 @@ char* state_kind_to_str(State_Kind kind) {
 
 typedef enum {
     EQUIV_EOF = 0,
-    
     EQUIV_WHITESPACE,
-
     EQUIV_IDENTIFIER,
     EQUIV_OPERATOR,
     EQUIV_NUMBER,
@@ -602,7 +600,8 @@ Lexed_File lex(char* source) {
         }
 
         xassert(kind != TOKEN_UNKNOWN);
-        token_array_append(&tokens, (Token){kind, start, end, line, col});
+        if (kind != TOKEN_COMMENT)
+            token_array_append(&tokens, (Token){kind, start, end, line, col});
 
     } while(kind); // TOKEN_EOF == 0 @Volatile
 
@@ -623,7 +622,16 @@ Lexed_File lex(char* source) {
 //------------------------------------------------------------------------------
 
 void lexer_test(void) {
-
+    // char* source = "\n\ndef main (argc s32, argv u8**) int\n\treturn 1\n";
+    // Lexed_File lf = lex(source);
+    // warning("gerg");
+    // foreach(i, lf.tokens.count) {
+    //     Token t = lf.tokens.data[i];
+    //     s64 line = get_line_and_col(source, t);
+    //     info("%s line = %ld", token_to_str(t), line);
+    //     // xassert(line == t.line);
+    // }
+    // error("e");
 }
 
 char* token_value(Token token) {
@@ -776,6 +784,24 @@ Intern_Array make_intern_array(void) {
     return l;
 }
 
+s64 get_line_and_col(char* source, Token token) {
+    xassert(source);
+    xassert(token.start);
+    char* start_of_line = source;
+    s64 line = 1;
+
+    while (source < token.start) {
+        if (*source == '\n') {
+            ++line;
+            start_of_line = source;
+        }
+        ++source;
+    }
+    // s64 col = source - start_of_line;
+    return line;
+}
+
+
 void intern_array_append(Intern_Array* l, Intern intern) {
     if (l->count == l->allocated) {
         l->allocated *= INTERN_ARRAY_GROWTH_FACTOR;
@@ -789,6 +815,7 @@ char* intern(Intern_Array* interns, char* str) {
 }
 
 char* intern_range(Intern_Array* interns, char* start, char* end) {
+
     s64 len = end - start;
 
     foreach(i, interns->count) {

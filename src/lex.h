@@ -221,6 +221,7 @@ Lexed_File lex(char* source);
 char* token_to_str(Token token);
 char* token_value(Token token);
 char* token_kind_to_str(Token_Kind kind);
+s64 get_line_and_col(char* source, Token token);
 void lexer_test(void);
 
 void initilize_lex(void);

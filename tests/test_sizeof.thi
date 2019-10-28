@@ -1,2 +1,7 @@
-main()
-    return sizeof(s32) * 4 - 15
+def v2 struct
+    x f64
+    y f64
+
+def main() s64
+    i = sizeof v2
+    return i

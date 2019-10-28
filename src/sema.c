@@ -30,7 +30,7 @@
 #include "stack.h"
 #include "type.h"
 #include "utility.h" // tassert
-#include <string.h> // strcmp
+#include <string.h>  // strcmp
 
 typedef struct {
     AST* module;
@@ -39,8 +39,8 @@ typedef struct {
     AST* current_function;
 } Sema_Context;
 
-#define DEBUG_START \
-    tassert(ctx && node, "%zu, %zu", ctx, node); \
+#define DEBUG_START                             \
+    tassert(ctx&& node, "%zu, %zu", ctx, node); \
     debug("%s: %s", give_unique_color(ast_kind_to_str(node->kind)), wrap_with_colored_parens(ast_to_str(node)));
 
 #define SCOPE_START stack_push(((Sema_Context*)ctx)->scopes, make_map())
@@ -55,100 +55,99 @@ static AST* get_symbol_in_scope(Sema_Context* ctx, char* name);
 static void add_node_to_scope(Sema_Context* ctx, AST* node);
 static void add_all_decls_in_module(Sema_Context* ctx, AST* node);
 
-static Type* _sema                                 (Sema_Context* ctx,  AST* node);
-static Type* sema_comment                          (Sema_Context* ctx,  AST* node);
-static Type* sema_nop                              (Sema_Context* ctx,  AST* node);
-static Type* sema_space_separated_identifier_list  (Sema_Context* ctx,  AST* node);
-static Type* sema_comma_separated_list             (Sema_Context* ctx,  AST* node);
-static Type* sema_module                           (Sema_Context* ctx,  AST* node);
-static Type* sema_is                               (Sema_Context* ctx,  AST* node);
-static Type* sema_fallthrough                      (Sema_Context* ctx,  AST* node);
-static Type* sema_var_args                         (Sema_Context* ctx,  AST* node);
-static Type* sema_extern                           (Sema_Context* ctx,  AST* node);
-static Type* sema_load                             (Sema_Context* ctx,  AST* node);
-static Type* sema_link                             (Sema_Context* ctx,  AST* node);
-static Type* sema_note                             (Sema_Context* ctx,  AST* node);
-static Type* sema_int                              (Sema_Context* ctx,  AST* node);
-static Type* sema_float                            (Sema_Context* ctx,  AST* node);
-static Type* sema_string                           (Sema_Context* ctx,  AST* node);
-static Type* sema_char                             (Sema_Context* ctx,  AST* node);
-static Type* sema_ident                            (Sema_Context* ctx,  AST* node);
-static Type* sema_call                             (Sema_Context* ctx,  AST* node);
-static Type* sema_unary                            (Sema_Context* ctx,  AST* node);
-static Type* sema_binary                           (Sema_Context* ctx,  AST* node);
-static Type* sema_grouping                         (Sema_Context* ctx,  AST* node);
-static Type* sema_subscript                        (Sema_Context* ctx,  AST* node);
-static Type* sema_field_access                     (Sema_Context* ctx,  AST* node);
-static Type* sema_as                               (Sema_Context* ctx,  AST* node);
-static Type* sema_block                            (Sema_Context* ctx,  AST* node);
-static Type* sema_struct                           (Sema_Context* ctx,  AST* node);
-static Type* sema_enum                             (Sema_Context* ctx,  AST* node);
-static Type* sema_function                         (Sema_Context* ctx,  AST* node);
-static Type* sema_variable_decl                    (Sema_Context* ctx,  AST* node);
-static Type* sema_if                               (Sema_Context* ctx,  AST* node);
-static Type* sema_for                              (Sema_Context* ctx,  AST* node);
-static Type* sema_while                            (Sema_Context* ctx,  AST* node);
-static Type* sema_return                           (Sema_Context* ctx,  AST* node);
-static Type* sema_defer                            (Sema_Context* ctx,  AST* node);
-static Type* sema_break                            (Sema_Context* ctx,  AST* node);
-static Type* sema_continue                         (Sema_Context* ctx,  AST* node);
-static Type* sema_typeof                           (Sema_Context* ctx,  AST* node);
-static Type* sema_sizeof                           (Sema_Context* ctx,  AST* node);
-static Type* sema_switch                           (Sema_Context* ctx,  AST* node);
-static Type* sema_post_inc_or_dec                  (Sema_Context* ctx,  AST* node);
-static Type* sema_literal                          (Sema_Context* ctx,  AST* node);
-static Type* sema_asm                              (Sema_Context* ctx,  AST* node);
-static Type* sema_cast                             (Sema_Context* ctx,  AST* node);
-
+static Type* _sema(Sema_Context* ctx, AST* node);
+static Type* sema_comment(Sema_Context* ctx, AST* node);
+static Type* sema_nop(Sema_Context* ctx, AST* node);
+static Type* sema_space_separated_identifier_list(Sema_Context* ctx, AST* node);
+static Type* sema_comma_separated_list(Sema_Context* ctx, AST* node);
+static Type* sema_module(Sema_Context* ctx, AST* node);
+static Type* sema_is(Sema_Context* ctx, AST* node);
+static Type* sema_fallthrough(Sema_Context* ctx, AST* node);
+static Type* sema_var_args(Sema_Context* ctx, AST* node);
+static Type* sema_extern(Sema_Context* ctx, AST* node);
+static Type* sema_load(Sema_Context* ctx, AST* node);
+static Type* sema_link(Sema_Context* ctx, AST* node);
+static Type* sema_note(Sema_Context* ctx, AST* node);
+static Type* sema_int(Sema_Context* ctx, AST* node);
+static Type* sema_float(Sema_Context* ctx, AST* node);
+static Type* sema_string(Sema_Context* ctx, AST* node);
+static Type* sema_char(Sema_Context* ctx, AST* node);
+static Type* sema_ident(Sema_Context* ctx, AST* node);
+static Type* sema_call(Sema_Context* ctx, AST* node);
+static Type* sema_unary(Sema_Context* ctx, AST* node);
+static Type* sema_binary(Sema_Context* ctx, AST* node);
+static Type* sema_grouping(Sema_Context* ctx, AST* node);
+static Type* sema_subscript(Sema_Context* ctx, AST* node);
+static Type* sema_field_access(Sema_Context* ctx, AST* node);
+static Type* sema_as(Sema_Context* ctx, AST* node);
+static Type* sema_block(Sema_Context* ctx, AST* node);
+static Type* sema_struct(Sema_Context* ctx, AST* node);
+static Type* sema_enum(Sema_Context* ctx, AST* node);
+static Type* sema_function(Sema_Context* ctx, AST* node);
+static Type* sema_variable_decl(Sema_Context* ctx, AST* node);
+static Type* sema_if(Sema_Context* ctx, AST* node);
+static Type* sema_for(Sema_Context* ctx, AST* node);
+static Type* sema_while(Sema_Context* ctx, AST* node);
+static Type* sema_return(Sema_Context* ctx, AST* node);
+static Type* sema_defer(Sema_Context* ctx, AST* node);
+static Type* sema_break(Sema_Context* ctx, AST* node);
+static Type* sema_continue(Sema_Context* ctx, AST* node);
+static Type* sema_typeof(Sema_Context* ctx, AST* node);
+static Type* sema_sizeof(Sema_Context* ctx, AST* node);
+static Type* sema_switch(Sema_Context* ctx, AST* node);
+static Type* sema_post_inc_or_dec(Sema_Context* ctx, AST* node);
+static Type* sema_literal(Sema_Context* ctx, AST* node);
+static Type* sema_asm(Sema_Context* ctx, AST* node);
+static Type* sema_cast(Sema_Context* ctx, AST* node);
 
 static Type* (*sema_transitions[])(Sema_Context*, AST*) = {
-    [AST_COMMENT]                         =  sema_comment,
-    [AST_NOP]                             =  sema_nop,
-    [AST_SPACE_SEPARATED_IDENTIFIER_LIST] =  sema_space_separated_identifier_list,
-    [AST_COMMA_SEPARATED_LIST]            =  sema_comma_separated_list,
-    [AST_MODULE]                          =  sema_module,
-    [AST_IS]                              =  sema_is,
-    [AST_FALLTHROUGH]                     =  sema_fallthrough,
-    [AST_VAR_ARGS]                        =  sema_var_args,
-    [AST_EXTERN]                          =  sema_extern,
-    [AST_LOAD]                            =  sema_load,
-    [AST_LINK]                            =  sema_link,
-    [AST_NOTE]                            =  sema_note,
-    [AST_INT]                             =  sema_int,
-    [AST_FLOAT]                           =  sema_float,
-    [AST_STRING]                          =  sema_string,
-    [AST_CHAR]                            =  sema_char,
-    [AST_IDENT]                           =  sema_ident,
-    [AST_CALL]                            =  sema_call,
-    [AST_UNARY]                           =  sema_unary,
-    [AST_BINARY]                          =  sema_binary,
-    [AST_GROUPING]                        =  sema_grouping,
-    [AST_SUBSCRIPT]                       =  sema_subscript,
-    [AST_FIELD_ACCESS]                    =  sema_field_access,
-    [AST_AS]                              =  sema_as,
-    [AST_BLOCK]                           =  sema_block,
-    [AST_STRUCT]                          =  sema_struct,
-    [AST_ENUM]                            =  sema_enum,
-    [AST_FUNCTION]                        =  sema_function,
-    [AST_VARIABLE_DECL]                   =  sema_variable_decl,
-    [AST_IF]                              =  sema_if,
-    [AST_FOR]                             =  sema_for,
-    [AST_WHILE]                           =  sema_while,
-    [AST_RETURN]                          =  sema_return,
-    [AST_DEFER]                           =  sema_defer,
-    [AST_BREAK]                           =  sema_break,
-    [AST_CONTINUE]                        =  sema_continue,
-    [AST_TYPEOF]                          =  sema_typeof,
-    [AST_SIZEOF]                          =  sema_sizeof,
-    [AST_SWITCH]                          =  sema_switch,
-    [AST_POST_INC_OR_DEC]                 =  sema_post_inc_or_dec,
-    [AST_LITERAL]                         =  sema_literal,
-    [AST_ASM]                             =  sema_asm,
-    [AST_CAST]                            =  sema_cast,
+    [AST_COMMENT] = sema_comment,
+    [AST_NOP] = sema_nop,
+    [AST_SPACE_SEPARATED_IDENTIFIER_LIST] = sema_space_separated_identifier_list,
+    [AST_COMMA_SEPARATED_LIST] = sema_comma_separated_list,
+    [AST_MODULE] = sema_module,
+    [AST_IS] = sema_is,
+    [AST_FALLTHROUGH] = sema_fallthrough,
+    [AST_VAR_ARGS] = sema_var_args,
+    [AST_EXTERN] = sema_extern,
+    [AST_LOAD] = sema_load,
+    [AST_LINK] = sema_link,
+    [AST_NOTE] = sema_note,
+    [AST_INT] = sema_int,
+    [AST_FLOAT] = sema_float,
+    [AST_STRING] = sema_string,
+    [AST_CHAR] = sema_char,
+    [AST_IDENT] = sema_ident,
+    [AST_CALL] = sema_call,
+    [AST_UNARY] = sema_unary,
+    [AST_BINARY] = sema_binary,
+    [AST_GROUPING] = sema_grouping,
+    [AST_SUBSCRIPT] = sema_subscript,
+    [AST_FIELD_ACCESS] = sema_field_access,
+    [AST_AS] = sema_as,
+    [AST_BLOCK] = sema_block,
+    [AST_STRUCT] = sema_struct,
+    [AST_ENUM] = sema_enum,
+    [AST_FUNCTION] = sema_function,
+    [AST_VARIABLE_DECL] = sema_variable_decl,
+    [AST_IF] = sema_if,
+    [AST_FOR] = sema_for,
+    [AST_WHILE] = sema_while,
+    [AST_RETURN] = sema_return,
+    [AST_DEFER] = sema_defer,
+    [AST_BREAK] = sema_break,
+    [AST_CONTINUE] = sema_continue,
+    [AST_TYPEOF] = sema_typeof,
+    [AST_SIZEOF] = sema_sizeof,
+    [AST_SWITCH] = sema_switch,
+    [AST_POST_INC_OR_DEC] = sema_post_inc_or_dec,
+    [AST_LITERAL] = sema_literal,
+    [AST_ASM] = sema_asm,
+    [AST_CAST] = sema_cast,
 };
 
 static Sema_Context make_sema_context() {
-   Sema_Context ctx;
+    Sema_Context ctx;
     ctx.scopes = make_stack();
     ctx.module = NULL;
     ctx.current_function = NULL;
@@ -158,7 +157,7 @@ static Sema_Context make_sema_context() {
 }
 
 // @Hotpath @Recursive
-Type* sema(AST* node) { 
+Type* sema(AST* node) {
     push_timer((char*)__func__);
     if (!node) return NULL;
     Sema_Context ctx = make_sema_context();
@@ -174,7 +173,7 @@ static Type* _sema(Sema_Context* ctx, AST* node) {
     AST_Kind kind = node->kind;
     Type* (*func)(Sema_Context*, AST*) = (*sema_transitions[kind]);
     tassert(func, "sema missing callback for %s", kind);
-    Type* result_t =  (*func)(ctx, node);
+    Type* result_t = (*func)(ctx, node);
     result_t = result_t ? result_t : make_type_void();
     debug("%s: %s -> SEMA REPLACED TYPE %s WITH %s", give_unique_color(ast_kind_to_str(node->kind)), ast_to_str(node), ucolor(type_to_str(node->type)), ucolor(type_to_str(result_t)));
     node->type = result_t;
@@ -216,7 +215,7 @@ static Type* sema_module(Sema_Context* ctx, AST* node) {
 
 static Type* sema_is(Sema_Context* ctx, AST* node) {
     _sema(ctx, node->Is.node);
-    return  _sema(ctx, node->Is.body);
+    return _sema(ctx, node->Is.body);
 }
 
 static Type* sema_fallthrough(Sema_Context* ctx, AST* node) {
@@ -296,7 +295,7 @@ static Type* sema_unary(Sema_Context* ctx, AST* node) {
     switch (op) {
     default: break;
     case THI_SYNTAX_POINTER: result_t = get_underlying_type_if_any(result_t); break;
-    case THI_SYNTAX_ADDRESS: result_t = make_type_pointer(result_t);          break;
+    case THI_SYNTAX_ADDRESS: result_t = make_type_pointer(result_t); break;
     }
     return result_t;
 }
@@ -308,9 +307,9 @@ static Type* sema_binary(Sema_Context* ctx, AST* node) {
     _sema(ctx, rhs);
     bool replaced = false;
 
-
-    switch(op) {
-    default: break; //@Audit
+    switch (op) {
+    default:
+        break; //@Audit
 
     // @Audit, @Document, @Note: duplicate _sema calls. Look up.
     // Comma separated list
@@ -318,8 +317,8 @@ static Type* sema_binary(Sema_Context* ctx, AST* node) {
         List* expr_list = make_list();
         list_append(expr_list, lhs);
         AST* expr = rhs;
-        while(expr->Binary.op == TOKEN_COMMA) {
-            
+        while (expr->Binary.op == TOKEN_COMMA) {
+
             AST* lhs_e = expr->Binary.lhs;
             AST* rhs_e = expr->Binary.rhs;
 
@@ -351,9 +350,8 @@ static Type* sema_binary(Sema_Context* ctx, AST* node) {
             }
         }
 
-
         // a, b, c = 1, 2, 3
-        // A list equal another list is 
+        // A list equal another list is
         if (lhs->kind == AST_COMMA_SEPARATED_LIST && rhs->kind == AST_COMMA_SEPARATED_LIST) {
 
             error("gergerg");
@@ -366,24 +364,23 @@ static Type* sema_binary(Sema_Context* ctx, AST* node) {
             list_foreach(lhs->Comma_Separated_List.nodes) {
                 // .. is matched with the corrosponding element in the RHS list.
                 list_foreach(lhs->Comma_Separated_List.nodes) {
-
                 }
             }
         }
 
     } break;
-
     }
     return !replaced ? _sema(ctx, lhs) : rhs->type;
 }
 
 static Type* sema_grouping(Sema_Context* ctx, AST* node) {
     AST* group = node->Grouping.node;
-    return _sema(ctx, group);;
+    return _sema(ctx, group);
+    ;
 }
 
 static Type* sema_subscript(Sema_Context* ctx, AST* node) {
-    
+
     AST* load = node->Subscript.load;
     AST* sub = node->Subscript.sub;
 
@@ -406,7 +403,7 @@ static Type* sema_field_access(Sema_Context* ctx, AST* node) {
     char* field_name = node->Field_Access.field;
     Type* result_t = _sema(ctx, load);
     switch (result_t->kind) {
-    ERROR_UNHANDLED_TYPE_KIND(result_t->kind);
+        ERROR_UNHANDLED_TYPE_KIND(result_t->kind);
     case TYPE_STRUCT: {
         list_foreach(load->type->Struct.members) {
             Type_Name_Pair* mem = it->data;
@@ -420,7 +417,6 @@ static Type* sema_field_access(Sema_Context* ctx, AST* node) {
         break;
     }
     }
-
 
     s64 offset_size = get_offset_in_struct_to_field(load->type, field_name);
     AST* offset = make_ast_int(node->loc_info, offset_size, make_type_int(DEFAULT_INT_BYTE_SIZE, 0));
@@ -443,16 +439,16 @@ static Type* sema_as(Sema_Context* ctx, AST* node) {
 static Type* sema_block(Sema_Context* ctx, AST* node) {
 
     Type* result_t = NULL;
-    
+
     SCOPE_START;
     List* stmts = node->Block.stmts;
     List* returned_nodes = make_list();
 
     list_foreach(stmts) {
-        AST* stmt = it->data; 
+        AST* stmt = it->data;
         _sema(ctx, stmt);
 
-        switch(stmt->kind) {
+        switch (stmt->kind) {
         default: break;
         case AST_RETURN: {
             list_append(returned_nodes, stmt);
@@ -464,11 +460,11 @@ static Type* sema_block(Sema_Context* ctx, AST* node) {
             list_remove(stmts, it);
         } break;
 
-        // case AST_EXTERN: {
-        //     xassert(ctx->module);
-        //     list_prepend(ctx->module->Module.top_level, stmt);
-        //     list_remove(stmts, it);
-        // } break;
+            // case AST_EXTERN: {
+            //     xassert(ctx->module);
+            //     list_prepend(ctx->module->Module.top_level, stmt);
+            //     list_remove(stmts, it);
+            // } break;
         }
     }
 
@@ -507,12 +503,11 @@ static Type* sema_enum(Sema_Context* ctx, AST* node) {
             AST* m = it->data;
             switch (m->kind) {
                 ERROR_UNHANDLED_AST_KIND(m->kind);
-            case AST_IDENT:
-             {
+            case AST_IDENT: {
                 Type* int_t = make_type_int(DEFAULT_INT_BYTE_SIZE, false);
                 it->data = make_ast_variable_decl(m->loc_info, m->Ident.name, int_t, make_ast_int(m->loc_info, counter, int_t));
                 break;
-             }
+            }
             case AST_VARIABLE_DECL:
                 xassert(m->Variable_Decl.value);
                 xassert(m->Variable_Decl.value->kind == AST_INT);
@@ -594,7 +589,7 @@ static Type* sema_continue(Sema_Context* ctx, AST* node) {
 }
 
 static Type* sema_typeof(Sema_Context* ctx, AST* node) {
-    Type *t = _sema(ctx, node->Typeof.node);
+    Type* t = _sema(ctx, node->Typeof.node);
 
     AST* string_value = make_ast_string(node->loc_info, get_type_name(t));
     ast_replace(node, string_value);
@@ -603,13 +598,12 @@ static Type* sema_typeof(Sema_Context* ctx, AST* node) {
 }
 
 static Type* sema_sizeof(Sema_Context* ctx, AST* node) {
-    Type *t = _sema(ctx, node->Sizeof.node);
-
+    Type* t = _sema(ctx, node->Sizeof.node);
     s64 size = get_size_of_type(t);
     AST* constant_value = make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, TYPE_IS_SIGNED));
     ast_replace(node, constant_value);
-
-    return t;
+    error("gg");
+    return constant_value->type;
 }
 
 static Type* sema_switch(Sema_Context* ctx, AST* node) {
@@ -620,7 +614,8 @@ static Type* sema_switch(Sema_Context* ctx, AST* node) {
 }
 
 static Type* sema_post_inc_or_dec(Sema_Context* ctx, AST* node) {
-    return _sema(ctx, node->Post_Inc_or_Dec.node);;
+    return _sema(ctx, node->Post_Inc_or_Dec.node);
+    ;
 }
 
 static Type* sema_literal(Sema_Context* ctx, AST* node) {
@@ -648,7 +643,7 @@ AST* get_symbol_in_scope(Sema_Context* ctx, char* name) {
     stack_foreach(ctx->scopes) {
         Map* symbols = it->data;
         AST* v;
-        if ((v = map_get(symbols, name))) 
+        if ((v = map_get(symbols, name)))
             return v;
     }
     return NULL;
@@ -670,9 +665,9 @@ void add_all_decls_in_module(Sema_Context* ctx, AST* node) {
         switch (decl->kind) {
         default: error("[%s:%s] illegal top level construct %s", get_ast_name(((Sema_Context*)ctx)->module), get_ast_loc_str(decl), ucolor(ast_to_str(decl)));
         case AST_COMMENT: break;
-        case AST_NOP:     break;
-        case AST_ASM:     break; 
-        case AST_LINK:    break;
+        case AST_NOP: break;
+        case AST_ASM: break;
+        case AST_LINK: break;
         case AST_VARIABLE_DECL:
             add_node_to_scope(ctx, decl);
             break;

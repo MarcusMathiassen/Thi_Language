@@ -1,0 +1,79 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+AST	./src/ast.h	/^struct AST {$/;"	s
+AST	./src/ast.h	/^typedef struct AST AST;$/;"	t	typeref:struct:AST
+AST_FindAll_Query	./src/main.c	/^} AST_FindAll_Query;$/;"	t	typeref:struct:__anon79	file:
+AST_Flag	./src/ast.h	/^} AST_Flag;$/;"	t	typeref:enum:__anon3
+AST_Kind	./src/ast.h	/^} AST_Kind;$/;"	t	typeref:enum:__anon5
+AST_Ref_List	./src/ast.h	/^} AST_Ref_List;$/;"	t	typeref:struct:__anon58
+BlockFlags	./src/ast.h	/^} BlockFlags;$/;"	t	typeref:enum:__anon2
+Class_Kind	./src/codegen.c	/^} Class_Kind;$/;"	t	typeref:enum:__anon60	file:
+ClassifiedArgument	./src/codegen.c	/^} ClassifiedArgument;$/;"	t	typeref:struct:__anon61	file:
+Codegen_Context	./src/codegen.c	/^} Codegen_Context;$/;"	t	typeref:struct:__anon59	file:
+Data	./src/codegen.c	/^} Data;$/;"	t	typeref:struct:__anon67	file:
+Equivalence_Kind	./src/lex.c	/^} Equivalence_Kind;$/;"	t	typeref:enum:__anon72	file:
+Instruction_Kind	./src/codegen.c	/^} Instruction_Kind;$/;"	t	typeref:enum:__anon65	file:
+Intern	./src/lex.c	/^} Intern;$/;"	t	typeref:struct:__anon68	file:
+Intern_Array	./src/lex.c	/^} Intern_Array;$/;"	t	typeref:struct:__anon69	file:
+Keyword_Kind	./src/lex.c	/^} Keyword_Kind;$/;"	t	typeref:enum:__anon70	file:
+Lexed_File	./src/lex.h	/^} Lexed_File;$/;"	t	typeref:struct:__anon76
+List	./src/list.h	/^} List;$/;"	t	typeref:struct:__anon78
+List_Node	./src/list.h	/^} List_Node;$/;"	t	typeref:struct:List_Node_t
+List_Node_t	./src/list.h	/^typedef struct List_Node_t {$/;"	s
+Literal_Kind	./src/ast.h	/^} Literal_Kind;$/;"	t	typeref:enum:__anon6
+Loc_Info	./src/ast.h	/^} Loc_Info;$/;"	t	typeref:struct:__anon7
+Map	./src/map.h	/^} Map;$/;"	t	typeref:struct:__anon82
+Map_Element	./src/map.h	/^} Map_Element;$/;"	t	typeref:struct:__anon81
+NASM_Line	./src/codegen.c	/^} NASM_Line;$/;"	t	typeref:struct:__anon66	file:
+Operand	./src/codegen.c	/^} Operand;$/;"	t	typeref:struct:__anon64	file:
+Operand_Kind	./src/codegen.c	/^} Operand_Kind;$/;"	t	typeref:enum:__anon63	file:
+Parsed_File	./src/parser.h	/^} Parsed_File;$/;"	t	typeref:struct:__anon86
+Parser_Context	./src/parse.c	/^} Parser_Context;$/;"	t	typeref:struct:__anon83	file:
+Parser_Context	./src/parser.c	/^} Parser_Context;$/;"	t	typeref:struct:__anon84	file:
+Register_Kind	./src/register.h	/^} Register_Kind;$/;"	t	typeref:enum:__anon87
+Scope	./src/codegen.c	/^} Scope;$/;"	t	typeref:struct:__anon62	file:
+Sema_Context	./src/sema.c	/^} Sema_Context;$/;"	t	typeref:struct:__anon88	file:
+Set	./src/set.c	/^struct Set {$/;"	s	file:
+Set	./src/set.h	/^typedef struct Set Set;$/;"	t	typeref:struct:Set
+Stack	./src/stack.h	/^} Stack;$/;"	t	typeref:struct:__anon90
+Stack_Node	./src/stack.h	/^typedef struct Stack_Node {$/;"	s
+Stack_Node	./src/stack.h	/^} Stack_Node;$/;"	t	typeref:struct:Stack_Node
+State_Kind	./src/lex.c	/^} State_Kind;$/;"	t	typeref:enum:__anon71	file:
+String_Context	./src/ast.c	/^} String_Context;$/;"	t	typeref:struct:__anon1	file:
+Table	./src/utility.c	/^} Table;$/;"	t	typeref:struct:__anon108	file:
+Test_Type	./src/list.c	/^} Test_Type;$/;"	t	typeref:struct:__anon77	file:
+Test_Type	./src/map.c	/^} Test_Type;$/;"	t	typeref:struct:__anon80	file:
+Test_Type	./src/stack.c	/^} Test_Type;$/;"	t	typeref:struct:__anon89	file:
+Timer	./src/utility.h	/^} Timer;$/;"	t	typeref:struct:__anon109
+Token	./src/lex.h	/^} Token;$/;"	t	typeref:struct:__anon74
+Token_Array	./src/lex.h	/^} Token_Array;$/;"	t	typeref:struct:__anon75
+Token_Kind	./src/lex.h	/^} Token_Kind;$/;"	t	typeref:enum:__anon73
+Type	./src/type.h	/^struct Type {$/;"	s
+Type	./src/type.h	/^typedef struct Type Type;$/;"	t	typeref:struct:Type
+Type_Flag	./src/type.h	/^} Type_Flag;$/;"	t	typeref:enum:__anon94
+Type_Kind	./src/type.h	/^} Type_Kind;$/;"	t	typeref:enum:__anon92
+Type_Name_Pair	./src/type.h	/^} Type_Name_Pair;$/;"	t	typeref:struct:__anon95
+Type_Ref_List	./src/type.h	/^} Type_Ref_List;$/;"	t	typeref:struct:__anon107
+Type_Signedness	./src/type.h	/^} Type_Signedness;$/;"	t	typeref:enum:__anon93
+Unary_Kind	./src/ast.h	/^} Unary_Kind;$/;"	t	typeref:enum:__anon4
+Value	./src/value.h	/^struct Value {$/;"	s
+Value	./src/value.h	/^typedef struct Value Value;$/;"	t	typeref:struct:Value
+Value_Flag	./src/value.h	/^} Value_Flag;$/;"	t	typeref:enum:__anon111
+Value_Kind	./src/value.h	/^} Value_Kind;$/;"	t	typeref:enum:__anon110
+ast_callback	./src/ast.h	/^typedef void* (*ast_callback)(void*, AST*);$/;"	t
+bool	./src/common.h	/^typedef s8       bool;$/;"	t
+f32	./src/common.h	/^typedef float    f32;$/;"	t
+f64	./src/common.h	/^typedef double   f64;$/;"	t
+s16	./src/common.h	/^typedef int16_t  s16;$/;"	t
+s32	./src/common.h	/^typedef int32_t  s32;$/;"	t
+s64	./src/common.h	/^typedef int64_t  s64;$/;"	t
+s8	./src/common.h	/^typedef int8_t   s8;$/;"	t
+string	./src/string.h	/^} string;$/;"	t	typeref:struct:__anon91
+u16	./src/common.h	/^typedef uint16_t u16;$/;"	t
+u32	./src/common.h	/^typedef uint32_t u32;$/;"	t
+u64	./src/common.h	/^typedef uint64_t u64;$/;"	t
+u8	./src/common.h	/^typedef uint8_t  u8;$/;"	t

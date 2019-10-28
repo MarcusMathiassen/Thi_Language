@@ -1,4 +1,4 @@
-// Copyright (c) 2019 Marcus Mathiassen
+ // Copyright (c) 2019 Marcus Mathiassen
 
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -166,17 +166,14 @@ Parsed_File parse(char* file) {
     map_set(symbols, "int", make_type_int(DEFAULT_INT_BYTE_SIZE, false));
     map_set(symbols, "float", make_type_float(DEFAULT_FLOAT_BYTE_SIZE));
     map_set(symbols, "double", make_type_float(8));
-
     map_set(symbols, "s8", make_type_int(1, TYPE_IS_SIGNED));
     map_set(symbols, "s16", make_type_int(2, TYPE_IS_SIGNED));
     map_set(symbols, "s32", make_type_int(4, TYPE_IS_SIGNED));
     map_set(symbols, "s64", make_type_int(8, TYPE_IS_SIGNED));
-
     map_set(symbols, "u8", make_type_int(1, TYPE_IS_UNSIGNED));
     map_set(symbols, "u16", make_type_int(2, TYPE_IS_UNSIGNED));
     map_set(symbols, "u32", make_type_int(4, TYPE_IS_UNSIGNED));
     map_set(symbols, "u64", make_type_int(8, TYPE_IS_UNSIGNED));
-
     map_set(symbols, "f32", make_type_float(4));
     map_set(symbols, "f64", make_type_float(8));
 
@@ -826,9 +823,9 @@ AST* parse_unary(Parser_Context* ctx) {
     if (unary) {
         switch(unary->Unary.op) {
         default: break;
-        case TOKEN_SIZEOF:
-            ast_replace(unary, make_ast_sizeof(unary->loc_info, unary->Unary.operand));
-            break;
+        // case TOKEN_SIZEOF:
+        //     ast_replace(unary, make_ast_sizeof(unary->loc_info, unary->Unary.operand));
+        //     break;
         case TOKEN_TYPEOF: 
             ast_replace(unary, make_ast_typeof(unary->loc_info, unary->Unary.operand));
             break;

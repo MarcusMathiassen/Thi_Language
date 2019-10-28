@@ -24,9 +24,9 @@
 
 #include "ast.h"
 
-#include "lex.h"  // token_kind_to_str,
-#include "string.h" // strf, string_append, string
 #include "common.h"
+#include "lex.h"     // token_kind_to_str,
+#include "string.h"  // strf, string_append, string
 #include "utility.h" // info, success, error, warning, xmalloc, xrealloc, xstrlen
 #include <stdlib.h>
 #include <string.h> // strlen
@@ -49,50 +49,51 @@ char* ast_kind_to_str(AST_Kind kind) {
     TASSERT_KIND_IN_RANGE(AST, kind);
     switch (kind) {
         ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
-        case AST_COMMENT:                         return "AST_COMMENT";
-        case AST_NOP:                             return "AST_NOP";
-        case AST_SPACE_SEPARATED_IDENTIFIER_LIST: return "AST_SPACE_SEPARATED_IDENTIFIER_LIST";
-        case AST_COMMA_SEPARATED_LIST:            return "AST_COMMA_SEPARATED_LIST";
-        case AST_MODULE:                          return "AST_MODULE";
-        case AST_IS:                              return "AST_IS";
-        case AST_FALLTHROUGH:                     return "AST_FALLTHROUGH";
-        case AST_VAR_ARGS:                        return "AST_VAR_ARGS";
-        case AST_EXTERN:                          return "AST_EXTERN";
-        case AST_LOAD:                            return "AST_LOAD";
-        case AST_LINK:                            return "AST_LINK";
-        case AST_NOTE:                            return "AST_NOTE";
-        case AST_INT:                             return "AST_INT";
-        case AST_FLOAT:                           return "AST_FLOAT";
-        case AST_STRING:                          return "AST_STRING";
-        case AST_CHAR:                            return "AST_CHAR";
-        case AST_IDENT:                           return "AST_IDENT";
-        case AST_CALL:                            return "AST_CALL";
-        case AST_UNARY:                           return "AST_UNARY";
-        case AST_BINARY:                          return "AST_BINARY";
-        case AST_GROUPING:                        return "AST_GROUPING";
-        case AST_SUBSCRIPT:                       return "AST_SUBSCRIPT";
-        case AST_FIELD_ACCESS:                    return "AST_FIELD_ACCESS";
-        case AST_AS:                              return "AST_AS";
-        case AST_BLOCK:                           return "AST_BLOCK";
-        case AST_STRUCT:                          return "AST_STRUCT";
-        case AST_ENUM:                            return "AST_ENUM";
-        case AST_FUNCTION:                        return "AST_FUNCTION";
-        case AST_VARIABLE_DECL:                   return "AST_VARIABLE_DECL";
-        case AST_IF:                              return "AST_IF";
-        case AST_FOR:                             return "AST_FOR";
-        case AST_WHILE:                           return "AST_WHILE";
-        case AST_RETURN:                          return "AST_RETURN";
-        case AST_DEFER:                           return "AST_DEFER";
-        case AST_BREAK:                           return "AST_BREAK";
-        case AST_CONTINUE:                        return "AST_CONTINUE";
-        case AST_TYPEOF:                          return "AST_TYPEOF";
-        case AST_SIZEOF:                          return "AST_SIZEOF";
-        case AST_SWITCH:                          return "AST_SWITCH";
-        case AST_POST_INC_OR_DEC:                 return "AST_POST_INC_OR_DEC";
-        case AST_LITERAL:                         return "AST_LITERAL";
-        case AST_ASM:                             return "AST_ASM";
-        case AST_CAST:                            return "AST_CAST";
-        case AST_EXPR_LIST:                       return "AST_EXPR_LIST";
+    case AST_COMMENT: return "AST_COMMENT";
+    case AST_NOP: return "AST_NOP";
+    case AST_SPACE_SEPARATED_IDENTIFIER_LIST: return "AST_SPACE_SEPARATED_IDENTIFIER_LIST";
+    case AST_COMMA_SEPARATED_LIST: return "AST_COMMA_SEPARATED_LIST";
+    case AST_MODULE: return "AST_MODULE";
+    case AST_IS: return "AST_IS";
+    case AST_FALLTHROUGH: return "AST_FALLTHROUGH";
+    case AST_VAR_ARGS: return "AST_VAR_ARGS";
+    case AST_EXTERN: return "AST_EXTERN";
+    case AST_LOAD: return "AST_LOAD";
+    case AST_LINK: return "AST_LINK";
+    case AST_NOTE: return "AST_NOTE";
+    case AST_INT: return "AST_INT";
+    case AST_FLOAT: return "AST_FLOAT";
+    case AST_STRING: return "AST_STRING";
+    case AST_CHAR: return "AST_CHAR";
+    case AST_IDENT: return "AST_IDENT";
+    case AST_CALL: return "AST_CALL";
+    case AST_UNARY: return "AST_UNARY";
+    case AST_BINARY: return "AST_BINARY";
+    case AST_GROUPING: return "AST_GROUPING";
+    case AST_SUBSCRIPT: return "AST_SUBSCRIPT";
+    case AST_FIELD_ACCESS: return "AST_FIELD_ACCESS";
+    case AST_AS: return "AST_AS";
+    case AST_BLOCK: return "AST_BLOCK";
+    case AST_STRUCT: return "AST_STRUCT";
+    case AST_ENUM: return "AST_ENUM";
+    case AST_FUNCTION: return "AST_FUNCTION";
+    case AST_VARIABLE_DECL: return "AST_VARIABLE_DECL";
+    case AST_IF: return "AST_IF";
+    case AST_FOR: return "AST_FOR";
+    case AST_WHILE: return "AST_WHILE";
+    case AST_RETURN: return "AST_RETURN";
+    case AST_DEFER: return "AST_DEFER";
+    case AST_BREAK: return "AST_BREAK";
+    case AST_CONTINUE: return "AST_CONTINUE";
+    case AST_TYPEOF: return "AST_TYPEOF";
+    case AST_SIZEOF: return "AST_SIZEOF";
+    case AST_SWITCH: return "AST_SWITCH";
+    case AST_POST_INC_OR_DEC: return "AST_POST_INC_OR_DEC";
+    case AST_LITERAL: return "AST_LITERAL";
+    case AST_ASM: return "AST_ASM";
+    case AST_CAST: return "AST_CAST";
+    case AST_EXPR_LIST: return "AST_EXPR_LIST";
+    case AST_TYPE: return "AST_TYPE";
     }
     UNREACHABLE;
     return NULL;
@@ -106,13 +107,14 @@ char* get_ast_name(AST* node) {
     if (!node) return "---";
     switch (node->kind) {
         ERROR_UNHANDLED_AST_KIND(node->kind);
-        case AST_MODULE:        return node->Module.name;
-        case AST_VARIABLE_DECL: return node->Variable_Decl.name;
-        case AST_EXTERN:        return get_type_name(node->Extern.type); // @Todo: AST_Extern should follow AST_Functions patterns
-        case AST_FUNCTION:      return node->Function.name;
-        case AST_STRUCT:        return node->Struct.name;
-        case AST_ENUM:          return node->Enum.name;
-        case AST_IDENT:         return node->Ident.name;
+    case AST_MODULE: return node->Module.name;
+    case AST_VARIABLE_DECL: return node->Variable_Decl.name;
+    case AST_EXTERN: return get_type_name(node->Extern.type); // @Todo: AST_Extern should follow AST_Functions patterns
+    case AST_FUNCTION: return node->Function.name;
+    case AST_STRUCT: return node->Struct.name;
+    case AST_ENUM: return node->Enum.name;
+    case AST_IDENT: return node->Ident.name;
+    case AST_TYPE: return node->Type.name;
     }
     UNREACHABLE;
     return NULL;
@@ -138,97 +140,98 @@ char* ast_to_str(AST* node) {
     return _ast_to_str(&ctx, node);
 }
 
-static void _ast_to_str_comment                         (String_Context* ctx, AST* node);
-static void _ast_to_str_nop                             (String_Context* ctx, AST* node);
-static void _ast_to_str_space_separated_identifier_list (String_Context* ctx, AST* node);
-static void _ast_to_str_comma_separated_list            (String_Context* ctx, AST* node);
-static void _ast_to_str_module                          (String_Context* ctx, AST* node);
-static void _ast_to_str_is                              (String_Context* ctx, AST* node);
-static void _ast_to_str_fallthrough                     (String_Context* ctx, AST* node);
-static void _ast_to_str_var_args                        (String_Context* ctx, AST* node);
-static void _ast_to_str_extern                          (String_Context* ctx, AST* node);
-static void _ast_to_str_load                            (String_Context* ctx, AST* node);
-static void _ast_to_str_link                            (String_Context* ctx, AST* node);
-static void _ast_to_str_note                            (String_Context* ctx, AST* node);
-static void _ast_to_str_int                             (String_Context* ctx, AST* node);
-static void _ast_to_str_float                           (String_Context* ctx, AST* node);
-static void _ast_to_str_string                          (String_Context* ctx, AST* node);
-static void _ast_to_str_char                            (String_Context* ctx, AST* node);
-static void _ast_to_str_ident                           (String_Context* ctx, AST* node);
-static void _ast_to_str_call                            (String_Context* ctx, AST* node);
-static void _ast_to_str_unary                           (String_Context* ctx, AST* node);
-static void _ast_to_str_binary                          (String_Context* ctx, AST* node);
-static void _ast_to_str_grouping                        (String_Context* ctx, AST* node);
-static void _ast_to_str_subscript                       (String_Context* ctx, AST* node);
-static void _ast_to_str_field_access                    (String_Context* ctx, AST* node);
-static void _ast_to_str_as                              (String_Context* ctx, AST* node);
-static void _ast_to_str_block                           (String_Context* ctx, AST* node);
-static void _ast_to_str_struct                          (String_Context* ctx, AST* node);
-static void _ast_to_str_enum                            (String_Context* ctx, AST* node);
-static void _ast_to_str_function                        (String_Context* ctx, AST* node);
-static void _ast_to_str_variable_decl                   (String_Context* ctx, AST* node);
-static void _ast_to_str_if                              (String_Context* ctx, AST* node);
-static void _ast_to_str_for                             (String_Context* ctx, AST* node);
-static void _ast_to_str_while                           (String_Context* ctx, AST* node);
-static void _ast_to_str_return                          (String_Context* ctx, AST* node);
-static void _ast_to_str_defer                           (String_Context* ctx, AST* node);
-static void _ast_to_str_break                           (String_Context* ctx, AST* node);
-static void _ast_to_str_continue                        (String_Context* ctx, AST* node);
-static void _ast_to_str_typeof                          (String_Context* ctx, AST* node);
-static void _ast_to_str_sizeof                          (String_Context* ctx, AST* node);
-static void _ast_to_str_switch                          (String_Context* ctx, AST* node);
-static void _ast_to_str_post_inc_or_dec                 (String_Context* ctx, AST* node);
-static void _ast_to_str_literal                         (String_Context* ctx, AST* node);
-static void _ast_to_str_asm                             (String_Context* ctx, AST* node);
-static void _ast_to_str_cast                            (String_Context* ctx, AST* node);
-static void _ast_to_str_expr_list                       (String_Context* ctx, AST* node);
-
+static void _ast_to_str_comment(String_Context* ctx, AST* node);
+static void _ast_to_str_nop(String_Context* ctx, AST* node);
+static void _ast_to_str_space_separated_identifier_list(String_Context* ctx, AST* node);
+static void _ast_to_str_comma_separated_list(String_Context* ctx, AST* node);
+static void _ast_to_str_module(String_Context* ctx, AST* node);
+static void _ast_to_str_is(String_Context* ctx, AST* node);
+static void _ast_to_str_fallthrough(String_Context* ctx, AST* node);
+static void _ast_to_str_var_args(String_Context* ctx, AST* node);
+static void _ast_to_str_extern(String_Context* ctx, AST* node);
+static void _ast_to_str_load(String_Context* ctx, AST* node);
+static void _ast_to_str_link(String_Context* ctx, AST* node);
+static void _ast_to_str_note(String_Context* ctx, AST* node);
+static void _ast_to_str_int(String_Context* ctx, AST* node);
+static void _ast_to_str_float(String_Context* ctx, AST* node);
+static void _ast_to_str_string(String_Context* ctx, AST* node);
+static void _ast_to_str_char(String_Context* ctx, AST* node);
+static void _ast_to_str_ident(String_Context* ctx, AST* node);
+static void _ast_to_str_call(String_Context* ctx, AST* node);
+static void _ast_to_str_unary(String_Context* ctx, AST* node);
+static void _ast_to_str_binary(String_Context* ctx, AST* node);
+static void _ast_to_str_grouping(String_Context* ctx, AST* node);
+static void _ast_to_str_subscript(String_Context* ctx, AST* node);
+static void _ast_to_str_field_access(String_Context* ctx, AST* node);
+static void _ast_to_str_as(String_Context* ctx, AST* node);
+static void _ast_to_str_block(String_Context* ctx, AST* node);
+static void _ast_to_str_struct(String_Context* ctx, AST* node);
+static void _ast_to_str_enum(String_Context* ctx, AST* node);
+static void _ast_to_str_function(String_Context* ctx, AST* node);
+static void _ast_to_str_variable_decl(String_Context* ctx, AST* node);
+static void _ast_to_str_if(String_Context* ctx, AST* node);
+static void _ast_to_str_for(String_Context* ctx, AST* node);
+static void _ast_to_str_while(String_Context* ctx, AST* node);
+static void _ast_to_str_return(String_Context* ctx, AST* node);
+static void _ast_to_str_defer(String_Context* ctx, AST* node);
+static void _ast_to_str_break(String_Context* ctx, AST* node);
+static void _ast_to_str_continue(String_Context* ctx, AST* node);
+static void _ast_to_str_typeof(String_Context* ctx, AST* node);
+static void _ast_to_str_sizeof(String_Context* ctx, AST* node);
+static void _ast_to_str_switch(String_Context* ctx, AST* node);
+static void _ast_to_str_post_inc_or_dec(String_Context* ctx, AST* node);
+static void _ast_to_str_literal(String_Context* ctx, AST* node);
+static void _ast_to_str_asm(String_Context* ctx, AST* node);
+static void _ast_to_str_cast(String_Context* ctx, AST* node);
+static void _ast_to_str_expr_list(String_Context* ctx, AST* node);
+static void _ast_to_str_type(String_Context* ctx, AST* node);
 
 static void (*ast_to_str_transitions[])(String_Context*, AST*) = {
-    [AST_COMMENT]                         =  _ast_to_str_comment,
-    [AST_NOP]                             =  _ast_to_str_nop,
-    [AST_SPACE_SEPARATED_IDENTIFIER_LIST] =  _ast_to_str_space_separated_identifier_list,
-    [AST_COMMA_SEPARATED_LIST]            =  _ast_to_str_comma_separated_list,
-    [AST_MODULE]                          =  _ast_to_str_module,
-    [AST_IS]                              =  _ast_to_str_is,
-    [AST_FALLTHROUGH]                     =  _ast_to_str_fallthrough,
-    [AST_VAR_ARGS]                        =  _ast_to_str_var_args,
-    [AST_EXTERN]                          =  _ast_to_str_extern,
-    [AST_LOAD]                            =  _ast_to_str_load,
-    [AST_LINK]                            =  _ast_to_str_link,
-    [AST_NOTE]                            =  _ast_to_str_note,
-    [AST_INT]                             =  _ast_to_str_int,
-    [AST_FLOAT]                           =  _ast_to_str_float,
-    [AST_STRING]                          =  _ast_to_str_string,
-    [AST_CHAR]                            =  _ast_to_str_char,
-    [AST_IDENT]                           =  _ast_to_str_ident,
-    [AST_CALL]                            =  _ast_to_str_call,
-    [AST_UNARY]                           =  _ast_to_str_unary,
-    [AST_BINARY]                          =  _ast_to_str_binary,
-    [AST_GROUPING]                        =  _ast_to_str_grouping,
-    [AST_SUBSCRIPT]                       =  _ast_to_str_subscript,
-    [AST_FIELD_ACCESS]                    =  _ast_to_str_field_access,
-    [AST_AS]                              =  _ast_to_str_as,
-    [AST_BLOCK]                           =  _ast_to_str_block,
-    [AST_STRUCT]                          =  _ast_to_str_struct,
-    [AST_ENUM]                            =  _ast_to_str_enum,
-    [AST_FUNCTION]                        =  _ast_to_str_function,
-    [AST_VARIABLE_DECL]                   =  _ast_to_str_variable_decl,
-    [AST_IF]                              =  _ast_to_str_if,
-    [AST_FOR]                             =  _ast_to_str_for,
-    [AST_WHILE]                           =  _ast_to_str_while,
-    [AST_RETURN]                          =  _ast_to_str_return,
-    [AST_DEFER]                           =  _ast_to_str_defer,
-    [AST_BREAK]                           =  _ast_to_str_break,
-    [AST_CONTINUE]                        =  _ast_to_str_continue,
-    [AST_TYPEOF]                          =  _ast_to_str_typeof,
-    [AST_SIZEOF]                          =  _ast_to_str_sizeof,
-    [AST_SWITCH]                          =  _ast_to_str_switch,
-    [AST_POST_INC_OR_DEC]                 =  _ast_to_str_post_inc_or_dec,
-    [AST_LITERAL]                         =  _ast_to_str_literal,
-    [AST_ASM]                             =  _ast_to_str_asm,
-    [AST_CAST]                            =  _ast_to_str_cast,
-    [AST_EXPR_LIST]                       =  _ast_to_str_expr_list,
+    [AST_COMMENT] = _ast_to_str_comment,
+    [AST_NOP] = _ast_to_str_nop,
+    [AST_SPACE_SEPARATED_IDENTIFIER_LIST] = _ast_to_str_space_separated_identifier_list,
+    [AST_COMMA_SEPARATED_LIST] = _ast_to_str_comma_separated_list,
+    [AST_MODULE] = _ast_to_str_module,
+    [AST_IS] = _ast_to_str_is,
+    [AST_FALLTHROUGH] = _ast_to_str_fallthrough,
+    [AST_VAR_ARGS] = _ast_to_str_var_args,
+    [AST_EXTERN] = _ast_to_str_extern,
+    [AST_LOAD] = _ast_to_str_load,
+    [AST_LINK] = _ast_to_str_link,
+    [AST_NOTE] = _ast_to_str_note,
+    [AST_INT] = _ast_to_str_int,
+    [AST_FLOAT] = _ast_to_str_float,
+    [AST_STRING] = _ast_to_str_string,
+    [AST_CHAR] = _ast_to_str_char,
+    [AST_IDENT] = _ast_to_str_ident,
+    [AST_CALL] = _ast_to_str_call,
+    [AST_UNARY] = _ast_to_str_unary,
+    [AST_BINARY] = _ast_to_str_binary,
+    [AST_GROUPING] = _ast_to_str_grouping,
+    [AST_SUBSCRIPT] = _ast_to_str_subscript,
+    [AST_FIELD_ACCESS] = _ast_to_str_field_access,
+    [AST_AS] = _ast_to_str_as,
+    [AST_BLOCK] = _ast_to_str_block,
+    [AST_STRUCT] = _ast_to_str_struct,
+    [AST_ENUM] = _ast_to_str_enum,
+    [AST_FUNCTION] = _ast_to_str_function,
+    [AST_VARIABLE_DECL] = _ast_to_str_variable_decl,
+    [AST_IF] = _ast_to_str_if,
+    [AST_FOR] = _ast_to_str_for,
+    [AST_WHILE] = _ast_to_str_while,
+    [AST_RETURN] = _ast_to_str_return,
+    [AST_DEFER] = _ast_to_str_defer,
+    [AST_BREAK] = _ast_to_str_break,
+    [AST_CONTINUE] = _ast_to_str_continue,
+    [AST_TYPEOF] = _ast_to_str_typeof,
+    [AST_SIZEOF] = _ast_to_str_sizeof,
+    [AST_SWITCH] = _ast_to_str_switch,
+    [AST_POST_INC_OR_DEC] = _ast_to_str_post_inc_or_dec,
+    [AST_LITERAL] = _ast_to_str_literal,
+    [AST_ASM] = _ast_to_str_asm,
+    [AST_CAST] = _ast_to_str_cast,
+    [AST_EXPR_LIST] = _ast_to_str_expr_list,
+    [AST_TYPE] = _ast_to_str_type,
 };
 
 static char* _ast_to_str(String_Context* ctx, AST* node) {
@@ -258,7 +261,6 @@ static char* _ast_to_str(String_Context* ctx, AST* node) {
 
     return string_data(s);
 }
-
 
 static void _ast_to_str_comment(String_Context* ctx, AST* node) {
     xassert(ctx && node);
@@ -354,8 +356,10 @@ static void _ast_to_str_int(String_Context* ctx, AST* node) {
     string* s = ctx->str;
     string_append_f(s, "%lld", node->Int.val);
     if (node->type->Int.is_unsigned) string_append(s, "U");
-    if (node->type->Int.bytes == 4) string_append(s, "L");
-    else /* it must be 8 */ string_append(s, "LL");
+    if (node->type->Int.bytes == 4)
+        string_append(s, "L");
+    else /* it must be 8 */
+        string_append(s, "LL");
 }
 
 static void _ast_to_str_float(String_Context* ctx, AST* node) {
@@ -607,11 +611,11 @@ static void _ast_to_str_literal(String_Context* ctx, AST* node) {
     string* s = ctx->str;
     switch (node->Literal.kind) {
         ERROR_UNHANDLED_LITERAL_KIND(node->Literal.kind);
-        case LITERAL_CHAR:     string_append_f(s, "%c",   node->Literal.Char.value);     break;
-        case LITERAL_INTEGER:  string_append_f(s, "%lld", node->Literal.Integer.value);  break;
-        case LITERAL_HEX:      string_append_f(s, "%llu", node->Literal.Hex.value);      break;
-        case LITERAL_FLOAT:    string_append_f(s, "%f",   node->Literal.Float.value);    break;
-        case LITERAL_STRING:   string_append_f(s, "%s",   node->Literal.String.value);   break;
+    case LITERAL_CHAR: string_append_f(s, "%c", node->Literal.Char.value); break;
+    case LITERAL_INTEGER: string_append_f(s, "%lld", node->Literal.Integer.value); break;
+    case LITERAL_HEX: string_append_f(s, "%llu", node->Literal.Hex.value); break;
+    case LITERAL_FLOAT: string_append_f(s, "%f", node->Literal.Float.value); break;
+    case LITERAL_STRING: string_append_f(s, "%s", node->Literal.String.value); break;
     }
 }
 
@@ -648,116 +652,122 @@ static void _ast_to_str_expr_list(String_Context* ctx, AST* node) {
     }
 }
 
+static void _ast_to_str_type(String_Context* ctx, AST* node) {
+    xassert(ctx && node);
+    string* s = ctx->str;
+    string_append(s, type_to_str(node->Type.type));
+}
+
 void* ast_visit(ast_callback func, void* ctx, AST* node) {
     xassert(func);
     if (!node) return NULL;
     switch (node->kind) {
         ERROR_UNHANDLED_AST_KIND(node->kind);
 
-        case AST_COMMENT: break;
-        case AST_NOP: break;
+    case AST_COMMENT: break;
+    case AST_NOP: break;
 
-        // @Todo(marcus) figure out what to do with these.
-        case AST_SPACE_SEPARATED_IDENTIFIER_LIST:
+    // @Todo(marcus) figure out what to do with these.
+    case AST_SPACE_SEPARATED_IDENTIFIER_LIST:
         list_foreach(node->Space_Separated_Identifier_List.identifiers) {
             ast_visit(func, ctx, it->data);
         }
         break;
-        case AST_COMMA_SEPARATED_LIST:
+    case AST_COMMA_SEPARATED_LIST:
         list_foreach(node->Comma_Separated_List.nodes) {
             ast_visit(func, ctx, it->data);
         }
         break;
-        case AST_MODULE:
+    case AST_MODULE:
         list_foreach(node->Module.top_level) {
             ast_visit(func, ctx, it->data);
         }
         break;
-        case AST_TYPEOF: ast_visit(func, ctx, node->Typeof.node); break;
-        case AST_SIZEOF: ast_visit(func, ctx, node->Sizeof.node); break;
-        case AST_NOTE: ast_visit(func, ctx, node->Note.node); break;
-        case AST_FALLTHROUGH: break;
-        case AST_LOAD:
+    case AST_TYPEOF: ast_visit(func, ctx, node->Typeof.node); break;
+    case AST_SIZEOF: ast_visit(func, ctx, node->Sizeof.node); break;
+    case AST_NOTE: ast_visit(func, ctx, node->Note.node); break;
+    case AST_FALLTHROUGH: break;
+    case AST_LOAD:
         ast_visit(func, ctx, node->Load.module);
         break;
-        case AST_LINK: break;
-        case AST_INT: break;
-        case AST_FLOAT: break;
-        case AST_STRING: break;
-        case AST_CHAR: break;
-        case AST_IDENT: break;
-        case AST_STRUCT: break;
-        case AST_POST_INC_OR_DEC:
+    case AST_LINK: break;
+    case AST_INT: break;
+    case AST_FLOAT: break;
+    case AST_STRING: break;
+    case AST_CHAR: break;
+    case AST_IDENT: break;
+    case AST_STRUCT: break;
+    case AST_POST_INC_OR_DEC:
         ast_visit(func, ctx, node->Post_Inc_or_Dec.node);
         break;
 
-        case AST_UNARY:
+    case AST_UNARY:
         ast_visit(func, ctx, node->Unary.operand);
         break;
-        case AST_BINARY:
+    case AST_BINARY:
         ast_visit(func, ctx, node->Binary.lhs);
         ast_visit(func, ctx, node->Binary.rhs);
         break;
-        case AST_VARIABLE_DECL:
+    case AST_VARIABLE_DECL:
         ast_visit(func, ctx, node->Variable_Decl.value);
         break;
-        case AST_ENUM: break;
-        case AST_GROUPING:
+    case AST_ENUM: break;
+    case AST_GROUPING:
         ast_visit(func, ctx, node->Grouping.node);
         break;
-        case AST_SUBSCRIPT:
+    case AST_SUBSCRIPT:
         ast_visit(func, ctx, node->Subscript.load);
         ast_visit(func, ctx, node->Subscript.sub);
         break;
-        case AST_FIELD_ACCESS:
+    case AST_FIELD_ACCESS:
         ast_visit(func, ctx, node->Field_Access.load);
         break;
-        case AST_IF:
+    case AST_IF:
         ast_visit(func, ctx, node->If.cond);
         ast_visit(func, ctx, node->If.then_block);
         ast_visit(func, ctx, node->If.else_block);
         break;
-        case AST_FOR:
+    case AST_FOR:
         ast_visit(func, ctx, node->For.init);
         ast_visit(func, ctx, node->For.cond);
         ast_visit(func, ctx, node->For.step);
         ast_visit(func, ctx, node->For.then_block);
         break;
-        case AST_WHILE:
+    case AST_WHILE:
         ast_visit(func, ctx, node->While.cond);
         ast_visit(func, ctx, node->While.then_block);
         break;
-        case AST_RETURN:
+    case AST_RETURN:
         ast_visit(func, ctx, node->Return.node);
         break;
-        case AST_DEFER:
+    case AST_DEFER:
         ast_visit(func, ctx, node->Defer.node);
         break;
-        case AST_BREAK:
+    case AST_BREAK:
         ast_visit(func, ctx, node->Break.node);
         break;
-        case AST_CONTINUE:
+    case AST_CONTINUE:
         ast_visit(func, ctx, node->Continue.node);
         break;
-        case AST_AS:
+    case AST_AS:
         ast_visit(func, ctx, node->As.node);
         ast_visit(func, ctx, node->As.type_node);
         break;
-        case AST_IS:
+    case AST_IS:
         ast_visit(func, ctx, node->Is.node);
         ast_visit(func, ctx, node->Is.body);
         break;
-        case AST_SWITCH:
+    case AST_SWITCH:
         ast_visit(func, ctx, node->Switch.cond);
         ast_visit(func, ctx, node->Switch.cases);
         ast_visit(func, ctx, node->Switch.default_case);
         break;
-        case AST_EXTERN:
+    case AST_EXTERN:
         list_foreach(node->Extern.type->Function.parameters) {
             ast_visit(func, ctx, it->data);
         }
         break;
-        case AST_FUNCTION:
+    case AST_FUNCTION:
         ast_visit(func, ctx, node->Function.body);
         list_foreach(node->Function.parameters) {
             ast_visit(func, ctx, it->data);
@@ -766,32 +776,32 @@ void* ast_visit(ast_callback func, void* ctx, AST* node) {
             ast_visit(func, ctx, it->data);
         }
         break;
-        case AST_CALL:
+    case AST_CALL:
         list_foreach(node->Call.args) {
             ast_visit(func, ctx, it->data);
         }
         break;
-        case AST_BLOCK:
+    case AST_BLOCK:
         list_foreach(node->Block.stmts) {
             ast_visit(func, ctx, it->data);
         }
         break;
-        case AST_ASM:
+    case AST_ASM:
         ast_visit(func, ctx, node->Asm.block);
         break;
-        case AST_CAST:
+    case AST_CAST:
         ast_visit(func, ctx, node->Cast.desired_type);
         ast_visit(func, ctx, node->Cast.node);
         break;
-        case AST_EXPR_LIST:
+    case AST_EXPR_LIST:
         list_foreach(node->Expr_List.exprs) {
             ast_visit(func, ctx, it->data);
         }
         break;
+    case AST_TYPE: break;
     }
     return (*func)(ctx, node);
 }
-
 
 AST* get_arg_from_func(AST* func, s64 arg_index) {
     xassert(func);
@@ -827,11 +837,11 @@ char* ast_get_literal_value_as_str(AST* node) {
     TASSERT_KIND_IN_RANGE(AST, kind);
     switch (kind) {
         ERROR_UNHANDLED_AST_KIND(kind);
-        case AST_UNARY: return strf("%s%s", token_kind_to_str(node->Unary.op), ast_get_literal_value_as_str(node->Unary.operand));
-        case AST_INT:    return strf("%lld", node->Int.val);
-        case AST_FLOAT:  return strf("%f", node->Float.val);
-        case AST_STRING: return strf("`%s`, 0", node->String.val);
-        case AST_CHAR:   return ast_to_str(node);
+    case AST_UNARY: return strf("%s%s", token_kind_to_str(node->Unary.op), ast_get_literal_value_as_str(node->Unary.operand));
+    case AST_INT: return strf("%lld", node->Int.val);
+    case AST_FLOAT: return strf("%f", node->Float.val);
+    case AST_STRING: return strf("`%s`, 0", node->String.val);
+    case AST_CHAR: return ast_to_str(node);
     }
     UNREACHABLE;
     return NULL;
@@ -1213,11 +1223,11 @@ AST* make_ast_literal(Loc_Info loc_info, Literal_Kind kind, char* value) {
     e->Literal.kind = kind;
     switch (kind) {
         ERROR_UNHANDLED_LITERAL_KIND(kind);
-        case LITERAL_CHAR:    e->Literal.Char.value    = value[0];     break;
-        case LITERAL_INTEGER: e->Literal.Integer.value = atoll(value); break;
-        // case LITERAL_HEX:
-        case LITERAL_FLOAT:   e->Literal.Float.value   = atof(value);  break;
-        case LITERAL_STRING:  e->Literal.String.value  = value;        break;
+    case LITERAL_CHAR: e->Literal.Char.value = value[0]; break;
+    case LITERAL_INTEGER: e->Literal.Integer.value = atoll(value); break;
+    // case LITERAL_HEX:
+    case LITERAL_FLOAT: e->Literal.Float.value = atof(value); break;
+    case LITERAL_STRING: e->Literal.String.value = value; break;
     }
     return e;
 }
@@ -1240,18 +1250,29 @@ AST* make_ast_expr_list(Loc_Info loc_info, List* expr_list) {
     xassert(expr_list);
     AST* e = make_ast(AST_EXPR_LIST, loc_info);
     e->Expr_List.exprs = expr_list;
-    return e;   
+    return e;
+}
+
+AST* make_ast_type(Loc_Info loc_info, char* name, Type* type) {
+    xassert(name);
+    xassert(type);
+    AST* e = make_ast(AST_TYPE, loc_info);
+    e->Type.name = name;
+    e->type = type;
+    e->Type.type = type;
+
+    return e;
 }
 
 char* literal_kind_to_str(Literal_Kind kind) {
     TASSERT_KIND_IN_RANGE(LITERAL, kind);
     switch (kind) {
         ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
-        case LITERAL_CHAR:    return "LITERAL_CHAR";
-        case LITERAL_INTEGER: return "LITERAL_INTEGER";
-        case LITERAL_HEX:     return "LITERAL_HEX";
-        case LITERAL_FLOAT:   return "LITERAL_FLOAT";
-        case LITERAL_STRING:  return "LITERAL_STRING";
+    case LITERAL_CHAR: return "LITERAL_CHAR";
+    case LITERAL_INTEGER: return "LITERAL_INTEGER";
+    case LITERAL_HEX: return "LITERAL_HEX";
+    case LITERAL_FLOAT: return "LITERAL_FLOAT";
+    case LITERAL_STRING: return "LITERAL_STRING";
     }
     UNREACHABLE;
     return NULL;

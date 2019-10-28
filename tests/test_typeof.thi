@@ -1,38 +1,38 @@
 extern strcmp(u8*, u8*) s32
 extern printf(u8*, ...) s32
 
-main(argc: int, argv: char**)
+def main(argc int, argv char**)
 
-    integer := 415
-    floating := 53.0
+    integer = 415
+    floating = 53.0
 
-    v: v2
+    v v2
 
     printf("typeof argv = %s\n", typeof argv)
     printf("typeof argc = %s\n", typeof argc)
-    printf("typeof int = %s\n", typeof int)
+    printf("typeof int = %s\n", typeof 1LL)
     printf("typeof integer = %s\n", typeof integer)
     printf("typeof floating = %s\n", typeof floating)
     printf("typeof v2 = %s\n", typeof v2)
     printf("typeof v = %s\n", typeof v)
-    printf("typeof v.x = %s\n", typeof v.x)
-    printf("typeof v.y = %s\n", typeof v.y)
-    printf("typeof v2.x = %s\n", typeof v2.x)
-    printf("typeof v2.y = %s\n", typeof v2.y)
-    printf("typeof v2.z = %s\n", typeof v2.z)
-    printf("typeof v2.z.i = %s\n", typeof v2.z.i)
-    printf("typeof v.z = %s\n", typeof v.z)
-    printf("typeof v.z.i = %s\n", typeof v.z.i)
+    #printf("typeof v.x = %s\n", typeof v.x)
+    #printf("typeof v.y = %s\n", typeof v.y)
+    #printf("typeof v2.x = %s\n", typeof v2.x)
+    #printf("typeof v2.y = %s\n", typeof v2.y)
+    #printf("typeof v2.z = %s\n", typeof v2.z)
+    #printf("typeof v2.z.i = %s\n", typeof v2.z.i)
+    #printf("typeof v.z = %s\n", typeof v.z)
+    #printf("typeof v.z.i = %s\n", typeof v.z.i)
 
-    v.z.i = 530 as s32
-    printf("v.z.i = %d\n", v.z.i)
+    #v.z.i = 530 as s32
+    #printf("v.z.i = %d\n", v.z.i)
 
     return 1
 
-struct v2
-    x: f32
-    y: f32
-    z: child
+def v2 struct
+    x f32
+    y f32
+    z child
 
-struct child
-    i: s32
+def child struct
+    i s32

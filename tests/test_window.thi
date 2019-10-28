@@ -48,7 +48,7 @@ def main() s64
 
         glClearColor(r, g, b, a)
 
-        #printf("rgb(%f, %f, %f, %f)\n", r, g, b, a)
+        printf("rgb(%f, %f, %f, %f)\n", r, g, b, a)
 
         if glfwWindowShouldClose(window) { running = false }
         if glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS { running = false }
@@ -79,7 +79,6 @@ def drawTriangle(x f32, y f32, s f32)
     glEnd()
 
 def clamp0to1(x f32) f32
-    # @Currently doesnt work? 
-    #if x < 0.0f { return 0.0f }
-    #if x > 1.0f { return 1.0f }
+    #x = x > 1.0f ? 1.0f : x
+    #x = x > 0.0f ? 0.0f : x
     return x

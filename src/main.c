@@ -457,6 +457,7 @@ void assemble(char* asm_file, char* exec_name) {
 #elif __unix__
     string* comp_call = make_string_f("nasm -f elf64 %s.s -o %s.o", asm_file, exec_name);
 #endif
+
     debug("Assembling with options '%s'", ucolor(string_data(comp_call)));
     push_timer("assembler");
     system(string_data(comp_call));
@@ -465,7 +466,7 @@ void assemble(char* asm_file, char* exec_name) {
 
 void linking_stage(List* links, char* exec_name) {
 #ifdef __APPLE__
-    string* link_call = make_string_f("ld -macosx_version_min 10.14 -o %s %s.o -e _main", exec_name, exec_name);
+    string* link_call = make_string_f("ld -macosx_version_min 10.15 -no_pie -o %s %s.o -e _main", exec_name, exec_name);
 #elif __unix__
     string* link_call = make_string_f("ld -o %s %s.o -e main", exec_name, exec_name);
 #endif

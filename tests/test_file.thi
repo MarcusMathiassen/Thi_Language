@@ -14,6 +14,8 @@ def main(argc s32, argv char**) s32
     source_file = argv[1]
     printf("printing: %s\n", source_file)
     content = get_file_content(source_file)
+    defer { free(content) }
+
     if !content { printf("Failed to get content of file '%s'\n", source_file) }
     lex(content)
     return 1

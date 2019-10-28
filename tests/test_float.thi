@@ -1,4 +1,13 @@
-main() 
-    f := 5.3
+load "includes/cstdio"
+
+def main() s64
+    f = 5.3 + 3.204
+
+    printf("%f\n", f)
+    
+    f = f < 0.0 ? 255.50 : 31.35
+
+    printf("%f\n", f)
+
     return 1
 

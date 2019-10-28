@@ -55,7 +55,25 @@ char* value_kind_to_str(Value_Kind kind) {
 }
 
 char* value_to_str(Value* value) {
-    UNFINISHED;
+    xassert(value);
+    Value_Kind kind = value->kind;
+    TASSERT_KIND_IN_RANGE(VALUE, kind);
+    switch (kind) {
+    ERROR_UNHANDLED_VALUE_KIND(kind);
+    // case VALUE_INT: return "VALUE_INT";
+    // case VALUE_FLOAT: return "VALUE_FLOAT";
+    // case VALUE_POINTER: return "VALUE_POINTER";
+    // case VALUE_STRING: return "VALUE_STRING";
+    case VALUE_VARIABLE: return strf("name: %s addr: %d", value->Variable.name, value->Variable.stack_pos);
+    // case VALUE_GLOBAL_VARIABLE: return value->Global_Variable.name;
+    // case VALUE_CALL: return value->Call.callee;
+    // case VALUE_FUNCTION:
+        // return value->Function.name;
+        // case VALUE_STRUCT:
+        // case VALUE_LOAD_INST: return "VALUE_LOAD_INST";
+        // case VALUE_STORE_INST: return "VALUE_STORE_INST";
+    }
+    UNREACHABLE;
     return NULL;
 }
 

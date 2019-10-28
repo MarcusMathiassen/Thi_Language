@@ -42,40 +42,30 @@
     debug("%s: %s", (char*)__func__, wrap_with_colored_parens(ast_to_str(node))); \
     // emit(ctx, "; %s", ast_to_str(node));
 
-
 typedef struct
 {
     AST* module;
     Map* symbols;
     Stack* scopes;
-
     s64 stack_pos;
-
     AST* current_function;
     Type* expected_type;
-
     List* data_list;
-
     bool inside_asm;
-    
     string* section_text;
     string* section_data;
     string* section_extern;
-
     s64 text_label_counter;
     s64 data_label_counter;
-
     char* o0;
     char* o1;
     char* l0;
     char* l1;
-
     char* ocontinue;
     char* lcontinue;
     char* obreak;
     char* lbreak;
     char* l_end;
-
     s8 next_available_xmm_reg_counter;
     s8 next_available_rax_reg_counter;
 } Codegen_Context;
@@ -138,6 +128,7 @@ char* make_data_label                 (Codegen_Context* ctx);
 void reset_text_label_counter         (Codegen_Context* ctx);
 void reset_stack                      (Codegen_Context* ctx);
 void set_current_function_expr        (Codegen_Context* ctx, AST* func_expr);
+void emit_debug                       (Codegen_Context* ctx, char* fmt, ...);
 void emit_no_tab                      (Codegen_Context* ctx, char* fmt, ...);
 void emit_extern                      (Codegen_Context* ctx, char* fmt, ...);
 char* emit_data                       (Codegen_Context* ctx, char* fmt, ...);
@@ -167,18 +158,43 @@ char* get_next_available_reg_fitting  (Codegen_Context* ctx, Type* type);
 s8 get_next_available_xmm_reg_fitting (Codegen_Context* ctx);
 s8 get_next_available_rax_reg_fitting (Codegen_Context* ctx, s64 size);
 s64 get_all_alloca_in_block           (AST* block);
-void emit_cast                        (Codegen_Context* ctx, Value* variable, Type* desired_type);
-void emit_cast_int_to_int             (Codegen_Context* ctx, char* reg, Type* type);
-void emit_cast_float_to_int           (Codegen_Context* ctx, char* reg, Type* type);
+// void emit_cast                        (Codegen_Context* ctx, Value* variable, Type* desired_type);
+// void emit_cast_int_to_int             (Codegen_Context* ctx, char* reg, Type* type);
+// void emit_cast_int_to_float           (Codegen_Context* ctx, char* reg, Type* type);
+// void emit_cast_float_to_int           (Codegen_Context* ctx, char* reg, Type* type);
+// void emit_cast_float_to_float         (Codegen_Context* ctx, char* reg, Type* type);
 void emit_store_deref                 (Codegen_Context* ctx, Value* variable);
 void emit_store_r                     (Codegen_Context* ctx, Value* variable, Register_Kind reg);
 void emit_store                       (Codegen_Context* ctx, Value* variable);
 void emit_load                        (Codegen_Context* ctx, Value* variable);
 void emit_jmp                         (Codegen_Context* ctx, char* label);
 
+static void emit_cast_s32_to_f32       (Codegen_Context* ctx, Type* from, Type* to);
+static void emit_cast_s32_to_s64       (Codegen_Context* ctx, Type* from, Type* to);
+static void emit_cast_s32_to_u32       (Codegen_Context* ctx, Type* from, Type* to);
+
+static void emit_cast_s64_to_s32       (Codegen_Context* ctx, Type* from, Type* to);
+static void emit_cast_s64_to_f32       (Codegen_Context* ctx, Type* from, Type* to);
+
+static void emit_cast_f32_to_s32       (Codegen_Context* ctx, Type* from, Type* to);
+static void emit_cast_f32_to_s32_trunc (Codegen_Context* ctx, Type* from, Type* to);
+static void emit_cast_f32_to_f64       (Codegen_Context* ctx, Type* from, Type* to);
+
+static void emit_cast_f64_to_s32       (Codegen_Context* ctx, Type* from, Type* to);
+static void emit_cast_f64_to_s32_trunc (Codegen_Context* ctx, Type* from, Type* to);
+static void emit_cast_f64_to_f32       (Codegen_Context* ctx, Type* from, Type* to);
+
+static void emit_cast_int_to_int       (Codegen_Context* ctx, Type* from, Type* to);
+static void emit_cast_int_to_float     (Codegen_Context* ctx, Type* from, Type* to);
+
+static void emit_cast_float_to_int     (Codegen_Context* ctx, Type* from, Type* to);
+static void emit_cast_float_to_float   (Codegen_Context* ctx, Type* from, Type* to);
+
+static void emit_cast                  (Codegen_Context* ctx, Value* value, Type* to);
+
 Codegen_Context make_codegen_context(void);
 
-static Value* codegen                                        (Codegen_Context* ctx, AST* node);
+static Value* codegen                                 (Codegen_Context* ctx, AST* node);
 static Value* codegen_comment                         (Codegen_Context* ctx, AST* node);
 static Value* codegen_nop                             (Codegen_Context* ctx, AST* node);
 static Value* codegen_space_separated_identifier_list (Codegen_Context* ctx, AST* node);
@@ -473,7 +489,7 @@ static Value* codegen_call(Codegen_Context* ctx, AST* node) {
     }
 
     if (node->type->flags & TYPE_FLAG_HAS_VAR_ARG) {
-        emit(ctx, "mov al, %lld; var_arg_count", args->count);
+        emit(ctx, "mov al, %d", class_sse_counter);
     }
 
 #ifdef __APPLE__
@@ -496,6 +512,16 @@ static Value* codegen_unary(Codegen_Context* ctx, AST* node) {
 
     switch (op) {
     ERROR_UNHANDLED_TOKEN_KIND(op);
+    case TOKEN_SIZEOF: {
+        s64 size = get_size_of_value(result);
+        AST* constant_value = make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, TYPE_IS_SIGNED));
+        result = codegen(ctx, constant_value);
+    } break;
+    case TOKEN_TYPEOF: {
+        AST* string_value = make_ast_string(node->loc_info, get_type_name(result->type));
+        string_value->type = make_type_pointer(make_type_int(1, TYPE_IS_UNSIGNED));
+        return codegen(ctx, string_value);
+    } break;
     case TOKEN_MINUS_MINUS: {
         s64 size = 1;
         if (operand->type->kind == TYPE_POINTER)
@@ -757,7 +783,7 @@ static Value* codegen_binary(Codegen_Context* ctx, AST* node) {
         set_temp_labels(ctx, l0, l1);
         Value* lhs_v = codegen(ctx, lhs);
         char* reg = get_result_reg(lhs_v->type);
-        emit(ctx, "cmp %s, 0", reg);
+        emit(ctx, "cmp al, 0", reg);
         emit(ctx, "je %s", l0);
         Value* rhs_v = codegen(ctx, rhs);
         emit(ctx, "jmp %s", l1);
@@ -1368,6 +1394,25 @@ Codegen_Context make_codegen_context() {
     return ctx;
 }
 
+void emit_debug(Codegen_Context* ctx, char* fmt, ...) {
+    #ifndef NDEBUG
+    xassert(ctx);
+    va_list args;
+    va_start(args, fmt);
+    s64 str_len = vsnprintf(0, 0, fmt, args) + 1; // xstrlen + 1 for '\n'
+    va_end(args);
+    char* str = xmalloc(str_len);
+
+    va_start(args, fmt);
+    vsnprintf(str, str_len, fmt, args);
+    va_end(args);
+
+    string_append_f(ctx->section_text, "%s\n", str);
+
+    free(str);
+    #endif
+}
+
 void emit_no_tab(Codegen_Context* ctx, char* fmt, ...) {
     xassert(ctx);
     va_list args;
@@ -1681,6 +1726,7 @@ void alloc_variable(Codegen_Context* ctx, Value* variable) {
          get_type_name(variable->type),
          size);
     ctx->stack_pos += size;
+    emit_debug(ctx, "; allocated variable %s", value_to_str(variable));
 }
 
 void dealloc_variable(Codegen_Context* ctx, Value* variable) {
@@ -1693,6 +1739,7 @@ void dealloc_variable(Codegen_Context* ctx, Value* variable) {
          size);
     ctx->stack_pos -= size;
     xassert(ctx->stack_pos >= 0);
+    emit_debug(ctx, "; deallocated variable %s", value_to_str(variable));
 }
 
 Value* get_variable(Codegen_Context* ctx, AST* ident) {
@@ -1723,67 +1770,260 @@ int align(int n, s32 m) {
     return (m - (n % m)) % m;
 }
 
-void emit_cast_float_to_int(Codegen_Context* ctx, char* reg, Type* type) {
-    xassert(ctx);
-    xassert(reg);
-    xassert(type);
-    xassert(type->kind == TYPE_INT);
-    bool usig = type->Int.is_unsigned;
-    s8 type_size = get_size_of_type(type);
-    switch (type_size) {
-    case 4: emit(ctx, "cvttss2si %s, xmm0", reg); break;
-    case 8: emit(ctx, "cvttsd2si %s, xmm0", reg); break;
-    }
-    if (usig) {
-        emit_cast_int_to_int(ctx, reg, make_type_int(type_size, usig));
+//
+// Casts
+//
+static void emit_cast_s64_to_s32(Codegen_Context* ctx, Type* from, Type* to)
+{
+    xassert(from->kind == TYPE_INT && from->Int.bytes == 8);
+    xassert(to->kind == TYPE_INT && to->Int.bytes == 4);
+    char* reg = get_result_reg(to);
+    emit(ctx, "MOVSX %s, RAX", reg);
+}
+static void emit_cast_s32_to_s64(Codegen_Context* ctx, Type* from, Type* to)
+{
+    xassert(from->kind == TYPE_INT && from->Int.bytes == 4);
+    xassert(to->kind == TYPE_INT && to->Int.bytes == 8);
+    char* reg = get_result_reg(to);
+    emit(ctx, "MOVSX %s, EAX", reg);
+}
+static void emit_cast_s32_to_f32(Codegen_Context* ctx, Type* from, Type* to)
+{
+    xassert(from->kind == TYPE_INT && from->Int.bytes == 4);
+    xassert(to->kind == TYPE_FLOAT && to->Float.bytes == 4);
+    char* reg = get_result_reg(to);
+    emit(ctx, "CVTSI2SS %s, EAX", reg);
+}
+static void emit_cast_s32_to_f64(Codegen_Context* ctx, Type* from, Type* to)
+{
+    xassert(from->kind == TYPE_INT && from->Int.bytes == 4);
+    xassert(to->kind == TYPE_FLOAT && to->Float.bytes == 8);
+    char* reg = get_result_reg(to);
+    emit(ctx, "MOVSX %s, EAX", reg);
+}
+static void emit_cast_s64_to_f32(Codegen_Context* ctx, Type* from, Type* to)
+{
+    xassert(from->kind == TYPE_INT && from->Int.bytes == 8);
+    xassert(to->kind == TYPE_FLOAT && to->Float.bytes == 4);
+    emit_cast_s32_to_f32(ctx, from, to);
+}
+static void emit_cast_s32_to_u32(Codegen_Context* ctx, Type* from, Type* to)
+{
+    xassert(from->kind == TYPE_INT && from->Int.bytes == 4);
+    xassert(to->kind == TYPE_INT && to->Int.bytes == 4 && to->Int.is_unsigned == true);
+    char* reg = get_result_reg(to);
+    emit(ctx, "MOVZX %s, EAX", reg);
+}
+static void emit_cast_f32_to_s32(Codegen_Context* ctx, Type* from, Type* to)
+{
+    xassert(from->kind == TYPE_FLOAT && from->Float.bytes == 4);
+    xassert(to->kind == TYPE_INT && to->Int.bytes == 4);
+    char* reg = get_result_reg(to);
+    emit(ctx, "CVTSS2SI %s, XMM0", reg);
+}
+static void emit_cast_f32_to_s32_trunc(Codegen_Context* ctx, Type* from, Type* to)
+{
+    xassert(from->kind == TYPE_FLOAT && from->Float.bytes == 4);
+    xassert(to->kind == TYPE_INT && to->Int.bytes == 4);
+    char* reg = get_result_reg(to);
+    emit(ctx, "CVTTSS2SI %s, XMM0", reg);
+}
+static void emit_cast_f64_to_s64_trunc(Codegen_Context* ctx, Type* from, Type* to)
+{
+    xassert(from->kind == TYPE_FLOAT && from->Float.bytes == 8);
+    xassert(to->kind == TYPE_INT && to->Int.bytes == 8);
+    emit(ctx, "CVTTSS2SI RAX, XMM0");
+    emit(ctx, "MOVSX RAX, EAX");
+}
+static void emit_cast_f64_to_s32(Codegen_Context* ctx, Type* from, Type* to)
+{
+    xassert(from->kind == TYPE_FLOAT && from->Float.bytes == 8);
+    xassert(to->kind == TYPE_INT && to->Int.bytes == 4);
+    char* reg = get_result_reg(to);
+    emit(ctx, "CVTSD2SI %s, XMM0", reg);
+}
+static void emit_cast_f64_to_s32_trunc(Codegen_Context* ctx, Type* from, Type* to)
+{
+    xassert(from->kind == TYPE_FLOAT && from->Float.bytes == 8);
+    xassert(to->kind == TYPE_INT && to->Int.bytes == 4);
+    char* reg = get_result_reg(to);
+    emit(ctx, "CVTTSD2SI %s, XMM0", reg);
+}
+static void emit_cast_f32_to_f64(Codegen_Context* ctx, Type* from, Type* to)
+{
+    xassert(from->kind == TYPE_FLOAT && from->Float.bytes == 4);
+    xassert(to->kind == TYPE_FLOAT && to->Float.bytes == 8);
+    char* reg = get_result_reg(to);
+    emit(ctx, "CVTSS2SD %s, XMM0", reg);
+}
+static void emit_cast_f64_to_f32(Codegen_Context* ctx, Type* from, Type* to)
+{
+    xassert(from->kind == TYPE_FLOAT && from->Float.bytes == 8);
+    xassert(to->kind == TYPE_FLOAT && to->Float.bytes == 4);
+    char* reg = get_result_reg(to);
+    emit(ctx, "CVTSD2SS %s, XMM0", reg);
+}
+
+static void emit_cast_int_to_int(Codegen_Context* ctx, Type* from, Type* to)
+{
+    xassert(from->kind == TYPE_INT);
+    xassert(to->kind == TYPE_INT);
+    s8 fs = get_size_of_type(from);
+    s8 ts = get_size_of_type(to);
+    if (fs == 4 && ts == 8) emit_cast_s32_to_s64(ctx, from, to);
+    else if (fs == 8 && ts == 4) emit_cast_s64_to_s32(ctx, from, to);
+}
+
+static void emit_cast_int_to_float(Codegen_Context* ctx, Type* from, Type* to)
+{
+    xassert(from->kind == TYPE_INT);
+    xassert(to->kind == TYPE_FLOAT);
+    s8 fs = get_size_of_type(from);
+    s8 ts = get_size_of_type(to);
+    if (fs == 4 && ts == 8) emit_cast_s32_to_f64(ctx, from, to);
+    else if (fs == 8 && ts == 4) emit_cast_s64_to_f32(ctx, from, to);
+}
+
+static void emit_cast_float_to_int(Codegen_Context* ctx, Type* from, Type* to)
+{
+    xassert(from->kind == TYPE_FLOAT);
+    xassert(to->kind == TYPE_INT);
+
+    const s8 fs = get_size_of_type(from);
+    const s8 ts = get_size_of_type(to);
+
+    switch (fs) {
+    case 4: {
+        switch (ts) {
+        case 1: break;
+        case 2: break;
+        case 4: emit(ctx, "cvttss2si eax, xmm0"); break;
+        case 8: emit(ctx, "cvttss2si rax, xmm0"); break;
+        }
+    } break;
+    case 8: {
+        switch (ts) {
+        case 1: break;
+        case 2: break;
+        case 4: emit(ctx, "cvttsd2si eax, xmm0"); break;
+        case 8: emit(ctx, "cvttsd2si rax, xmm0"); break;
+        }
+    } break;
     }
 }
 
-void emit_cast_int_to_int(Codegen_Context* ctx, char* reg, Type* type) {
-    xassert(ctx);
-    xassert(reg);
-    xassert(type);
-    xassert(type->kind == TYPE_INT);
-    bool usig = type->Int.is_unsigned;
-    s64 type_size = get_size_of_type(type);
-    switch (type_size) {
-    ERROR_UNHANDLED_KIND(strf("%d", type_size));
-    case 1:
-        usig ? emit(ctx, "movzbq %s, al", reg)
-             : emit(ctx, "movsbq %s, al", reg);
-        break;
-    case 2:
-        usig ? emit(ctx, "movzwq %s, ax", reg)
-             : emit(ctx, "movswq %s, ax", reg);
-        break;
-    case 4:
-        usig ? emit(ctx, "mov %s, %s", reg, reg) : 
-               emit(ctx, "cltq");
-        break;
-    case 8: break; // fallthrough
+static void emit_cast_float_to_float(Codegen_Context* ctx, Type* from, Type* to)
+{
+    xassert(from->kind == TYPE_FLOAT);
+    xassert(to->kind == TYPE_FLOAT);
+    s8 fs = get_size_of_type(from);
+    s8 ts = get_size_of_type(to);
+    if (fs == 4 && ts == 8) emit_cast_f32_to_f64(ctx, from, to);
+    else if (fs == 8 && ts == 4) emit_cast_f64_to_f32(ctx, from, to);
+}
+
+
+static void emit_cast(Codegen_Context* ctx, Value* value, Type* to)
+{
+    Type* from = value->type;
+    switch (from->kind) {
+        ERROR_UNHANDLED_TYPE_KIND(from->kind);
+        case TYPE_INT: {
+            switch (to->kind) {
+                ERROR_UNHANDLED_TYPE_KIND(to->kind);
+                case TYPE_INT:   emit_cast_int_to_int(ctx, from, to);   break;
+                case TYPE_FLOAT: emit_cast_int_to_float(ctx, from, to); break;
+            }
+        } break;
+
+        case TYPE_FLOAT: {
+            switch (to->kind) {
+                ERROR_UNHANDLED_TYPE_KIND(to->kind);
+                case TYPE_INT:   emit_cast_float_to_int(ctx, from, to);   break;
+                case TYPE_FLOAT: emit_cast_float_to_float(ctx, from, to); break;
+            }
+        } break;
     }
 }
 
-void emit_cast(Codegen_Context* ctx, Value* variable, Type* desired_type) {
-    xassert(ctx);
-    xassert(variable);
-    xassert(desired_type);
-    Type* type = variable->type;
-    char* reg = get_result_reg(desired_type);
-    switch (type->kind) {
-    ERROR_UNHANDLED_TYPE_KIND(type->kind);
-    case TYPE_INT: {
-        if (desired_type->kind == TYPE_INT) {
-            emit_cast_int_to_int(ctx, reg, desired_type);
-        }
-    } break;
-    case TYPE_FLOAT: {
-        if (desired_type->kind == TYPE_INT) {
-            emit_cast_float_to_int(ctx, reg, desired_type);
-        }
-    } break;
-    }
-}
+// void emit_cast_float_to_float(Codegen_Context* ctx, char* reg, Type* type) {
+//     xassert(ctx);
+//     xassert(reg);
+//     xassert(type);
+//     xassert(type->kind == TYPE_FLOAT);
+//     s8 type_size = get_size_of_type(type);
+//     switch (type_size) {
+//     case 4: emit(ctx, "cvttss2si %s, xmm0", reg); break;
+//     case 8: emit(ctx, "cvttsd2si %s, xmm0", reg); break;
+//     }
+// }
+
+// void emit_cast_float_to_int(Codegen_Context* ctx, char* reg, Type* type) {
+//     xassert(ctx);
+//     xassert(reg);
+//     xassert(type);
+//     xassert(type->kind == TYPE_INT);
+//     bool usig = type->Int.is_unsigned;
+//     s8 type_size = get_size_of_type(type);
+//     switch (type_size) {
+//     case 4: emit(ctx, "cvttss2si %s, xmm0", reg); break;
+//     case 8: emit(ctx, "cvttsd2si %s, xmm0", reg); break;
+//     }
+//     if (usig) {
+//         emit_cast_int_to_int(ctx, reg, make_type_int(type_size, usig));
+//     }
+// }
+
+// void emit_cast_int_to_int(Codegen_Context* ctx, char* reg, Type* type) {
+//     xassert(ctx);
+//     xassert(reg);
+//     xassert(type);
+//     xassert(type->kind == TYPE_INT);
+//     bool usig = type->Int.is_unsigned;
+//     s64 type_size = get_size_of_type(type);
+//     switch (type_size) {
+//     ERROR_UNHANDLED_KIND(strf("%d", type_size));
+//     case 1:
+//         usig ? emit(ctx, "movzbq %s, al", reg)
+//              : emit(ctx, "movsbq %s, al", reg);
+//         break;
+//     case 2:
+//         usig ? emit(ctx, "movzwq %s, ax", reg)
+//              : emit(ctx, "movswq %s, ax", reg);
+//         break;
+//     case 4:
+//         usig ? emit(ctx, "mov %s, %s", reg, reg) : 
+//                emit(ctx, "cdqe");
+//                // emit(ctx, "cltq");
+//         break;
+//     case 8: break; // fallthrough
+//     }
+// }
+
+// void emit_cast(Codegen_Context* ctx, Value* variable, Type* desired_type) {
+//     xassert(ctx);
+//     xassert(variable);
+//     xassert(desired_type);
+//     Type* type = variable->type;
+//     char* reg = get_result_reg(desired_type);
+//     switch (type->kind) {
+//     ERROR_UNHANDLED_TYPE_KIND(type->kind);
+//     case TYPE_INT: {
+//         switch (desired_type->kind) {
+//         ERROR_UNHANDLED_TYPE_KIND(desired_type->kind);
+//         case TYPE_INT:   emit_cast_int_to_int(ctx, reg, desired_type);   break;
+//         case TYPE_FLOAT: emit_cast_int_to_float(ctx, reg, desired_type); break;
+//         }
+//     } break;
+//     case TYPE_FLOAT: {
+//         switch (desired_type->kind) {
+//         ERROR_UNHANDLED_TYPE_KIND(desired_type->kind);
+//         case TYPE_INT:   emit_cast_float_to_int(ctx, reg, desired_type);   break;
+//         case TYPE_FLOAT: emit_cast_float_to_float(ctx, reg, desired_type); break;
+//         }
+//     } break;
+//     }
+// }
 
 void emit_store_r(Codegen_Context* ctx, Value* variable, Register_Kind reg) {
     xassert(ctx);
