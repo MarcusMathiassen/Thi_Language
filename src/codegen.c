@@ -158,86 +158,64 @@ char* get_next_available_reg_fitting  (Codegen_Context* ctx, Type* type);
 s8 get_next_available_xmm_reg_fitting (Codegen_Context* ctx);
 s8 get_next_available_rax_reg_fitting (Codegen_Context* ctx, s64 size);
 s64 get_all_alloca_in_block           (AST* block);
-// void emit_cast                        (Codegen_Context* ctx, Value* variable, Type* desired_type);
-// void emit_cast_int_to_int             (Codegen_Context* ctx, char* reg, Type* type);
-// void emit_cast_int_to_float           (Codegen_Context* ctx, char* reg, Type* type);
-// void emit_cast_float_to_int           (Codegen_Context* ctx, char* reg, Type* type);
-// void emit_cast_float_to_float         (Codegen_Context* ctx, char* reg, Type* type);
 void emit_store_deref                 (Codegen_Context* ctx, Value* variable);
 void emit_store_r                     (Codegen_Context* ctx, Value* variable, Register_Kind reg);
 void emit_store                       (Codegen_Context* ctx, Value* variable);
 void emit_load                        (Codegen_Context* ctx, Value* variable);
 void emit_jmp                         (Codegen_Context* ctx, char* label);
 
-static void emit_cast_s32_to_f32       (Codegen_Context* ctx, Type* from, Type* to);
-static void emit_cast_s32_to_s64       (Codegen_Context* ctx, Type* from, Type* to);
-static void emit_cast_s32_to_u32       (Codegen_Context* ctx, Type* from, Type* to);
-
-static void emit_cast_s64_to_s32       (Codegen_Context* ctx, Type* from, Type* to);
-static void emit_cast_s64_to_f32       (Codegen_Context* ctx, Type* from, Type* to);
-
-static void emit_cast_f32_to_s32       (Codegen_Context* ctx, Type* from, Type* to);
-static void emit_cast_f32_to_s32_trunc (Codegen_Context* ctx, Type* from, Type* to);
-static void emit_cast_f32_to_f64       (Codegen_Context* ctx, Type* from, Type* to);
-
-static void emit_cast_f64_to_s32       (Codegen_Context* ctx, Type* from, Type* to);
-static void emit_cast_f64_to_s32_trunc (Codegen_Context* ctx, Type* from, Type* to);
-static void emit_cast_f64_to_f32       (Codegen_Context* ctx, Type* from, Type* to);
-
 static void emit_cast_int_to_int       (Codegen_Context* ctx, Type* from, Type* to);
 static void emit_cast_int_to_float     (Codegen_Context* ctx, Type* from, Type* to);
-
 static void emit_cast_float_to_int     (Codegen_Context* ctx, Type* from, Type* to);
 static void emit_cast_float_to_float   (Codegen_Context* ctx, Type* from, Type* to);
-
 static void emit_cast                  (Codegen_Context* ctx, Value* value, Type* to);
 
 Codegen_Context make_codegen_context(void);
 
-static Value* codegen                                 (Codegen_Context* ctx, AST* node);
-static Value* codegen_comment                         (Codegen_Context* ctx, AST* node);
-static Value* codegen_nop                             (Codegen_Context* ctx, AST* node);
-static Value* codegen_space_separated_identifier_list (Codegen_Context* ctx, AST* node);
-static Value* codegen_comma_separated_list            (Codegen_Context* ctx, AST* node);
-static Value* codegen_module                          (Codegen_Context* ctx, AST* node);
-static Value* codegen_is                              (Codegen_Context* ctx, AST* node);
-static Value* codegen_fallthrough                     (Codegen_Context* ctx, AST* node);
-static Value* codegen_var_args                        (Codegen_Context* ctx, AST* node);
-static Value* codegen_extern                          (Codegen_Context* ctx, AST* node);
-static Value* codegen_load                            (Codegen_Context* ctx, AST* node);
-static Value* codegen_link                            (Codegen_Context* ctx, AST* node);
-static Value* codegen_note                            (Codegen_Context* ctx, AST* node);
-static Value* codegen_int                             (Codegen_Context* ctx, AST* node);
-static Value* codegen_float                           (Codegen_Context* ctx, AST* node);
-static Value* codegen_string                          (Codegen_Context* ctx, AST* node);
-static Value* codegen_char                            (Codegen_Context* ctx, AST* node);
-static Value* codegen_ident                           (Codegen_Context* ctx, AST* node);
-static Value* codegen_call                            (Codegen_Context* ctx, AST* node);
-static Value* codegen_unary                           (Codegen_Context* ctx, AST* node);
-static Value* codegen_binary                          (Codegen_Context* ctx, AST* node);
-static Value* codegen_grouping                        (Codegen_Context* ctx, AST* node);
-static Value* codegen_subscript                       (Codegen_Context* ctx, AST* node);
-static Value* codegen_field_access                    (Codegen_Context* ctx, AST* node);
-static Value* codegen_as                              (Codegen_Context* ctx, AST* node);
-static Value* codegen_block                           (Codegen_Context* ctx, AST* node);
-static Value* codegen_struct                          (Codegen_Context* ctx, AST* node);
-static Value* codegen_enum                            (Codegen_Context* ctx, AST* node);
-static Value* codegen_function                        (Codegen_Context* ctx, AST* node);
-static Value* codegen_variable_decl                   (Codegen_Context* ctx, AST* node);
-static Value* codegen_if                              (Codegen_Context* ctx, AST* node);
-static Value* codegen_for                             (Codegen_Context* ctx, AST* node);
-static Value* codegen_while                           (Codegen_Context* ctx, AST* node);
-static Value* codegen_return                          (Codegen_Context* ctx, AST* node);
-static Value* codegen_defer                           (Codegen_Context* ctx, AST* node);
-static Value* codegen_break                           (Codegen_Context* ctx, AST* node);
-static Value* codegen_continue                        (Codegen_Context* ctx, AST* node);
-static Value* codegen_typeof                          (Codegen_Context* ctx, AST* node);
-static Value* codegen_sizeof                          (Codegen_Context* ctx, AST* node);
-static Value* codegen_switch                          (Codegen_Context* ctx, AST* node);
-static Value* codegen_post_inc_or_dec                 (Codegen_Context* ctx, AST* node);
-static Value* codegen_literal                         (Codegen_Context* ctx, AST* node);
-static Value* codegen_asm                             (Codegen_Context* ctx, AST* node);
-static Value* codegen_cast                            (Codegen_Context* ctx, AST* node);
+static Value* codegen                                  (Codegen_Context* ctx, AST* node);
+static Value* codegen_comment                          (Codegen_Context* ctx, AST* node);
+static Value* codegen_nop                              (Codegen_Context* ctx, AST* node);
+static Value* codegen_space_separated_identifier_list  (Codegen_Context* ctx, AST* node);
+static Value* codegen_comma_separated_list             (Codegen_Context* ctx, AST* node);
+static Value* codegen_module                           (Codegen_Context* ctx, AST* node);
+static Value* codegen_is                               (Codegen_Context* ctx, AST* node);
+static Value* codegen_fallthrough                      (Codegen_Context* ctx, AST* node);
+static Value* codegen_var_args                         (Codegen_Context* ctx, AST* node);
+static Value* codegen_extern                           (Codegen_Context* ctx, AST* node);
+static Value* codegen_load                             (Codegen_Context* ctx, AST* node);
+static Value* codegen_link                             (Codegen_Context* ctx, AST* node);
+static Value* codegen_note                             (Codegen_Context* ctx, AST* node);
+static Value* codegen_int                              (Codegen_Context* ctx, AST* node);
+static Value* codegen_float                            (Codegen_Context* ctx, AST* node);
+static Value* codegen_string                           (Codegen_Context* ctx, AST* node);
+static Value* codegen_char                             (Codegen_Context* ctx, AST* node);
+static Value* codegen_ident                            (Codegen_Context* ctx, AST* node);
+static Value* codegen_call                             (Codegen_Context* ctx, AST* node);
+static Value* codegen_unary                            (Codegen_Context* ctx, AST* node);
+static Value* codegen_binary                           (Codegen_Context* ctx, AST* node);
+static Value* codegen_grouping                         (Codegen_Context* ctx, AST* node);
+static Value* codegen_subscript                        (Codegen_Context* ctx, AST* node);
+static Value* codegen_field_access                     (Codegen_Context* ctx, AST* node);
+static Value* codegen_as                               (Codegen_Context* ctx, AST* node);
+static Value* codegen_block                            (Codegen_Context* ctx, AST* node);
+static Value* codegen_struct                           (Codegen_Context* ctx, AST* node);
+static Value* codegen_enum                             (Codegen_Context* ctx, AST* node);
+static Value* codegen_function                         (Codegen_Context* ctx, AST* node);
+static Value* codegen_variable_decl                    (Codegen_Context* ctx, AST* node);
+static Value* codegen_if                               (Codegen_Context* ctx, AST* node);
+static Value* codegen_for                              (Codegen_Context* ctx, AST* node);
+static Value* codegen_while                            (Codegen_Context* ctx, AST* node);
+static Value* codegen_return                           (Codegen_Context* ctx, AST* node);
+static Value* codegen_defer                            (Codegen_Context* ctx, AST* node);
+static Value* codegen_break                            (Codegen_Context* ctx, AST* node);
+static Value* codegen_continue                         (Codegen_Context* ctx, AST* node);
+static Value* codegen_typeof                           (Codegen_Context* ctx, AST* node);
+static Value* codegen_sizeof                           (Codegen_Context* ctx, AST* node);
+static Value* codegen_switch                           (Codegen_Context* ctx, AST* node);
+static Value* codegen_post_inc_or_dec                  (Codegen_Context* ctx, AST* node);
+static Value* codegen_literal                          (Codegen_Context* ctx, AST* node);
+static Value* codegen_asm                              (Codegen_Context* ctx, AST* node);
+static Value* codegen_cast                             (Codegen_Context* ctx, AST* node);
 
 static Value* (*codegen_transitions[])(Codegen_Context*, AST*) = {
     [AST_COMMENT]                         =  codegen_comment,
@@ -1778,120 +1756,58 @@ int align(int n, s32 m) {
     return (m - (n % m)) % m;
 }
 
-//
-// Casts
-//
-static void emit_cast_s64_to_s32(Codegen_Context* ctx, Type* from, Type* to)
-{
-    xassert(from->kind == TYPE_INT && from->Int.bytes == 8);
-    xassert(to->kind == TYPE_INT && to->Int.bytes == 4);
-    char* reg = get_result_reg(to);
-    emit(ctx, "MOVSX %s, RAX", reg);
-}
-static void emit_cast_s32_to_s64(Codegen_Context* ctx, Type* from, Type* to)
-{
-    xassert(from->kind == TYPE_INT && from->Int.bytes == 4);
-    xassert(to->kind == TYPE_INT && to->Int.bytes == 8);
-    char* reg = get_result_reg(to);
-    emit(ctx, "MOVSX %s, EAX", reg);
-}
-static void emit_cast_s32_to_f32(Codegen_Context* ctx, Type* from, Type* to)
-{
-    xassert(from->kind == TYPE_INT && from->Int.bytes == 4);
-    xassert(to->kind == TYPE_FLOAT && to->Float.bytes == 4);
-    char* reg = get_result_reg(to);
-    emit(ctx, "CVTSI2SS %s, EAX", reg);
-}
-static void emit_cast_s32_to_f64(Codegen_Context* ctx, Type* from, Type* to)
-{
-    xassert(from->kind == TYPE_INT && from->Int.bytes == 4);
-    xassert(to->kind == TYPE_FLOAT && to->Float.bytes == 8);
-    char* reg = get_result_reg(to);
-    emit(ctx, "MOVSX %s, EAX", reg);
-}
-static void emit_cast_s64_to_f32(Codegen_Context* ctx, Type* from, Type* to)
-{
-    xassert(from->kind == TYPE_INT && from->Int.bytes == 8);
-    xassert(to->kind == TYPE_FLOAT && to->Float.bytes == 4);
-    emit_cast_s32_to_f32(ctx, from, to);
-}
-static void emit_cast_s32_to_u32(Codegen_Context* ctx, Type* from, Type* to)
-{
-    xassert(from->kind == TYPE_INT && from->Int.bytes == 4);
-    xassert(to->kind == TYPE_INT && to->Int.bytes == 4 && to->Int.is_unsigned == true);
-    char* reg = get_result_reg(to);
-    emit(ctx, "MOVZX %s, EAX", reg);
-}
-static void emit_cast_f32_to_s32(Codegen_Context* ctx, Type* from, Type* to)
-{
-    xassert(from->kind == TYPE_FLOAT && from->Float.bytes == 4);
-    xassert(to->kind == TYPE_INT && to->Int.bytes == 4);
-    char* reg = get_result_reg(to);
-    emit(ctx, "CVTSS2SI %s, XMM0", reg);
-}
-static void emit_cast_f32_to_s32_trunc(Codegen_Context* ctx, Type* from, Type* to)
-{
-    xassert(from->kind == TYPE_FLOAT && from->Float.bytes == 4);
-    xassert(to->kind == TYPE_INT && to->Int.bytes == 4);
-    char* reg = get_result_reg(to);
-    emit(ctx, "CVTTSS2SI %s, XMM0", reg);
-}
-static void emit_cast_f64_to_s64_trunc(Codegen_Context* ctx, Type* from, Type* to)
-{
-    xassert(from->kind == TYPE_FLOAT && from->Float.bytes == 8);
-    xassert(to->kind == TYPE_INT && to->Int.bytes == 8);
-    emit(ctx, "CVTTSS2SI RAX, XMM0");
-    emit(ctx, "MOVSX RAX, EAX");
-}
-static void emit_cast_f64_to_s32(Codegen_Context* ctx, Type* from, Type* to)
-{
-    xassert(from->kind == TYPE_FLOAT && from->Float.bytes == 8);
-    xassert(to->kind == TYPE_INT && to->Int.bytes == 4);
-    char* reg = get_result_reg(to);
-    emit(ctx, "CVTSD2SI %s, XMM0", reg);
-}
-static void emit_cast_f64_to_s32_trunc(Codegen_Context* ctx, Type* from, Type* to)
-{
-    xassert(from->kind == TYPE_FLOAT && from->Float.bytes == 8);
-    xassert(to->kind == TYPE_INT && to->Int.bytes == 4);
-    char* reg = get_result_reg(to);
-    emit(ctx, "CVTTSD2SI %s, XMM0", reg);
-}
-static void emit_cast_f32_to_f64(Codegen_Context* ctx, Type* from, Type* to)
-{
-    xassert(from->kind == TYPE_FLOAT && from->Float.bytes == 4);
-    xassert(to->kind == TYPE_FLOAT && to->Float.bytes == 8);
-    char* reg = get_result_reg(to);
-    emit(ctx, "CVTSS2SD %s, XMM0", reg);
-}
-static void emit_cast_f64_to_f32(Codegen_Context* ctx, Type* from, Type* to)
-{
-    xassert(from->kind == TYPE_FLOAT && from->Float.bytes == 8);
-    xassert(to->kind == TYPE_FLOAT && to->Float.bytes == 4);
-    char* reg = get_result_reg(to);
-    emit(ctx, "CVTSD2SS %s, XMM0", reg);
-}
-
 static void emit_cast_int_to_int(Codegen_Context* ctx, Type* from, Type* to)
 {
     xassert(from->kind == TYPE_INT);
     xassert(to->kind == TYPE_INT);
+    
     s8 fs = get_size_of_type(from);
     s8 ts = get_size_of_type(to);
-    if (fs == 4 && ts == 8) emit_cast_s32_to_s64(ctx, from, to);
-    else if (fs == 8 && ts == 4) emit_cast_s64_to_s32(ctx, from, to);
+
+    // Integer Conversions:
+    //  - same sized integers => nop
+    //  - bigger int to smaller int => nop
+    if (fs == ts || ts < fs) return;
+    
+    xassert(fs >= 1 && fs <= 8);
+    xassert(ts >= 1 && ts <= 8);
+
+    bool usig = to->Int.is_unsigned;
+
+    char* dest = get_result_reg(to);
+    char* src = get_result_reg(from);
+    char* op = usig ? "movzx" : "movsx";
+
+    emit(ctx, "%s %s, %s", op, dest, src);
 }
 
 static void emit_cast_int_to_float(Codegen_Context* ctx, Type* from, Type* to)
 {
     xassert(from->kind == TYPE_INT);
     xassert(to->kind == TYPE_FLOAT);
+    
     s8 fs = get_size_of_type(from);
     s8 ts = get_size_of_type(to);
-    if (fs == 4 && ts == 8) emit_cast_s32_to_f64(ctx, from, to);
-    else if (fs == 8 && ts == 4) emit_cast_s64_to_f32(ctx, from, to);
+
+    switch (fs) {
+    case 1: // fallthrough
+    case 2: // fallthrough
+    case 4: {
+        switch (ts) {
+        case 4: emit(ctx, "cvtsi2ss xmm0, eax; s32 -> f32"); break;
+        case 8: emit(ctx, "cvtsi2sd xmm0, eax; s32 -> f64"); break;
+        }
+    } break;
+    case 8: {
+        switch (ts) {
+        case 4: emit(ctx, "cvtsi2ss xmm0, rax; s64 -> f32"); break;
+        case 8: emit(ctx, "cvtsi2sd xmm0, rax; s64 -> f64"); break;
+        }
+    } break;
+    }
 }
 
+// @Incomplete: handle unsigned integers
 static void emit_cast_float_to_int(Codegen_Context* ctx, Type* from, Type* to)
 {
     xassert(from->kind == TYPE_FLOAT);
@@ -1900,21 +1816,24 @@ static void emit_cast_float_to_int(Codegen_Context* ctx, Type* from, Type* to)
     const s8 fs = get_size_of_type(from);
     const s8 ts = get_size_of_type(to);
 
+    xassert(fs >= 4 && fs <= 8);
+    xassert(ts >= 1 && ts <= 8);
+
     switch (fs) {
     case 4: {
         switch (ts) {
-        case 1: break;
-        case 2: break;
-        case 4: emit(ctx, "cvttss2si eax, xmm0"); break;
-        case 8: emit(ctx, "cvttss2si rax, xmm0"); break;
+        case 1: // fallthrough
+        case 2: // fallthrough
+        case 4: emit(ctx, "cvttss2si eax, xmm0; f32 -> s32"); break;
+        case 8: emit(ctx, "cvttss2si rax, xmm0; f32 -> s64"); break;
         }
     } break;
     case 8: {
         switch (ts) {
-        case 1: break;
-        case 2: break;
-        case 4: emit(ctx, "cvttsd2si eax, xmm0"); break;
-        case 8: emit(ctx, "cvttsd2si rax, xmm0"); break;
+        case 1: // fallthrough
+        case 2: // fallthrough
+        case 4: emit(ctx, "cvttsd2si eax, xmm0; f64 -> s32"); break;
+        case 8: emit(ctx, "cvttsd2si rax, xmm0; f64 -> s64"); break;
         }
     } break;
     }
@@ -1924,33 +1843,49 @@ static void emit_cast_float_to_float(Codegen_Context* ctx, Type* from, Type* to)
 {
     xassert(from->kind == TYPE_FLOAT);
     xassert(to->kind == TYPE_FLOAT);
-    s8 fs = get_size_of_type(from);
-    s8 ts = get_size_of_type(to);
-    if (fs == 4 && ts == 8) emit_cast_f32_to_f64(ctx, from, to);
-    else if (fs == 8 && ts == 4) emit_cast_f64_to_f32(ctx, from, to);
+
+    const s8 fs = get_size_of_type(from);
+    const s8 ts = get_size_of_type(to);
+
+    xassert(fs >= 4 && fs <= 8);
+    xassert(ts >= 4 && ts <= 8);
+
+    switch (fs) {
+    case 4:
+        switch (ts) {
+        case 4: break; // do nothing
+        case 8: emit(ctx, "cvtss2sd xmm0, xmm0; f32 -> f64"); break;
+        }
+        break;
+    case 8:
+        switch (ts) {
+        case 4: emit(ctx, "cvtsd2ss xmm0, xmm0; f64 -> f32"); break;
+        case 8: break; // do nothing
+        }
+        break;
+    }
 }
 
-
+// @Incomplete: structs, pointers, etc.
 static void emit_cast(Codegen_Context* ctx, Value* value, Type* to)
 {
     Type* from = value->type;
     switch (from->kind) {
-        ERROR_UNHANDLED_TYPE_KIND(from->kind);
-        case TYPE_INT: {
-            switch (to->kind) {
-                ERROR_UNHANDLED_TYPE_KIND(to->kind);
-                case TYPE_INT:   emit_cast_int_to_int(ctx, from, to);   break;
-                case TYPE_FLOAT: emit_cast_int_to_float(ctx, from, to); break;
-            }
-        } break;
-
-        case TYPE_FLOAT: {
-            switch (to->kind) {
-                ERROR_UNHANDLED_TYPE_KIND(to->kind);
-                case TYPE_INT:   emit_cast_float_to_int(ctx, from, to);   break;
-                case TYPE_FLOAT: emit_cast_float_to_float(ctx, from, to); break;
-            }
-        } break;
+    ERROR_UNHANDLED_TYPE_KIND(from->kind);
+    case TYPE_INT: {
+        switch (to->kind) {
+        ERROR_UNHANDLED_TYPE_KIND(to->kind);
+        case TYPE_INT:   emit_cast_int_to_int(ctx, from, to);   break;
+        case TYPE_FLOAT: emit_cast_int_to_float(ctx, from, to); break;
+        }
+    } break;
+    case TYPE_FLOAT: {
+        switch (to->kind) {
+        ERROR_UNHANDLED_TYPE_KIND(to->kind);
+        case TYPE_INT:   emit_cast_float_to_int(ctx, from, to);   break;
+        case TYPE_FLOAT: emit_cast_float_to_float(ctx, from, to); break;
+        }
+    } break;
     }
 }
 

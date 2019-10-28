@@ -384,15 +384,17 @@ int main(int argc, char** argv) {
     // Sanity check
     run_pass(ast, "check_for_unresolved_types", check_for_unresolved_types, NULL);
 
-#ifndef NDEBUG
-    write_to_file("output.thi", ast_to_src(ast));
-#endif
 
     // Codegen
     debug(ucolor(str_replace_center(" codegen ", pad_out_full_width('_'))));
     char* code = to_x64(ast);
     debug("");
     debug("%s", code);
+    
+#ifndef NDEBUG
+    write_to_file("output.thi", ast_to_src(ast));
+    write_to_file("output.s", code);
+#endif
 
     Timer* tm_frontend = pop_timer();
     push_timer("Backend");

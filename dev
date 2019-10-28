@@ -17,6 +17,16 @@ if [ $? == 0 ]; then
         if [ $(uname) = "Darwin" ]; then
             # ./runtest ./tests/test_window.thi
             ./runtest ./tests/test_cast.thi
+            # ./runtest ./tests/test_cast_explicit_f32_to_s32.thi
+            # ./runtest ./tests/test_cast_explicit_f64_to_s32.thi
+            # ./runtest ./tests/test_cast_explicit_f64_to_s64.thi
+            # ./runtest ./tests/test_cast_explicit_f64_to_f32.thi
+            # ./runtest ./tests/test_cast_explicit_s32_to_s64.thi
+            # ./runtest ./tests/test_cast_explicit_u32_to_s32.thi
+            # ./runtest ./tests/test_cast_explicit_u32_to_s64.thi
+            # ./runtest ./tests/test_cast_explicit_s64_to_u32.thi
+            # ./runtest ./tests/test_cast_explicit_s32_to_f32.thi
+            # ./runtest ./tests/test_cast_explicit_s32_to_f64.thi
             # ./runtest ./tests/test_float.thi
             # ./runtest ./tests/test_defer_2.thi
             # ./runtest ./tests/test_defer.thi
