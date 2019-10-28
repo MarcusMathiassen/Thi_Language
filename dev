@@ -15,8 +15,8 @@ if [ $? == 0 ]; then
     fi
     if [ $? == 0 ]; then
         if [ $(uname) = "Darwin" ]; then
-            # ./runtest ./tests/test_window.thi
-            ./runtest ./tests/test_cast.thi
+            ./runtest ./tests/test_window.thi
+            # ./runtest ./tests/test_cast.thi
             # ./runtest ./tests/test_cast_explicit_f32_to_s32.thi
             # ./runtest ./tests/test_cast_explicit_f64_to_s32.thi
             # ./runtest ./tests/test_cast_explicit_f64_to_s64.thi
