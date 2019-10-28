@@ -106,6 +106,8 @@ struct Value {
     };
 };
 
+Value* copy_value(Value* value);
+
 char* value_to_str(Value* value);
 char* value_kind_to_str(Value_Kind kind);
 char* get_value_name(Value* value);

@@ -385,10 +385,10 @@ Lexed_File lex(char* source) {
             Equivalence_Kind eq = equivalence[ch];
             state = transition[state][eq];
             len += in_token[state];
-        } while (state > _STATE_LAST_FINAL_); // jumps out on 0
+        } while (state > _STATE_LAST_FINAL_);
 
         // Set the START and END for this token.
-        // These *might* change underneath here. Usualy they don't, but sometimes they do.
+        // These *might* change underneath here, usually they don't, but sometimes they do.
         char* start = --c - len; // need to backtrack a bit
         char* end = c;
         
@@ -815,21 +815,14 @@ char* intern(Intern_Array* interns, char* str) {
 }
 
 char* intern_range(Intern_Array* interns, char* start, char* end) {
-
     s64 len = end - start;
-
     foreach(i, interns->count) {
         Intern intern = interns->data[i];
         if (intern.len == len && strncmp(intern.str, start, len) == 0) {
             return intern.str;
         }
     }
-
-    char* str = xmalloc(len + 1);
-    memcpy(str, start, len);
-    str[len] = '\0';
-
+    char* str = strn(start, end);
     intern_array_append(interns, (Intern){len, str});
-
     return str;
 }

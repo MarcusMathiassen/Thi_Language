@@ -853,6 +853,7 @@ static Value* codegen_enum(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
+// @Incomplete
 static Value* codegen_function(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
 
@@ -930,7 +931,7 @@ static Value* codegen_function(Codegen_Context* ctx, AST* node) {
         emit(ctx, "add rsp, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);
     }
 
-    emit(ctx, "leave");
+    emit(ctx, "pop rbp");
     emit(ctx, "ret");
 
     reset_text_label_counter(ctx);
@@ -1051,6 +1052,7 @@ static Value* codegen_while(Codegen_Context* ctx, AST* node) {
     return NULL;
 }
 
+// @Incomplete
 static Value* codegen_return(Codegen_Context* ctx, AST* node) {
 // From the System V Application Binary Interface Manual
 // -- Returning of Values
@@ -1251,14 +1253,20 @@ static Value* codegen_asm(Codegen_Context* ctx, AST* node) {
 }
 
 // @Audit, @Robustness
+// This function is changing the variabels type.
 static Value* codegen_cast(Codegen_Context* ctx, AST* node) {
     DEBUG_START;
     AST* desired_type = node->Cast.desired_type;
     AST* operand = node->Cast.node;
     Value* v = codegen(ctx, operand);
     emit_cast(ctx, v, desired_type->type);
-    v->type = desired_type->type;
-    return v;
+
+    // Create a temporary and return that
+    Value* t = xmalloc(sizeof(Value));
+    memcpy(t, v, sizeof(Value));
+    t->type = desired_type->type;
+
+    return t;
 }
 
 //------------------------------------------------------------------------------
@@ -1726,7 +1734,7 @@ void alloc_variable(Codegen_Context* ctx, Value* variable) {
          get_type_name(variable->type),
          size);
     ctx->stack_pos += size;
-    emit_debug(ctx, "; allocated variable %s", value_to_str(variable));
+    // emit_debug(ctx, "; allocated variable %s", value_to_str(variable));
 }
 
 void dealloc_variable(Codegen_Context* ctx, Value* variable) {
