@@ -388,8 +388,11 @@ static Type* sema_subscript(Sema_Context* ctx, AST* node) {
     _sema(ctx, sub);
 
     s64 size = get_size_of_underlying_type_if_any(load->type);
+    s8 int_type_size = DEFAULT_POINTER_SIZE;
+    Type* int_type = make_type_int(int_type_size, TYPE_IS_SIGNED);
+    AST* int_val = make_ast_int(node->loc_info, size, int_type);
 
-    sub = make_ast_binary(node->loc_info, TOKEN_ASTERISK, make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, TYPE_IS_SIGNED)), sub);
+    sub = make_ast_binary(node->loc_info, TOKEN_ASTERISK, int_val, sub);
     load = make_ast_binary(node->loc_info, TOKEN_PLUS, load, sub);
     load = make_ast_grouping(node->loc_info, load);
     load = make_ast_unary(node->loc_info, THI_SYNTAX_POINTER, load);

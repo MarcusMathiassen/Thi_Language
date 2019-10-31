@@ -27,10 +27,7 @@ if [ $? == 0 ]; then
             # ./runtest ./tests/test_cast_explicit_s64_to_u32.thi
             # ./runtest ./tests/test_cast_explicit_s32_to_f32.thi
             # ./runtest ./tests/test_cast_explicit_s32_to_f64.thi
-            # ./runtest ./tests/test_float.thi
-            # ./runtest ./tests/test_defer_2.thi
-            # ./runtest ./tests/test_defer.thi
-            ./runtest ./tests/test_basic_setup.thi
+            # ./runtest ./tests/test_basic_setup.thi
             # ./runtest ./tests/test_sizeof.thi
             # ./runtest ./tests/test_global_variable.thi
             # ./runtest ./tests/test_if.thi
@@ -39,7 +36,7 @@ if [ $? == 0 ]; then
             # ./runtest ./tests/test_typeof.thi
             # ./runtest ./tests/test_optional_semicolon.thi
             # ./runtest ./tests/test_fib.thi
-            # ./runtest ./tests/test_file.thi
+            ./runtest ./tests/test_file.thi
         elif [ $(uname) = "Linux" ]; then
             ./runtest ./tests/test_basic_setup_linux.thi
         fi

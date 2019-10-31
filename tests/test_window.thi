@@ -19,51 +19,51 @@ def main() int
     window = glfwCreateWindow(640, 480, WINDOW_TITLE, NULL, NULL)
     glfwMakeContextCurrent(window)
 
-    if glewInit() != cast(1L)GLEW_OK { puts("GLEW init failed.") }
+    if glewInit() != GLEW_OK { puts("GLEW init failed.") }
 
     running = true
 
-    r = 0.01f
-    g = 0.01f
-    b = 0.01f
-    a = 1.0f
+    r = 0.01
+    g = 0.01
+    b = 0.01
+    a = 1.0
 
-    x = 1.0f
-    y = 1.0f
-    scale = 1.0f
+    x = 1.0
+    y = 1.0
+    scale = 1.0
 
     while running
 
-        if glfwGetKey(window, GLFW_KEY_R) == cast(1L)GLFW_PRESS { r += 0.001f }
-        if glfwGetKey(window, GLFW_KEY_G) == cast(1L)GLFW_PRESS { g += 0.001f }
-        if glfwGetKey(window, GLFW_KEY_B) == cast(1L)GLFW_PRESS { b += 0.001f }
-        if glfwGetKey(window, GLFW_KEY_E) == cast(1L)GLFW_PRESS { r -= 0.001f }
-        if glfwGetKey(window, GLFW_KEY_F) == cast(1L)GLFW_PRESS { g -= 0.001f }
-        if glfwGetKey(window, GLFW_KEY_V) == cast(1L)GLFW_PRESS { b -= 0.001f }
+        if glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS { r += 0.001 }
+        if glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS { g += 0.001 }
+        if glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS { b += 0.001 }
+        if glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS { r -= 0.001 }
+        if glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS { g -= 0.001 }
+        if glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS { b -= 0.001 }
 
-        r = clamp(r, 0.0f, 1.0f)
-        g = clamp(g, 0.0f, 1.0f)
-        b = clamp(b, 0.0f, 1.0f)
-        a = clamp(a, 0.0f, 1.0f)
+        r = clamp(r, 0.0, 1.0)
+        g = clamp(g, 0.0, 1.0)
+        b = clamp(b, 0.0, 1.0)
+        a = clamp(a, 0.0, 1.0)
 
         glClearColor(r, g, b, a)
 
         #printf("rgb(%f, %f, %f, %f)\n", cast(1.0)r, cast(1.0)g, cast(1.0)b, cast(1.0)a)
 
         if glfwWindowShouldClose(window) { running = false }
-        if glfwGetKey(window, GLFW_KEY_ESCAPE) == cast(1L)GLFW_PRESS { running = false }
+        if glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS { running = false }
 
         glClear(GL_COLOR_BUFFER_BIT)
         glfwPollEvents()
 
-        if glfwGetKey(window, GLFW_KEY_UP) == cast(1L)GLFW_PRESS { y += 0.1f }
-        if glfwGetKey(window, GLFW_KEY_DOWN) == cast(1L)GLFW_PRESS { y -= 0.1f }
-        if glfwGetKey(window, GLFW_KEY_RIGHT) == cast(1L)GLFW_PRESS { x += 0.1f }
-        if glfwGetKey(window, GLFW_KEY_LEFT) == cast(1L)GLFW_PRESS { x -= 0.1f }
-        if glfwGetKey(window, GLFW_KEY_Z) == cast(1L)GLFW_PRESS { scale -= 0.01f }
-        if glfwGetKey(window, GLFW_KEY_Q) == cast(1L)GLFW_PRESS { scale += 0.01f }
+        if glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS { y += 0.1 }
+        if glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS { y -= 0.1 }
+        if glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS { x += 0.1 }
+        if glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS { x -= 0.1 }
+        if glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS { scale -= 0.01 }
+        if glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS { scale += 0.01 }
 
-        drawTriangle(x * 0.01f, y * 0.01f, scale)
+        drawTriangle(x * 0.01, y * 0.01, scale)
 
         glfwSwapBuffers(window)
 
@@ -71,12 +71,12 @@ def main() int
 
 def drawTriangle(x f32, y f32, s f32)
     glBegin(GL_TRIANGLES)
-    glColor3f(1.0f, 0.0f, 0.0f)
-    glVertex2f(x + -0.5f *s, y + -0.5f*s )
-    glColor3f(0.0f, 1.0f, 0.0f)
-    glVertex2f(x + 0.0f*s, y + 0.5f*s)
-    glColor3f(0.0f, 0.0f, 1.0f)
-    glVertex2f(x + 0.5f*s, y -0.5f*s)
+    glColor3f(1.0, 0.0, 0.0)
+    glVertex2f(x + -0.5 *s, y + -0.5*s )
+    glColor3f(0.0, 1.0, 0.0f)
+    glVertex2f(x + 0.0*s, y + 0.5*s)
+    glColor3f(0.0, 0.0, 1.0)
+    glVertex2f(x + 0.5*s, y -0.5*s)
     glEnd()
 
 def clamp(x f32, mi f32, ma f32) f32
