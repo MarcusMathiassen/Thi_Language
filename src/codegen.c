@@ -670,11 +670,11 @@ static Value* codegen_binary(Codegen_Context* ctx, AST* node) {
         return v;
     }
 
-    case TOKEN_LT:    // FALLTHROUGH
-    case TOKEN_GT:    // FALLTHROUGH
-    case TOKEN_LT_EQ: // FALLTHROUGH
-    case TOKEN_GT_EQ: // FALLTHROUGH
-    case TOKEN_EQ_EQ: // FALLTHROUGH
+    case TOKEN_LT:    // fallthrough
+    case TOKEN_GT:    // fallthrough
+    case TOKEN_LT_EQ: // fallthrough
+    case TOKEN_GT_EQ: // fallthrough
+    case TOKEN_EQ_EQ: // fallthrough
     case TOKEN_BANG_EQ: {
         Value* lhs_v = codegen(ctx, lhs);
         push_type(ctx, lhs_v->type);
@@ -684,7 +684,7 @@ static Value* codegen_binary(Codegen_Context* ctx, AST* node) {
         char* op1 = get_result_reg(lhs_v->type);
         char* op2 = get_result_reg_2(rhs_v->type);
         maybe_emit_instruction_prologue(ctx, op, lhs_v->type);
-        emit(ctx, "%s %s, %s", instr, op2, op1); // flipped op1 and op2
+        emit(ctx, "%s %s, %s", instr, op1, op2); // flipped op1 and op2
         maybe_emit_instruction_epilogue(ctx, op, lhs_v->type);
         return lhs_v;
     } break;
@@ -2039,12 +2039,12 @@ static void maybe_emit_instruction_epilogue(Codegen_Context* ctx, Token_Kind op,
                 default: break;
 
                 // Comparison
-                case TOKEN_LT:      emit(ctx, "setl al");  break;
-                case TOKEN_GT:      emit(ctx, "setg al");  break;
-                case TOKEN_LT_EQ:   emit(ctx, "setle al"); break;
-                case TOKEN_GT_EQ:   emit(ctx, "setge al"); break;
-                case TOKEN_EQ_EQ:   emit(ctx, "sete al");  break;
-                case TOKEN_BANG_EQ: emit(ctx, "setne al"); break;
+                case TOKEN_LT:      emit(ctx, "setnl al");  break;
+                case TOKEN_GT:      emit(ctx, "setng al");  break;
+                case TOKEN_LT_EQ:   emit(ctx, "setnle al"); break;
+                case TOKEN_GT_EQ:   emit(ctx, "setnge al"); break;
+                case TOKEN_EQ_EQ:   emit(ctx, "setne al");  break;
+                case TOKEN_BANG_EQ: emit(ctx, "sete al"); break;
             }
         } break;
         case TYPE_FLOAT: {
@@ -2052,12 +2052,12 @@ static void maybe_emit_instruction_epilogue(Codegen_Context* ctx, Token_Kind op,
                 default: break;
 
                 // Comparison
-                case TOKEN_LT:      emit(ctx, "setb al");  break;
-                case TOKEN_GT:      emit(ctx, "seta al");  break;
-                case TOKEN_LT_EQ:   emit(ctx, "setbe al"); break;
-                case TOKEN_GT_EQ:   emit(ctx, "setae al"); break;
-                case TOKEN_EQ_EQ:   emit(ctx, "sete al");  break;
-                case TOKEN_BANG_EQ: emit(ctx, "setne al"); break;
+                case TOKEN_LT:      emit(ctx, "setnb al");  break;
+                case TOKEN_GT:      emit(ctx, "setna al");  break;
+                case TOKEN_LT_EQ:   emit(ctx, "setnbe al"); break;
+                case TOKEN_GT_EQ:   emit(ctx, "setnae al"); break;
+                case TOKEN_EQ_EQ:   emit(ctx, "setne al");  break;
+                case TOKEN_BANG_EQ: emit(ctx, "sete al"); break;
             }
         } break;
     }
