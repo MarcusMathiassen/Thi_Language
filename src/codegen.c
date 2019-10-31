@@ -505,16 +505,26 @@ static Value* codegen_unary(Codegen_Context* ctx, AST* node) {
         result = codegen(ctx, string_value);
     } break;
     case TOKEN_MINUS_MINUS: {
-        s64 size = 1;
-        if (operand->type->kind == TYPE_POINTER)
+        s8 size = 1;
+        s8 int_type_size = 4;
+        if (operand->type->kind == TYPE_POINTER) {
             size = get_size_of_underlying_type_if_any(operand->type);
-        result = codegen(ctx, make_ast_binary(node->loc_info, TOKEN_MINUS_EQ, operand, make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, TYPE_IS_SIGNED))));
+            int_type_size = 8;
+        }
+        Type* int_type = make_type_int(int_type_size, TYPE_IS_SIGNED);
+        AST* int_val = make_ast_int(node->loc_info, size, int_type);
+        result = codegen(ctx, make_ast_binary(node->loc_info, TOKEN_MINUS_EQ, operand, int_val));
     } break;
     case TOKEN_PLUS_PLUS: {
-        s64 size = 1;
-        if (operand->type->kind == TYPE_POINTER)
+        s8 size = 1;
+        s8 int_type_size = 4;
+        if (operand->type->kind == TYPE_POINTER) {
             size = get_size_of_underlying_type_if_any(operand->type);
-        result = codegen(ctx, make_ast_binary(node->loc_info, TOKEN_PLUS_EQ, operand, make_ast_int(node->loc_info, size, make_type_int(DEFAULT_INT_BYTE_SIZE, TYPE_IS_SIGNED))));
+            int_type_size = 8;
+        }
+        Type* int_type = make_type_int(int_type_size, TYPE_IS_SIGNED);
+        AST* int_val = make_ast_int(node->loc_info, size, int_type);
+        result = codegen(ctx, make_ast_binary(node->loc_info, TOKEN_PLUS_EQ, operand, int_val));
     } break;
     case THI_SYNTAX_ADDRESS: {
         s64 stack_pos = get_stack_pos_of_variable(operand_val);

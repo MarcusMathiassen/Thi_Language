@@ -1,13 +1,13 @@
 load "includes/cstdio"
 load "includes/cstdlib"
 
-def strlen(x u8*) s64 => i = x while *x {++x} x - i
+def strlen(x u8*) int => i = x while *x {++x} x - i
 
 def lex(c u8*) char*
     while cc = *c++
         putchar(cc)
 
-def main(argc s32, argv char**) s32
+def main(argc int, argv char**) int
     if argc < 2L
         puts("too few arguments.")
         return 0

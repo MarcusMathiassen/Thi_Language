@@ -5,7 +5,7 @@ load "includes/glew"
 load "includes/glfw"
 load "includes/cmath"
 
-def main() s64
+def main() int
 
     WINDOW_TITLE = "Hello Triangle"
 
@@ -19,7 +19,7 @@ def main() s64
     window = glfwCreateWindow(640, 480, WINDOW_TITLE, NULL, NULL)
     glfwMakeContextCurrent(window)
 
-    if glewInit() != GLEW_OK { puts("GLEW init failed.") }
+    if glewInit() != cast(1L)GLEW_OK { puts("GLEW init failed.") }
 
     running = true
 
@@ -34,12 +34,12 @@ def main() s64
 
     while running
 
-        if glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS { r += 0.001f }
-        if glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS { g += 0.001f }
-        if glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS { b += 0.001f }
-        if glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS { r -= 0.001f }
-        if glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS { g -= 0.001f }
-        if glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS { b -= 0.001f }
+        if glfwGetKey(window, GLFW_KEY_R) == cast(1L)GLFW_PRESS { r += 0.001f }
+        if glfwGetKey(window, GLFW_KEY_G) == cast(1L)GLFW_PRESS { g += 0.001f }
+        if glfwGetKey(window, GLFW_KEY_B) == cast(1L)GLFW_PRESS { b += 0.001f }
+        if glfwGetKey(window, GLFW_KEY_E) == cast(1L)GLFW_PRESS { r -= 0.001f }
+        if glfwGetKey(window, GLFW_KEY_F) == cast(1L)GLFW_PRESS { g -= 0.001f }
+        if glfwGetKey(window, GLFW_KEY_V) == cast(1L)GLFW_PRESS { b -= 0.001f }
 
         r = clamp(r, 0.0f, 1.0f)
         g = clamp(g, 0.0f, 1.0f)
@@ -51,17 +51,17 @@ def main() s64
         #printf("rgb(%f, %f, %f, %f)\n", cast(1.0)r, cast(1.0)g, cast(1.0)b, cast(1.0)a)
 
         if glfwWindowShouldClose(window) { running = false }
-        if glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS { running = false }
+        if glfwGetKey(window, GLFW_KEY_ESCAPE) == cast(1L)GLFW_PRESS { running = false }
 
         glClear(GL_COLOR_BUFFER_BIT)
         glfwPollEvents()
 
-        if glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS { y += 0.1f }
-        if glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS { y -= 0.1f }
-        if glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS { x += 0.1f }
-        if glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS { x -= 0.1f }
-        if glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS { scale -= 0.01f }
-        if glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS { scale += 0.01f }
+        if glfwGetKey(window, GLFW_KEY_UP) == cast(1L)GLFW_PRESS { y += 0.1f }
+        if glfwGetKey(window, GLFW_KEY_DOWN) == cast(1L)GLFW_PRESS { y -= 0.1f }
+        if glfwGetKey(window, GLFW_KEY_RIGHT) == cast(1L)GLFW_PRESS { x += 0.1f }
+        if glfwGetKey(window, GLFW_KEY_LEFT) == cast(1L)GLFW_PRESS { x -= 0.1f }
+        if glfwGetKey(window, GLFW_KEY_Z) == cast(1L)GLFW_PRESS { scale -= 0.01f }
+        if glfwGetKey(window, GLFW_KEY_Q) == cast(1L)GLFW_PRESS { scale += 0.01f }
 
         drawTriangle(x * 0.01f, y * 0.01f, scale)
 

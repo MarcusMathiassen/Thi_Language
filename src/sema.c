@@ -541,9 +541,9 @@ static Type* sema_function(Sema_Context* ctx, AST* node) {
 
 static Type* sema_variable_decl(Sema_Context* ctx, AST* node) {
     AST* value = node->Variable_Decl.value;
-    if (value && (value->kind == AST_IDENT)) {
+    while (value && (value->kind == AST_IDENT)) {
         AST* s = get_symbol_in_scope(ctx, value->Ident.name);
-        value = s->Variable_Decl.value;
+        ast_replace(value, s->Variable_Decl.value);
     }
     add_node_to_scope(ctx, node);
     _sema(ctx, value);
