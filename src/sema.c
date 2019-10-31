@@ -278,10 +278,20 @@ static Type* sema_call(Sema_Context* ctx, AST* node) {
     char* callee = node->Call.callee;
     AST* callee_f = get_symbol_in_scope(ctx, callee);
     if (!callee_f) error("no function in scope with name %s", ucolor(callee));
-    list_foreach(node->Call.args) {
+
+    // make sure their argument count is the same
+    // s64 call_arg_count = node->Call.args->count;
+    // s64 func_arg_count = type_function_get_arg_count(callee_f->type);
+
+    List* call_arguments = node->Call.args;
+    // List* func_arguments = callee_f->type->Function.parameters;
+
+    list_foreach(call_arguments) {
         AST* arg = it->data;
         _sema(ctx, arg);
+        // if (!is_same_type(arg_t, )) 
     }
+
     Type* callee_t = callee_f->type;
     callee_t->Function.return_type->flags = callee_t->flags; // @HACK
     return callee_t->Function.return_type;
@@ -367,7 +377,6 @@ static Type* sema_binary(Sema_Context* ctx, AST* node) {
                 }
             }
         }
-
     } break;
     }
     return !replaced ? _sema(ctx, lhs) : rhs->type;
@@ -376,7 +385,6 @@ static Type* sema_binary(Sema_Context* ctx, AST* node) {
 static Type* sema_grouping(Sema_Context* ctx, AST* node) {
     AST* group = node->Grouping.node;
     return _sema(ctx, group);
-    ;
 }
 
 static Type* sema_subscript(Sema_Context* ctx, AST* node) {

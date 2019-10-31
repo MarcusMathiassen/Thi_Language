@@ -1,5 +1,5 @@
-def main() s64
+def main() int
     return get_integer(1)
 
-def get_integer(i s64) s64
+def get_integer(i int) int
     return i

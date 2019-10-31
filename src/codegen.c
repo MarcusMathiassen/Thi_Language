@@ -577,47 +577,20 @@ static Value* codegen_binary(Codegen_Context* ctx, AST* node) {
     switch (op) {
     ERROR_UNHANDLED_TOKEN_KIND(op);
     case THI_SYNTAX_ASSIGNMENT: {
-
         Value* rhs_v = codegen(ctx, rhs);
         push_type(ctx, rhs_v->type);
-        
         bool is_deref = false;
         if (lhs->kind == AST_UNARY) {
             lhs = lhs->Unary.operand;
             is_deref = true;
         }
         Value* lhs_v = codegen(ctx, lhs);
-        
         pop_type_2(ctx, rhs_v->type);
-        if (is_deref) {
-            emit_store_deref(ctx, lhs_v);
-        } else
-            emit_store(ctx, lhs_v);
+        if (is_deref) emit_store_deref(ctx, lhs_v);
+        else emit_store(ctx, lhs_v);
         emit_load(ctx, lhs_v);
         return lhs_v;
     }
-
-    // case TOKEN_PLUS: // fallthrough
-    // case TOKEN_MINUS: // fallthrough
-    // case TOKEN_ASTERISK: // fallthrough
-    // case TOKEN_FWSLASH: {
-    //     Value* rhs_va = codegen(ctx, rhs);
-    //     push_type(ctx, rhs->type);
-    //     codegen(ctx, lhs);
-    //     pop_type_2(ctx, rhs->type);
-    //     Type* type = lhs->type; // both lhs and rhs are the same type, so we pick 
-    //     char* instr = get_instruction(op, type);
-    //     char* op1 = get_result_reg(lhs->type);
-    //     char* op2 = get_result_reg_2(rhs->type);
-    //     if (op == TOKEN_FWSLASH || op == TOKEN_ASTERISK) {
-    //         maybe_emit_instruction_prologue(ctx, op, type);
-    //         emit(ctx, "%s %s", instr, op2);
-    //     } else {
-    //         emit(ctx, "%s %s, %s", instr, op1, op2);
-    //     }
-    //     return rhs_va;
-    // }
-
     case TOKEN_PERCENT: {
         node = make_ast_binary(node->loc_info, TOKEN_FWSLASH, lhs, rhs);
         Value* variable = codegen(ctx, node);
@@ -643,20 +616,20 @@ static Value* codegen_binary(Codegen_Context* ctx, AST* node) {
         emit(ctx, "setne al");
         return v;
     }
-    case TOKEN_PLUS: // fallthrough
-    case TOKEN_MINUS: // fallthrough
+    case TOKEN_PLUS:     // fallthrough
+    case TOKEN_MINUS:    // fallthrough
     case TOKEN_ASTERISK: // fallthrough
-    case TOKEN_FWSLASH: // fallthrough
-    case TOKEN_PIPE:  // fallthrough
-    case TOKEN_AND:   // fallthrough
-    case TOKEN_HAT:   // fallthrough
-    case TOKEN_LT_LT: // fallthrough
-    case TOKEN_GT_GT: // fallthrough
-    case TOKEN_LT:    // fallthrough
-    case TOKEN_GT:    // fallthrough
-    case TOKEN_LT_EQ: // fallthrough
-    case TOKEN_GT_EQ: // fallthrough
-    case TOKEN_EQ_EQ: // fallthrough
+    case TOKEN_FWSLASH:  // fallthrough
+    case TOKEN_PIPE:     // fallthrough
+    case TOKEN_AND:      // fallthrough
+    case TOKEN_HAT:      // fallthrough
+    case TOKEN_LT_LT:    // fallthrough
+    case TOKEN_GT_GT:    // fallthrough
+    case TOKEN_LT:       // fallthrough
+    case TOKEN_GT:       // fallthrough
+    case TOKEN_LT_EQ:    // fallthrough
+    case TOKEN_GT_EQ:    // fallthrough
+    case TOKEN_EQ_EQ:    // fallthrough
     case TOKEN_BANG_EQ: {
         Value* rhs_v = codegen(ctx, rhs);
         push_type(ctx, rhs_v->type);
