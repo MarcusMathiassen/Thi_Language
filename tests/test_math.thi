@@ -1,4 +1,4 @@
-def main() s16
+def main() s8
     i2 s8 = 2
     i4 s8 = 4
     i3 s8 = 3

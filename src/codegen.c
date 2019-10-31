@@ -153,9 +153,9 @@ Value* get_variable                   (Codegen_Context* ctx, AST* ident);
 void add_variable                     (Codegen_Context* ctx, Value* variable);
 int align                             (int n, s32 m);
 
-static char* get_instruction                 (Token_Kind op, Type* type);
-static void maybe_emit_instruction_prologue (Token_Kind op, Type* type);
-static void maybe_emit_instruction_epilogue (Token_Kind op, Type* type);
+static char* get_instruction (Token_Kind op, Type* type);
+static void maybe_emit_instruction_prologue (Codegen_Context* ctx, Token_Kind op, Type* type);
+static void maybe_emit_instruction_epilogue (Codegen_Context* ctx, Token_Kind op, Type* type);
 
 char* emit_save_result                (Codegen_Context* ctx, Value* value);
 char* get_next_available_reg_fitting  (Codegen_Context* ctx, Type* type);
@@ -595,17 +595,12 @@ static Value* codegen_binary(Codegen_Context* ctx, AST* node) {
         push_type(ctx, rhs->type);
         codegen(ctx, lhs);
         pop_type_2(ctx, rhs->type);
-        Type* type = lhs->type; // both lhs and rhs are the same type
+        Type* type = lhs->type; // both lhs and rhs are the same type, so we pick 
         char* instr = get_instruction(op, type);
         char* op1 = get_result_reg(lhs->type);
         char* op2 = get_result_reg_2(rhs->type);
-        if (op == TOKEN_FWSLASH) {
-            switch (get_size_of_type(type)) {
-                case 1: emit(ctx, "cbw"); break;
-                case 2: emit(ctx, "cwd"); break;
-                case 4: emit(ctx, "cdq"); break;
-                case 8: emit(ctx, "cdq"); break;
-            }
+        if (op == TOKEN_FWSLASH || op == TOKEN_ASTERISK) {
+            maybe_emit_instruction_prologue(ctx, op, type);
             emit(ctx, "%s %s", instr, op2);
         } else {
             emit(ctx, "%s %s, %s", instr, op1, op2);
@@ -682,31 +677,15 @@ static Value* codegen_binary(Codegen_Context* ctx, AST* node) {
     case TOKEN_EQ_EQ: // FALLTHROUGH
     case TOKEN_BANG_EQ: {
         Value* lhs_v = codegen(ctx, lhs);
-        if (lhs_v->type->kind == TYPE_FLOAT) {
-            push(ctx, XMM0);
-            codegen(ctx, rhs);
-            pop(ctx, XMM1);
-            if (lhs_v->type->Float.bytes == 4) {
-                emit(ctx, "ucomiss xmm1, xmm0");
-            } else {
-                emit(ctx, "ucomisd xmm1, xmm0");
-            }
-        } else {
-            push(ctx, RAX);
-            codegen(ctx, rhs);
-            pop(ctx, RCX);
-            emit(ctx, "cmp rcx, rax");
-        }
-        bool is_float = lhs_v->type->kind == TYPE_FLOAT;
-        switch (op) {
-        ERROR_UNHANDLED_TOKEN_KIND(op);
-        case TOKEN_LT: is_float ? emit(ctx, "setb al") : emit(ctx, "setl al"); break;
-        case TOKEN_GT: is_float ? emit(ctx, "seta al") : emit(ctx, "setg al"); break;
-        case TOKEN_LT_EQ: is_float ? emit(ctx, "setbe al") : emit(ctx, "setle al"); break;
-        case TOKEN_GT_EQ: is_float ? emit(ctx, "setae al") : emit(ctx, "setge al"); break;
-        case TOKEN_EQ_EQ: emit(ctx, "sete al"); break;
-        case TOKEN_BANG_EQ: emit(ctx, "setne al"); break;
-        }
+        push_type(ctx, lhs_v->type);
+        Value* rhs_v = codegen(ctx, rhs);
+        pop_type_2(ctx, lhs_v->type);
+        char* instr = get_instruction(op, lhs_v->type);
+        char* op1 = get_result_reg(lhs_v->type);
+        char* op2 = get_result_reg_2(rhs_v->type);
+        maybe_emit_instruction_prologue(ctx, op, lhs_v->type);
+        emit(ctx, "%s %s, %s", instr, op2, op1); // flipped op1 and op2
+        maybe_emit_instruction_epilogue(ctx, op, lhs_v->type);
         return lhs_v;
     } break;
 
@@ -2024,15 +2003,18 @@ char* emit_save_result(Codegen_Context* ctx, Value* value) {
     return reg;
 }
 
-static void maybe_emit_instruction_prologue(Token_Kind op, Type* type)
+static void maybe_emit_instruction_prologue(Codegen_Context* ctx, Token_Kind op, Type* type)
 {
     xassert(type);
     TASSERT_KIND_IN_RANGE(TOKEN, op);
     s64 size = get_size_of_type(type);
-    switch (op) {
+    switch (op)
+    {
         default: break;
-        case TOKEN_FWSLASH: {
-            switch (size) {
+        case TOKEN_FWSLASH:
+        {
+            switch (size)
+            {
                 case 1: emit(ctx, "cbw"); break;
                 case 2: emit(ctx, "cwd"); break;
                 case 4: emit(ctx, "cdq"); break;
@@ -2042,13 +2024,42 @@ static void maybe_emit_instruction_prologue(Token_Kind op, Type* type)
     }
 }
 
-static void maybe_emit_instruction_epilogue(Token_Kind op, Type* type)
+static void maybe_emit_instruction_epilogue(Codegen_Context* ctx, Token_Kind op, Type* type)
 {
     xassert(type);
     TASSERT_KIND_IN_RANGE(TOKEN, op);
-    s64 size = get_size_of_type(type);
-    switch (op)
+    switch (type->kind)
     {
+        ERROR_UNHANDLED_TYPE_KIND(type->kind);
+        case TYPE_POINTER: // fallthrough
+        case TYPE_INT:
+        {
+            switch (op)
+            {
+                default: break;
+
+                // Comparison
+                case TOKEN_LT:      emit(ctx, "setl al");  break;
+                case TOKEN_GT:      emit(ctx, "setg al");  break;
+                case TOKEN_LT_EQ:   emit(ctx, "setle al"); break;
+                case TOKEN_GT_EQ:   emit(ctx, "setge al"); break;
+                case TOKEN_EQ_EQ:   emit(ctx, "sete al");  break;
+                case TOKEN_BANG_EQ: emit(ctx, "setne al"); break;
+            }
+        } break;
+        case TYPE_FLOAT: {
+            switch (op) {
+                default: break;
+
+                // Comparison
+                case TOKEN_LT:      emit(ctx, "setb al");  break;
+                case TOKEN_GT:      emit(ctx, "seta al");  break;
+                case TOKEN_LT_EQ:   emit(ctx, "setbe al"); break;
+                case TOKEN_GT_EQ:   emit(ctx, "setae al"); break;
+                case TOKEN_EQ_EQ:   emit(ctx, "sete al");  break;
+                case TOKEN_BANG_EQ: emit(ctx, "setne al"); break;
+            }
+        } break;
     }
 }
 
@@ -2066,20 +2077,54 @@ static char* get_instruction(Token_Kind op, Type* type)
             switch (op)
             {
                 ERROR_UNHANDLED_TOKEN_KIND(op);
+
+                // Basic Math
                 case TOKEN_PLUS:     return "add";
                 case TOKEN_MINUS:    return "sub"; 
                 case TOKEN_ASTERISK: return usig ? "mul" : "imul";
                 case TOKEN_FWSLASH:  return usig ? "div" : "idiv";
+                    
+                // Binary Logic
+                case TOKEN_PIPE:     return "or";
+                case TOKEN_AND:      return "and";
+                case TOKEN_HAT:      return "xor";
+                case TOKEN_LT_LT:    return "shl";
+                case TOKEN_GT_GT:    return "shr";
+
+                // Comparison
+                case TOKEN_LT:       // fallthrough
+                case TOKEN_GT:       // fallthrough
+                case TOKEN_LT_EQ:    // fallthrough
+                case TOKEN_GT_EQ:    // fallthrough
+                case TOKEN_EQ_EQ:    // fallthrough
+                case TOKEN_BANG_EQ:  return "cmp";
             }
         } break;
         case TYPE_FLOAT: {
             s8 size = get_size_of_type(type);
             switch (op) {
                 ERROR_UNHANDLED_TOKEN_KIND(op);
+
+                // Basic Math
                 case TOKEN_PLUS:     return size == 8 ? "addsd" : "addss";
                 case TOKEN_MINUS:    return size == 8 ? "subsd" : "subss";
                 case TOKEN_ASTERISK: return size == 8 ? "mulsd" : "mulss";
                 case TOKEN_FWSLASH:  return size == 8 ? "divsd" : "divss";
+
+                // Binary Logic
+                case TOKEN_PIPE:     // fallthrough
+                case TOKEN_AND:      // fallthrough
+                case TOKEN_HAT:      // fallthrough
+                case TOKEN_LT_LT:    // fallthrough
+                case TOKEN_GT_GT:    error("Binary Logic on Floating Point is not possible.");
+
+                // Comparison
+                case TOKEN_LT:       // fallthrough
+                case TOKEN_GT:       // fallthrough
+                case TOKEN_LT_EQ:    // fallthrough
+                case TOKEN_GT_EQ:    // fallthrough
+                case TOKEN_EQ_EQ:    // fallthrough
+                case TOKEN_BANG_EQ:  return size == 8 ? "ucomisd" : "ucomiss";
             }
         } break;
     }
