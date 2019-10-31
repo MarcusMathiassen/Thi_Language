@@ -587,68 +587,32 @@ static Value* codegen_binary(Codegen_Context* ctx, AST* node) {
         return lhs_v;
     }
 
-    case TOKEN_PLUS: // fallthrough
-    case TOKEN_MINUS: // fallthrough
-    case TOKEN_ASTERISK: // fallthrough
-    case TOKEN_FWSLASH: {
-        Value* rhs_va = codegen(ctx, rhs);
-        push_type(ctx, rhs->type);
-        codegen(ctx, lhs);
-        pop_type_2(ctx, rhs->type);
-        Type* type = lhs->type; // both lhs and rhs are the same type, so we pick 
-        char* instr = get_instruction(op, type);
-        char* op1 = get_result_reg(lhs->type);
-        char* op2 = get_result_reg_2(rhs->type);
-        if (op == TOKEN_FWSLASH || op == TOKEN_ASTERISK) {
-            maybe_emit_instruction_prologue(ctx, op, type);
-            emit(ctx, "%s %s", instr, op2);
-        } else {
-            emit(ctx, "%s %s, %s", instr, op1, op2);
-        }
-        return rhs_va;
-    }
+    // case TOKEN_PLUS: // fallthrough
+    // case TOKEN_MINUS: // fallthrough
+    // case TOKEN_ASTERISK: // fallthrough
+    // case TOKEN_FWSLASH: {
+    //     Value* rhs_va = codegen(ctx, rhs);
+    //     push_type(ctx, rhs->type);
+    //     codegen(ctx, lhs);
+    //     pop_type_2(ctx, rhs->type);
+    //     Type* type = lhs->type; // both lhs and rhs are the same type, so we pick 
+    //     char* instr = get_instruction(op, type);
+    //     char* op1 = get_result_reg(lhs->type);
+    //     char* op2 = get_result_reg_2(rhs->type);
+    //     if (op == TOKEN_FWSLASH || op == TOKEN_ASTERISK) {
+    //         maybe_emit_instruction_prologue(ctx, op, type);
+    //         emit(ctx, "%s %s", instr, op2);
+    //     } else {
+    //         emit(ctx, "%s %s, %s", instr, op1, op2);
+    //     }
+    //     return rhs_va;
+    // }
 
     case TOKEN_PERCENT: {
         node = make_ast_binary(node->loc_info, TOKEN_FWSLASH, lhs, rhs);
         Value* variable = codegen(ctx, node);
         emit(ctx, "mov rax, rdx");
         return variable;
-    }
-    case TOKEN_PIPE: {
-        Value* lhs_v = codegen(ctx, lhs);
-        push(ctx, RAX);
-        codegen(ctx, rhs);
-        pop(ctx, RCX);
-        emit(ctx, "or al, cl");
-        return lhs_v;
-    }
-    case TOKEN_AND: {
-        Value* lhs_v = codegen(ctx, lhs);
-        push(ctx, RAX);
-        codegen(ctx, rhs);
-        pop(ctx, RCX);
-        emit(ctx, "and al, cl");
-        return lhs_v;
-    }
-    case TOKEN_HAT: {
-        Value* lhs_v = codegen(ctx, lhs);
-        push(ctx, RAX);
-        codegen(ctx, rhs);
-        pop(ctx, RCX);
-        emit(ctx, "xor al, cl");
-        return lhs_v;
-    }
-    case TOKEN_LT_LT: {
-        Value* lhs_v = codegen(ctx, lhs);
-        xassert(rhs->kind == AST_INT);
-        emit(ctx, "shl al, %lld", rhs->Int.val);
-        return lhs_v;
-    }
-    case TOKEN_GT_GT: {
-        Value* lhs_v = codegen(ctx, lhs);
-        xassert(rhs->kind == AST_INT);
-        emit(ctx, "shr al, %lld", rhs->Int.val);
-        return lhs_v;
     }
     case TOKEN_AND_AND: {
         Value* lhs_v = codegen(ctx, lhs);
@@ -669,23 +633,33 @@ static Value* codegen_binary(Codegen_Context* ctx, AST* node) {
         emit(ctx, "setne al");
         return v;
     }
-
+    case TOKEN_PLUS: // fallthrough
+    case TOKEN_MINUS: // fallthrough
+    case TOKEN_ASTERISK: // fallthrough
+    case TOKEN_FWSLASH: // fallthrough
+    case TOKEN_PIPE:  // fallthrough
+    case TOKEN_AND:   // fallthrough
+    case TOKEN_HAT:   // fallthrough
+    case TOKEN_LT_LT: // fallthrough
+    case TOKEN_GT_GT: // fallthrough
     case TOKEN_LT:    // fallthrough
     case TOKEN_GT:    // fallthrough
     case TOKEN_LT_EQ: // fallthrough
     case TOKEN_GT_EQ: // fallthrough
     case TOKEN_EQ_EQ: // fallthrough
     case TOKEN_BANG_EQ: {
-        Value* lhs_v = codegen(ctx, lhs);
-        push_type(ctx, lhs_v->type);
         Value* rhs_v = codegen(ctx, rhs);
-        pop_type_2(ctx, lhs_v->type);
-        char* instr = get_instruction(op, lhs_v->type);
-        char* op1 = get_result_reg(lhs_v->type);
-        char* op2 = get_result_reg_2(rhs_v->type);
-        maybe_emit_instruction_prologue(ctx, op, lhs_v->type);
-        emit(ctx, "%s %s, %s", instr, op1, op2); // flipped op1 and op2
-        maybe_emit_instruction_epilogue(ctx, op, lhs_v->type);
+        push_type(ctx, rhs_v->type);
+        Value* lhs_v = codegen(ctx, lhs);
+        pop_type_2(ctx, rhs_v->type);
+        Type* type = rhs_v->type; // they must both be the same type. So pick one.
+        char* instr = get_instruction(op, type);
+        char* op1 = get_result_reg(rhs_v->type);
+        char* op2 = get_result_reg_2(lhs_v->type);
+        maybe_emit_instruction_prologue(ctx, op, type);
+        if (op == TOKEN_FWSLASH) emit(ctx, "%s %s", instr, op2);
+        else emit(ctx, "%s %s, %s", instr, op1, op2);
+        maybe_emit_instruction_epilogue(ctx, op, type);
         return lhs_v;
     } break;
 
@@ -2039,12 +2013,12 @@ static void maybe_emit_instruction_epilogue(Codegen_Context* ctx, Token_Kind op,
                 default: break;
 
                 // Comparison
-                case TOKEN_LT:      emit(ctx, "setnl al");  break;
-                case TOKEN_GT:      emit(ctx, "setng al");  break;
-                case TOKEN_LT_EQ:   emit(ctx, "setnle al"); break;
-                case TOKEN_GT_EQ:   emit(ctx, "setnge al"); break;
-                case TOKEN_EQ_EQ:   emit(ctx, "setne al");  break;
-                case TOKEN_BANG_EQ: emit(ctx, "sete al"); break;
+                case TOKEN_LT:      emit(ctx, "setl al");  break;
+                case TOKEN_GT:      emit(ctx, "setg al");  break;
+                case TOKEN_LT_EQ:   emit(ctx, "setle al"); break;
+                case TOKEN_GT_EQ:   emit(ctx, "setge al"); break;
+                case TOKEN_EQ_EQ:   emit(ctx, "sete al");  break;
+                case TOKEN_BANG_EQ: emit(ctx, "setne al"); break;
             }
         } break;
         case TYPE_FLOAT: {
@@ -2052,12 +2026,12 @@ static void maybe_emit_instruction_epilogue(Codegen_Context* ctx, Token_Kind op,
                 default: break;
 
                 // Comparison
-                case TOKEN_LT:      emit(ctx, "setnb al");  break;
-                case TOKEN_GT:      emit(ctx, "setna al");  break;
-                case TOKEN_LT_EQ:   emit(ctx, "setnbe al"); break;
-                case TOKEN_GT_EQ:   emit(ctx, "setnae al"); break;
-                case TOKEN_EQ_EQ:   emit(ctx, "setne al");  break;
-                case TOKEN_BANG_EQ: emit(ctx, "sete al"); break;
+                case TOKEN_LT:      emit(ctx, "setb al");  break;
+                case TOKEN_GT:      emit(ctx, "seta al");  break;
+                case TOKEN_LT_EQ:   emit(ctx, "setbe al"); break;
+                case TOKEN_GT_EQ:   emit(ctx, "setae al"); break;
+                case TOKEN_EQ_EQ:   emit(ctx, "sete al");  break;
+                case TOKEN_BANG_EQ: emit(ctx, "setne al"); break;
             }
         } break;
     }

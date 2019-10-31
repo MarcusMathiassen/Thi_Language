@@ -8,7 +8,7 @@ def lex(c u8*) char*
         putchar(cc)
 
 def main(argc s32, argv char**) s32
-    if argc < 2
+    if argc < 2L
         puts("too few arguments.")
         return 0
     source_file = argv[1]
@@ -16,7 +16,8 @@ def main(argc s32, argv char**) s32
     content = get_file_content(source_file)
     defer { free(content) }
 
-    if !content { printf("Failed to get content of file '%s'\n", source_file) }
+    if !content
+        printf("Failed to get content of file '%s'\n", source_file)
     lex(content)
     return 1
 
@@ -25,11 +26,11 @@ def get_file_content(filename u8*) u8*
     buffer u8* = 0
     if handler = fopen(filename, "r")
         fseek(handler, 0, 2)
-        string_size = cast(1LL) ftell(handler)
+        string_size = ftell(handler)
         rewind(handler)
-        buffer = malloc(string_size + 1)
+        buffer = malloc(string_size + 1L)
         read_size = fread(buffer, 1, string_size, handler)
-        buffer[string_size] = '\0'
+        buffer[cast(1LL)string_size] = '\0'
         if string_size != read_size
             free(buffer)
             buffer = 0

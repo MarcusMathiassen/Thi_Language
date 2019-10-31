@@ -30,12 +30,12 @@ if [ $? == 0 ]; then
             # ./runtest ./tests/test_float.thi
             # ./runtest ./tests/test_defer_2.thi
             # ./runtest ./tests/test_defer.thi
-            # ./runtest ./tests/test_basic_setup.thi
+            ./runtest ./tests/test_basic_setup.thi
             # ./runtest ./tests/test_sizeof.thi
             # ./runtest ./tests/test_global_variable.thi
             # ./runtest ./tests/test_if.thi
             # ./runtest ./tests/test_math.thi
-            ./runtest ./tests/test_gt.thi
+            # ./runtest ./tests/test_gt.thi
             # ./runtest ./tests/test_typeof.thi
             # ./runtest ./tests/test_optional_semicolon.thi
             # ./runtest ./tests/test_fib.thi
