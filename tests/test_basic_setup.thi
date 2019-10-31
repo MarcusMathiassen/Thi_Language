@@ -5,6 +5,7 @@ def v2 struct
 extern printf(u8*, ...) s32
 
 def main(argc s32, argv u8**) s32
+    k s32 = 0
     for i in 0 .. argc
         printf("%d = %s\n", i, *argv++)
     return i = 1

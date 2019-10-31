@@ -540,13 +540,14 @@ static Type* sema_function(Sema_Context* ctx, AST* node) {
 }
 
 static Type* sema_variable_decl(Sema_Context* ctx, AST* node) {
-    if (node->Variable_Decl.value && (node->Variable_Decl.value->kind == AST_IDENT)) {
-        AST* s = get_symbol_in_scope(ctx, node->Variable_Decl.value->Ident.name);
-        node->Variable_Decl.value = s->Variable_Decl.value;
+    AST* value = node->Variable_Decl.value;
+    if (value && (value->kind == AST_IDENT)) {
+        AST* s = get_symbol_in_scope(ctx, value->Ident.name);
+        value = s->Variable_Decl.value;
     }
     add_node_to_scope(ctx, node);
-    _sema(ctx, node->Variable_Decl.value);
-    return node->Variable_Decl.value ? node->Variable_Decl.value->type : node->type;
+    _sema(ctx, value);
+    return node->type;
 }
 
 static Type* sema_if(Sema_Context* ctx, AST* node) {

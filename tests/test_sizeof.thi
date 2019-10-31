@@ -1,7 +1,7 @@
 def v2 struct
-    x f64
-    y f64
+    x f32
+    y f32
 
 def main() s64
-    i = sizeof v2
+    i s64 = sizeof 1.0
     return i

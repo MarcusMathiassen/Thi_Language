@@ -41,14 +41,14 @@ def main() s64
         if glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS { g -= 0.001f }
         if glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS { b -= 0.001f }
 
-        r = clamp0to1(r)
-        g = clamp0to1(g)
-        b = clamp0to1(b)
-        a = clamp0to1(a)
+        r = clamp(r, 0.0f, 1.0f)
+        g = clamp(g, 0.0f, 1.0f)
+        b = clamp(b, 0.0f, 1.0f)
+        a = clamp(a, 0.0f, 1.0f)
 
         glClearColor(r, g, b, a)
 
-        printf("rgb(%f, %f, %f, %f)\n", cast(1.0)r, cast(1.0)g, cast(1.0)b, cast(1.0)a)
+        #printf("rgb(%f, %f, %f, %f)\n", cast(1.0)r, cast(1.0)g, cast(1.0)b, cast(1.0)a)
 
         if glfwWindowShouldClose(window) { running = false }
         if glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS { running = false }
@@ -66,6 +66,7 @@ def main() s64
         drawTriangle(x * 0.01f, y * 0.01f, scale)
 
         glfwSwapBuffers(window)
+
     return 1
 
 def drawTriangle(x f32, y f32, s f32)
@@ -78,7 +79,7 @@ def drawTriangle(x f32, y f32, s f32)
     glVertex2f(x + 0.5f*s, y -0.5f*s)
     glEnd()
 
-def clamp0to1(x f32) f32
-    x = x < 0.0f ? 0.0f : x
-    x = x > 1.0f ? 1.0f : x
+def clamp(x f32, mi f32, ma f32) f32
+    x = x < mi ? mi : x
+    x = x > ma ? ma : x
     return x

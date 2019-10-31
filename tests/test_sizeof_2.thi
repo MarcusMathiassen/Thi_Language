@@ -1,9 +1,0 @@
-
-#deps: struct
-
-main()
-    return sizeof(v2) - 7
-
-struct v2
-    x: s32
-    y: s32

@@ -1,5 +1,0 @@
-min(a: s32, b: s32)
-    return a < b ? a : b
-    
-main(argc: s32, argv: u8*)
-    return min(1, min(2, 3))

@@ -1,7 +1,7 @@
 
 extern puts(u8*) s32
 
-def main()
+def main() void
     i = 1
     puts("Hello, i am in a implicitly braced scope!")
     {

@@ -1,36 +1,18 @@
-
-extern puts(u8*) s32
-
-struct Person
-    name: u8*
-    age: s8
-
-enum Choices
-    Diamond
-    Hearts
-    Joker
-
-main()
-
-    p: Person
-    i: Kind = .Int
-
-    if i == .Float
-        puts("Its a float!")
-
+def main() s64
+    
+    i = 1
     if i
-        is .Int fallthrough
         is 1
-            puts("Hello")
             fallthrough
-        is .String puts("are")
-        is 3 puts("you?")
-        is 4 return 4
-        is 5 return 5
+        is 3 
+            return 1
+        is 4 
+            return 0
+        is 5 
+            return 0
         is 6
-            k := 5.0
-            return 6
+            return 0
     else
-        return 7
+        return 0
 
-    return 1
+    return 0

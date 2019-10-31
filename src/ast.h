@@ -108,7 +108,6 @@ typedef enum {
     _AST_COUNT_
 } AST_Kind;
 
-
 typedef enum {
     LITERAL_CHAR,
     LITERAL_INTEGER,

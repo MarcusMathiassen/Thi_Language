@@ -1,3 +1,0 @@
-def main() s64
-    i = 0
-    return ++i

@@ -75,6 +75,7 @@
 // 
 
 void assemble(char* asm_file, char* exec_name);
+
 void linking_stage(List* links, char* exec_name);
 
 //------------------------------------------------------------------------------
@@ -428,6 +429,8 @@ int main(int argc, char** argv) {
 
     Timer* tm_total = pop_timer();
 
+    bool show_timings = false;
+    if (show_timings)
     {
         // @FeltCuteMightDeleteLater
         system("clear");
@@ -484,4 +487,7 @@ void linking_stage(List* links, char* exec_name) {
 
     // Cleanup object files
     system(strf("rm %s.o", exec_name));
+    system(strf("rm %s.s", exec_name));
 }
+
+

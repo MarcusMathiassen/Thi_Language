@@ -1,2 +1,7 @@
-main()
-    return (2  + 4 * 3) / 10
+def main() s16
+    i2 s8 = 2
+    i4 s8 = 4
+    i3 s8 = 3
+    i10 s8 = 10
+
+    return (i2  + i4 * i3) / i10

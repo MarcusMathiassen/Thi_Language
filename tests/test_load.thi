@@ -1,3 +1,0 @@
-load "includes/foo"
-main()
-    return foo(1)

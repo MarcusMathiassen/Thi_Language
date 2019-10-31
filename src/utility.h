@@ -28,7 +28,7 @@
 //------------------------------------------------------------------------------
 // These must always be called with a fmt.
 // ex. 'debug(my_str)' will crash if 'my_str' contains format specifiers.
-//      so always do this 'debug("%s", my_str)' instead. any place where you see just debug(thingy); 
+//      so always do this 'debug("%s", my_str)' instead of debug(my_str). any place where you see just debug(thingy); 
 //      can be seen as an error.
 #ifdef NDEBUG
 #define debug(fmt, ...)

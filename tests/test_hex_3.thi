@@ -1,4 +1,0 @@
-main() 
-    i := 0x0001
-    return i
-

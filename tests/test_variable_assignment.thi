@@ -1,4 +1,0 @@
-main()
-    a: s32
-    a = 5 + (a = 2)
-    return a - 6

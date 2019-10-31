@@ -1,14 +1,11 @@
-main() 
-    x : s64 = N
-    return comp(x)
+def main() s64
+        
+    i = 0
+    while true
 
-N :: 3
+        if i == 9
+            break
 
-comp(i: s64) 
-    return i
+        i += 1
 
-
-
-41240404.0f 
-
-0x3041024
+    return i - 8

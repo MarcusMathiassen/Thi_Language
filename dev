@@ -9,13 +9,13 @@ std=c99
 $compiler $src -std=$std $olvl $flags -o $output
 
 if [ $? == 0 ]; then
-    test_files=$@
+    test_files=$
     if [ ${#test_files} == 0 ]; then
         test_files="./tests/*.thi"
     fi
     if [ $? == 0 ]; then
         if [ $(uname) = "Darwin" ]; then
-            ./runtest ./tests/test_window.thi
+            # ./runtest ./tests/test_window.thi
             # ./runtest ./tests/test_cast.thi
             # ./runtest ./tests/test_cast_explicit_f32_to_s32.thi
             # ./runtest ./tests/test_cast_explicit_f64_to_s32.thi
@@ -32,6 +32,9 @@ if [ $? == 0 ]; then
             # ./runtest ./tests/test_defer.thi
             # ./runtest ./tests/test_basic_setup.thi
             # ./runtest ./tests/test_sizeof.thi
+            # ./runtest ./tests/test_global_variable.thi
+            # ./runtest ./tests/test_if.thi
+            ./runtest ./tests/test_math.thi
             # ./runtest ./tests/test_typeof.thi
             # ./runtest ./tests/test_optional_semicolon.thi
             # ./runtest ./tests/test_fib.thi

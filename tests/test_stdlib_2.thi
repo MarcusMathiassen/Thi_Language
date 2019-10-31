@@ -1,6 +1,0 @@
-extern system (u8*)  s32
-
-main()
-    system("echo hello")
-    return 1
-
