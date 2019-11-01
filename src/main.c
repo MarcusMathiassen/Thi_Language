@@ -430,7 +430,7 @@ int main(int argc, char** argv) {
 
     Timer* tm_total = pop_timer();
 
-    bool show_timings = false;
+    bool show_timings = true;
     if (show_timings)
     {
         // @FeltCuteMightDeleteLater

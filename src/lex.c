@@ -306,7 +306,7 @@ static Equivalence_Kind equivalence[] = {
 };
 
 #define is_valid_identifier(c)  isalnum(c) || c == '_'
-#define is_valid_digit(c)       isdigit(c) || c == '_' || c == '.' || c == 'e' || c == 'x' || c == 'b'
+#define is_valid_digit(c)       isdigit(c) || c == '_' || c == '.' || c == 'e' || c == 'x'
 
 #define CASE_SINGLE_TOKEN(c1, t_kind) \
     case c1:                          \
@@ -547,20 +547,18 @@ Lexed_File lex(char* source) {
         {
             bool is_hex = false;
             bool is_float = false;
-            bool is_binary = false;
 
             // Number: [0-9._]+e[0-9]+
             if (isdigit(*c) || *c == '.') {
                 while (is_valid_digit(*c) ||  (is_hex && is_valid_identifier(*c))) {
                     // @Audit
-                    if (*c == 'b') is_binary = true;
                     if (*c == 'x') is_hex = true;
                     if (*c == '.') is_float = true;
                     ++c;
                 }
             }
             end = c;
-            kind = is_binary ? TOKEN_BINARY : is_hex ? TOKEN_HEX : is_float ? TOKEN_FLOAT : TOKEN_INTEGER;
+            kind = is_hex ? TOKEN_HEX : is_float ? TOKEN_FLOAT : TOKEN_INTEGER;
         } break;
         case STATE_STRING: {
             kind = TOKEN_STRING;
@@ -623,16 +621,79 @@ Lexed_File lex(char* source) {
 //                              Helper functions
 //------------------------------------------------------------------------------
 
-void lexer_test(void) {
-    // char* source = "\n\ndef main (argc s32, argv u8**) int\n\treturn 1\n";
-    // Lexed_File lf = lex(source);
-    // warning("gerg");
-    // foreach(i, lf.tokens.count) {
-    //     Token t = lf.tokens.data[i];
-    //     s64 line = get_line_and_col(source, t);
-    //     info("%s line = %ld", token_to_str(t), line);
-    //     // xassert(line == t.line);
-    // }
+static bool lexed_is_kind(char* s, Token_Kind k)
+{
+    Lexed_File l = lex(s);
+    if (l.tokens.data[0].kind != k) error("expected %s got %s", token_kind_to_str(k), token_kind_to_str(l.tokens.data[0].kind));
+    return true;
+}
+    
+void lexer_test(void)
+{
+    xassert(lexed_is_kind("1", TOKEN_INTEGER));
+    xassert(lexed_is_kind("1.0", TOKEN_FLOAT));
+    xassert(lexed_is_kind("0x1", TOKEN_HEX));
+    xassert(lexed_is_kind("position", TOKEN_IDENTIFIER));
+    xassert(lexed_is_kind(".", TOKEN_DOT));
+    xassert(lexed_is_kind("\"Hello World!\"", TOKEN_STRING));
+
+    xassert(lexed_is_kind("asm", TOKEN_ASM));
+    xassert(lexed_is_kind("def", TOKEN_DEF));
+    xassert(lexed_is_kind("link", TOKEN_LINK));
+    xassert(lexed_is_kind("load", TOKEN_LOAD));
+    xassert(lexed_is_kind("true", TOKEN_TRUE));
+    xassert(lexed_is_kind("false", TOKEN_FALSE));
+    xassert(lexed_is_kind("defer", TOKEN_DEFER));
+    xassert(lexed_is_kind("extern", TOKEN_EXTERN));
+    xassert(lexed_is_kind("sizeof", TOKEN_SIZEOF));
+    xassert(lexed_is_kind("typeof", TOKEN_TYPEOF));
+    xassert(lexed_is_kind("if", TOKEN_IF));
+    xassert(lexed_is_kind("else", TOKEN_ELSE));
+    xassert(lexed_is_kind("for", TOKEN_FOR));
+    xassert(lexed_is_kind("while", TOKEN_WHILE));
+    xassert(lexed_is_kind("in", TOKEN_IN));
+    xassert(lexed_is_kind("return", TOKEN_RETURN));
+    xassert(lexed_is_kind("enum", TOKEN_ENUM));
+    xassert(lexed_is_kind("struct", TOKEN_STRUCT));
+    xassert(lexed_is_kind("break", TOKEN_BREAK));
+    xassert(lexed_is_kind("continue", TOKEN_CONTINUE));
+    xassert(lexed_is_kind("fallthrough", TOKEN_FALLTHROUGH));
+    xassert(lexed_is_kind("as", TOKEN_AS));
+    xassert(lexed_is_kind("is", TOKEN_IS));
+    xassert(lexed_is_kind("cast", TOKEN_CAST));
+
+    xassert(lexed_is_kind("!", TOKEN_BANG));
+    // xassert(lexed_is_kind("\"", TOKEN_DOUBLE_QUOTATION)); <- not an operator
+    // xassert(lexed_is_kind("#", TOKEN_HASH)); <-- comment
+    xassert(lexed_is_kind("$", TOKEN_DOLLAR_SIGN));
+    xassert(lexed_is_kind("%", TOKEN_PERCENT));
+    xassert(lexed_is_kind("&", TOKEN_AND));
+     // xassert(lexed_is_kind("'", TOKEN_SINGLE_QUOTATION)); <-- also not an operator
+    xassert(lexed_is_kind("(", TOKEN_OPEN_PAREN));
+    xassert(lexed_is_kind(")", TOKEN_CLOSE_PAREN));
+    xassert(lexed_is_kind("*", TOKEN_ASTERISK));
+    xassert(lexed_is_kind("+", TOKEN_PLUS));
+    xassert(lexed_is_kind(",", TOKEN_COMMA));
+    xassert(lexed_is_kind("-", TOKEN_MINUS));
+    xassert(lexed_is_kind(".", TOKEN_DOT));
+    xassert(lexed_is_kind("/", TOKEN_FWSLASH));
+    xassert(lexed_is_kind(":", TOKEN_COLON));
+    xassert(lexed_is_kind(";", TOKEN_SEMICOLON));
+    xassert(lexed_is_kind("<", TOKEN_LT));
+    xassert(lexed_is_kind("=", TOKEN_EQ));
+    xassert(lexed_is_kind(">", TOKEN_GT));
+    xassert(lexed_is_kind("?", TOKEN_QUESTION_MARK));
+    xassert(lexed_is_kind("@", TOKEN_AT));
+    xassert(lexed_is_kind("[", TOKEN_OPEN_BRACKET));
+    xassert(lexed_is_kind("\\", TOKEN_BWSLASH));
+    xassert(lexed_is_kind("]", TOKEN_CLOSE_BRACKET));
+    xassert(lexed_is_kind("^", TOKEN_HAT));
+    // xassert(lexed_is_kind("`", TOKEN_BACK_TICK)); <-- also not an operator
+    xassert(lexed_is_kind("{", TOKEN_BLOCK_START));
+    xassert(lexed_is_kind("|", TOKEN_PIPE));
+    xassert(lexed_is_kind("}", TOKEN_BLOCK_END));
+    xassert(lexed_is_kind("~", TOKEN_TILDE));
+
     // error("e");
 }
 
@@ -694,7 +755,6 @@ char* token_kind_to_str(Token_Kind kind) {
     case TOKEN_INTEGER:           return "TOKEN_INTEGER";
     case TOKEN_FLOAT:             return "TOKEN_FLOAT";
     case TOKEN_HEX:               return "TOKEN_HEX";
-    case TOKEN_BINARY:            return "TOKEN_BINARY";
     case TOKEN_STRING:            return "TOKEN_STRING";
     case TOKEN_CHAR:              return "TOKEN_CHAR";
 

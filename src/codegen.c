@@ -141,6 +141,7 @@ void pop_type_2                       (Codegen_Context* ctx, Type* type);
 void push_scope                       (Codegen_Context* ctx);
 void pop_scope                        (Codegen_Context* ctx);
 char* get_result_reg_of_size          (Type* type, s8 size);
+char* get_result_reg_2_of_size        (Type* type, s8 size);
 char* get_result_reg                  (Type* type);
 char* get_result_reg_2                (Type* type);
 char* get_op_size                     (s8 bytes);
@@ -638,7 +639,7 @@ static Value* codegen_binary(Codegen_Context* ctx, AST* node) {
         Type* type = rhs_v->type; // they must both be the same type. So pick one.
         char* instr = get_instruction(op, type);
         char* op1 = get_result_reg(rhs_v->type);
-        char* op2 = get_result_reg_2(lhs_v->type);
+        char* op2 = (op == TOKEN_GT_GT || op == TOKEN_LT_LT || op == TOKEN_AND || op == TOKEN_HAT || op == TOKEN_PIPE) ? get_result_reg_2_of_size(type, 1) : get_result_reg_2(lhs_v->type);
         maybe_emit_instruction_prologue(ctx, op, type);
         if (op == TOKEN_FWSLASH) emit(ctx, "%s %s", instr, op2);
         else emit(ctx, "%s %s, %s", instr, op1, op2);
@@ -1590,6 +1591,23 @@ char* get_result_reg_of_size(Type* type, s8 size) {
     case TYPE_POINTER: // fallthrough
     case TYPE_INT: return get_reg(get_rax_reg_of_byte_size(size, 'a'));
     case TYPE_FLOAT: return "xmm0";
+    }
+    UNREACHABLE;
+    return NULL;
+}
+
+char* get_result_reg_2_of_size(Type* type, s8 size) {
+    xassert(type);
+    tassert(size >= 1 && size <= 8, "size = %d", size);
+    switch (type->kind) {
+        ERROR_UNHANDLED_TYPE_KIND(type->kind);
+    // case TYPE_ARRAY:   // return get_reg(RCX);
+    // case TYPE_STRUCT:  // fallthrough
+    // case TYPE_ENUM:    // fallthrough
+    // case TYPE_VOID:    // fallthrough
+    case TYPE_POINTER: // fallthrough
+    case TYPE_INT: return get_reg(get_rax_reg_of_byte_size(size, 'c'));
+    case TYPE_FLOAT: return "xmm1";
     }
     UNREACHABLE;
     return NULL;

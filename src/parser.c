@@ -37,7 +37,7 @@
 
 #define DEBUG_START \
     xassert(ctx); \
-    // debug("%s: %s", __func__, token_to_str(currTok(ctx)));
+    debug("%s: %s", ucolor((char*)__func__), token_to_str(currTok(ctx)));
 
 #define UNARY_OP_COUNT 11
 Token_Kind unary_ops[UNARY_OP_COUNT] = {
@@ -194,7 +194,6 @@ AST* _parse(Parser_Context* ctx, char* file) {
 
     debug("Parsing file %s", file);
 
-
     // Save state
     Token* saved_tokens = ctx->tokens;
     char* saved_file = ctx->file;
@@ -249,6 +248,7 @@ AST* _parse(Parser_Context* ctx, char* file) {
 //                               Private
 //------------------------------------------------------------------------------
 
+// @Cleanup: really ugly and messy. Clean. It. Up.
 AST* parse_statement(Parser_Context* ctx) {
     DEBUG_START;
     ctx->top_tok = ctx->curr_tok;
@@ -294,8 +294,11 @@ AST* parse_statement(Parser_Context* ctx) {
     case TOKEN_EXTERN:      result = parse_extern(ctx);        break;
     }
 
-    // If we've parsed a statement, the next terminal is extranous.
-    if (result && tok_is(ctx, TOKEN_SEMICOLON)) eat(ctx);
+    // Any semicolon following a valid statement is seen as extranous, so we ignore it.
+    if (result && tok_is(ctx, TOKEN_SEMICOLON)) {
+        eat(ctx);
+        debug("ate extranous semicolon");
+    }
 
     return result;
 }
@@ -1170,8 +1173,8 @@ Parser_Context make_parser_context(void) {
     ctx.loads = make_list();
     ctx.loads = make_list();
     ctx.symbols = NULL; // we borrow anothers map
-    ctx.lines = 0; // we borrow anothers map
-    ctx.comments = 0; // we borrow anothers map
+    ctx.lines = 0;      // we borrow anothers map
+    ctx.comments = 0;   // we borrow anothers map
     return ctx;
 }
 
