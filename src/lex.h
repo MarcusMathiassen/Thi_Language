@@ -108,6 +108,7 @@ typedef enum {
     TOKEN_INTEGER,
     TOKEN_FLOAT,
     TOKEN_HEX,
+    TOKEN_BINARY,
     TOKEN_STRING,
     TOKEN_CHAR,
 

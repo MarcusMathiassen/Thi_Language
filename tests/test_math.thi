@@ -1,1 +1,1 @@
-def main() s64 => (2  + 4 * 3) / 10
+def main(argc s32, argv u8**) s64 => (2  + 4 * 3) / 10

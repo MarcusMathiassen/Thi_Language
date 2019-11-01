@@ -306,7 +306,7 @@ static Equivalence_Kind equivalence[] = {
 };
 
 #define is_valid_identifier(c)  isalnum(c) || c == '_'
-#define is_valid_digit(c)       isdigit(c) || c == '_' || c == '.' || c == 'e' || c == 'x'
+#define is_valid_digit(c)       isdigit(c) || c == '_' || c == '.' || c == 'e' || c == 'x' || c == 'b'
 
 #define CASE_SINGLE_TOKEN(c1, t_kind) \
     case c1:                          \
@@ -547,18 +547,20 @@ Lexed_File lex(char* source) {
         {
             bool is_hex = false;
             bool is_float = false;
+            bool is_binary = false;
 
             // Number: [0-9._]+e[0-9]+
             if (isdigit(*c) || *c == '.') {
                 while (is_valid_digit(*c) ||  (is_hex && is_valid_identifier(*c))) {
                     // @Audit
+                    if (*c == 'b') is_binary = true;
                     if (*c == 'x') is_hex = true;
                     if (*c == '.') is_float = true;
                     ++c;
                 }
             }
             end = c;
-            kind = is_hex ? TOKEN_HEX : is_float ? TOKEN_FLOAT : TOKEN_INTEGER;
+            kind = is_binary ? TOKEN_BINARY : is_hex ? TOKEN_HEX : is_float ? TOKEN_FLOAT : TOKEN_INTEGER;
         } break;
         case STATE_STRING: {
             kind = TOKEN_STRING;
@@ -692,6 +694,7 @@ char* token_kind_to_str(Token_Kind kind) {
     case TOKEN_INTEGER:           return "TOKEN_INTEGER";
     case TOKEN_FLOAT:             return "TOKEN_FLOAT";
     case TOKEN_HEX:               return "TOKEN_HEX";
+    case TOKEN_BINARY:            return "TOKEN_BINARY";
     case TOKEN_STRING:            return "TOKEN_STRING";
     case TOKEN_CHAR:              return "TOKEN_CHAR";
 

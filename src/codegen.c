@@ -801,9 +801,10 @@ static Value* codegen_function(Codegen_Context* ctx, AST* node) {
     s64 sum = get_size_of_type(node->type);
     sum += get_all_alloca_in_block(func_body);
     s64 stack_allocated = sum;
-    s32 padding = X64_ASM_MACOS_STACK_PADDING - (stack_allocated % X64_ASM_MACOS_STACK_PADDING);
-    if (stack_allocated + padding)
-        emit(ctx, "sub rsp, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding);
+    s32 padding = align(stack_allocated, X64_ASM_MACOS_STACK_PADDING);
+    if (stack_allocated + padding) {
+        emit(ctx, "sub rsp, %lld; %lld alloc, %lld padding", stack_allocated + padding, stack_allocated, padding); 
+    }
 
     // Emit our function label
     emit(ctx, "%s:", DEFAULT_FUNCTION_ENTRY_LABEL_NAME);

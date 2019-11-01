@@ -390,11 +390,12 @@ int main(int argc, char** argv) {
     debug(ucolor(str_replace_center(" codegen ", pad_out_full_width('_'))));
     char* code = to_x64(ast);
     debug("");
-    debug("%s", code);
+    // debug("%s", code);
     
 #ifndef NDEBUG
     write_to_file("output.thi", ast_to_src(ast));
     write_to_file("output.s", code);
+    // write_to_file("output.c", ast_to_c(ast));
 #endif
 
     Timer* tm_frontend = pop_timer();
@@ -429,7 +430,7 @@ int main(int argc, char** argv) {
 
     Timer* tm_total = pop_timer();
 
-    bool show_timings = true;
+    bool show_timings = false;
     if (show_timings)
     {
         // @FeltCuteMightDeleteLater

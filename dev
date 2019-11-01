@@ -15,7 +15,10 @@ if [ $? == 0 ]; then
     fi
     if [ $? == 0 ]; then
         if [ $(uname) = "Darwin" ]; then
-            ./runtest ./tests/test_window.thi
+            # ./runtest ./tests/test_file.thi
+            # ./runtest ./tests/test_defer.thi
+            ./runtest ./tests/test_binary_literal.thi
+            # ./runtest ./tests/test_window.thi
             # ./runtest ./tests/test_cast.thi
             # ./runtest ./tests/test_cast_explicit_f32_to_s32.thi
             # ./runtest ./tests/test_cast_explicit_f64_to_s32.thi
@@ -33,10 +36,10 @@ if [ $? == 0 ]; then
             # ./runtest ./tests/test_if.thi
             # ./runtest ./tests/test_math.thi
             # ./runtest ./tests/test_gt.thi
+            # ./runtest ./tests/test_sys.thi
             # ./runtest ./tests/test_typeof.thi
             # ./runtest ./tests/test_optional_semicolon.thi
             # ./runtest ./tests/test_fib.thi
-            # ./runtest ./tests/test_file.thi
         elif [ $(uname) = "Linux" ]; then
             ./runtest ./tests/test_basic_setup_linux.thi
         fi
