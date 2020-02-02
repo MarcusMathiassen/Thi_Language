@@ -9,6 +9,14 @@ stmt  ->  'def' | 'return' | 'if' | 'for' | 'while' | 'else'
 list<X, Y>  ->  a list of 'X' separated by 'Y'
 
 number     ->  any number; binary, decimal or hexadecimal, floating or fixed
+                1053
+                1.0
+                10_000
+                0b1111_0000
+                0xFFF
+                1e3
+                1.0e3
+                
 literal    ->  number | string | 'false' | 'true'
 grouping   ->  '(' expr ')'
 unary      ->  ( '-' | '!' | '+' | '*' | 'typeof' | 'sizeof') expr
@@ -21,8 +29,6 @@ cast    ->  (cast(expr) | '(' expr ')') expr
 
 lambda  ->  '(' list<stmt, '\n'> ')' stmt
 call    ->  lambda '(' expr ')'
-
-
 
 ### Examples
 

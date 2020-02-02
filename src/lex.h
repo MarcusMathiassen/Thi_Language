@@ -203,6 +203,11 @@ typedef struct {
 
 } Token;
 
+typedef struct {
+    Token_Kind kind;
+    char* start, end;
+} Token2;
+
 typedef struct
 {
     Token* data;

@@ -357,6 +357,7 @@ void initilize_lex() {
         interned_keywords[i] = intern(&interns, keywords_as_strings[i]);
 }
 
+
 Lexed_File lex(char* source) {
 
     Token_Kind kind = TOKEN_UNKNOWN;
@@ -421,11 +422,8 @@ Lexed_File lex(char* source) {
                     ++c; 
                     break;
 
-                CASE_SINGLE_TOKEN('{', TOKEN_BLOCK_START);
-                break;
-                CASE_SINGLE_TOKEN('}', TOKEN_BLOCK_END);
-                break;
-
+                CASE_SINGLE_TOKEN('{', TOKEN_BLOCK_START); break;
+                CASE_SINGLE_TOKEN('}', TOKEN_BLOCK_END);   break;
                 CASE_SINGLE_TOKEN('/', '/');
                 switch (*c) {
                     CASE_SINGLE_TOKEN('=', TOKEN_FWSLASH_EQ);
@@ -545,20 +543,26 @@ Lexed_File lex(char* source) {
         } break;
         case STATE_NUMBER:
         {
-            bool is_hex = false;
-            bool is_float = false;
+            while(*c != ' ' && *c != '\n')
+                ++c;
 
-            // Number: [0-9._]+e[0-9]+
-            if (isdigit(*c) || *c == '.') {
-                while (is_valid_digit(*c) ||  (is_hex && is_valid_identifier(*c))) {
-                    // @Audit
-                    if (*c == 'x') is_hex = true;
-                    if (*c == '.') is_float = true;
-                    ++c;
-                }
-            }
-            end = c;
-            kind = is_hex ? TOKEN_HEX : is_float ? TOKEN_FLOAT : TOKEN_INTEGER;
+            // bool is_hex = false;
+            // bool is_float = false;
+
+            // // Number: [0-9._]+e[0-9]+
+            // if (isdigit(*c) || *c == '.') {
+            //     while (is_valid_digit(*c) ||  (is_hex && is_valid_identifier(*c))) {
+            //         // @Audit
+            //         if (*c == 'x') is_hex = true;
+            //         if (*c == '.') is_float = true;
+            //         ++c;
+            //     }
+            // }
+
+            kind = TOKEN_LITERAL;
+
+            end = c++;
+            // kind = is_hex ? TOKEN_HEX : is_float ? TOKEN_FLOAT : TOKEN_INTEGER;
         } break;
         case STATE_STRING: {
             kind = TOKEN_STRING;
@@ -566,12 +570,14 @@ Lexed_File lex(char* source) {
             while (*c != '"')
                 ++c;
             end = c++; // skip the last "
+            kind = TOKEN_LITERAL;
         } break;
         case STATE_CHAR: {
             kind = TOKEN_CHAR;
             start = ++c; // skip the first '
             if (*c == '\\') c += 2;
             end = c++; // skip the last '
+            kind = TOKEN_LITERAL;
         } break;
         case STATE_COMMENT:
         {
@@ -608,9 +614,9 @@ Lexed_File lex(char* source) {
 #ifndef NDEBUG
     // Printing tokens
     foreach(i, tokens.count - 1) {
-        debug("%llu -> %llu => '%s'", 
+        debug("%llu -> %llu => '%s' = '%s'", 
             tokens.data[i].start, tokens.data[i].end,
-            ucolor(token_kind_to_str(tokens.data[i].kind)));
+            ucolor(token_kind_to_str(tokens.data[i].kind)), token_value(tokens.data[i]));
     }
 #endif
 
