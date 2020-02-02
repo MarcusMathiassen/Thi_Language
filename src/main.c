@@ -35,6 +35,7 @@
 #include "string.h"       // strcmp
 #include "type.h"         // Type
 #include "common.h"       // u8, u16, s32, etc.
+#include "mem.h"
 #include "utility.h"      // get_file_content, success, info, get_time
 #include "value.h"        // Value
 #include <stdio.h>        // sprintf
@@ -308,7 +309,7 @@ int main(int argc, char** argv) {
     initilize_timers();
     push_timer("Total time");
 
-    // error("%s", parse2(get_file_content(argv[1])));
+    error("%s", parse2(get_file_content(argv[1])));
 
     // s32 opt;
     // while ((opt = getopt(argc, argv, "hv")) != -1) {
@@ -328,6 +329,7 @@ int main(int argc, char** argv) {
     debug("Compiler was last compiled: "__TIME__);
 
 #ifndef NDEBUG
+    // mem_test();
     set_tests();
     utility_tests();
     string_tests();

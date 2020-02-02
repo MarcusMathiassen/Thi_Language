@@ -28,11 +28,34 @@
     xassert(ctx); \
     debug("%s: %s", __func__, token_kind_to_str(kind(ctx)));
 
+#define UNARY_OP_COUNT 11
+Token_Kind unary_ops[UNARY_OP_COUNT] = {
+    TOKEN_BANG,
+    THI_SYNTAX_POINTER,
+    TOKEN_PLUS,
+    THI_SYNTAX_ADDRESS,
+    TOKEN_MINUS,
+    TOKEN_TILDE,
+    TOKEN_DOT,
+    TOKEN_SIZEOF,
+    TOKEN_TYPEOF,
+    TOKEN_PLUS_PLUS,
+    TOKEN_MINUS_MINUS,
+};
+
 typedef struct {
     Token* tokens;
     Token curr;
     Stack* stack;
+
+
+    Unary_Kind
+
 } Parser_Context;
+
+
+static AST* parse_statement(Parser_Context* ctx);
+static AST* parse_expression(Parser_Context* ctx);
 
 static Token_Kind kind(Parser_Context* ctx) {
     return ctx->curr.kind;
@@ -62,13 +85,109 @@ static Loc_Info loc(Parser_Context* ctx) {
     return (Loc_Info){line, col};
 }
 
-static AST* parse_function_or_call(Parser_Context* ctx) {
-    // DEBUG_START;
-    // xassert(kind(ctx) == TOKEN_OPEN_PAREN);
-    // eat(ctx);
-    // AST* expr = parse_expression(ctx);
-    // match(ctx, TOKEN_CLOSE_PAREN);
+AST* parse_prefix(Parser_Context* ctx) {
+    DEBUG_START;
+    return parse_unary(ctx);
+}
+
+AST* parse_postfix(Parser_Context* ctx) {
+    DEBUG_START;
+    AST* primary_expr = parse_primary(ctx);
+    DEBUG_START;
+    while(true) {
+        Loc_Info lc = loc(ctx);
+        switch(tokKind(ctx)) {
+        default: return primary_expr;
+        case TOKEN_MINUS_MINUS: // fallthrough
+        case TOKEN_PLUS_PLUS: {
+            Token_Kind op = tokKind(ctx);
+            eat(ctx);
+            primary_expr = make_ast_post_inc_or_dec(lc, op, primary_expr);
+        } break;
+        case TOKEN_COMMA: {
+            List* exprs = parse_delimited_list(ctx, parse_expression, TOKEN_COMMA);
+            list_prepend(exprs, primary_expr);
+            primary_expr = make_ast_comma_separated_list(lc, exprs);
+        } break;
+        case TOKEN_AS: {
+            eat(ctx);
+            AST* type_expr = parse_expression(ctx);
+            primary_expr = make_ast_as(lc, primary_expr, type_expr);
+        } break;
+        case TOKEN_OPEN_BRACKET: {
+            eat(ctx);
+            AST* sub = parse_expression(ctx);
+            eat_kind(ctx, TOKEN_CLOSE_BRACKET);
+            sub = make_ast_subscript(lc, primary_expr, sub);
+            primary_expr = sub;
+        } break;
+        case TOKEN_DOT: {
+            eat(ctx);
+            char* field_name = tokValue(ctx);
+            eat_kind(ctx, TOKEN_IDENTIFIER);
+            AST* field = make_ast_field_access(lc, primary_expr, field_name);
+            primary_expr = field;
+        } break;
+        }
+    }
+    UNREACHABLE;
     return NULL;
+}
+
+AST* parse_unary(Parser_Context* ctx) {
+    DEBUG_START;
+    Loc_Info lc = loc(ctx);
+    AST* unary = NULL;
+
+    foreach(i, UNARY_OP_COUNT) {
+        if (tok_is(ctx, unary_ops[i])) {
+            Token_Kind op = tokKind(ctx);
+            eat(ctx);
+            AST* operand = parse_unary(ctx);
+            if (operand) {
+                unary = make_ast_unary(lc, op, operand);
+            }
+        }
+    }
+
+    return unary ? unary : parse_postfix(ctx);
+}
+
+static AST* parse_parens(Parser_Context* ctx)
+{
+    DEBUG_START;
+    xassert(kind(ctx) == TOKEN_OPEN_PAREN);
+    Loc_Info lc = loc(ctx);
+    eat(ctx);
+
+    // there might not be anything after this parens
+    AST* grouped = NULL;
+    if (!tokIs(ctx, TOKEN_CLOSE_PAREN))
+        grouped = parse_statement(ctx);
+
+    match(ctx, TOKEN_CLOSE_PAREN);
+    return make_ast_grouping(lc, grouped);
+}
+
+static AST* parse_return(Parser_Context* ctx)
+{
+    DEBUG_START;
+    xassert(kind(ctx) == TOKEN_RETURN);
+    Loc_Info lc = loc(ctx);
+    eat(ctx);
+    AST* expr = parse_expression(ctx);
+    return make_ast_return(lc, expr);
+}
+static AST* parse_def(Parser_Context* ctx)
+{
+    DEBUG_START;
+    xassert(kind(ctx) == TOKEN_DEF);
+    Loc_Info lc = loc(ctx);
+    eat(ctx);
+    char* name = value(ctx);
+    match(ctx, TOKEN_IDENTIFIER);
+    AST* stmt = parse_statement(ctx);
+    return make_ast_def(lc, name, stmt);
 }
 
 static AST* parse_identifier(Parser_Context* ctx) {
@@ -80,7 +199,21 @@ static AST* parse_identifier(Parser_Context* ctx) {
     eat(ctx);
 
     switch (kind(ctx)) {
-    case TOKEN_OPEN_PAREN: return parse_function_or_call(ctx);
+    default: return make_ast_ident(lc, name);        
+    }
+
+    UNREACHABLE;
+    return NULL;
+}
+static AST* parse_identifier_expression(Parser_Context* ctx) {
+    DEBUG_START;
+    xassert(kind(ctx) == TOKEN_IDENTIFIER);
+
+    Loc_Info lc = loc(ctx);
+    char* name = value(ctx);
+    eat(ctx);
+
+    switch (kind(ctx)) {
     default: return make_ast_ident(lc, name);        
     }
 
@@ -93,6 +226,9 @@ static AST* parse_statement(Parser_Context* ctx) {
     switch (kind(ctx)) {
     ERROR_UNHANDLED_TOKEN_KIND(kind(ctx));
     case TOKEN_IDENTIFIER: return parse_identifier(ctx);
+    case TOKEN_DEF:        return parse_def(ctx);
+    case TOKEN_OPEN_PAREN: return parse_parens(ctx);
+    case TOKEN_RETURN:     return parse_return(ctx);
     }
     UNREACHABLE;
     return NULL;

@@ -479,7 +479,7 @@ AST* parse_defer(Parser_Context* ctx) {
     DEBUG_START;
     Loc_Info lc = loc(ctx);
     eat_kind(ctx, TOKEN_DEFER);
-    AST* block = parse_block(ctx);
+    AST* block = parse_statement(ctx);
     return make_ast_defer(lc, block);
 }
 
@@ -777,11 +777,11 @@ AST* parse_postfix(Parser_Context* ctx) {
             eat(ctx);
             primary_expr = make_ast_post_inc_or_dec(lc, op, primary_expr);
         } break;
-        // case TOKEN_COMMA: {
-        //     List* exprs = parse_delimited_list(ctx, parse_expression, TOKEN_COMMA);
-        //     list_prepend(exprs, primary_expr);
-        //     primary_expr = make_ast_comma_separated_list(lc, exprs);
-        // } break;
+        case TOKEN_COMMA: {
+            List* exprs = parse_delimited_list(ctx, parse_expression, TOKEN_COMMA);
+            list_prepend(exprs, primary_expr);
+            primary_expr = make_ast_comma_separated_list(lc, exprs);
+        } break;
         case TOKEN_AS: {
             eat(ctx);
             AST* type_expr = parse_expression(ctx);
@@ -949,9 +949,9 @@ AST* parse_integer(Parser_Context* ctx) {
         // if i has been changed, we have gotten a suffix.
         // Eat it.c
         if (i != 0) eat(ctx);
-        if (xstrlen(tok_val) != i) {
-            error("[%s:%d:%d] unknown character '%c' in integer suffix ", ctx->file, lc.line, lc.col, tok_val[i]);
-        }
+        // if (xstrlen(tok_val) != i) {
+        //     error("[%s:%d:%d] unknown character '%c' in integer suffix ", ctx->file, lc.line, lc.col, tok_val[i]);
+        // }
     }
     AST* res = make_ast_int(lc, value, type);
     return res;
@@ -977,7 +977,7 @@ AST* parse_asm(Parser_Context* ctx) {
     DEBUG_START;
  
     Loc_Info lc = loc(ctx);
- 
+  
     xassert(tok_is(ctx, TOKEN_ASM));
     eat(ctx);
 

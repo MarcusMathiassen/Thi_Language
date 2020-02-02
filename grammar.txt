@@ -1,194 +1,45 @@
-#
-# Keywords
-#
-    if
-    else
-    for
-    while
-    enum
-    struct
-    return
-    defer
-    continue
-    break
-    link
-    load
-    sizeof
-    typeof
-    as
-    is
-    in
-    true
-    false
-#
-# Grammar
-#
-   integer              ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
-                          | integer '_' integer
 
-   float                ::= integer "." integer
-                          | integer '_' integer "." integer 
+# Thi Language Grammar
 
-   string               ::= "\"" ASCII "\""
-   char                 ::= "'" ASCII "'"
-   binary_operator      ::= "~" | "*" | "-" | "+" | "/"| "&" | "|" | "%" | "^" | "<" | ">" | "="
-                                |  "<<" |  ">>" | "<=" | ">=" | "*=" | "&&" | "||" | "/=" | "+=" | "-=" | "%=" | "|=" | "&=" | "^=" | "!="
-   unary_operator       ::= "!" | "*" | "-" | "+" | "&" | "^"
-   character            ::= "Aa".."Zz"
+expr  ->  literal | unary | binary | grouping | list<expr, ','> | call
+stmt  ->  'def' | 'return' | 'if' | 'for' | 'while' | 'else' 
+          | 'load' | 'link' | 'fallthrough' | 'continue' | 'break' | 'enum' | 'in'
+          | 'defer' | 'is'
+
+list<X, Y>  ->  a list of 'X' separated by 'Y'
+
+number     ->  any number; binary, decimal or hexadecimal, floating or fixed
+literal    ->  number | string | 'false' | 'true'
+grouping   ->  '(' expr ')'
+unary      ->  ( '-' | '!' | '+' | '*' | 'typeof' | 'sizeof') expr
+binary     ->  expr operator expr
+operator   ->  '==' | '!=' | '<' | '<=' | '>' | '>=' | '+'  | '-'  | '*' | '/'
+
+block   -> '{' list<stmt, '\n'> '}'
+
+cast    ->  (cast(expr) | '(' expr ')') expr
+
+lambda  ->  '(' list<stmt, '\n'> ')' stmt
+call    ->  lambda '(' expr ')'
 
 
-   ident                ::= ("_" | character) ("_" | character | digit)* 
 
-   binary               ::= expr binary_operator expr
-   unary                ::= unary_operator expr
+### Examples
 
-   cond_expr            ::= expr "==" expr
-                         |  expr "!=" expr
-                         |  expr "<" expr
-                         |  expr "<=" expr
-                         |  expr ">=" expr
-                         |  expr ">" expr
+## def
+    def main() => 1
 
-   block_start          ::= indent
-   block_end            ::= undent
-   block                ::= block_start statement+ block_end
+## Lambda
+    () => 1
+    (x f32) => x
+    (argc s32, argv u8**) { return 0 }
 
-   grouping             ::= "(" expr ")"
-   subscript            ::= expr "[" expr "]"
-   defer                ::= "defer" expr | "defer" block
-   as                   ::= expr "as" ident
-   sizeof               ::= "sizeof" expr
-   typeof               ::= "typeof" expr
-   link                 ::= "link" string
-   load                 ::= "load" string
-   break                ::= "break"
-   continue             ::= "continue"
-   true                 ::= "true"
-   false                ::= "false"
-   return               ::= "return" expr
+## Call
+    print("hello")
+    ((x f32) => x) (1.0)
 
-
-   type                 ::= ident '*' *
-                          | ident '[' expr? ']'
-                          | ident '(' type* ')' type?
-
-   constant_decl        ::= ident :: ident
-                          | ident :: expr
-
-   variable_decl        ::= ident type
-                          | ident "=" expr
-                          | ident type "=" expr
-
-   type_def             ::= ident block
-   enum_def             ::= ident block
-
-   func_call            ::= ident '(' expr.. ')'
-   func_def_extern      ::= ident "("ident.. ")"ident
-   func_def             ::= ident '(' variable_decl.. ')' ident block
-   func_lambda          ::= ident '=>' block
-
-   type                 ::= ident
-
-   immidiate_lambda     ::= '(' expr ')' type block?
-   named_lambda         ::= ident immidiate_lambda
-
-   variable_decl_block  ::=block_start>variable_decl>..block_end>
-   constant_decl_block  ::=block_start>constant_decl>..block_end>
-
-
-   case                 ::= "case"expr>expr>
-                                | "case"expr>block>
-                                | "case" "."enum_member>expr>
-                                | "case" "."enum_member>block>
-   case_block           ::=block_start>case>..block_start>
-   if                   ::= "if"expr>block>
-                                | "if"expr>block"else"block>
-   if_switch            ::= "if"expr>case_block>
-   for                  ::= "for"block>
-                                | "for"variable_decl","cond_expr","expr>block>
-                                | "for"cond_expr>block>
-
-   expr                 ::= ident
-                          | binary
-                          | unary
-                          | integer
-                          | float
-                          | string
-                          | grouping
-                          | true
-                          | false
-                          | sizeof
-                          | typeof
-
-   def                  ::= func_def
-                          | struct_def
-                          | enum_def
-                          | func_def_extern
-                          | load
-                          | link
-                          | constant_decl
-
-   statement            ::=continue>
-                                |break>
-                                |variable_decl>
-                                |func_call>
-                                |return>
-                                |defer>
-                                |if>
-                                |is>
-                                |for>
-
-#
-# Binary Operator Precedence
-#
-    [] 100
-    . 100
-    () 100
-    -> 100
-    ! 85
-    ~ 85
-    * 85
-    & 85
-    * 80
-    / 80
-    % 80
-    - 70
-    + 70
-    65
-    >> 65
-    60
-    > 60
-    >= 60
-   = 60
-    == 50
-    != 50
-    && 48
-    || 47
-    @ 40
-    & 40
-    ^ 30
-    | 20
-    ? 15
-    : 15
-    = 10
-    += 10
-    -= 10
-    *= 10
-    /= 10
-    %= 10
-    &= 10
-    ^= 10
-    |= 10
-   = 10
-    >>= 10
-
-
-# Primitive
-#ident = name
-#unary = '*' | '&' | '+' | '-'
-#suffix = '*' | '[]'
-#type = [ident|u8|u16|u32|u64|s8|s16|s32|s64|f32|f64|bool|int|float|double|char] modifier*
-#variable_decl = ident type
-#expr = variable_decl | unary | binary | literal | if | for | while | 
-#comma_separated_list = (expr ',')+
-#tuple = '(' comma_separated_list ')'
+## Cast
+    cast(s32) 1.0
+    (s32) 1.0
+    (Particle*) data
+    cast(Particle*) data

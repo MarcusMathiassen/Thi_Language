@@ -60,6 +60,7 @@ typedef enum {
 } Unary_Kind;
 
 typedef enum {
+    AST_DEF,
     AST_COMMENT,
     AST_NOP,
     AST_SPACE_SEPARATED_IDENTIFIER_LIST,
@@ -131,6 +132,10 @@ struct AST {
     List* edges;
     u32 flags;
     union {
+        struct {
+            char*   name;
+            AST*    stmt;
+        } Def;
         struct {
             char* name;
             Type* type;
@@ -342,6 +347,7 @@ struct AST {
     };
 };
 
+AST* make_ast_def                             (Loc_Info loc_info, char* name, AST* stmt);
 AST* make_ast_comment                         (Loc_Info loc_info, char* text);
 AST* make_ast_nop                             (Loc_Info loc_info);
 AST* make_ast_module                          (Loc_Info loc_info, char* name, List* top_level);

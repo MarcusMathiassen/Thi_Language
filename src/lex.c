@@ -600,7 +600,7 @@ Lexed_File lex(char* source) {
         }
 
         xassert(kind != TOKEN_UNKNOWN);
-        if (kind != TOKEN_COMMENT)
+        if (kind != TOKEN_COMMENT && kind != TOKEN_NEWLINE)
             token_array_append(&tokens, (Token){kind, start, end, line, col});
 
     } while(kind); // TOKEN_EOF == 0 @Volatile
@@ -627,7 +627,7 @@ static bool lexed_is_kind(char* s, Token_Kind k)
     if (l.tokens.data[0].kind != k) error("expected %s got %s", token_kind_to_str(k), token_kind_to_str(l.tokens.data[0].kind));
     return true;
 }
-    
+
 void lexer_test(void)
 {
     xassert(lexed_is_kind("1", TOKEN_INTEGER));
