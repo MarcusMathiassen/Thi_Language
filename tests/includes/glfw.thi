@@ -23,6 +23,7 @@ def GLFWimage struct
     width  s32
     height s32
     pixels u8*
+    
 extern glfwCreateWindow(s32, s32, s8*, void*, void*) void*
 extern glfwInit() bool
 extern glfwTerminate ()

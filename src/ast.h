@@ -60,6 +60,7 @@ typedef enum {
 } Unary_Kind;
 
 typedef enum {
+    AST_LIST,
     AST_DEF,
     AST_COMMENT,
     AST_NOP,
@@ -113,10 +114,17 @@ typedef enum {
     LITERAL_CHAR,
     LITERAL_INTEGER,
     LITERAL_HEX,
+    LITERAL_BINARY,
     LITERAL_FLOAT,
     LITERAL_STRING,
     _LITERAL_COUNT_,
 } Literal_Kind;
+
+typedef enum {
+    LIST_STMT,
+    LIST_EXPR,
+    _LIST_COUNT_,
+} List_Kind;
 
 typedef struct AST AST;
 
@@ -132,6 +140,11 @@ struct AST {
     List* edges;
     u32 flags;
     union {
+        struct {
+            List_Kind kind;
+            Token_Kind delimitor;
+            List* list;
+        } List;
         struct {
             char*   name;
             AST*    stmt;
@@ -327,6 +340,7 @@ struct AST {
                 struct { char  value; } Char;
                 struct { s64   value; } Integer;
                 struct { u64   value; } Hex;
+                struct { u64   value; } Binary;
                 struct { f64   value; } Float;
                 struct { char* value; } String;
             };
@@ -347,6 +361,7 @@ struct AST {
     };
 };
 
+AST* make_ast_list                            (Loc_Info loc_info, List_Kind kind, Token_Kind delimitor, List* list);
 AST* make_ast_def                             (Loc_Info loc_info, char* name, AST* stmt);
 AST* make_ast_comment                         (Loc_Info loc_info, char* text);
 AST* make_ast_nop                             (Loc_Info loc_info);
@@ -388,7 +403,13 @@ AST* make_ast_continue                        (Loc_Info loc_info);
 AST* make_ast_space_separated_identifier_list (Loc_Info loc_info, List* identifiers);
 AST* make_ast_comma_separated_list            (Loc_Info loc_info, List* nodes);
 AST* make_ast_post_inc_or_dec                 (Loc_Info loc_info, Token_Kind op, AST* node);
-AST* make_ast_literal                         (Loc_Info loc_info, Literal_Kind kind, char* value);
+
+AST* make_ast_literal                         (Loc_Info loc_info, char* value);
+AST* make_ast_literal_int                     (Loc_Info loc_info, s64 val);
+AST* make_ast_literal_float                   (Loc_Info loc_info, f64 val);
+AST* make_ast_literal_char                    (Loc_Info loc_info, char val);
+AST* make_ast_literal_string                  (Loc_Info loc_info, char* val);
+
 AST* make_ast_asm                             (Loc_Info loc_info, AST* block);
 AST* make_ast_cast                            (Loc_Info loc_info, AST* desired_type, AST* node);
 AST* make_ast_expr_list                       (Loc_Info loc_info, List* expr_list);

@@ -1,10 +1,12 @@
 
 # Thi Language Grammar
 
-expr  ->  literal | unary | binary | grouping | list<expr, ','> | call
+expr  ->  literal | unary | binary | grouping | list<expr, ','> | call | ident | lambda
 stmt  ->  'def' | 'return' | 'if' | 'for' | 'while' | 'else' 
           | 'load' | 'link' | 'fallthrough' | 'continue' | 'break' | 'enum' | 'in'
-          | 'defer' | 'is'
+          | 'defer' | 'is' | variableDecl
+
+primary  -> literal | 'true' | 'false' | "(" expression ")"
 
 list<X, Y>  ->  a list of 'X' separated by 'Y'
 
@@ -27,8 +29,16 @@ block   -> '{' list<stmt, '\n'> '}'
 
 cast    ->  (cast(expr) | '(' expr ')') expr
 
-lambda  ->  '(' list<stmt, '\n'> ')' stmt
+lambda  ->  expr expr? '=>' expr
 call    ->  lambda '(' expr ')'
+
+variableDecl -> ident expr
+
+funcSig  ->  '(' stmt* ')' stmt
+lambda   ->  funcSig stmt 
+
+def -> 'def' expr
+
 
 ### Examples
 

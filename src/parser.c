@@ -777,11 +777,11 @@ AST* parse_postfix(Parser_Context* ctx) {
             eat(ctx);
             primary_expr = make_ast_post_inc_or_dec(lc, op, primary_expr);
         } break;
-        case TOKEN_COMMA: {
-            List* exprs = parse_delimited_list(ctx, parse_expression, TOKEN_COMMA);
-            list_prepend(exprs, primary_expr);
-            primary_expr = make_ast_comma_separated_list(lc, exprs);
-        } break;
+        // case TOKEN_COMMA: {
+        //     List* exprs = parse_delimited_list(ctx, parse_expression, TOKEN_COMMA);
+        //     list_prepend(exprs, primary_expr);
+        //     primary_expr = make_ast_comma_separated_list(lc, exprs);
+        // } break;
         case TOKEN_AS: {
             eat(ctx);
             AST* type_expr = parse_expression(ctx);

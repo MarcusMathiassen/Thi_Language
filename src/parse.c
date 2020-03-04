@@ -63,82 +63,162 @@ static Loc_Info loc(Parser_Context* ctx) {
     return (Loc_Info){line, col};
 }
 
+static AST* parse_expression(Parser_Context* ctx);
+static AST* parse_primary(Parser_Context* ctx);
+static AST* parse_statement(Parser_Context* ctx);
 
+// Expressions
+static AST* parse_literal   (Parser_Context* ctx);
+static AST* parse_unary     (Parser_Context* ctx);
+static AST* parse_binary    (Parser_Context* ctx);
+static AST* parse_grouping  (Parser_Context* ctx);
+static AST* parse_list_expr (Parser_Context* ctx, Token_Kind delimitor);
+static AST* parse_list_stmt (Parser_Context* ctx, Token_Kind delimitor);
+static AST* parse_call      (Parser_Context* ctx);
+static AST* parse_ident     (Parser_Context* ctx);
 
-static AST* parse_expr(Parser_Context* ctx);
-static AST* parse_stmt(Parser_Context* ctx);
-static AST* parse_literal(Parser_Context* ctx);
-static List* parse_list(Parser_Context* ctx, AST* (*parseFunc)(Parser_Context*), Token_Kind delimiter);
+// Statements
+static AST* parse_def         (Parser_Context* ctx);
+static AST* parse_return      (Parser_Context* ctx);
+static AST* parse_if          (Parser_Context* ctx);
+static AST* parse_for         (Parser_Context* ctx);
+static AST* parse_while       (Parser_Context* ctx);
+static AST* parse_else        (Parser_Context* ctx);
+static AST* parse_load        (Parser_Context* ctx);
+static AST* parse_link        (Parser_Context* ctx);
+static AST* parse_fallthrough (Parser_Context* ctx);
+static AST* parse_continue    (Parser_Context* ctx);
+static AST* parse_break       (Parser_Context* ctx);
+static AST* parse_enum        (Parser_Context* ctx);
+static AST* parse_in          (Parser_Context* ctx);
+static AST* parse_defer       (Parser_Context* ctx);
+static AST* parse_is          (Parser_Context* ctx);
 
-
-static List* parse_list(Parser_Context* ctx, AST* (*parseFunc)(Parser_Context*), Token_Kind delimiter) {
-    DEBUG_START;
-    List* nodes = make_list();
-    while (tokIs(ctx, delimiter)) {
-        eat(ctx); // eat delimitor
-        AST* node = (*parseFunc)(ctx);
-        xassert(node);
-        list_append(nodes, node);
-    }
-    return nodes;
-}
-
-
-static AST* parse_literal(Parser_Context* ctx)
-{
-    DEBUG_START;
-
-    // switch(kind(ctx))
-    // {
-    //     ERROR_UNHANDLED_TOKEN_KIND(kind(ctx));
-    //     case TOKEN_INTEGER:  return parse_integer(ctx);
-    //     case TOKEN_FLOAT:    return parse_float(ctx);
-    //     case TOKEN_HEX:      return parse_hex(ctx);
-    //     case TOKEN_STRING:   return parse_string(ctx);
-    //     case TOKEN_CHAR:     return parse_char(ctx);
-    // }
-
-    UNFINISHED;
-    return NULL;
-}
-
-static AST* parse_expr(Parser_Context* ctx)
+static AST* parse_expression(Parser_Context* ctx)
 {
     DEBUG_START;
     switch(kind(ctx))
     {
         ERROR_UNHANDLED_TOKEN_KIND(kind(ctx));
-        case TOKEN_LITERAL:  return parse_literal(ctx);
+        case TOKEN_LITERAL: return parse_literal(ctx);
+        case TOKEN_TRUE:    { Loc_Info lc = loc(ctx); eat(ctx); return make_ast_literal_int(lc, 1); }
+        case TOKEN_FALSE:   { Loc_Info lc = loc(ctx); eat(ctx); return make_ast_literal_int(lc, 0); }
+        case TOKEN_OPEN_PAREN: return parse_grouping(ctx);
     }
 
     UNFINISHED;
     return NULL;
 }
-
-static AST* parse_parens(Parser_Context* ctx)
+static AST* parse_primary(Parser_Context* ctx)
 {
     DEBUG_START;
-    xassert(kind(ctx) == TOKEN_OPEN_PAREN);
+    switch(kind(ctx))
+    {
+        ERROR_UNHANDLED_TOKEN_KIND(kind(ctx));
+        case TOKEN_LITERAL: return parse_literal(ctx);
+        case TOKEN_TRUE:    { Loc_Info lc = loc(ctx); eat(ctx); return make_ast_literal_int(lc, 1); }
+        case TOKEN_FALSE:   { Loc_Info lc = loc(ctx); eat(ctx); return make_ast_literal_int(lc, 0); }
+        case TOKEN_OPEN_PAREN: return parse_grouping(ctx);
+        case TOKEN_CLOSE_PAREN: return NULL; // if a grouping is empty, this will get called
+    }
+
+    UNREACHABLE;
+    return NULL;
+}
+static AST* parse_statement(Parser_Context* ctx) {
+    DEBUG_START;
+    switch (kind(ctx)) {
+    ERROR_UNHANDLED_TOKEN_KIND(kind(ctx));
+
+    // case TOKEN_IDENTIFIER:  return parse_variableDecl(ctx);
+
+    case TOKEN_DEF:         return parse_def(ctx);
+    case TOKEN_RETURN:      return parse_return(ctx);
+    case TOKEN_IF:          return parse_if(ctx);
+    case TOKEN_FOR:         return parse_for(ctx);
+    case TOKEN_WHILE:       return parse_while(ctx);
+    case TOKEN_ELSE:        return parse_else(ctx);
+    case TOKEN_LOAD:        return parse_load(ctx);
+    case TOKEN_LINK:        return parse_link(ctx);
+    case TOKEN_FALLTHROUGH: return parse_fallthrough(ctx);
+    case TOKEN_CONTINUE:    return parse_continue(ctx);
+    case TOKEN_BREAK:       return parse_break(ctx);
+    case TOKEN_ENUM:        return parse_enum(ctx);
+    case TOKEN_IN:          return parse_in(ctx);
+    case TOKEN_DEFER:       return parse_defer(ctx);
+    case TOKEN_IS:          return parse_is(ctx);
+
+    }
+    UNREACHABLE;
+    return NULL;
+}
+static AST* parse_literal(Parser_Context* ctx)
+{
+    DEBUG_START;
     Loc_Info lc = loc(ctx);
+    char* v = value(ctx);
     eat(ctx);
-
-    // there might not be anything after this parens
-    AST* grouped = NULL;
-    if (!tokIs(ctx, TOKEN_CLOSE_PAREN))
-        grouped = parse_stmt(ctx);
-
-    match(ctx, TOKEN_CLOSE_PAREN);
-    return make_ast_grouping(lc, grouped);
+    return make_ast_literal(lc, v);
+}
+static AST* parse_unary(Parser_Context* ctx)
+{
+    DEBUG_START;
+    UNFINISHED;
+    return NULL;
+}
+static AST* parse_binary(Parser_Context* ctx)
+{
+    DEBUG_START;
+    UNFINISHED;
+    return NULL;
 }
 
-static AST* parse_return(Parser_Context* ctx)
+static AST* parse_grouping(Parser_Context* ctx)
 {
     DEBUG_START;
-    xassert(kind(ctx) == TOKEN_RETURN);
     Loc_Info lc = loc(ctx);
     eat(ctx);
-    AST* expr = parse_expr(ctx);
-    return make_ast_return(lc, expr);
+    AST* expr = parse_expression(ctx);
+    match(ctx, TOKEN_CLOSE_PAREN);
+    return make_ast_grouping(lc, expr);
+}
+static AST* parse_list_expr(Parser_Context* ctx, Token_Kind delimitor)
+{
+    DEBUG_START;
+    Loc_Info lc = loc(ctx);
+    List* nodes = make_list();
+    while (tokIs(ctx, delimitor)) {
+        eat(ctx); // eat delimitor
+        AST* node = parse_expression(ctx);
+        xassert(node);
+        list_append(nodes, node);
+    }
+    return make_ast_list(lc, LIST_EXPR, delimitor, nodes);
+}
+static AST* parse_list_stmt(Parser_Context* ctx, Token_Kind delimitor)
+{
+    DEBUG_START;
+    Loc_Info lc = loc(ctx);
+    List* nodes = make_list();
+    while (tokIs(ctx, delimitor)) {
+        eat(ctx); // eat delimitor
+        AST* node = parse_statement(ctx);
+        xassert(node);
+        list_append(nodes, node);
+    }
+    return make_ast_list(lc, LIST_STMT, delimitor, nodes);
+}
+static AST* parse_call      (Parser_Context* ctx)
+{
+    DEBUG_START;
+    UNFINISHED;
+    return NULL;
+}
+static AST* parse_ident(Parser_Context* ctx)
+{
+    DEBUG_START;
+    UNFINISHED;
+    return NULL;
 }
 static AST* parse_def(Parser_Context* ctx)
 {
@@ -148,51 +228,94 @@ static AST* parse_def(Parser_Context* ctx)
     eat(ctx);
     char* name = value(ctx);
     match(ctx, TOKEN_IDENTIFIER);
-    AST* stmt = parse_stmt(ctx);
-    return make_ast_def(lc, name, stmt);
+    AST* expr = parse_expression(ctx);
+    return make_ast_def(lc, name, expr);
 }
-
-static AST* parse_identifier(Parser_Context* ctx) {
+static AST* parse_return(Parser_Context* ctx)
+{
     DEBUG_START;
-    xassert(kind(ctx) == TOKEN_IDENTIFIER);
-
+    xassert(kind(ctx) == TOKEN_RETURN);
     Loc_Info lc = loc(ctx);
-    char* name = value(ctx);
     eat(ctx);
-
-    switch (kind(ctx)) {
-    default: return make_ast_ident(lc, name);        
-    }
-
-    UNREACHABLE;
+    AST* expr = parse_expression(ctx);
+    return make_ast_return(lc, expr);
+}
+static AST* parse_if(Parser_Context* ctx)
+{
+    DEBUG_START;
+    UNFINISHED;
     return NULL;
 }
-static AST* parse_identifier_expression(Parser_Context* ctx) {
+static AST* parse_for(Parser_Context* ctx)
+{
     DEBUG_START;
-    xassert(kind(ctx) == TOKEN_IDENTIFIER);
-
-    Loc_Info lc = loc(ctx);
-    char* name = value(ctx);
-    eat(ctx);
-
-    switch (kind(ctx)) {
-    default: return make_ast_ident(lc, name);        
-    }
-
-    UNREACHABLE;
+    UNFINISHED;
     return NULL;
 }
-
-static AST* parse_stmt(Parser_Context* ctx) {
+static AST* parse_while(Parser_Context* ctx)
+{
     DEBUG_START;
-    switch (kind(ctx)) {
-    ERROR_UNHANDLED_TOKEN_KIND(kind(ctx));
-    case TOKEN_IDENTIFIER: return parse_identifier(ctx);
-    case TOKEN_DEF:        return parse_def(ctx);
-    case TOKEN_OPEN_PAREN: return parse_parens(ctx);
-    case TOKEN_RETURN:     return parse_return(ctx);
-    }
-    UNREACHABLE;
+    UNFINISHED;
+    return NULL;
+}
+static AST* parse_else(Parser_Context* ctx)
+{
+    DEBUG_START;
+    UNFINISHED;
+    return NULL;
+}
+static AST* parse_load(Parser_Context* ctx)
+{
+    DEBUG_START;
+    UNFINISHED;
+    return NULL;
+}
+static AST* parse_link(Parser_Context* ctx)
+{
+    DEBUG_START;
+    UNFINISHED;
+    return NULL;
+}
+static AST* parse_fallthrough(Parser_Context* ctx)
+{
+    DEBUG_START;
+    UNFINISHED;
+    return NULL;
+}
+static AST* parse_continue(Parser_Context* ctx)
+{
+    DEBUG_START;
+    UNFINISHED;
+    return NULL;
+}
+static AST* parse_break(Parser_Context* ctx)
+{
+    DEBUG_START;
+    UNFINISHED;
+    return NULL;
+}
+static AST* parse_enum(Parser_Context* ctx)
+{
+    DEBUG_START;
+    UNFINISHED;
+    return NULL;
+}
+static AST* parse_in(Parser_Context* ctx)
+{
+    DEBUG_START;
+    UNFINISHED;
+    return NULL;
+}
+static AST* parse_defer(Parser_Context* ctx)
+{
+    DEBUG_START;
+    UNFINISHED;
+    return NULL;
+}
+static AST* parse_is(Parser_Context* ctx)
+{
+    DEBUG_START;
+    UNFINISHED;
     return NULL;
 }
 
@@ -207,7 +330,7 @@ AST* parse2(char* source) { // @Temp: name
     eat(&ctx); // prime the first token
     
     while(kind(&ctx) != TOKEN_EOF) {
-        AST* node = parse_stmt(&ctx);
+        AST* node = parse_statement(&ctx);
         if (node) list_append(nodes, node);
     }
 
