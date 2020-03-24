@@ -1,12 +1,21 @@
-## What it is
-    A C like programming language written in C99.
-    Featuring python like syntax with optional braces and semicolons.
+    A C-like programming language written in C99.
+    Featuring indent-based scoping and optional braces and semicolons.
+
+## It is   
+- beautiful
+- optional with regards to braces and semicolons
+- opinionated
+- borderline esoteric
+- outputs x64 Assembly
+- and not recommended for use
+
+## Usage
+    thi hello.thi
+    # -> 'Hello'
 
 ## How to compile
-Run a build script in the root folder:
-
-dev or prod
-
+    ./dev
+    
 ## Dependencies (these are not 'min' versions, just the versions i use)
 
 Assembler: nasm (version 2.14.02)
@@ -14,10 +23,6 @@ Assembler: nasm (version 2.14.02)
 Linker: ld (BUILD 18:45:16 Apr  4 2019)
 
 Tested on macOS. Unsure about Windows.
-
-## Usage
-    
-        thi source.thi
 
 ## Sample:
         # This is a comment
@@ -45,3 +50,6 @@ Tested on macOS. Unsure about Windows.
         4th
 
 More examples can be found in the 'tests' folder.
+
+## Note
+This is currently a work in progress and not in any way stable.
