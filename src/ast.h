@@ -31,7 +31,6 @@
 #include "type.h"    // Type
 #include "utility.h" // Loc_Info
 
-
 //------------------------------------------------------------------------------
 //                                  AST Structures
 //------------------------------------------------------------------------------
@@ -107,6 +106,7 @@ typedef enum {
     AST_CAST,
     AST_EXPR_LIST,
     AST_TYPE,
+    AST_LAMBDA,
     _AST_COUNT_
 } AST_Kind;
 
@@ -150,8 +150,7 @@ struct AST {
             AST*    stmt;
         } Def;
         struct {
-            char* name;
-            Type* type;
+            AST* expr;
         } Type;
         struct
         {
@@ -358,6 +357,11 @@ struct AST {
         {
             List* exprs;
         } Expr_List;
+        struct
+        {
+            AST* params;
+            AST* expr;
+        } Lambda;  
     };
 };
 
@@ -413,7 +417,8 @@ AST* make_ast_literal_string                  (Loc_Info loc_info, char* val);
 AST* make_ast_asm                             (Loc_Info loc_info, AST* block);
 AST* make_ast_cast                            (Loc_Info loc_info, AST* desired_type, AST* node);
 AST* make_ast_expr_list                       (Loc_Info loc_info, List* expr_list);
-AST* make_ast_type                            (Loc_Info loc_info, char* name, Type* type);
+AST* make_ast_type                            (Loc_Info loc_info, AST* expr);
+AST* make_ast_lambda                          (Loc_Info loc_info, AST* params, AST* expr);
 
 typedef void* (*ast_callback)(void*, AST*);
 
@@ -427,8 +432,11 @@ char* ast_get_literal_value_as_str (AST* node);
 char* get_ast_loc_str              (AST* node);
 char* ast_to_src                   (AST* node);
 char* ast_to_str                   (AST* node);
+char* ast_to_json                  (AST* node);
 char* ast_kind_to_str              (AST_Kind kind);
 char* literal_kind_to_str          (Literal_Kind kind);
+
+void* __ast_to_json(void* ctx, AST* node);
 
 typedef struct {
     AST** data;

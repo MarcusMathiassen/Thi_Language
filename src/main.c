@@ -24,6 +24,7 @@
 #include "set.h"          // Set, set_tests
 #include "ast.h"          // AST, AST_Kind
 #include "ast_to_c.h"     // ast_to_c
+#include "json.h"         // json_test
 #include "codegen.h"      // generate_code_from_ast
 #include "lex.h"          // generate_tokens_from_source, print_tokens
 #include "list.h"         // list_tests
@@ -309,7 +310,6 @@ int main(int argc, char** argv) {
     initilize_timers();
     push_timer("Total time");
 
-    error("%s", parse2(get_file_content(argv[1])));
 
     // s32 opt;
     // while ((opt = getopt(argc, argv, "hv")) != -1) {
@@ -330,6 +330,7 @@ int main(int argc, char** argv) {
 
 #ifndef NDEBUG
     // mem_test();
+    json_test();
     set_tests();
     utility_tests();
     string_tests();
@@ -338,6 +339,8 @@ int main(int argc, char** argv) {
     stack_tests();
     lexer_test();
 #endif
+
+    error("%s", ast_to_json(parse_module(argv[1])));
 
     push_timer("Frontend");
 

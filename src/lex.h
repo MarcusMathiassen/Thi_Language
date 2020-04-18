@@ -45,7 +45,7 @@
     0 48   P 80  p 112
     1 49   Q 81  q 113
     2 50   R 82  r 114
-    3 51   S 83  s 115
+    3 51   S 83  s 115π
     4 52   T 84  t 116
     5 53   U 85  u 117
     6 54   V 86  v 118
@@ -226,6 +226,8 @@ Lexed_File lex(char* source);
 char* token_to_str(Token token);
 char* token_value(Token token);
 char* token_kind_to_str(Token_Kind kind);
+char* token_kind_to_str_actual(Token_Kind kind);
+
 s64 get_line_and_col(char* source, Token token);
 void lexer_test(void);
 

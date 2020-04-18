@@ -21,7 +21,7 @@
 #ifndef PARSE_H
 #define PARSE_H
 
-#include "ast.h" // AST
-AST* parse2(char* source); // @Temp: name
+#include "ast.h"
+AST* parse_module(char* path);
 
 #endif

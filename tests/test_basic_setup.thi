@@ -1,10 +1,4 @@
-def v2 struct
-    x f32
-    y f32 # Hello this is a test
+# this is a comment
 
-extern printf(char*, ...) int
-
-def main(argc int, argv char**) int
-    for i in 0 .. argc
-        printf("%d = %s\n", i, *argv++)
-    return i = 1
+def main() -> int
+    return 0

@@ -306,7 +306,7 @@ static Equivalence_Kind equivalence[] = {
 };
 
 #define is_valid_identifier(c)  isalnum(c) || c == '_'
-#define is_valid_digit(c)       isdigit(c) || c == '_' || c == '.' || c == 'e' || c == 'x'
+#define is_valid_digit(c)       isdigit(c) || c == '_' || c == '.' || c == 'e' || c == 'x' || c == 'b'
 
 #define CASE_SINGLE_TOKEN(c1, t_kind) \
     case c1:                          \
@@ -417,6 +417,8 @@ Lexed_File lex(char* source) {
 
         case STATE_OPERATOR: {
             kind = (Token_Kind)*c;
+            if (kind == TOKEN_OPEN_BRACE) kind = TOKEN_BLOCK_START;
+            if (kind == TOKEN_CLOSE_BRACE) kind = TOKEN_BLOCK_END;
 
             switch (*c) {
                 default: 
@@ -506,10 +508,12 @@ Lexed_File lex(char* source) {
             end = c;
         } break;
         case STATE_NUMBER: {
-            while(*c != ' ' && *c != '\n')
+            ++c;
+            while(is_valid_digit(*c)) {
                 ++c;
+            }
             kind = TOKEN_LITERAL;
-            end = c++;
+            end = c;
         } break;
         case STATE_STRING: {
             ++c;
@@ -550,7 +554,7 @@ Lexed_File lex(char* source) {
         }
 
         xassert(kind != TOKEN_UNKNOWN);
-        if (kind != TOKEN_COMMENT && kind != TOKEN_NEWLINE)
+        if (kind != TOKEN_NEWLINE) //kind != TOKEN_COMMENT && 
             token_array_append(&tokens, (Token){kind, start, end, line, col});
 
     } while(kind); // TOKEN_EOF == 0 @Volatile
@@ -558,9 +562,9 @@ Lexed_File lex(char* source) {
 #ifndef NDEBUG
     // Printing tokens
     foreach(i, tokens.count) {
-        debug("%llu -> %llu => '%s'", 
+        debug("[%llu -> %llu] => %s", 
             tokens.data[i].start, tokens.data[i].end,
-            ucolor(token_kind_to_str(tokens.data[i].kind)));
+            (token_kind_to_str(tokens.data[i].kind)));
     }
 #endif
 
@@ -580,12 +584,12 @@ static bool lexed_is_kind(char* s, Token_Kind k)
 
 void lexer_test(void)
 {
-    xassert(lexed_is_kind("1", TOKEN_INTEGER));
-    xassert(lexed_is_kind("1.0", TOKEN_FLOAT));
-    xassert(lexed_is_kind("0x1", TOKEN_HEX));
+    xassert(lexed_is_kind("1", TOKEN_LITERAL));
+    xassert(lexed_is_kind("1.0", TOKEN_LITERAL));
+    xassert(lexed_is_kind("0x1", TOKEN_LITERAL));
     xassert(lexed_is_kind("position", TOKEN_IDENTIFIER));
     xassert(lexed_is_kind(".", TOKEN_DOT));
-    xassert(lexed_is_kind("\"Hello World!\"", TOKEN_STRING));
+    xassert(lexed_is_kind("\"Hello World!\"", TOKEN_LITERAL));
 
     xassert(lexed_is_kind("asm", TOKEN_ASM));
     xassert(lexed_is_kind("def", TOKEN_DEF));
@@ -665,6 +669,122 @@ char* token_kind_to_str(Token_Kind kind) {
 
     case TOKEN_WHITESPACE:        return "TOKEN_WHITESPACE";
 
+    case TOKEN_BANG:              return "TOKEN_BANG";
+    case TOKEN_DOUBLE_QUOTATION:  return "TOKEN_DOUBLE_QUOTATION";
+    case TOKEN_HASH:              return "TOKEN_HASH";
+    case TOKEN_DOLLAR_SIGN:       return "TOKEN_DOLLAR_SIGN";
+    case TOKEN_PERCENT:           return "TOKEN_PERCENT";
+    case TOKEN_AND:               return "TOKEN_AND";
+    case TOKEN_SINGLE_QUOTATION:  return "TOKEN_SINGLE_QUOTATION";
+    case TOKEN_OPEN_PAREN:        return "TOKEN_OPEN_PAREN";
+    case TOKEN_CLOSE_PAREN:       return "TOKEN_CLOSE_PAREN";
+    case TOKEN_ASTERISK:          return "TOKEN_ASTERISK";
+    case TOKEN_PLUS:              return "TOKEN_PLUS";
+    case TOKEN_COMMA:             return "TOKEN_COMMA";
+    case TOKEN_MINUS:             return "TOKEN_MINUS";
+    case TOKEN_DOT:               return "TOKEN_DOT";
+    case TOKEN_FWSLASH:           return "TOKEN_FWSLASH";
+    case TOKEN_COLON:             return "TOKEN_COLON";
+    case TOKEN_SEMICOLON:         return "TOKEN_SEMICOLON";
+    case TOKEN_LT:                return "TOKEN_LT";
+    case TOKEN_EQ:                return "TOKEN_EQ";
+    case TOKEN_GT:                return "TOKEN_GT";
+    case TOKEN_QUESTION_MARK:     return "TOKEN_QUESTION_MARK";
+    case TOKEN_AT:                return "TOKEN_AT";
+    case TOKEN_OPEN_BRACKET:      return "TOKEN_OPEN_BRACKET";
+    case TOKEN_BWSLASH:           return "TOKEN_BWSLASH";
+    case TOKEN_CLOSE_BRACKET:     return "TOKEN_CLOSE_BRACKET";
+    case TOKEN_HAT:               return "TOKEN_HAT";
+    case TOKEN_BACK_TICK:         return "TOKEN_BACK_TICK";
+    case TOKEN_OPEN_BRACE:        return "TOKEN_OPEN_BRACE";
+    case TOKEN_PIPE:              return "TOKEN_PIPE";
+    case TOKEN_CLOSE_BRACE:       return "TOKEN_CLOSE_BRACE";
+    case TOKEN_TILDE:             return "TOKEN_TILDE";
+
+    case TOKEN_NEWLINE:           return "TOKEN_NEWLINE";
+    case TOKEN_COMMENT:           return "TOKEN_COMMENT";
+    case TOKEN_LITERAL:           return "TOKEN_LITERAL";
+    case TOKEN_BLOCK_START:       return "TOKEN_BLOCK_START";
+    case TOKEN_BLOCK_END:         return "TOKEN_BLOCK_END";
+    case TOKEN_INTEGER:           return "TOKEN_INTEGER";
+    case TOKEN_FLOAT:             return "TOKEN_FLOAT";
+    case TOKEN_HEX:               return "TOKEN_HEX";
+    case TOKEN_STRING:            return "TOKEN_STRING";
+    case TOKEN_CHAR:              return "TOKEN_CHAR";
+
+    case _BEGINNING_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_:  return "_BEGINNING_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_";
+    case _TOKEN_KEYWORDS_START_:  return "_TOKEN_KEYWORDS_START_";
+    case TOKEN_ASM:               return "TOKEN_ASM";
+    case TOKEN_DEF:               return "TOKEN_DEF";
+    case TOKEN_LINK:              return "TOKEN_LINK";
+    case TOKEN_LOAD:              return "TOKEN_LOAD";
+    case TOKEN_TRUE:              return "TOKEN_TRUE";
+    case TOKEN_FALSE:             return "TOKEN_FALSE";
+    case TOKEN_DEFER:             return "TOKEN_DEFER";
+    case TOKEN_EXTERN:            return "TOKEN_EXTERN";
+    case TOKEN_SIZEOF:            return "TOKEN_SIZEOF";
+    case TOKEN_TYPEOF:            return "TOKEN_TYPEOF";
+    case TOKEN_IF:                return "TOKEN_IF";
+    case TOKEN_ELSE:              return "TOKEN_ELSE";
+    case TOKEN_FOR:               return "TOKEN_FOR";
+    case TOKEN_WHILE:             return "TOKEN_WHILE";
+    case TOKEN_IN:                return "TOKEN_IN";
+    case TOKEN_RETURN:            return "TOKEN_RETURN";
+    case TOKEN_ENUM:              return "TOKEN_ENUM";
+    case TOKEN_STRUCT:            return "TOKEN_STRUCT";
+    case TOKEN_BREAK:             return "TOKEN_BREAK";
+    case TOKEN_CONTINUE:          return "TOKEN_CONTINUE";
+    case TOKEN_FALLTHROUGH:       return "TOKEN_FALLTHROUGH";
+    case TOKEN_AS:                return "TOKEN_AS";
+    case TOKEN_IS:                return "TOKEN_IS";
+    case TOKEN_CAST:              return "TOKEN_CAST";
+
+    case TOKEN_IDENTIFIER:        return "TOKEN_IDENTIFIER";
+
+    case _END_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_: return "_END_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_";
+
+    case TOKEN_PIPE_PIPE:         return "TOKEN_PIPE_PIPE";
+    case TOKEN_AND_AND:           return "TOKEN_AND_AND";
+    case TOKEN_PLUS_EQ:           return "TOKEN_PLUS_EQ";
+    case TOKEN_MINUS_EQ:          return "TOKEN_MINUS_EQ";
+    case TOKEN_HAT_EQ:            return "TOKEN_HAT_EQ";
+    case TOKEN_ASTERISK_EQ:       return "TOKEN_ASTERISK_EQ";
+    case TOKEN_PIPE_EQ:           return "TOKEN_PIPE_EQ";
+    case TOKEN_PERCENT_EQ:        return "TOKEN_PERCENT_EQ";
+    case TOKEN_AND_EQ:            return "TOKEN_AND_EQ";
+    case TOKEN_EQ_EQ:             return "TOKEN_EQ_EQ";
+    case TOKEN_EQ_GT:             return "TOKEN_EQ_GT";
+    case TOKEN_BANG_EQ:           return "TOKEN_BANG_EQ";
+    case TOKEN_COLON_COLON:       return "TOKEN_COLON_COLON";
+    case TOKEN_COLON_EQ:          return "TOKEN_COLON_EQ";
+    case TOKEN_MINUS_GT:          return "TOKEN_MINUS_GT";
+    case TOKEN_LT_EQ:             return "TOKEN_LT_EQ";
+    case TOKEN_LT_LT:             return "TOKEN_LT_LT";
+    case TOKEN_LT_LT_EQ:          return "TOKEN_LT_LT_EQ";
+    case TOKEN_GT_EQ:             return "TOKEN_GT_EQ";
+    case TOKEN_GT_GT:             return "TOKEN_GT_GT";
+    case TOKEN_GT_GT_EQ:          return "TOKEN_GT_GT_EQ";
+    case TOKEN_DOT_DOT:           return "TOKEN_DOT_DOT";
+    case TOKEN_DOT_DOT_DOT:       return "TOKEN_DOT_DOT_DOT";
+    case TOKEN_MINUS_MINUS:       return "TOKEN_MINUS_MINUS";
+    case TOKEN_MINUS_MINUS_MINUS: return "TOKEN_MINUS_MINUS_MINUS";
+    case TOKEN_PLUS_PLUS:         return "TOKEN_PLUS_PLUS";
+    case TOKEN_FWSLASH_EQ:        return "TOKEN_FWSLASH_EQ";
+    case TOKEN_PIPE_GT:           return "TOKEN_PIPE_GT";
+    case _TOKEN_COUNT_:           return "_TOKEN_COUNT_";
+    }
+    UNREACHABLE;
+    return NULL;
+}
+
+char* token_kind_to_str_actual(Token_Kind kind) {
+    TASSERT_KIND_IN_RANGE(TOKEN, kind);
+    switch (kind) {
+    case TOKEN_UNKNOWN:           return "TOKEN_UNKNOWN";
+    case TOKEN_EOF:               return "TOKEN_EOF";
+
+    case TOKEN_WHITESPACE:        return " ";
+
     case TOKEN_BANG:              return "!";
     case TOKEN_DOUBLE_QUOTATION:  return "\"";
     case TOKEN_HASH:              return "#";
@@ -710,30 +830,30 @@ char* token_kind_to_str(Token_Kind kind) {
 
     case _BEGINNING_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_:  return "_BEGINNING_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_";
     case _TOKEN_KEYWORDS_START_:  return "_TOKEN_KEYWORDS_START_";
-    case TOKEN_ASM:               return "asm";
-    case TOKEN_DEF:               return "def";
-    case TOKEN_LINK:              return "link";
-    case TOKEN_LOAD:              return "load";
-    case TOKEN_TRUE:              return "true";
-    case TOKEN_FALSE:             return "false";
-    case TOKEN_DEFER:             return "defer";
-    case TOKEN_EXTERN:            return "extern";
-    case TOKEN_SIZEOF:            return "sizeof";
-    case TOKEN_TYPEOF:            return "typeof";
-    case TOKEN_IF:                return "if";
-    case TOKEN_ELSE:              return "else";
-    case TOKEN_FOR:               return "for";
-    case TOKEN_WHILE:             return "while";
-    case TOKEN_IN:                return "in";
-    case TOKEN_RETURN:            return "return";
-    case TOKEN_ENUM:              return "enum";
-    case TOKEN_STRUCT:            return "struct";
-    case TOKEN_BREAK:             return "break";
-    case TOKEN_CONTINUE:          return "continue";
-    case TOKEN_FALLTHROUGH:       return "fallthrough";
-    case TOKEN_AS:                return "as";
-    case TOKEN_IS:                return "is";
-    case TOKEN_CAST:              return "cast";
+    case TOKEN_ASM:               return "TOKEN_ASM";
+    case TOKEN_DEF:               return "TOKEN_DEF";
+    case TOKEN_LINK:              return "TOKEN_LINK";
+    case TOKEN_LOAD:              return "TOKEN_LOAD";
+    case TOKEN_TRUE:              return "TOKEN_TRUE";
+    case TOKEN_FALSE:             return "TOKEN_FALSE";
+    case TOKEN_DEFER:             return "TOKEN_DEFER";
+    case TOKEN_EXTERN:            return "TOKEN_EXTERN";
+    case TOKEN_SIZEOF:            return "TOKEN_SIZEOF";
+    case TOKEN_TYPEOF:            return "TOKEN_TYPEOF";
+    case TOKEN_IF:                return "TOKEN_IF";
+    case TOKEN_ELSE:              return "TOKEN_ELSE";
+    case TOKEN_FOR:               return "TOKEN_FOR";
+    case TOKEN_WHILE:             return "TOKEN_WHILE";
+    case TOKEN_IN:                return "TOKEN_IN";
+    case TOKEN_RETURN:            return "TOKEN_RETURN";
+    case TOKEN_ENUM:              return "TOKEN_ENUM";
+    case TOKEN_STRUCT:            return "TOKEN_STRUCT";
+    case TOKEN_BREAK:             return "TOKEN_BREAK";
+    case TOKEN_CONTINUE:          return "TOKEN_CONTINUE";
+    case TOKEN_FALLTHROUGH:       return "TOKEN_FALLTHROUGH";
+    case TOKEN_AS:                return "TOKEN_AS";
+    case TOKEN_IS:                return "TOKEN_IS";
+    case TOKEN_CAST:              return "TOKEN_CAST";
 
     case TOKEN_IDENTIFIER:        return "TOKEN_IDENTIFIER";
 
@@ -772,6 +892,7 @@ char* token_kind_to_str(Token_Kind kind) {
     UNREACHABLE;
     return NULL;
 }
+
 
 Token_Array make_token_array(void) {
     Token_Array l;
@@ -813,7 +934,6 @@ s64 get_line_and_col(char* source, Token token) {
     // s64 col = source - start_of_line;
     return line;
 }
-
 
 void intern_array_append(Intern_Array* l, Intern intern) {
     if (l->count == l->allocated) {

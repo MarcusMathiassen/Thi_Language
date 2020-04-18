@@ -209,7 +209,7 @@ Register_Kind get_parameter_reg_int(s8 i, s8 size) {
     default: error("we only support upto 6 parameters per function.");
     }
     return -1; // to silence warning
-};
+}
 
 Register_Kind get_parameter_reg_float(s8 i) {
     switch (i) {
@@ -225,7 +225,7 @@ Register_Kind get_parameter_reg_float(s8 i) {
     }
     UNREACHABLE;
     return 0;
-};
+}
 
 Register_Kind get_size_of_reg(Register_Kind reg) {
     if (reg >= XMM0) return 8;

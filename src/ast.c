@@ -25,10 +25,12 @@
 #include "ast.h"
 
 #include "common.h"
+#include "json.h"
 #include "lex.h"     // token_kind_to_str,
 #include "string.h"  // strf, string_append, string
 #include "utility.h" // info, success, error, warning, xmalloc, xrealloc, xstrlen
 #include <stdlib.h>
+#include <math.h> // pow
 #include <string.h> // strlen
 
 //------------------------------------------------------------------------------
@@ -49,53 +51,55 @@ char* ast_kind_to_str(AST_Kind kind) {
     TASSERT_KIND_IN_RANGE(AST, kind);
     switch (kind) {
     ERROR_UNHANDLED_KIND(strf("kind = %d", kind));
-    case AST_LIST: return "AST_LIST";
-    case AST_DEF: return "AST_DEF";
-    case AST_COMMENT: return "AST_COMMENT";
-    case AST_NOP: return "AST_NOP";
+    case AST_LIST:                            return "AST_LIST";
+    case AST_DEF:                             return "AST_DEF";
+    case AST_COMMENT:                         return "AST_COMMENT";
+    case AST_NOP:                             return "AST_NOP";
     case AST_SPACE_SEPARATED_IDENTIFIER_LIST: return "AST_SPACE_SEPARATED_IDENTIFIER_LIST";
-    case AST_COMMA_SEPARATED_LIST: return "AST_COMMA_SEPARATED_LIST";
-    case AST_MODULE: return "AST_MODULE";
-    case AST_IS: return "AST_IS";
-    case AST_FALLTHROUGH: return "AST_FALLTHROUGH";
-    case AST_VAR_ARGS: return "AST_VAR_ARGS";
-    case AST_EXTERN: return "AST_EXTERN";
-    case AST_LOAD: return "AST_LOAD";
-    case AST_LINK: return "AST_LINK";
-    case AST_NOTE: return "AST_NOTE";
-    case AST_INT: return "AST_INT";
-    case AST_FLOAT: return "AST_FLOAT";
-    case AST_STRING: return "AST_STRING";
-    case AST_CHAR: return "AST_CHAR";
-    case AST_IDENT: return "AST_IDENT";
-    case AST_CALL: return "AST_CALL";
-    case AST_UNARY: return "AST_UNARY";
-    case AST_BINARY: return "AST_BINARY";
-    case AST_GROUPING: return "AST_GROUPING";
-    case AST_SUBSCRIPT: return "AST_SUBSCRIPT";
-    case AST_FIELD_ACCESS: return "AST_FIELD_ACCESS";
-    case AST_AS: return "AST_AS";
-    case AST_BLOCK: return "AST_BLOCK";
-    case AST_STRUCT: return "AST_STRUCT";
-    case AST_ENUM: return "AST_ENUM";
-    case AST_FUNCTION: return "AST_FUNCTION";
-    case AST_VARIABLE_DECL: return "AST_VARIABLE_DECL";
-    case AST_IF: return "AST_IF";
-    case AST_FOR: return "AST_FOR";
-    case AST_WHILE: return "AST_WHILE";
-    case AST_RETURN: return "AST_RETURN";
-    case AST_DEFER: return "AST_DEFER";
-    case AST_BREAK: return "AST_BREAK";
-    case AST_CONTINUE: return "AST_CONTINUE";
-    case AST_TYPEOF: return "AST_TYPEOF";
-    case AST_SIZEOF: return "AST_SIZEOF";
-    case AST_SWITCH: return "AST_SWITCH";
-    case AST_POST_INC_OR_DEC: return "AST_POST_INC_OR_DEC";
-    case AST_LITERAL: return "AST_LITERAL";
-    case AST_ASM: return "AST_ASM";
-    case AST_CAST: return "AST_CAST";
-    case AST_EXPR_LIST: return "AST_EXPR_LIST";
-    case AST_TYPE: return "AST_TYPE";
+    case AST_COMMA_SEPARATED_LIST:            return "AST_COMMA_SEPARATED_LIST";
+    case AST_MODULE:                          return "AST_MODULE";
+    case AST_IS:                              return "AST_IS";
+    case AST_FALLTHROUGH:                     return "AST_FALLTHROUGH";
+    case AST_VAR_ARGS:                        return "AST_VAR_ARGS";
+    case AST_EXTERN:                          return "AST_EXTERN";
+    case AST_LOAD:                            return "AST_LOAD";
+    case AST_LINK:                            return "AST_LINK";
+    case AST_NOTE:                            return "AST_NOTE";
+    case AST_INT:                             return "AST_INT";
+    case AST_FLOAT:                           return "AST_FLOAT";
+    case AST_STRING:                          return "AST_STRING";
+    case AST_CHAR:                            return "AST_CHAR";
+    case AST_IDENT:                           return "AST_IDENT";
+    case AST_CALL:                            return "AST_CALL";
+    case AST_UNARY:                           return "AST_UNARY";
+    case AST_BINARY:                          return "AST_BINARY";
+    case AST_GROUPING:                        return "AST_GROUPING";
+    case AST_SUBSCRIPT:                       return "AST_SUBSCRIPT";
+    case AST_FIELD_ACCESS:                    return "AST_FIELD_ACCESS";
+    case AST_AS:                              return "AST_AS";
+    case AST_BLOCK:                           return "AST_BLOCK";
+    case AST_STRUCT:                          return "AST_STRUCT";
+    case AST_ENUM:                            return "AST_ENUM";
+    case AST_FUNCTION:                        return "AST_FUNCTION";
+    case AST_VARIABLE_DECL:                   return "AST_VARIABLE_DECL";
+    case AST_IF:                              return "AST_IF";
+    case AST_FOR:                             return "AST_FOR";
+    case AST_WHILE:                           return "AST_WHILE";
+    case AST_RETURN:                          return "AST_RETURN";
+    case AST_DEFER:                           return "AST_DEFER";
+    case AST_BREAK:                           return "AST_BREAK";
+    case AST_CONTINUE:                        return "AST_CONTINUE";
+    case AST_TYPEOF:                          return "AST_TYPEOF";
+    case AST_SIZEOF:                          return "AST_SIZEOF";
+    case AST_SWITCH:                          return "AST_SWITCH";
+    case AST_POST_INC_OR_DEC:                 return "AST_POST_INC_OR_DEC";
+    case AST_LITERAL:                         return "AST_LITERAL";
+    case AST_ASM:                             return "AST_ASM";
+    case AST_CAST:                            return "AST_CAST";
+    case AST_EXPR_LIST:                       return "AST_EXPR_LIST";
+    case AST_TYPE:                            return "AST_TYPE";
+    case AST_LAMBDA:                          return "AST_LAMBDA";
+    case _AST_COUNT_:                          return "_AST_COUNT_";
     }
     UNREACHABLE;
     return NULL;
@@ -116,7 +120,7 @@ char* get_ast_name(AST* node) {
     case AST_STRUCT: return node->Struct.name;
     case AST_ENUM: return node->Enum.name;
     case AST_IDENT: return node->Ident.name;
-    case AST_TYPE: return node->Type.name;
+    // case AST_TYPE: error(return node->Type.name;
     }
     UNREACHABLE;
     return NULL;
@@ -319,6 +323,7 @@ static void _ast_to_str_comma_separated_list(String_Context* ctx, AST* node) {
 static void _ast_to_str_module(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
+    string_append_f(s, "[%s]: ",node->Module.name);
     list_foreach(node->Module.top_level) {
         AST* stmt = it->data;
         _ast_to_str(ctx, stmt);
@@ -429,18 +434,20 @@ static void _ast_to_str_call(String_Context* ctx, AST* node) {
 static void _ast_to_str_unary(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
-    string_append_f(s, "%s", token_kind_to_str(node->Unary.op));
+    string_append_f(s, "%s", token_kind_to_str_actual(node->Unary.op));
     _ast_to_str(ctx, node->Unary.operand);
 }
 
 static void _ast_to_str_binary(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
+    string_append(s, "(");
     _ast_to_str(ctx, node->Binary.lhs);
     string_append(s, " ");
-    string_append(s, token_kind_to_str(node->Binary.op));
+    string_append(s, token_kind_to_str_actual(node->Binary.op));
     string_append(s, " ");
     _ast_to_str(ctx, node->Binary.rhs);
+    string_append(s, ")");
 }
 
 static void _ast_to_str_grouping(String_Context* ctx, AST* node) {
@@ -635,7 +642,7 @@ static void _ast_to_str_literal(String_Context* ctx, AST* node) {
     string* s = ctx->str;
     switch (node->Literal.kind) {
         ERROR_UNHANDLED_LITERAL_KIND(node->Literal.kind);
-    case LITERAL_CHAR: string_append_f(s, "%c", node->Literal.Char.value); break;
+    case LITERAL_CHAR: string_append_f(s, "%d", node->Literal.Char.value); break;
     case LITERAL_INTEGER: string_append_f(s, "%lld", node->Literal.Integer.value); break;
     case LITERAL_HEX: string_append_f(s, "%llu", node->Literal.Hex.value); break;
     case LITERAL_BINARY: string_append_f(s, "%llu", node->Literal.Binary.value); break;
@@ -680,7 +687,7 @@ static void _ast_to_str_expr_list(String_Context* ctx, AST* node) {
 static void _ast_to_str_type(String_Context* ctx, AST* node) {
     xassert(ctx && node);
     string* s = ctx->str;
-    string_append(s, type_to_str(node->Type.type));
+    string_append(s, ast_to_str(node->Type.expr));
 }
 
 void* ast_visit(ast_callback func, void* ctx, AST* node) {
@@ -712,6 +719,13 @@ void* ast_visit(ast_callback func, void* ctx, AST* node) {
     case AST_SIZEOF: ast_visit(func, ctx, node->Sizeof.node); break;
     case AST_NOTE: ast_visit(func, ctx, node->Note.node); break;
     case AST_FALLTHROUGH: break;
+    case AST_DEF:
+        ast_visit(func, ctx, node->Def.stmt);
+        break;
+    case AST_LAMBDA:
+        ast_visit(func, ctx, node->Lambda.params);
+        ast_visit(func, ctx, node->Lambda.expr);
+        break;
     case AST_LOAD:
         ast_visit(func, ctx, node->Load.module);
         break;
@@ -1260,6 +1274,7 @@ AST* make_ast_post_inc_or_dec(Loc_Info loc_info, Token_Kind op, AST* node) {
 AST* make_ast_literal(Loc_Info loc_info, char* value) {
     xassert(value);
     AST* e = make_ast(AST_LITERAL, loc_info);
+    s64 len = xstrlen(value);
     switch(value[0])
     {
         default:
@@ -1275,14 +1290,59 @@ AST* make_ast_literal(Loc_Info loc_info, char* value) {
 
             // They may have modifiers like 'e'
 
-
             if (isFloat)
             {
-                e->Literal.Float.value = atof(value);
-                e->Literal.kind = LITERAL_FLOAT;
+                if (value[1] == 'e')
+                {
+                    char* s = &value[2];
+                    char* end = s;
+                    while(*end++);
+                    f64 power = atof(strn(s, end));
+                    f64 base = 10.0;//atof(value);
+                    e->Literal.Float.value = atof(value) * pow(base, power);
+                    e->Literal.kind = LITERAL_FLOAT;
+                } else {
+                    e->Literal.Float.value = atof(value);
+                    e->Literal.kind = LITERAL_FLOAT;
+                }
             } else { // integer
-                e->Literal.Integer.value = atoll(value);
-                e->Literal.kind = LITERAL_INTEGER;
+                if(len > 1) // Hex or Binary
+                {
+                    if (value[1] == 'x')
+                    {
+                        e->Literal.Hex.value = strtoll(value, NULL, 0);
+                        e->Literal.kind = LITERAL_HEX;
+                    }
+                    else if (value[1] == 'b')
+                    {
+                        char* s = &value[2];
+                        int total = 0;
+                        while (*s) {
+                            total <<= 1;
+                            if (*s++ == '1') total^=1;
+                        }
+                        e->Literal.Binary.value = total;
+                        e->Literal.kind = LITERAL_BINARY;   
+                    }
+                    else if (value[1] == 'e')
+                    {
+                        char* s = &value[2];
+                        char* end = s;
+                        while(*end++);
+                        char* powstr = strn(s, end);
+                        debug("%s", powstr);
+                        s64 power = atoll(powstr);
+                        s64 base = 10; //atoll(value);
+                        e->Literal.Integer.value = atoll(value) * pow(base, power);
+                        e->Literal.kind = LITERAL_INTEGER;   
+                    } else {
+                        e->Literal.Integer.value = atoll(value);
+                        e->Literal.kind = LITERAL_INTEGER;
+                    }
+                } else {
+                    e->Literal.Integer.value = atoll(value);
+                    e->Literal.kind = LITERAL_INTEGER;
+                }
             }
         } break;
         case '"': // string
@@ -1290,26 +1350,26 @@ AST* make_ast_literal(Loc_Info loc_info, char* value) {
             e->Literal.String.value = value;
             e->Literal.kind = LITERAL_STRING;
         } break;
-        case '0': // Hex or Binary
-        {
-            if (value[1] == 'x')
-            {
-                e->Literal.Hex.value = strtoll(value, NULL, 0);
-                e->Literal.kind = LITERAL_HEX;
-            }
-            else if (value[1] == 'b')
-            {
-                char* s = &value[2];
-                int total = 0;
-                while (*s) {
-                    total <<= 1;
-                    if (*s++ == '1') total^=1;
-                }
-                e->Literal.Binary.value = total;
-                e->Literal.kind = LITERAL_BINARY;   
-            }
-            else error("no numbers start with 0.");
-        } break;
+        // case '0': // Hex or Binary
+        // {
+        //     if (value[1] == 'x')
+        //     {
+        //         e->Literal.Hex.value = strtoll(value, NULL, 0);
+        //         e->Literal.kind = LITERAL_HEX;
+        //     }
+        //     else if (value[1] == 'b')
+        //     {
+        //         char* s = &value[2];
+        //         int total = 0;
+        //         while (*s) {
+        //             total <<= 1;
+        //             if (*s++ == '1') total^=1;
+        //         }
+        //         e->Literal.Binary.value = total;
+        //         e->Literal.kind = LITERAL_BINARY;   
+        //     }
+        //     else error("no numbers start with 0.");
+        // } break;
         case '\'': // char
         {
             u8 val = 0;
@@ -1387,14 +1447,19 @@ AST* make_ast_expr_list(Loc_Info loc_info, List* expr_list) {
     return e;
 }
 
-AST* make_ast_type(Loc_Info loc_info, char* name, Type* type) {
-    xassert(name);
-    xassert(type);
+AST* make_ast_type(Loc_Info loc_info, AST* expr) {
+    xassert(expr);
     AST* e = make_ast(AST_TYPE, loc_info);
-    e->Type.name = name;
-    e->type = type;
-    e->Type.type = type;
-
+    e->type = NULL;
+    e->Type.expr = expr;
+    return e;
+}
+AST* make_ast_lambda(Loc_Info loc_info, AST* params, AST* expr) {
+    xassert(expr);
+    AST* e = make_ast(AST_LAMBDA, loc_info);
+    e->type = NULL;
+    e->Lambda.params = params;
+    e->Lambda.expr = expr;
     return e;
 }
 
@@ -1411,4 +1476,398 @@ char* literal_kind_to_str(Literal_Kind kind) {
     }
     UNREACHABLE;
     return NULL;
+}
+//
+// ast_to_json
+//
+
+static json_object_t* _ast_to_json(AST* node);
+
+char* ast_to_json(AST* node)
+{
+    json_object_t* root = _ast_to_json(node);
+    return json_to_str(root);
+}
+
+static json_object_t* _ast_to_json_list                            (AST* node);
+static json_object_t* _ast_to_json_def                             (AST* node);
+static json_object_t* _ast_to_json_comment                         (AST* node);
+static json_object_t* _ast_to_json_nop                             (AST* node);
+static json_object_t* _ast_to_json_space_separated_identifier_list (AST* node);
+static json_object_t* _ast_to_json_comma_separated_list            (AST* node);
+static json_object_t* _ast_to_json_module                          (AST* node);
+static json_object_t* _ast_to_json_is                              (AST* node);
+static json_object_t* _ast_to_json_fallthrough                     (AST* node);
+static json_object_t* _ast_to_json_var_args                        (AST* node);
+static json_object_t* _ast_to_json_extern                          (AST* node);
+static json_object_t* _ast_to_json_load                            (AST* node);
+static json_object_t* _ast_to_json_link                            (AST* node);
+static json_object_t* _ast_to_json_note                            (AST* node);
+static json_object_t* _ast_to_json_int                             (AST* node);
+static json_object_t* _ast_to_json_float                           (AST* node);
+static json_object_t* _ast_to_json_string                          (AST* node);
+static json_object_t* _ast_to_json_char                            (AST* node);
+static json_object_t* _ast_to_json_ident                           (AST* node);
+static json_object_t* _ast_to_json_call                            (AST* node);
+static json_object_t* _ast_to_json_unary                           (AST* node);
+static json_object_t* _ast_to_json_binary                          (AST* node);
+static json_object_t* _ast_to_json_grouping                        (AST* node);
+static json_object_t* _ast_to_json_subscript                       (AST* node);
+static json_object_t* _ast_to_json_field_access                    (AST* node);
+static json_object_t* _ast_to_json_as                              (AST* node);
+static json_object_t* _ast_to_json_block                           (AST* node);
+static json_object_t* _ast_to_json_struct                          (AST* node);
+static json_object_t* _ast_to_json_enum                            (AST* node);
+static json_object_t* _ast_to_json_function                        (AST* node);
+static json_object_t* _ast_to_json_variable_decl                   (AST* node);
+static json_object_t* _ast_to_json_if                              (AST* node);
+static json_object_t* _ast_to_json_for                             (AST* node);
+static json_object_t* _ast_to_json_while                           (AST* node);
+static json_object_t* _ast_to_json_return                          (AST* node);
+static json_object_t* _ast_to_json_defer                           (AST* node);
+static json_object_t* _ast_to_json_break                           (AST* node);
+static json_object_t* _ast_to_json_continue                        (AST* node);
+static json_object_t* _ast_to_json_typeof                          (AST* node);
+static json_object_t* _ast_to_json_sizeof                          (AST* node);
+static json_object_t* _ast_to_json_switch                          (AST* node);
+static json_object_t* _ast_to_json_post_inc_or_dec                 (AST* node);
+static json_object_t* _ast_to_json_literal                         (AST* node);
+static json_object_t* _ast_to_json_asm                             (AST* node);
+static json_object_t* _ast_to_json_cast                            (AST* node);
+static json_object_t* _ast_to_json_expr_list                       (AST* node);
+static json_object_t* _ast_to_json_type                            (AST* node);
+static json_object_t* _ast_to_json_lambda                          (AST* node);
+
+static json_object_t* (*ast_to_json_transitions[])(AST*) = {
+    [AST_LIST]                            = _ast_to_json_list,
+    [AST_DEF]                             = _ast_to_json_def,
+    [AST_COMMENT]                         = _ast_to_json_comment,
+    [AST_NOP]                             = _ast_to_json_nop,
+    [AST_SPACE_SEPARATED_IDENTIFIER_LIST] = _ast_to_json_space_separated_identifier_list,
+    [AST_COMMA_SEPARATED_LIST]            = _ast_to_json_comma_separated_list,
+    [AST_MODULE]                          = _ast_to_json_module,
+    [AST_IS]                              = _ast_to_json_is,
+    [AST_FALLTHROUGH]                     = _ast_to_json_fallthrough,
+    [AST_VAR_ARGS]                        = _ast_to_json_var_args,
+    [AST_EXTERN]                          = _ast_to_json_extern,
+    [AST_LOAD]                            = _ast_to_json_load,
+    [AST_LINK]                            = _ast_to_json_link,
+    [AST_NOTE]                            = _ast_to_json_note,
+    [AST_INT]                             = _ast_to_json_int,
+    [AST_FLOAT]                           = _ast_to_json_float,
+    [AST_STRING]                          = _ast_to_json_string,
+    [AST_CHAR]                            = _ast_to_json_char,
+    [AST_IDENT]                           = _ast_to_json_ident,
+    [AST_CALL]                            = _ast_to_json_call,
+    [AST_UNARY]                           = _ast_to_json_unary,
+    [AST_BINARY]                          = _ast_to_json_binary,
+    [AST_GROUPING]                        = _ast_to_json_grouping,
+    [AST_SUBSCRIPT]                       = _ast_to_json_subscript,
+    [AST_FIELD_ACCESS]                    = _ast_to_json_field_access,
+    [AST_AS]                              = _ast_to_json_as,
+    [AST_BLOCK]                           = _ast_to_json_block,
+    [AST_STRUCT]                          = _ast_to_json_struct,
+    [AST_ENUM]                            = _ast_to_json_enum,
+    [AST_FUNCTION]                        = _ast_to_json_function,
+    [AST_VARIABLE_DECL]                   = _ast_to_json_variable_decl,
+    [AST_IF]                              = _ast_to_json_if,
+    [AST_FOR]                             = _ast_to_json_for,
+    [AST_WHILE]                           = _ast_to_json_while,
+    [AST_RETURN]                          = _ast_to_json_return,
+    [AST_DEFER]                           = _ast_to_json_defer,
+    [AST_BREAK]                           = _ast_to_json_break,
+    [AST_CONTINUE]                        = _ast_to_json_continue,
+    [AST_TYPEOF]                          = _ast_to_json_typeof,
+    [AST_SIZEOF]                          = _ast_to_json_sizeof,
+    [AST_SWITCH]                          = _ast_to_json_switch,
+    [AST_POST_INC_OR_DEC]                 = _ast_to_json_post_inc_or_dec,
+    [AST_LITERAL]                         = _ast_to_json_literal,
+    [AST_ASM]                             = _ast_to_json_asm,
+    [AST_CAST]                            = _ast_to_json_cast,
+    [AST_EXPR_LIST]                       = _ast_to_json_expr_list,
+    [AST_TYPE]                            = _ast_to_json_type,
+    [AST_LAMBDA]                          = _ast_to_json_lambda,
+};
+
+static json_object_t* _ast_to_json(AST* node) {
+    if (!node) return make_json_null();
+    AST_Kind kind = node->kind;
+    TASSERT_KIND_IN_RANGE(AST, kind);
+    json_object_t* (*func)(AST*) = (*ast_to_json_transitions[kind]);
+    tassert(func, "ast_to_json missing callback for %s", kind);
+    return (*func)(node);
+}
+
+
+void* __ast_to_json(void* ctx, AST* node) {
+    if (!node) return make_json_null();
+    json_object_t* json = make_json_object(NULL);
+    json_object_append(json, ast_kind_to_str(node->kind), make_json_string(ast_to_str(node)));
+    return json;
+}
+
+static json_object_t* _ast_to_json_list(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_def(AST* node)
+{
+    json_object_t* json = make_json_object(NULL);
+    json_object_append(json, "name", node->Def.name ? make_json_string(node->Def.name) : make_json_null());
+    json_object_append(json, "block", _ast_to_json(node->Def.stmt));
+    return json;
+}
+static json_object_t* _ast_to_json_comment(AST* node)
+{
+    return make_json_string(node->Comment.text);
+}
+static json_object_t* _ast_to_json_nop(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_space_separated_identifier_list(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_comma_separated_list(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_module(AST* node)
+{
+    json_object_t* module = make_json_object(NULL);
+    list_foreach(node->Module.top_level) {
+        AST* stmt = it->data;
+        json_object_append(module, ast_kind_to_str(stmt->kind), _ast_to_json(stmt));
+    }
+    json_object_t* json = make_json_object(NULL);
+    json_object_append(json, "name", make_json_string(node->Module.name));
+    json_object_append(json, "toplevel", module);
+    return json;
+}
+static json_object_t* _ast_to_json_is(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_fallthrough(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_var_args(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_extern(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_load(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_link(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_note(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_int(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_float(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_string(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_char(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_ident(AST* node)
+{
+    json_object_t* json = make_json_object(NULL);
+    json_object_append(json, "name", make_json_string(node->Ident.name));
+    return json;
+}
+static json_object_t* _ast_to_json_call(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_unary(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_binary(AST* node)
+{
+    json_object_t* json = make_json_object(NULL);
+    json_object_append(json, "op", make_json_string(token_kind_to_str(node->Binary.op)));
+    json_object_append(json, "lhs", _ast_to_json(node->Binary.lhs));
+    json_object_append(json, "rhs", _ast_to_json(node->Binary.rhs));
+    return json;
+}
+static json_object_t* _ast_to_json_grouping(AST* node)
+{
+    json_object_t* json = make_json_object(NULL);
+    json_object_append(json, ast_kind_to_str(node->kind), _ast_to_json(node->Grouping.node));
+    return json;
+}
+static json_object_t* _ast_to_json_subscript(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_field_access(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_as(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_block(AST* node)
+{
+    json_object_t* block = make_json_object(NULL);
+    list_foreach(node->Block.stmts) {
+        AST* stmt = it->data;
+        json_object_append(block, ast_kind_to_str(stmt->kind), _ast_to_json(stmt));
+    }
+    json_object_t* json = make_json_object(NULL);
+    json_object_append(json, ast_kind_to_str(node->kind), block);
+    return json;
+}
+static json_object_t* _ast_to_json_struct(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_enum(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_function(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_variable_decl(AST* node)
+{
+    json_object_t* json = make_json_object(NULL);
+    json_object_append(json, "name", make_json_string(node->Variable_Decl.name));
+    // json_object_append(json, "type", _ast_to_json(node->Variable_Decl.type));
+    json_object_append(json, "value", _ast_to_json(node->Variable_Decl.value));
+    return json;
+}
+static json_object_t* _ast_to_json_if(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_for(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_while(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_return(AST* node)
+{
+    return _ast_to_json(node->Return.node);
+}
+static json_object_t* _ast_to_json_defer(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_break(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_continue(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_typeof(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_sizeof(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_switch(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_post_inc_or_dec(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_literal(AST* node)
+{
+    json_object_t* json = make_json_object(NULL);
+    json_object_append(json, "kind", make_json_string(literal_kind_to_str(node->Literal.kind)));
+    json_object_append(json, "value", make_json_string(ast_to_str(node)));
+    return json;
+}
+static json_object_t* _ast_to_json_asm(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_cast(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_expr_list(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_type(AST* node)
+{
+    UNFINISHED;
+    return NULL;
+}
+static json_object_t* _ast_to_json_lambda(AST* node)
+{
+    json_object_t* json = make_json_object(NULL);
+    json_object_append(json, "params", _ast_to_json(node->Lambda.params));
+    json_object_append(json, "expr", _ast_to_json(node->Lambda.expr));
+    return json;
 }

@@ -819,6 +819,7 @@ static Value* codegen_function(Codegen_Context* ctx, AST* node) {
     s8 class_sse_counter     = 0;   // used for getting the next available register
 
     List* classified_arguments = classify_arguments(args);
+    
     list_foreach(classified_arguments) {
 
         ClassifiedArgument* ca = it->data;

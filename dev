@@ -3,7 +3,7 @@ output=./thi
 olvl=
 compiler=cc
 src=./src/*.c
-flags=-Wall\ -Wextra\ -Wno-unused-function\ -Wno-unused-parameter\ -Werror\ -g\ -fsanitize=address\ -fno-omit-frame-pointer
+flags=-Wall\ -Wextra\ -Wno-switch\ -Wno-unused-variable\ -Wno-unused-function\ -Wno-unused-parameter\ -Werror #\ -g\ -fsanitize=address\ -fno-omit-frame-pointer
 std=c99
 
 $compiler $src -std=$std $olvl $flags -o $output
@@ -16,7 +16,7 @@ if [ $? == 0 ]; then
     if [ $? == 0 ]; then
         if [ $(uname) = "Darwin" ]; then
             # ./runtest ./tests/test_file.thi
-            ./runtest ./tests/test_defer.thi
+            # ./runtest ./tests/test_defer.thi
             # ./runtest ./tests/test_binary_literal.thi
             # ./runtest ./tests/test_window.thi
             # ./runtest ./tests/test_cast.thi
@@ -30,7 +30,7 @@ if [ $? == 0 ]; then
             # ./runtest ./tests/test_cast_explicit_s64_to_u32.thi
             # ./runtest ./tests/test_cast_explicit_s32_to_f32.thi
             # ./runtest ./tests/test_cast_explicit_s32_to_f64.thi
-            # ./runtest ./tests/test_basic_setup.thi
+            ./runtest ./tests/test_basic_setup.thi
             # ./runtest ./tests/test_sizeof.thi
             # ./runtest ./tests/test_global_variable.thi
             # ./runtest ./tests/test_if.thi

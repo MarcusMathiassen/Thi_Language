@@ -27,6 +27,14 @@
 #include <string.h> // memset
 #include <stdlib.h>
 
+/**
+    * when the map should reallocate more space
+    * 
+    * range [0.0, 1.0]
+*/
+#define MAP_DEEMED_FULL_PERCENTAGE 0.75
+#define MAP_TABLE_GROWTH_RATE 2
+
 typedef struct
 {
     s32 id;
@@ -131,8 +139,8 @@ inline static void map_increase_table_size_and_rehash(Map* map, s64 new_table_si
 
 void* map_set(Map* map, char* key, void* value) {
     xassert(map && key && value);
-    if ((float)map->count / map->table_size > 0.75f) {
-        map_increase_table_size_and_rehash(map, map->table_size * 2);
+    if ((float)map->count / map->table_size > MAP_DEEMED_FULL_PERCENTAGE) {
+        map_increase_table_size_and_rehash(map, map->table_size * MAP_TABLE_GROWTH_RATE);
     }
     Map_Element* slot = find_empty_slot(map, key);
     slot->key = key;
