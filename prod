@@ -2,7 +2,7 @@
 output=./thi
 olvl=-O3
 compiler=cc
-src=./src/*.c
+src=./src/main.c
 flags=-DNDEBUG\ -Wno-switch
 std=c99
 $compiler $src -std=$std $olvl $flags -o $output

@@ -1,3 +1,0 @@
-/Users/marcusmathiassen/dev/thi/build/CMakeFiles/thi.dir
-/Users/marcusmathiassen/dev/thi/build/CMakeFiles/ALL_BUILD.dir
-/Users/marcusmathiassen/dev/thi/build/CMakeFiles/ZERO_CHECK.dir

@@ -2,8 +2,8 @@
 output=./thi
 olvl=
 compiler=cc
-src=./src/*.c
-flags=-Wall\ -Wextra\ -Wno-switch\ -Wno-unused-variable\ -Wno-unused-function\ -Wno-unused-parameter\ -Werror #\ -g\ -fsanitize=address\ -fno-omit-frame-pointer
+src=./src/main.c
+flags=-g\ -fno-omit-frame-pointer\ -fno-rtti\ -fno-exceptions\ -Wno-pointer-sign\ -DDEV=1\ -Wno-switch
 std=c99
 
 $compiler $src -std=$std $olvl $flags -o $output
@@ -14,34 +14,6 @@ if [ $? == 0 ]; then
         test_files="./tests/*.thi"
     fi
     if [ $? == 0 ]; then
-        if [ $(uname) = "Darwin" ]; then
-            # ./runtest ./tests/test_file.thi
-            # ./runtest ./tests/test_defer.thi
-            # ./runtest ./tests/test_binary_literal.thi
-            # ./runtest ./tests/test_window.thi
-            # ./runtest ./tests/test_cast.thi
-            # ./runtest ./tests/test_cast_explicit_f32_to_s32.thi
-            # ./runtest ./tests/test_cast_explicit_f64_to_s32.thi
-            # ./runtest ./tests/test_cast_explicit_f64_to_s64.thi
-            # ./runtest ./tests/test_cast_explicit_f64_to_f32.thi
-            # ./runtest ./tests/test_cast_explicit_s32_to_s64.thi 
-            # ./runtest ./tests/test_cast_explicit_u32_to_s32.thi
-            # ./runtest ./tests/test_cast_explicit_u32_to_s64.thi
-            # ./runtest ./tests/test_cast_explicit_s64_to_u32.thi
-            # ./runtest ./tests/test_cast_explicit_s32_to_f32.thi
-            # ./runtest ./tests/test_cast_explicit_s32_to_f64.thi
-            ./runtest ./tests/test_basic_setup.thi
-            # ./runtest ./tests/test_sizeof.thi
-            # ./runtest ./tests/test_global_variable.thi
-            # ./runtest ./tests/test_if.thi
-            # ./runtest ./tests/test_math.thi
-            # ./runtest ./tests/test_gt.thi
-            # ./runtest ./tests/test_sys.thi
-            # ./runtest ./tests/test_typeof.thi
-            # ./runtest ./tests/test_optional_semicolon.thi
-            # ./runtest ./tests/test_fib.thi
-        elif [ $(uname) = "Linux" ]; then
-            ./runtest ./tests/test_basic_setup_linux.thi
-        fi
+        ./runtest ./tests/test_basic_setup.thi
     fi
 fi
