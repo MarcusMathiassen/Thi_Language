@@ -59,12 +59,18 @@ typedef s16      b16;
 typedef s32      b32;
 typedef s64      b64;
 
+#ifndef bool
+#define bool u8
+#endif
+
 #ifndef true
 #define true 1
 #endif
 #ifndef false
 #define false 0
 #endif
+
+#define CONST_ARRAY_LENGTH(array) (sizeof(array) / sizeof(array[0]))
 
 #define BYTES(n) (n)
 #define KILOBYTES(n) (BYTES(n) * 1024ULL)
@@ -86,7 +92,6 @@ typedef s64      b64;
 #define MINUTES(n)      ((u64)SECONDS(n) * 60ULL)
 #define HOURS(n)        ((u64)MINUTES(n) * 60ULL)
 
-
 #define DEFAULT_GIGABYTE_SUFFIX "gb"
 #define DEFAULT_MEGABYTE_SUFFIX "mb"
 #define DEFAULT_KILOBYTE_SUFFIX "kb"
@@ -99,24 +104,65 @@ typedef s64      b64;
 #define DEFAULT_MICROSECONDS_SUFFIX "us"
 #define DEFAULT_NANOSECONDS_SUFFIX  "ns"
 
-#define ASSERT_KIND_IN_RANGE(ENUM, kind) tassert(0 <= kind && kind < _##ENUM##_count_, "kind = %d", kind)
-#define ERROR_UNHANDLED_KIND(str) default: error("[%s:%s:%d] Unhandled case '%s'", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color(str));
-#define UNREACHABLE error("[%s:%s:%d] %s", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color("UNREACHABLE"));
-#define UNFINISHED error("[%s:%s:%d] %s", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color("UNFINISHED"));
+#if DEV
+    #define ASSERT_KIND_IN_RANGE(ENUM, kind) tassert(0 <= kind && kind < _##ENUM##_count_, "kind = %d", kind)
+    #define ERROR_UNHANDLED_KIND(str) default: error("[%s:%s:%d] Unhandled case '%s'", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color(str));
+    #define UNREACHABLE error("[%s:%s:%d] %s", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color("UNREACHABLE"));
+    #define UNFINISHED error("[%s:%s:%d] %s", give_unique_color((char*)__FILE__), give_unique_color((char*)__func__), __LINE__, give_unique_color("UNFINISHED"));
+#else
+    #define ASSERT_KIND_IN_RANGE(ENUM, kind)
+    #define ERROR_UNHANDLED_KIND(str)
+    #define UNREACHABLE
+    #define UNFINISHED
+#endif
 
 #define FALLTHROUGH
 
 #include "utility.c"
+#include "list.c"
+#include "string.c"
 #include "lex.c"
 #include "parse.c"
+#include "codegen.c"
+
+internal void assemble(char* asm_file, char* exec_name)
+{
+    string* comp_call = make_string_f("nasm -f macho64 %s.s -o %s.o", asm_file, exec_name);
+    debug("Assembling with options '%s'", ucolor(string_data(comp_call)));
+    system(string_data(comp_call));
+}
+
+internal void linking_stage(list_t* links, char* exec_name)
+{
+    string* link_call = make_string_f("ld -macosx_version_min 10.15 -no_pie -o %s %s.o -e _main", exec_name, exec_name);
+    debug("Linking with options '%s'", ucolor(string_data(link_call)));
+    system(string_data(link_call));
+    // Cleanup object files
+}
 
 int main(int argc, char** argv)
 {
-    u8* source_file = argv[1];
+    char* source_file = argv[1];
+    
+    char* ext = get_file_extension(source_file);
+    char* dir = get_file_directory(source_file);
+    char* name = get_file_name(source_file);
+    char* exec_name = remove_file_extension(name);
+
     {
-        u8* source = get_file_content(source_file);
+        char* source = get_file_content(source_file);
         token_t* tokens = lex(source);
-        ast_t** ast = parse(tokens);
+        ast_t* ast = parse(tokens);
+        char* code = to_x64(ast);
+
+        if (code)
+        {
+            char* name_with_ext_removed = remove_file_extension(name);
+            write_to_file(strf("%s.s", name_with_ext_removed), code);
+            
+            assemble(name_with_ext_removed, exec_name);
+            linking_stage(make_list(), exec_name);
+        }
     }
     return 0;
 }

@@ -72,14 +72,16 @@ typedef enum {
     _END_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_, // @Volatile: do not move me please.
 
 
-
+    _token_kind_t_count_
 } token_kind_t;
 
 internal u8*
 token_kind_to_str(token_kind_t kind)
 {
+    ASSERT_KIND_IN_RANGE(token_kind_t, kind);
     switch(kind)
     {
+        ERROR_UNHANDLED_KIND(strf("%d", kind));
         case TOKEN_EOF:              return "TOKEN_EOF";
         case TOKEN_UNKNOWN:          return "TOKEN_UNKNOWN";
         case TOKEN_WHITESPACE:       return "TOKEN_WHITESPACE";
@@ -143,6 +145,7 @@ token_kind_to_str(token_kind_t kind)
         case TOKEN_IS:               return "TOKEN_IS";
         case TOKEN_CAST:             return "TOKEN_CAST";
     }
+    UNREACHABLE;
     return NULL;
 }
 
@@ -219,9 +222,7 @@ typedef enum
     KEY_FALLTHROUGH,
     KEY_IS,
     KEY_CAST,
-
     _keyword_kind_t_count_,
-
 } keyword_kind_t;
 global_variable u8* interned_keywords[_keyword_kind_t_count_];
 // @Volatile

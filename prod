@@ -3,6 +3,7 @@ output=./thi
 olvl=-O3
 compiler=cc
 src=./src/main.c
-flags=-DNDEBUG\ -Wno-switch
+flags=-DDEV=0\ -DNDEBUG\ -Wno-switch\ -Wno-pointer-sign
+perfflags=-fno-rtti\ -fno-exceptions
 std=c99
-$compiler $src -std=$std $olvl $flags -o $output
+$compiler $src -std=$std $olvl $flags $perfflags -o $output

@@ -101,6 +101,99 @@ strf(u8* fmt, ...)
     return str;
 }
 
+internal u8* vstrf(u8* fmt, va_list args)
+{
+    xassert(fmt);
+    va_list args_count;
+    va_copy(args_count, args);
+    s64 n = 1 + vsnprintf(0, 0, fmt, args_count);
+    va_end(args_count);
+    u8* str = xmalloc(n + 1);
+    vsnprintf(str, n, fmt, args);
+    str[n] = '\0';
+    return str;
+}
+
+internal char* get_file_extension(char* filename)
+{
+    xassert(filename);
+    s64 len = strlen(filename);
+    s64 i = 0;
+    // myfile.txt => txt
+    // start from the back..
+    // ./myfile.txt => txt ..
+    s64 last_dot_pos = 0;
+    // Find the position of the last dot from starting from the back
+    while (len - i > 0) {
+        if (filename[len - i] == '.') last_dot_pos = len - i;
+        ++i;
+    }
+    if (last_dot_pos == 0) { // dot files are not seen as extensions
+        return NULL; // we didnt find any
+    }
+    s64 start_of_ext = len - last_dot_pos;
+    char* str = xmalloc(start_of_ext + 2);
+    memcpy(str, filename + len - start_of_ext, start_of_ext);
+    str[start_of_ext] = 0;
+    return str;
+}
+
+internal char* remove_file_extension(char* filename)
+{
+    xassert(filename);
+    s64 len = strlen(filename);
+    s64 i = 0;
+    while (i < len) {
+        if (filename[len - (i)] == '.') break;
+        ++i;
+    }
+    if (i == 0 || i == len) {
+        return NULL; // we didnt find any
+    }
+    char* str = xmalloc(len - i + 1);
+    memcpy(str, filename, len - i);
+    str[len - i] = 0;
+    return str;
+}
+
+internal char* get_file_directory(char* filename)
+{
+    xassert(filename);
+    s64 len = strlen(filename);
+    while (len > 0) {
+        if (filename[len] == '/') break;
+        --len;
+    }
+    if (len == 0) {
+        return NULL; // we didnt find any
+    }
+    ++len; // we preserve the '/'
+    char* str = xmalloc(len + 1);
+    memcpy(str, filename, len);
+    str[len] = 0;
+    return str;
+}
+
+internal char* get_file_name(char* filename)
+{
+    xassert(filename);
+    s64 len = strlen(filename);
+    s64 i = 0;
+    while (i < len) {
+        if (filename[len-i] == '/') break;
+        ++i;
+    }
+    if (i == len) {
+        return filename;
+    } else if (i == 1) {
+        return NULL;
+    }
+    char* str = xmalloc(i + 1);
+    memcpy(str, filename + (len-i+1), i); // +1 skips the '/'
+    str[i] = 0;
+    return str;
+}
+
 internal u8*
 get_file_content(u8* filename)
 {
@@ -120,9 +213,24 @@ get_file_content(u8* filename)
 }
 
 internal void
+write_to_file(u8* filename, u8* buffer)
+{
+    xassert(filename);
+    xassert(buffer);
+    FILE* f = fopen(filename, "w");
+    if (!f)
+    {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+    fputs(buffer, f);
+    fclose(f);
+}
+
+internal void
 info(u8* fmt, ...)
 {
-    assert(fmt);
+    xassert(fmt);
     va_list args;
     va_start(args, fmt);
     printf("%s", RGB_GRAY);
@@ -134,7 +242,7 @@ info(u8* fmt, ...)
 internal void
 warning(u8* fmt, ...)
 {
-    assert(fmt);
+    xassert(fmt);
     va_list args;
     va_start(args, fmt);
     printf("%s", YELLOW);
@@ -146,7 +254,7 @@ warning(u8* fmt, ...)
 internal void
 success(u8* fmt, ...)
 {
-    assert(fmt);
+    xassert(fmt);
     va_list args;
     va_start(args, fmt);
     printf("%s", GREEN);
@@ -158,7 +266,7 @@ success(u8* fmt, ...)
 internal void
 error(u8* fmt, ...)
 {
-    assert(fmt);
+    xassert(fmt);
     va_list args;
     va_start(args, fmt);
     printf("%s", RED);
@@ -212,12 +320,15 @@ global_variable char* colors[] =
     "\033[35m", // magenta
     "\033[36m", // cyan,
 };
+
 global_variable u8 color_iterator = 0;
 internal u8*
 give_unique_color(char* str)
 {
     xassert(str);
-    char* current_color = colors[color_iterator++ % (sizeof(colors) / sizeof(colors[0]))];
+    char* current_color = colors[color_iterator++ % CONST_ARRAY_LENGTH(colors)];
     xassert(current_color);
     return strf("%s%s\033[00m", current_color, str);
 }
+
+#define ucolor(x) give_unique_color(x)

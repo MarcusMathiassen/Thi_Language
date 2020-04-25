@@ -3,10 +3,10 @@ output=./thi
 olvl=
 compiler=cc
 src=./src/main.c
-flags=-g\ -fno-omit-frame-pointer\ -fno-rtti\ -fno-exceptions\ -Wno-pointer-sign\ -DDEV=1\ -Wno-switch
+flags=-DDEV=1\ -g\ -fno-omit-frame-pointer\ -Wno-pointer-sign\ -Wno-switch
+perfflags=-fno-rtti\ -fno-exceptions
 std=c99
-
-$compiler $src -std=$std $olvl $flags -o $output
+$compiler $src -std=$std $olvl $flags $perfflags -o $output
 
 if [ $? == 0 ]; then
     test_files=$

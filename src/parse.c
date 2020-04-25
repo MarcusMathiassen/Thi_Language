@@ -1,25 +1,18 @@
-#define TRACE debug("[%s:%d:%s]: %s : %s",  __FILE__, __LINE__, __func__, token_kind_to_str(ctx->tokens->kind), give_unique_color(token_value(*ctx->tokens)));
+#define TRACE debug("[%s:%s:%d]: %s : %s",  __FILE__, __func__, __LINE__, token_kind_to_str(ctx->tokens->kind), give_unique_color(token_value(*ctx->tokens)));
 
 typedef enum
 {
     AST_COMMENT,
-
-    _AST_EXPRESSIONS_START_,
-
     AST_ATOM,
     AST_LITERAL,
     AST_GROUPING,
     AST_UNARY,
     AST_LAMBDA,
-
-    _AST_EXPRESSIONS_END_,
-
-    _AST_STATEMENTS_START_,
-    
+    AST_NAMED_LAMBDA,
     AST_RETURN,
-
-    _AST_STATEMENTS_END_,
-
+    AST_VARIABLE_DECL,
+    AST_MODULE,
+    _ast_kind_t_count_
 } ast_kind_t;
 
 typedef enum
@@ -28,20 +21,26 @@ typedef enum
     AST_LITERAL_FLOAT,
     AST_LITERAL_CHAR,
     AST_LITERAL_STRING,
+    _ast_literal_kind_t_count_
 } ast_literal_kind_t;
 
 internal u8*
 ast_kind_to_str(ast_kind_t kind)
 {
+    ASSERT_KIND_IN_RANGE(ast_kind_t, kind);
     switch(kind)
     {
+        ERROR_UNHANDLED_KIND(strf("%d", kind));
         case AST_COMMENT: return "AST_COMMENT";
         case AST_ATOM:    return "AST_ATOM";
         case AST_LITERAL: return "AST_LITERAL";
         case AST_GROUPING: return "AST_GROUPING";
         case AST_UNARY:   return "AST_UNARY";
         case AST_LAMBDA:  return "AST_LAMBDA";
+        case AST_NAMED_LAMBDA:  return "AST_NAMED_LAMBDA";
         case AST_RETURN:  return "AST_RETURN";
+        case AST_VARIABLE_DECL:  return "AST_VARIABLE_DECL";
+        case AST_MODULE:  return "AST_MODULE";
     }
     UNREACHABLE;
     return NULL;
@@ -83,14 +82,30 @@ struct ast_t
         } Unary;
         struct
         {
-            char* name; // optional
-            ast_t* params; // optional
+            ast_t* params;
             ast_t* block;
         } Lambda;
         struct
         {
+            char* name;
+            ast_t* lambda; 
+        } Named_Lambda;
+        struct
+        {
             ast_t* expr;
         } Return;
+        struct
+        {
+            char* name;
+            ast_t* type; // optional
+            ast_t* value; // optional
+        } Variable_Decl;
+        struct
+        {
+            char* name;
+            list_t* stmts;
+        } Module;
+
     };
 };
 
@@ -179,6 +194,23 @@ parse_atom(parse_ctx_t* ctx)
     ast_t* node = make_ast(AST_ATOM);
     node->Atom.name = value(ctx);
     eat(ctx);
+    switch(kind(ctx))
+    {
+        case TOKEN_ATOM:
+        {
+            ast_t* decl = make_ast(AST_VARIABLE_DECL);
+            node->Variable_Decl.name = node->Atom.name;
+            node->Variable_Decl.type = parse_expression(ctx);
+            return decl;
+        } break;
+        case TOKEN_OPEN_PAREN:
+        {
+            ast_t* named_lambda = make_ast(AST_NAMED_LAMBDA);
+            named_lambda->Named_Lambda.name = node->Atom.name;
+            named_lambda->Named_Lambda.lambda = parse_expression(ctx);
+            return named_lambda;
+        } break;
+    }
     return node;
 }
 inline internal ast_t*
@@ -257,16 +289,14 @@ parse_primary(parse_ctx_t* ctx)
     TRACE;
     switch(kind(ctx))
     {
-        default: UNFINISHED;
-        
+        ERROR_UNHANDLED_KIND(strf("%d", kind));
         case TOKEN_COMMENT:       return parse_comment(ctx);
         case TOKEN_ATOM:          return parse_atom(ctx);
         case TOKEN_OPEN_PAREN:    return parse_grouping(ctx);
-        
-        case TOKEN_INT:    FALLTHROUGH;
-        case TOKEN_FLOAT:  FALLTHROUGH;
-        case TOKEN_CHAR:   FALLTHROUGH;
-        case TOKEN_STRING: return parse_literal(ctx);
+        case TOKEN_INT:           FALLTHROUGH;
+        case TOKEN_FLOAT:         FALLTHROUGH;
+        case TOKEN_CHAR:          FALLTHROUGH;
+        case TOKEN_STRING:        return parse_literal(ctx);
     }
     UNREACHABLE;
     return NULL;
@@ -297,32 +327,24 @@ parse_statement(parse_ctx_t* ctx)
     return NULL;
 }
 
-internal ast_t**
+internal ast_t*
 parse(token_t* tokens)
 { 
-    u64 ast_count = 0;
-    u64 ast_allocated = 8;
-    ast_t** ast = xmalloc(sizeof(ast_t*) * ast_allocated);
-
     parse_ctx_t ctx = (parse_ctx_t)
     {
         .tokens = tokens
     };
 
+    list_t* stmts = make_list();
     while (kind(&ctx))
     {
-        ast_t* node = parse_statement(&ctx);
-
-        // Allocate more tokens if needed
-        while (ast_count >= ast_allocated)
-        {
-            ast_allocated *= 2;
-            ast = xrealloc(ast, sizeof(ast_t*) * ast_allocated);
-        }
-
-        debug("%s", ast_kind_to_str(node->kind));
-        ast[ast_count++] = node;
+        ast_t* stmt = parse_statement(&ctx);
+        list_append(stmts, stmt);
     }
 
-    return ast;
+    ast_t* module = make_ast(AST_MODULE);
+    module->Module.name = "unknown";
+    module->Module.stmts = stmts;
+
+    return module;
 }
