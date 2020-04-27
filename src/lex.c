@@ -1,4 +1,241 @@
-typedef enum {
+typedef enum
+{
+    STATE_END = 0,
+
+    STATE_IDENTIFIER,
+    STATE_OPERATOR,
+    STATE_NUMBER,
+    STATE_STRING,
+    STATE_CHAR,
+    STATE_COMMENT,
+    STATE_NEWLINE,
+
+    _STATE_LAST_FINAL_,
+
+    STATE_IN_WHITESPACE,
+    STATE_IN_IDENTIFIER,
+    STATE_IN_OPERATOR,
+    STATE_IN_NUMBER,
+    STATE_IN_STRING,
+    STATE_IN_CHAR,
+    STATE_IN_COMMENT,
+    STATE_IN_NEWLINE,
+    
+    _STATE_COUNT_
+} State_Kind;
+
+INTERNAL u8* state_kind_to_str(State_Kind kind)
+{
+    switch (kind) {
+    ERROR_UNHANDLED_KIND(strf("%d", kind));
+        case STATE_END:           return "STATE_END";
+        case STATE_IDENTIFIER:    return "STATE_IDENTIFIER";
+        case STATE_OPERATOR:      return "STATE_OPERATOR";
+        case STATE_NUMBER:        return "STATE_NUMBER";
+        case STATE_STRING:        return "STATE_STRING";
+        case STATE_CHAR:          return "STATE_CHAR";
+        case STATE_COMMENT:       return "STATE_COMMENT";
+        case STATE_NEWLINE:       return "STATE_NEWLINE";
+        case _STATE_LAST_FINAL_:  return "_STATE_LAST_FINAL_";
+        case STATE_IN_WHITESPACE: return "STATE_IN_WHITESPACE";
+        case STATE_IN_IDENTIFIER: return "STATE_IN_IDENTIFIER";
+        case STATE_IN_OPERATOR:   return "STATE_IN_OPERATOR";
+        case STATE_IN_NUMBER:     return "STATE_IN_NUMBER";
+        case STATE_IN_STRING:     return "STATE_IN_STRING";
+        case STATE_IN_CHAR:       return "STATE_IN_CHAR";
+        case STATE_IN_COMMENT:    return "STATE_IN_COMMENT";
+        case STATE_IN_NEWLINE:    return "STATE_IN_NEWLINE";
+        case _STATE_COUNT_:       return "_STATE_COUNT_";
+    }
+    UNREACHABLE;
+    return NULL;
+}
+
+typedef enum
+{
+    EQUIV_EOF = 0,
+    EQUIV_WHITESPACE,
+    EQUIV_IDENTIFIER,
+    EQUIV_OPERATOR,
+    EQUIV_NUMBER,
+    EQUIV_STRING,
+    EQUIV_CHAR,
+    EQUIV_COMMENT,
+    EQUIV_NEWLINE,
+    _EQUIV_COUNT_
+} Equivalence_Kind;
+
+INTERNAL u8* equivalence_kind_to_str(Equivalence_Kind kind)
+{
+    switch (kind)
+    {
+        ERROR_UNHANDLED_KIND(strf("%d", kind));
+        case EQUIV_EOF:        return "EQUIV_EOF";
+        case EQUIV_WHITESPACE: return "EQUIV_WHITESPACE";
+        case EQUIV_IDENTIFIER: return "EQUIV_IDENTIFIER";
+        case EQUIV_OPERATOR:   return "EQUIV_OPERATOR";
+        case EQUIV_NUMBER:     return "EQUIV_NUMBER";
+        case EQUIV_STRING:     return "EQUIV_STRING";
+        case EQUIV_CHAR:       return "EQUIV_CHAR";
+        case EQUIV_COMMENT:    return "EQUIV_COMMENT";
+        case EQUIV_NEWLINE:    return "EQUIV_NEWLINE";
+        case _EQUIV_COUNT_:    return "_EQUIV_COUNT_";
+    }
+    UNREACHABLE;
+    return NULL;
+}
+
+INTERNAL State_Kind transition[_STATE_COUNT_][_EQUIV_COUNT_] =
+{
+    // Parsing identifers
+    [STATE_IN_IDENTIFIER] [EQUIV_IDENTIFIER] = STATE_IN_IDENTIFIER, // cont..
+    [STATE_IN_IDENTIFIER] [EQUIV_NUMBER]     = STATE_IN_IDENTIFIER, // cont..
+    [STATE_IN_IDENTIFIER] [EQUIV_EOF]        = STATE_IDENTIFIER, // end
+    [STATE_IN_IDENTIFIER] [EQUIV_WHITESPACE] = STATE_IDENTIFIER, // end
+    [STATE_IN_IDENTIFIER] [EQUIV_NEWLINE]    = STATE_IDENTIFIER, // end
+    [STATE_IN_IDENTIFIER] [EQUIV_OPERATOR]   = STATE_IDENTIFIER, // end
+    [STATE_IN_IDENTIFIER] [EQUIV_COMMENT]    = STATE_IDENTIFIER, // end
+    [STATE_IN_IDENTIFIER] [EQUIV_STRING]     = STATE_IDENTIFIER, // end
+    [STATE_IN_IDENTIFIER] [EQUIV_CHAR]       = STATE_IDENTIFIER, // end
+    //
+
+    // Parsing whitespace 
+    [STATE_IN_WHITESPACE] [EQUIV_WHITESPACE]  = STATE_IN_WHITESPACE, // cont..
+    [STATE_IN_WHITESPACE] [EQUIV_IDENTIFIER]  = STATE_IN_IDENTIFIER, // end
+    [STATE_IN_WHITESPACE] [EQUIV_COMMENT]     = STATE_IN_COMMENT, // end    
+    [STATE_IN_WHITESPACE] [EQUIV_NEWLINE]     = STATE_NEWLINE, // end
+    [STATE_IN_WHITESPACE] [EQUIV_OPERATOR]    = STATE_OPERATOR, // end
+    [STATE_IN_WHITESPACE] [EQUIV_STRING]      = STATE_STRING, // end
+    [STATE_IN_WHITESPACE] [EQUIV_CHAR]        = STATE_CHAR, // end
+    [STATE_IN_WHITESPACE] [EQUIV_NUMBER]      = STATE_NUMBER, // end
+    // 
+
+    // Parsing comments
+    [STATE_IN_COMMENT] [EQUIV_IDENTIFIER] = STATE_IN_COMMENT, // cont..
+    [STATE_IN_COMMENT] [EQUIV_OPERATOR]   = STATE_IN_COMMENT, // cont..
+    [STATE_IN_COMMENT] [EQUIV_STRING]     = STATE_IN_COMMENT, // cont..
+    [STATE_IN_COMMENT] [EQUIV_CHAR]       = STATE_IN_COMMENT, // cont..
+    [STATE_IN_COMMENT] [EQUIV_NUMBER]     = STATE_IN_COMMENT, // cont..
+    [STATE_IN_COMMENT] [EQUIV_COMMENT]    = STATE_IN_COMMENT, // cont..
+    [STATE_IN_COMMENT] [EQUIV_WHITESPACE] = STATE_IN_COMMENT, // cont..
+    [STATE_IN_COMMENT] [EQUIV_NEWLINE]    = STATE_COMMENT, // end
+    //
+};
+
+INTERNAL s8 in_token[] =
+{
+    [STATE_IN_WHITESPACE] = 0,
+    [STATE_IN_IDENTIFIER] = 1,
+    [STATE_IN_OPERATOR]   = 1,
+    [STATE_IN_NUMBER]     = 1,
+    [STATE_IN_STRING]     = 1,
+    [STATE_IN_CHAR]       = 1,
+    [STATE_IN_COMMENT]    = 1,
+    [STATE_IN_NEWLINE]    = 0,
+};
+
+INTERNAL Equivalence_Kind equivalence[] =
+{
+    ['\0']    = EQUIV_EOF,
+    ['\n']    = EQUIV_NEWLINE,
+    [' ']     = EQUIV_WHITESPACE,
+    ['!']     = EQUIV_OPERATOR,
+    ['"']     = EQUIV_STRING,
+    ['#']     = EQUIV_COMMENT,
+    ['$']     = EQUIV_OPERATOR,
+    ['%']     = EQUIV_OPERATOR,
+    ['&']     = EQUIV_OPERATOR,
+    ['\'']    = EQUIV_CHAR,
+    ['(']     = EQUIV_OPERATOR,
+    [')']     = EQUIV_OPERATOR,
+    ['*']     = EQUIV_OPERATOR,
+    ['+']     = EQUIV_OPERATOR,
+    [',']     = EQUIV_OPERATOR,
+    ['-']     = EQUIV_OPERATOR,
+    ['.']     = EQUIV_OPERATOR,
+    ['/']     = EQUIV_OPERATOR,
+    ['0']     = EQUIV_NUMBER,
+    ['1']     = EQUIV_NUMBER,
+    ['2']     = EQUIV_NUMBER,
+    ['3']     = EQUIV_NUMBER,
+    ['4']     = EQUIV_NUMBER,
+    ['5']     = EQUIV_NUMBER,
+    ['6']     = EQUIV_NUMBER,
+    ['7']     = EQUIV_NUMBER,
+    ['8']     = EQUIV_NUMBER,
+    ['9']     = EQUIV_NUMBER,
+    [':']     = EQUIV_OPERATOR,
+    [';']     = EQUIV_OPERATOR,
+    ['<']     = EQUIV_OPERATOR,
+    ['=']     = EQUIV_OPERATOR,
+    ['>']     = EQUIV_OPERATOR,
+    ['?']     = EQUIV_OPERATOR,
+    ['@']     = EQUIV_OPERATOR,
+    ['A']     = EQUIV_IDENTIFIER,
+    ['B']     = EQUIV_IDENTIFIER,
+    ['C']     = EQUIV_IDENTIFIER,
+    ['D']     = EQUIV_IDENTIFIER,
+    ['E']     = EQUIV_IDENTIFIER,
+    ['F']     = EQUIV_IDENTIFIER,
+    ['G']     = EQUIV_IDENTIFIER,
+    ['H']     = EQUIV_IDENTIFIER,
+    ['I']     = EQUIV_IDENTIFIER,
+    ['J']     = EQUIV_IDENTIFIER,
+    ['K']     = EQUIV_IDENTIFIER,
+    ['L']     = EQUIV_IDENTIFIER,
+    ['M']     = EQUIV_IDENTIFIER,
+    ['N']     = EQUIV_IDENTIFIER,
+    ['O']     = EQUIV_IDENTIFIER,
+    ['P']     = EQUIV_IDENTIFIER,
+    ['Q']     = EQUIV_IDENTIFIER,
+    ['R']     = EQUIV_IDENTIFIER,
+    ['S']     = EQUIV_IDENTIFIER,
+    ['T']     = EQUIV_IDENTIFIER,
+    ['U']     = EQUIV_IDENTIFIER,
+    ['V']     = EQUIV_IDENTIFIER,
+    ['W']     = EQUIV_IDENTIFIER,
+    ['X']     = EQUIV_IDENTIFIER,
+    ['Y']     = EQUIV_IDENTIFIER,
+    ['Z']     = EQUIV_IDENTIFIER,
+    ['[']     = EQUIV_OPERATOR,
+    ['\\']    = EQUIV_OPERATOR,
+    [']']     = EQUIV_OPERATOR,
+    ['^']     = EQUIV_OPERATOR,
+    ['_']     = EQUIV_IDENTIFIER,
+    ['`']     = EQUIV_STRING,
+    ['a']     = EQUIV_IDENTIFIER,
+    ['b']     = EQUIV_IDENTIFIER,
+    ['c']     = EQUIV_IDENTIFIER,
+    ['d']     = EQUIV_IDENTIFIER,
+    ['e']     = EQUIV_IDENTIFIER,
+    ['f']     = EQUIV_IDENTIFIER,
+    ['g']     = EQUIV_IDENTIFIER,
+    ['h']     = EQUIV_IDENTIFIER,
+    ['i']     = EQUIV_IDENTIFIER,
+    ['j']     = EQUIV_IDENTIFIER,
+    ['k']     = EQUIV_IDENTIFIER,
+    ['l']     = EQUIV_IDENTIFIER,
+    ['m']     = EQUIV_IDENTIFIER,
+    ['n']     = EQUIV_IDENTIFIER,
+    ['o']     = EQUIV_IDENTIFIER,
+    ['p']     = EQUIV_IDENTIFIER,
+    ['q']     = EQUIV_IDENTIFIER,
+    ['r']     = EQUIV_IDENTIFIER,
+    ['s']     = EQUIV_IDENTIFIER,
+    ['t']     = EQUIV_IDENTIFIER,
+    ['u']     = EQUIV_IDENTIFIER,
+    ['v']     = EQUIV_IDENTIFIER,
+    ['w']     = EQUIV_IDENTIFIER,
+    ['x']     = EQUIV_IDENTIFIER,
+    ['y']     = EQUIV_IDENTIFIER,
+    ['z']     = EQUIV_IDENTIFIER,
+    ['{']     = EQUIV_OPERATOR,
+    ['|']     = EQUIV_OPERATOR,
+    ['}']     = EQUIV_OPERATOR,
+    ['~']     = EQUIV_OPERATOR,
+};
+typedef enum
+{
     TOKEN_EOF = 0,
     TOKEN_UNKNOWN,
 
@@ -42,8 +279,8 @@ typedef enum {
     TOKEN_FLOAT,
     TOKEN_CHAR,
     TOKEN_STRING,
-    TOKEN_BLOCK_START,
-    TOKEN_BLOCK_END,
+    TOKEN_INDENT,
+    TOKEN_DEDENT,
 
     _START_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_,
     
@@ -72,13 +309,13 @@ typedef enum {
     _END_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_, // @Volatile: do not move me please.
 
 
-    _token_kind_t_count_
-} token_kind_t;
+    _Token_Kind_count_
+} Token_Kind;
 
-internal u8*
-token_kind_to_str(token_kind_t kind)
+INTERNAL u8*
+token_kind_to_str(Token_Kind kind)
 {
-    ASSERT_KIND_IN_RANGE(token_kind_t, kind);
+    ASSERT_KIND_IN_RANGE(Token_Kind, kind);
     switch(kind)
     {
         ERROR_UNHANDLED_KIND(strf("%d", kind));
@@ -123,8 +360,8 @@ token_kind_to_str(token_kind_t kind)
         case TOKEN_FLOAT:            return "TOKEN_FLOAT";
         case TOKEN_STRING:           return "TOKEN_STRING";
         case TOKEN_CHAR:             return "TOKEN_CHAR";
-        case TOKEN_BLOCK_START:      return "TOKEN_BLOCK_START";
-        case TOKEN_BLOCK_END:        return "TOKEN_BLOCK_END";
+        case TOKEN_INDENT:           return "TOKEN_INDENT";
+        case TOKEN_DEDENT:           return "TOKEN_DEDENT";
 
         case TOKEN_DEF:              return "TOKEN_DEF";
         case TOKEN_TRUE:             return "TOKEN_TRUE";
@@ -151,33 +388,35 @@ token_kind_to_str(token_kind_t kind)
 
 typedef struct
 {
-    token_kind_t kind;
+    Token_Kind kind;
     u8* start;
     u8* end;
-} token_t;
+    s64 line;
+    s64 col;
+} Token;
 
 typedef struct
 {
     u8* str;
     s64 len;
-} intern_t;
+} Intern;
 
 typedef struct
 {
-    intern_t* data;
+    Intern* data;
     s64 count;
     s64 allocated;
-} intern_array_t;
+} Intern_Array;
 
-global_variable intern_array_t interns;
+GLOBAL_VARIABLE Intern_Array interns;
 
-internal u8*
+INTERNAL u8*
 intern_range(u8* start, u8* end)
 {
     s64 len = end - start;
     foreach(i, interns.count)
     {
-        intern_t intern = interns.data[i];
+        Intern intern = interns.data[i];
         if (intern.len == len && strncmp(intern.str, start, len) == 0)
             return intern.str;
     }
@@ -186,16 +425,16 @@ intern_range(u8* start, u8* end)
     while (interns.count >= interns.allocated)
     {
         interns.allocated *= 2;
-        interns.data = xrealloc(interns.data, sizeof(intern_t) * interns.allocated);
+        interns.data = xrealloc(interns.data, sizeof(Intern) * interns.allocated);
     }
 
-    interns.data[interns.count++] = (intern_t){str, len};
+    interns.data[interns.count++] = (Intern){str, len};
 
     return str;
 }
 
 
-internal u8*
+INTERNAL u8*
 intern(u8* str)
 {
     return intern_range(str, str + strlen(str));
@@ -222,11 +461,11 @@ typedef enum
     KEY_FALLTHROUGH,
     KEY_IS,
     KEY_CAST,
-    _keyword_kind_t_count_,
-} keyword_kind_t;
-global_variable u8* interned_keywords[_keyword_kind_t_count_];
+    _Keyword_Kind_count_,
+} Keyword_Kind;
+GLOBAL_VARIABLE u8* interned_keywords[_Keyword_Kind_count_];
 // @Volatile
-global_variable u8* keywords_as_strings[_keyword_kind_t_count_] = {
+GLOBAL_VARIABLE u8* keywords_as_strings[_Keyword_Kind_count_] = {
     "def",
     "true",
     "false",
@@ -247,18 +486,18 @@ global_variable u8* keywords_as_strings[_keyword_kind_t_count_] = {
     "cast",
 };
 
-internal void
+INTERNAL void
 interns_initilize()
 {
-    interns.allocated = _keyword_kind_t_count_;
-    interns.data = xmalloc(sizeof(intern_t) * interns.allocated);
-    foreach(i, _keyword_kind_t_count_)
+    interns.allocated = _Keyword_Kind_count_;
+    interns.data = xmalloc(sizeof(Intern) * interns.allocated);
+    foreach(i, _Keyword_Kind_count_)
         interned_keywords[i] = intern(keywords_as_strings[i]);
 }
 
 
-internal u8*
-token_value(token_t token)
+INTERNAL u8*
+token_value(Token token)
 {
     return (
         token.kind > _START_OF_TOKENS_WHO_STORE_A_ZERO_TERMINATED_STRING_IN_TOKEN_START_ && 
@@ -270,7 +509,7 @@ token_value(token_t token)
 #define IS_ALPHA (*c > 64 && *c < 91 || *c > 96 && *c < 123 || *c == '_')
 
 #define SKIP_WHITESPACE \
-    while (*c == ' ' || *c == '\t' || *c == '\n') ++c;
+    while (*c == ' ' || *c == '\t') ++c;
 
 #define GOTO_END_OF_NUMBER \
     while (IS_NUMBER || *c == '.') ++c;
@@ -281,177 +520,128 @@ token_value(token_t token)
 #define GOTO_END_OF_LINE \
     while (*c != '\n') ++c;
 
-internal token_t*
-lex(u8* source)
+INTERNAL Token
+get_token(u8** source)
 {
     if (!interns.data)
         interns_initilize();
 
-    u64 tokens_count = 0;
-    u64 tokens_allocated = 8;
-
-    token_t* tokens = xmalloc(sizeof(token_t) * tokens_allocated);
-
     // Our character pointer
-    u8* c = source;
+    u8* c = *source;
+    u8* position_of_newline = c;
+    s64 col = 1;
+
+    u64 len = 0;
+    State_Kind state = STATE_IN_WHITESPACE;
+    
+    do // This is based on http://nothings.org/computer/lexing.html
+    {
+        
+        s32 ch              = *c++;
+        Equivalence_Kind eq =  equivalence[ch];
+        state               =  transition[state][eq];
+        len                 += in_token[state];
+
+    } while (state > _STATE_LAST_FINAL_);
+
+    // Set the START and END for this token.
+    // These *might* change underneath here, usually they don't, but sometimes they do.
+    u8* start = --c - len; // need to backtrack a bit
+    u8* end = c;
+
+    // Set the column
+    col = start - position_of_newline;
 
     // Token starts of as unknown
-    token_kind_t kind = TOKEN_UNKNOWN;
-    do
+    Token_Kind kind = TOKEN_UNKNOWN;
+
+    switch(state)
     {
-        kind = TOKEN_UNKNOWN;
-
-        // We skip all initial whitespace
-        SKIP_WHITESPACE;
-
-        // 'c' now points to the start of the character
-        u8* start = c;
-        u8* end = NULL;
-
-        switch (*c)
-        {   
-            default:
-                kind = (token_kind_t)(*c++);
-                end = c;
-                break;
-            case '#':
-            {
-                kind = TOKEN_COMMENT;
-                start = ++c;
-                GOTO_END_OF_LINE;
-                end = c;
-            } break;
-
-            case '\'':
-            {
-                kind = TOKEN_CHAR;
-                start = ++c;
-                if (*c == '\\') ++c;
-                end = ++c;
-                ++c;
-            } break;
-            case '"':
-            {
-                kind = TOKEN_STRING;
-                ++c;
-                start = c;
-                while (*c != '"') ++c;
-                end = c++;
-            } break;
-
-            case '0': FALLTHROUGH;
-            case '1': FALLTHROUGH;
-            case '2': FALLTHROUGH;
-            case '3': FALLTHROUGH;
-            case '4': FALLTHROUGH;
-            case '5': FALLTHROUGH;
-            case '6': FALLTHROUGH;
-            case '7': FALLTHROUGH;
-            case '8': FALLTHROUGH;
-            case '9':
-            {
-                b8 has_decimal = false;
-                while (IS_DIGIT)
-                {
-                    if (*c == '.') has_decimal = true;
-                    ++c;
-                }
-                end = c;
-                kind = has_decimal ? TOKEN_FLOAT : TOKEN_INT;
-            } break;
-
-            // TOKEN_ATOM
-            case '_': FALLTHROUGH;
-            case 'A': FALLTHROUGH;
-            case 'B': FALLTHROUGH;
-            case 'C': FALLTHROUGH;
-            case 'D': FALLTHROUGH;
-            case 'E': FALLTHROUGH;
-            case 'F': FALLTHROUGH;
-            case 'G': FALLTHROUGH;
-            case 'H': FALLTHROUGH;
-            case 'I': FALLTHROUGH;
-            case 'J': FALLTHROUGH;
-            case 'K': FALLTHROUGH;
-            case 'L': FALLTHROUGH;
-            case 'M': FALLTHROUGH;
-            case 'N': FALLTHROUGH;
-            case 'O': FALLTHROUGH;
-            case 'P': FALLTHROUGH;
-            case 'Q': FALLTHROUGH;
-            case 'R': FALLTHROUGH;
-            case 'S': FALLTHROUGH;
-            case 'T': FALLTHROUGH;
-            case 'U': FALLTHROUGH;
-            case 'V': FALLTHROUGH;
-            case 'W': FALLTHROUGH;
-            case 'X': FALLTHROUGH;
-            case 'Y': FALLTHROUGH;
-            case 'Z': FALLTHROUGH;
-            case 'a': FALLTHROUGH;
-            case 'b': FALLTHROUGH;
-            case 'c': FALLTHROUGH;
-            case 'd': FALLTHROUGH;
-            case 'e': FALLTHROUGH;
-            case 'f': FALLTHROUGH;
-            case 'g': FALLTHROUGH;
-            case 'h': FALLTHROUGH;
-            case 'i': FALLTHROUGH;
-            case 'j': FALLTHROUGH;
-            case 'k': FALLTHROUGH;
-            case 'l': FALLTHROUGH;
-            case 'm': FALLTHROUGH;
-            case 'n': FALLTHROUGH;
-            case 'o': FALLTHROUGH;
-            case 'p': FALLTHROUGH;
-            case 'q': FALLTHROUGH;
-            case 'r': FALLTHROUGH;
-            case 's': FALLTHROUGH;
-            case 't': FALLTHROUGH;
-            case 'u': FALLTHROUGH;
-            case 'v': FALLTHROUGH;
-            case 'w': FALLTHROUGH;
-            case 'x': FALLTHROUGH;
-            case 'y': FALLTHROUGH;
-            case 'z':
-            {
-                kind = TOKEN_ATOM;
-                GOTO_END_OF_ATOM;
-                end = c;
-
-                // Intern the string and check if it's a keyword
-                u8* value = intern_range(start, end);
-                foreach(i, _keyword_kind_t_count_)
-                {
-                    // interned strings point to the same address
-                    if (interned_keywords[i] == value)
-                    {
-                        kind = (token_kind_t)(i + _TOKEN_KEYWORDS_START_+1); // keywords start at _TOKEN_KEYWORDS_START_+1 @Volatile
-                        break;
-                    }
-                }
-
-                start = value;
-            } break;
-        }
-
-        // Allocate more tokens if needed
-        while (tokens_count >= tokens_allocated)
+        ERROR_UNHANDLED_KIND(state_kind_to_str(state));
+        
+        case STATE_END:
         {
-            tokens_allocated *= 2; // allocate 2x more
-            tokens = xrealloc(tokens, sizeof(token_t) * tokens_allocated);
-        }
+            kind = TOKEN_EOF;
+        } break;
 
-        // Add to token list
-        tokens[tokens_count++] = (token_t)
+        case STATE_IDENTIFIER:
         {
-            .kind = kind,
-            .start = start,
-            .end = end
-        };
+            kind = TOKEN_ATOM;
 
-    } while(kind); // jumps out on TOKEN_EOF(0)
+            // Intern the string and check if it's a keyword
+            u8* value = intern_range(start, end);
+            foreach(i, _Keyword_Kind_count_)
+            {
+                // interned strings point to the same address
+                if (interned_keywords[i] == value)
+                {
+                    kind = (Token_Kind)(i + _TOKEN_KEYWORDS_START_+1); // keywords start at _TOKEN_KEYWORDS_START_+1 @Volatile
+                    break;
+                }
+            }
+            start = value; // @Hack: we're using something in a way it was ot ment to be used
+        } break;
 
-    return tokens;
+        case STATE_OPERATOR:
+        {
+            kind = (Token_Kind)*c;
+            end = ++c;
+        } break;
+
+        case STATE_NUMBER:
+        {
+            b8 has_decimal = false;
+            while (IS_DIGIT)
+            {
+                if (*c == '.') has_decimal = true;
+                ++c;
+            }
+            end = c;
+            kind = has_decimal ? TOKEN_FLOAT : TOKEN_INT;
+        } break;
+        
+        case STATE_STRING:
+        {
+            kind = TOKEN_STRING;
+            ++c;
+            start = c;
+            while (*c != '"') ++c;
+            end = c++;
+        } break;
+
+        case STATE_CHAR:
+        {
+            kind = TOKEN_CHAR;
+            start = ++c;
+            if (*c == '\\') ++c;
+            end = ++c;
+            ++c;
+        } break;
+
+        case STATE_COMMENT:
+        {
+            kind = TOKEN_COMMENT;
+            start = ++c;
+            GOTO_END_OF_LINE;
+            end = c;
+        } break;
+
+        case STATE_NEWLINE:
+        {
+            kind = TOKEN_NEWLINE;
+            position_of_newline = start+1;
+            end = ++c;
+        } break;
+    }
+
+    // update the source cursor position
+    *source = c;
+
+    return (Token)
+    {
+        .kind = kind,
+        .start = start,
+        .end = end,
+        .col = col,
+    };
 }
-

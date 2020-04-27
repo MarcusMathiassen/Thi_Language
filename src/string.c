@@ -5,14 +5,14 @@ typedef struct
     s64 cap;
 } string;
 
-internal string* make_string(char* str);
-internal string* make_string_f(char* fmt, ...);
-internal void string_destroy(string* this);
-internal char* string_data(string* this);
-internal void string_append(string* this, char* str);
-internal void string_append_f(string* this, char* fmt, ...);
+INTERNAL string* make_string(char* str);
+INTERNAL string* make_string_f(char* fmt, ...);
+INTERNAL void string_destroy(string* this);
+INTERNAL char* string_data(string* this);
+INTERNAL void string_append(string* this, char* str);
+INTERNAL void string_append_f(string* this, char* fmt, ...);
 
-internal string* make_string(char* str)
+INTERNAL string* make_string(char* str)
 {
     xassert(str);
     string* s = xmalloc(sizeof(string));
@@ -22,7 +22,7 @@ internal string* make_string(char* str)
     string_append(s, str);
     return s;
 }
-internal string* make_string_f(char* fmt, ...)
+INTERNAL string* make_string_f(char* fmt, ...)
 {
     xassert(fmt);
     va_list args;
@@ -33,13 +33,13 @@ internal string* make_string_f(char* fmt, ...)
     free(tmp);
     return s;
 }
-internal char* string_data(string* this)
+INTERNAL char* string_data(string* this)
 {
     xassert(this);
     xassert(this->c_str);
     return this->c_str;
 }
-internal void string_append(string* this, char* str)
+INTERNAL void string_append(string* this, char* str)
 {
     xassert(this);
     s64 str_len = strlen(str);
@@ -52,7 +52,7 @@ internal void string_append(string* this, char* str)
     this->len += str_len;
     this->c_str[this->len] = '\0';
 }
-internal void string_append_f(string* this, char* fmt, ...)
+INTERNAL void string_append_f(string* this, char* fmt, ...)
 {
     xassert(this);
     xassert(fmt);
@@ -63,7 +63,7 @@ internal void string_append_f(string* this, char* fmt, ...)
     string_append(this, tmp);
     free(tmp);
 }
-internal void string_destroy(string* this)
+INTERNAL void string_destroy(string* this)
 {
     xassert(this);
     free(this->c_str);

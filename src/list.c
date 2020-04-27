@@ -1,59 +1,59 @@
-typedef struct list_node_t
+typedef struct List_Node
 {
     void* data;
-    struct list_node_t* next;
-    struct list_node_t* prev;
-} list_node_t;
+    struct List_Node* next;
+    struct List_Node* prev;
+} List_Node;
 
 typedef struct
 {
-    list_node_t* head;
-    list_node_t* tail;
+    List_Node* head;
+    List_Node* tail;
     s64 count;
-} list_t;
+} List;
 
-#define list_foreach_reverse(list) for (list_node_t* it = list->tail; it; it = it->prev)
-#define list_foreach(list) for (list_node_t* it = list->head; it; it = it->next)
+#define list_foreach_reverse(list) for (List_Node* it = list->tail; it; it = it->prev)
+#define list_foreach(list) for (List_Node* it = list->head; it; it = it->next)
 
-internal list_t* make_list(void);
-internal void list_free(list_t* l);
-internal void list_sort(list_t* l, bool (*func)(void*, void*));
-internal void* list_append(list_t* list, void* data);
-internal void* list_prepend(list_t* list, void* data);
-internal void* list_last(list_t* list);
-internal void* list_first(list_t* list);
-internal void* list_at(list_t* list, s64 index);
-internal void list_insert_after(list_t* list, list_node_t* prev_node, void* data);
-internal void list_insert_before(list_t* list, list_node_t* next_node, void* data);
-internal void list_append_content_of(list_t* list, list_t* other_list);
-internal void list_append_content_of_in_reverse(list_t* list, list_t* other_list);
-internal void list_prepend_content_of(list_t* list, list_t* other_list);
-internal void list_prepend_content_of_in_reverse(list_t* list, list_t* other_list);
-internal void* list_remove_at(list_t* list, s64 index);
-internal void* list_remove(list_t* list, list_node_t* node);
-internal bool list_empty(list_t* list);
+INTERNAL List* make_list(void);
+INTERNAL void list_free(List* l);
+INTERNAL void list_sort(List* l, bool (*func)(void*, void*));
+INTERNAL void* list_append(List* list, void* data);
+INTERNAL void* list_prepend(List* list, void* data);
+INTERNAL void* list_last(List* list);
+INTERNAL void* list_first(List* list);
+INTERNAL void* list_at(List* list, s64 index);
+INTERNAL void list_insert_after(List* list, List_Node* prev_node, void* data);
+INTERNAL void list_insert_before(List* list, List_Node* next_node, void* data);
+INTERNAL void list_append_content_of(List* list, List* other_list);
+INTERNAL void list_append_content_of_in_reverse(List* list, List* other_list);
+INTERNAL void list_prepend_content_of(List* list, List* other_list);
+INTERNAL void list_prepend_content_of_in_reverse(List* list, List* other_list);
+INTERNAL void* list_remove_at(List* list, s64 index);
+INTERNAL void* list_remove(List* list, List_Node* node);
+INTERNAL bool list_empty(List* list);
 
-internal list_t*
+INTERNAL List*
 make_list()
 {
-    list_t* l = xmalloc(sizeof(list_t));
+    List* l = xmalloc(sizeof(List));
     l->head = NULL;
     l->tail = NULL;
     l->count = 0;
     return l;
 }
 
-internal void
-list_init(list_t* l)
+INTERNAL void
+list_init(List* l)
 {
-    l = xmalloc(sizeof(list_t));
+    l = xmalloc(sizeof(List));
     l->head = NULL;
     l->tail = NULL;
     l->count = 0;
 }
 
-internal void
-list_free(list_t* l)
+INTERNAL void
+list_free(List* l)
 {
     list_foreach(l)
     {
@@ -61,13 +61,13 @@ list_free(list_t* l)
     }
 }
 
-internal bool
-list_empty(list_t* list)
+INTERNAL bool
+list_empty(List* list)
 {
     return (list->head == NULL && list->tail == NULL);
 }
 
-internal void list_prepend_content_of_in_reverse(list_t* list, list_t* other_list)
+INTERNAL void list_prepend_content_of_in_reverse(List* list, List* other_list)
 {
     xassert(list);
     xassert(other_list);
@@ -75,7 +75,7 @@ internal void list_prepend_content_of_in_reverse(list_t* list, list_t* other_lis
         list_prepend(list, it->data);
     }
 }
-internal void list_prepend_content_of(list_t* list, list_t* other_list)
+INTERNAL void list_prepend_content_of(List* list, List* other_list)
 {
     xassert(list);
     xassert(other_list);
@@ -84,7 +84,7 @@ internal void list_prepend_content_of(list_t* list, list_t* other_list)
     }
 }
 
-internal void list_append_content_of_in_reverse(list_t* list, list_t* other_list)
+INTERNAL void list_append_content_of_in_reverse(List* list, List* other_list)
 {
     xassert(list);
     xassert(other_list);
@@ -93,7 +93,7 @@ internal void list_append_content_of_in_reverse(list_t* list, list_t* other_list
     }
 }
 
-internal void list_append_content_of(list_t* list, list_t* other_list)
+INTERNAL void list_append_content_of(List* list, List* other_list)
 {
     xassert(list);
     xassert(other_list);
@@ -103,14 +103,14 @@ internal void list_append_content_of(list_t* list, list_t* other_list)
     }
 }
 
-internal void* list_remove_at(list_t* list, s64 index)
+INTERNAL void* list_remove_at(List* list, s64 index)
 {
     xassert(list);
     xassert(index >= 0 && index <= list->count);
 
     bool start_from_tail = (list->count - index) < index ? true : false;
 
-    list_node_t* removed_node = NULL;
+    List_Node* removed_node = NULL;
     s64 iterator = 0;
 
     if (start_from_tail) {
@@ -135,7 +135,7 @@ internal void* list_remove_at(list_t* list, s64 index)
     return removed_node->data;
 }
 
-internal void* list_remove_at_end(list_t* list)
+INTERNAL void* list_remove_at_end(List* list)
 {
     xassert(list);
     if (list_empty(list)) {
@@ -151,7 +151,7 @@ internal void* list_remove_at_end(list_t* list)
     return list->tail;
 }
 
-internal void* list_remove_at_start(list_t* list) {
+INTERNAL void* list_remove_at_start(List* list) {
     xassert(list);
     if (list_empty(list)) {
         return NULL;
@@ -166,7 +166,7 @@ internal void* list_remove_at_start(list_t* list) {
     return list->head;
 }
 
-internal void* list_remove(list_t* list, list_node_t* node) {
+INTERNAL void* list_remove(List* list, List_Node* node) {
     xassert(list);
     xassert(node);
 
@@ -181,7 +181,7 @@ internal void* list_remove(list_t* list, list_node_t* node) {
     } else if (node == list->head) {
         list_remove_at_start(list);
     } else {
-        list_node_t* current = list->head;
+        List_Node* current = list->head;
         while (current != node) {
             current = current->next;
         }
@@ -196,7 +196,7 @@ internal void* list_remove(list_t* list, list_node_t* node) {
     return node;
 }
 
-internal void* list_at(list_t* list, s64 index) {
+INTERNAL void* list_at(List* list, s64 index) {
     xassert(list);
     xassert(index >= 0 && index <= list->count);
 
@@ -225,12 +225,12 @@ internal void* list_at(list_t* list, s64 index) {
     return data;
 }
 
-internal void* list_prepend(list_t* list, void* data) {
+INTERNAL void* list_prepend(List* list, void* data) {
     xassert(list);
     // xassert(data);
     if (!data) return data;
     ++list->count;
-    list_node_t* new_node = xmalloc(sizeof(list_node_t));
+    List_Node* new_node = xmalloc(sizeof(List_Node));
     new_node->data = data;
     new_node->prev = NULL;
     if (list->head == NULL) {
@@ -244,12 +244,12 @@ internal void* list_prepend(list_t* list, void* data) {
     return new_node->data;
 }
 
-internal void* list_append(list_t* list, void* data) {
+INTERNAL void* list_append(List* list, void* data) {
     tassert(list && data, "%zu, %zu", list, data);
     // xassert(data);
     if (!data) return data;
     ++list->count;
-    list_node_t* new_node = xmalloc(sizeof(list_node_t));
+    List_Node* new_node = xmalloc(sizeof(List_Node));
     new_node->data = data;
     new_node->next = NULL;
     new_node->prev = list->tail;
@@ -263,19 +263,19 @@ internal void* list_append(list_t* list, void* data) {
     return new_node->data;
 }
 
-internal void* list_first(list_t* list) {
+INTERNAL void* list_first(List* list) {
     xassert(list);
     return list->head->data;
 }
 
-internal void* list_last(list_t* list) {
+INTERNAL void* list_last(List* list) {
     xassert(list);
     return list->tail->data;
 }
 
-internal void list_insert_after(list_t* list, list_node_t* prev_node, void* data) {
+INTERNAL void list_insert_after(List* list, List_Node* prev_node, void* data) {
     xassert(prev_node);
-    list_node_t* new_node = xmalloc(sizeof(list_node_t));
+    List_Node* new_node = xmalloc(sizeof(List_Node));
     new_node->data = data;
     new_node->next = prev_node->next;
     new_node->prev = prev_node;
@@ -287,9 +287,9 @@ internal void list_insert_after(list_t* list, list_node_t* prev_node, void* data
     }
 }
 
-internal void list_insert_before(list_t* list, list_node_t* next_node, void* data) {
+INTERNAL void list_insert_before(List* list, List_Node* next_node, void* data) {
     xassert(next_node);
-    list_node_t* new_node = xmalloc(sizeof(list_node_t));
+    List_Node* new_node = xmalloc(sizeof(List_Node));
     new_node->data = data;
     new_node->next = next_node;
     new_node->prev = next_node->prev;
@@ -302,10 +302,10 @@ internal void list_insert_before(list_t* list, list_node_t* next_node, void* dat
 }
 
 // Bubble sorted atm. @Speed
-internal void list_sort(list_t* l, bool (*func)(void*, void*)) {
+INTERNAL void list_sort(List* l, bool (*func)(void*, void*)) {
     xassert(l && func);
     bool swapped = false;
-    list_node_t *a = NULL;
+    List_Node *a = NULL;
     do
     { 
         swapped = false; 

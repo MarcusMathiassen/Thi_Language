@@ -4,16 +4,16 @@ typedef struct
 {
     string* data;
     string* text;
-} codegen_ctx_t;
+} Codegen_Context;
 
 typedef struct
 {
-} value_t;
+} Value;
 
-internal value_t* codegen(codegen_ctx_t* ctx, ast_t* node);
+INTERNAL Value* codegen(Codegen_Context* ctx, AST* node);
 
-internal void
-emit(codegen_ctx_t* ctx, u8* fmt, ...)
+INTERNAL void
+emit(Codegen_Context* ctx, u8* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -34,17 +34,17 @@ emit(codegen_ctx_t* ctx, u8* fmt, ...)
     string_append_f(ctx->text, is_label ? "%s\n" : "\t%s\n", tmp);
 }
 
-internal value_t* _codegen_ast_comment       (codegen_ctx_t* ctx, ast_t* node)
+INTERNAL Value* _codegen_ast_comment       (Codegen_Context* ctx, AST* node)
 {
     CODEGEN_TRACE;
     return NULL;
 }
-internal value_t* _codegen_ast_atom          (codegen_ctx_t* ctx, ast_t* node)
+INTERNAL Value* _codegen_ast_atom          (Codegen_Context* ctx, AST* node)
 {
     CODEGEN_TRACE;
     return NULL;
 }
-internal value_t* _codegen_ast_literal       (codegen_ctx_t* ctx, ast_t* node)
+INTERNAL Value* _codegen_ast_literal       (Codegen_Context* ctx, AST* node)
 {
     CODEGEN_TRACE;
     switch(node->Literal.kind)
@@ -68,51 +68,49 @@ internal value_t* _codegen_ast_literal       (codegen_ctx_t* ctx, ast_t* node)
     }
     return NULL;
 }
-internal value_t* _codegen_ast_grouping      (codegen_ctx_t* ctx, ast_t* node)
+INTERNAL Value* _codegen_ast_grouping      (Codegen_Context* ctx, AST* node)
 {
     CODEGEN_TRACE;
     if (node->Grouping.expr) codegen(ctx, node->Grouping.expr);
     return NULL;
 }
-internal value_t* _codegen_ast_unary         (codegen_ctx_t* ctx, ast_t* node)
+INTERNAL Value* _codegen_ast_unary         (Codegen_Context* ctx, AST* node)
 {
     CODEGEN_TRACE;
     return NULL;
 }
-internal value_t* _codegen_ast_lambda        (codegen_ctx_t* ctx, ast_t* node)
+INTERNAL Value* _codegen_ast_lambda        (Codegen_Context* ctx, AST* node)
 {
     CODEGEN_TRACE;
-    ast_t* params = node->Lambda.params;
-    ast_t* block = node->Lambda.block;
+    AST* params = node->Lambda.params;
+    AST* block = node->Lambda.block;
 
     codegen(ctx, block);
 
     return NULL;
 }
-internal value_t* _codegen_ast_named_lambda  (codegen_ctx_t* ctx, ast_t* node)
+INTERNAL Value* _codegen_ast_named_lambda  (Codegen_Context* ctx, AST* node)
 {
     CODEGEN_TRACE;
     char* name = node->Named_Lambda.name;
     emit(ctx, "_%s:", name);
 
-    emit(ctx, "mov rbp, rsp");
     codegen(ctx, node->Named_Lambda.lambda);
-    emit(ctx, "ret");
     return NULL;
 }
-internal value_t* _codegen_ast_return        (codegen_ctx_t* ctx, ast_t* node)
+INTERNAL Value* _codegen_ast_return        (Codegen_Context* ctx, AST* node)
 {
     CODEGEN_TRACE;
     codegen(ctx, node->Return.expr);
-    emit(ctx, "jmp .end");
+    emit(ctx, "ret");
     return NULL;
 }
-internal value_t* _codegen_ast_variable_decl (codegen_ctx_t* ctx, ast_t* node)
+INTERNAL Value* _codegen_ast_variable_decl (Codegen_Context* ctx, AST* node)
 {
     CODEGEN_TRACE;
     return NULL;
 }
-internal value_t* _codegen_ast_module        (codegen_ctx_t* ctx, ast_t* node)
+INTERNAL Value* _codegen_ast_module        (Codegen_Context* ctx, AST* node)
 {
     CODEGEN_TRACE;
     list_foreach(node->Module.stmts)
@@ -122,7 +120,17 @@ internal value_t* _codegen_ast_module        (codegen_ctx_t* ctx, ast_t* node)
     return NULL;
 }
 
-global_variable value_t* (*codegen_transitions[])(codegen_ctx_t*, ast_t*) =
+INTERNAL Value* _codegen_ast_block        (Codegen_Context* ctx, AST* node)
+{
+    CODEGEN_TRACE;
+    list_foreach(node->Block.stmts)
+    {
+        codegen(ctx, it->data);
+    }
+    return NULL;
+}
+
+GLOBAL_VARIABLE Value* (*codegen_transitions[])(Codegen_Context*, AST*) =
 {
     [AST_COMMENT]       = _codegen_ast_comment,
     [AST_ATOM]          = _codegen_ast_atom,
@@ -133,32 +141,38 @@ global_variable value_t* (*codegen_transitions[])(codegen_ctx_t*, ast_t*) =
     [AST_NAMED_LAMBDA]  = _codegen_ast_named_lambda,
     [AST_RETURN]        = _codegen_ast_return,
     [AST_VARIABLE_DECL] = _codegen_ast_variable_decl,
+    [AST_BLOCK]         = _codegen_ast_block,
     [AST_MODULE]        = _codegen_ast_module,
 };
 
 
-internal value_t* codegen(codegen_ctx_t* ctx, ast_t* node)
+INTERNAL Value* codegen(Codegen_Context* ctx, AST* node)
 {
     xassert(ctx);
-    ast_kind_t kind = node->kind;
-    value_t* (*func)(codegen_ctx_t*, ast_t*) = (*codegen_transitions[kind]);
-    tassert(func, "codegen missing callback for %s", kind);
+    AST_Kind kind = node->kind;
+    Value* (*func)(Codegen_Context*, AST*) = (*codegen_transitions[kind]);
+    tassert(func, "codegen missing callback for %s", ast_kind_to_str(kind));
     return (*func)(ctx, node);
 }
 
-internal u8*
-to_x64(ast_t* ast)
+INTERNAL u8*
+to_x64(AST* ast)
 {
-    codegen_ctx_t ctx = (codegen_ctx_t)
+    Codegen_Context ctx = (Codegen_Context)
     {
         .data = make_string(""),
         .text = make_string(""),
     };
 
+    string_append(ctx.data, "section .data\n");
+    string_append(ctx.text, "section .text\n");
+    string_append(ctx.text, "global _main\n");
+
     codegen(&ctx, ast);
 
     char* code = strf("%s%s", string_data(ctx.data), string_data(ctx.text));
     debug("%s", code);
+
     string_destroy(ctx.data);
     string_destroy(ctx.text);
 

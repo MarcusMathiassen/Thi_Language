@@ -1,3 +1,5 @@
+#include <mach/mach_time.h> // mach_timebase_info_data_t, mach_absolute_time
+
 #if DEV
     #define xmalloc(bytes) (_malloc(bytes, __FILE__, (char*)__func__, __LINE__))
     #define xcalloc(size, bytes) (_calloc(size, bytes, __FILE__, (char*)__func__, __LINE__))
@@ -25,13 +27,13 @@
 #endif
 
 // Forward decls
-internal void* _malloc(s64 bytes, char* file, char* func, s64 line);
-internal void* _calloc(s64 size, s64 bytes, char* file, char* func, s64 line);
-internal void* _realloc(void* ptr, s64 bytes, char* file, char* func, s64 line);
-internal void error(u8* fmt, ...);
-internal u8* strf(u8* fmt, ...);
+INTERNAL void* _malloc(s64 bytes, char* file, char* func, s64 line);
+INTERNAL void* _calloc(s64 size, s64 bytes, char* file, char* func, s64 line);
+INTERNAL void* _realloc(void* ptr, s64 bytes, char* file, char* func, s64 line);
+INTERNAL void error(u8* fmt, ...);
+INTERNAL u8* strf(u8* fmt, ...);
 
-internal void
+INTERNAL void
 _tassert(char* expr_str, char* file, char* func, int line, char* fmt, ...)
 {
     xassert(fmt);
@@ -46,7 +48,7 @@ _tassert(char* expr_str, char* file, char* func, int line, char* fmt, ...)
     error("[%s:%s:%s] ASSERT %s %s", (file), (func), (strf("%d", line)), (expr_str), str);
 }
 
-internal void*
+INTERNAL void*
 _malloc(s64 bytes, char* file, char* func, s64 line)
 {
     xassert(bytes != 0);
@@ -55,7 +57,7 @@ _malloc(s64 bytes, char* file, char* func, s64 line)
     return alloc;
 }
 
-internal void*
+INTERNAL void*
 _calloc(s64 size, s64 bytes, char* file, char* func, s64 line)
 {
     xassert(size != 0);
@@ -65,7 +67,7 @@ _calloc(s64 size, s64 bytes, char* file, char* func, s64 line)
     return alloc;
 }
 
-internal void*
+INTERNAL void*
 _realloc(void* ptr, s64 bytes, char* file, char* func, s64 line)
 {
     xassert(ptr);
@@ -74,8 +76,16 @@ _realloc(void* ptr, s64 bytes, char* file, char* func, s64 line)
     if (!alloc) error("[%s:%s:%lld] realloc(%lld, %llu) failed", file, func, line, (u64)ptr, bytes);
     return alloc;
 }
+INTERNAL s64
+_strlen(char* str, char* file, char* func, s64 line)
+{
+    xassert(str);
+    s64 len = strlen(str);
+    if (!len) error("[%s:%s:%lld] strlen(%s) failed", file, func, line, str);
+    return len;
+}
 
-internal u8* 
+INTERNAL u8* 
 strn(u8* start, u8* end)
 {
     s64 len = end - start;
@@ -85,7 +95,7 @@ strn(u8* start, u8* end)
     return str;
 }
 
-internal u8*
+INTERNAL u8*
 strf(u8* fmt, ...)
 {
     xassert(fmt);
@@ -101,7 +111,7 @@ strf(u8* fmt, ...)
     return str;
 }
 
-internal u8* vstrf(u8* fmt, va_list args)
+INTERNAL u8* vstrf(u8* fmt, va_list args)
 {
     xassert(fmt);
     va_list args_count;
@@ -114,7 +124,7 @@ internal u8* vstrf(u8* fmt, va_list args)
     return str;
 }
 
-internal char* get_file_extension(char* filename)
+INTERNAL char* get_file_extension(char* filename)
 {
     xassert(filename);
     s64 len = strlen(filename);
@@ -138,7 +148,7 @@ internal char* get_file_extension(char* filename)
     return str;
 }
 
-internal char* remove_file_extension(char* filename)
+INTERNAL char* remove_file_extension(char* filename)
 {
     xassert(filename);
     s64 len = strlen(filename);
@@ -156,7 +166,7 @@ internal char* remove_file_extension(char* filename)
     return str;
 }
 
-internal char* get_file_directory(char* filename)
+INTERNAL char* get_file_directory(char* filename)
 {
     xassert(filename);
     s64 len = strlen(filename);
@@ -174,7 +184,7 @@ internal char* get_file_directory(char* filename)
     return str;
 }
 
-internal char* get_file_name(char* filename)
+INTERNAL char* get_file_name(char* filename)
 {
     xassert(filename);
     s64 len = strlen(filename);
@@ -194,7 +204,7 @@ internal char* get_file_name(char* filename)
     return str;
 }
 
-internal u8*
+INTERNAL u8*
 get_file_content(u8* filename)
 {
     u8* buffer = NULL;
@@ -212,7 +222,7 @@ get_file_content(u8* filename)
     return buffer;
 }
 
-internal void
+INTERNAL void
 write_to_file(u8* filename, u8* buffer)
 {
     xassert(filename);
@@ -227,7 +237,7 @@ write_to_file(u8* filename, u8* buffer)
     fclose(f);
 }
 
-internal void
+INTERNAL void
 info(u8* fmt, ...)
 {
     xassert(fmt);
@@ -239,7 +249,7 @@ info(u8* fmt, ...)
     va_end(args);   
 }
 
-internal void
+INTERNAL void
 warning(u8* fmt, ...)
 {
     xassert(fmt);
@@ -251,7 +261,7 @@ warning(u8* fmt, ...)
     va_end(args);
 }
 
-internal void
+INTERNAL void
 success(u8* fmt, ...)
 {
     xassert(fmt);
@@ -263,7 +273,7 @@ success(u8* fmt, ...)
     va_end(args);
 }
 
-internal void
+INTERNAL void
 error(u8* fmt, ...)
 {
     xassert(fmt);
@@ -277,7 +287,7 @@ error(u8* fmt, ...)
 }
 
 
-internal u8*
+INTERNAL u8*
 time_with_suffix(u64 n)
 {
     u64 m = (n >= HOURS(1ULL) ? 
@@ -288,30 +298,30 @@ time_with_suffix(u64 n)
             ? n / MICROSECONDS(1ULL) :  n >= NANOSECONDS(1ULL) 
             ? n / NANOSECONDS(1ULL) : n);
 
-    u8* suffix = (n >= HOURS(1ULL) ? DEFAULT_HOURS_SUFFIX
-        : n >= MINUTES(1ULL) ? DEFAULT_MINUTES_SUFFIX
-        : n >= SECONDS(1ULL) ? DEFAULT_SECONDS_SUFFIX
-        : n >= MILLISECONDS(1ULL) ? DEFAULT_MILLISECONDS_SUFFIX
-        : n >= MICROSECONDS(1ULL) ? DEFAULT_MICROSECONDS_SUFFIX
-        : n >= NANOSECONDS(1ULL) ? DEFAULT_NANOSECONDS_SUFFIX
+    u8* suffix = (n >= HOURS(1ULL) ? HOURS_SUFFIX
+        : n >= MINUTES(1ULL) ? MINUTES_SUFFIX
+        : n >= SECONDS(1ULL) ? SECONDS_SUFFIX
+        : n >= MILLISECONDS(1ULL) ? MILLISECONDS_SUFFIX
+        : n >= MICROSECONDS(1ULL) ? MICROSECONDS_SUFFIX
+        : n >= NANOSECONDS(1ULL) ? NANOSECONDS_SUFFIX
         : "");
     
     return strf("%llu%s", m, suffix);
 }
 
-internal u8*
+INTERNAL u8*
 size_with_suffix(u64 n)
 {
     u64 m = (n >= GIGABYTES(1ULL) ? n / GIGABYTES(1ULL) : n >= MEGABYTES(1ULL) ? n / MEGABYTES(1ULL) :  n >= KILOBYTES(1ULL) ? n / KILOBYTES(1ULL) :  n >= BYTES(1ULL) ? n / BYTES(1ULL) : n);
-    u8* suffix = (n >= GIGABYTES(1ULL) ? DEFAULT_GIGABYTE_SUFFIX
-        : n >= MEGABYTES(1ULL) ? DEFAULT_MEGABYTE_SUFFIX
-        :  n >= KILOBYTES(1ULL) ? DEFAULT_KILOBYTE_SUFFIX
-        :  n >= BYTES(1ULL) ? DEFAULT_BYTE_SUFFIX
+    u8* suffix = (n >= GIGABYTES(1ULL) ? GIGABYTE_SUFFIX
+        : n >= MEGABYTES(1ULL) ? MEGABYTE_SUFFIX
+        :  n >= KILOBYTES(1ULL) ? KILOBYTE_SUFFIX
+        :  n >= BYTES(1ULL) ? BYTE_SUFFIX
         : "");
     return strf("%llu%s", m, suffix);
 }
 
-global_variable char* colors[] =
+GLOBAL_VARIABLE char* colors[] =
 {
     "\033[31m", // red
     "\033[32m", // green
@@ -321,8 +331,8 @@ global_variable char* colors[] =
     "\033[36m", // cyan,
 };
 
-global_variable u8 color_iterator = 0;
-internal u8*
+GLOBAL_VARIABLE u8 color_iterator = 0;
+INTERNAL u8*
 give_unique_color(char* str)
 {
     xassert(str);
@@ -332,3 +342,58 @@ give_unique_color(char* str)
 }
 
 #define ucolor(x) give_unique_color(x)
+
+INTERNAL u64 get_time()
+{
+    mach_timebase_info_data_t info;
+    if (mach_timebase_info(&info) != KERN_SUCCESS) abort();
+    return (mach_absolute_time() * info.numer / info.denom);
+}
+
+INTERNAL char* table_entry(char* left, char* right)
+{
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    s64 len = xstrlen(left);
+    s64 ms_l = xstrlen(right);
+    s64 padding = w.ws_col - len - ms_l;
+    return strf("%s%*s%s", left, padding, "", right);
+}
+
+INTERNAL char* str_replace_center(char* str, char* into)
+{
+    s64 slen = xstrlen(str);
+    s64 ilen = xstrlen(into);
+
+    s64 imid = ilen/2;
+    s64 i_starting_point = imid - slen/2;
+
+    for (s64 i = i_starting_point; i < slen+i_starting_point; ++i) {
+        into[i] = str[i-i_starting_point];
+    }
+
+    return into;
+}
+
+INTERNAL char* pad_out_full_width(char ch)
+{
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    char* str = xmalloc(w.ws_col + 1);
+    foreach(i, w.ws_col)
+        str[i] = ch;
+    str[w.ws_col] = '\0';
+    return str;
+}
+
+INTERNAL char* align_center(char* str)
+{
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    
+    s64 len = xstrlen(str);
+    s64 middle = w.ws_col / 2;
+    s64 padding = middle - len / 2;
+
+    return strf("%*s%s", padding, "", str);    
+}

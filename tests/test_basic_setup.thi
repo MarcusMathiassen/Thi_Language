@@ -1,6 +1,7 @@
 # Hi, I am comment!
-
 # <atom> (<param_list>)
 
-main()
+main(argc int )
+    i f32
     return 1
+
